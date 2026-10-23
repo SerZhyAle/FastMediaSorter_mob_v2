@@ -5,12 +5,23 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveHttpClient
 import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
 import com.sza.fastmediasorter.domain.identity.GoogleScope
+import com.sza.fastmediasorter.domain.identity.GoogleTokenResult
 import com.sza.fastmediasorter.domain.identity.PrimaryGoogleAccountState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
 import java.net.URL
+
+/** S4427: the outcome of [GoogleDriveAuthCoordinator.fetchAppDataToken]. */
+sealed interface AppDataToken {
+    data class Token(val value: String) : AppDataToken
+
+    /** Signed in, but `drive.appdata` was never granted to this app. */
+    data object ConsentRequired : AppDataToken
+
+    data object Unavailable : AppDataToken
+}
 
 /**
  * Owns Drive HTTP token plumbing for GoogleDriveRestClient.
@@ -104,22 +115,29 @@ class GoogleDriveAuthCoordinator(
      * reused as is; the GMS path mints a second, appdata-only token and never touches the cached
      * browsing token, which other Drive calls read synchronously.
      */
-    suspend fun fetchAppDataAccessToken(): String? {
+    suspend fun fetchAppDataToken(): AppDataToken {
         val browserSessionToken = if (!gmsOnlyMode && browserAuthManager.hasActiveSession()) {
             browserAuthManager.getFreshAccessToken()
         } else {
             null
         }
-        return browserSessionToken ?: resolveAppDataTokenWithoutSession()
+        return browserSessionToken?.let(AppDataToken::Token) ?: resolveAppDataTokenWithoutSession()
     }
 
-    private suspend fun resolveAppDataTokenWithoutSession(): String? {
+    private suspend fun resolveAppDataTokenWithoutSession(): AppDataToken {
         val bound = identityRepository.state.value as? PrimaryGoogleAccountState.Bound
-        val gmsToken = if (bound == null) null else identityRepository.getAccessToken(appDataScopes)?.token
+        val gms = when (bound) {
+            null -> GoogleTokenResult.Unavailable
+            else -> identityRepository.issueAccessToken(appDataScopes)
+        }
         return when {
-            gmsToken != null -> gmsToken
-            !gmsOnlyMode && browserAuthManager.ensureActiveFromStored() -> browserAuthManager.getFreshAccessToken()
-            else -> null
+            gms is GoogleTokenResult.Granted -> AppDataToken.Token(gms.token.token)
+            // S4427: the account is signed in and only the app folder grant is missing - a stored
+            // browser credential would hide that, and the user could never be offered the grant.
+            gms is GoogleTokenResult.ConsentRequired -> AppDataToken.ConsentRequired
+            !gmsOnlyMode && browserAuthManager.ensureActiveFromStored() ->
+                browserAuthManager.getFreshAccessToken()?.let(AppDataToken::Token) ?: AppDataToken.Unavailable
+            else -> AppDataToken.Unavailable
         }
     }
 

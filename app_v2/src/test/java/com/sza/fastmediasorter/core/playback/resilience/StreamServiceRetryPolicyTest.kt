@@ -169,6 +169,50 @@ class StreamServiceRetryPolicyTest {
         assertEquals(retryAfter(DELAY_1_MS), policy.onFailure(ioFailure(), FIRST_RETRY_AT_MS))
     }
 
+    /**
+     * S4424: the 2026-10-19 archive shape - a played station times out twice, a couple of minutes
+     * apart, and recovers each time. The second outage must start the ladder from the base delay.
+     */
+    @Test
+    fun `two recovered timeouts of a played station each start from the base delay`() {
+        val policy = startedPolicy(playedBefore = true)
+
+        assertEquals(retryAfter(DELAY_1_MS), policy.onFailure(ioFailure(), FIRST_RETRY_AT_MS))
+        assertEquals(IGNORE, policy.onRetryDue(FIRST_RETRY_AT_MS + DELAY_1_MS))
+        policy.onStreamReady()
+
+        val secondOutageAtMs = FIRST_RETRY_AT_MS + SECOND_OUTAGE_OFFSET_MS
+        assertEquals(retryAfter(DELAY_1_MS), policy.onFailure(ioFailure(), secondOutageAtMs))
+        assertEquals(IGNORE, policy.onRetryDue(secondOutageAtMs + DELAY_1_MS))
+    }
+
+    @Test
+    fun `a played-before answer about the previous station does not reach the next one`() {
+        val policy = StreamServiceRetryPolicy()
+        policy.onStreamChanged(CONNECTED_AT_MS, STATION_B)
+        policy.onKnownPlayedBefore(true, STATION_A)
+
+        assertEquals(IGNORE, policy.onFailure(ioFailure(), CONNECT_WINDOW_CLOSES_AT_MS))
+    }
+
+    @Test
+    fun `a catalog answer about the previous station does not open the reconnect window`() {
+        val policy = StreamServiceRetryPolicy()
+        policy.onStreamChanged(CONNECTED_AT_MS, STATION_B)
+        policy.onCatalogStreamPlaying(STATION_A)
+
+        assertEquals(GIVE_UP, policy.onRetryDue(CONNECT_WINDOW_CLOSES_AT_MS))
+    }
+
+    @Test
+    fun `an answer about the current station still applies`() {
+        val policy = StreamServiceRetryPolicy()
+        policy.onStreamChanged(CONNECTED_AT_MS, STATION_B)
+        policy.onCatalogStreamPlaying(STATION_B)
+
+        assertEquals(retryAfter(DELAY_1_MS), policy.onFailure(ioFailure(), FAR_FUTURE_MS))
+    }
+
     /** The catalog lookup that seeds the played flag lands after the reset, exactly as it does live. */
     private fun startedPolicy(playedBefore: Boolean = false): StreamServiceRetryPolicy {
         val policy = StreamServiceRetryPolicy()
@@ -215,6 +259,10 @@ class StreamServiceRetryPolicyTest {
         const val LATER_RETRY_OFFSET_MS = 90_000L
         const val RECONNECT_WINDOW_CLOSES_AT_MS = FIRST_RETRY_AT_MS + RECONNECT_WINDOW_MS
         const val FAR_FUTURE_MS = 30L * 24 * 60 * 60 * 1000
+
+        const val SECOND_OUTAGE_OFFSET_MS = 115_000L
+        const val STATION_A = "https://radio.example/a.aacp"
+        const val STATION_B = "https://radio.example/b.aacp"
 
         const val HTTP_NOT_FOUND = 404
         const val HTTP_SERVICE_UNAVAILABLE = 503

@@ -46,7 +46,7 @@ _Generated from the app. Do not edit by hand._
 | Reset SMB | Clears all saved SMB network connection credentials and configurations. |
 | Restore settings from Google Drive | Restores app settings from a backup stored in your Google Drive account. |
 | Save Debug Logs | Saves the current debug log to a file on the device for sharing or inspection. |
-| Change | Picks which of your exchange servers the share is published through; the line above names the current outgoing server. |
+| Change | Changes which of your exchange servers the share and broadcasts go through. The outgoing server is chosen by itself: the first server you add becomes outgoing, and removing it passes the role to the next one. The line above names the current outgoing server. |
 | About folders through the exchange server | Opens the portal page about sharing a folder on this phone and opening it on another of your devices from any network. |
 | My devices | Opens My devices, where you add, move, share and remove your exchange servers. |
 | New access link | Issues a new access link: every code shared before stops opening this server through the exchange server. |
@@ -109,7 +109,7 @@ _Generated from the app. Do not edit by hand._
 | Show resource actions in menu ⋮ | Off adds shortcut buttons for the frequent resource actions (edit, duplicate, move, delete) directly on the row. The ⋮ menu with the full action list is always available either way. |
 | Secure sensitive screens | Blocks screenshots and the Recents preview on screens that show passwords (add/edit resource, credentials in Settings, the login WebView, and the credential QR). On by default. |
 | Share access through Google Drive | Puts the SFTP server's address, login and password in your Google Drive app folder so your devices on the same Google account can connect; off by default, and while off those devices see the share but cannot connect to it. |
-| Exchange server | Publishes the SFTP share through your outgoing exchange server so your devices in any network can reach it; with no outgoing server chosen it asks for one first, and off keeps the share local-network only. |
+| Exchange server | Publishes the SFTP share through your outgoing exchange server so your devices in any network can reach it; with no server that may publish it leads to My devices to add one, and off keeps the share local-network only. |
 | SFTP server | Starts or stops the SFTP server; while it runs a notification with a Stop action stays in the shade. |
 | Show hidden files | Shows files and folders whose names begin with a dot (hidden by convention). |
 | Programs panel | Shows a horizontal panel of programs and scenarios above the resource list, mirroring the programs menu. |

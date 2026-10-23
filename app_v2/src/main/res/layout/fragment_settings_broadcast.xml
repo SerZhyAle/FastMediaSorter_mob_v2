@@ -25,6 +25,17 @@
         app:sir_title="@string/settings_broadcast_stream_title"
         app:sir_hint="@string/broadcast_default_stream_title" />
 
+    <!-- S4405: opens the link password dialog the share panel uses; the mode applies once the broadcast is announced. -->
+    <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+        android:id="@+id/rowLinkPassword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:focusable="true"
+        android:clickable="true"
+        app:ssr_title="@string/broadcast_link_password_title"
+        app:ssr_subtitle="@string/broadcast_link_password_settings_lan"
+        app:ssr_showChevron="true" />
+
     <com.sza.fastmediasorter.ui.common.widget.SettingsValueRowGroup
         android:id="@+id/broadcastConfigGroup"
         android:layout_width="match_parent"

@@ -1156,4 +1156,8 @@
     <string name="wear_open_in_role_last_used">Последнее</string>
     <string name="wear_open_in_role_browser">Браузер</string>
     <string name="wear_open_in_role_maps">Карты</string>
+    <string name="wear_broadcast_server_announcing">Сервер: объявляется</string>
+    <string name="wear_broadcast_server_on">На сервере обмена</string>
+    <string name="wear_broadcast_server_failed">Ошибка сервера - см. телефон</string>
+    <string name="wear_broadcast_server_local_only">Только в этой сети</string>
 </resources>

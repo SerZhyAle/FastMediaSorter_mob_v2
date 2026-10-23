@@ -63,6 +63,8 @@ object HomeWidgetGadgetModule {
         audioNowPlaying: AudioNowPlayingGadget,
         youtube: YouTubeGadget,
         youtubeMusic: YouTubeMusicGadget,
+        randomPhotoFrame: RandomPhotoFrameGadget,
+        cameraQuickCapture: CameraQuickCaptureGadget,
     ): List<LauncherGadget> = listOf(
         // The two list widgets: their own classes, because a live list is not a fixed command.
         favorites,
@@ -71,7 +73,7 @@ object HomeWidgetGadgetModule {
         audioNowPlaying,
         youtube,
         youtubeMusic,
-    ) + singleScreenWidgetGadgets() + configurableWidgetGadgets()
+    ) + singleScreenWidgetGadgets() + configurableWidgetGadgets(randomPhotoFrame, cameraQuickCapture)
 
     private fun singleScreenWidgetGadgets(): List<LauncherGadget> =
         singleScreenWidgetGadgetsGroup1() + singleScreenWidgetGadgetsGroup2()
@@ -174,17 +176,20 @@ object HomeWidgetGadgetModule {
     )
 
     /**
-     * S1930: the widgets whose desktop cell owns a configured instance. Constructed rather than
-     * injected, like every `HomeWidgetGadget` above - each reads its instance out of the cell param
-     * and needs nothing from the graph.
+     * S1930: the widgets whose desktop cell owns a configured instance. Each reads its instance out of
+     * the cell param; S4428 injects them because both start their own screens through the shared
+     * launcher task policy, which lives in `ExecuteLauncherCommandUseCase`.
      *
      * Their own function rather than two more lines in the list: that list is at detekt's `LongMethod`
      * ceiling, and this is where the third such widget goes - beside the one row it also owes
      * `ConfigurableWidgetCatalog`.
      */
-    private fun configurableWidgetGadgets(): List<LauncherGadget> = listOf(
-        RandomPhotoFrameGadget(),
-        CameraQuickCaptureGadget(),
+    private fun configurableWidgetGadgets(
+        randomPhotoFrame: RandomPhotoFrameGadget,
+        cameraQuickCapture: CameraQuickCaptureGadget,
+    ): List<LauncherGadget> = listOf(
+        randomPhotoFrame,
+        cameraQuickCapture,
     )
 
     // Mirrors HomeWidgetCatalog.gadgetKey verbatim. Persisted inside a cell's target column from the

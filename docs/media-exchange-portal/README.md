@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.22 00:33</sub>
+<sub class="doc-stamp">26.10.23 15:48</sub>
 
 # Media exchange and broadcasting portal - illustration set
 
@@ -277,7 +277,7 @@ no picture claims anything beyond what a page of the same name says.
 - `steps-phone-sharing` (four cards) - switch the server on, add the folders, leave it running, mind the
   limits (the Android 15 daily limit and mobile data). Embedded by `phone-sharing`.
 - `steps-my-devices` (six cards) - open My devices, paste or scan or choose, trust the certificate, sign in,
-  pass it on, choose the outgoing server. Embedded by `my-devices`.
+  pass it on, the outgoing server that is chosen by itself. Embedded by `my-devices`.
 
 The words follow the terms table of the contract (item CW): exchange server, via Google Drive, broadcast and
 broadcasting, clipboard, cast to your own device. A picture added here needs its page, its manifest section

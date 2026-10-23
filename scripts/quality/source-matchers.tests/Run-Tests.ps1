@@ -319,6 +319,42 @@ Assert-RuleCount -Rule 'main-thread-bitmap-decode' -Name 'decode outside any Com
     'private fun decodeFrame(file: File): Bitmap? = BitmapFactory.decodeFile(file.path)',
     'val scope = rememberCoroutineScope()')
 
+# S4429 - test-unjoined-scope. A name-bound scope the file joins is the cure the FailMessage
+# advertises, so it must not be counted; everything else keeps counting.
+Assert-RuleCount -Rule 'test-unjoined-scope' -Name 'name-bound scope with a same-name join is exempt' `
+    -Expected 0 -Lines @(
+    'private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())',
+    '@After fun tearDown() { runBlocking { scope.coroutineContext.job.cancelAndJoin() } }')
+
+Assert-RuleCount -Rule 'test-unjoined-scope' -Name 'explicitly typed name-bound scope with a join is exempt' `
+    -Expected 0 -Lines @(
+    'private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO)',
+    '@After fun tearDown() { runBlocking { scope.coroutineContext.job.cancelAndJoin() } }')
+
+Assert-RuleCount -Rule 'test-unjoined-scope' -Name 'name-bound scope without a join still counts' `
+    -Expected 1 -Lines @(
+    'private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())')
+
+Assert-RuleCount -Rule 'test-unjoined-scope' -Name 'a bare cancel is not a join' `
+    -Expected 1 -Lines @(
+    'private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())',
+    '@After fun tearDown() { scope.cancel() }')
+
+Assert-RuleCount -Rule 'test-unjoined-scope' -Name 'a join of a different name does not exempt' `
+    -Expected 1 -Lines @(
+    'private val scope = CoroutineScope(Dispatchers.IO)',
+    '@After fun tearDown() { runBlocking { myscope.coroutineContext.job.cancelAndJoin() } }')
+
+Assert-RuleCount -Rule 'test-unjoined-scope' -Name 'an inline construction beside a joined scope still counts' `
+    -Expected 1 -Lines @(
+    'private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())',
+    'val gate = Gate(CoroutineScope(Dispatchers.Unconfined))',
+    '@After fun tearDown() { runBlocking { scope.coroutineContext.job.cancelAndJoin() } }')
+
+Assert-RuleCount -Rule 'test-unjoined-scope' -Name 'a scheduler-bound scope stays clean without a join' `
+    -Expected 0 -Lines @(
+    'private val scope = CoroutineScope(UnconfinedTestDispatcher() + SupervisorJob())')
+
 # End to end, because every case above calls CountInText directly and so proves nothing about
 # Roots, PathFilter or the exit code - the rule could be correct and still never reach scripts/.
 # The probe file is removed in a finally block: left behind it would turn every later closure red

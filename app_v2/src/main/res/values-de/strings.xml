@@ -3969,10 +3969,10 @@
     <string name="broadcast_control_screen_action">Bildschirm übertragen</string>
     <string name="broadcast_notification_screen_title">Bildschirm wird übertragen</string>
     <string name="broadcast_notification_screen_text">Live-Bildschirmübertragung ist aktiv</string>
-    <string name="broadcast_share_password">Passwort: %1$s</string>
-    <string name="broadcast_share_new_password">Neues Passwort</string>
-    <string name="broadcast_share_new_password_cd">Neues Übertragungspasswort erstellen. Das alte funktioniert nicht mehr</string>
-    <string name="broadcast_share_password_hint">Neues Passwort festgelegt. Teile es getrennt vom Link mit - Link und QR-Code enthalten es nicht</string>
+    <string name="broadcast_link_password_row">Passwort: %1$s</string>
+    <string name="broadcast_link_password_change">Neues Passwort</string>
+    <string name="broadcast_link_password_generate_cd">Neues Übertragungspasswort erstellen. Das alte funktioniert nicht mehr</string>
+    <string name="broadcast_link_password_applied">Neues Passwort festgelegt. Teile es getrennt vom Link mit - Link und QR-Code enthalten es nicht</string>
     <string name="broadcast_password_title">Übertragungspasswort</string>
     <string name="broadcast_password_message">Gib das Übertragungspasswort ein, das du mit dem Link erhalten hast.</string>
     <string name="broadcast_password_protected">Diese Übertragung ist durch ein Passwort geschützt</string>

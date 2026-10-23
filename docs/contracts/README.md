@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.18 17:47</sub>
+<sub class="doc-stamp">26.10.23 12:07</sub>
 
 # Contract pointers
 
@@ -22,6 +22,7 @@ catalog registry to one set of ids and versions.
 
 | Pointer | Id | This product's role |
 | --- | --- | --- |
+| [`TEST-LAB.md`](TEST-LAB.md) | `TEST-LAB` | Android platform owner and reporter |
 | [`STREAM-BANK.md`](STREAM-BANK.md) | `STREAM-BANK` | owner; producer (publish script) and consumer (phone and watch importers) |
 | [`LIVE-BROADCAST.md`](LIVE-BROADCAST.md) | `LIVE-BROADCAST` | owner; producer and receiver (phone and watch), and a consumer of its own descriptor |
 | [`FMSCFG.md`](FMSCFG.md) | `FMSCFG` | consumer (the `.fmscfg` importer); also writes `.fmscfg` files and `FMSCFG1:` QR payloads |

@@ -162,7 +162,8 @@ internal object BackupSettingsGroupMapper {
         broadcastVideoWidth = settings.broadcast.videoWidth,
         broadcastVideoHeight = settings.broadcast.videoHeight,
         broadcastVideoFps = settings.broadcast.videoFps,
-        broadcastVideoBitrateBps = settings.broadcast.videoBitrateBps
+        broadcastVideoBitrateBps = settings.broadcast.videoBitrateBps,
+        broadcastLinkPasswordMode = settings.broadcast.linkPasswordMode.name
     )
 
     fun toAppearance(settings: AppSettings): BackupSettings.Appearance = BackupSettings.Appearance(
@@ -406,6 +407,7 @@ internal object BackupSettingsGroupMapper {
                 videoHeight = backup.broadcastVideoHeight ?: broadcast.videoHeight,
                 videoFps = backup.broadcastVideoFps ?: broadcast.videoFps,
                 videoBitrateBps = backup.broadcastVideoBitrateBps ?: broadcast.videoBitrateBps,
+                linkPasswordMode = backup.broadcastLinkPasswordMode.toEnumOr(broadcast.linkPasswordMode),
             )
         ).applyStreamToggles(backup)
     }

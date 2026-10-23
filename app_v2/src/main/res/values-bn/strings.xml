@@ -3984,10 +3984,10 @@
     <string name="broadcast_control_screen_action">স্ক্রিন ব্রডকাস্ট করুন</string>
     <string name="broadcast_notification_screen_title">স্ক্রিন ব্রডকাস্ট করা হচ্ছে</string>
     <string name="broadcast_notification_screen_text">স্ক্রিনের লাইভ ব্রডকাস্ট চলছে</string>
-    <string name="broadcast_share_password">পাসওয়ার্ড: %1$s</string>
-    <string name="broadcast_share_new_password">নতুন পাসওয়ার্ড</string>
-    <string name="broadcast_share_new_password_cd">ব্রডকাস্টের জন্য নতুন পাসওয়ার্ড তৈরি করুন। পুরোনোটি কাজ করা বন্ধ করবে</string>
-    <string name="broadcast_share_password_hint">নতুন পাসওয়ার্ড সেট হয়েছে। এটি লিংক থেকে আলাদাভাবে জানান - লিংক ও QR কোডে এটি থাকে না</string>
+    <string name="broadcast_link_password_row">পাসওয়ার্ড: %1$s</string>
+    <string name="broadcast_link_password_change">নতুন পাসওয়ার্ড</string>
+    <string name="broadcast_link_password_generate_cd">ব্রডকাস্টের জন্য নতুন পাসওয়ার্ড তৈরি করুন। পুরোনোটি কাজ করা বন্ধ করবে</string>
+    <string name="broadcast_link_password_applied">নতুন পাসওয়ার্ড সেট হয়েছে। এটি লিংক থেকে আলাদাভাবে জানান - লিংক ও QR কোডে এটি থাকে না</string>
     <string name="broadcast_password_title">ব্রডকাস্টের পাসওয়ার্ড</string>
     <string name="broadcast_password_message">লিংকের সঙ্গে আপনাকে দেওয়া ব্রডকাস্টের পাসওয়ার্ড লিখুন।</string>
     <string name="broadcast_password_protected">এই ব্রডকাস্ট পাসওয়ার্ড দিয়ে সুরক্ষিত</string>

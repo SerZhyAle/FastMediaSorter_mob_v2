@@ -3981,10 +3981,10 @@
     <string name="broadcast_control_screen_action">स्क्रीन ब्रॉडकास्ट करें</string>
     <string name="broadcast_notification_screen_title">स्क्रीन ब्रॉडकास्ट हो रही है</string>
     <string name="broadcast_notification_screen_text">स्क्रीन का लाइव ब्रॉडकास्ट चालू है</string>
-    <string name="broadcast_share_password">पासवर्ड: %1$s</string>
-    <string name="broadcast_share_new_password">नया पासवर्ड</string>
-    <string name="broadcast_share_new_password_cd">ब्रॉडकास्ट का नया पासवर्ड बनाएं। पुराना काम करना बंद कर देगा</string>
-    <string name="broadcast_share_password_hint">नया पासवर्ड सेट हो गया। इसे लिंक से अलग बताएं - लिंक और QR कोड में यह नहीं होता</string>
+    <string name="broadcast_link_password_row">पासवर्ड: %1$s</string>
+    <string name="broadcast_link_password_change">नया पासवर्ड</string>
+    <string name="broadcast_link_password_generate_cd">ब्रॉडकास्ट का नया पासवर्ड बनाएं। पुराना काम करना बंद कर देगा</string>
+    <string name="broadcast_link_password_applied">नया पासवर्ड सेट हो गया। इसे लिंक से अलग बताएं - लिंक और QR कोड में यह नहीं होता</string>
     <string name="broadcast_password_title">ब्रॉडकास्ट पासवर्ड</string>
     <string name="broadcast_password_message">लिंक के साथ आपको मिला ब्रॉडकास्ट पासवर्ड दर्ज करें।</string>
     <string name="broadcast_password_protected">यह ब्रॉडकास्ट पासवर्ड से सुरक्षित है</string>

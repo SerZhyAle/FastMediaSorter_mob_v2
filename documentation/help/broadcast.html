@@ -44,7 +44,7 @@
 <details class="el" id="preview">
 <summary><span class="mk">2</span><span><span class="name">Camera picture</span><span class="one">What your camera sees and, on air, what is being sent.</span></span></summary>
 <div class="full">
-<p>Before the start it lets you choose a camera by what it shows. It appears when a camera mode is chosen and the camera is allowed; if you refuse the camera, the area stays empty and the screen asks only once per visit. On air it shows the picture that goes out. It is hidden for sound only and for a file or screen broadcast, which do not use the camera.</p>
+<p>Before the start it lets you choose a camera by what it shows. It appears when a camera mode is chosen and the camera is allowed; if you refuse the camera, the area stays empty and the screen asks only once per visit. On air it shows the picture that goes out. It is hidden for sound only and for a file or screen broadcast, which do not use the camera. Turn the phone on its side during a camera broadcast and the picture fills the whole screen; tap it to bring the controls back beside it, and tap again to hide them.</p>
 </div>
 </details>
 <details class="el" id="mode-audio">
@@ -106,6 +106,12 @@
 <summary><span class="mk">12</span><span><span class="name">Listener count</span><span class="one">How many devices are connected to your broadcast right now.</span></span></summary>
 <div class="full">
 <p>The number appears only while you are on air and follows people connecting and leaving.</p>
+</div>
+</details>
+<details class="el" id="exchange-line">
+<summary><span class="mk">33</span><span><span class="name">Exchange server line</span><span class="one">Where your broadcast stands on your exchange server.</span></span></summary>
+<div class="full">
+<p>Shown only while you are on air. Every broadcast goes to your outgoing exchange server by itself from its first second: the line names the server and says that the broadcast is being announced, is on the server, or is on the server and relayed through it. When something goes wrong, the line says what happened and what to try; tap it for the details with the code. The broadcast on this network carries on either way. With no exchange server, the line says the broadcast is reachable on this network only, and a tap opens My devices to add one; a guest account cannot broadcast through the server, and the line says so.</p>
 </div>
 </details>
 <details class="el" id="feedback">
@@ -184,19 +190,19 @@
 <details class="el" id="password">
 <summary><span class="mk">25</span><span><span class="name">Link password</span><span class="one">The password of a protected broadcast, told apart from the link.</span></span></summary>
 <div class="full">
-<p>Shown only for a protected broadcast. Neither the link, the file nor the QR code carries it, so you give it to the person separately, by voice or in another message.</p>
+<p>Shown while the broadcast goes out through an exchange server: the password, or &quot;Password: none&quot; when you chose to broadcast without one. Neither the link, the file nor the QR code carries it, so you give it to the person separately, by voice or in another message.</p>
 </div>
 </details>
-<details class="el" id="new-password">
-<summary><span class="mk">26</span><span><span class="name">New password</span><span class="one">Makes a new password; the old one stops working.</span></span></summary>
+<details class="el" id="change-password">
+<summary><span class="mk">26</span><span><span class="name">Change password</span><span class="one">Chooses how the link is protected: automatic, no password or your own.</span></span></summary>
 <div class="full">
-<p>Use it when the password has reached someone who should not have it. A message reminds you to tell the new password separately from the link.</p>
+<p>Automatic makes the password for you, and Generate new replaces it when it has reached someone who should not have it. No password lets anyone who has the link open the broadcast. My own takes any password you type, up to 64 characters; a short one gets a reminder that it is easy to guess. The change applies at once: the old password stops opening the link, and the devices of your account and your guests keep playing. The same choice is in the broadcast settings, under Link password, and it is remembered for the next broadcast. Your own password stays on this phone only and never goes into a backup.</p>
 </div>
 </details>
 <details class="el" id="copy">
 <summary><span class="mk">27</span><span><span class="name">Copy Link</span><span class="one">Copies the link of the broadcast.</span></span></summary>
 <div class="full">
-<p>A message confirms the copy. A protected broadcast is copied as the full link instead of the bare address, so that the other device knows a password is needed and asks for it.</p>
+<p>A message confirms the copy. A broadcast that goes out through an exchange server is copied as the full link instead of the bare address, so that the other device can open it and asks for the password when there is one.</p>
 </div>
 </details>
 <details class="el" id="export">
@@ -244,7 +250,7 @@
 <li><a href="index.html"><b>Help index</b></a></li>
 </ul>
 <footer class="help-foot">
-<span>Fast Media Sorter, 2026-10-21</span>
+<span>Fast Media Sorter, 2026-10-23</span>
 <a href="index.html">Help index</a>
 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
 </footer>

@@ -3986,10 +3986,10 @@
     <string name="broadcast_control_screen_action">اسکرین نشر کریں</string>
     <string name="broadcast_notification_screen_title">اسکرین نشر ہو رہی ہے</string>
     <string name="broadcast_notification_screen_text">لائیو اسکرین نشریہ فعال ہے</string>
-    <string name="broadcast_share_password">پاس ورڈ: %1$s</string>
-    <string name="broadcast_share_new_password">نیا پاس ورڈ</string>
-    <string name="broadcast_share_new_password_cd">نشریے کا نیا پاس ورڈ بنائیں۔ پرانا کام کرنا بند کر دے گا</string>
-    <string name="broadcast_share_password_hint">نیا پاس ورڈ مقرر ہو گیا۔ اسے لنک سے الگ بتائیں - لنک اور QR کوڈ میں وہ شامل نہیں ہے</string>
+    <string name="broadcast_link_password_row">پاس ورڈ: %1$s</string>
+    <string name="broadcast_link_password_change">نیا پاس ورڈ</string>
+    <string name="broadcast_link_password_generate_cd">نشریے کا نیا پاس ورڈ بنائیں۔ پرانا کام کرنا بند کر دے گا</string>
+    <string name="broadcast_link_password_applied">نیا پاس ورڈ مقرر ہو گیا۔ اسے لنک سے الگ بتائیں - لنک اور QR کوڈ میں وہ شامل نہیں ہے</string>
     <string name="broadcast_password_title">نشریے کا پاس ورڈ</string>
     <string name="broadcast_password_message">وہ نشریے کا پاس ورڈ درج کریں جو آپ کو لنک کے ساتھ ملا تھا۔</string>
     <string name="broadcast_password_protected">یہ نشریہ پاس ورڈ سے محفوظ ہے</string>

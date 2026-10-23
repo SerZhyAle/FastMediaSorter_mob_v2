@@ -4436,10 +4436,10 @@
     <string name="broadcast_control_screen_action">Транслювати екран</string>
     <string name="broadcast_notification_screen_title">Трансляція екрана</string>
     <string name="broadcast_notification_screen_text">Триває трансляція екрана</string>
-    <string name="broadcast_share_password">Пароль: %1$s</string>
-    <string name="broadcast_share_new_password">Новий пароль</string>
-    <string name="broadcast_share_new_password_cd">Створити новий пароль трансляції. Старий перестане працювати</string>
-    <string name="broadcast_share_password_hint">Новий пароль задано. Повідомте його окремо від посилання - ні посилання, ні QR-код його не містять</string>
+    <string name="broadcast_link_password_row">Пароль: %1$s</string>
+    <string name="broadcast_link_password_change">Змінити пароль</string>
+    <string name="broadcast_link_password_generate_cd">Створити новий пароль трансляції. Старий перестане працювати</string>
+    <string name="broadcast_link_password_applied">Пароль змінено. Повідомте його окремо від посилання - ні посилання, ні QR-код його не містять</string>
     <string name="broadcast_password_title">Пароль трансляції</string>
     <string name="broadcast_password_message">Введіть пароль трансляції, який вам передали разом із посиланням.</string>
     <string name="broadcast_password_protected">Трансляцію захищено паролем</string>
@@ -4481,4 +4481,22 @@
     <string name="settings_collapse_all">Згорнути всі</string>
     <string name="settings_category_about_app">Усе про цей застосунок</string>
     <string name="broadcast_control_preview_toggle_cd">Картинка мовлення. Торкніться, щоб показати або сховати кнопки керування</string>
+    <string name="broadcast_link_password_title">Пароль посилання</string>
+    <string name="broadcast_link_password_mode_auto">Автоматичний</string>
+    <string name="broadcast_link_password_mode_none">Без пароля</string>
+    <string name="broadcast_link_password_mode_custom">Власний</string>
+    <string name="broadcast_link_password_field_hint">Пароль</string>
+    <string name="broadcast_link_password_show_cd">Показати пароль</string>
+    <string name="broadcast_link_password_generate">Згенерувати новий</string>
+    <string name="broadcast_link_password_none_note">Трансляцію зможе відкрити кожен, у кого є посилання</string>
+    <string name="broadcast_link_password_weak_hint">Короткий пароль легко підібрати</string>
+    <string name="broadcast_link_password_error_empty">Введіть пароль або виберіть інший варіант</string>
+    <string name="broadcast_link_password_error_too_long">Використовуйте не більше 64 символів</string>
+    <string name="broadcast_link_password_error_control">Табуляція та перенесення рядка не можуть бути частиною пароля</string>
+    <string name="broadcast_link_password_none_row">Пароль: немає</string>
+    <string name="broadcast_link_password_change_cd">Вибрати, як захищене посилання трансляції</string>
+    <string name="broadcast_link_password_settings_lan">Діє, коли трансляція йде через сервер обміну</string>
+    <string name="broadcast_link_password_applied_open">Готово. Тепер посилання відкривається без пароля</string>
+    <string name="broadcast_link_password_store_failed">Не вдалося зберегти пароль на цьому пристрої. Спробуйте ще раз або виберіть інший варіант</string>
+    <string name="broadcast_link_password_saved">Збережено. Діє для наступної трансляції через сервер обміну</string>
 </resources>

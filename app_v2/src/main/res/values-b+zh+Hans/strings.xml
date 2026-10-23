@@ -3982,10 +3982,10 @@
     <string name="broadcast_control_screen_action">广播屏幕</string>
     <string name="broadcast_notification_screen_title">正在广播屏幕</string>
     <string name="broadcast_notification_screen_text">实时屏幕广播正在进行</string>
-    <string name="broadcast_share_password">密码：%1$s</string>
-    <string name="broadcast_share_new_password">新密码</string>
-    <string name="broadcast_share_new_password_cd">生成新的广播密码。旧密码将失效</string>
-    <string name="broadcast_share_password_hint">已设置新密码。请与链接分开告知 - 链接和二维码中不含密码</string>
+    <string name="broadcast_link_password_row">密码：%1$s</string>
+    <string name="broadcast_link_password_change">新密码</string>
+    <string name="broadcast_link_password_generate_cd">生成新的广播密码。旧密码将失效</string>
+    <string name="broadcast_link_password_applied">已设置新密码。请与链接分开告知 - 链接和二维码中不含密码</string>
     <string name="broadcast_password_title">广播密码</string>
     <string name="broadcast_password_message">请输入随链接一同提供给您的广播密码。</string>
     <string name="broadcast_password_protected">此广播受密码保护</string>

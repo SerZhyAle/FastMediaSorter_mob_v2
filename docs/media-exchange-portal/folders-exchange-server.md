@@ -5,7 +5,7 @@ description: "How to open a folder of one of your devices from another one on an
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/folders-exchange-server.html
 ---
-<sub class="doc-stamp">26.10.22 01:23</sub>
+<sub class="doc-stamp">26.10.23 15:45</sub>
 
 # Folders through the exchange server
 
@@ -23,8 +23,8 @@ A folder that lives on one of your devices can be opened on another from any net
 
 1. Open **Settings**, the **General** tab, the **Share from phone** card.
 2. Under **Shared folders** tap **Add folder** and pick the folder with the system folder picker. Each folder is an entry of its own, and a folder you add while the server runs joins it at once.
-3. Switch on **SFTP server**.
-4. In the **Access from anywhere** group, switch on **Exchange server**. With more than one server, **Change** picks the outgoing one: the line **Through the server** names it. The status line then reads **Reachable from anywhere through** the server's name.
+3. Switch on **SFTP server** - the ordinary way of sharing folders over a network, which is how your other devices open the folders you picked.
+4. In the **Access from anywhere** group, switch on **Exchange server**. The first server you added is the outgoing one by itself; with more than one, **Change** picks another: the line **Through the server** names it. The status line then reads **Reachable from anywhere through** the server's name.
 
 ## Open the folder on another device
 

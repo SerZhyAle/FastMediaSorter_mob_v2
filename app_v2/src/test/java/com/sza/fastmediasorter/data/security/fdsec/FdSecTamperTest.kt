@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.security.fdsec
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -111,6 +112,64 @@ class FdSecTamperTest {
         }
     }
 
+    @Test
+    fun `a sealed name that is not valid UTF-8 is damaged and restores nothing`() {
+        val fixture = packFixture()
+        resealName(fixture, byteArrayOf('a'.code.toByte(), LONE_INVALID_BYTE, 'b'.code.toByte()))
+
+        val restoreInto = folder.newFolder("malformed-name-out")
+        val outcome = container(PASSPHRASE).unpack(fixture, restoreInto, PASSPHRASE.toCharArray())
+
+        assertTrue("expected damaged, got $outcome", outcome is FdSecOutcome.Damaged)
+        assertTrue("a refused restore left files behind", restoreInto.list().isNullOrEmpty())
+    }
+
+    @Test
+    fun `reading the metadata of a malformed sealed name is damaged and not wrong-credential`() {
+        val fixture = packFixture()
+        resealName(fixture, byteArrayOf(LONE_INVALID_BYTE))
+
+        val outcome = container(PASSPHRASE).readMetadata(fixture, PASSPHRASE.toCharArray())
+
+        assertTrue("expected damaged, got $outcome", outcome is FdSecOutcome.Damaged)
+    }
+
+    @Test
+    fun `a sealed name holding a real U+FFFD is valid UTF-8 and is read as written`() {
+        val fixture = packFixture()
+        val name = "a�b"
+        resealName(fixture, name.toByteArray(Charsets.UTF_8))
+
+        val outcome = container(PASSPHRASE).readMetadata(fixture, PASSPHRASE.toCharArray())
+
+        assertTrue("expected the metadata, got $outcome", outcome is FdSecOutcome.Unpacked)
+        assertEquals(name, (outcome as FdSecOutcome.Unpacked).metadata.originalName)
+    }
+
+    /**
+     * Replaces the sealed name with raw [nameBytes] and seals the metadata again under the same key,
+     * so the block authenticates and only the name differs - the one case the reader must call damage.
+     */
+    private fun resealName(file: File, nameBytes: ByteArray) {
+        val schedule = FdSecKeySchedule(cheapProfile)
+        val bytes = file.readBytes()
+        val credentialUtf8 = schedule.normalizeCredential(PASSPHRASE.toCharArray())
+        val opened = FdSecHead.open(bytes.copyOf(FdSecFormat.HEAD_SIZE), credentialUtf8, schedule)
+        val view = (opened as FdSecHeadResult.Ok).view
+        val nonce = schedule.metadataNonce(view.fileKey)
+        val associatedData = FdSecHead.metadataAssociatedData(view.headerDigest)
+        val sealed = bytes.copyOfRange(FdSecFormat.HEAD_SIZE, FdSecFormat.HEAD_SIZE + FdSecFormat.METADATA_ON_DISK_SIZE)
+        val block = requireNotNull(XChaCha20Poly1305.open(view.fileKey, nonce, associatedData, sealed))
+        val oldNameLength = FdSecBytes.readU16le(block, 0)
+        val tail = block.copyOfRange(NAME_FIELD_SIZE + oldNameLength, NAME_FIELD_SIZE + oldNameLength + FIXED_TAIL_SIZE)
+        val rebuilt = ByteArray(FdSecFormat.METADATA_PLAINTEXT_SIZE)
+        FdSecBytes.writeU16le(rebuilt, 0, nameBytes.size)
+        nameBytes.copyInto(rebuilt, NAME_FIELD_SIZE)
+        tail.copyInto(rebuilt, NAME_FIELD_SIZE + nameBytes.size)
+        XChaCha20Poly1305.seal(view.fileKey, nonce, associatedData, rebuilt).copyInto(bytes, FdSecFormat.HEAD_SIZE)
+        file.writeBytes(bytes)
+    }
+
     private fun assertOutcomeAfter(mutate: (File) -> Unit, expected: (FdSecOutcome) -> Boolean) {
         val fixture = packFixture()
         mutate(fixture)
@@ -179,5 +238,13 @@ class FdSecTamperTest {
         const val PLAUSIBLE_LENGTH = 12288
         const val SHORT_LENGTH = 5631
         const val SEED = 20260922
+
+        /** 0xFF never occurs in UTF-8, so a name holding it can only be damage. */
+        const val LONE_INVALID_BYTE: Byte = -1
+
+        const val NAME_FIELD_SIZE = 2
+
+        /** Real size (8), four timestamps (4 x 8) and the payload digest that follow the name in the block. */
+        const val FIXED_TAIL_SIZE = 8 + 4 * 8 + FdSecFormat.DIGEST_SIZE
     }
 }

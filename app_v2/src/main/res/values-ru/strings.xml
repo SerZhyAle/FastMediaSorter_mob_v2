@@ -4451,10 +4451,10 @@
     <string name="broadcast_control_screen_action">Вещать экран</string>
     <string name="broadcast_notification_screen_title">Вещание экрана</string>
     <string name="broadcast_notification_screen_text">Идёт вещание экрана</string>
-    <string name="broadcast_share_password">Пароль: %1$s</string>
-    <string name="broadcast_share_new_password">Новый пароль</string>
-    <string name="broadcast_share_new_password_cd">Создать новый пароль трансляции. Старый перестанет работать</string>
-    <string name="broadcast_share_password_hint">Новый пароль задан. Сообщите его отдельно от ссылки - ни ссылка, ни QR-код его не содержат</string>
+    <string name="broadcast_link_password_row">Пароль: %1$s</string>
+    <string name="broadcast_link_password_change">Изменить пароль</string>
+    <string name="broadcast_link_password_generate_cd">Создать новый пароль трансляции. Старый перестанет работать</string>
+    <string name="broadcast_link_password_applied">Пароль изменён. Сообщите его отдельно от ссылки - ни ссылка, ни QR-код его не содержат</string>
     <string name="broadcast_password_title">Пароль трансляции</string>
     <string name="broadcast_password_message">Введите пароль трансляции, который вам передали вместе со ссылкой.</string>
     <string name="broadcast_password_protected">Трансляция защищена паролем</string>
@@ -4496,4 +4496,22 @@
     <string name="settings_collapse_all">Свернуть всё</string>
     <string name="settings_category_about_app">Всё об этом приложении</string>
     <string name="broadcast_control_preview_toggle_cd">Картинка вещания. Нажмите, чтобы показать или скрыть кнопки управления</string>
+    <string name="broadcast_link_password_title">Пароль ссылки</string>
+    <string name="broadcast_link_password_mode_auto">Автоматический</string>
+    <string name="broadcast_link_password_mode_none">Без пароля</string>
+    <string name="broadcast_link_password_mode_custom">Свой</string>
+    <string name="broadcast_link_password_field_hint">Пароль</string>
+    <string name="broadcast_link_password_show_cd">Показать пароль</string>
+    <string name="broadcast_link_password_generate">Сгенерировать новый</string>
+    <string name="broadcast_link_password_none_note">Трансляцию сможет открыть каждый, у кого есть ссылка</string>
+    <string name="broadcast_link_password_weak_hint">Короткий пароль легко подобрать</string>
+    <string name="broadcast_link_password_error_empty">Введите пароль или выберите другой вариант</string>
+    <string name="broadcast_link_password_error_too_long">Используйте не больше 64 символов</string>
+    <string name="broadcast_link_password_error_control">Табуляция и перенос строки не могут быть частью пароля</string>
+    <string name="broadcast_link_password_none_row">Пароль: нет</string>
+    <string name="broadcast_link_password_change_cd">Выбрать, как защищена ссылка трансляции</string>
+    <string name="broadcast_link_password_settings_lan">Действует, когда трансляция идёт через сервер обмена</string>
+    <string name="broadcast_link_password_applied_open">Готово. Теперь ссылка открывается без пароля</string>
+    <string name="broadcast_link_password_store_failed">Не удалось сохранить пароль на этом устройстве. Попробуйте ещё раз или выберите другой вариант</string>
+    <string name="broadcast_link_password_saved">Сохранено. Действует для следующей трансляции через сервер обмена</string>
 </resources>

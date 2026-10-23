@@ -4,6 +4,9 @@ import android.content.Context
 import com.sza.fastmediasorter.data.identity.transfer.TransferableSignInWriter
 import com.sza.fastmediasorter.domain.identity.GoogleAccessToken
 import com.sza.fastmediasorter.domain.identity.GoogleScope
+import com.sza.fastmediasorter.domain.identity.GoogleTokenResult
+import com.sza.fastmediasorter.domain.identity.IdentityFailureReason
+import com.sza.fastmediasorter.domain.identity.IdentitySignInResult
 import com.sza.fastmediasorter.domain.identity.NeedsResignInReason
 import com.sza.fastmediasorter.domain.identity.PrimaryGoogleAccount
 import com.sza.fastmediasorter.domain.identity.PrimaryGoogleAccountState
@@ -11,6 +14,7 @@ import com.sza.fastmediasorter.domain.identity.transfer.TransferableSignInProvid
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.TestScope
@@ -47,6 +51,7 @@ class PrimaryGoogleAccountStateTest {
     private lateinit var store: PrimaryGoogleAccountStore
     private lateinit var issuer: GoogleTokenIssuer
     private lateinit var transferWriter: TransferableSignInWriter
+    private lateinit var authorizer: GoogleScopeAuthorizer
     private lateinit var repo: CredentialManagerGoogleIdentityRepository
 
     private val scopes = setOf(GoogleScope.DRIVE, GoogleScope.DRIVE_READONLY)
@@ -64,6 +69,7 @@ class PrimaryGoogleAccountStateTest {
         store = mockk(relaxed = true)
         issuer = mockk(relaxed = true)
         transferWriter = mockk(relaxed = true)
+        authorizer = mockk(relaxed = true)
         coEvery { store.save(any()) } returns true
     }
 
@@ -74,7 +80,8 @@ class PrimaryGoogleAccountStateTest {
             tokenIssuer = issuer,
             scope = this,
             webClientId = "stub-web-client-id",
-            transferableSignInWriter = transferWriter
+            transferableSignInWriter = transferWriter,
+            scopeAuthorizer = authorizer
         )
 
     @Test
@@ -159,8 +166,86 @@ class PrimaryGoogleAccountStateTest {
         coVerify(exactly = 1) { issuer.invalidate() }
     }
 
-    // region - S2101 transferable sign-in
+    // region - S4427 consent required
 
+    @Test
+    fun `consent for a never granted scope keeps Bound and names the scope`() = runTest(UnconfinedTestDispatcher()) {
+        coEvery { store.load() } returns sampleAccount
+        val appData = setOf(GoogleScope.DRIVE_APPDATA)
+        coEvery { issuer.issue(sampleAccount.email, appData) } returns TokenIssueResult.ConsentRequired
+        repo = buildRepo()
+
+        val result = repo.issueAccessToken(appData)
+
+        assertEquals(GoogleTokenResult.ConsentRequired(appData), result)
+        assertTrue(repo.state.value is PrimaryGoogleAccountState.Bound)
+        assertNull(repo.getAccessToken(appData))
+        assertTrue(repo.state.value is PrimaryGoogleAccountState.Bound)
+    }
+
+    @Test
+    fun `consent for an already granted scope means revoked and asks for re-sign-in`() =
+        runTest(UnconfinedTestDispatcher()) {
+            coEvery { store.load() } returns sampleAccount
+            coEvery { issuer.issue(sampleAccount.email, scopes) } returns TokenIssueResult.ConsentRequired
+            repo = buildRepo()
+
+            val result = repo.issueAccessToken(scopes)
+
+            assertEquals(GoogleTokenResult.Unavailable, result)
+            val state = repo.state.value
+            assertTrue("expected NeedsResignIn, got $state", state is PrimaryGoogleAccountState.NeedsResignIn)
+            assertEquals(
+                NeedsResignInReason.ScopeRevoked,
+                (state as PrimaryGoogleAccountState.NeedsResignIn).reason
+            )
+        }
+
+    @Test
+    fun `grantScopes adds the granted scope to the binding`() = runTest(UnconfinedTestDispatcher()) {
+        coEvery { store.load() } returns sampleAccount
+        val appData = setOf(GoogleScope.DRIVE_APPDATA)
+        coEvery { authorizer.authorize(context, sampleAccount.email, appData) } returns
+            ScopeAuthorization.Granted(appData)
+        val saved = slot<PrimaryGoogleAccount>()
+        coEvery { store.save(capture(saved)) } returns true
+        repo = buildRepo()
+
+        val result = repo.grantScopes(context, appData)
+
+        assertTrue(result is IdentitySignInResult.Success)
+        assertEquals(scopes + appData, saved.captured.grantedScopes)
+        val bound = repo.state.value as PrimaryGoogleAccountState.Bound
+        assertEquals(scopes + appData, bound.account.grantedScopes)
+    }
+
+    @Test
+    fun `grantScopes declined leaves the binding unchanged`() = runTest(UnconfinedTestDispatcher()) {
+        coEvery { store.load() } returns sampleAccount
+        coEvery { authorizer.authorize(any(), any(), any()) } returns ScopeAuthorization.Cancelled
+        repo = buildRepo()
+
+        val result = repo.grantScopes(context, setOf(GoogleScope.DRIVE_APPDATA))
+
+        assertEquals(IdentitySignInResult.Cancelled, result)
+        coVerify(exactly = 0) { store.save(any()) }
+        assertEquals(sampleAccount, (repo.state.value as PrimaryGoogleAccountState.Bound).account)
+    }
+
+    @Test
+    fun `grantScopes without a bound account fails`() = runTest(UnconfinedTestDispatcher()) {
+        coEvery { store.load() } returns null
+        repo = buildRepo()
+
+        val result = repo.grantScopes(context, setOf(GoogleScope.DRIVE_APPDATA))
+
+        assertEquals(IdentitySignInResult.Failed(IdentityFailureReason.UnknownError), result)
+        coVerify(exactly = 0) { authorizer.authorize(any(), any(), any()) }
+    }
+
+    // endregion
+
+    // region - S2101 transferable sign-in
     @Test
     fun `signOutPrimary removes the transferable envelope`() = runTest(UnconfinedTestDispatcher()) {
         coEvery { store.load() } returns sampleAccount

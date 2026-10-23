@@ -47,6 +47,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.broadcast.WearBroadcastFailure
+import com.sza.fastmediasorter.wear.domain.broadcast.WearBroadcastPublishState
 import com.sza.fastmediasorter.wear.domain.broadcast.WearBroadcastSessionState
 import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_NO_ANCHOR
 import com.sza.fastmediasorter.wear.ui.common.WearDimOverlay
@@ -86,6 +87,7 @@ fun WearBroadcastScreen(
     viewModel: WearBroadcastViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val exchangeState by viewModel.exchangeState.collectAsStateWithLifecycle()
     val listState = rememberWearListState(initialCenterItemIndex = WEAR_LIST_NO_ANCHOR)
     val permissionsState = rememberMultiplePermissionsState(broadcastPermissions())
     var dimmed by rememberSaveable { mutableStateOf(false) }
@@ -113,6 +115,9 @@ fun WearBroadcastScreen(
             centered = true
         ) {
             item { BroadcastStatus(state = state) }
+            exchangeLabelOf(exchangeState)?.let { labelRes ->
+                item { ExchangeStatus(textRes = labelRes) }
+            }
             if (!microphoneGranted) {
                 item { BlockerText(textRes = R.string.wear_voice_note_permission_required) }
             }
@@ -259,6 +264,29 @@ private fun BlockerText(@StringRes textRes: Int) {
             .fillMaxWidth()
             .padding(horizontal = TEXT_HORIZONTAL_PADDING)
     )
+}
+
+// Item DU: the short form of the server state; the details of a failure are on the phone.
+@Composable
+private fun ExchangeStatus(@StringRes textRes: Int) {
+    Text(
+        text = stringResource(textRes),
+        style = MaterialTheme.typography.caption2,
+        textAlign = TextAlign.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = TEXT_HORIZONTAL_PADDING)
+            .semantics(mergeDescendants = true) {}
+    )
+}
+
+@StringRes
+private fun exchangeLabelOf(state: WearBroadcastPublishState): Int? = when (state) {
+    WearBroadcastPublishState.IDLE -> null
+    WearBroadcastPublishState.LOCAL_ONLY -> R.string.wear_broadcast_server_local_only
+    WearBroadcastPublishState.ANNOUNCING -> R.string.wear_broadcast_server_announcing
+    WearBroadcastPublishState.ON_SERVER -> R.string.wear_broadcast_server_on
+    WearBroadcastPublishState.FAILED -> R.string.wear_broadcast_server_failed
 }
 
 @Composable

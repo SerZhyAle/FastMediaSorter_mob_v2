@@ -2,18 +2,13 @@ package com.sza.fastmediasorter.data.cloud
 
 import android.app.Activity
 import android.content.Context
-import com.google.android.gms.auth.api.identity.AuthorizationRequest
-import com.google.android.gms.auth.api.identity.Identity
-import com.google.android.gms.common.api.Scope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
 import com.sza.fastmediasorter.domain.identity.GoogleScope
 import com.sza.fastmediasorter.domain.identity.IdentitySignInResult
-import com.sza.fastmediasorter.ui.cloudauth.GoogleDriveAuthResolutionTracker
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -21,8 +16,9 @@ import javax.inject.Singleton
 /**
  * Interactive Google Drive sign-in via GMS Identity, falling back to the browser flow.
  *
- * S0403: lives in `src/cloudSdk` because it imports `com.google.android.gms.auth.api.identity`
- * directly. Shared code depends on the [GoogleDriveInteractiveSignInCoordinator] contract in
+ * S0403: lives in `src/cloudSdk` beside the GMS identity code it drives (the Drive scope consent
+ * itself runs in the identity repository since S4427). Shared code depends on the
+ * [GoogleDriveInteractiveSignInCoordinator] contract in
  * `src/main`.
  */
 @Singleton
@@ -59,33 +55,16 @@ class GoogleDriveInteractiveSignInCoordinatorImpl @Inject constructor(
                 )
             ) {
                 is IdentitySignInResult.Success -> {
-                    val driveScopes = setOf(GoogleScope.DRIVE, GoogleScope.DRIVE_READONLY)
-                    val scopeObjects = driveScopes.map { Scope(it.value) }
-                    val authorizationRequest = AuthorizationRequest.builder()
-                        .setRequestedScopes(scopeObjects)
-                        .build()
-                    val authClient = Identity.getAuthorizationClient(activity)
-                    val authResult = authClient.authorize(authorizationRequest).await()
-
-                    val authorized = if (authResult.hasResolution()) {
-                        val pendingIntent = authResult.pendingIntent
-                        if (pendingIntent != null) {
-                            Timber.i("GMS Drive authorization requires resolution, launching shadow activity")
-                            GoogleDriveAuthResolutionTracker.resolvePendingIntent(activity, pendingIntent)
-                        } else {
-                            false
-                        }
-                    } else {
-                        authResult.accessToken != null
-                    }
-
-                    if (authorized) {
+                    // S4427: the repository already asked one consent for the whole Drive sign-in set
+                    // and recorded what Google granted; browsing needs at least one Drive scope.
+                    val granted = result.account.grantedScopes
+                    if (GoogleScope.DRIVE in granted || GoogleScope.DRIVE_READONLY in granted) {
                         AuthResult.Success(
                             accountName = result.account.email,
                             credentialsJson = result.account.email
                         )
                     } else {
-                        Timber.e("GMS Drive authorization failed or was cancelled by user")
+                        Timber.w("GMS sign-in completed without any Drive scope granted")
                         AuthResult.Cancelled
                     }
                 }

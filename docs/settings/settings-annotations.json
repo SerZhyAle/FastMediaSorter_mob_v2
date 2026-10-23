@@ -1669,6 +1669,11 @@
     "ru": "Включает возможность добавлять SMB-ресурсы локальной сети (NAS, ПК) как удалённые ресурсы.",
     "uk": "Вмикає можливість додавати SMB-ресурси локальної мережі (NAS, ПК) як віддалені ресурси."
   },
+  "rowLinkPassword": {
+    "en": "Chooses how the broadcast link is protected when the broadcast goes out through an exchange server: an automatic password, no password, or your own. Your own password stays on this phone and never goes into a backup.",
+    "ru": "Выбирает, как защищена ссылка вещания, когда оно идёт через сервер обмена: автоматический пароль, без пароля или свой. Свой пароль хранится только на этом телефоне и не попадает в резервную копию.",
+    "uk": "Вибирає, як захищене посилання мовлення, коли воно йде через сервер обміну: автоматичний пароль, без пароля або власний. Власний пароль зберігається лише на цьому телефоні й не потрапляє до резервної копії."
+  },
   "rowStreamTitle": {
     "en": "Sets the broadcast title sent in both the ICY metadata and the descriptor, so receivers display a consistent name.",
     "ru": "Задаёт название вещания, которое передаётся в метаданных ICY и в дескрипторе одновременно, чтобы приёмник показывал одно имя.",
@@ -2059,14 +2064,14 @@
     "uk": "Записує адресу, логін і пароль SFTP-сервера в папку застосунку на вашому Google Диску, щоб ваші пристрої з тим самим обліковим записом Google могли підключитися; типово вимкнено, і тоді ці пристрої бачать ресурс, але підключитися до нього не можуть."
   },
   "rowSftpExchangeEnabled": {
-    "en": "Publishes the SFTP share through your outgoing exchange server so your devices in any network can reach it; with no outgoing server chosen it asks for one first, and off keeps the share local-network only.",
-    "ru": "Публикует SFTP-шару через ваш исходящий сервер обмена, чтобы к ней подключались ваши устройства из любой сети; если исходящий сервер не выбран, сначала предлагает выбрать его, а выключено - шара доступна только в локальной сети.",
-    "uk": "Публікує SFTP-спільну папку через ваш вихідний сервер обміну, щоб до неї підключалися ваші пристрої з будь-якої мережі; якщо вихідний сервер не вибрано, спочатку пропонує вибрати його, а вимкнено - папка доступна лише в локальній мережі."
+    "en": "Publishes the SFTP share through your outgoing exchange server so your devices in any network can reach it; with no server that may publish it leads to My devices to add one, and off keeps the share local-network only.",
+    "ru": "Публикует SFTP-шару через ваш исходящий сервер обмена, чтобы к ней подключались ваши устройства из любой сети; если сервера, через который можно публиковать, нет, ведёт в «Мои устройства», чтобы добавить его, а выключено - шара доступна только в локальной сети.",
+    "uk": "Публікує SFTP-спільну папку через ваш вихідний сервер обміну, щоб до неї підключалися ваші пристрої з будь-якої мережі; якщо сервера, через який можна публікувати, немає, веде до «Моїх пристроїв», щоб додати його, а вимкнено - папка доступна лише в локальній мережі."
   },
   "btnSftpExchangeChangeOutgoing": {
-    "en": "Picks which of your exchange servers the share is published through; the line above names the current outgoing server.",
-    "ru": "Выбирает, через какой из ваших серверов обмена публикуется шара; строка выше называет текущий исходящий сервер.",
-    "uk": "Вибирає, через який із ваших серверів обміну публікується спільна папка; рядок вище називає поточний вихідний сервер."
+    "en": "Changes which of your exchange servers the share and broadcasts go through. The outgoing server is chosen by itself: the first server you add becomes outgoing, and removing it passes the role to the next one. The line above names the current outgoing server.",
+    "ru": "Меняет, через какой из ваших серверов обмена идут шара и трансляции. Исходящий сервер выбирается сам: первый добавленный сервер становится исходящим, а при его удалении эта роль переходит к следующему. Строка выше называет текущий исходящий сервер.",
+    "uk": "Змінює, через який із ваших серверів обміну йдуть спільна папка й трансляції. Вихідний сервер вибирається сам: перший доданий сервер стає вихідним, а після його видалення ця роль переходить до наступного. Рядок вище називає поточний вихідний сервер."
   },
   "btnSftpExchangeNewLink": {
     "en": "Issues a new access link: every code shared before stops opening this server through the exchange server.",

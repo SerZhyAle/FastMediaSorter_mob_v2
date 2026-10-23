@@ -4,14 +4,18 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
+import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.databinding.FragmentSettingsBroadcastBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.BroadcastSettings
+import com.sza.fastmediasorter.ui.broadcast.helpers.BroadcastLinkPasswordDialogManager
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 /**
  * S2817: Media-tab Broadcast section body. Five configurable preferences read by the capture
@@ -28,6 +32,9 @@ class BroadcastSettingsFragment : BaseSettingsFragment() {
     private val binding get() = _binding!!
 
     private val viewModel: SettingsViewModel by activityViewModels()
+
+    @Inject
+    lateinit var linkPasswordDialog: BroadcastLinkPasswordDialogManager
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -49,6 +56,13 @@ class BroadcastSettingsFragment : BaseSettingsFragment() {
             val title = value.toString().trim()
             if (title.isNotEmpty()) {
                 updateBroadcast { copy(streamTitle = title) }
+            }
+        }
+
+        binding.rowLinkPassword.setOnRowClickListener {
+            val host = activity as? AppCompatActivity ?: return@setOnRowClickListener
+            linkPasswordDialog.show(host, isLive = false) { messageRes ->
+                _binding?.let { Snackbar.make(it.root, messageRes, Snackbar.LENGTH_LONG).show() }
             }
         }
 
@@ -91,6 +105,9 @@ class BroadcastSettingsFragment : BaseSettingsFragment() {
 
         collectOnLifecycle(viewModel.settings) { settings: AppSettings ->
             updateBroadcastOptionsVisibility(settings.enableBroadcasting)
+            binding.rowLinkPassword.setValue(
+                getString(BroadcastLinkPasswordDialogManager.labelFor(settings.broadcast.linkPasswordMode))
+            )
             if (binding.rowStreamTitle.text.toString() != settings.broadcast.streamTitle) {
                 binding.rowStreamTitle.text = settings.broadcast.streamTitle
             }
@@ -119,6 +136,7 @@ class BroadcastSettingsFragment : BaseSettingsFragment() {
 
     private fun updateBroadcastOptionsVisibility(enabled: Boolean) {
         binding.rowStreamTitle.isVisible = enabled
+        binding.rowLinkPassword.isVisible = enabled
         binding.broadcastConfigGroup.isVisible = enabled
         binding.rowFeedbackGuard.isVisible = enabled
         binding.rowAutoOpenShare.isVisible = enabled

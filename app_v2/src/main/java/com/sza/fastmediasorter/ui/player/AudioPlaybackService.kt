@@ -57,6 +57,7 @@ import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.domain.stats.ViewKind
 import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase
 import com.sza.fastmediasorter.ui.main.MainActivity
+import com.sza.fastmediasorter.ui.player.helpers.AudioDiagnosticClassifier
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
 import com.sza.fastmediasorter.ui.player.helpers.NetworkAwareMediaSourceFactory
 import com.sza.fastmediasorter.ui.player.helpers.PositionSaveLoop
@@ -164,8 +165,17 @@ class AudioPlaybackService : MediaSessionService() {
             bufferSizeMs: Long,
             elapsedSinceLastFeedMs: Long
         ) {
-            Timber.w(
-                "AudioPlaybackService: audio underrun bufferSizeMs=%d elapsedSinceLastFeedMs=%d",
+            Timber.d("S4423: audio underrun reached the classifier")
+            val current = player
+            val context = AudioDiagnosticClassifier.classifyUnderrun(
+                playWhenReady = current?.playWhenReady == true,
+                playbackState = current?.playbackState ?: Player.STATE_IDLE,
+                suppressionReason = current?.playbackSuppressionReason ?: Player.PLAYBACK_SUPPRESSION_REASON_NONE,
+            )
+            Timber.log(
+                AudioDiagnosticClassifier.underrunLogPriority(context),
+                "AudioPlaybackService: audio underrun context=%s bufferSizeMs=%d elapsedSinceLastFeedMs=%d",
+                context.logLabel,
                 bufferSizeMs,
                 elapsedSinceLastFeedMs
             )
@@ -540,6 +550,13 @@ class AudioPlaybackService : MediaSessionService() {
             fun isLiveStreamItem(): Boolean =
                 exoPlayer.isCurrentMediaItemLive || !exoPlayer.isCurrentMediaItemSeekable
 
+            // S4424: stop() leaves playWhenReady set, and on a player already IDLE after the error it
+            // raises no listener event, so the pending reconnect would bring the sound back after Stop.
+            override fun stop() {
+                cancelPendingStreamRetry()
+                super.stop()
+            }
+
             override fun seekToNext() {
                 if (isLiveStreamItem()) {
                     return
@@ -769,6 +786,14 @@ class AudioPlaybackService : MediaSessionService() {
         autoStopHandler.postDelayed(streamRetryRunnable, delayMs)
     }
 
+    // Unconditional: Handler.hasCallbacks is API 29, and with no outage in flight the reconnect
+    // window is already unstamped, so dropping it again changes nothing.
+    private fun cancelPendingStreamRetry() {
+        Timber.d("S4424: session stop cancels any pending stream retry")
+        autoStopHandler.removeCallbacks(streamRetryRunnable)
+        streamRetryPolicy.onRetryDropped()
+    }
+
     private fun retryCurrentStream() {
         val currentPlayer = player ?: return
         when {
@@ -792,12 +817,15 @@ class AudioPlaybackService : MediaSessionService() {
 
     private fun resetStreamRecovery(mediaItem: MediaItem?) {
         autoStopHandler.removeCallbacks(streamRetryRunnable)
-        streamRetryPolicy.onStreamChanged(SystemClock.elapsedRealtime())
+        val streamUrl = mediaItem?.localConfiguration?.uri?.toString()
+        Timber.d("S4424: stream recovery reset for the new item")
+        streamRetryPolicy.onStreamChanged(SystemClock.elapsedRealtime(), streamUrl)
         streamPlayCountedUrl = null
-        val streamUrl = mediaItem?.localConfiguration?.uri?.toString() ?: return
+        if (streamUrl == null) return
         serviceScope.launch {
             streamRetryPolicy.onKnownPlayedBefore(
-                streamSourceRepository.getByUrl(streamUrl)?.lastPlayedAt != null
+                streamSourceRepository.getByUrl(streamUrl)?.lastPlayedAt != null,
+                streamUrl,
             )
         }
     }
@@ -850,7 +878,7 @@ class AudioPlaybackService : MediaSessionService() {
             // S1291: only a catalog stream earns the reconnect window. Setting this for every media
             // item made an ordinary file (e.g. FILE_NOT_FOUND after cache eviction) retry forever
             // instead of taking the fatal-error path that stops the service.
-            streamRetryPolicy.onCatalogStreamPlaying()
+            streamRetryPolicy.onCatalogStreamPlaying(streamUrl)
             if (firstReady) {
                 // S1536: the use case owns the StreamPlayed statistic; going to the repository direct
                 // is what left background radio out of the "streams played" count entirely.

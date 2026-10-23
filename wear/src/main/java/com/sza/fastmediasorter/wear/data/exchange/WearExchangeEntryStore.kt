@@ -86,7 +86,7 @@ class EncryptedWearExchangeEntryStore @Inject constructor(
     private suspend fun mutate(change: (List<WearExchangeEntry>) -> List<WearExchangeEntry>) {
         withContext(Dispatchers.IO) {
             writes.withLock {
-                val next: List<WearExchangeEntry> = change(load())
+                val next: List<WearExchangeEntry> = WearExchangeOutgoingRule.normalize(change(load()))
                 val stored: Array<WearExchangeEntry> = next.toTypedArray()
                 if (!prefs.edit().putString(KEY_ENTRIES, gson.toJson(stored)).commit()) {
                     Timber.w("Exchange entries: the encrypted store refused the write")
@@ -107,7 +107,7 @@ class EncryptedWearExchangeEntryStore @Inject constructor(
             Timber.w("Exchange entries: the stored list could not be read (%s)", e.javaClass.simpleName)
             emptyList()
         }
-        return parsed.filter(::isComplete).also { state.value = it }
+        return WearExchangeOutgoingRule.normalize(parsed.filter(::isComplete)).also { state.value = it }
     }
 
     // Gson ignores Kotlin nullability, so a damaged record arrives with null in a non-null field.

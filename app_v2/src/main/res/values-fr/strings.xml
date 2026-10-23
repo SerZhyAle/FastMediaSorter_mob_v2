@@ -3982,10 +3982,10 @@
     <string name="broadcast_control_screen_action">Diffuser l\'écran</string>
     <string name="broadcast_notification_screen_title">Diffusion de l\'écran</string>
     <string name="broadcast_notification_screen_text">La diffusion d\'écran en direct est active</string>
-    <string name="broadcast_share_password">Mot de passe : %1$s</string>
-    <string name="broadcast_share_new_password">Nouveau mot de passe</string>
-    <string name="broadcast_share_new_password_cd">Créer un nouveau mot de passe de diffusion. L\'ancien cesse de fonctionner</string>
-    <string name="broadcast_share_password_hint">Nouveau mot de passe défini. Communiquez-le séparément du lien - le lien et le code QR ne le contiennent pas</string>
+    <string name="broadcast_link_password_row">Mot de passe : %1$s</string>
+    <string name="broadcast_link_password_change">Nouveau mot de passe</string>
+    <string name="broadcast_link_password_generate_cd">Créer un nouveau mot de passe de diffusion. L\'ancien cesse de fonctionner</string>
+    <string name="broadcast_link_password_applied">Nouveau mot de passe défini. Communiquez-le séparément du lien - le lien et le code QR ne le contiennent pas</string>
     <string name="broadcast_password_title">Mot de passe de la diffusion</string>
     <string name="broadcast_password_message">Saisissez le mot de passe de la diffusion qui vous a été donné avec le lien.</string>
     <string name="broadcast_password_protected">Cette diffusion est protégée par un mot de passe</string>

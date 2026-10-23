@@ -113,6 +113,7 @@ class CrossDevicePacketListDialogFragment : DialogFragment() {
     private fun renderPollState(state: DrivePollState) {
         val text = when (state) {
             DrivePollState.SignInRequired -> getString(R.string.drive_channel_sign_in_required)
+            DrivePollState.ConsentRequired -> getString(R.string.drive_channel_consent_required)
             DrivePollState.DailyLimit -> getString(R.string.drive_channel_daily_limit)
             is DrivePollState.BackingOff -> getString(R.string.drive_channel_backing_off)
             DrivePollState.Off, is DrivePollState.Polling -> null

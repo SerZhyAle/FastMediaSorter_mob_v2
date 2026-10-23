@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Debug-only Drive appDataFolder probe, standardDebug source set, never shipped. Every key is
+     translatable="false" for the reason given in src/debug/res/values/strings_debug.xml (S1280). -->
+<resources>
+    <string name="debug_drive_probe_title" translatable="false">Drive appDataFolder probe</string>
+    <string name="debug_drive_probe_hint" translatable="false">Write puts one fmsx-probe-android-&lt;8 hex&gt;.json file into the Google Drive appDataFolder of the signed-in account, with a token for the drive.appdata scope only. Delete removes every such file from the appDataFolder root.</string>
+    <string name="debug_drive_probe_write" translatable="false">Write probe file</string>
+    <string name="debug_drive_probe_delete" translatable="false">Delete probe files</string>
+    <string name="debug_drive_probe_running" translatable="false">Working..</string>
+    <string name="debug_drive_probe_idle" translatable="false">No probe run yet.</string>
+</resources>

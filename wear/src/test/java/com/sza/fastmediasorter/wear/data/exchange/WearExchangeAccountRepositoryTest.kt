@@ -51,8 +51,8 @@ class WearExchangeAccountRepositoryTest {
 
     @Test
     fun `the same identity re-enrolls with its id and keeps its mark`() = runBlocking {
-        store.put(WearExchangeEntry(HOST, PORT, "OWNER", HELD_ID, null, outgoing = false))
         store.put(WearExchangeEntry("other.example.net", PORT, LOGIN, "BBBB", null, outgoing = true))
+        store.put(WearExchangeEntry(HOST, PORT, "OWNER", HELD_ID, null, outgoing = false))
         val sent = slot<WearExchangeEntry>()
         every { client.enroll(capture(sent), CODE, profile, any()) } returns WearExchangeEnrollResult.Enrolled(TOKEN)
 
@@ -128,6 +128,28 @@ class WearExchangeAccountRepositoryTest {
     }
 
     @Test
+    fun `removing the outgoing entry skips a guest and marks the first member left`() = runBlocking {
+        val outgoing = WearExchangeEntry(HOST, PORT, LOGIN, HELD_ID, null, outgoing = true)
+        store.put(outgoing)
+        store.put(
+            WearExchangeEntry(
+                "guest.example.net",
+                PORT,
+                LOGIN,
+                "CCCC",
+                null,
+                accountKind = WearExchangeEntry.ACCOUNT_KIND_GUEST,
+            ),
+        )
+        store.put(WearExchangeEntry("other.example.net", PORT, LOGIN, "BBBB", null))
+        every { client.revokeOwnDevice(any(), any(), any()) } throws IOException("down")
+
+        repository.remove(outgoing)
+
+        assertEquals(listOf("BBBB"), store.all().filter { it.outgoing }.map { it.deviceId })
+    }
+
+    @Test
     fun `an unreachable server still forgets the entry`() = runBlocking {
         val entry = WearExchangeEntry(HOST, PORT, LOGIN, HELD_ID, null, outgoing = true)
         store.put(entry)
@@ -162,17 +184,22 @@ class WearExchangeAccountRepositoryTest {
 
         override suspend fun all(): List<WearExchangeEntry> = held.value
 
+        // Every write goes through item DS, as in the encrypted store.
         override suspend fun put(entry: WearExchangeEntry) {
             val index = held.value.indexOfFirst { it.identity == entry.identity }
-            held.value = if (index < 0) held.value + entry else held.value.toMutableList().apply { set(index, entry) }
+            write(if (index < 0) held.value + entry else held.value.toMutableList().apply { set(index, entry) })
         }
 
         override suspend fun remove(identity: String) {
-            held.value = held.value.filterNot { it.identity == identity }
+            write(held.value.filterNot { it.identity == identity })
         }
 
         override suspend fun setOutgoing(identity: String) {
-            held.value = held.value.map { it.copy(outgoing = it.identity == identity) }
+            write(held.value.map { it.copy(outgoing = it.identity == identity) })
+        }
+
+        private fun write(next: List<WearExchangeEntry>) {
+            held.value = WearExchangeOutgoingRule.normalize(next)
         }
 
         override suspend fun token(identity: String): String? = tokens[identity]

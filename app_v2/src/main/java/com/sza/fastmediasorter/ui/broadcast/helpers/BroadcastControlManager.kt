@@ -27,6 +27,7 @@ import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.databinding.ActivityBroadcastControlBinding
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SendStreamToWatchUseCase
+import com.sza.fastmediasorter.domain.usecase.broadcast.ObserveExchangeBroadcastPublishStateUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.BuildWatchBroadcastHandoffUseCase
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.util.showBoundTo
@@ -38,8 +39,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-// S4261: one past detekt's ceiling with the watch hand-off form; this class is the screen's coordinator and every
-// collaborator is already a single-purpose manager or use case, so a wrapper would only move the list.
+// Past detekt's ceiling with the watch hand-off form and the exchange line; this class is the screen's coordinator
+// and every collaborator is already a single-purpose manager or use case, so a wrapper would only move the list.
 @Suppress("LongParameterList")
 class BroadcastControlManager @Inject constructor(
     private val controller: BroadcastSourceController,
@@ -52,6 +53,7 @@ class BroadcastControlManager @Inject constructor(
     private val sendStreamToWatch: Lazy<SendStreamToWatchUseCase>,
     private val buildWatchBroadcastHandoff: Lazy<BuildWatchBroadcastHandoffUseCase>,
     private val settingsPanelManager: BroadcastSettingsPanelManager,
+    private val observeExchangeState: Lazy<ObserveExchangeBroadcastPublishStateUseCase>,
 ) {
     /** Takes no dependencies of its own, so it is constructed here instead of going through Hilt. */
     private val preStreamPreview = BroadcastPreStreamPreviewManager()
@@ -65,6 +67,8 @@ class BroadcastControlManager @Inject constructor(
 
     /** S4418: built here for the same reason - its "controls asked for" flag has to survive a rotation. */
     private val landscapeVideo = BroadcastLandscapeVideoManager()
+
+    private val exchangeStatus = BroadcastExchangeStatusManager()
 
     /**
      * The mode a live switch is re-opening the session in, null while nothing switches. Until that mode
@@ -150,6 +154,11 @@ class BroadcastControlManager @Inject constructor(
                     sharePanel.shareChanges.collect {
                         sharePanel.render(activity, binding)
                         renderSendToWatch(binding, controller.state.value)
+                    }
+                }
+                launch {
+                    observeExchangeState.get()().collect { state ->
+                        exchangeStatus.render(activity, binding.tvExchangeServerStatus, state)
                     }
                 }
                 launch {

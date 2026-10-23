@@ -35,22 +35,27 @@ object AppErrorNotifier {
      * @param screenName       Optional label prepended to log output (e.g. "Browse").
      * @param showDetailedErrors Unused here; caller decides whether to show [com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog]
      *                         separately. Passed for symmetry with existing callers.
+     * @param onDismissed      Called exactly once when the notification is gone - dismissed, timed out
+     *                         or never shown - so a caller that must close its screen can wait for it.
      */
     fun show(
         activity: Activity,
         message: String,
         severity: ErrorSeverity,
         screenName: String? = null,
-        showDetailedErrors: Boolean = false
+        showDetailedErrors: Boolean = false,
+        onDismissed: (() -> Unit)? = null,
     ) {
         // DEBUG_ONLY suppressed in release builds
         if (severity == ErrorSeverity.DEBUG_ONLY && !BuildConfig.DEBUG) {
             Timber.d("AppErrorNotifier: suppressed DEBUG_ONLY in release build")
+            onDismissed?.invoke()
             return
         }
 
         if (activity.isFinishing || activity.isDestroyed) {
             Timber.w("AppErrorNotifier: Activity is finishing/destroyed - skipping notification")
+            onDismissed?.invoke()
             return
         }
 
@@ -96,6 +101,15 @@ object AppErrorNotifier {
             ErrorSeverity.DEBUG_ONLY -> Timber.w(logLine)
         }
 
+        val notifyDismissed = onDismissed
+        if (notifyDismissed != null) {
+            snackbar.addCallback(object : Snackbar.Callback() {
+                override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
+                    transientBottomBar?.removeCallback(this)
+                    notifyDismissed()
+                }
+            })
+        }
         snackbar.show()
     }
 }

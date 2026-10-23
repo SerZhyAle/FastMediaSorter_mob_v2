@@ -10,9 +10,11 @@ import com.sza.fastmediasorter.data.broadcast.exchange.ExchangeBroadcastAnnounce
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeCastCodec
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeDirectory
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeEnvelope
+import com.sza.fastmediasorter.data.remote.exchange.ExchangeReceiverControlStreams
 import com.sza.fastmediasorter.data.remote.exchange.ExchangeSealedContentOpener
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpServerTunnelManager
 import com.sza.fastmediasorter.data.repository.DeviceExchangeAccountRepository
+import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.domain.model.ExchangeCastAction
 import com.sza.fastmediasorter.domain.model.ExchangeCastOffer
 import com.sza.fastmediasorter.domain.model.ExchangeCastReceiverMachine
@@ -39,6 +41,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -50,8 +53,12 @@ import javax.inject.Singleton
  * unless the user chose "play at once". As a sender it lists the receivers on the same stream, so opening the
  * list never displaces the broadcast's control stream (7.3), and sends one `cast` per chosen receiver. Receiving
  * follows the outgoing entry whatever its kind; sending only one that may produce (19 item AO).
+ *
+ * Every other entry receives too (items AC and BM), each on its own control stream in
+ * [ExchangeReceiverControlStreams]; an offer is opened with the entry it arrived on and answered on the same
+ * stream, because a cast always comes from that entry's account (item R).
  */
-// Both halves of cast meet here on purpose: they share the one control stream and its single collector.
+// Both halves of cast meet here on purpose: they share the outgoing entry's control stream.
 @Suppress("LongParameterList")
 @Singleton
 class ExchangeCastCoordinator @Inject constructor(
@@ -64,6 +71,7 @@ class ExchangeCastCoordinator @Inject constructor(
     private val importBroadcast: ImportStreamBroadcastUseCase,
     private val notifier: ExchangeCastNotifier,
     private val sealed: ExchangeSealedContentOpener,
+    private val receivers: ExchangeReceiverControlStreams,
     @ApplicationScope private val scope: CoroutineScope,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) {
@@ -71,6 +79,9 @@ class ExchangeCastCoordinator @Inject constructor(
     private val started = AtomicBoolean(false)
     private val machine = ExchangeCastReceiverMachine()
     private val machineLock = Mutex()
+
+    /** The entry each offer read on a receive-only stream came on; an offer absent here came on the tunnel. */
+    private val origins = ConcurrentHashMap<String, DeviceExchangeAccountEntry>()
 
     /**
      * A broadcast can be cast only through an outgoing entry, the one it is announced on (item AC), and never a
@@ -84,18 +95,31 @@ class ExchangeCastCoordinator @Inject constructor(
     /** Idempotent: a second call adds no second collector. */
     fun start() {
         if (!started.compareAndSet(false, true)) return
+        val streamsOn = settings.getSettings()
+            .map { app -> app.enableStreams && capabilities.isStreamsAvailable() }
+            .distinctUntilChanged()
         scope.launch {
-            combine(accounts.outgoing, settings.getSettings()) { outgoing, app ->
-                outgoing != null && app.enableStreams && capabilities.isStreamsAvailable()
-            }.distinctUntilChanged().collect(tunnel::setReceiving)
+            combine(accounts.outgoing, streamsOn) { outgoing, on -> outgoing?.identity?.takeIf { on } }
+                .distinctUntilChanged()
+                .collect(tunnel::setReceiving)
         }
         scope.launch(ioDispatcher) {
-            tunnel.controlEvents.collect { envelope ->
-                DeviceExchangeCastCodec.offer(envelope)?.let { onOffer(it) }
-                DeviceExchangeCastCodec.stoppedBroadcastId(envelope)?.let { id ->
-                    perform(machineLock.withLock { machine.onStopped(id) }, null)
+            receivers.run(
+                combine(accounts.entries, streamsOn) { entries, on ->
+                    if (on) entries.filterNot(DeviceExchangeAccountEntry::outgoing) else emptyList()
                 }
-            }
+            )
+        }
+        scope.launch(ioDispatcher) { tunnel.controlEvents.collect { onControl(null, it) } }
+        scope.launch(ioDispatcher) { receivers.events.collect { onControl(it.entry, it.envelope) } }
+    }
+
+    /** [origin] is the entry of the receive-only stream [envelope] was read on; null for the tunnel. */
+    private suspend fun onControl(origin: DeviceExchangeAccountEntry?, envelope: DeviceExchangeEnvelope) {
+        DeviceExchangeCastCodec.offer(envelope)?.let { onOffer(it, origin) }
+        DeviceExchangeCastCodec.stoppedBroadcastId(envelope)?.let { id ->
+            perform(machineLock.withLock { machine.onStopped(id) }, null)
+            origins.remove(id)
         }
     }
 
@@ -135,9 +159,12 @@ class ExchangeCastCoordinator @Inject constructor(
         receiverDeviceIds.count { tunnel.sendControl(DeviceExchangeCastCodec.cast(broadcastId, it)) }
     }
 
-    private suspend fun onOffer(received: ExchangeCastOffer) {
+    private suspend fun onOffer(received: ExchangeCastOffer, origin: DeviceExchangeAccountEntry?) {
+        if (origin != null) origins[received.broadcastId] = origin else origins.remove(received.broadcastId)
+        Timber.d("S4421: cast offer received, on a receive-only stream=${origin != null}")
         // 27 item DK: the offered record's box is opened into its endpoints before anything imports it.
-        val record = accounts.outgoingEntry()?.let { sealed.openCast(it, received.record) }
+        val entry = origin ?: tunnel.liveEntry ?: accounts.outgoingEntry()
+        val record = entry?.let { sealed.openCast(it, received.record) }
             ?: received.record.copy(sealed = null)
         val offer = received.copy(record = record)
         val dto = (parser.parseDetailed(offer.record.descriptorJson) as? BroadcastDescriptorParser.ParseOutcome.Valid)
@@ -152,9 +179,9 @@ class ExchangeCastCoordinator @Inject constructor(
         actions.forEach { action ->
             when (action) {
                 is ExchangeCastAction.Answer -> {
-                    val sent = tunnel.sendControl(
-                        DeviceExchangeCastCodec.answer(action.broadcastId, action.accepted, action.reason)
-                    )
+                    val answer = DeviceExchangeCastCodec.answer(action.broadcastId, action.accepted, action.reason)
+                    val origin = origins[action.broadcastId]
+                    val sent = origin?.let { receivers.send(it.identity, answer) } ?: tunnel.sendControl(answer)
                     if (!sent) Timber.i("ExchangeCastCoordinator: cast answer not sent, no control stream")
                 }
                 is ExchangeCastAction.Ask -> playUrl?.let { url -> notify(action.offer, url, asking = true) }

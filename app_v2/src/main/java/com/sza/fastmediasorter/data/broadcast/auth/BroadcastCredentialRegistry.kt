@@ -19,7 +19,9 @@ import javax.inject.Singleton
  * listeners arrive from loopback too, so no address may skip the check and the phone answers like anyone else.
  *
  * A broadcast is protected from [begin] - the moment it is announced through an exchange server - until [end]; a
- * LAN-only broadcast never begins one and stays the secret link.
+ * LAN-only broadcast never begins one and stays the secret link. S4405: an announced broadcast whose person chose
+ * [BroadcastLinkChoice.Open] holds no link pair and is not protected either; the own and guest pairs stay, so a
+ * later choice of a password protects them again without a new broadcast.
  */
 @Singleton
 class BroadcastCredentialRegistry @Inject constructor(
@@ -29,7 +31,8 @@ class BroadcastCredentialRegistry @Inject constructor(
     private data class Live(
         val broadcastId: String,
         val own: BroadcastCredentialPair,
-        val link: BroadcastCredentialPair,
+        val choice: BroadcastLinkChoice,
+        val link: BroadcastCredentialPair?,
         val guests: Map<String, BroadcastCredentialPair> = emptyMap(),
     )
 
@@ -48,18 +51,34 @@ class BroadcastCredentialRegistry @Inject constructor(
     /** Bumps on every change of the pair set, so the announcer sends `broadcast-update`. */
     val revision: StateFlow<Long> = _revision.asStateFlow()
 
-    val isProtected: Boolean get() = live != null
+    val isProtected: Boolean get() = live?.link != null
 
     val ownPair: BroadcastCredentialPair? get() = live?.own
 
     val linkPair: BroadcastCredentialPair? get() = live?.link
 
     @Synchronized
-    fun begin(broadcastId: String) {
+    fun begin(broadcastId: String, choice: BroadcastLinkChoice = BroadcastLinkChoice.Generated) {
         if (live?.broadcastId == broadcastId) return
         verifierCache.clear()
-        live = Live(broadcastId, newPair(OWN_USER), newPair(LINK_USER))
+        live = Live(broadcastId, newPair(OWN_USER), choice, linkPairFor(choice))
         _revision.value += 1
+    }
+
+    /**
+     * S4405: replaces or drops only the outward link's pair, the way "New password" revokes one (LIVE-BROADCAST item
+     * R); the own and guest pairs are untouched. Returns the new link pair, null for an open link or while nothing
+     * is announced. The same choice again changes nothing, so re-confirming "automatic" keeps the handed-out password.
+     */
+    @Synchronized
+    fun applyLink(choice: BroadcastLinkChoice): BroadcastCredentialPair? {
+        val current = live ?: return null
+        if (current.choice != choice) {
+            current.link?.let(verifierCache::remove)
+            live = current.copy(choice = choice, link = linkPairFor(choice))
+            _revision.value += 1
+        }
+        return live?.link
     }
 
     @Synchronized
@@ -73,8 +92,8 @@ class BroadcastCredentialRegistry @Inject constructor(
     /** Revokes the outward link's password and makes a new one; the user name, and so the shared code, stays. */
     @Synchronized
     fun renewLink(): BroadcastCredentialPair? {
-        val current = live ?: return null
-        verifierCache.remove(current.link)
+        val current = live?.takeIf { it.choice == BroadcastLinkChoice.Generated } ?: return null
+        current.link?.let(verifierCache::remove)
         val renewed = current.copy(link = newPair(LINK_USER))
         live = renewed
         _revision.value += 1
@@ -107,23 +126,33 @@ class BroadcastCredentialRegistry @Inject constructor(
     fun guestPair(grantId: String): BroadcastCredentialPair? = live?.guests?.get(grantId)
 
     /** Every pair a server accepts, or null while the broadcast is not protected. */
-    fun pairs(): List<BroadcastCredentialPair>? =
-        live?.let { listOf(it.own, it.link) + it.guests.values + internalPair }
+    fun pairs(): List<BroadcastCredentialPair>? {
+        val current = live
+        val link = current?.link ?: return null
+        return listOf(current.own, link) + current.guests.values + internalPair
+    }
 
     /** The descriptor's `auth` marker: the link's user, the one an outsider answers with. */
-    fun authMarker(): BroadcastAuthDto? = live?.let { BroadcastAuthDto(user = it.link.user) }
+    fun authMarker(): BroadcastAuthDto? = live?.link?.let { BroadcastAuthDto(user = it.user) }
 
     /** The relay's verifiers for the own, link and guest pairs; PBKDF2 runs once per pair, off the caller's thread. */
     suspend fun verifiers(): List<BroadcastVerifier> {
-        val current = live ?: return emptyList()
+        val current = live
+        val link = current?.link ?: return emptyList()
         return withContext(defaultDispatcher) {
-            (listOf(current.own, current.link) + current.guests.values).map { pair ->
+            (listOf(current.own, link) + current.guests.values).map { pair ->
                 verifierCache.getOrPut(pair) { BroadcastVerifiers.create(pair) }
             }
         }
     }
 
     private fun newPair(user: String) = BroadcastCredentialPair(user, randomString(PASSWORD_LENGTH))
+
+    private fun linkPairFor(choice: BroadcastLinkChoice): BroadcastCredentialPair? = when (choice) {
+        BroadcastLinkChoice.Generated -> newPair(LINK_USER)
+        is BroadcastLinkChoice.Custom -> BroadcastCredentialPair(LINK_USER, choice.password)
+        BroadcastLinkChoice.Open -> null
+    }
 
     private companion object {
         const val OWN_USER = "account"

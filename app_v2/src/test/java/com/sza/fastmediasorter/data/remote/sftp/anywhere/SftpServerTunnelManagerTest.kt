@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.data.remote.exchange.InMemoryE2eKeyStore
 import com.sza.fastmediasorter.data.remote.exchange.RecordingPinRecorder
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.domain.model.ExchangeBroadcastGrant
+import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import com.sza.fastmediasorter.domain.model.SftpRendezvousBroadcast
 import com.sza.fastmediasorter.domain.model.SftpRendezvousDevice
 import com.sza.fastmediasorter.domain.model.SftpRendezvousResource
@@ -471,6 +472,118 @@ class SftpServerTunnelManagerTest {
     }
 
     @Test
+    fun `turning the folder off keeps the announced broadcast and its control stream`() = withManager { manager ->
+        val control = ArrayBlockingQueue<DeviceExchangeEnvelope>(4)
+        thread(isDaemon = true) {
+            exchange.accept().use { stream ->
+                read(stream)
+                write(stream, DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_WELCOME))
+                control.put(read(stream))
+                write(stream, published(0))
+                repeat(3) { control.put(read(stream)) }
+                stream.getInputStream().read()
+            }
+        }
+
+        manager.start(localServer.localPort, emptyList())
+        withTimeout(WAIT_SECONDS * MILLIS) { manager.state.first { it is SftpTunnelState.Registered } }
+        manager.announceBroadcast(publication(localServer.localPort))
+        assertEquals(DeviceExchangeEnvelope.TYPE_PUBLISH, poll(control).type)
+        assertEquals(DeviceExchangeEnvelope.TYPE_BROADCAST_START, poll(control).type)
+
+        assertTrue(manager.unpublishShare())
+        val unpublish = poll(control)
+        assertEquals(DeviceExchangeEnvelope.TYPE_UNPUBLISH, unpublish.type)
+        assertEquals(RESOURCE_ID, unpublish.string("resourceId"))
+        assertEquals(SftpTunnelState.Off, manager.state.value)
+        manager.announceBroadcast(publication(localServer.localPort))
+        assertEquals(DeviceExchangeEnvelope.TYPE_BROADCAST_UPDATE, poll(control).type)
+        assertEquals(1, connections.get())
+    }
+
+    @Test
+    fun `a broadcast for another entry leaves the old stream and announces on a new one`() = withManager { manager ->
+        val first = ArrayBlockingQueue<DeviceExchangeEnvelope>(3)
+        val second = ArrayBlockingQueue<DeviceExchangeEnvelope>(1)
+        thread(isDaemon = true) {
+            exchange.accept().use { stream ->
+                read(stream)
+                write(stream, DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_WELCOME))
+                repeat(3) { first.put(read(stream)) }
+            }
+            exchange.accept().use { stream ->
+                read(stream)
+                write(stream, DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_WELCOME))
+                second.put(read(stream))
+                stream.getInputStream().read()
+            }
+        }
+
+        manager.announceBroadcast(publication(localServer.localPort))
+        assertEquals(DeviceExchangeEnvelope.TYPE_BROADCAST_START, poll(first).type)
+        // The announce runs on the manager's own coroutine; give it the moment to record what it sent.
+        Thread.sleep(SETTLE_MS)
+        val moved = publication(localServer.localPort)
+        manager.announceBroadcast(moved.copy(record = moved.record.copy(deviceId = OTHER_DEVICE_ID)))
+
+        assertEquals(DeviceExchangeEnvelope.TYPE_BROADCAST_END, poll(first).type)
+        assertEquals(DeviceExchangeEnvelope.TYPE_BYE, poll(first).type)
+        assertEquals(DeviceExchangeEnvelope.TYPE_BROADCAST_START, poll(second).type)
+        assertEquals(2, connections.get())
+    }
+
+    @Test
+    fun `broadcast-started for the announced id puts it on the server, another id does not`() = withManager { manager ->
+        val started = ArrayBlockingQueue<Boolean>(1)
+        val release = ArrayBlockingQueue<Boolean>(1)
+        thread(isDaemon = true) {
+            exchange.accept().use { stream ->
+                read(stream)
+                write(stream, DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_WELCOME))
+                read(stream)
+                write(stream, broadcastStarted(OTHER_BROADCAST_ID))
+                started.put(true)
+                release.take()
+                write(stream, broadcastStarted(BROADCAST_ID))
+                stream.getInputStream().read()
+            }
+        }
+
+        manager.announceBroadcast(publication(localServer.localPort))
+        checkNotNull(started.poll(WAIT_SECONDS, TimeUnit.SECONDS))
+        Thread.sleep(SETTLE_MS)
+        assertEquals(SftpServerTunnelManager.BroadcastWire.Sent(BROADCAST_ID), manager.broadcastWire.value)
+        release.put(true)
+
+        val wire = withTimeout(WAIT_SECONDS * MILLIS) {
+            manager.broadcastWire.first { it is SftpServerTunnelManager.BroadcastWire.Started }
+        }
+        assertEquals(SftpServerTunnelManager.BroadcastWire.Started(BROADCAST_ID), wire)
+        manager.endBroadcast()
+        assertEquals(SftpServerTunnelManager.BroadcastWire.None, manager.broadcastWire.value)
+    }
+
+    @Test
+    fun `a refusal after broadcast-start fails the broadcast with the row of its reason`() = withManager { manager ->
+        thread(isDaemon = true) {
+            exchange.accept().use { stream ->
+                read(stream)
+                write(stream, DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_WELCOME))
+                read(stream)
+                write(stream, DeviceExchangeEnvelope.refused(DeviceExchangeEnvelope.REASON_UNAVAILABLE))
+                stream.getInputStream().read()
+            }
+        }
+
+        manager.announceBroadcast(publication(localServer.localPort))
+
+        val wire = withTimeout(WAIT_SECONDS * MILLIS) {
+            manager.broadcastWire.first { it is SftpServerTunnelManager.BroadcastWire.Failed }
+        }
+        assertEquals(SftpServerTunnelManager.BroadcastWire.Failed(ExchangeMessage.UNAVAILABLE), wire)
+    }
+
+    @Test
     fun `ending a broadcast with no share says broadcast-end and bye`() = withManager { manager ->
         val farewell = ArrayBlockingQueue<DeviceExchangeEnvelope>(2)
         val announced = ArrayBlockingQueue<Boolean>(1)
@@ -576,6 +689,11 @@ class SftpServerTunnelManagerTest {
         verifiers = listOf(BroadcastVerifier(user = "listener", salt = "c2FsdA", hash = "aGFzaA")),
     )
 
+    private fun broadcastStarted(broadcastId: String) =
+        DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_BROADCAST_STARTED) {
+            addProperty("broadcastId", broadcastId)
+        }
+
     private fun published(publicPort: Int) = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_PUBLISHED) {
         addProperty("resourceId", RESOURCE_ID)
         addProperty("publicPort", publicPort)
@@ -618,6 +736,7 @@ class SftpServerTunnelManagerTest {
         const val RESOURCE_ID = "CCCCCCCCCCCCCCCCCCCCCC"
         const val TUNNEL_ID = "DDDDDDDDDDDDDDDDDDDDDD"
         const val BROADCAST_ID = "EEEEEEEEEEEEEEEEEEEEEA"
+        const val OTHER_BROADCAST_ID = "FFFFFFFFFFFFFFFFFFFFFA"
         const val GRANT_ID = "FFFFFFFFFFFFFFFFFFFFFA"
         const val OTHER_DEVICE_ID = "GGGGGGGGGGGGGGGGGGGGGA"
         const val SEALED_FRAMES = 5

@@ -3,6 +3,8 @@ package com.sza.fastmediasorter.wear.ui.broadcast
 import android.content.Context
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
+import com.sza.fastmediasorter.wear.data.exchange.WearExchangeBroadcastAnnouncer
+import com.sza.fastmediasorter.wear.domain.broadcast.WearBroadcastPublishState
 import com.sza.fastmediasorter.wear.domain.broadcast.WearBroadcastSessionState
 import com.sza.fastmediasorter.wear.domain.broadcast.WearBroadcastSessionStateHolder
 import com.sza.fastmediasorter.wear.service.VoiceRecordingService
@@ -23,10 +25,13 @@ import javax.inject.Inject
 @HiltViewModel
 class WearBroadcastViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
-    sessionHolder: WearBroadcastSessionStateHolder
+    sessionHolder: WearBroadcastSessionStateHolder,
+    announcer: WearExchangeBroadcastAnnouncer
 ) : ViewModel() {
 
     val state: StateFlow<WearBroadcastSessionState> = sessionHolder.state
+
+    val exchangeState: StateFlow<WearBroadcastPublishState> = announcer.publishState
 
     /**
      * `startForegroundService` because the service raises a microphone foreground notification on its

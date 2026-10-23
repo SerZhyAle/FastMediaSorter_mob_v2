@@ -15,19 +15,27 @@ import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
 object GoogleDriveAuthResolutionTracker {
-    private val resultDeferreds = ConcurrentHashMap<String, CompletableDeferred<Boolean>>()
+    private val resultDeferreds = ConcurrentHashMap<String, CompletableDeferred<Intent?>>()
 
-    fun register(id: String): CompletableDeferred<Boolean> {
-        val deferred = CompletableDeferred<Boolean>()
+    fun register(id: String): CompletableDeferred<Intent?> {
+        val deferred = CompletableDeferred<Intent?>()
         resultDeferreds[id] = deferred
         return deferred
     }
 
-    fun complete(id: String, success: Boolean) {
-        resultDeferreds.remove(id)?.complete(success)
+    /** [result] is the consent screen's result data on success, null on cancel or failure. */
+    fun complete(id: String, result: Intent?) {
+        resultDeferreds.remove(id)?.complete(result)
     }
 
-    suspend fun resolvePendingIntent(context: Context, pendingIntent: PendingIntent): Boolean {
+    suspend fun resolvePendingIntent(context: Context, pendingIntent: PendingIntent): Boolean =
+        resolveForResult(context, pendingIntent) != null
+
+    /**
+     * S4427: the result data carries the scopes Google actually granted, which a Boolean loses.
+     * Returns null when the user cancelled the consent screen.
+     */
+    suspend fun resolveForResult(context: Context, pendingIntent: PendingIntent): Intent? {
         val id = UUID.randomUUID().toString()
         val deferred = register(id)
         val intent = Intent(context, GoogleDriveAuthResolutionActivity::class.java).apply {
@@ -60,8 +68,9 @@ class GoogleDriveAuthResolutionActivity : ComponentActivity() {
         }
 
         val launcher = registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
-            val success = result.resultCode == Activity.RESULT_OK
-            resolutionId?.let { id -> GoogleDriveAuthResolutionTracker.complete(id, success) }
+            // A successful result without data must still read as success, hence the empty Intent.
+            val data = if (result.resultCode == Activity.RESULT_OK) result.data ?: Intent() else null
+            resolutionId?.let { id -> GoogleDriveAuthResolutionTracker.complete(id, data) }
             finish()
         }
 
@@ -74,7 +83,7 @@ class GoogleDriveAuthResolutionActivity : ComponentActivity() {
         super.onDestroy()
         if (isFinishing) {
             resolutionId?.let { id ->
-                GoogleDriveAuthResolutionTracker.complete(id, false)
+                GoogleDriveAuthResolutionTracker.complete(id, null)
             }
         }
     }

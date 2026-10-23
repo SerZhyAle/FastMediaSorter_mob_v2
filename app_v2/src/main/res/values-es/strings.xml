@@ -3986,10 +3986,10 @@
     <string name="broadcast_control_screen_action">Difundir la pantalla</string>
     <string name="broadcast_notification_screen_title">Difundiendo la pantalla</string>
     <string name="broadcast_notification_screen_text">La difusión de pantalla en directo está activa</string>
-    <string name="broadcast_share_password">Contraseña: %1$s</string>
-    <string name="broadcast_share_new_password">Nueva contraseña</string>
-    <string name="broadcast_share_new_password_cd">Crear una nueva contraseña de difusión. La anterior deja de funcionar</string>
-    <string name="broadcast_share_password_hint">Nueva contraseña establecida. Comunícala aparte del enlace - ni el enlace ni el código QR la incluyen</string>
+    <string name="broadcast_link_password_row">Contraseña: %1$s</string>
+    <string name="broadcast_link_password_change">Nueva contraseña</string>
+    <string name="broadcast_link_password_generate_cd">Crear una nueva contraseña de difusión. La anterior deja de funcionar</string>
+    <string name="broadcast_link_password_applied">Nueva contraseña establecida. Comunícala aparte del enlace - ni el enlace ni el código QR la incluyen</string>
     <string name="broadcast_password_title">Contraseña de la difusión</string>
     <string name="broadcast_password_message">Introduce la contraseña de la difusión que recibiste con el enlace.</string>
     <string name="broadcast_password_protected">Esta difusión está protegida con contraseña</string>

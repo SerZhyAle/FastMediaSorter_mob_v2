@@ -11,10 +11,10 @@ import com.sza.fastmediasorter.databinding.GadgetLauncherListBinding
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
+import com.sza.fastmediasorter.domain.usecase.launcher.ExecuteLauncherCommandUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.LoadLauncherGadgetFilesUseCase
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import kotlinx.coroutines.CoroutineScope
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -22,6 +22,7 @@ import javax.inject.Inject
  */
 class PlaylistGadget @Inject constructor(
     private val loadFiles: LoadLauncherGadgetFilesUseCase,
+    private val executeCommand: ExecuteLauncherCommandUseCase,
 ) : LauncherGadget {
 
     override val key: String = LauncherGadgetRegistry.KEY_PLAYLIST
@@ -33,7 +34,7 @@ class PlaylistGadget @Inject constructor(
     override val requiresResourceParam: Boolean = true
 
     override fun createView(container: FrameLayout, host: LauncherGadgetHost, param: String?): View =
-        PlaylistGadgetView(container.context, host, param?.toLongOrNull(), loadFiles)
+        PlaylistGadgetView(container.context, host, param?.toLongOrNull(), loadFiles, executeCommand)
 }
 
 private class PlaylistGadgetView(
@@ -41,6 +42,7 @@ private class PlaylistGadgetView(
     private val host: LauncherGadgetHost,
     private val resourceId: Long?,
     private val loadFiles: LoadLauncherGadgetFilesUseCase,
+    private val executeCommand: ExecuteLauncherCommandUseCase,
 ) : LauncherGadgetView(context) {
 
     private val binding = GadgetLauncherListBinding.inflate(LayoutInflater.from(context), this)
@@ -118,10 +120,14 @@ private class PlaylistGadgetView(
         start(PlayerActivity.createPanelIntent(context, resourceId = resourceId, initialFilePath = filePath))
     }
 
+    /**
+     * The shared launcher task policy, not a bare NEW_TASK: alone, that flag drops the player into the
+     * task already holding whatever app screen was open last, so a failed or finished playback
+     * uncovers that screen instead of the desktop. A start from this view's own Activity context is
+     * no answer either - it lands in the home task, where picture-in-picture is refused.
+     */
     private fun start(intent: android.content.Intent) {
-        runCatching {
-            context.startActivity(intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
-        }.onFailure { Timber.w(it, "Launcher playlist gadget: player refused to open") }
+        executeCommand.startTarget(intent)
     }
 
     private companion object {

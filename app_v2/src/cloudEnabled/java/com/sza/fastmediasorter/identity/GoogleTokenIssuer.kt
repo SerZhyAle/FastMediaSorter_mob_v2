@@ -34,6 +34,12 @@ sealed interface TokenIssueResult {
 
     /** Refreshable / transient failure (network, revoked grant, etc.) - keep the binding. */
     data object Failed : TokenIssueResult
+
+    /**
+     * The authorization call succeeded but needs a consent screen the background layer cannot show.
+     * Distinct from [Failed] so a scope the user never granted does not read as an expired token. S4427.
+     */
+    data object ConsentRequired : TokenIssueResult
 }
 
 /**
@@ -81,19 +87,27 @@ class GoogleTokenIssuer @Inject constructor(
                 val result = Identity.getAuthorizationClient(context)
                     .authorize(authorizationRequest)
                     .await()
-                check(!result.hasResolution()) { "Authorization requires resolution" }
-                val raw = result.accessToken
-                    ?: error("Authorization returned null access token")
-                GoogleAccessToken(
-                    token = raw,
-                    scopes = scopes,
-                    expiresAt = Instant.now().plus(TOKEN_LIFETIME)
-                )
+                if (result.hasResolution()) {
+                    null
+                } else {
+                    val raw = result.accessToken
+                        ?: error("Authorization returned null access token")
+                    GoogleAccessToken(
+                        token = raw,
+                        scopes = scopes,
+                        expiresAt = Instant.now().plus(TOKEN_LIFETIME)
+                    )
+                }
             }.onFailure { it.rethrowIfCancellation() }
                 .fold(
                     onSuccess = { token ->
-                        cache[scopes] = token
-                        TokenIssueResult.Success(token)
+                        if (token == null) {
+                            Timber.i("Token issuance needs user consent for scopes=$scopes")
+                            TokenIssueResult.ConsentRequired
+                        } else {
+                            cache[scopes] = token
+                            TokenIssueResult.Success(token)
+                        }
                     },
                     onFailure = { error ->
                         Timber.w(error, "Token issuance failed for scopes=$scopes")

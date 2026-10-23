@@ -299,4 +299,6 @@
     <string name="drive_channel_send_no_devices">None of your other devices has used Google Drive yet. Turn on Files via Google Drive on the other device too, then try again.</string>
     <string name="drive_channel_send_waiting_for">Waiting for %1$s to receive it via Google Drive.</string>
     <string name="drive_channel_send_waiting_any">Waiting for one of your devices to receive it via Google Drive.</string>
+    <string name="drive_channel_consent_required">Google Drive has not given this app its own folder yet. Allow it to send and receive files between your devices. Nothing was deleted.</string>
+    <string name="drive_channel_consent_allow">Allow</string>
 </resources>

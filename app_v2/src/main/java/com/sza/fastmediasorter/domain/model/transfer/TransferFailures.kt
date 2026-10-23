@@ -29,6 +29,9 @@ class PreviewedKindNotAppliedHere(kind: TransferDataKind) :
 /** S4231: the Google account must sign in again; nothing in the queue was deleted (DEVICE-EXCHANGE item CT). */
 class DriveSignInRequired : Exception("Google Drive sign-in required")
 
+/** S4427: the account is still signed in; only the app folder grant is missing, so the user is offered that grant. */
+class DriveConsentRequired : Exception("Google Drive app folder access not granted")
+
 /** S4231: Drive's daily upload limit; reported, never retried in a loop (item CS). */
 class DriveDailyLimit : Exception("Google Drive daily upload limit reached")
 

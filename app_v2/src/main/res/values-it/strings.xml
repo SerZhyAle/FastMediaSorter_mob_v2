@@ -3984,9 +3984,9 @@
     <string name="broadcast_control_screen_action">Trasmetti lo schermo</string>
     <string name="broadcast_notification_screen_title">Trasmissione dello schermo</string>
     <string name="broadcast_notification_screen_text">La trasmissione dal vivo dello schermo è attiva</string>
-    <string name="broadcast_share_new_password">Nuova password</string>
-    <string name="broadcast_share_new_password_cd">Crea una nuova password per la trasmissione. Quella vecchia smette di funzionare</string>
-    <string name="broadcast_share_password_hint">Nuova password impostata. Comunicala separatamente dal link - né il link né il codice QR la contengono</string>
+    <string name="broadcast_link_password_change">Nuova password</string>
+    <string name="broadcast_link_password_generate_cd">Crea una nuova password per la trasmissione. Quella vecchia smette di funzionare</string>
+    <string name="broadcast_link_password_applied">Nuova password impostata. Comunicala separatamente dal link - né il link né il codice QR la contengono</string>
     <string name="broadcast_password_title">Password della trasmissione</string>
     <string name="broadcast_password_message">Inserisci la password della trasmissione che ti è stata data insieme al link.</string>
     <string name="broadcast_password_protected">Questa trasmissione è protetta da password</string>

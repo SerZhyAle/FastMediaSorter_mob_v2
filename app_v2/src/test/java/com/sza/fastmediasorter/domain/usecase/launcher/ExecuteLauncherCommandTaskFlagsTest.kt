@@ -63,6 +63,24 @@ class ExecuteLauncherCommandTaskFlagsTest {
     }
 
     @Test
+    fun `gadget-built internal intent receives the same task flags as a stored command`() {
+        val intent = Intent().setClassName(context, "com.sza.fastmediasorter.ui.player.PlayerActivity")
+
+        val started = useCase.startTarget(intent)
+
+        assertTrue("startTarget should return true for an internal component", started)
+        val flags = shadowOf(context).nextStartedActivity.flags
+        assertTrue(
+            "gadget-built internal target must have FLAG_ACTIVITY_NEW_TASK",
+            (flags and Intent.FLAG_ACTIVITY_NEW_TASK) != 0,
+        )
+        assertTrue(
+            "gadget-built internal target must have FLAG_ACTIVITY_MULTIPLE_TASK",
+            (flags and Intent.FLAG_ACTIVITY_MULTIPLE_TASK) != 0,
+        )
+    }
+
+    @Test
     fun `external target receives NEW_TASK but not MULTIPLE_TASK`() = runTest {
         val foreignPackage = "com.example.externalapp"
         val queryIntent = Intent(Intent.ACTION_MAIN).apply {

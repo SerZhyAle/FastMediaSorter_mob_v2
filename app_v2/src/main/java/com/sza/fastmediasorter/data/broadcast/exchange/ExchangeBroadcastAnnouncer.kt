@@ -11,14 +11,18 @@ import com.sza.fastmediasorter.data.repository.DeviceExchangeAccountRepository
 import com.sza.fastmediasorter.data.repository.settings.ExchangeGrantRepository
 import com.sza.fastmediasorter.data.security.e2e.E2eBytes
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
+import com.sza.fastmediasorter.domain.model.ExchangeBroadcastPublishState
 import com.sza.fastmediasorter.domain.model.SftpRendezvousBroadcast
 import com.sza.fastmediasorter.domain.model.SftpShareId
+import com.sza.fastmediasorter.domain.usecase.broadcast.ResolveBroadcastLinkChoiceUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.net.URI
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -30,7 +34,12 @@ import javax.inject.Singleton
  * broadcast stops or the entry stops being the outgoing one (item AC). Without an outgoing entry it does nothing
  * (section 9.7), and a `guest` outgoing entry counts as none: the server refuses `broadcast-start` and the relay
  * upload from a guest (19 item AO).
+ *
+ * Every broadcast kind - sound, camera, screen, stored file - is announced from its start with no separate switch
+ * (item DT), and an entry made outgoing while a broadcast is live announces it at once through the `producer` flow.
  */
+// Every argument is a distinct collaborator of one announcement; a holder would hide the graph, not shrink it.
+@Suppress("LongParameterList")
 @Singleton
 class ExchangeBroadcastAnnouncer @Inject constructor(
     private val accounts: DeviceExchangeAccountRepository,
@@ -41,6 +50,7 @@ class ExchangeBroadcastAnnouncer @Inject constructor(
     private val serializer: BroadcastDescriptorSerializer,
     private val grants: ExchangeBroadcastGrants,
     private val grantRepository: ExchangeGrantRepository,
+    private val resolveLinkChoice: ResolveBroadcastLinkChoiceUseCase,
     @ApplicationScope private val appScope: CoroutineScope,
 ) {
 
@@ -68,11 +78,27 @@ class ExchangeBroadcastAnnouncer @Inject constructor(
     /** [announcedDescriptor] as a flow: the share panel re-renders when the announcement, and with it `auth`, lands. */
     val announcements: StateFlow<BroadcastDescriptorDto?> get() = announced
 
+    private val mutablePublishState =
+        MutableStateFlow<ExchangeBroadcastPublishState>(ExchangeBroadcastPublishState.Idle)
+
+    /** Item DU: where the live broadcast stands on the server; the one source of every surface that shows it. */
+    val publishState: StateFlow<ExchangeBroadcastPublishState> = mutablePublishState.asStateFlow()
+
     /** Follows [state] for the life of the process; a second call is ignored. */
     @Synchronized
     fun follow(state: StateFlow<BroadcastState>) {
         if (job != null) return
         job = appScope.launch {
+            launch {
+                combine(state, accounts.entries, accounts.producer, producer.broadcastWire, uploader.accepted) {
+                        live, entries, entry, wire, accepted ->
+                    val relayed = accepted != null && accepted == current?.broadcastId
+                    ExchangeBroadcastPublishStates.of(live is BroadcastState.Live, entries, entry, wire, relayed)
+                }.collect {
+                    Timber.d("S4419: phone exchange publish state ${it::class.simpleName}")
+                    mutablePublishState.value = it
+                }
+            }
             combine(state, accounts.producer, uploader.accepted, credentials.revision) { live, entry, accepted, _ ->
                 Triple(live as? BroadcastState.Live, entry, accepted)
             }.collect { (live, entry, accepted) -> apply(live, entry, accepted) }
@@ -150,8 +176,9 @@ class ExchangeBroadcastAnnouncer @Inject constructor(
         val sourceKey = live.descriptor.sourceId ?: live.descriptor.mode
         val started = Announcement(key, SftpShareId.generate(), System.currentTimeMillis(), sourceKey)
         current = started
-        // DEVICE-EXCHANGE item BF: a broadcast announced through an exchange server is protected.
-        credentials.begin(started.broadcastId)
+        // DEVICE-EXCHANGE item BF: a broadcast announced through an exchange server is protected, unless the person
+        // chose an open link (item DV, S4405).
+        credentials.begin(started.broadcastId, resolveLinkChoice())
         relayKeys.begin(started.broadcastId)
         // The hand-out key exists before the first upload stream, so every epoch's ring already carries it (DL).
         relayKeys.linkKey(started.broadcastId, OUTWARD_LINK_ID)

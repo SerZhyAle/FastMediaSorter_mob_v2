@@ -482,7 +482,9 @@ data class BackupSettings(
         val broadcastVideoWidth: Int? = null,
         val broadcastVideoHeight: Int? = null,
         val broadcastVideoFps: Int? = null,
-        val broadcastVideoBitrateBps: Int? = null
+        val broadcastVideoBitrateBps: Int? = null,
+        // S4405: the mode travels, the custom password never does - it stays in the Keystore store.
+        val broadcastLinkPasswordMode: String? = null
     )
 
     /** S2648: appearance and the general interaction settings that shape every screen. */

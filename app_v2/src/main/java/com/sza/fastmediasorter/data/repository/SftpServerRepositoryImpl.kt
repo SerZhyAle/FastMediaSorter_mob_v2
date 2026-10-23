@@ -63,6 +63,8 @@ class SftpServerRepositoryImpl @Inject constructor(
 
     override suspend fun withdrawExchangePublication(): Boolean = tunnelManager.withdraw()
 
+    override suspend fun unpublishExchangeFolder(): Boolean = tunnelManager.unpublishShare()
+
     override fun applyExchangeSettings() = controller.restartTunnel()
 
     override suspend fun legacyPairingPayload(): SftpPairingPayload? = pairingPayloadFactory.createLegacy()

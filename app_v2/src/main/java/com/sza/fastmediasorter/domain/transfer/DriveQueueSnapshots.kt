@@ -41,6 +41,9 @@ sealed interface DrivePollState {
     /** The token was revoked or expired; nothing was deleted and polling waits for a new sign-in. */
     data object SignInRequired : DrivePollState
 
+    /** S4427: signed in, but the app folder grant is missing; polling waits until the user grants it. */
+    data object ConsentRequired : DrivePollState
+
     /** Drives daily upload limit; listings continue, uploads are not retried in a loop. */
     data object DailyLimit : DrivePollState
 }

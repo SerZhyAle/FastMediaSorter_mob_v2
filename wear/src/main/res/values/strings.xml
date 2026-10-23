@@ -1154,4 +1154,8 @@
     <string name="wear_open_in_role_last_used">Last used</string>
     <string name="wear_open_in_role_browser">Browser</string>
     <string name="wear_open_in_role_maps">Maps</string>
+    <string name="wear_broadcast_server_announcing">Server: announcing</string>
+    <string name="wear_broadcast_server_on">On the exchange server</string>
+    <string name="wear_broadcast_server_failed">Server error - see phone</string>
+    <string name="wear_broadcast_server_local_only">This network only</string>
 </resources>

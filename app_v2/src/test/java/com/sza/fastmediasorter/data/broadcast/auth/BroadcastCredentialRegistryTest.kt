@@ -68,6 +68,71 @@ class BroadcastCredentialRegistryTest {
     }
 
     @Test
+    fun `an open link begins unprotected and keeps the own pair`() = kotlinx.coroutines.test.runTest {
+        registry.begin("b1", BroadcastLinkChoice.Open)
+        assertFalse(registry.isProtected)
+        assertNull(registry.linkPair)
+        assertNull(registry.pairs())
+        assertNull(registry.authMarker())
+        assertTrue(registry.verifiers().isEmpty())
+        assertNotNull(registry.ownPair)
+        assertNull(registry.renewLink())
+    }
+
+    @Test
+    fun `a custom choice puts the typed password into the link pair`() {
+        registry.begin("b1", BroadcastLinkChoice.Custom("p@ss: /%"))
+        assertTrue(registry.isProtected)
+        assertEquals("p@ss: /%", registry.linkPair!!.password)
+        assertNull(registry.renewLink())
+    }
+
+    @Test
+    fun `applying an open link drops only the link pair and back again protects`() =
+        kotlinx.coroutines.test.runTest {
+            registry.begin("b1")
+            val own = registry.ownPair
+            val guest = registry.addGuest("g1")!!
+            val oldLink = registry.linkPair!!
+            val revision = registry.revision.value
+            assertNull(registry.applyLink(BroadcastLinkChoice.Open))
+            assertTrue(registry.revision.value > revision)
+            assertFalse(registry.isProtected)
+            assertTrue(registry.verifiers().isEmpty())
+            assertEquals(own, registry.ownPair)
+            assertEquals(guest, registry.guestPair("g1"))
+            val custom = registry.applyLink(BroadcastLinkChoice.Custom("secret"))!!
+            assertEquals("secret", custom.password)
+            assertEquals(oldLink.user, custom.user)
+            assertFalse(registry.pairs()!!.contains(oldLink))
+            assertTrue(registry.pairs()!!.containsAll(listOf(own, guest, custom)))
+            assertTrue(registry.verifiers().any { it.user == custom.user })
+            val generated = registry.applyLink(BroadcastLinkChoice.Generated)!!
+            assertNotEquals("secret", generated.password)
+            assertFalse(registry.pairs()!!.contains(custom))
+        }
+
+    @Test
+    fun `applying the current choice again changes nothing`() {
+        registry.begin("b1")
+        val link = registry.linkPair
+        val revision = registry.revision.value
+        assertEquals(link, registry.applyLink(BroadcastLinkChoice.Generated))
+        assertEquals(revision, registry.revision.value)
+    }
+
+    @Test
+    fun `applying a choice outside a broadcast does nothing`() {
+        assertNull(registry.applyLink(BroadcastLinkChoice.Custom("secret")))
+        assertNull(registry.pairs())
+    }
+
+    @Test
+    fun `the custom choice never prints its password`() {
+        assertFalse(BroadcastLinkChoice.Custom("secret").toString().contains("secret"))
+    }
+
+    @Test
     fun `beginning the same broadcast again keeps its pairs`() {
         registry.begin("b1")
         val own = registry.ownPair

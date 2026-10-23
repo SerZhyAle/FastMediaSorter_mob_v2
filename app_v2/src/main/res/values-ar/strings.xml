@@ -4003,10 +4003,10 @@
     <string name="broadcast_control_screen_action">إذاعة الشاشة</string>
     <string name="broadcast_notification_screen_title">جارٍ إذاعة الشاشة</string>
     <string name="broadcast_notification_screen_text">إذاعة الشاشة المباشرة نشطة</string>
-    <string name="broadcast_share_password">كلمة المرور: %1$s</string>
-    <string name="broadcast_share_new_password">كلمة مرور جديدة</string>
-    <string name="broadcast_share_new_password_cd">إنشاء كلمة مرور جديدة للإذاعة. تتوقف القديمة عن العمل</string>
-    <string name="broadcast_share_password_hint">تم تعيين كلمة مرور جديدة. أبلغها بشكل منفصل عن الرابط - فالرابط ورمز QR لا يحملانها</string>
+    <string name="broadcast_link_password_row">كلمة المرور: %1$s</string>
+    <string name="broadcast_link_password_change">كلمة مرور جديدة</string>
+    <string name="broadcast_link_password_generate_cd">إنشاء كلمة مرور جديدة للإذاعة. تتوقف القديمة عن العمل</string>
+    <string name="broadcast_link_password_applied">تم تعيين كلمة مرور جديدة. أبلغها بشكل منفصل عن الرابط - فالرابط ورمز QR لا يحملانها</string>
     <string name="broadcast_password_title">كلمة مرور الإذاعة</string>
     <string name="broadcast_password_message">أدخل كلمة مرور الإذاعة التي أُعطيت لك مع الرابط.</string>
     <string name="broadcast_password_protected">هذه الإذاعة محمية بكلمة مرور</string>

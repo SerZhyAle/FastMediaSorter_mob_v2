@@ -27,13 +27,14 @@
     { "id": "qr", "viewId": "ivShareQr", "labelKey": "broadcast_share_qr_cd" },
     { "id": "link", "viewId": "tvShareUrl" },
     { "id": "password", "viewId": "tvSharePassword" },
-    { "id": "new-password", "viewId": "btnShareNewPassword", "labelKey": "broadcast_share_new_password" },
+    { "id": "change-password", "viewId": "btnShareChangePassword", "labelKey": "broadcast_link_password_change" },
     { "id": "copy", "viewId": "btnCopyUrl", "labelKey": "broadcast_share_copy" },
     { "id": "export", "viewId": "btnExportFile", "labelKey": "broadcast_share_export_file" },
     { "id": "send-link", "viewId": "btnShareSend", "labelKey": "broadcast_share_send_link" },
     { "id": "guests", "viewId": "btnShareGuests", "labelKey": "broadcast_guests_button" },
     { "id": "viewer-guide", "viewId": "btnBroadcastHelp", "labelKey": "broadcast_share_help" },
-    { "id": "portal", "viewId": "btnBroadcastPortal", "labelKey": "broadcast_portal_help" }
+    { "id": "portal", "viewId": "btnBroadcastPortal", "labelKey": "broadcast_portal_help" },
+    { "id": "exchange-line", "viewId": "tvExchangeServerStatus" }
   ],
   "related": [
     { "help": "main" },
@@ -61,8 +62,8 @@
       ],
       "groups": [
         { "title": "Before the broadcast", "elements": ["title", "preview", "mode-audio", "mode-video-audio", "mode-video-only", "lens", "settings-card", "start", "file", "screen", "go-on-air"] },
-        { "title": "While you are on air", "elements": ["listeners", "feedback", "camera-toggle", "mic-toggle", "switch-camera", "screen-off", "torch", "light-frame", "send-to-watch", "cast", "stop"] },
-        { "title": "Sharing the broadcast", "elements": ["qr", "link", "password", "new-password", "copy", "export", "send-link", "guests", "viewer-guide", "portal"] }
+        { "title": "While you are on air", "elements": ["listeners", "exchange-line", "feedback", "camera-toggle", "mic-toggle", "switch-camera", "screen-off", "torch", "light-frame", "send-to-watch", "cast", "stop"] },
+        { "title": "Sharing the broadcast", "elements": ["qr", "link", "password", "change-password", "copy", "export", "send-link", "guests", "viewer-guide", "portal"] }
       ],
       "elements": {
         "title": {
@@ -74,6 +75,11 @@
           "summary": "How many devices are connected to your broadcast right now.",
           "details": "The number appears only while you are on air and follows people connecting and leaving."
         },
+        "exchange-line": {
+          "name": "Exchange server line",
+          "summary": "Where your broadcast stands on your exchange server.",
+          "details": "Shown only while you are on air. Every broadcast goes to your outgoing exchange server by itself from its first second: the line names the server and says that the broadcast is being announced, is on the server, or is on the server and relayed through it. When something goes wrong, the line says what happened and what to try; tap it for the details with the code. The broadcast on this network carries on either way. With no exchange server, the line says the broadcast is reachable on this network only, and a tap opens My devices to add one; a guest account cannot broadcast through the server, and the line says so."
+        },
         "feedback": {
           "name": "Feedback warning",
           "summary": "Tells you why the sound got quieter: a listener's speaker is feeding back into your microphone.",
@@ -82,7 +88,7 @@
         "preview": {
           "name": "Camera picture",
           "summary": "What your camera sees and, on air, what is being sent.",
-          "details": "Before the start it lets you choose a camera by what it shows. It appears when a camera mode is chosen and the camera is allowed; if you refuse the camera, the area stays empty and the screen asks only once per visit. On air it shows the picture that goes out. It is hidden for sound only and for a file or screen broadcast, which do not use the camera."
+          "details": "Before the start it lets you choose a camera by what it shows. It appears when a camera mode is chosen and the camera is allowed; if you refuse the camera, the area stays empty and the screen asks only once per visit. On air it shows the picture that goes out. It is hidden for sound only and for a file or screen broadcast, which do not use the camera. Turn the phone on its side during a camera broadcast and the picture fills the whole screen; tap it to bring the controls back beside it, and tap again to hide them."
         },
         "mode-audio": {
           "summary": "Sends only the sound of the microphone.",
@@ -174,15 +180,15 @@
         "password": {
           "name": "Link password",
           "summary": "The password of a protected broadcast, told apart from the link.",
-          "details": "Shown only for a protected broadcast. Neither the link, the file nor the QR code carries it, so you give it to the person separately, by voice or in another message."
+          "details": "Shown while the broadcast goes out through an exchange server: the password, or \"Password: none\" when you chose to broadcast without one. Neither the link, the file nor the QR code carries it, so you give it to the person separately, by voice or in another message."
         },
-        "new-password": {
-          "summary": "Makes a new password; the old one stops working.",
-          "details": "Use it when the password has reached someone who should not have it. A message reminds you to tell the new password separately from the link."
+        "change-password": {
+          "summary": "Chooses how the link is protected: automatic, no password or your own.",
+          "details": "Automatic makes the password for you, and Generate new replaces it when it has reached someone who should not have it. No password lets anyone who has the link open the broadcast. My own takes any password you type, up to 64 characters; a short one gets a reminder that it is easy to guess. The change applies at once: the old password stops opening the link, and the devices of your account and your guests keep playing. The same choice is in the broadcast settings, under Link password, and it is remembered for the next broadcast. Your own password stays on this phone only and never goes into a backup."
         },
         "copy": {
           "summary": "Copies the link of the broadcast.",
-          "details": "A message confirms the copy. A protected broadcast is copied as the full link instead of the bare address, so that the other device knows a password is needed and asks for it."
+          "details": "A message confirms the copy. A broadcast that goes out through an exchange server is copied as the full link instead of the bare address, so that the other device can open it and asks for the password when there is one."
         },
         "export": {
           "summary": "Saves the broadcast as a small file you can pass on.",
@@ -220,8 +226,8 @@
       ],
       "groups": [
         { "title": "До начала вещания", "elements": ["title", "preview", "mode-audio", "mode-video-audio", "mode-video-only", "lens", "settings-card", "start", "file", "screen", "go-on-air"] },
-        { "title": "Пока вы в эфире", "elements": ["listeners", "feedback", "camera-toggle", "mic-toggle", "switch-camera", "screen-off", "torch", "light-frame", "send-to-watch", "cast", "stop"] },
-        { "title": "Как поделиться вещанием", "elements": ["qr", "link", "password", "new-password", "copy", "export", "send-link", "guests", "viewer-guide", "portal"] }
+        { "title": "Пока вы в эфире", "elements": ["listeners", "exchange-line", "feedback", "camera-toggle", "mic-toggle", "switch-camera", "screen-off", "torch", "light-frame", "send-to-watch", "cast", "stop"] },
+        { "title": "Как поделиться вещанием", "elements": ["qr", "link", "password", "change-password", "copy", "export", "send-link", "guests", "viewer-guide", "portal"] }
       ],
       "elements": {
         "title": {
@@ -233,6 +239,11 @@
           "summary": "Сколько устройств сейчас подключено к вашему вещанию.",
           "details": "Число появляется только в эфире и следует за тем, как люди подключаются и уходят."
         },
+        "exchange-line": {
+          "name": "Строка сервера обмена",
+          "summary": "Что с вашей трансляцией на сервере обмена.",
+          "details": "Видна только в эфире. Любая трансляция сама уходит на ваш исходящий сервер обмена с первой секунды: строка называет сервер и говорит, что трансляция объявляется, уже на сервере или на сервере и раздаётся через сервер. Если что-то не так, строка говорит, что случилось и что попробовать; нажмите её, чтобы увидеть подробности с кодом. Трансляция в этой сети при этом продолжается. Без сервера обмена строка говорит, что трансляция доступна только в этой сети, а нажатие открывает «Мои устройства», где сервер добавляется; гостевая учётная запись не может вести трансляцию через сервер, и строка так и говорит."
+        },
         "feedback": {
           "name": "Предупреждение о петле звука",
           "summary": "Объясняет, почему звук стал тише: динамик слушателя попадает в ваш микрофон.",
@@ -241,7 +252,7 @@
         "preview": {
           "name": "Картинка камеры",
           "summary": "Что видит камера и, в эфире, что именно передаётся.",
-          "details": "До начала по ней выбирают камеру. Она появляется, когда выбран режим с камерой и камера разрешена; если камеру запретить, область останется пустой, а экран спросит разрешение только один раз за визит. В эфире здесь та картинка, что уходит зрителям. Для режима «Только звук» и для вещания файла или экрана область скрыта: камера в них не работает."
+          "details": "До начала по ней выбирают камеру. Она появляется, когда выбран режим с камерой и камера разрешена; если камеру запретить, область останется пустой, а экран спросит разрешение только один раз за визит. В эфире здесь та картинка, что уходит зрителям. Для режима «Только звук» и для вещания файла или экрана область скрыта: камера в них не работает. Если во время вещания с камерой повернуть телефон набок, картинка займёт весь экран; нажмите на неё, чтобы вернуть кнопки управления рядом, и нажмите ещё раз, чтобы снова скрыть их."
         },
         "mode-audio": {
           "summary": "Передаёт только звук микрофона.",
@@ -333,15 +344,15 @@
         "password": {
           "name": "Пароль для ссылки",
           "summary": "Пароль защищённого вещания, который сообщают отдельно от ссылки.",
-          "details": "Виден только у защищённого вещания. Ни ссылка, ни файл, ни QR-код его не содержат, поэтому человеку его сообщают отдельно - голосом или другим сообщением."
+          "details": "Виден, пока вещание идёт через сервер обмена: пароль или «Пароль: нет», если вы выбрали вещание без пароля. Ни ссылка, ни файл, ни QR-код его не содержат, поэтому человеку его сообщают отдельно - голосом или другим сообщением."
         },
-        "new-password": {
-          "summary": "Создаёт новый пароль; старый перестаёт работать.",
-          "details": "Пригодится, если пароль попал к тому, кому его знать не нужно. Сообщение напомнит сообщить новый пароль отдельно от ссылки."
+        "change-password": {
+          "summary": "Выбирает, как защищена ссылка: автоматически, без пароля или своим паролем.",
+          "details": "«Автоматический» создаёт пароль сам, а «Сгенерировать новый» заменяет его, если пароль попал к тому, кому его знать не нужно. «Без пароля» позволяет открыть вещание каждому, у кого есть ссылка. «Свой» принимает любой набранный вами пароль длиной до 64 символов; о коротком приложение напомнит, что его легко подобрать. Изменение действует сразу: старый пароль перестаёт открывать ссылку, а устройства вашего аккаунта и гости продолжают смотреть. Тот же выбор есть в настройках вещания, в строке «Пароль ссылки», и он запоминается для следующего вещания. Свой пароль хранится только на этом телефоне и не попадает в резервную копию."
         },
         "copy": {
           "summary": "Копирует ссылку на вещание.",
-          "details": "Сообщение подтверждает копирование. Защищённое вещание копируется полной ссылкой, а не голым адресом, чтобы другое устройство знало, что нужен пароль, и спросило его."
+          "details": "Сообщение подтверждает копирование. Вещание через сервер обмена копируется полной ссылкой, а не голым адресом, чтобы другое устройство смогло его открыть и спросило пароль, если он есть."
         },
         "export": {
           "summary": "Сохраняет вещание в небольшой файл, который можно передать.",
@@ -379,8 +390,8 @@
       ],
       "groups": [
         { "title": "До початку мовлення", "elements": ["title", "preview", "mode-audio", "mode-video-audio", "mode-video-only", "lens", "settings-card", "start", "file", "screen", "go-on-air"] },
-        { "title": "Поки ви в ефірі", "elements": ["listeners", "feedback", "camera-toggle", "mic-toggle", "switch-camera", "screen-off", "torch", "light-frame", "send-to-watch", "cast", "stop"] },
-        { "title": "Як поділитися мовленням", "elements": ["qr", "link", "password", "new-password", "copy", "export", "send-link", "guests", "viewer-guide", "portal"] }
+        { "title": "Поки ви в ефірі", "elements": ["listeners", "exchange-line", "feedback", "camera-toggle", "mic-toggle", "switch-camera", "screen-off", "torch", "light-frame", "send-to-watch", "cast", "stop"] },
+        { "title": "Як поділитися мовленням", "elements": ["qr", "link", "password", "change-password", "copy", "export", "send-link", "guests", "viewer-guide", "portal"] }
       ],
       "elements": {
         "title": {
@@ -392,6 +403,11 @@
           "summary": "Скільки пристроїв зараз підключено до вашого мовлення.",
           "details": "Число з'являється лише в ефірі й іде за тим, як люди підключаються та йдуть."
         },
+        "exchange-line": {
+          "name": "Рядок сервера обміну",
+          "summary": "Що з вашою трансляцією на сервері обміну.",
+          "details": "Видно лише в ефірі. Будь-яка трансляція сама йде на ваш вихідний сервер обміну з першої секунди: рядок називає сервер і каже, що трансляція оголошується, уже на сервері або на сервері й роздається через сервер. Якщо щось не так, рядок каже, що сталося і що спробувати; натисніть його, щоб побачити подробиці з кодом. Трансляція в цій мережі при цьому триває. Без сервера обміну рядок каже, що трансляція доступна лише в цій мережі, а натискання відкриває «Мої пристрої», де сервер додається; гостьовий обліковий запис не може транслювати через сервер, і рядок так і каже."
+        },
         "feedback": {
           "name": "Попередження про петлю звуку",
           "summary": "Пояснює, чому звук став тихішим: динамік слухача потрапляє у ваш мікрофон.",
@@ -400,7 +416,7 @@
         "preview": {
           "name": "Картинка камери",
           "summary": "Що бачить камера і, в ефірі, що саме передається.",
-          "details": "До початку за нею вибирають камеру. Вона з'являється, коли вибрано режим із камерою й камеру дозволено; якщо камеру заборонити, область лишиться порожньою, а екран спитає дозвіл лише один раз за візит. В ефірі тут та картинка, що йде глядачам. Для режиму «Тільки звук» і для мовлення файла чи екрана область прихована: камера в них не працює."
+          "details": "До початку за нею вибирають камеру. Вона з'являється, коли вибрано режим із камерою й камеру дозволено; якщо камеру заборонити, область лишиться порожньою, а екран спитає дозвіл лише один раз за візит. В ефірі тут та картинка, що йде глядачам. Для режиму «Тільки звук» і для мовлення файла чи екрана область прихована: камера в них не працює. Якщо під час мовлення з камерою повернути телефон набік, картинка займе весь екран; торкніться її, щоб повернути кнопки керування поруч, і торкніться ще раз, щоб знову сховати їх."
         },
         "mode-audio": {
           "summary": "Передає лише звук мікрофона.",
@@ -492,15 +508,15 @@
         "password": {
           "name": "Пароль до посилання",
           "summary": "Пароль захищеного мовлення, який повідомляють окремо від посилання.",
-          "details": "Видно лише в захищеного мовлення. Ні посилання, ні файл, ні QR-код його не містять, тож людині його повідомляють окремо - голосом чи іншим повідомленням."
+          "details": "Видно, поки мовлення йде через сервер обміну: пароль або «Пароль: немає», якщо ви обрали мовлення без пароля. Ні посилання, ні файл, ні QR-код його не містять, тож людині його повідомляють окремо - голосом чи іншим повідомленням."
         },
-        "new-password": {
-          "summary": "Створює новий пароль; старий перестає працювати.",
-          "details": "Стане в пригоді, якщо пароль потрапив до того, кому його знати не треба. Повідомлення нагадає повідомити новий пароль окремо від посилання."
+        "change-password": {
+          "summary": "Вибирає, як захищене посилання: автоматично, без пароля або власним паролем.",
+          "details": "«Автоматичний» створює пароль сам, а «Згенерувати новий» замінює його, якщо пароль потрапив до того, кому його знати не треба. «Без пароля» дає змогу відкрити мовлення кожному, у кого є посилання. «Власний» приймає будь-який набраний вами пароль завдовжки до 64 символів; про короткий застосунок нагадає, що його легко підібрати. Зміна діє одразу: старий пароль перестає відкривати посилання, а пристрої вашого акаунта та гості продовжують дивитися. Той самий вибір є в налаштуваннях мовлення, у рядку «Пароль посилання», і він запам'ятовується для наступного мовлення. Власний пароль зберігається лише на цьому телефоні й не потрапляє до резервної копії."
         },
         "copy": {
           "summary": "Копіює посилання на мовлення.",
-          "details": "Повідомлення підтверджує копіювання. Захищене мовлення копіюється повним посиланням, а не голою адресою, щоб інший пристрій знав, що потрібен пароль, і спитав його."
+          "details": "Повідомлення підтверджує копіювання. Мовлення через сервер обміну копіюється повним посиланням, а не голою адресою, щоб інший пристрій зміг його відкрити й спитав пароль, якщо він є."
         },
         "export": {
           "summary": "Зберігає мовлення в невеликий файл, який можна передати.",

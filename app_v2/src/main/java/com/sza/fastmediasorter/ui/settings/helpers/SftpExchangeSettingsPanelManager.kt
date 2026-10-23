@@ -33,7 +33,8 @@ import kotlinx.coroutines.launch
  * the publication status.
  *
  * The exchange account entries themselves live on the "My devices" screen; this card only names the outgoing
- * one, lets the user change it, and opens the picker when publishing starts with none chosen. The legacy-QR
+ * one and lets the user change it. Item DS assigns the outgoing entry by itself, so publishing that starts
+ * without one means no entry may produce, and the card leads to "My devices" to add one. The legacy-QR
  * button it toggles stays in the "Share from phone" card, next to the QR it belongs to.
  */
 class SftpExchangeSettingsPanelManager(

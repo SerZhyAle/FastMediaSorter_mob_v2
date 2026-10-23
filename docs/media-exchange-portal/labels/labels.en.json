@@ -128,7 +128,7 @@
   "sc.folders-exchange.2.t": "Share a folder",
   "sc.folders-exchange.2.b": "On the first device: Share from phone,\nadd the folder, switch the server on",
   "sc.folders-exchange.3.t": "Access from anywhere",
-  "sc.folders-exchange.3.b": "In that group, switch it on\nand choose the outgoing server",
+  "sc.folders-exchange.3.b": "In that group, switch it on;\nthe server is chosen by itself",
   "sc.folders-exchange.4.t": "Find the folder",
   "sc.folders-exchange.4.b": "On the second device: Add Resource,\nFrom my devices",
   "sc.folders-exchange.5.t": "Attach it",
@@ -213,7 +213,7 @@
   "sc.phone-sharing.4.b": "Android 15 may pause it after about 6\nhours a day in the background. Mobile\ndata is billed by your operator",
 
   "sc.my-devices.title": "Add your exchange server in My devices",
-  "sc.my-devices.desc": "Six steps: open My devices, add the server by pasting a string, scanning a QR code or choosing a file, trust the server, sign in with a password or a pairing code, pass the server on to your other devices, then choose the outgoing server.",
+  "sc.my-devices.desc": "Six steps: open My devices, add the server by pasting a string, scanning a QR code or choosing a file, trust the server, sign in with a password or a pairing code, pass the server on to your other devices; the first server becomes the outgoing one by itself.",
   "sc.my-devices.sub": "The string and the QR code carry the address and the certificate - never a login or a password",
   "sc.my-devices.1.t": "Open My devices",
   "sc.my-devices.1.b": "Settings, General, My devices,\nthen Add server",
@@ -225,6 +225,6 @@
   "sc.my-devices.4.b": "Password, or a pairing code from\nanother device: one use, ten minutes",
   "sc.my-devices.5.t": "Pass it on",
   "sc.my-devices.5.b": "Pass the server on by QR code or text.\nIt never carries a login or password",
-  "sc.my-devices.6.t": "Choose the outgoing one",
-  "sc.my-devices.6.b": "Make outgoing: this phone publishes\nthrough it. Attach everything\nautomatically is in the same menu"
+  "sc.my-devices.6.t": "The outgoing one",
+  "sc.my-devices.6.b": "The first server is outgoing by itself;\nMake outgoing changes it. Attach\neverything automatically: same menu"
 }

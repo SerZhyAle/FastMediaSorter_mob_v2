@@ -3985,10 +3985,10 @@
     <string name="broadcast_control_screen_action">Difundir a tela</string>
     <string name="broadcast_notification_screen_title">Difundindo a tela</string>
     <string name="broadcast_notification_screen_text">A difusão ao vivo da tela está ativa</string>
-    <string name="broadcast_share_password">Senha: %1$s</string>
-    <string name="broadcast_share_new_password">Nova senha</string>
-    <string name="broadcast_share_new_password_cd">Criar uma nova senha da difusão. A antiga deixa de funcionar</string>
-    <string name="broadcast_share_password_hint">Nova senha definida. Informe-a separadamente do link - o link e o código QR não a contêm</string>
+    <string name="broadcast_link_password_row">Senha: %1$s</string>
+    <string name="broadcast_link_password_change">Nova senha</string>
+    <string name="broadcast_link_password_generate_cd">Criar uma nova senha da difusão. A antiga deixa de funcionar</string>
+    <string name="broadcast_link_password_applied">Nova senha definida. Informe-a separadamente do link - o link e o código QR não a contêm</string>
     <string name="broadcast_password_title">Senha da difusão</string>
     <string name="broadcast_password_message">Digite a senha da difusão que você recebeu junto com o link.</string>
     <string name="broadcast_password_protected">Esta difusão é protegida por senha</string>

@@ -4514,10 +4514,10 @@
     <string name="broadcast_control_screen_action">Broadcast the screen</string>
     <string name="broadcast_notification_screen_title">Broadcasting the Screen</string>
     <string name="broadcast_notification_screen_text">Live screen broadcast is active</string>
-    <string name="broadcast_share_password">Password: %1$s</string>
-    <string name="broadcast_share_new_password">New password</string>
-    <string name="broadcast_share_new_password_cd">Make a new broadcast password. The old one stops working</string>
-    <string name="broadcast_share_password_hint">New password set. Tell it separately from the link - the link and the QR code do not carry it</string>
+    <string name="broadcast_link_password_row">Password: %1$s</string>
+    <string name="broadcast_link_password_change">Change password</string>
+    <string name="broadcast_link_password_generate_cd">Make a new broadcast password. The old one stops working</string>
+    <string name="broadcast_link_password_applied">Password changed. Tell it separately from the link - the link and the QR code do not carry it</string>
     <string name="broadcast_password_title">Broadcast password</string>
     <string name="broadcast_password_message">Enter the broadcast password you were given with the link.</string>
     <string name="broadcast_password_protected">This broadcast is protected by a password</string>
@@ -4559,4 +4559,22 @@
     <string name="settings_collapse_all">Collapse all</string>
     <string name="settings_category_about_app">All about this application</string>
     <string name="broadcast_control_preview_toggle_cd">Broadcast picture. Tap to show or hide the controls</string>
+    <string name="broadcast_link_password_title">Link password</string>
+    <string name="broadcast_link_password_mode_auto">Automatic</string>
+    <string name="broadcast_link_password_mode_none">No password</string>
+    <string name="broadcast_link_password_mode_custom">My own</string>
+    <string name="broadcast_link_password_field_hint">Password</string>
+    <string name="broadcast_link_password_show_cd">Show password</string>
+    <string name="broadcast_link_password_generate">Generate new</string>
+    <string name="broadcast_link_password_none_note">Anyone who has the link can open the broadcast</string>
+    <string name="broadcast_link_password_weak_hint">A short password is easy to guess</string>
+    <string name="broadcast_link_password_error_empty">Type a password or choose another option</string>
+    <string name="broadcast_link_password_error_too_long">Use up to 64 characters</string>
+    <string name="broadcast_link_password_error_control">Tabs and line breaks cannot be part of a password</string>
+    <string name="broadcast_link_password_none_row">Password: none</string>
+    <string name="broadcast_link_password_change_cd">Choose how the broadcast link is protected</string>
+    <string name="broadcast_link_password_settings_lan">Applies when the broadcast goes out through an exchange server</string>
+    <string name="broadcast_link_password_applied_open">Done. The link now opens without a password</string>
+    <string name="broadcast_link_password_store_failed">The password could not be saved on this device. Try again or choose another option</string>
+    <string name="broadcast_link_password_saved">Saved. It applies to the next broadcast through an exchange server</string>
 </resources>

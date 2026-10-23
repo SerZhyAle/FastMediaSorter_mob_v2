@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.18 17:46</sub>
+<sub class="doc-stamp">26.10.23 15:52</sub>
 
 # Pointer - `DEVICE-EXCHANGE`
 
@@ -173,6 +173,9 @@
 - S4276 - the contract at 1.1: `vectors/fmsw-224/connection-string-v1.json` is replayed by `ExchangeConnectionStringVectorsTest`; the transcripts of `vectors/fmsw-224/frames-v2.json` have no client replay yet.
 - S4356 - the phone as a `REMOTE-ADMIN` client at 1.4: the administration stream client, the words of the ten
   reply codes and the screen; the joint on-device run against FMS_Win 245 is what remains of 1.4 here.
+- S4419 - items DS to DU of 1.6 on the phone and the watch: the outgoing rule, a folder switch-off that keeps the
+  broadcast announced, the `broadcast-started` answer handled, and the exchange server line on both broadcast screens;
+  the rung 4 observation of 1.6 is this ticket's device check.
 
 ## Original resource PIN (section 17, items AG to AL)
 

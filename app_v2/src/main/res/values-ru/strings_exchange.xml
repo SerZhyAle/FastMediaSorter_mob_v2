@@ -65,10 +65,10 @@
     <string name="exchange_devices_watch_code_refused">Сервер не выдал код: %1$s</string>
     <string name="exchange_devices_watch_none">Нет подключённых часов</string>
     <string name="exchange_devices_watch_companion_off">Компаньон для часов выключен. Сначала включите его в настройках.</string>
-    <string name="exchange_devices_pick_outgoing_title">Через какой сервер публиковать?</string>
+    <string name="exchange_devices_pick_outgoing_title">Сменить сервер публикации</string>
     <string name="exchange_devices_pick_none">Сначала добавьте сервер на экране «Мои устройства»</string>
     <string name="settings_sftp_exchange_outgoing">Через сервер %1$s</string>
-    <string name="settings_sftp_exchange_outgoing_none">Исходящий сервер не выбран</string>
+    <string name="settings_sftp_exchange_outgoing_none">Нет сервера, через который можно публиковать, - добавьте его на экране «Мои устройства»</string>
     <string name="settings_sftp_exchange_change">Изменить</string>
     <string name="exchange_signin_intake_hint">Вставьте строку сервера</string>
     <string name="exchange_signin_paste">Вставить</string>
@@ -363,4 +363,10 @@
     </plurals>
     <string name="exchange_format_unsupported">Этот формат новее, чем поддерживает программа. Ничего не импортировано. Используйте совместимую программу.</string>
     <string name="stream_source_live_badge">Живая</string>
+    <string name="broadcast_exchange_line_announcing">Сервер обмена %1$s: трансляция объявляется</string>
+    <string name="broadcast_exchange_line_on_server">Сервер обмена %1$s: трансляция на сервере</string>
+    <string name="broadcast_exchange_line_relayed">Сервер обмена %1$s: на сервере, раздаётся через сервер</string>
+    <string name="broadcast_exchange_line_failed">Сервер обмена %1$s: %2$s</string>
+    <string name="broadcast_exchange_line_local_only">Доступно только в этой сети. Добавьте сервер обмена в «Моих устройствах»</string>
+    <string name="broadcast_exchange_line_guest_only">Доступно только в этой сети: гостевая учётная запись не может вести трансляцию через сервер обмена</string>
 </resources>

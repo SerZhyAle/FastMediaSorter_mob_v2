@@ -6,6 +6,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.sza.fastmediasorter.core.init.AppStartupInitializer
 import com.sza.fastmediasorter.core.init.DefaultPlayerStateBootstrapper
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.transfer.TempFileManager
 import com.sza.fastmediasorter.domain.usecase.BackfillSmbCredentialShareNameUseCase
@@ -37,6 +38,7 @@ class DeferredStartupWorker @AssistedInject constructor(
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
+        Timber.d("S4423: deferred startup worker pass started")
         // S1323: no "clear-failed-video-cache" task here. VideoExtractionFailurePersistence exists
         // to survive restarts - it stamps every entry and expires it after seven days - and wiping
         // it on every launch made that storage dead weight: a video whose frame extraction timed
@@ -75,13 +77,23 @@ class DeferredStartupWorker @AssistedInject constructor(
         return Result.success()
     }
 
-    private suspend fun runTask(label: String, block: suspend () -> Unit) {
-        runCatching { block() }
-            .onSuccess { Timber.i("DeferredStartupWorker: completed %s", label) }
-            .onFailure { Timber.e(it, "DeferredStartupWorker: failed %s", label) }
-    }
-
     companion object {
         const val WORK_NAME = "deferred_startup"
+
+        /**
+         * One task of the sequence. A real failure is logged and the sequence moves on; cancellation
+         * is rethrown, so a stopped worker neither starts its remaining tasks nor reports success -
+         * every task is idempotent, and the next enqueued run picks up whatever this one skipped.
+         * The catch is broad on purpose: one task's unknown failure must not starve the ones after it.
+         */
+        @Suppress("TooGenericExceptionCaught")
+        internal suspend fun runTask(label: String, block: suspend () -> Unit) {
+            try {
+                block()
+                Timber.i("DeferredStartupWorker: completed %s", label)
+            } catch (e: Exception) {
+                e.errorUnlessCancellation("DeferredStartupWorker: failed %s", label)
+            }
+        }
     }
 }

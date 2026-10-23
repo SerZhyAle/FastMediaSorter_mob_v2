@@ -10,6 +10,7 @@ import androidx.core.view.isVisible
 import com.bumptech.glide.Glide
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.GadgetLauncherPhotoFrameBinding
+import com.sza.fastmediasorter.domain.usecase.launcher.ExecuteLauncherCommandUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.widget.RandomPhotoFrameSnapshotStore
@@ -18,6 +19,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import javax.inject.Inject
 
 /**
  * S1930: the random photo frame as a desktop cell - one photo out of a resource, re-drawn on every
@@ -32,7 +34,9 @@ import timber.log.Timber
  * The cell's instance lives in its `param` as a launcher token, so the snapshot it reads is the one its
  * own configuration screen wrote - see [ConfigurableWidgetCatalog].
  */
-class RandomPhotoFrameGadget : LauncherGadget {
+class RandomPhotoFrameGadget @Inject constructor(
+    private val executeCommand: ExecuteLauncherCommandUseCase,
+) : LauncherGadget {
 
     override val key: String = LauncherGadgetRegistry.KEY_RANDOM_PHOTO_FRAME
     override val defaultSpanW: Int = SPAN
@@ -44,7 +48,7 @@ class RandomPhotoFrameGadget : LauncherGadget {
     override val requiresResourceParam: Boolean = false
 
     override fun createView(container: FrameLayout, host: LauncherGadgetHost, param: String?): View =
-        RandomPhotoFrameGadgetView(container.context, ConfigurableWidgetCatalog.tokenOf(param))
+        RandomPhotoFrameGadgetView(container.context, ConfigurableWidgetCatalog.tokenOf(param), executeCommand)
 
     private companion object {
         /** `targetCellWidth` / `targetCellHeight` of widget_random_photo_frame_info.xml. */
@@ -55,6 +59,7 @@ class RandomPhotoFrameGadget : LauncherGadget {
 private class RandomPhotoFrameGadgetView(
     context: Context,
     private val token: Int?,
+    private val executeCommand: ExecuteLauncherCommandUseCase,
 ) : LauncherGadgetView(context) {
 
     private val binding = GadgetLauncherPhotoFrameBinding.inflate(LayoutInflater.from(context), this)
@@ -176,9 +181,13 @@ private class RandomPhotoFrameGadgetView(
         open(intent)
     }
 
+    /**
+     * The shared launcher task policy, not a bare NEW_TASK: alone, that flag joins the task already
+     * holding the last app screen, so Back from the target would unwind into that screen instead of
+     * the desktop. The use case also owns the failure log.
+     */
     private fun open(intent: Intent) {
-        runCatching {
-            context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-        }.onFailure { Timber.w(it, "Launcher photo frame gadget: target refused to open") }
+        Timber.d("S4428: photo frame gadget starts its target through the shared task policy")
+        executeCommand.startTarget(intent)
     }
 }

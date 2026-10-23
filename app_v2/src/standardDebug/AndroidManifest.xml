@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!-- Debug-only Drive appDataFolder probe (contract DEVICE-EXCHANGE 8.2 item B). standardDebug source
+             set, so no release build and no other flavor carries it. Exported on purpose - the sender is
+             `adb shell am start`, which is another uid. configChanges keeps a running write alive across a
+             rotation instead of cancelling it with the recreated Activity. -->
+        <activity
+            android:name=".ui.debug.DriveAppDataProbeActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.FastMediaSorter" />
+    </application>
+
+</manifest>

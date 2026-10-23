@@ -163,7 +163,7 @@
         },
         "exchange-server": {
           "summary": "Makes this phone's share reachable from any network through your exchange server.",
-          "details": "Pick the outgoing exchange server with Change, then switch it on; the status line shows the address the share is reachable at. New access link issues a fresh link to the share."
+          "details": "Switch it on to publish through the outgoing exchange server - the first server you add becomes outgoing by itself, and Change only picks another one; the status line shows the address the share is reachable at. New access link issues a fresh link to the share."
         },
         "saved-auth": {
           "summary": "Reviews the sign-ins the app saved from its web sign-in screen.",
@@ -351,7 +351,7 @@
         },
         "exchange-server": {
           "summary": "Делает общие папки этого телефона доступными из любой сети через ваш обменный сервер.",
-          "details": "Выберите исходящий обменный сервер кнопкой «Изменить» и включите переключатель; строка состояния покажет адрес, по которому доступны папки. «Новая ссылка доступа» выдаёт свежую ссылку на общий доступ."
+          "details": "Включите переключатель, чтобы публиковать через исходящий обменный сервер: первый добавленный сервер становится исходящим сам, а кнопка «Изменить» только выбирает другой; строка состояния покажет адрес, по которому доступны папки. «Новая ссылка доступа» выдаёт свежую ссылку на общий доступ."
         },
         "saved-auth": {
           "summary": "Показывает входы, которые приложение сохранило на экране веб-входа.",
@@ -539,7 +539,7 @@
         },
         "exchange-server": {
           "summary": "Робить спільні папки цього телефона доступними з будь-якої мережі через ваш обмінний сервер.",
-          "details": "Оберіть вихідний обмінний сервер кнопкою «Змінити» й увімкніть перемикач; рядок стану покаже адресу, за якою доступні папки. «Нове посилання доступу» видає свіже посилання на спільний доступ."
+          "details": "Увімкніть перемикач, щоб публікувати через вихідний обмінний сервер: перший доданий сервер стає вихідним сам, а кнопка «Змінити» лише вибирає інший; рядок стану покаже адресу, за якою доступні папки. «Нове посилання доступу» видає свіже посилання на спільний доступ."
         },
         "saved-auth": {
           "summary": "Показує входи, які застосунок зберіг на екрані вебвходу.",

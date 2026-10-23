@@ -5,7 +5,7 @@ description: "How a Wear OS watch joins your exchange account from the phone and
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/watch-exchange.html
 ---
-<sub class="doc-stamp">26.10.15 15:10</sub>
+<sub class="doc-stamp">26.10.23 14:53</sub>
 
 # The watch on your account
 
@@ -36,7 +36,7 @@ Over its own Wi-Fi or LTE, with the phone off or away:
 - **Plays the broadcasts of the account**, grouped by the broadcasting device, with sound or video.
 - **Broadcasts sound** from its microphone to up to four listeners at once, on the local network and through the server together. No video leaves the watch.
 - **Takes a cast** from another device of the account: it asks first, in a notification.
-- **Sends its own files** - recordings, pictures, other files - with **Send to..** to the folders of the account, and to its own SMB, FTP and SFTP folders, with no phone involved.
+- **Sends its own files** - recordings, pictures, other files - with **Send to..** to the folders of the account, and to its own network folders (SMB, FTP and SFTP), with no phone involved.
 - **Sends and gets the clipboard**: a file or a voice recording goes to the clipboard on the server through **Send to..**, and the latest value comes back, saved on the watch and opened in its own player. See [The clipboard on the server](exchange-clipboard.html).
 
 ## What Bluetooth carries

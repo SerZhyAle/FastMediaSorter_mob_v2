@@ -131,6 +131,16 @@
       "titleUk": "Захист від петлі"
     },
     {
+      "key": "rowLinkPassword",
+      "sectionId": "broadcast",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_broadcast",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Link password",
+      "titleRu": "Пароль ссылки",
+      "titleUk": "Пароль посилання"
+    },
+    {
       "key": "rowMicGain",
       "sectionId": "broadcast",
       "destination": "MEDIA",

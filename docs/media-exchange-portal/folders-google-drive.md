@@ -5,7 +5,7 @@ description: "How to send files, open a folder of another of your devices and ru
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/folders-google-drive.html
 ---
-<sub class="doc-stamp">26.10.15 15:10</sub>
+<sub class="doc-stamp">26.10.23 14:53</sub>
 
 # Files and folders via Google Drive
 
@@ -22,7 +22,7 @@ Via Google Drive, your own Google account is the box between your devices: one d
 ## What goes through
 
 - **Files.** **Send to my device (Drive)** on the action sheet of a file; the dialog **Send via Google Drive to** asks which device: one of them or **Any of my devices**. The transfer shows as waiting until the other device receives it.
-- **A folder of another device.** On the device that keeps the folder, the SFTP server runs with its folders and **Files via Google Drive** is on. On the other one the folder is listed in **Add Resource**, **From my devices**; when it cannot be reached directly or through an exchange server, the error offers **Open via Google Drive**. You get names, sizes and dates, and the files you pick are saved to the app's incoming folder.
+- **A folder of another device.** On the device that keeps the folder, the **SFTP server** switch (the ordinary way of sharing folders over a network) is on with its folders added, and **Files via Google Drive** is on. On the other one the folder is listed in **Add Resource**, **From my devices**; when it cannot be reached directly or through an exchange server, the error offers **Open via Google Drive**. You get names, sizes and dates, and the files you pick are saved to the app's incoming folder.
 - **One side of a schedule.** A copy that takes the files of another device via Google Drive, see [A schedule over folders of other devices](schedule-remote-folders.html).
 - **The clipboard**, as the [clipboard page](exchange-clipboard.html) says.
 

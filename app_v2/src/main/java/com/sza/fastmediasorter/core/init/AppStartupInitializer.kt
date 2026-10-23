@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.core.coordinator.RemoteSourceDisableCoordinator
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.playback.RadioStreamBufferConfig
 import com.sza.fastmediasorter.core.util.CacheStatusHelper
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.input.DefaultsMapLoader
 import com.sza.fastmediasorter.data.input.InputBindingRepository
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
@@ -26,6 +27,7 @@ import com.sza.fastmediasorter.domain.repository.ThumbnailCacheRepository
 import com.sza.fastmediasorter.domain.usecase.RenameVirtualResourcesUseCase
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -90,6 +92,7 @@ class AppStartupInitializer @Inject constructor(
     }
 
     suspend fun runDeferredStartupTasks() {
+        Timber.d("S4423: deferred startup tasks pass started")
         runDeferredTask("record-launch-baseline") { recordLaunchBaseline() }
         if (BuildConfig.DEBUG) {
             runDeferredTask("permissions-status") { logPermissionsStatus() }
@@ -132,13 +135,26 @@ class AppStartupInitializer @Inject constructor(
      */
     private suspend fun recordLaunchBaseline() {
         if (!launchRecorded.compareAndSet(false, true)) return
-        statisticsRepository.get().recordLaunch(BuildConfig.VERSION_NAME, BuildConfig.FLAVOR)
+        try {
+            statisticsRepository.get().recordLaunch(BuildConfig.VERSION_NAME, BuildConfig.FLAVOR)
+        } catch (e: CancellationException) {
+            // A cancelled pass recorded nothing, so the next pass in this process must still record.
+            launchRecorded.set(false)
+            throw e
+        }
     }
 
+    // Cancellation is rethrown rather than logged: the remaining tasks of a cancelled pass must not
+    // start, and the caller must not see the pass as finished. The catch stays broad so one task's
+    // unknown failure does not starve the tasks after it.
+    @Suppress("TooGenericExceptionCaught")
     private suspend fun runDeferredTask(label: String, block: suspend () -> Unit) {
-        runCatching { block() }
-            .onSuccess { Timber.i("AppStartupInitializer: deferred task complete - %s", label) }
-            .onFailure { Timber.e(it, "AppStartupInitializer: deferred task failed - %s", label) }
+        try {
+            block()
+            Timber.i("AppStartupInitializer: deferred task complete - %s", label)
+        } catch (e: Exception) {
+            e.errorUnlessCancellation("AppStartupInitializer: deferred task failed - %s", label)
+        }
     }
 
     // Older builds seeded Chrome OS key defaults as override rows, which beat the binding table's
@@ -150,7 +166,7 @@ class AppStartupInitializer @Inject constructor(
                 Timber.i("AppStartupInitializer: retired the Chrome OS keybinding seed")
             }
         } catch (e: Exception) {
-            Timber.e(e, "Failed to retire the Chrome OS keybinding seed")
+            e.errorUnlessCancellation("Failed to retire the Chrome OS keybinding seed")
         }
     }
 
@@ -170,7 +186,7 @@ class AppStartupInitializer @Inject constructor(
                 // built synchronously and cannot await the DataStore Flow.
                 RadioStreamBufferConfig.syncMirror(context, settings.streamsSmartBuffering)
             } catch (e: Exception) {
-                Timber.e(e, "Failed to sync cache size to SharedPreferences")
+                e.errorUnlessCancellation("Failed to sync cache size to SharedPreferences")
             }
         }
     }
@@ -241,7 +257,7 @@ class AppStartupInitializer @Inject constructor(
                 Timber.d("Fixed isWritable flag for ${broken.size} resources")
             }
         } catch (e: Exception) {
-            Timber.e(e, "Failed to fix resources isWritable flag")
+            e.errorUnlessCancellation("Failed to fix resources isWritable flag")
         }
     }
 
@@ -266,7 +282,7 @@ class AppStartupInitializer @Inject constructor(
             playbackPositionRepository.get().cleanupOldPositions()
             Timber.d("Checked playback positions count limit")
         } catch (e: Exception) {
-            Timber.e(e, "Failed to cleanup playback positions")
+            e.errorUnlessCancellation("Failed to cleanup playback positions")
         }
     }
 
@@ -282,7 +298,7 @@ class AppStartupInitializer @Inject constructor(
                 repo.migrateLegacyCache()
             }
         } catch (e: Exception) {
-            Timber.e(e, "Failed to migrate thumbnail cache")
+            e.errorUnlessCancellation("Failed to migrate thumbnail cache")
         }
     }
 
@@ -304,7 +320,7 @@ class AppStartupInitializer @Inject constructor(
                 Timber.i("ThumbnailCache: evicted $deletedBySize entries to respect ${settings.cacheSizeMb}MB limit")
             }
         } catch (e: Exception) {
-            Timber.e(e, "Failed to cleanup thumbnail cache")
+            e.errorUnlessCancellation("Failed to cleanup thumbnail cache")
         }
     }
 
@@ -331,7 +347,7 @@ class AppStartupInitializer @Inject constructor(
                         ConnectionThrottleManager.setUserNetworkLimit(limit)
                     }
             } catch (e: Exception) {
-                Timber.e(e, "Failed to initialize ConnectionThrottleManager settings")
+                e.errorUnlessCancellation("Failed to initialize ConnectionThrottleManager settings")
             }
         }
     }

@@ -33,8 +33,9 @@ enum class ExchangeProducerLeave {
 /**
  * The producer half of contract DEVICE-EXCHANGE item AC for the embedded SFTP share: one outgoing entry per
  * device, publishing through it as the user's explicit choice, and leaving as a producer without revoking the
- * device, so the same entry keeps listing and attaching. The share itself - its service, credential, host key,
- * `.fmscfg` and QR - is never touched here.
+ * device, so the same entry keeps listing and attaching. Leaving as a producer ends broadcasts on the server only
+ * when the outgoing entry changes or is removed (item DT); turning the folder off unpublishes the folder alone.
+ * The share itself - its service, credential, host key, `.fmscfg` and QR - is never touched here.
  */
 class ManageExchangeProducerUseCase @Inject constructor(
     private val accounts: DeviceExchangeAccountRepository,
@@ -57,10 +58,13 @@ class ManageExchangeProducerUseCase @Inject constructor(
         return ExchangePublishStart.STARTED
     }
 
-    /** Stops publishing and unpublishes the share; never waits for an unreachable server. */
+    /**
+     * Stops publishing and unpublishes the share only (item DT): a live broadcast stays on the server. Never waits
+     * for an unreachable server.
+     */
     suspend fun leave(): ExchangeProducerLeave {
         server.setExchangeEnabled(false)
-        return withdraw()
+        return outcome { server.unpublishExchangeFolder() }
     }
 
     /**
@@ -71,15 +75,15 @@ class ManageExchangeProducerUseCase @Inject constructor(
         val current = accounts.outgoingEntry()
         if (current?.identity == entry.identity) return null
         val publishing = server.exchangeConfig.first().enabled
-        val left = if (publishing && current != null) withdraw() else null
+        val left = if (publishing && current != null) outcome { server.withdrawExchangePublication() } else null
         accounts.setOutgoing(entry)
         if (publishing) server.applyExchangeSettings()
         return left
     }
 
-    private suspend fun withdraw(): ExchangeProducerLeave {
+    private suspend fun outcome(tell: suspend () -> Boolean): ExchangeProducerLeave {
         val wasLive = server.tunnelState.value !is SftpTunnelState.Off
-        val told = server.withdrawExchangePublication()
+        val told = tell()
         return when {
             told -> ExchangeProducerLeave.UNPUBLISHED
             wasLive -> ExchangeProducerLeave.LEFT_LOCALLY

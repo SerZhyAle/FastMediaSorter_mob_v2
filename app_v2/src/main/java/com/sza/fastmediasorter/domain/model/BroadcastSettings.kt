@@ -51,4 +51,6 @@ data class BroadcastSettings(
     // policy there grants only while a capture is already live, so this is the persisted intent behind
     // that session rather than a second permission the wire reads.
     val watchCameraStandby: Boolean = false,
+    // S4405: the mode only - a custom password lives in the Keystore-backed secret store, never here.
+    val linkPasswordMode: BroadcastLinkPasswordMode = BroadcastLinkPasswordMode.AUTO,
 )
