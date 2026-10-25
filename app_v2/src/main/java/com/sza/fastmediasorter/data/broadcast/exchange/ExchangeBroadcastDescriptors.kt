@@ -1,10 +1,13 @@
 package com.sza.fastmediasorter.data.broadcast.exchange
 
+import com.sza.fastmediasorter.broadcast.BroadcastMode
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorDto
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointDto
+import com.sza.fastmediasorter.data.broadcast.BroadcastPendingDto
 import com.sza.fastmediasorter.data.broadcast.BroadcastSealDto
 import com.sza.fastmediasorter.data.remote.exchange.ExchangeBroadcastPublication
 import java.net.URI
+import java.time.Instant
 
 /**
  * The producer half of contract DEVICE-EXCHANGE 7.7: a live descriptor with the exchange endpoints added in the
@@ -14,6 +17,8 @@ import java.net.URI
 object ExchangeBroadcastDescriptors {
 
     const val EXCHANGE_TARGET_LATENCY_MS = 2_000L
+    private const val AUDIO_CODEC = "aac"
+    private const val VIDEO_CODEC = "h264"
 
     /**
      * [publicEndpoint] is the `host:port` every client reaches the server by (`welcome.publicEndpoint`);
@@ -54,6 +59,55 @@ object ExchangeBroadcastDescriptors {
             // 27 item DP: a server without `sealed` is offered no broadcast tunnel.
         }.distinctBy { it.url }.takeIf { sealed }.orEmpty()
         return lan.copy(endpoints = direct + listOfNotNull(relay) + tunnels)
+    }
+
+    /**
+     * LIVE-BROADCAST item S: the descriptor of a broadcast that has not started yet. No LAN endpoint exists before
+     * the start, so the top-level `url` is the `RELAY` address and a `TUNNEL` keeps the mode's scheme and path on
+     * the documentation host (item J). The caller adds `title`, `sourceId` and `auth` with `copy`, and the keys with
+     * [withOutwardKeys].
+     */
+    fun pending(
+        broadcastId: String,
+        publicEndpoint: String,
+        certFingerprint: String?,
+        mode: String,
+        sealed: Boolean,
+        untilMs: Long,
+    ): BroadcastDescriptorDto {
+        val audioOnly = mode == BroadcastMode.AUDIO_ONLY.name
+        val audioCodec = if (mode == BroadcastMode.VIDEO_ONLY.name) null else AUDIO_CODEC
+        val videoCodec = if (audioOnly) null else VIDEO_CODEC
+        val relay = BroadcastEndpointDto(
+            url = "https://$publicEndpoint/v2/b/$broadcastId/stream",
+            transport = BroadcastExchangeEndpoints.TRANSPORT_RELAY,
+            mode = mode,
+            videoCodec = videoCodec,
+            audioCodec = audioCodec,
+            isLive = true,
+            targetLatencyMs = EXCHANGE_TARGET_LATENCY_MS,
+            certFingerprint = certFingerprint,
+            seal = BroadcastSealDto(),
+        )
+        val scheme =
+            if (audioOnly) ExchangeBroadcastPublication.SCHEME_HTTP else ExchangeBroadcastPublication.SCHEME_RTSP
+        val tunnel = relay.copy(
+            url = "fmsx://$publicEndpoint/b/$broadcastId/$scheme",
+            transport = BroadcastExchangeEndpoints.TRANSPORT_TUNNEL,
+            inner = if (audioOnly) {
+                BroadcastExchangeEndpoints.PENDING_INNER_AUDIO
+            } else {
+                BroadcastExchangeEndpoints.PENDING_INNER_VIDEO
+            },
+        ).takeIf { sealed }
+        return BroadcastDescriptorDto(
+            url = relay.url,
+            mode = mode,
+            endpoints = listOfNotNull(relay, tunnel),
+            isLive = true,
+            targetLatencyMs = EXCHANGE_TARGET_LATENCY_MS,
+            pending = BroadcastPendingDto(Instant.ofEpochMilli(untilMs).toString()),
+        )
     }
 
     /**

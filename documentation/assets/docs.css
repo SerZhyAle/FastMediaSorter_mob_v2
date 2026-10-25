@@ -382,6 +382,13 @@ header.doc-header {
     height: auto;
 }
 
+/* The usage-scheme SVGs under diagrams/ are vector drawings with a fixed 1600 or 1920 px size; max-width alone
+   leaves them at that size inside a 3000 px column on a 4K screen, so they scale to the column instead. */
+.doc-content img[src*="diagrams/"] {
+    width: 100%;
+    height: auto;
+}
+
 .doc-content h1,
 .doc-article h1 {
     font-family: var(--doc-font-heading);

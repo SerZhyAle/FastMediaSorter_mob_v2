@@ -1160,4 +1160,5 @@
     <string name="wear_broadcast_server_on">На сервере обмена</string>
     <string name="wear_broadcast_server_failed">Ошибка сервера - см. телефон</string>
     <string name="wear_broadcast_server_local_only">Только в этой сети</string>
+    <string name="wear_scheduled_message_channel_name">Сообщения по расписанию</string>
 </resources>

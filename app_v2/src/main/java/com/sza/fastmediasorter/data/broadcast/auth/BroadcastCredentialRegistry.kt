@@ -66,6 +66,22 @@ class BroadcastCredentialRegistry @Inject constructor(
     }
 
     /**
+     * S4247, DEVICE-EXCHANGE item DW: begins like [begin], but with the link pair made when the link was prepared,
+     * so the password handed out before the start is the one the relay checks; null [link] for an open link.
+     */
+    @Synchronized
+    fun beginPrepared(broadcastId: String, choice: BroadcastLinkChoice, link: BroadcastCredentialPair?) {
+        if (live?.broadcastId == broadcastId) return
+        verifierCache.clear()
+        val pair = link.takeIf { choice != BroadcastLinkChoice.Open }
+        live = Live(broadcastId, newPair(OWN_USER), choice, pair)
+        _revision.value += 1
+    }
+
+    /** S4247: the link pair a prepared broadcast hands out, made exactly as a live one; null for an open link. */
+    fun newLinkPair(choice: BroadcastLinkChoice): BroadcastCredentialPair? = linkPairFor(choice)
+
+    /**
      * S4405: replaces or drops only the outward link's pair, the way "New password" revokes one (LIVE-BROADCAST item
      * R); the own and guest pairs are untouched. Returns the new link pair, null for an open link or while nothing
      * is announced. The same choice again changes nothing, so re-confirming "automatic" keeps the handed-out password.

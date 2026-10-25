@@ -69,7 +69,10 @@ class ScheduledOperationRepositoryImpl @Inject constructor(
             minSizeBytes = minSizeBytes,
             maxSizeBytes = maxSizeBytes
         ),
-        lastSuccessAt = lastSuccessAt
+        lastSuccessAt = lastSuccessAt,
+        watchTitle = watchTitle,
+        watchText = watchText,
+        watchImageUri = watchImageUri
     )
 
     private fun ScheduledOperation.toEntity() = ScheduledOperationEntity(
@@ -95,6 +98,9 @@ class ScheduledOperationRepositoryImpl @Inject constructor(
         maxAgeHours = fileConditions.maxAgeHours,
         minSizeBytes = fileConditions.minSizeBytes,
         maxSizeBytes = fileConditions.maxSizeBytes,
-        lastSuccessAt = lastSuccessAt
+        lastSuccessAt = lastSuccessAt,
+        watchTitle = watchTitle,
+        watchText = watchText,
+        watchImageUri = watchImageUri
     )
 }

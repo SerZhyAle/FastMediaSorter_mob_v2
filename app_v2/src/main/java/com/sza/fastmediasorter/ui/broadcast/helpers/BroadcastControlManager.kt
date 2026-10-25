@@ -171,6 +171,11 @@ class BroadcastControlManager @Inject constructor(
                         wearSendAvailable = settings.enableWearCompanion &&
                             mediaCapabilities.supportsWearCompanion
                         renderSendToWatch(binding, controller.state.value)
+                        landscapeVideo.applyRotationPolicy(
+                            activity,
+                            followSystem = settings.playerFollowSystemRotation,
+                            sensorEnabled = settings.playerRotationSensorEnabled,
+                        )
                     }
                 }
             }
@@ -755,6 +760,7 @@ class BroadcastControlManager @Inject constructor(
         blankScreenManager.detach()
         lightFrame.detach()
         sourceEntries.onDetach()
+        selectionRows.clear()
         // setup() re-registers every launcher on the next attach, so dropping them here loses nothing.
         sharePanel.onDetach()
         collapsibleSections?.clear()

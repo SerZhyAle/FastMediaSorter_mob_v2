@@ -4514,4 +4514,18 @@
     <string name="broadcast_link_password_applied_open">Готово. Теперь ссылка открывается без пароля</string>
     <string name="broadcast_link_password_store_failed">Не удалось сохранить пароль на этом устройстве. Попробуйте ещё раз или выберите другой вариант</string>
     <string name="broadcast_link_password_saved">Сохранено. Действует для следующей трансляции через сервер обмена</string>
+    <string name="stream_broadcast_wait_title">Эта трансляция ещё не началась</string>
+    <string name="stream_broadcast_wait_message">Она начнётся позже. Ссылка действует до %1$s. Пока это окно открыто, приложение проверяет, не началась ли трансляция.</string>
+    <string name="stream_broadcast_wait_started">Трансляция началась.</string>
+    <string name="stream_broadcast_wait_play">Играть</string>
+    <string name="stream_broadcast_link_expired">Эта ссылка на трансляцию больше не действует. Попросите у отправителя новую.</string>
+    <string name="settings_streams_pending_play_at_once">Сразу играть ожидаемые трансляции</string>
+    <string name="settings_streams_pending_play_at_once_summary">Трансляция, которую вы ждёте, начинает играть, как только начнётся, без вопроса «Играть»</string>
+    <string name="scheduled_ops_op_watch_message">Показать на часах</string>
+    <string name="scheduled_ops_watch_title_hint">Заголовок</string>
+    <string name="scheduled_ops_watch_text_hint">Текст (необязательно)</string>
+    <string name="scheduled_ops_watch_pick_image">Выбрать картинку</string>
+    <string name="scheduled_ops_watch_clear_image">Убрать картинку</string>
+    <string name="scheduled_ops_watch_no_image">Без картинки</string>
+    <string name="scheduled_ops_error_watch_title_required">Введите заголовок</string>
 </resources>

@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.domain.usecase.broadcast.RenewBroadcastLinkPasswo
 import com.sza.fastmediasorter.domain.usecase.broadcast.SetBroadcastLinkPasswordUseCase
 import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -34,6 +35,7 @@ class BroadcastLinkPasswordDialogManager @Inject constructor(
     fun show(activity: AppCompatActivity, isLive: Boolean, onDone: (messageRes: Int) -> Unit) {
         activity.lifecycleScope.launch {
             val mode = setLinkPassword.currentMode()
+            Timber.d("S4405: link password dialog opened mode=$mode live=$isLive")
             open(activity, isLive, mode, onDone)
         }
     }

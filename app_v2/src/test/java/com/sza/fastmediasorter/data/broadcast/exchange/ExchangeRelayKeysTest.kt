@@ -20,6 +20,16 @@ class ExchangeRelayKeysTest {
     }
 
     @Test
+    fun `a seeded link key is returned as the link key and sealed into the next ring`() {
+        val prepared = ByteArray(32) { it.toByte() }
+        assertTrue(keys.seedLink(BROADCAST, "outward", prepared))
+        assertTrue(keys.linkKey(BROADCAST, "outward")!!.contentEquals(prepared))
+        val ring = keys.newEpoch(BROADCAST)!!
+        assertTrue(ring.groupKeys.any { it.contentEquals(prepared) })
+        assertFalse(keys.seedLink("other", "outward", prepared))
+    }
+
+    @Test
     fun `a grant key made during an epoch ends it and joins the next ring`() {
         val ring = keys.newEpoch(BROADCAST)!!
         val guest = keys.linkKey(BROADCAST, "g1")!!

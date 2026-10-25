@@ -1158,4 +1158,5 @@
     <string name="wear_broadcast_server_on">On the exchange server</string>
     <string name="wear_broadcast_server_failed">Server error - see phone</string>
     <string name="wear_broadcast_server_local_only">This network only</string>
+    <string name="wear_scheduled_message_channel_name">Scheduled messages</string>
 </resources>

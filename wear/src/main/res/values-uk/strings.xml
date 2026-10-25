@@ -1160,4 +1160,5 @@
     <string name="wear_broadcast_server_on">На сервері обміну</string>
     <string name="wear_broadcast_server_failed">Помилка сервера - див. телефон</string>
     <string name="wear_broadcast_server_local_only">Лише в цій мережі</string>
+    <string name="wear_scheduled_message_channel_name">Повідомлення за розкладом</string>
 </resources>

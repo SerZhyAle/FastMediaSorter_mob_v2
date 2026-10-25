@@ -1,9 +1,11 @@
 package com.sza.fastmediasorter.ui.exchange.drive
 
 import androidx.lifecycle.SavedStateHandle
+import com.sza.fastmediasorter.domain.model.transfer.DriveConsentRequired
 import com.sza.fastmediasorter.domain.model.transfer.DriveListing
 import com.sza.fastmediasorter.domain.model.transfer.DriveListingEntry
 import com.sza.fastmediasorter.domain.model.transfer.DriveRefusalReason
+import com.sza.fastmediasorter.domain.model.transfer.DriveSignInRequired
 import com.sza.fastmediasorter.domain.transfer.DriveFileChannel
 import com.sza.fastmediasorter.domain.transfer.DriveProducerTarget
 import com.sza.fastmediasorter.domain.transfer.DriveRequestProgress
@@ -46,6 +48,7 @@ class DriveChannelBrowseViewModelTest {
     private fun viewModel() = DriveChannelBrowseViewModel(
         channel,
         resolve,
+        mockk(),
         SavedStateHandle(
             mapOf(
                 DriveChannelBrowseViewModel.ARG_EXCHANGE_RESOURCE_ID to "res",
@@ -127,5 +130,11 @@ class DriveChannelBrowseViewModelTest {
         advanceUntilIdle()
 
         assertEquals(DriveBrowseStatus.Unavailable, viewModel.state.value.status)
+    }
+
+    @Test
+    fun `a missing app folder grant is offered as consent, not as a new sign-in`() {
+        assertEquals(DriveBrowseStatus.ConsentRequired, DriveChannelBrowseViewModel.statusFor(DriveConsentRequired()))
+        assertEquals(DriveBrowseStatus.SignInRequired, DriveChannelBrowseViewModel.statusFor(DriveSignInRequired()))
     }
 }

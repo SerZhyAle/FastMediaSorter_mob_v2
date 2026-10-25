@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.20 13:45</sub>
+<sub class="doc-stamp">26.10.25 13:32</sub>
 
 # Play publishing state
 
@@ -225,8 +225,8 @@ The pre-release gate reads this block, so keep the three field lines above in th
 **Video:** recorded
 
 The owner reported on 2026-10-15 that the demonstration video is recorded and the `dataSync`
-declaration is saved in Play Console. The `standard` store build still ships without `dataSync`
-until `fms.dataSyncFgsStandard=on` is set after release 46 ships (S4271 phase 02). The text that was
+declaration is saved in Play Console. The `standard` store build carries `dataSync` while
+`fms.dataSyncFgsStandard=on`, the default since 2026-10-25 (S4271 phase 02). The text that was
 submitted, the video steps and the rollback are in `store_assets/PLAY_FGS_DECLARATIONS.md`. Allowed
 states are the same as for the Contacts declaration above; the owner updates this block after
 reading each Play verdict.

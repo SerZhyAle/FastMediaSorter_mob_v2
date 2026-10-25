@@ -502,11 +502,19 @@ class StreamsViewModel @Inject constructor(
             _events.send(StreamsEvent.BroadcastPasswordRequired(payload))
             return@launch
         }
-        val messageRes = when (importStreamBroadcast(payload, password)) {
-            ImportStreamBroadcastUseCase.ImportResult.Success -> R.string.broadcast_import_success
+        val result = importStreamBroadcast(payload, password)
+        if (result is ImportStreamBroadcastUseCase.ImportResult.Waiting) {
+            _events.send(StreamsEvent.BroadcastWaiting(result.streamId))
+            return@launch
+        }
+        val messageRes = when (result) {
+            ImportStreamBroadcastUseCase.ImportResult.Success,
+            is ImportStreamBroadcastUseCase.ImportResult.Waiting,
+            -> R.string.broadcast_import_success
             ImportStreamBroadcastUseCase.ImportResult.Updated -> R.string.broadcast_import_refreshed
             ImportStreamBroadcastUseCase.ImportResult.Duplicate -> R.string.streams_error_duplicate_url
             ImportStreamBroadcastUseCase.ImportResult.InvalidUrl -> R.string.streams_error_invalid_url
+            ImportStreamBroadcastUseCase.ImportResult.Expired -> R.string.stream_broadcast_link_expired
             ImportStreamBroadcastUseCase.ImportResult.InvalidDescriptor ->
                 R.string.broadcast_import_malformed
             ImportStreamBroadcastUseCase.ImportResult.UnsupportedVersion -> {
@@ -1022,6 +1030,9 @@ class StreamsViewModel @Inject constructor(
 
         /** LIVE-BROADCAST item M: the descriptor is protected and this device has no password for it yet. */
         data class BroadcastPasswordRequired(val payload: String) : StreamsEvent
+
+        /** S4247: the imported link names a broadcast that has not started; row [streamId] waits for it. */
+        data class BroadcastWaiting(val streamId: String) : StreamsEvent
     }
 }
 

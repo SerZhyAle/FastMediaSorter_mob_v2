@@ -4,11 +4,13 @@ import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeCertificateChan
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeCertificateUntrustedException
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeConnector
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeTrust
+import com.sza.fastmediasorter.data.security.e2e.E2eRelayHttp
 import timber.log.Timber
 import java.io.IOException
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.URI
+import java.net.URISyntaxException
 import javax.inject.Inject
 
 /**
@@ -54,6 +56,31 @@ class BroadcastEndpointProbe @Inject constructor(
         ExchangeAnswer.UNREACHABLE
     }
 
+    /**
+     * S4247, research item 3: the status the relay answers for [relay]'s stream, null when nothing answered. The
+     * connection closes right after the status line, so a waiting receiver never holds a listener slot.
+     */
+    fun relayStatus(relay: BroadcastExchangeEndpoint.Relay): Int? = try {
+        val path = URI(relay.url).rawPath ?: "/"
+        connector.connect(relay.server.host, relay.server.port, ExchangeTrust.Verified(relay.certFingerprint))
+            .use { connection ->
+                E2eRelayHttp.get(path, relay.server.label, connection.output)
+                E2eRelayHttp.line(connection.input).split(' ', limit = STATUS_PARTS).getOrNull(1)?.toIntOrNull()
+            }
+    } catch (e: ExchangeCertificateChangedException) {
+        Timber.w(e, "BroadcastEndpointProbe: %s relay pins another certificate", relay.server.label)
+        null
+    } catch (e: ExchangeCertificateUntrustedException) {
+        Timber.w(e, "BroadcastEndpointProbe: %s relay certificate untrusted and unpinned", relay.server.label)
+        null
+    } catch (e: IOException) {
+        Timber.d("BroadcastEndpointProbe: %s relay silent - %s", relay.server.label, e.javaClass.simpleName)
+        null
+    } catch (e: URISyntaxException) {
+        Timber.d("BroadcastEndpointProbe: %s relay url unreadable - %s", relay.server.label, e.javaClass.simpleName)
+        null
+    }
+
     private fun defaultPort(scheme: String?): Int = when (scheme?.lowercase()) {
         "rtsp" -> RTSP_DEFAULT_PORT
         "https" -> HTTPS_DEFAULT_PORT
@@ -65,5 +92,6 @@ class BroadcastEndpointProbe @Inject constructor(
         const val HTTP_DEFAULT_PORT = 80
         const val HTTPS_DEFAULT_PORT = 443
         const val RTSP_DEFAULT_PORT = 554
+        const val STATUS_PARTS = 3
     }
 }

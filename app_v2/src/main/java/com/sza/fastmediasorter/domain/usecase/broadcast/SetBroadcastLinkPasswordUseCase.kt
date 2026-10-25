@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.domain.model.BroadcastLinkPasswordRules
 import com.sza.fastmediasorter.domain.repository.BroadcastLinkPasswordStore
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.first
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -35,6 +36,7 @@ class SetBroadcastLinkPasswordUseCase @Inject constructor(
         settingsRepository.getSettings().first().broadcast.linkPasswordMode
 
     suspend operator fun invoke(mode: BroadcastLinkPasswordMode, password: String?): Result {
+        Timber.d("S4405: apply link password mode=$mode")
         val choice = when (mode) {
             BroadcastLinkPasswordMode.CUSTOM -> {
                 val text = password.orEmpty()

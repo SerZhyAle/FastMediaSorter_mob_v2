@@ -87,7 +87,7 @@ object Mp4ContainerTimeReader {
 
                 val mp4Seconds = unixEpochSeconds + MP4_EPOCH_OFFSET_SECONDS
 
-                // Skip 3 bytes flags
+                // Past the version byte and the 3 flag bytes
                 channel.position(mvhd.contentOffset + FLAGS_OFFSET)
                 if (version == 0) {
                     val timeBuf = ByteBuffer.allocate(V0_TIME_BUFFER_SIZE)

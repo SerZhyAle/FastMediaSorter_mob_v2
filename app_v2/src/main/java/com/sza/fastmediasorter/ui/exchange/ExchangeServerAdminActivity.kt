@@ -35,6 +35,8 @@ class ExchangeServerAdminActivity : BaseActivity<ActivityExchangeServerAdminBind
     private val invitations by lazy { ExchangeAdminInvitationManager(this, viewModel) }
     private val accountRows = ExchangeAdminRowAdapter(onRowOpen = ::openAccount, onRowOverflow = ::openOverflow)
     private val invitationRows = ExchangeAdminRowAdapter(onRowOpen = ::openInvitation, onRowOverflow = ::openOverflow)
+    private var renderedShared: ExchangeAdminSharedInvitation? = null
+    private var renderedPolicy: ExchangeAdminPolicy? = null
 
     override fun getViewBinding() = ActivityExchangeServerAdminBinding.inflate(layoutInflater)
 
@@ -140,6 +142,10 @@ class ExchangeServerAdminActivity : BaseActivity<ActivityExchangeServerAdminBind
     }
 
     private fun renderShared(shared: ExchangeAdminSharedInvitation?) {
+        // Accounts, invitations, shared and policy arrive as separate emissions; the container holds the lines
+        // of the last non-equal value (it starts empty, which is what null renders), so an equal one repaints nothing.
+        if (shared == renderedShared) return
+        renderedShared = shared
         binding.fieldsExchangeAdminShared.removeAllViews()
         shared ?: return
         val word = getString(
@@ -149,6 +155,8 @@ class ExchangeServerAdminActivity : BaseActivity<ActivityExchangeServerAdminBind
     }
 
     private fun renderPolicy(policy: ExchangeAdminPolicy?) {
+        if (policy == renderedPolicy) return
+        renderedPolicy = policy
         binding.fieldsExchangeAdminLimits.removeAllViews()
         policy ?: return
         listOf(

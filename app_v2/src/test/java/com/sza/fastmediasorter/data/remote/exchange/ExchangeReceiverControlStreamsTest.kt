@@ -5,6 +5,7 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -70,6 +71,33 @@ class ExchangeReceiverControlStreamsTest {
         verify { lentSession.send(answer) }
         streams.giveBack(entry, lentSession)
         assertFalse(streams.send(entry.identity, answer))
+    }
+
+    @Test
+    fun `an own stream that connects while the entry is lent is closed and never serves`() = runBlocking {
+        val connecting = CompletableDeferred<Unit>()
+        val proceed = CompletableDeferred<Unit>()
+        val closed = CountDownLatch(1)
+        val ownSession = blockingSession(emptyList(), closed)
+        val client = mockk<DeviceExchangeAccountClient>()
+        coEvery { client.openAuthenticated(entry, any()) } coAnswers {
+            connecting.complete(Unit)
+            proceed.await()
+            ownSession
+        }
+        val streams = ExchangeReceiverControlStreams(client, Dispatchers.IO)
+        val lentSession = mockk<DeviceExchangeSession>(relaxed = true)
+
+        val run = launch(Dispatchers.IO) { streams.run(MutableStateFlow(listOf(entry))) }
+        withTimeout(TIMEOUT_MS) { connecting.await() }
+        streams.lend(entry, lentSession)
+        proceed.complete(Unit)
+
+        assertTrue(closed.await(TIMEOUT_MS, TimeUnit.MILLISECONDS))
+        assertTrue(streams.send(entry.identity, answer))
+        verify { lentSession.send(answer) }
+        verify(exactly = 0) { ownSession.send(any()) }
+        run.cancelAndJoin()
     }
 
     // Hands out [envelopes], then blocks the read the way a socket does until the session is closed.

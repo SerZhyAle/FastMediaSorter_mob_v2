@@ -48,7 +48,13 @@ Whether devices of your own account find the broadcast without any of these depe
 
 ## The password goes separately
 
-A broadcast can be protected by a password. The share screen shows it as **Password**, and the link and the QR code never carry it: tell it another way, by voice or in another messenger. **New password** makes a fresh one and the old one stops working.
+**Change password** on the share screen, or **Link password** in the broadcast settings, chooses how a link through the exchange server is protected:
+
+- **Automatic** - the device makes the password and the share screen shows it as **Password**; **Generate new** makes a fresh one and the old one stops working.
+- **My own** - you type the password yourself, from a simple word to a long phrase; a short one is easy to guess.
+- **No password** - anyone who has the link can open the broadcast.
+
+The link and the QR code never carry the password: tell it another way, by voice or in another messenger. Your own devices in **My devices** open the broadcast without asking, whichever option you chose.
 
 ## How it reaches the listeners
 

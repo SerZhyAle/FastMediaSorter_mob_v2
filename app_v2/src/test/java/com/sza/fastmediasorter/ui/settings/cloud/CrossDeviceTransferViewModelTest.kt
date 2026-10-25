@@ -64,6 +64,7 @@ class CrossDeviceTransferViewModelTest {
             buildTransferPayload = mockk<BuildTransferPayloadUseCase>(),
             sendPacket = mockk<SendCrossDevicePacketUseCase>(),
             deletePacket = mockk<DeleteCrossDevicePacketUseCase>(),
+            grantAppFolder = mockk(),
             identity = identity,
             settings = mockk<DriveChannelSettings>(relaxed = true),
             queue = mockk<DriveQueueSnapshots>(relaxed = true)
@@ -139,6 +140,7 @@ class CrossDeviceTransferViewModelTest {
             buildTransferPayload = mockk(),
             sendPacket = mockk(),
             deletePacket = deletePacket,
+            grantAppFolder = mockk(),
             identity = identity,
             settings = settings,
             queue = queue

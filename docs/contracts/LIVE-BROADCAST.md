@@ -5,7 +5,7 @@
 | | |
 | --- | --- |
 | **Id** | `LIVE-BROADCAST` |
-| **Version** | 1.3, active - 2026-10-22 (S4405: item R in `17_contract_amendment_2026-10-22.md` - the outward link's password is the broadcaster's choice: generated, set by the person or none; with none the hand-out descriptor carries no `auth`); 1.2 - 2026-10-18; 1.1 - 2026-10-17 (the consolidation amendment: a descriptor of a higher `schemaVersion` answers the canonical `format-unsupported` refusal); 1.0 - declared 2026-10-15 (S4245, the owner's decision 22 of milestone S4203: every section and amendment binds, and the contract only grows from here); amendment 16 adds item Q, the `seal` member of a `RELAY` and a `TUNNEL` endpoint; amendment 15, items N to P: the sources of a broadcast, sound and video on the watch and the phone's hand-off to the watch; amendment 14, item M: a broadcast link with a password; amendment 13: PC producer, HTTP MPEG-TS video, `RELAY`/`TUNNEL` endpoints through `DEVICE-EXCHANGE`, receivers and cast. Owner: this product |
+| **Version** | 1.4, active - 2026-10-25 (S4247: item S in `18_contract_amendment_2026-10-25.md` - the pending descriptor: the optional `pending {until}` member of a broadcast that has not started yet, `RELAY` and `TUNNEL` only, and the waiting consumer); 1.3 - 2026-10-22 (S4405: item R in `17_contract_amendment_2026-10-22.md` - the outward link's password is the broadcaster's choice: generated, set by the person or none; with none the hand-out descriptor carries no `auth`); 1.2 - 2026-10-18; 1.1 - 2026-10-17 (the consolidation amendment: a descriptor of a higher `schemaVersion` answers the canonical `format-unsupported` refusal); 1.0 - declared 2026-10-15 (S4245, the owner's decision 22 of milestone S4203: every section and amendment binds, and the contract only grows from here); amendment 16 adds item Q, the `seal` member of a `RELAY` and a `TUNNEL` endpoint; amendment 15, items N to P: the sources of a broadcast, sound and video on the watch and the phone's hand-off to the watch; amendment 14, item M: a broadcast link with a password; amendment 13: PC producer, HTTP MPEG-TS video, `RELAY`/`TUNNEL` endpoints through `DEVICE-EXCHANGE`, receivers and cast. Owner: this product |
 | **Home** | `live-broadcast/README.md` in the shared contracts catalog |
 | **Role here** | producer - the phone and watch audio broadcast; also reads its own descriptor on import |
 
@@ -39,6 +39,12 @@
   with a `RELAY` or `TUNNEL` endpoint or with `auth` by its own message carrying the descriptor and, when protected,
   the pass the phone holds, kept on the watch in its secret store; never hand a stored channel whose password was
   never typed, and never pass the stream over the phone-to-watch link (0.21 item P, S4217, S4261).
+- A link made before the start is the pending descriptor: `pending {until}` at most 30 days out, top-level `url` on
+  the `RELAY` address, `RELAY` and `TUNNEL` only, `inner` on `192.0.2.1`, `auth` by item R and `seal` by item Q
+  (1.4 item S, S4247).
+- On a pending descriptor, show a waiting state instead of an error; probe the `RELAY` status code with a `GET` no
+  more often than every 30 s and only while that state is visible, closing after the status line so no listener slot
+  is spent; stop at `until`; play only on the person's action unless the person's setting plays at once (1.4 item S).
 
 ## Where it lives here
 

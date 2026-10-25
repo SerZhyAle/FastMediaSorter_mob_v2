@@ -41,12 +41,14 @@ class ScheduledOperationsScreenManager(
     private val scheduledViewModel: ScheduledOperationsViewModel,
     private val notificationsPermissionLauncher: ActivityResultLauncher<String>,
     folderPickerLauncher: ActivityResultLauncher<Uri?>,
+    imagePickerLauncher: ActivityResultLauncher<Array<String>>,
 ) {
     private val dialogManager = ScheduledOperationsDialogManager(
         host = activity,
         mediaCapabilities = mediaCapabilities,
         scheduledViewModel = scheduledViewModel,
         folderPickerLauncher = folderPickerLauncher,
+        imagePickerLauncher = imagePickerLauncher,
     )
     private val runHistoryDialogManager = ScheduledRunHistoryDialogManager(activity)
     private lateinit var scheduledAdapter: ScheduledOperationsAdapter
@@ -116,6 +118,10 @@ class ScheduledOperationsScreenManager(
 
     fun onFolderPicked(uri: Uri?) {
         dialogManager.onFolderPicked(uri)
+    }
+
+    fun onWatchImagePicked(uri: Uri?) {
+        dialogManager.onWatchImagePicked(uri)
     }
 
     fun updateNotificationPermissionButton() {

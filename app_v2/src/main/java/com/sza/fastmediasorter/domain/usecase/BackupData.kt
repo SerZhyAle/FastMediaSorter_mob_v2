@@ -465,6 +465,7 @@ data class BackupSettings(
         // BackupSettingsCoverageTest).
         val streamsVisualizeAsMusic: Boolean? = null,
         val streamsCastPlayAtOnce: Boolean? = null,
+        val streamsPendingPlayAtOnce: Boolean? = null,
         val broadcastStreamTitle: String? = null,
         val broadcastBitRateBps: Int? = null,
         val broadcastPort: Int? = null,
@@ -632,7 +633,11 @@ data class BackupScheduledOperation(
     val sourceExchangeAccount: String? = null,
     val sourceExchangeResourceId: String? = null,
     val targetExchangeAccount: String? = null,
-    val targetExchangeResourceId: String? = null
+    val targetExchangeResourceId: String? = null,
+    // S4248: set only for WATCH_MESSAGE; absent in every backup written before it, which restores unchanged.
+    val watchTitle: String? = null,
+    val watchText: String? = null,
+    val watchImageUri: String? = null
 )
 
 /**

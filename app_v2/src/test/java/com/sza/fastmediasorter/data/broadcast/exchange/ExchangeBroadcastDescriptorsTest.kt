@@ -112,8 +112,36 @@ class ExchangeBroadcastDescriptorsTest {
         assertEquals(mapOf("http" to 8090), ExchangeBroadcastDescriptors.localPorts(legacy))
     }
 
+    @Test
+    fun `a pending audio descriptor holds RELAY and TUNNEL only and keeps its expiry`() {
+        val until = 1_800_000_000_000L
+
+        val descriptor = ExchangeBroadcastDescriptors.pending(ID, SERVER, null, "AUDIO_ONLY", true, until)
+
+        val endpoints = descriptor.endpoints.orEmpty()
+        assertEquals(listOf("RELAY", "TUNNEL"), endpoints.map { it.transport })
+        assertEquals(endpoints[0].url, descriptor.url)
+        assertEquals("http://192.0.2.1/live-audio.aac", endpoints[1].inner)
+        assertEquals(true, descriptor.isLive)
+        assertEquals(true, descriptor.isPending)
+        assertEquals(until, descriptor.pending?.untilMs())
+    }
+
+    @Test
+    fun `outward keys are written into a pending descriptor`() {
+        val pending = ExchangeBroadcastDescriptors.pending(ID, SERVER, null, "VIDEO_AUDIO", true, 0L)
+
+        val outward = ExchangeBroadcastDescriptors.withOutwardKeys(pending, "relay-key", PIN)
+
+        val seals = outward.endpoints.orEmpty().associate { it.transport to it.seal }
+        assertEquals("relay-key", seals["RELAY"]?.key)
+        assertEquals(PIN, seals["TUNNEL"]?.pin)
+        assertEquals("rtsp://192.0.2.1/", outward.endpoints.orEmpty().last().inner)
+    }
+
     private companion object {
         const val ID = "AAAAAAAAAAAAAAAAAAAAAA"
+        const val SERVER = "exchange.example:7443"
         const val PIN = "SHA256:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU"
     }
 }

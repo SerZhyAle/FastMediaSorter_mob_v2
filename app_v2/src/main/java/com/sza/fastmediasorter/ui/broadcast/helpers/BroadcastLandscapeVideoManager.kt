@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.ui.broadcast.helpers
 
+import android.app.Activity
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.view.View
 import android.view.ViewGroup
@@ -11,6 +13,7 @@ import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.broadcast.BroadcastState
 import com.sza.fastmediasorter.databinding.ActivityBroadcastControlBinding
+import com.sza.fastmediasorter.ui.player.helpers.ScreenRotationManager
 import timber.log.Timber
 
 /**
@@ -20,8 +23,8 @@ import timber.log.Timber
  * activity's inset padding) and the control panel steps aside; a tap on the picture brings the panel back
  * beside it, the layout the screen had before, and a second tap hides it again.
  *
- * The encoded stream keeps the orientation it started with (S4403), so the picture stays as the listeners
- * get it - only the rectangle it is shown in grows.
+ * The screen turns by the player's rotation settings, not the program-wide ones ([applyRotationPolicy]),
+ * and the stream's picture turns with the screen, so the enlarged picture is upright, as it is in the player.
  *
  * The only state is the "panel asked for" flag. It lives here because [BroadcastControlManager], the
  * singleton that owns this object, outlives the activity a rotation recreates; every view reference is
@@ -30,6 +33,19 @@ import timber.log.Timber
 class BroadcastLandscapeVideoManager {
 
     private var controlsShown = false
+
+    /**
+     * The player's policy instead of the program-wide one: with the defaults the player turns by the
+     * sensor while the program obeys the system rotation lock, so this screen stayed portrait where the
+     * player turned. The activity is a `SelfManagedScreenOrientation`, so the program policy leaves it alone.
+     */
+    fun applyRotationPolicy(activity: Activity, followSystem: Boolean, sensorEnabled: Boolean) {
+        if (!activity.packageManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER)) return
+        val orientation = ScreenRotationManager.orientationFor(followSystem, sensorEnabled)
+        if (activity.requestedOrientation == orientation) return
+        Timber.d("S4418: broadcast screen takes the player rotation policy orientation=$orientation")
+        activity.requestedOrientation = orientation
+    }
 
     /** Wires the tap once per activity; [currentState] is read at tap time so the render sees the live state. */
     fun bind(
@@ -57,7 +73,6 @@ class BroadcastLandscapeVideoManager {
         // Portrait has one scrolling column and no second pane, so there is nothing to give up or take back.
         if (!landscape) return
         val fullscreen = BroadcastEntryUi.showsFullscreenPreview(landscape, pictureOnScreen, controlsShown)
-        Timber.d("S4418: landscape video fullscreen=$fullscreen picture=$pictureOnScreen controls=$controlsShown")
         // Declared by the landscape layout alone: data binding wants the root element's id to agree across
         // variants, and the portrait root is the scrolling column itself, with no panel to hide.
         binding.controlsScroll?.isVisible = !fullscreen

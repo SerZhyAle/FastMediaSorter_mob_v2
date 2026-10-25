@@ -26,6 +26,7 @@ import com.sza.fastmediasorter.domain.model.TimeFilter
 import com.sza.fastmediasorter.domain.model.computeNextRunAt
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.scheduledops.helpers.ScheduledOpConditionsFormManager
+import com.sza.fastmediasorter.ui.scheduledops.helpers.ScheduledOpWatchMessageFormManager
 import com.sza.fastmediasorter.util.showBoundToHost
 import dagger.hilt.android.EntryPointAccessors
 import java.util.Calendar
@@ -41,6 +42,7 @@ class ScheduledOperationDialog(
     private val prefilledSourceId: Long? = null,
     private val mediaCapabilities: MediaCapabilities,
     private val onPickLocalFolder: (SchedOpPickSide) -> Unit,
+    private val onPickWatchImage: () -> Unit = {},
     private val onSave: (ScheduledOperationDraft) -> Unit
 ) : Dialog(context) {
 
@@ -64,6 +66,16 @@ class ScheduledOperationDialog(
 
     private val conditionsForm by lazy { ScheduledOpConditionsFormManager(b.fileConditions) }
 
+    private val watchForm by lazy { ScheduledOpWatchMessageFormManager(b, onPickWatchImage) }
+
+    // S4248: "Show on watch" is offered only where the watch bridge exists; an existing watch row keeps
+    // its own label in a build without it, so editing never silently turns it into a file operation.
+    private val offeredOperations: List<ScheduledOpType> by lazy {
+        val offersWatch = mediaCapabilities.supportsWearCompanion ||
+            existing?.operationType == ScheduledOpType.WATCH_MESSAGE
+        if (offersWatch) OPERATION_ORDER + ScheduledOpType.WATCH_MESSAGE else OPERATION_ORDER
+    }
+
     // S2795: a Dialog is built by hand, not by Hilt, so it reaches the format seam the way the
     // project's other out-of-graph surfaces do. The system itself is read per call, so a switched
     // setting shows the next time the preview is recomputed.
@@ -79,10 +91,14 @@ class ScheduledOperationDialog(
         val isWide = context.isWideLayout()
         window?.setLayout(
             (dm.widthPixels * 0.93).toInt(),
-            if (isWide) (dm.heightPixels * 0.90).toInt()
-            else android.view.WindowManager.LayoutParams.WRAP_CONTENT
+            if (isWide) {
+                (dm.heightPixels * 0.90).toInt()
+            } else {
+                android.view.WindowManager.LayoutParams.WRAP_CONTENT
+            }
         )
         setupDropdowns()
+        watchForm.bind(::updateSaveButtonState)
         setupNextRunPreview()
         setupConditionsCollapse()
         // Default file type mask for new operations: ALL_FILES
@@ -93,7 +109,7 @@ class ScheduledOperationDialog(
         setupIntervalPicker()
         setupSaveButtonState()
         b.btnCancel.setOnClickListener { dismiss() }
-        b.btnSave.setOnClickListener { trySave() }
+        b.btnSave.setOnClickListener { if (isWatchMessageSelected()) trySaveWatchMessage() else trySave() }
     }
 
     private fun setupDropdowns() {
@@ -113,9 +129,9 @@ class ScheduledOperationDialog(
         }
 
         // Operations
-        val opLabels = OPERATION_ORDER.map(::operationLabel)
+        val opLabels = offeredOperations.map(::operationLabel)
         b.actvOperation.setAdapter(ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, opLabels))
-        b.actvOperation.setOnItemClickListener { _, _, pos, _ -> applyOperationVisibility(OPERATION_ORDER[pos]) }
+        b.actvOperation.setOnItemClickListener { _, _, pos, _ -> applyOperationVisibility(offeredOperations[pos]) }
         b.actvOperation.setText(opLabels[0], false)
 
         // Target - "Local folder" first (index 0), then destinations; auto-fill if exactly one dest.
@@ -151,13 +167,24 @@ class ScheduledOperationDialog(
 
     // ARCHIVE keeps the target but hides overwrite: every run writes a fresh, auto-deduplicated ZIP name,
     // so the switch would have nothing to act on.
+    // S4248: a watch message reads no resource, so source, target and the file conditions all step aside.
     private fun applyOperationVisibility(type: ScheduledOpType) {
-        val targetVisibility = if (type == ScheduledOpType.DELETE) View.GONE else View.VISIBLE
+        val isWatch = type == ScheduledOpType.WATCH_MESSAGE
+        val fileVisibility = if (isWatch) View.GONE else View.VISIBLE
+        b.tvSourceLabel.visibility = fileVisibility
+        b.tilSource.visibility = fileVisibility
+        b.cardConditions.visibility = fileVisibility
+        if (isWatch) b.tvReadOnlySourceHint.visibility = View.GONE
+        watchForm.setVisible(isWatch)
+        val targetVisibility = if (type == ScheduledOpType.DELETE || isWatch) View.GONE else View.VISIBLE
         b.tvTargetLabel.visibility = targetVisibility
         b.tilTarget.visibility = targetVisibility
         b.containerOverwrite.visibility =
             if (type == ScheduledOpType.DELETE || type == ScheduledOpType.ARCHIVE) View.GONE else View.VISIBLE
     }
+
+    private fun isWatchMessageSelected(): Boolean =
+        resolveOperationType(b.actvOperation.text.toString()) == ScheduledOpType.WATCH_MESSAGE
 
     private fun operationLabel(type: ScheduledOpType): String = context.getString(
         when (type) {
@@ -165,12 +192,13 @@ class ScheduledOperationDialog(
             ScheduledOpType.MOVE -> R.string.scheduled_ops_op_move
             ScheduledOpType.DELETE -> R.string.scheduled_ops_op_delete
             ScheduledOpType.ARCHIVE -> R.string.scheduled_ops_op_archive
+            ScheduledOpType.WATCH_MESSAGE -> R.string.scheduled_ops_op_watch_message
         }
     )
 
     /** Maps the dropdown text back to its type; COPY is the dropdown's own default for an empty field. */
     private fun resolveOperationType(text: String): ScheduledOpType =
-        OPERATION_ORDER.firstOrNull { operationLabel(it) == text } ?: ScheduledOpType.COPY
+        offeredOperations.firstOrNull { operationLabel(it) == text } ?: ScheduledOpType.COPY
 
     // The base bundle carries the id-bearing text fields only: both switch rows wrap an inner switch
     // with the same id, so the hierarchy restores one row's value into both, and the staged folder
@@ -186,6 +214,7 @@ class ScheduledOperationDialog(
         putInt(STATE_FILE_TYPE_MASK, buildFileTypeMask())
         putBoolean(STATE_OVERWRITE, b.switchOverwrite.isChecked)
         putBoolean(STATE_SILENT_MODE, b.switchSilentMode.isChecked)
+        watchForm.saveState(this)
     }
 
     // View visibility and enabled state are not part of the saved hierarchy, so everything derived
@@ -204,6 +233,7 @@ class ScheduledOperationDialog(
         applyFileTypeMask(savedInstanceState.getInt(STATE_FILE_TYPE_MASK, FileTypeFlags.DEFAULT))
         b.switchOverwrite.isChecked = savedInstanceState.getBoolean(STATE_OVERWRITE)
         b.switchSilentMode.isChecked = savedInstanceState.getBoolean(STATE_SILENT_MODE)
+        watchForm.restoreState(savedInstanceState)
         applyOperationVisibility(resolveOperationType(b.actvOperation.text.toString()))
         if (stagedSourceFolderPath != null) {
             applyReadOnlyState(stagedSourceReadOnly)
@@ -235,6 +265,13 @@ class ScheduledOperationDialog(
     }
 
     private fun updateSaveButtonState() {
+        if (isWatchMessageSelected()) {
+            b.tilSource.error = null
+            b.tilTarget.error = null
+            b.btnSave.isEnabled = watchForm.validate()
+            return
+        }
+        watchForm.clearValidation()
         val sourceEmpty = b.actvSource.text.isNullOrBlank()
         val isDelete = resolveOperationType(b.actvOperation.text.toString()) == ScheduledOpType.DELETE
         val targetEmpty = !isDelete && b.actvTarget.text.isNullOrBlank()
@@ -279,12 +316,14 @@ class ScheduledOperationDialog(
             val currentMinutes = b.etIntervalMinutes.text.toString().toIntOrNull() ?: 0
 
             val pickerHours = NumberPicker(context).apply {
-                minValue = 0; maxValue = 1440
+                minValue = 0
+                maxValue = 1440
                 value = currentHours.coerceIn(0, 1440)
                 wrapSelectorWheel = false
             }
             val pickerMinutes = NumberPicker(context).apply {
-                minValue = 0; maxValue = 59
+                minValue = 0
+                maxValue = 59
                 value = currentMinutes.coerceIn(0, 59)
                 wrapSelectorWheel = true
             }
@@ -312,7 +351,7 @@ class ScheduledOperationDialog(
     private fun updateFileTypeCheckboxVisibility() {
         b.cbFileTypeAudio.visibility = if (mediaCapabilities.supportsAudio) View.VISIBLE else View.GONE
         b.cbFileTypeVideo.visibility = if (mediaCapabilities.supportsVideo) View.VISIBLE else View.GONE
-        b.cbFileTypeDocs.visibility  = if (mediaCapabilities.supportsDocuments) View.VISIBLE else View.GONE
+        b.cbFileTypeDocs.visibility = if (mediaCapabilities.supportsDocuments) View.VISIBLE else View.GONE
         // Hidden options must not remain selected or be persisted on unsupported flavors.
         if (!mediaCapabilities.supportsAudio) b.cbFileTypeAudio.isChecked = false
         if (!mediaCapabilities.supportsVideo) b.cbFileTypeVideo.isChecked = false
@@ -339,9 +378,9 @@ class ScheduledOperationDialog(
     private fun buildFileTypeMask(): Int {
         var mask = 0
         if (b.cbFileTypeAllFiles.isChecked) mask = mask or FileTypeFlags.ALL_FILES
-        if (b.cbFileTypeImages.isChecked)   mask = mask or FileTypeFlags.IMAGES
-        if (mediaCapabilities.supportsAudio && b.cbFileTypeAudio.isChecked)    mask = mask or FileTypeFlags.AUDIO
-        if (mediaCapabilities.supportsVideo && b.cbFileTypeVideo.isChecked)    mask = mask or FileTypeFlags.VIDEO
+        if (b.cbFileTypeImages.isChecked) mask = mask or FileTypeFlags.IMAGES
+        if (mediaCapabilities.supportsAudio && b.cbFileTypeAudio.isChecked) mask = mask or FileTypeFlags.AUDIO
+        if (mediaCapabilities.supportsVideo && b.cbFileTypeVideo.isChecked) mask = mask or FileTypeFlags.VIDEO
         if (mediaCapabilities.supportsDocuments && b.cbFileTypeDocs.isChecked) mask = mask or FileTypeFlags.DOCUMENTS
         return mask
     }
@@ -355,9 +394,9 @@ class ScheduledOperationDialog(
             // interlock will fire via setOnCheckedChangeListener
         } else {
             b.cbFileTypeImages.isChecked = FileTypeFlags.hasImages(normalizedMask)
-            b.cbFileTypeAudio.isChecked  = mediaCapabilities.supportsAudio && FileTypeFlags.hasAudio(normalizedMask)
-            b.cbFileTypeVideo.isChecked  = mediaCapabilities.supportsVideo && FileTypeFlags.hasVideo(normalizedMask)
-            b.cbFileTypeDocs.isChecked   = mediaCapabilities.supportsDocuments && FileTypeFlags.hasDocuments(normalizedMask)
+            b.cbFileTypeAudio.isChecked = mediaCapabilities.supportsAudio && FileTypeFlags.hasAudio(normalizedMask)
+            b.cbFileTypeVideo.isChecked = mediaCapabilities.supportsVideo && FileTypeFlags.hasVideo(normalizedMask)
+            b.cbFileTypeDocs.isChecked = mediaCapabilities.supportsDocuments && FileTypeFlags.hasDocuments(normalizedMask)
         }
     }
 
@@ -438,7 +477,11 @@ class ScheduledOperationDialog(
         val intervalMinutes = b.etIntervalMinutes.text.toString().toIntOrNull() ?: 0
 
         val nextRunAt = computeNextRunAt(
-            startHour, startMinute, intervalHours, intervalMinutes, System.currentTimeMillis()
+            startHour,
+            startMinute,
+            intervalHours,
+            intervalMinutes,
+            System.currentTimeMillis()
         )
         val label = context.getString(R.string.scheduled_ops_next_run)
         val nextRunText = unitSeam.quantityFormatter()
@@ -469,6 +512,7 @@ class ScheduledOperationDialog(
         // Operation type
         b.actvOperation.setText(operationLabel(op.operationType), false)
         applyOperationVisibility(op.operationType)
+        if (op.operationType == ScheduledOpType.WATCH_MESSAGE) watchForm.fill(op)
 
         // Target
         val destResource = destinations.find { it.id == op.targetResourceId }
@@ -556,17 +600,7 @@ class ScheduledOperationDialog(
 
         val startHour = b.etStartHour.text.toString().toIntOrNull()?.coerceIn(0, 23) ?: 0
         val startMinute = b.etStartMinute.text.toString().toIntOrNull()?.coerceIn(0, 59) ?: 0
-        var intervalHours = b.etIntervalHours.text.toString().toIntOrNull() ?: 0
-        var intervalMinutes = b.etIntervalMinutes.text.toString().toIntOrNull() ?: 0
-
-        // Enforce minimum interval of 15 minutes
-        if (intervalHours == 0 && intervalMinutes == 0) {
-            intervalHours = 1
-            Toast.makeText(context, R.string.scheduled_ops_interval_corrected_1h, Toast.LENGTH_SHORT).show()
-        } else if (intervalHours == 0 && intervalMinutes < 15) {
-            intervalMinutes = 15
-            Toast.makeText(context, R.string.scheduled_ops_interval_corrected_15, Toast.LENGTH_SHORT).show()
-        }
+        val (intervalHours, intervalMinutes) = readIntervalWithFloor()
 
         val op = ScheduledOperation(
             id = existing?.id ?: 0L,
@@ -601,7 +635,58 @@ class ScheduledOperationDialog(
         dismiss()
     }
 
+    /** Enforces the 15-minute floor every scheduled kind shares, telling the user when it corrected the value. */
+    private fun readIntervalWithFloor(): Pair<Int, Int> {
+        var intervalHours = b.etIntervalHours.text.toString().toIntOrNull() ?: 0
+        var intervalMinutes = b.etIntervalMinutes.text.toString().toIntOrNull() ?: 0
+        if (intervalHours == 0 && intervalMinutes == 0) {
+            intervalHours = 1
+            Toast.makeText(context, R.string.scheduled_ops_interval_corrected_1h, Toast.LENGTH_SHORT).show()
+        } else if (intervalHours == 0 && intervalMinutes < MIN_INTERVAL_MINUTES) {
+            intervalMinutes = MIN_INTERVAL_MINUTES
+            Toast.makeText(context, R.string.scheduled_ops_interval_corrected_15, Toast.LENGTH_SHORT).show()
+        }
+        return intervalHours to intervalMinutes
+    }
+
+    /** S4248: no source, no target and no file filters; only the slot and the message itself. */
+    private fun trySaveWatchMessage() {
+        if (!watchForm.validate()) return
+        val fields = watchForm.read()
+        val startHour = b.etStartHour.text.toString().toIntOrNull()?.coerceIn(0, 23) ?: 0
+        val startMinute = b.etStartMinute.text.toString().toIntOrNull()?.coerceIn(0, 59) ?: 0
+        val (intervalHours, intervalMinutes) = readIntervalWithFloor()
+        val op = ScheduledOperation(
+            id = existing?.id ?: 0L,
+            isEnabled = existing?.isEnabled ?: true,
+            sourceResourceId = null,
+            operationType = ScheduledOpType.WATCH_MESSAGE,
+            targetResourceId = null,
+            fileTypeMask = FileTypeFlags.DEFAULT,
+            timeFilter = TimeFilter.ALL,
+            startTimeHour = startHour,
+            startTimeMinute = startMinute,
+            intervalHours = intervalHours,
+            intervalMinutes = intervalMinutes,
+            silentMode = b.switchSilentMode.isChecked,
+            lastRunAt = existing?.lastRunAt,
+            lastRunStatus = existing?.lastRunStatus,
+            workerId = existing?.workerId,
+            lastSuccessAt = existing?.lastSuccessAt,
+            watchTitle = fields.title,
+            watchText = fields.text,
+            watchImageUri = fields.imageUri
+        )
+        onSave(ScheduledOperationDraft(operation = op))
+        dismiss()
+    }
+
+    /** S4248: a picture chosen through the host's document picker. */
+    fun onWatchImagePicked(uri: String, name: String) = watchForm.setImage(uri, name)
+
     private companion object {
+        const val MIN_INTERVAL_MINUTES = 15
+
         // Dropdown order; the item-click position indexes this list.
         val OPERATION_ORDER = listOf(
             ScheduledOpType.COPY,

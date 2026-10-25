@@ -60,6 +60,15 @@ object BroadcastExchangeEndpoints {
     const val TRANSPORT_TUNNEL = "TUNNEL"
     const val LOOPBACK_HOST = "127.0.0.1"
 
+    /** LIVE-BROADCAST item J: the host a `TUNNEL.inner` stands on when the producer has no LAN address. */
+    const val DOCUMENTATION_HOST = "192.0.2.1"
+
+    /** The inner address of an audio broadcast tunnel before its start (item J, `BroadcastHttpServer.ENDPOINT`). */
+    const val PENDING_INNER_AUDIO = "http://$DOCUMENTATION_HOST/live-audio.aac"
+
+    /** The inner address of a video broadcast tunnel before its start: the RTSP server publishes the root path. */
+    const val PENDING_INNER_VIDEO = "rtsp://$DOCUMENTATION_HOST/"
+
     private const val SCHEME_FMSX = "fmsx"
     private const val SCHEME_HTTPS = "https"
     private const val LOOPBACK_SCHEME = "http"

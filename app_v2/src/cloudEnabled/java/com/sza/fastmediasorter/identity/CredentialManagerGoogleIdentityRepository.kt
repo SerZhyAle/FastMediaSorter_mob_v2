@@ -145,6 +145,7 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
                 return IdentitySignInResult.Failed(IdentityFailureReason.UnknownError, auth.cause)
             }
         }
+        Timber.d("S4427: sign-in authorization granted ${granted.size} of ${oauthScopes.size} scope(s)")
         val account = PrimaryGoogleAccount(
             email = tokenCred.id,
             displayName = tokenCred.displayName,
@@ -306,6 +307,7 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
     // user never granted needs the grant itself, so the account must not be marked as expired.
     private fun consentRequired(bound: PrimaryGoogleAccount, scopes: Set<GoogleScope>): GoogleTokenResult {
         val missing = scopes - bound.grantedScopes
+        Timber.d("S4427: token needs consent, missing ${missing.size} scope(s)")
         if (missing.isNotEmpty()) return GoogleTokenResult.ConsentRequired(missing)
         _state.value = PrimaryGoogleAccountState.NeedsResignIn(bound, NeedsResignInReason.ScopeRevoked)
         return GoogleTokenResult.Unavailable

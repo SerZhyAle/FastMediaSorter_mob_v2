@@ -93,11 +93,15 @@ class StreamsDeviceBroadcastsViewModel @Inject constructor(
 
     @StringRes
     private fun messageFor(result: ImportStreamBroadcastUseCase.ImportResult): Int = when (result) {
-        ImportStreamBroadcastUseCase.ImportResult.Success -> R.string.broadcast_import_success
+        ImportStreamBroadcastUseCase.ImportResult.Success,
+        is ImportStreamBroadcastUseCase.ImportResult.Waiting,
+        -> R.string.broadcast_import_success
         ImportStreamBroadcastUseCase.ImportResult.Updated -> R.string.broadcast_import_refreshed
         ImportStreamBroadcastUseCase.ImportResult.Duplicate -> R.string.streams_device_broadcast_already_added
         ImportStreamBroadcastUseCase.ImportResult.InvalidUrl,
-        ImportStreamBroadcastUseCase.ImportResult.InvalidDescriptor -> R.string.broadcast_import_malformed
+        ImportStreamBroadcastUseCase.ImportResult.InvalidDescriptor,
+        ImportStreamBroadcastUseCase.ImportResult.Expired,
+        -> R.string.broadcast_import_malformed
         ImportStreamBroadcastUseCase.ImportResult.UnsupportedVersion -> {
             Timber.i("LIVE-BROADCAST: device broadcast schema above supported, format-unsupported")
             ExchangeMessageText.what(ExchangeMessage.FORMAT_UNSUPPORTED)

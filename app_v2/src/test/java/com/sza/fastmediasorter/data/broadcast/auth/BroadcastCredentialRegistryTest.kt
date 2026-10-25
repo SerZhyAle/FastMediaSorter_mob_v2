@@ -27,6 +27,16 @@ class BroadcastCredentialRegistryTest {
     }
 
     @Test
+    fun `a prepared link pair is the one a prepared broadcast begins with`() {
+        val prepared = registry.newLinkPair(BroadcastLinkChoice.Generated)!!
+        registry.beginPrepared("b1", BroadcastLinkChoice.Generated, prepared)
+        assertEquals(prepared, registry.linkPair)
+        assertEquals(prepared.user, registry.authMarker()!!.user)
+        assertTrue(registry.pairs()!!.contains(prepared))
+        assertNull(registry.newLinkPair(BroadcastLinkChoice.Open))
+    }
+
+    @Test
     fun `renewing the link drops the old pair and keeps the user`() {
         registry.begin("b1")
         val old = registry.linkPair!!

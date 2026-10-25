@@ -101,6 +101,10 @@ class ScheduledOperationsViewModel @Inject constructor(
         if (uri != null) dialogSession?.pendingPickedUri = uri
     }
 
+    fun deferWatchImagePick(uri: Uri?) {
+        if (uri != null) dialogSession?.pendingPickedImageUri = uri
+    }
+
     fun setEnabled(enabled: Boolean) {
         viewModelScope.launch {
             settingsRepository.updateSettings { it.copy(enableScheduledOperations = enabled) }

@@ -60,6 +60,7 @@ import com.sza.fastmediasorter.wear.domain.usecase.ImportNetworkSourcesUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.StoreTransferredStreamUseCase
 import com.sza.fastmediasorter.wear.service.helpers.ListenRequestNotifier
 import com.sza.fastmediasorter.wear.service.helpers.ListenSessionTerminator
+import com.sza.fastmediasorter.wear.service.helpers.ScheduledMessageReceiver
 import com.sza.fastmediasorter.wear.util.errorUnlessCancellation
 import com.sza.fastmediasorter.wear.util.rethrowIfCancellation
 import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
@@ -162,6 +163,9 @@ class WatchWearListenerService : WearableListenerService() {
 
     // S4228: Lazy for S2626's reason - only a resource pass needs the encrypted PIN store.
     @Inject lateinit var resourcePassReceiver: dagger.Lazy<WearResourcePassReceiver>
+
+    // S4248: Lazy for S2626's reason - only a scheduled message needs the notifier and the picture cache.
+    @Inject lateinit var scheduledMessageReceiver: dagger.Lazy<ScheduledMessageReceiver>
 
     // S2915: every handler below launches on the application-owned scope. The platform destroys this
     // service shortly after the callback returns, and the service-owned scope this used to cancel in
@@ -342,6 +346,10 @@ class WatchWearListenerService : WearableListenerService() {
 
             // S4261: a broadcast with its descriptor and pass; joins this tail for the hand-over's reason above.
             WearDataLayerPaths.STREAM_BROADCAST_PASS -> handleStreamBroadcastPass(event.sourceNodeId, event.data)
+
+            // S4248: a scheduled message from the phone; joins this tail for the hand-over's reason above.
+            WearDataLayerPaths.SCHEDULED_MESSAGE ->
+                applicationScope.launch { scheduledMessageReceiver.get().onMessage(event.sourceNodeId, event.data) }
 
             else -> Timber.d("WatchWearListenerService: unhandled message path ${event.path}")
         }

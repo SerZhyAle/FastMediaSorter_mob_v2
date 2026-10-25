@@ -105,9 +105,20 @@ class CrossDevicePacketListDialogFragment : DialogFragment() {
         binding.btnCrossDeviceSendSettings.isEnabled = !state.loading
         binding.btnCrossDeviceRemoveExpired.isEnabled = !state.loading
         state.notice?.let { notice ->
-            Snackbar.make(binding.root, noticeText(notice), Snackbar.LENGTH_LONG).show()
+            showNotice(notice)
             viewModel.consumeNotice()
         }
+    }
+
+    private fun showNotice(notice: CrossDeviceQueueNotice) {
+        if (notice != CrossDeviceQueueNotice.ConsentRequired) {
+            Snackbar.make(binding.root, noticeText(notice), Snackbar.LENGTH_LONG).show()
+            return
+        }
+        // S4427: indefinite, because the message only matters through its action.
+        Snackbar.make(binding.root, noticeText(notice), Snackbar.LENGTH_INDEFINITE)
+            .setAction(R.string.drive_channel_consent_allow) { viewModel.grantAppFolderAccess(requireActivity()) }
+            .show()
     }
 
     private fun renderPollState(state: DrivePollState) {
@@ -131,6 +142,7 @@ class CrossDevicePacketListDialogFragment : DialogFragment() {
             getString(R.string.cross_device_transfer_expired_removed, notice.removed)
         CrossDeviceQueueNotice.ChannelOff -> getString(R.string.drive_channel_off_hint)
         CrossDeviceQueueNotice.SignInRequired -> getString(R.string.drive_channel_sign_in_required)
+        CrossDeviceQueueNotice.ConsentRequired -> getString(R.string.drive_channel_consent_required)
         CrossDeviceQueueNotice.DailyLimit -> getString(R.string.drive_channel_daily_limit)
         is CrossDeviceQueueNotice.NotEnoughSpace -> getString(
             R.string.drive_channel_not_enough_space,

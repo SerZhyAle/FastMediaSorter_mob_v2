@@ -4577,4 +4577,18 @@
     <string name="broadcast_link_password_applied_open">Done. The link now opens without a password</string>
     <string name="broadcast_link_password_store_failed">The password could not be saved on this device. Try again or choose another option</string>
     <string name="broadcast_link_password_saved">Saved. It applies to the next broadcast through an exchange server</string>
+    <string name="stream_broadcast_wait_title">This broadcast has not started yet</string>
+    <string name="stream_broadcast_wait_message">It starts later. The link works until %1$s. The app checks for the start while this window is open.</string>
+    <string name="stream_broadcast_wait_started">The broadcast has started.</string>
+    <string name="stream_broadcast_wait_play">Play</string>
+    <string name="stream_broadcast_link_expired">This broadcast link is no longer valid. Ask the sender for a new one.</string>
+    <string name="settings_streams_pending_play_at_once">Play awaited broadcasts at once</string>
+    <string name="settings_streams_pending_play_at_once_summary">A broadcast you are waiting for starts playing as soon as it begins, without the Play question</string>
+    <string name="scheduled_ops_op_watch_message">Show on watch</string>
+    <string name="scheduled_ops_watch_title_hint">Title</string>
+    <string name="scheduled_ops_watch_text_hint">Text (optional)</string>
+    <string name="scheduled_ops_watch_pick_image">Choose picture</string>
+    <string name="scheduled_ops_watch_clear_image">Remove picture</string>
+    <string name="scheduled_ops_watch_no_image">No picture</string>
+    <string name="scheduled_ops_error_watch_title_required">Enter a title</string>
 </resources>

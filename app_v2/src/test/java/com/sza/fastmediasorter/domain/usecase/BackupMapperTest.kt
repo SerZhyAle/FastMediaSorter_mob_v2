@@ -1,12 +1,15 @@
 package com.sza.fastmediasorter.domain.usecase
 
+import com.google.gson.Gson
 import com.sza.fastmediasorter.data.local.db.FavoritesEntity
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.HostPort
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
+import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.model.SortMode
+import com.sza.fastmediasorter.domain.model.TimeFilter
 import com.sza.fastmediasorter.testing.createAppSettings
 import com.sza.fastmediasorter.testing.createMediaResource
 import com.sza.fastmediasorter.testing.createScheduledOperation
@@ -267,6 +270,60 @@ class BackupMapperTest {
         val restored = BackupMapper.toScheduledOperation(backup, mapOf("a" to src, "b" to dst))!!
 
         assertEquals(ScheduledOpType.COPY, restored.operationType)
+    }
+
+    @Test
+    fun `S4248 watch message round-trips with no resources in the lookup`() {
+        val op = ScheduledOperation(
+            sourceResourceId = null,
+            operationType = ScheduledOpType.WATCH_MESSAGE,
+            targetResourceId = null,
+            timeFilter = TimeFilter.ALL,
+            startTimeHour = 7,
+            startTimeMinute = 30,
+            intervalHours = 24,
+            intervalMinutes = 0,
+            watchTitle = "Morning",
+            watchText = "Drink water",
+            watchImageUri = "content://picker/doc/1",
+        )
+
+        val backup = BackupMapper.toBackupScheduledOperation(op, emptyMap())!!
+        val restored = BackupMapper.toScheduledOperation(backup, emptyMap())!!
+
+        assertEquals("", backup.sourceResourcePath)
+        assertEquals(ScheduledOpType.WATCH_MESSAGE, restored.operationType)
+        assertNull(restored.sourceResourceId)
+        assertNull(restored.targetResourceId)
+        assertEquals("Morning", restored.watchTitle)
+        assertEquals("Drink water", restored.watchText)
+        assertEquals("content://picker/doc/1", restored.watchImageUri)
+        assertEquals(7, restored.startTimeHour)
+        assertEquals(24, restored.intervalHours)
+    }
+
+    @Test
+    fun `S4248 watch message backup without a title is dropped on restore`() {
+        val backup = BackupScheduledOperation(operationType = "WATCH_MESSAGE", watchTitle = " ")
+
+        assertNull(BackupMapper.toScheduledOperation(backup, emptyMap()))
+    }
+
+    @Test
+    fun `S4248 backup written before the watch fields restores a COPY unchanged`() {
+        val src = createMediaResource(id = 5L, path = "/src", type = ResourceType.LOCAL)
+        val dst = createMediaResource(id = 6L, path = "/dst", type = ResourceType.LOCAL)
+        val json = """{"sourceResourcePath":"/src","sourceResourceType":"LOCAL","operationType":"COPY",""" +
+            """"targetResourcePath":"/dst","targetResourceType":"LOCAL","timeFilter":"ALL"}"""
+        val backup = Gson().fromJson(json, BackupScheduledOperation::class.java)
+
+        val restored = BackupMapper.toScheduledOperation(backup, mapOf("a" to src, "b" to dst))!!
+
+        assertEquals(ScheduledOpType.COPY, restored.operationType)
+        assertEquals(5L, restored.sourceResourceId)
+        assertEquals(6L, restored.targetResourceId)
+        assertNull(restored.watchTitle)
+        assertNull(restored.watchImageUri)
     }
 
     // --- favorites mapping ---

@@ -82,8 +82,36 @@ object BackupMapper {
     fun toBackupScheduledOperation(
         op: ScheduledOperation,
         resourceLookup: Map<Long, MediaResource>
+    ): BackupScheduledOperation? =
+        if (op.operationType == ScheduledOpType.WATCH_MESSAGE) {
+            toBackupWatchMessage(op)
+        } else {
+            toBackupFileOperation(op, resourceLookup)
+        }
+
+    /**
+     * S4248: a watch message reads no resource, so its source path is written empty. A reader from before
+     * S4248 resolves an empty path to no resource and skips the record, which is the intended degradation.
+     */
+    private fun toBackupWatchMessage(op: ScheduledOperation) = BackupScheduledOperation(
+        isEnabled = op.isEnabled,
+        sourceResourcePath = "",
+        operationType = op.operationType.name,
+        startTimeHour = op.startTimeHour,
+        startTimeMinute = op.startTimeMinute,
+        intervalHours = op.intervalHours,
+        intervalMinutes = op.intervalMinutes,
+        silentMode = op.silentMode,
+        watchTitle = op.watchTitle,
+        watchText = op.watchText,
+        watchImageUri = op.watchImageUri
+    )
+
+    private fun toBackupFileOperation(
+        op: ScheduledOperation,
+        resourceLookup: Map<Long, MediaResource>
     ): BackupScheduledOperation? {
-        val src = resourceLookup[op.sourceResourceId] ?: return null
+        val src = op.sourceResourceId?.let { resourceLookup[it] } ?: return null
         val dst = if (op.targetResourceId != null) resourceLookup[op.targetResourceId] else null
         return BackupScheduledOperation(
             isEnabled = op.isEnabled,
@@ -117,16 +145,48 @@ object BackupMapper {
         backup: BackupScheduledOperation,
         resourcesByPath: Map<String, MediaResource>
     ): ScheduledOperation? {
+        val opType = runCatching { ScheduledOpType.valueOf(backup.operationType) }
+            .getOrElse { ScheduledOpType.COPY }
+        return if (opType == ScheduledOpType.WATCH_MESSAGE) {
+            toWatchMessage(backup)
+        } else {
+            toFileOperation(backup, opType, resourcesByPath)
+        }
+    }
+
+    /** S4248: restored with no source and no target; a record without a title is not a message and is dropped. */
+    private fun toWatchMessage(backup: BackupScheduledOperation): ScheduledOperation? {
+        val title = backup.watchTitle?.takeIf { it.isNotBlank() } ?: return null
+        return ScheduledOperation(
+            id = 0,
+            isEnabled = backup.isEnabled,
+            sourceResourceId = null,
+            operationType = ScheduledOpType.WATCH_MESSAGE,
+            targetResourceId = null,
+            timeFilter = TimeFilter.ALL,
+            startTimeHour = backup.startTimeHour,
+            startTimeMinute = backup.startTimeMinute,
+            intervalHours = backup.intervalHours,
+            intervalMinutes = backup.intervalMinutes,
+            silentMode = backup.silentMode,
+            watchTitle = title,
+            watchText = backup.watchText,
+            watchImageUri = backup.watchImageUri
+        )
+    }
+
+    private fun toFileOperation(
+        backup: BackupScheduledOperation,
+        opType: ScheduledOpType,
+        resourcesByPath: Map<String, MediaResource>
+    ): ScheduledOperation? {
         val src = findResource(
             candidates = resourcesByPath.values,
             exchangeAccount = backup.sourceExchangeAccount,
             exchangeResourceId = backup.sourceExchangeResourceId,
             path = backup.sourceResourcePath,
             type = backup.sourceResourceType
-        ) ?: return null
-
-        val opType = runCatching { ScheduledOpType.valueOf(backup.operationType) }
-            .getOrElse { ScheduledOpType.COPY }
+        )
 
         val dst = findResource(
             candidates = resourcesByPath.values,
@@ -136,7 +196,7 @@ object BackupMapper {
             type = backup.targetResourceType
         )
 
-        if (opType != ScheduledOpType.DELETE && dst == null) return null
+        if (src == null || (opType != ScheduledOpType.DELETE && dst == null)) return null
 
         return ScheduledOperation(
             id = 0,

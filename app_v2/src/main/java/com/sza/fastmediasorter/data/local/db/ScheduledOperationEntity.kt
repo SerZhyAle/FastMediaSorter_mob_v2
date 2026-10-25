@@ -37,7 +37,7 @@ data class ScheduledOperationEntity(
     val isEnabled: Boolean = true,
 
     @ColumnInfo(name = "source_resource_id")
-    val sourceResourceId: Long,
+    val sourceResourceId: Long?,       // null only for WATCH_MESSAGE (S4248)
 
     @ColumnInfo(name = "operation_type")
     val operationType: String,         // ScheduledOpType.name()
@@ -97,5 +97,14 @@ data class ScheduledOperationEntity(
     val maxSizeBytes: Long? = null,
 
     @ColumnInfo(name = "last_success_at")
-    val lastSuccessAt: Long? = null
+    val lastSuccessAt: Long? = null,
+
+    @ColumnInfo(name = "watch_title")
+    val watchTitle: String? = null,
+
+    @ColumnInfo(name = "watch_text")
+    val watchText: String? = null,
+
+    @ColumnInfo(name = "watch_image_uri")
+    val watchImageUri: String? = null
 )

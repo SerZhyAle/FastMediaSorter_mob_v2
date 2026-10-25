@@ -291,8 +291,12 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
         targetCtx: Context,
     ): LauncherCommandVisual? {
         val operation = scheduledOperationRepository.getById(operationId) ?: return null
-        val source = resourceRepository.getResourceById(operation.sourceResourceId)?.name
-            ?: operation.sourceResourceId.toString()
+        val sourceId = operation.sourceResourceId
+        val source = if (sourceId == null) {
+            operation.watchTitle.orEmpty()
+        } else {
+            resourceRepository.getResourceById(sourceId)?.name ?: sourceId.toString()
+        }
         val target = operation.targetResourceId
             ?.let { resourceRepository.getResourceById(it)?.name ?: it.toString() }
             ?: "-"

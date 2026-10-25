@@ -39,6 +39,7 @@ class StreamBroadcastEndpointManager @Inject constructor(
         id: String,
         url: String,
         endpoints: String?,
+        onWaiting: () -> Unit,
         launch: (String) -> Unit,
     ): Job = scope.launch {
         val stored = storedUrl(id, url)
@@ -55,6 +56,10 @@ class StreamBroadcastEndpointManager @Inject constructor(
             ).show()
             Playback.Unreachable ->
                 Toast.makeText(context, R.string.stream_broadcast_ended, Toast.LENGTH_LONG).show()
+            // S4247: a row from a link to a broadcast that has not started waits instead of reading as ended.
+            is Playback.NotStarted -> onWaiting()
+            Playback.Expired ->
+                Toast.makeText(context, R.string.stream_broadcast_link_expired, Toast.LENGTH_LONG).show()
         }
     }
 

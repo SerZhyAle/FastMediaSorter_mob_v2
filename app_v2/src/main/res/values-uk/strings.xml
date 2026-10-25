@@ -4499,4 +4499,18 @@
     <string name="broadcast_link_password_applied_open">Готово. Тепер посилання відкривається без пароля</string>
     <string name="broadcast_link_password_store_failed">Не вдалося зберегти пароль на цьому пристрої. Спробуйте ще раз або виберіть інший варіант</string>
     <string name="broadcast_link_password_saved">Збережено. Діє для наступної трансляції через сервер обміну</string>
+    <string name="stream_broadcast_wait_title">Ця трансляція ще не почалася</string>
+    <string name="stream_broadcast_wait_message">Вона почнеться пізніше. Посилання діє до %1$s. Поки це вікно відкрите, застосунок перевіряє, чи почалася трансляція.</string>
+    <string name="stream_broadcast_wait_started">Трансляція почалася.</string>
+    <string name="stream_broadcast_wait_play">Грати</string>
+    <string name="stream_broadcast_link_expired">Це посилання на трансляцію більше не діє. Попросіть у відправника нове.</string>
+    <string name="settings_streams_pending_play_at_once">Одразу грати очікувані трансляції</string>
+    <string name="settings_streams_pending_play_at_once_summary">Трансляція, на яку ви чекаєте, починає грати, щойно почнеться, без питання «Грати»</string>
+    <string name="scheduled_ops_op_watch_message">Показати на годиннику</string>
+    <string name="scheduled_ops_watch_title_hint">Заголовок</string>
+    <string name="scheduled_ops_watch_text_hint">Текст (необов\'язково)</string>
+    <string name="scheduled_ops_watch_pick_image">Вибрати зображення</string>
+    <string name="scheduled_ops_watch_clear_image">Прибрати зображення</string>
+    <string name="scheduled_ops_watch_no_image">Без зображення</string>
+    <string name="scheduled_ops_error_watch_title_required">Введіть заголовок</string>
 </resources>

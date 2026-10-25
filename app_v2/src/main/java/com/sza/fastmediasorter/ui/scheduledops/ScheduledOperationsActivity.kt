@@ -46,6 +46,16 @@ class ScheduledOperationsActivity : BaseActivity<ActivityScheduledOperationsBind
             }
         }
 
+    // S4248: the picture a "Show on watch" schedule sends; held in the ViewModel for the same reason as a folder pick.
+    private val imagePickerLauncher =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+            if (::screenManager.isInitialized) {
+                screenManager.onWatchImagePicked(uri)
+            } else {
+                scheduledViewModel.deferWatchImagePick(uri)
+            }
+        }
+
     override fun getViewBinding(): ActivityScheduledOperationsBinding =
         ActivityScheduledOperationsBinding.inflate(layoutInflater)
 
@@ -78,6 +88,7 @@ class ScheduledOperationsActivity : BaseActivity<ActivityScheduledOperationsBind
             scheduledViewModel = scheduledViewModel,
             notificationsPermissionLauncher = notificationsPermissionLauncher,
             folderPickerLauncher = folderPickerLauncher,
+            imagePickerLauncher = imagePickerLauncher,
         )
         screenManager.setupViews()
     }

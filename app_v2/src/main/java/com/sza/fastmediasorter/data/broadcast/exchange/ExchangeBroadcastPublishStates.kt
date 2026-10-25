@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpServerTunnelManager
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.domain.model.ExchangeBroadcastPublishState
 import com.sza.fastmediasorter.domain.model.ExchangeBroadcastPublishState.LocalOnly
+import com.sza.fastmediasorter.domain.model.ExchangeMessage
 
 /** Turns what the announcer follows into the one state every surface shows (contract DEVICE-EXCHANGE item DU). */
 object ExchangeBroadcastPublishStates {
@@ -24,6 +25,8 @@ object ExchangeBroadcastPublishStates {
         producer == null -> LocalOnly(LocalOnly.Reason.GUEST_ONLY)
         wire is BroadcastWire.Started -> ExchangeBroadcastPublishState.OnServer(serverLabel(producer), relayed)
         wire is BroadcastWire.Failed -> ExchangeBroadcastPublishState.Failed(serverLabel(producer), wire.message)
+        wire is BroadcastWire.Collided ->
+            ExchangeBroadcastPublishState.Failed(serverLabel(producer), ExchangeMessage.ID_COLLISION)
         else -> ExchangeBroadcastPublishState.Announcing(serverLabel(producer))
     }
 

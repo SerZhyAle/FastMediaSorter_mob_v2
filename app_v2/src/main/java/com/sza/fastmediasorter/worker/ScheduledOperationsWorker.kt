@@ -212,7 +212,8 @@ class ScheduledOperationsWorker @AssistedInject constructor(
     }
 
     private suspend fun scheduleLabel(operation: ScheduledOperation): String {
-        val source = resourceRepository.getResourceById(operation.sourceResourceId)?.name
+        val source = operation.watchTitle?.takeIf { operation.operationType == ScheduledOpType.WATCH_MESSAGE }
+            ?: operation.sourceResourceId?.let { resourceRepository.getResourceById(it) }?.name
             ?: context.getString(R.string.scheduled_op_unknown_resource)
         if (operation.operationType == ScheduledOpType.DELETE || operation.targetResourceId == null) return source
         val target = resourceRepository.getResourceById(operation.targetResourceId)?.name

@@ -468,10 +468,18 @@ class SftpServerTunnelManager @Inject constructor(
     // the oldest one; ending the session for it would reconnect and be refused again in a loop.
     private fun refusedOn(control: LiveControl, envelope: DeviceExchangeEnvelope): SessionOutcome? {
         val reason = envelope.string(DeviceExchangeEnvelope.KEY_REASON)
-        val grant = control.takeIf { reason in GRANT_REFUSALS }?.oldestUnanswered() ?: return refusal(reason)
-        if (grant.broadcast) broadcastGrants.markRefusedPending()
-        Timber.w("SftpServerTunnelManager: grant refused (%s)", reason)
-        return null
+        // The stream stays up and the announcer starts again under a new id; enroll and publish keep the
+        // permanent handling of PERMANENT_REFUSALS.
+        val collided = reason == DeviceExchangeEnvelope.REASON_ID_COLLISION && control.dropCollidedStart(mutableWire)
+        val grant = control.takeIf { !collided && reason in GRANT_REFUSALS }?.oldestUnanswered()
+        return when {
+            collided -> null.also { Timber.w("SftpServerTunnelManager: broadcast id held by another device") }
+            grant == null -> refusal(reason)
+            else -> null.also {
+                if (grant.broadcast) broadcastGrants.markRefusedPending()
+                Timber.w("SftpServerTunnelManager: grant refused (%s)", reason)
+            }
+        }
     }
 
     // A directory replaces the held list; a changed is applied in revision order, and a skipped revision asks
@@ -719,6 +727,9 @@ class SftpServerTunnelManager @Inject constructor(
         data class Started(val broadcastId: String) : BroadcastWire
 
         data class Failed(val message: ExchangeMessage) : BroadcastWire
+
+        /** Item G: another device of the deployment holds [broadcastId]; the announcer restarts under a new id. */
+        data class Collided(val broadcastId: String) : BroadcastWire
     }
 
     private data class ShareTarget(val localPort: Int, val hosts: List<String>)
@@ -766,6 +777,18 @@ class SftpServerTunnelManager @Inject constructor(
 
         fun announces(publication: ExchangeBroadcastPublication?): Boolean =
             publication != null && publication.record.broadcastId == broadcastId
+
+        /**
+         * Item G: `id-collision` while the last `broadcast-start` is unanswered refuses that broadcast's id, not the
+         * device (S4247, item DW). Under the same lock as `announce`, so no start slips between the check and
+         * the [wire] write.
+         */
+        fun dropCollidedStart(wire: MutableStateFlow<BroadcastWire>): Boolean = synchronized(this) {
+            val id = broadcastId?.takeIf { wire.value == BroadcastWire.Sent(it) } ?: return false
+            broadcastId = null
+            wire.value = BroadcastWire.Collided(id)
+            true
+        }
 
         /** Grants written and not answered yet, oldest first; a grant sent again is answered again. */
         private val unanswered = ArrayDeque<SentGrant>()

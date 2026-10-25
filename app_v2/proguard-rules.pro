@@ -350,6 +350,9 @@
 -keepclassmembernames enum com.sza.fastmediasorter.data.cloud.CloudProvider {
     <fields>;
 }
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.BroadcastLinkPasswordMode {
+    <fields>;
+}
 -keepclassmembernames enum com.sza.fastmediasorter.domain.model.DisplayMode {
     <fields>;
 }

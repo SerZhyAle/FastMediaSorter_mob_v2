@@ -51,6 +51,7 @@ import com.sza.fastmediasorter.ui.player.standalone.AudioStandaloneActivity
 import com.sza.fastmediasorter.ui.streams.helpers.StreamAtlasPromptManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamBroadcastImportManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamBroadcastPasswordPromptManager
+import com.sza.fastmediasorter.ui.streams.helpers.StreamBroadcastWaitManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamDeviceBroadcastsManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamFrameSnapshotManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamGridModeManager
@@ -145,6 +146,10 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     // S4160: a channel imported from a broadcast descriptor resolves its endpoint list before it plays.
     @Inject
     lateinit var broadcastEndpoints: com.sza.fastmediasorter.ui.streams.helpers.StreamBroadcastEndpointManager
+
+    // S4247: asks a waiting row's relay for its broadcast's start while the wait dialog is shown.
+    @Inject
+    lateinit var watchBroadcastStart: com.sza.fastmediasorter.domain.usecase.streams.WatchBroadcastStartUseCase
 
     // S0668: decodes a tile index into a 32 px bitmap, re-reading the atlas file on each (re)decode so
     // invalidate() after an import picks up the new atlas. Lazy so it is built after Hilt field injection.
@@ -455,6 +460,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private val filterDialogManager by lazy { StreamsFilterDialogManager(this) }
 
     private val broadcastPasswordPrompt by lazy { StreamBroadcastPasswordPromptManager(this) }
+
+    private val broadcastWait by lazy { StreamBroadcastWaitManager(this, watchBroadcastStart) }
 
     // The row the fullscreen player was opened for: its refusal result carries no row, and the password is kept
     // per row, never per played address.
@@ -996,6 +1003,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                     broadcastPasswordPrompt.show(refused = false) { password ->
                         viewModel.onImportBroadcastDescriptor(event.payload, password)
                     }
+                is StreamsViewModel.StreamsEvent.BroadcastWaiting ->
+                    latestState.sources.firstOrNull { it.id == event.streamId }?.let(::showBroadcastWait)
             }
         }
     }
@@ -1202,9 +1211,20 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     }
 
     private fun playBroadcast(source: StreamSourceEntity) {
-        broadcastEndpoints.play(lifecycleScope, this, source.id, source.url, source.broadcastEndpoints) { url ->
+        broadcastEndpoints.play(
+            lifecycleScope,
+            this,
+            source.id,
+            source.url,
+            source.broadcastEndpoints,
+            onWaiting = { showBroadcastWait(source) },
+        ) { url ->
             startPlayback(source.copy(url = url))
         }
+    }
+
+    private fun showBroadcastWait(source: StreamSourceEntity) {
+        broadcastWait.show(source, viewModel.settings.value.streamsPendingPlayAtOnce) { playBroadcast(source) }
     }
 
     private fun startPlayback(source: StreamSourceEntity) {
@@ -1668,6 +1688,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         binding.rvStreams.removeOnScrollListener(streamScrollListener)
         // S1474: before the engines below are released, so a measurement never outlives its window.
         streamInfoDialogManager.dismiss()
+        broadcastWait.dismiss()
         // S1152: read the playback state BEFORE inlineAudio is released below.
         if (isFinishing) clearStreamResumeOnExit()
         // setupViews() is deferred to a post{}; guard against destroy before it ran.

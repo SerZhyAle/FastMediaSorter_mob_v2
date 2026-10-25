@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.15 13:39</sub>
+<sub class="doc-stamp">26.10.25 13:32</sub>
 
 # Google Play Console: Foreground Service Video Demonstration Guide
 
@@ -7,7 +7,7 @@ To comply with Google Play policies for `FOREGROUND_SERVICE_DATA_SYNC` and `FORE
 ## Video 1: DATA_SYNC (Folder Sharing, Background Transfers, Scheduled Operations & Sync)
 
 This video should demonstrate that the app performs data-heavy tasks that must not be interrupted when the app is minimized.
-Record it on a `standard` build made with `-Pfms.dataSyncFgsStandard=on` (S4271); a default `standard` release carries no `dataSync` type. Declaration text: `store_assets/PLAY_FGS_DECLARATIONS.md`.
+Record it on a `standard` build, which carries `dataSync` while `fms.dataSyncFgsStandard=on` (the default since 2026-10-25, S4271); a build made with `-Pfms.dataSyncFgsStandard=off` carries no `dataSync` type. Declaration text: `store_assets/PLAY_FGS_DECLARATIONS.md`.
 
 ### Scenario S: Folder Sharing (SFTP server)
 1.  **Start Recording** on the device.

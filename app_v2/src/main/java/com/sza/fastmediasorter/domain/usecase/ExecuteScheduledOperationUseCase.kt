@@ -74,6 +74,7 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
     private val archiveFilesUseCase: ArchiveFilesUseCase,
     private val cleanupOrphanedTempFilesUseCase: CleanupOrphanedTempFilesUseCase,
     private val fetchScheduledChangesViaDrive: FetchScheduledChangesViaDriveUseCase,
+    private val sendScheduledWatchMessage: SendScheduledWatchMessageUseCase,
 ) {
     // One stable line for a refused protected-folder PIN: the journal, the notification body and the
     // status string all quote it, so a raw exception message never reaches the user (S4232).
@@ -108,7 +109,11 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
             Timber.i("ScheduledOp[$operationId] fired: $opName")
         }
 
-        val sourceResource = resourceRepository.getResourceById(operation.sourceResourceId)
+        if (operation.operationType == ScheduledOpType.WATCH_MESSAGE) {
+            return sendScheduledWatchMessage(operation).also { logOp(ts, opName, "-", "-", it.statusString) }
+        }
+
+        val sourceResource = operation.sourceResourceId?.let { resourceRepository.getResourceById(it) }
         if (sourceResource == null) {
             val msg = "Source resource not found (id=${operation.sourceResourceId})"
             logOp(ts, opName, "-", "-", msg)
@@ -324,6 +329,8 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
                         addError = { errors.add(it) }
                     )
                 }
+                // Returned before any resource was read; listed only to keep this branch exhaustive.
+                ScheduledOpType.WATCH_MESSAGE -> Unit
             }
 
             // Summary line
@@ -727,7 +734,7 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
     ) {
         when (operationType) {
             // ARCHIVE keeps every source and only adds one new ZIP, so like COPY there is nothing to reconcile.
-            ScheduledOpType.COPY, ScheduledOpType.ARCHIVE -> return
+            ScheduledOpType.COPY, ScheduledOpType.ARCHIVE, ScheduledOpType.WATCH_MESSAGE -> return
             ScheduledOpType.DELETE -> mutationRecorder.recordDelete(source.id, file.path, source.type)
             ScheduledOpType.MOVE -> {
                 if (target == null) return

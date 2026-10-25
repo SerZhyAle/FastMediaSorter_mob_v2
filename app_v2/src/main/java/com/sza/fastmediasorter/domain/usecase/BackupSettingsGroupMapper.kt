@@ -145,6 +145,7 @@ internal object BackupSettingsGroupMapper {
         prefetchCacheMultiplier = settings.prefetchCacheMultiplier.name,
         streamsVisualizeAsMusic = settings.streamsVisualizeAsMusic,
         streamsCastPlayAtOnce = settings.streamsCastPlayAtOnce,
+        streamsPendingPlayAtOnce = settings.streamsPendingPlayAtOnce,
         // S3222: the backup DTO keeps the flat names it was written with - the fold happened in the
         // settings model, and a restore must still read a file produced by an older build.
         broadcastStreamTitle = settings.broadcast.streamTitle,
@@ -416,6 +417,7 @@ internal object BackupSettingsGroupMapper {
     private fun AppSettings.applyStreamToggles(backup: BackupSettings.Streams): AppSettings = copy(
         streamsVisualizeAsMusic = backup.streamsVisualizeAsMusic ?: streamsVisualizeAsMusic,
         streamsCastPlayAtOnce = backup.streamsCastPlayAtOnce ?: streamsCastPlayAtOnce,
+        streamsPendingPlayAtOnce = backup.streamsPendingPlayAtOnce ?: streamsPendingPlayAtOnce,
     )
 
     private fun AppSettings.applyAppearance(backup: BackupSettings.Appearance?): AppSettings {

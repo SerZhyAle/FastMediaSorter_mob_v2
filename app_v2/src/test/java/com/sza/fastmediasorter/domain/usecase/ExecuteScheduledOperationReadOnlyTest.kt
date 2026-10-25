@@ -68,6 +68,7 @@ class ExecuteScheduledOperationReadOnlyTest {
             ArchiveFilesUseCase(mockk(relaxed = true), mockk(relaxed = true)),
             mockk(relaxed = true),
             mockk<FetchScheduledChangesViaDriveUseCase>(),
+            mockk(relaxed = true),
         )
     }
 

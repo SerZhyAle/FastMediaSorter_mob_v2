@@ -50,8 +50,11 @@ class DriveChannelBrowseDialogFragment : DialogFragment() {
         binding.rvDriveBrowseEntries.adapter = adapter
         binding.btnDriveBrowseClose.setOnClickListener { dismiss() }
         binding.btnDriveBrowseSave.setOnClickListener {
-            val timedOut = viewModel.state.value.status is DriveBrowseStatus.TimedOut
-            if (timedOut) viewModel.retry() else viewModel.saveSelected()
+            when (viewModel.state.value.status) {
+                is DriveBrowseStatus.TimedOut -> viewModel.retry()
+                DriveBrowseStatus.ConsentRequired -> viewModel.grantAppFolderAccess(requireActivity())
+                else -> viewModel.saveSelected()
+            }
         }
         collectOnLifecycle(viewModel.state, block = ::render)
         if (savedInstanceState == null) viewModel.open()
@@ -77,9 +80,14 @@ class DriveChannelBrowseDialogFragment : DialogFragment() {
         binding.tvDriveBrowseStatus.isVisible = status != null
         binding.tvDriveBrowseStatus.text = status
         val timedOut = state.status is DriveBrowseStatus.TimedOut
-        val action = if (timedOut) R.string.drive_channel_browse_retry else R.string.drive_channel_browse_save
+        val consent = state.status == DriveBrowseStatus.ConsentRequired
+        val action = when {
+            timedOut -> R.string.drive_channel_browse_retry
+            consent -> R.string.drive_channel_consent_allow
+            else -> R.string.drive_channel_browse_save
+        }
         binding.btnDriveBrowseSave.setText(action)
-        binding.btnDriveBrowseSave.isEnabled = timedOut || (!state.busy && state.selected.isNotEmpty())
+        binding.btnDriveBrowseSave.isEnabled = timedOut || consent || (!state.busy && state.selected.isNotEmpty())
     }
 
     private fun statusText(status: DriveBrowseStatus): String = when (status) {
@@ -101,6 +109,7 @@ class DriveChannelBrowseDialogFragment : DialogFragment() {
         DriveBrowseStatus.DriveFull -> getString(R.string.drive_channel_browse_drive_full)
         DriveBrowseStatus.ChannelOff -> getString(R.string.drive_channel_off_hint)
         DriveBrowseStatus.SignInRequired -> getString(R.string.drive_channel_sign_in_required)
+        DriveBrowseStatus.ConsentRequired -> getString(R.string.drive_channel_consent_required)
         DriveBrowseStatus.DailyLimit -> getString(R.string.drive_channel_daily_limit)
         DriveBrowseStatus.Failed -> getString(R.string.cross_device_transfer_failed)
     }

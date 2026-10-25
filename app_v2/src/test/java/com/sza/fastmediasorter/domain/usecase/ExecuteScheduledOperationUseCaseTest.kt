@@ -85,6 +85,7 @@ class ExecuteScheduledOperationUseCaseTest {
             ArchiveFilesUseCase(mockk(relaxed = true), mockk(relaxed = true)),
             cleanup,
             driveLeg,
+            mockk(relaxed = true),
         )
         coEvery { driveLeg.producerFor(any()) } returns null
     }

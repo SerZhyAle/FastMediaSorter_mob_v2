@@ -5,6 +5,8 @@ import com.sza.fastmediasorter.broadcast.BroadcastState
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorDto
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorSerializer
+import com.sza.fastmediasorter.data.broadcast.auth.BroadcastCredentialPair
+import com.sza.fastmediasorter.data.broadcast.auth.BroadcastLinkChoice
 import com.sza.fastmediasorter.data.remote.exchange.ExchangeBroadcastPublication
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpServerTunnelManager
 import com.sza.fastmediasorter.data.repository.DeviceExchangeAccountRepository
@@ -12,8 +14,12 @@ import com.sza.fastmediasorter.data.repository.settings.ExchangeGrantRepository
 import com.sza.fastmediasorter.data.security.e2e.E2eBytes
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.domain.model.ExchangeBroadcastPublishState
+import com.sza.fastmediasorter.domain.model.PreparedBroadcastLink
+import com.sza.fastmediasorter.domain.model.PreparedBroadcastStartOutcome
+import com.sza.fastmediasorter.domain.model.PreparedLinkChoice
 import com.sza.fastmediasorter.domain.model.SftpRendezvousBroadcast
 import com.sza.fastmediasorter.domain.model.SftpShareId
+import com.sza.fastmediasorter.domain.repository.PreparedBroadcastLinkStore
 import com.sza.fastmediasorter.domain.usecase.broadcast.ResolveBroadcastLinkChoiceUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -51,6 +57,7 @@ class ExchangeBroadcastAnnouncer @Inject constructor(
     private val grants: ExchangeBroadcastGrants,
     private val grantRepository: ExchangeGrantRepository,
     private val resolveLinkChoice: ResolveBroadcastLinkChoiceUseCase,
+    private val preparedLinks: PreparedBroadcastLinkStore,
     @ApplicationScope private val appScope: CoroutineScope,
 ) {
 
@@ -84,6 +91,15 @@ class ExchangeBroadcastAnnouncer @Inject constructor(
     /** Item DU: where the live broadcast stands on the server; the one source of every surface that shows it. */
     val publishState: StateFlow<ExchangeBroadcastPublishState> = mutablePublishState.asStateFlow()
 
+    private val mutablePreparedOutcome = MutableStateFlow(PreparedBroadcastStartOutcome.None)
+
+    /** S4247: whether the live broadcast went on air under a link prepared before its start (item DW). */
+    val preparedOutcome: StateFlow<PreparedBroadcastStartOutcome> = mutablePreparedOutcome.asStateFlow()
+
+    // The announcement key whose prepared id another device held: its restart takes a fresh id (item DW).
+    @Volatile
+    private var collidedKey: Announcement.Key? = null
+
     /** Follows [state] for the life of the process; a second call is ignored. */
     @Synchronized
     fun follow(state: StateFlow<BroadcastState>) {
@@ -99,10 +115,30 @@ class ExchangeBroadcastAnnouncer @Inject constructor(
                     mutablePublishState.value = it
                 }
             }
-            combine(state, accounts.producer, uploader.accepted, credentials.revision) { live, entry, accepted, _ ->
+            combine(
+                state,
+                accounts.producer,
+                uploader.accepted,
+                credentials.revision,
+                producer.broadcastWire,
+            ) { live, entry, accepted, _, wire ->
+                (wire as? SftpServerTunnelManager.BroadcastWire.Collided)?.let { collided(it.broadcastId) }
                 Triple(live as? BroadcastState.Live, entry, accepted)
             }.collect { (live, entry, accepted) -> apply(live, entry, accepted) }
         }
+    }
+
+    /**
+     * Item G, S4247: another device holds the announced id. A prepared record is spent for good and the same live
+     * session goes on air again under a fresh id; [apply] right after this begins that announcement.
+     */
+    private suspend fun collided(broadcastId: String) {
+        val held = current?.takeIf { it.broadcastId == broadcastId } ?: return
+        collidedKey = held.key
+        if (held.prepared) preparedLinks.remove(broadcastId)
+        Timber.w("ExchangeBroadcastAnnouncer: id ${broadcastId.take(LOGGED_ID_CHARS)}.. held by another device")
+        end()
+        if (held.prepared) mutablePreparedOutcome.value = PreparedBroadcastStartOutcome.Collided
     }
 
     /**
@@ -149,7 +185,12 @@ class ExchangeBroadcastAnnouncer @Inject constructor(
         val key = Announcement.Key(live.startedAtElapsedRealtimeMs, entry.identity, live.descriptor.mode)
         val held = current?.takeIf { it.key == key } ?: begin(key, live, entry)
         // 27 item DM: a tunnel is offered only with its own TLS identity, which only a sealing server needs.
-        val tunnelIdentity = if (entry.serverSeals) tunnelIdentities.ensure(held.broadcastId) else null
+        val tunnelIdentity = when {
+            !entry.serverSeals -> null
+            // S4247: the pin a prepared link handed out is the one the tunnel presents.
+            held.preparedTunnelAlias != null -> tunnelIdentities.adopt(held.broadcastId, held.preparedTunnelAlias)
+            else -> tunnelIdentities.ensure(held.broadcastId)
+        }
         val descriptor = ExchangeBroadcastDescriptors.withExchange(
             lan = live.descriptor,
             broadcastId = held.broadcastId,
@@ -174,20 +215,32 @@ class ExchangeBroadcastAnnouncer @Inject constructor(
     ): Announcement {
         if (current != null) end()
         val sourceKey = live.descriptor.sourceId ?: live.descriptor.mode
-        val started = Announcement(key, SftpShareId.generate(), System.currentTimeMillis(), sourceKey)
+        val prepared = preparedFor(key, entry)
+        val id = prepared?.broadcastId ?: SftpShareId.generate()
+        val started = Announcement(
+            key = key,
+            broadcastId = id,
+            startedAtMs = System.currentTimeMillis(),
+            sourceKey = sourceKey,
+            prepared = prepared != null,
+            preparedTunnelAlias = prepared?.tunnelAlias,
+        )
         current = started
-        // DEVICE-EXCHANGE item BF: a broadcast announced through an exchange server is protected, unless the person
-        // chose an open link (item DV, S4405).
-        credentials.begin(started.broadcastId, resolveLinkChoice())
-        relayKeys.begin(started.broadcastId)
-        // The hand-out key exists before the first upload stream, so every epoch's ring already carries it (DL).
-        relayKeys.linkKey(started.broadcastId, OUTWARD_LINK_ID)
+        relayKeys.begin(id)
+        if (prepared == null) {
+            // DEVICE-EXCHANGE item BF: a broadcast announced through an exchange server is protected, unless the
+            // person chose an open link (item DV, S4405).
+            credentials.begin(id, resolveLinkChoice())
+            // The hand-out key exists before the first upload stream, so every epoch's ring carries it (DL).
+            relayKeys.linkKey(id, OUTWARD_LINK_ID)
+        } else {
+            beginPrepared(prepared, sourceKey)
+        }
         // Item BD: the source's kept guests get this broadcast again, each with a new pair and key, before the
         // first upload so the first epoch's ring carries their keys too.
         grants.clear()
-        grantRepository.broadcastGuests(sourceKey).forEach { guest -> grants.add(started.broadcastId, guest) }
+        grantRepository.broadcastGuests(sourceKey).forEach { guest -> grants.add(id, guest) }
         val source = loopbackSource(live.descriptor)
-        val id = started.broadcastId
         when {
             live.descriptor.mode != BroadcastMode.AUDIO_ONLY.name -> uploader.startVideo(entry, id, videoFeed)
             source != null -> uploader.start(entry, id, source)
@@ -195,9 +248,46 @@ class ExchangeBroadcastAnnouncer @Inject constructor(
         return started
     }
 
+    /**
+     * S4247, item DW: the oldest live prepared link of [entry] in the mode of [key], unless that key's prepared id
+     * already collided - its restart takes a fresh id.
+     */
+    private suspend fun preparedFor(key: Announcement.Key, entry: DeviceExchangeAccountEntry): PreparedBroadcastLink? {
+        if (key == collidedKey) return null
+        val now = System.currentTimeMillis()
+        return preparedLinks.all()
+            .filter { it.isLive(now) && it.entryIdentity == entry.identity && it.mode == key.mode }
+            .minByOrNull { it.createdAtMs }
+    }
+
+    /** The prepared pair, link key and guests become the live ones, and the record is spent (item AF). */
+    private suspend fun beginPrepared(prepared: PreparedBroadcastLink, sourceKey: String) {
+        val id = prepared.broadcastId
+        val user = prepared.linkUser
+        val password = prepared.linkPassword
+        val pair = if (user != null && password != null) BroadcastCredentialPair(user, password) else null
+        val choice = when (prepared.linkChoice) {
+            PreparedLinkChoice.GENERATED -> BroadcastLinkChoice.Generated
+            PreparedLinkChoice.CUSTOM -> password?.let(BroadcastLinkChoice::Custom) ?: BroadcastLinkChoice.Generated
+            PreparedLinkChoice.OPEN -> BroadcastLinkChoice.Open
+        }
+        credentials.beginPrepared(id, choice, pair)
+        val seeded = prepared.relayLinkKey
+            ?.let { runCatching { E2eBytes.fromB64url(it) }.getOrNull() }
+            ?.let { relayKeys.seedLink(id, OUTWARD_LINK_ID, it) } == true
+        if (!seeded) relayKeys.linkKey(id, OUTWARD_LINK_ID)
+        // Owner decision В7: a guest queued on the prepared link joins the source's kept guests.
+        val kept = grantRepository.broadcastGuests(sourceKey)
+        prepared.guests.filterNot { it in kept }.forEach { grantRepository.keepBroadcastGuest(sourceKey, it) }
+        preparedLinks.markConsumed(id)
+        mutablePreparedOutcome.value = PreparedBroadcastStartOutcome.Consumed
+        Timber.i("ExchangeBroadcastAnnouncer: on air under a prepared link ${id.take(LOGGED_ID_CHARS)}..")
+    }
+
     private fun end() {
         current ?: return
         current = null
+        mutablePreparedOutcome.value = PreparedBroadcastStartOutcome.None
         announced.value = null
         uploader.stop()
         relayKeys.end()
@@ -240,6 +330,8 @@ class ExchangeBroadcastAnnouncer @Inject constructor(
         val broadcastId: String,
         val startedAtMs: Long,
         val sourceKey: String,
+        val prepared: Boolean = false,
+        val preparedTunnelAlias: String? = null,
     ) {
         data class Key(val startedAtElapsedMs: Long, val entryIdentity: String, val mode: String)
     }
@@ -248,5 +340,6 @@ class ExchangeBroadcastAnnouncer @Inject constructor(
         // Every hand-out of one broadcast - link, file or barcode - shares one group key: none is withdrawn alone.
         const val OUTWARD_LINK_ID = "outward"
         const val NOT_ANNOUNCED = -1L
+        const val LOGGED_ID_CHARS = 8
     }
 }

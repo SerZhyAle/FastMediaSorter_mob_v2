@@ -39,7 +39,8 @@ data class ExchangeControlEvent(val entry: DeviceExchangeAccountEntry, val envel
  *
  * A directory surface opens the same entry's control stream ([DeviceExchangeDirectoryWatcher]); it lends that
  * stream here while it lives, so casts keep arriving and answers keep going out on it instead of the two
- * streams taking the presence back from each other.
+ * streams taking the presence back from each other. An own stream that finishes connecting after the lend is
+ * closed again without serving, and its loop waits for the give-back.
  */
 @Singleton
 class ExchangeReceiverControlStreams @Inject constructor(
@@ -116,7 +117,8 @@ class ExchangeReceiverControlStreams @Inject constructor(
         while (currentCoroutineContext().isActive && outcome != Outcome.TERMINAL) {
             lentIds.first { entry.identity !in it }
             outcome = attempt(entry)
-            if (outcome != Outcome.TERMINAL) {
+            // A lent entry is not a failure: the wait above resumes the moment the lender gives the stream back.
+            if (outcome != Outcome.TERMINAL && outcome != Outcome.LENT) {
                 if (outcome == Outcome.WELCOMED) backoffMs = INITIAL_BACKOFF_MS
                 delay(backoffMs)
                 backoffMs = (backoffMs * 2).coerceAtMost(MAX_BACKOFF_MS)
@@ -151,9 +153,23 @@ class ExchangeReceiverControlStreams @Inject constructor(
         }
     }
 
-    private suspend fun serve(entry: DeviceExchangeAccountEntry, session: DeviceExchangeSession): Outcome =
+    private suspend fun serve(entry: DeviceExchangeAccountEntry, session: DeviceExchangeSession): Outcome {
+        // Register before the check: lend() records the id before it removes the session, so whichever of the two
+        // runs second sees the other and the entry never keeps two streams.
+        sessions[entry.identity] = session
+        if (entry.identity in lentIds.value) return stepAside(entry, session)
+        return serveRegistered(entry, session)
+    }
+
+    // No `bye`: it would drop the presence the lent stream now holds on the server (7.3).
+    private fun stepAside(entry: DeviceExchangeAccountEntry, session: DeviceExchangeSession): Outcome {
+        sessions.remove(entry.identity, session)
+        session.close()
+        return Outcome.LENT
+    }
+
+    private suspend fun serveRegistered(entry: DeviceExchangeAccountEntry, session: DeviceExchangeSession): Outcome =
         coroutineScope {
-            sessions[entry.identity] = session
             Timber.d("S4421: receive-only control stream welcomed for a non-outgoing entry")
             val lastHeard = AtomicLong(nowMs())
             val intervalMs = (session.welcome.keepaliveSeconds ?: KEEPALIVE_SECONDS).toLong() * MILLIS_PER_SECOND
@@ -228,7 +244,7 @@ class ExchangeReceiverControlStreams @Inject constructor(
         constructor(entry: DeviceExchangeAccountEntry) : this(entry.identity, entry.deviceId, entry.pinnedCertificate)
     }
 
-    private enum class Outcome { WELCOMED, RETRY, TERMINAL }
+    private enum class Outcome { WELCOMED, RETRY, TERMINAL, LENT }
 
     private companion object {
         const val KEEPALIVE_SECONDS = 30

@@ -26,6 +26,9 @@ import javax.security.auth.x500.X500Principal
 /** The TLS server identity of one broadcast's tunnel: its context and the `SHA256:` pin of its leaf. */
 class BroadcastTunnelIdentity(val context: SSLContext, val pin: String)
 
+/** S4247: a tunnel key made before its broadcast: the Keystore [alias] and the `SHA256:` [pin] of its leaf. */
+data class PreparedTunnelKey(val alias: String, val pin: String)
+
 /**
  * S4240: the one-off tunnel identity of the live broadcast (contract DEVICE-EXCHANGE 27 item DM) - a P-256 key in
  * Android Keystore, whose self-signed leaf Keystore issues itself, made on first use and deleted when the broadcast
@@ -44,20 +47,44 @@ class BroadcastTunnelIdentities @Inject constructor() {
         held?.takeIf { it.broadcastId == broadcastId }?.let { return it.identity }
         end()
         val alias = ALIAS_PREFIX + UUID.randomUUID()
-        val made = try {
-            create(alias)
-        } catch (e: GeneralSecurityException) {
-            Timber.w(e, "BroadcastTunnelIdentities: Keystore refused the tunnel key, the broadcast offers no tunnel")
-            null
-        } catch (e: ProviderException) {
-            Timber.w(e, "BroadcastTunnelIdentities: Keystore failed to make the tunnel key, no tunnel is offered")
-            null
-        } catch (e: IOException) {
-            Timber.w(e, "BroadcastTunnelIdentities: Keystore could not be read, the broadcast offers no tunnel")
-            null
-        }
+        val made = keystoreOrNull { create(alias) }
         held = made?.let { Held(broadcastId, alias, it) }
         return made
+    }
+
+    /**
+     * S4247, DEVICE-EXCHANGE item DW: a tunnel key made before its broadcast starts, under its own alias prefix so
+     * [end] never sweeps it. Null when Keystore refused, so the prepared link offers no tunnel.
+     */
+    @Synchronized
+    fun prepare(): PreparedTunnelKey? {
+        val alias = PREPARED_PREFIX + UUID.randomUUID()
+        return keystoreOrNull { create(alias) }?.let { PreparedTunnelKey(alias, it.pin) }
+    }
+
+    /**
+     * The prepared key under [alias] held as the live identity of [broadcastId], so the pin handed out before the
+     * start is the one the tunnel presents. Null when the key is gone or Keystore refused.
+     */
+    @Synchronized
+    fun adopt(broadcastId: String, alias: String): BroadcastTunnelIdentity? {
+        held?.takeIf { it.broadcastId == broadcastId && it.alias == alias }?.let { return it.identity }
+        end()
+        val adopted = keystoreOrNull { identityOf(alias) }
+        held = adopted?.let { Held(broadcastId, alias, it) }
+        return adopted
+    }
+
+    /** Deletes the prepared key under [alias]; a revoked or expired prepared link keeps no key. */
+    @Synchronized
+    fun deletePrepared(alias: String) {
+        if (alias.startsWith(PREPARED_PREFIX)) deleteWhere { it == alias }
+    }
+
+    /** Deletes every prepared key not in [keep], which a killed process or a lost record left behind. */
+    @Synchronized
+    fun sweepPrepared(keep: Set<String>) {
+        deleteWhere { it.startsWith(PREPARED_PREFIX) && it !in keep && it != held?.alias }
     }
 
     /** The identity of [broadcastId] if it was made; never makes one. */
@@ -68,15 +95,34 @@ class BroadcastTunnelIdentities @Inject constructor() {
     /** Deletes the live identity, and any a killed process left behind. */
     @Synchronized
     fun end() {
+        // An adopted prepared key belongs to the broadcast that consumed it and dies with it.
+        val adopted = held?.alias?.takeIf { it.startsWith(PREPARED_PREFIX) }
         held = null
+        deleteWhere { it.startsWith(ALIAS_PREFIX) || it == adopted }
+    }
+
+    private fun deleteWhere(predicate: (String) -> Boolean) {
         try {
             val store = keyStore()
-            store.aliases().toList().filter { it.startsWith(ALIAS_PREFIX) }.forEach(store::deleteEntry)
+            store.aliases().toList().filter(predicate).forEach(store::deleteEntry)
         } catch (e: GeneralSecurityException) {
             Timber.w(e, "BroadcastTunnelIdentities: a tunnel key could not be deleted")
         } catch (e: IOException) {
             Timber.w(e, "BroadcastTunnelIdentities: Keystore could not be read to delete a tunnel key")
         }
+    }
+
+    private fun <T> keystoreOrNull(block: () -> T?): T? = try {
+        block()
+    } catch (e: GeneralSecurityException) {
+        Timber.w(e, "BroadcastTunnelIdentities: Keystore refused the tunnel key, no tunnel is offered")
+        null
+    } catch (e: ProviderException) {
+        Timber.w(e, "BroadcastTunnelIdentities: Keystore failed to make the tunnel key, no tunnel is offered")
+        null
+    } catch (e: IOException) {
+        Timber.w(e, "BroadcastTunnelIdentities: Keystore could not be read, no tunnel is offered")
+        null
     }
 
     private fun create(alias: String): BroadcastTunnelIdentity {
@@ -94,9 +140,13 @@ class BroadcastTunnelIdentities @Inject constructor() {
             initialize(spec)
             generateKeyPair()
         }
+        return checkNotNull(identityOf(alias)) { "Keystore lost the tunnel key it has just made" }
+    }
+
+    private fun identityOf(alias: String): BroadcastTunnelIdentity? {
         val store = keyStore()
-        val leaf = store.getCertificate(alias) as X509Certificate
-        val key = store.getKey(alias, null) as PrivateKey
+        val leaf = store.getCertificate(alias) as? X509Certificate ?: return null
+        val key = store.getKey(alias, null) as? PrivateKey ?: return null
         val keyManager = SingleKeyManager(alias, key, leaf)
         val context = SSLContext.getInstance(TLS).apply { init(arrayOf(keyManager), null, null) }
         return BroadcastTunnelIdentity(context, BroadcastTunnelTls.pinOf(leaf))
@@ -128,6 +178,7 @@ class BroadcastTunnelIdentities @Inject constructor() {
     private companion object {
         const val ANDROID_KEY_STORE = "AndroidKeyStore"
         const val ALIAS_PREFIX = "fms-broadcast-tunnel-"
+        const val PREPARED_PREFIX = "fms-broadcast-prepared-"
         const val CURVE = "secp256r1"
         const val SUBJECT = "CN=fms-broadcast"
         const val TLS = "TLS"

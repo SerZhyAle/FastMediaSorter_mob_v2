@@ -20,6 +20,7 @@ import com.pedro.common.ConnectChecker
 import com.pedro.encoder.input.audio.CustomAudioEffect
 import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.encoder.input.video.CameraOpenException
+import com.pedro.library.view.GlStreamInterface
 import com.pedro.rtspserver.RtspServerCamera2
 import com.pedro.rtspserver.server.ClientListener
 import com.pedro.rtspserver.server.IpType
@@ -281,7 +282,8 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
 
     /** False after it has already failed the session: the caller only has to return. */
     private fun prepareEncoders(camera: RtspServerCamera2, config: BroadcastSessionConfig): Boolean {
-        // RootEncoder rotates both the pixels and encoder dimensions for the session's display orientation.
+        // RootEncoder rotates both the pixels and encoder dimensions for the display orientation at the start;
+        // the dimensions stay for the session, the pixels follow later turns (followScreenRotation).
         val rotation = CameraHelper.getCameraOrientation(this)
         val videoPrepared = camera.prepareVideo(
             config.videoWidth,
@@ -312,7 +314,20 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
             leaveForegroundAndStop()
             return false
         }
+        followScreenRotation(camera)
         return true
+    }
+
+    /**
+     * S4418: the picture turns with the screen, the way the player's video does, instead of keeping the
+     * orientation the session started in. The encoder frame cannot change size mid-stream, so after a turn
+     * listeners get the picture upright inside the frame it was prepared with. The library turns it only
+     * once the screen itself has turned, so a screen locked by the rotation settings keeps it still.
+     */
+    private fun followScreenRotation(camera: RtspServerCamera2) {
+        val renderer = camera.glInterface as? GlStreamInterface ?: return
+        Timber.d("S4418: broadcast stream picture follows the screen rotation")
+        renderer.autoHandleOrientation = true
     }
 
     /**

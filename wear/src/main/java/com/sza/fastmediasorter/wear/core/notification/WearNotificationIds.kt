@@ -34,4 +34,7 @@ object WearNotificationIds {
 
     /** Another device of an exchange account offers its broadcast to this watch and waits for an answer. */
     const val EXCHANGE_CAST_OFFER = 4207
+
+    /** S4248: a message the phone's schedule sent; one id, so a newer message replaces the older one. */
+    const val SCHEDULED_MESSAGE = 4208
 }
