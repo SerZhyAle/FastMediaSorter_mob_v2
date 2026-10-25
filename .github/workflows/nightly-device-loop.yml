@@ -67,6 +67,33 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
 
+      # The emulator action downloads its SDK packages in one attempt, and a truncated archive
+      # ("Error on ZipFile unknown archive", 2026-10-24) ends the run before an emulator exists.
+      # Installed here with retries, the action's own install finds them present.
+      - name: Pre-install the emulator SDK packages with retries
+        run: |
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          for attempt in 1 2 3; do
+            yes | "$SDKMANAGER" --install 'platforms;android-30' 'system-images;android-30;google_apis;x86_64' emulator platform-tools > /dev/null && exit 0
+            echo "::warning title=sdkmanager retry::attempt $attempt of 3 failed"
+            sleep 20
+          done
+          exit 1
+
+      # Built before the emulator exists. Inside the emulator step Gradle (-Xmx6g) and the Kotlin
+      # daemon (-Xmx4g) compiled beside a 4 GB guest on one 16 GB runner: on 2026-10-25 the QEMU
+      # threads stalled for 18-28 s during dexing, the emulator died and the test task reported
+      # "No connected devices!". The emulator step now only installs and runs.
+      - name: Build the app and test APKs
+        run: ./gradlew :app_v2:assembleStandardDebug :app_v2:assembleStandardDebugAndroidTest --stacktrace
+        env:
+          DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY || 'dpy64e70kqobr6x' }}
+
+      # Nothing compiles after this point, and the idle Kotlin daemon keeps the memory the guest
+      # needs. The Gradle daemon stays: the emulator step reuses it for the up-to-date checks.
+      - name: Stop the idle Kotlin daemon
+        run: pkill -f KotlinCompileDaemon || true
+
       - name: Run the leak-watch suite on an emulator
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
@@ -118,6 +145,12 @@ jobs:
           }
           ($summary | ConvertTo-Json -Depth 5) | Set-Content -Path leak-watch-report.json -Encoding utf8NoBOM
           Get-Content leak-watch-report.json
+          # No report file at all means no test reached a device - a failed SDK install, boot or a
+          # lost emulator - and blaming the filter for it sends the reader to the wrong step.
+          if ($files.Count -eq 0) {
+            Write-Host '::error title=Leak watch produced no report::no JUnit report exists, so no test reached the emulator; the cause is in the emulator step log above, not in the instrumentation filter.'
+            exit 1
+          }
           if ($cases.Count -eq 0) {
             Write-Host '::error title=Leak watch ran nothing::the instrumentation filter matched no test, so this run proves nothing about the critical flows.'
             exit 1
