@@ -1097,4 +1097,9 @@
     <string name="wear_open_in_role_last_used">Último usado</string>
     <string name="wear_open_in_role_browser">Navegador</string>
     <string name="wear_open_in_role_maps">Mapas</string>
+    <string name="wear_broadcast_server_announcing">Servidor: anunciando</string>
+    <string name="wear_broadcast_server_on">En el servidor de intercambio</string>
+    <string name="wear_broadcast_server_failed">Error del servidor - ver el teléfono</string>
+    <string name="wear_broadcast_server_local_only">Solo esta red</string>
+    <string name="wear_scheduled_message_channel_name">Mensajes programados</string>
 </resources>

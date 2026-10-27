@@ -299,4 +299,6 @@
     <string name="drive_channel_send_no_devices">Keines deiner anderen Geräte hat Google Drive bisher genutzt. Schalte Dateien über Google Drive auch auf dem anderen Gerät ein und versuche es dann erneut.</string>
     <string name="drive_channel_send_waiting_for">Warte darauf, dass %1$s es über Google Drive empfängt.</string>
     <string name="drive_channel_send_waiting_any">Warte darauf, dass eines deiner Geräte es über Google Drive empfängt.</string>
+    <string name="drive_channel_consent_required">Google Drive hat dieser App noch keinen eigenen Ordner zugewiesen. Erlaube es, Dateien zwischen deinen Geräten zu senden und zu empfangen. Es wurde nichts gelöscht.</string>
+    <string name="drive_channel_consent_allow">Erlauben</string>
 </resources>

@@ -1099,4 +1099,9 @@
     <string name="wear_open_in_role_last_used">हाल ही में उपयोग किया गया</string>
     <string name="wear_open_in_role_browser">ब्राउज़र</string>
     <string name="wear_open_in_role_maps">मानचित्र</string>
+    <string name="wear_broadcast_server_announcing">सर्वर: घोषणा हो रही है</string>
+    <string name="wear_broadcast_server_on">एक्सचेंज सर्वर पर</string>
+    <string name="wear_broadcast_server_failed">सर्वर त्रुटि - फ़ोन देखें</string>
+    <string name="wear_broadcast_server_local_only">केवल यह नेटवर्क</string>
+    <string name="wear_scheduled_message_channel_name">निर्धारित संदेश</string>
 </resources>

@@ -1092,4 +1092,9 @@
     <string name="wear_open_in_failed">Öffnen in %1$s nicht möglich.</string>
     <string name="wear_open_in_role_last_used">Zuletzt verwendet</string>
     <string name="wear_open_in_role_maps">Karten</string>
+    <string name="wear_broadcast_server_announcing">Server: wird angekündigt</string>
+    <string name="wear_broadcast_server_on">Auf dem Austauschserver</string>
+    <string name="wear_broadcast_server_failed">Serverfehler - siehe Telefon</string>
+    <string name="wear_broadcast_server_local_only">Nur dieses Netzwerk</string>
+    <string name="wear_scheduled_message_channel_name">Geplante Nachrichten</string>
 </resources>

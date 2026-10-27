@@ -80,6 +80,7 @@ permalink: /docs/ICON_LEGEND-uk.html
 
 | Значок | Значення |
 |---|---|
+| <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Усе про цей застосунок |
 | <img src="icons/svg/ic_apps.svg" alt="ic_apps" width="24" height="24"> | Додаткові програми та сценарії |
 | <img src="icons/svg/ic_cloud_upload.svg" alt="ic_cloud_upload" width="24" height="24"> | Резервні копії, відновлення й експорт |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Аудіо, обкладинки й фонові візуалізації |
@@ -99,6 +100,7 @@ permalink: /docs/ICON_LEGEND-uk.html
 | <img src="icons/svg/ic_gesture.svg" alt="ic_gesture" width="24" height="24"> | Жести з країв екрана |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Запис відео з екрана |
 | <img src="icons/svg/ic_share.svg" alt="ic_share" width="24" height="24"> | Команди надіслати файл у.. |
+| <img src="icons/svg/ic_exchange_mono.svg" alt="ic_exchange_mono" width="24" height="24"> | Доступ звідусіль |
 | <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | Доступ з телефону |
 | <img src="icons/svg/ic_stream.svg" alt="ic_stream" width="24" height="24"> | Трансляції |
 | <img src="icons/svg/ic_refresh.svg" alt="ic_refresh" width="24" height="24"> | Фонова синхронізація, мережа й кеш |

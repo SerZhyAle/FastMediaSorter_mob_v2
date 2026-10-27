@@ -63,10 +63,10 @@
     <string name="exchange_devices_watch_code_refused">Il server non ha emesso un codice: %1$s</string>
     <string name="exchange_devices_watch_none">Nessun orologio collegato</string>
     <string name="exchange_devices_watch_companion_off">L\'app companion per Wear è disattivata. Attivala prima nelle Impostazioni.</string>
-    <string name="exchange_devices_pick_outgoing_title">Pubblicare tramite quale server?</string>
+    <string name="exchange_devices_pick_outgoing_title">Cambia il server di pubblicazione</string>
     <string name="exchange_devices_pick_none">Aggiungi prima un server nella schermata I miei dispositivi</string>
     <string name="settings_sftp_exchange_outgoing">Tramite il server %1$s</string>
-    <string name="settings_sftp_exchange_outgoing_none">Nessun server in uscita scelto</string>
+    <string name="settings_sftp_exchange_outgoing_none">Nessun server qui può pubblicare - aggiungine uno nella schermata I miei dispositivi</string>
     <string name="settings_sftp_exchange_change">Cambia</string>
     <string name="exchange_signin_intake_hint">Incolla una stringa del server</string>
     <string name="exchange_signin_paste">Incolla</string>
@@ -351,4 +351,10 @@
     </plurals>
     <string name="exchange_format_unsupported">Questo formato è più recente di quelli supportati da questa app. Non è stato importato nulla. Usa un\'app compatibile.</string>
     <string name="stream_source_live_badge">In diretta</string>
+    <string name="broadcast_exchange_line_announcing">Server di scambio %1$s: annuncio della trasmissione</string>
+    <string name="broadcast_exchange_line_on_server">Server di scambio %1$s: la trasmissione è sul server</string>
+    <string name="broadcast_exchange_line_relayed">Server di scambio %1$s: sul server, inoltrata tramite il server</string>
+    <string name="broadcast_exchange_line_failed">Server di scambio %1$s: %2$s</string>
+    <string name="broadcast_exchange_line_local_only">Raggiungibile solo su questa rete. Aggiungi un server di scambio in I miei dispositivi</string>
+    <string name="broadcast_exchange_line_guest_only">Raggiungibile solo su questa rete: un account ospite non può trasmettere tramite il server di scambio</string>
 </resources>

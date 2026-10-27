@@ -163,10 +163,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         }
     }
 
-    // S4247: asks a waiting row's relay for its broadcast's start while the wait dialog is shown.
-    @Inject
-    lateinit var watchBroadcastStart: com.sza.fastmediasorter.domain.usecase.streams.WatchBroadcastStartUseCase
-
     // S0668: decodes a tile index into a 32 px bitmap, re-reading the atlas file on each (re)decode so
     // invalidate() after an import picks up the new atlas. Lazy so it is built after Hilt field injection.
     private val faviconSlicer by lazy { FaviconAtlasSlicer { faviconAtlasStore.atlasFile() } }
@@ -477,7 +473,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     private val broadcastPasswordPrompt by lazy { StreamBroadcastPasswordPromptManager(this) }
 
-    private val broadcastWait by lazy { StreamBroadcastWaitManager(this, watchBroadcastStart) }
+    private val broadcastWait by lazy { StreamBroadcastWaitManager(this, viewModel::watchBroadcastStart) }
 
     // The row the fullscreen player was opened for: its refusal result carries no row, and the password is kept
     // per row, never per played address.
@@ -1252,7 +1248,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     }
 
     private fun showBroadcastWait(source: StreamSourceEntity) {
-        broadcastWait.show(source, viewModel.settings.value.streamsPendingPlayAtOnce) { playBroadcast(source) }
+        val playAtOnce = viewModel.settings.value.streamsPendingPlayAtOnce
+        broadcastWait.show(source.id, source.broadcastEndpoints, playAtOnce) { playBroadcast(source) }
     }
 
     private fun startPlayback(source: StreamSourceEntity) {

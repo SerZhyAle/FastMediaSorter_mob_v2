@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.domain.usecase.streams
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointCodec
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointDto
 import com.sza.fastmediasorter.data.broadcast.exchange.BroadcastEndpointProbe
+import com.sza.fastmediasorter.domain.model.BroadcastStartState
 import com.sza.fastmediasorter.domain.repository.BroadcastPendingStore
 import io.mockk.every
 import io.mockk.mockk

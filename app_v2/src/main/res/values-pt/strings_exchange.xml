@@ -64,10 +64,10 @@
     <string name="exchange_devices_watch_code_refused">O servidor não quis emitir um código: %1$s</string>
     <string name="exchange_devices_watch_none">Nenhum relógio conectado</string>
     <string name="exchange_devices_watch_companion_off">O complemento Wear está desativado. Ative-o primeiro em Configurações.</string>
-    <string name="exchange_devices_pick_outgoing_title">Publicar por qual servidor?</string>
+    <string name="exchange_devices_pick_outgoing_title">Alterar o servidor de publicação</string>
     <string name="exchange_devices_pick_none">Adicione primeiro um servidor na tela Meus dispositivos</string>
     <string name="settings_sftp_exchange_outgoing">Por meio do servidor %1$s</string>
-    <string name="settings_sftp_exchange_outgoing_none">Nenhum servidor de saída escolhido</string>
+    <string name="settings_sftp_exchange_outgoing_none">Nenhum servidor aqui pode publicar - adicione um na tela Meus dispositivos</string>
     <string name="settings_sftp_exchange_change">Alterar</string>
     <string name="exchange_signin_intake_hint">Cole uma string de servidor</string>
     <string name="exchange_signin_paste">Colar</string>
@@ -356,4 +356,10 @@
     </plurals>
     <string name="exchange_format_unsupported">Este formato é mais novo do que este programa suporta. Nada foi importado. Use um programa compatível.</string>
     <string name="stream_source_live_badge">Ao vivo</string>
+    <string name="broadcast_exchange_line_announcing">Servidor de troca %1$s: anunciando a transmissão</string>
+    <string name="broadcast_exchange_line_on_server">Servidor de troca %1$s: a transmissão está no servidor</string>
+    <string name="broadcast_exchange_line_relayed">Servidor de troca %1$s: no servidor, retransmitida pelo servidor</string>
+    <string name="broadcast_exchange_line_failed">Servidor de troca %1$s: %2$s</string>
+    <string name="broadcast_exchange_line_local_only">Acessível somente nesta rede. Adicione um servidor de troca em Meus dispositivos</string>
+    <string name="broadcast_exchange_line_guest_only">Acessível somente nesta rede: uma conta de convidado não pode transmitir pelo servidor de troca</string>
 </resources>

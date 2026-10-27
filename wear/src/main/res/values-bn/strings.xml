@@ -1099,4 +1099,9 @@
     <string name="wear_open_in_role_last_used">সর্বশেষ ব্যবহৃত</string>
     <string name="wear_open_in_role_browser">ব্রাউজার</string>
     <string name="wear_open_in_role_maps">মানচিত্র</string>
+    <string name="wear_broadcast_server_announcing">সার্ভার: ঘোষণা চলছে</string>
+    <string name="wear_broadcast_server_on">এক্সচেঞ্জ সার্ভারে</string>
+    <string name="wear_broadcast_server_failed">সার্ভার ত্রুটি - ফোন দেখুন</string>
+    <string name="wear_broadcast_server_local_only">শুধু এই নেটওয়ার্ক</string>
+    <string name="wear_scheduled_message_channel_name">নির্ধারিত বার্তা</string>
 </resources>

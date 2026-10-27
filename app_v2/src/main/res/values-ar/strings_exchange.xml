@@ -66,10 +66,10 @@
     <string name="exchange_devices_watch_code_refused">رفض الخادم إصدار رمز: %1$s</string>
     <string name="exchange_devices_watch_none">لا توجد ساعة متصلة</string>
     <string name="exchange_devices_watch_companion_off">تطبيق Wear المرافق متوقف. فعّله في الإعدادات أولًا.</string>
-    <string name="exchange_devices_pick_outgoing_title">النشر عبر أي خادم؟</string>
+    <string name="exchange_devices_pick_outgoing_title">تغيير خادم النشر</string>
     <string name="exchange_devices_pick_none">أضف خادمًا في شاشة «أجهزتي» أولًا</string>
     <string name="settings_sftp_exchange_outgoing">عبر الخادم %1$s</string>
-    <string name="settings_sftp_exchange_outgoing_none">لم يتم اختيار خادم صادر</string>
+    <string name="settings_sftp_exchange_outgoing_none">لا يوجد خادم هنا يمكنه النشر - أضف واحدًا من شاشة «أجهزتي»</string>
     <string name="settings_sftp_exchange_change">تغيير</string>
     <string name="exchange_signin_intake_hint">لصق نص الخادم</string>
     <string name="exchange_signin_paste">لصق</string>
@@ -364,4 +364,10 @@
     </plurals>
     <string name="exchange_format_unsupported">هذه الصيغة أحدث مما يدعمه هذا البرنامج. لم يُستورد شيء. استخدم برنامجًا متوافقًا.</string>
     <string name="stream_source_live_badge">مباشر</string>
+    <string name="broadcast_exchange_line_announcing">خادم التبادل %1$s: جارٍ الإعلان عن البث</string>
+    <string name="broadcast_exchange_line_on_server">خادم التبادل %1$s: البث على الخادم</string>
+    <string name="broadcast_exchange_line_relayed">خادم التبادل %1$s: على الخادم، ويُمرَّر عبر الخادم</string>
+    <string name="broadcast_exchange_line_failed">خادم التبادل %1$s: %2$s</string>
+    <string name="broadcast_exchange_line_local_only">متاح على هذه الشبكة فقط. أضف خادم تبادل في «أجهزتي»</string>
+    <string name="broadcast_exchange_line_guest_only">متاح على هذه الشبكة فقط: لا يمكن لحساب الضيف البث عبر خادم التبادل</string>
 </resources>

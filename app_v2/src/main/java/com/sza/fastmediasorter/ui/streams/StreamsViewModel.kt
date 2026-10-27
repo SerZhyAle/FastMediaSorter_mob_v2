@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.data.repository.settings.StreamsSessionStore
 import com.sza.fastmediasorter.data.repository.streams.StreamFramePersistentStore
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
+import com.sza.fastmediasorter.domain.model.BroadcastStartState
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import com.sza.fastmediasorter.domain.model.StreamDefaultSort
@@ -45,6 +46,7 @@ import com.sza.fastmediasorter.domain.usecase.streams.ResolveStreamCatalogOfferU
 import com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.UnpinStreamSourceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.UpdateStreamSourceUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.WatchBroadcastStartUseCase
 import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeMessageText
 import com.sza.fastmediasorter.ui.streams.helpers.StreamTopicLabelProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -139,6 +141,8 @@ class StreamsViewModel @Inject constructor(
     private val observeLiveBroadcastSources: ObserveLiveBroadcastSourcesUseCase,
     // S4459: the update banner is offered only for a catalog the mirror has published since the last import.
     private val resolveStreamCatalogOffer: ResolveStreamCatalogOfferUseCase,
+    // S4247: asks a waiting row's relay for its broadcast's start while the wait dialog is shown.
+    private val watchBroadcastStartUseCase: dagger.Lazy<WatchBroadcastStartUseCase>,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(StreamsUiState())
@@ -808,6 +812,9 @@ class StreamsViewModel @Inject constructor(
     fun onMovePinned(source: StreamSourceEntity, move: PinnedStreamMove) = viewModelScope.launch {
         reorderPinnedStream(source.id, move)
     }
+
+    fun watchBroadcastStart(streamId: String, endpoints: String?): Flow<BroadcastStartState> =
+        watchBroadcastStartUseCase.get()(streamId, endpoints)
 
     fun onRemove(source: StreamSourceEntity) = viewModelScope.launch {
         removeStreamSource(source)

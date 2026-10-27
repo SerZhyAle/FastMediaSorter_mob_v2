@@ -66,10 +66,10 @@
     <string name="exchange_devices_watch_code_refused">服务器没有生成配对码：%1$s</string>
     <string name="exchange_devices_watch_none">没有已连接的手表</string>
     <string name="exchange_devices_watch_companion_off">Wear 伴侣已关闭。请先在设置中开启。</string>
-    <string name="exchange_devices_pick_outgoing_title">通过哪台服务器发布？</string>
+    <string name="exchange_devices_pick_outgoing_title">更改发布服务器</string>
     <string name="exchange_devices_pick_none">请先在“我的设备”屏幕中添加服务器</string>
     <string name="settings_sftp_exchange_outgoing">通过服务器 %1$s</string>
-    <string name="settings_sftp_exchange_outgoing_none">未选择出站服务器</string>
+    <string name="settings_sftp_exchange_outgoing_none">此处没有可发布的服务器 - 请在“我的设备”屏幕中添加一个</string>
     <string name="settings_sftp_exchange_change">更改</string>
     <string name="exchange_signin_intake_hint">粘贴服务器字符串</string>
     <string name="exchange_signin_paste">粘贴</string>
@@ -360,4 +360,10 @@
     </plurals>
     <string name="exchange_format_unsupported">此格式比本应用支持的版本更新。未导入任何内容。请使用兼容的应用。</string>
     <string name="stream_source_live_badge">直播</string>
+    <string name="broadcast_exchange_line_announcing">交换服务器 %1$s：正在公布广播</string>
+    <string name="broadcast_exchange_line_on_server">交换服务器 %1$s：广播已在服务器上</string>
+    <string name="broadcast_exchange_line_relayed">交换服务器 %1$s：已在服务器上，通过服务器中继</string>
+    <string name="broadcast_exchange_line_failed">交换服务器 %1$s：%2$s</string>
+    <string name="broadcast_exchange_line_local_only">仅限本网络访问。请在“我的设备”中添加交换服务器</string>
+    <string name="broadcast_exchange_line_guest_only">仅限本网络访问：访客账户无法通过交换服务器广播</string>
 </resources>

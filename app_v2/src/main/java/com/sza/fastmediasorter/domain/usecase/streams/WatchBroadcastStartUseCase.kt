@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.data.broadcast.exchange.BroadcastEndpointProbe
 import com.sza.fastmediasorter.data.broadcast.exchange.BroadcastExchangeEndpoint
 import com.sza.fastmediasorter.data.broadcast.exchange.BroadcastExchangeEndpoints
+import com.sza.fastmediasorter.domain.model.BroadcastStartState
 import com.sza.fastmediasorter.domain.repository.BroadcastPendingStore
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
@@ -11,16 +12,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
-
-/** Where a stream row imported from a link to a broadcast that has not started yet stands (S4247). */
-sealed interface BroadcastStartState {
-    data class Waiting(val untilMs: Long) : BroadcastStartState
-
-    data object Started : BroadcastStartState
-
-    /** The link's `until` passed, or the row has nothing to wait on. */
-    data object Expired : BroadcastStartState
-}
 
 /**
  * S4247, research item 3: asks the relay of a waiting row whether its broadcast has started. It probes only while

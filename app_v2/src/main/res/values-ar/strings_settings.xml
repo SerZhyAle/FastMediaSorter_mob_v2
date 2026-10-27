@@ -303,4 +303,6 @@
     <string name="drive_channel_send_no_devices">لم يستخدم أي من أجهزتك الأخرى Google Drive بعد. فعّل «الملفات عبر Google Drive» على الجهاز الآخر أيضًا ثم حاول مرة أخرى.</string>
     <string name="drive_channel_send_waiting_for">في انتظار استلام %1$s له عبر Google Drive.</string>
     <string name="drive_channel_send_waiting_any">في انتظار استلام أحد أجهزتك له عبر Google Drive.</string>
+    <string name="drive_channel_consent_required">لم يمنح Google Drive هذا التطبيق مجلدًا خاصًا به بعد. اسمح له بإرسال الملفات واستقبالها بين أجهزتك. لم يتم حذف أي شيء.</string>
+    <string name="drive_channel_consent_allow">سماح</string>
 </resources>

@@ -44,7 +44,7 @@ class KeystorePreparedBroadcastLinkStore internal constructor(
     ) : this(dataStore, CryptoHelper::encrypt, CryptoHelper::decrypt, ioDispatcher)
 
     private val gson = Gson()
-    private val listType = object : TypeToken<List<PreparedBroadcastLink>>() {}.type
+    private val listType = TypeToken.getParameterized(List::class.java, PreparedBroadcastLink::class.java).type
 
     // The DataStore is shared by every app setting, so the upstream is narrowed to this key and deduplicated
     // before the Keystore decrypt: otherwise any unrelated setting write re-ran a binder call plus a Gson parse

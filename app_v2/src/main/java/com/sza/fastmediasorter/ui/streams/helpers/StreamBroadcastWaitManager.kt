@@ -7,12 +7,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
-import com.sza.fastmediasorter.domain.usecase.streams.BroadcastStartState
-import com.sza.fastmediasorter.domain.usecase.streams.WatchBroadcastStartUseCase
+import com.sza.fastmediasorter.domain.model.BroadcastStartState
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import timber.log.Timber
 
 /**
@@ -22,16 +21,16 @@ import timber.log.Timber
  */
 class StreamBroadcastWaitManager(
     private val activity: AppCompatActivity,
-    private val watchStart: WatchBroadcastStartUseCase,
+    private val watchStart: (streamId: String, endpoints: String?) -> Flow<BroadcastStartState>,
 ) {
 
     private var dialog: AlertDialog? = null
     private var watching: Job? = null
 
-    fun show(source: StreamSourceEntity, playAtOnce: Boolean, onPlay: () -> Unit) {
+    fun show(streamId: String, endpoints: String?, playAtOnce: Boolean, onPlay: () -> Unit) {
         dismiss()
         // The dialog opens on the first state, so it never shows a message without the link's expiry.
-        watching = activity.collectOnLifecycle(watchStart(source.id, source.broadcastEndpoints)) { state ->
+        watching = activity.collectOnLifecycle(watchStart(streamId, endpoints)) { state ->
             render(state, playAtOnce, onPlay)
         }
     }

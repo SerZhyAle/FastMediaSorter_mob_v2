@@ -50,13 +50,13 @@ keeps reporting `completed`, so review state is invisible from here and from the
 
 | Track | versionName | versionCode | Status | Measured (UTC) |
 |-------|-------------|-------------|--------|----------------|
-| `production` | `2.61.0041.544` | `261004154` | completed | 2026-10-04 |
-| `beta` | - | - | no release | 2026-10-04 |
-| `alpha` | - | - | no release | 2026-10-04 |
-| `internal` | `2.60.6222.324` | `260622232` | completed | 2026-10-04 |
-| `wear:beta` | - | - | no release | 2026-10-04 |
-| `wear:internal` | - | - | no release | 2026-10-04 |
-| `wear:production` | `2.61.0031.801` | `261003186` | completed | 2026-10-04 |
+| `production` | `2.61.0202.359` | `261020235` | completed | 2026-10-27 |
+| `beta` | - | - | no release | 2026-10-27 |
+| `alpha` | - | - | no release | 2026-10-27 |
+| `internal` | `2.60.6222.324` | `260622232` | completed | 2026-10-27 |
+| `wear:beta` | - | - | no release | 2026-10-27 |
+| `wear:internal` | - | - | no release | 2026-10-27 |
+| `wear:production` | `2.61.0210.141` | `261021018` | completed | 2026-10-27 |
 
 Reader exit code: 0.
 
@@ -250,7 +250,7 @@ the only writer of this block and the only script that reads that API.
 
 <!-- s2272:measured:vitals:begin -->
 
-**Verdict:** `insufficient-data` - measured 2026-10-21 (UTC), window 2026-09-18..2026-10-15 America/Los_Angeles, source api. Rates as the API returns them, read as fraction (S2917 research 6).
+**Verdict:** `insufficient-data` - measured 2026-10-27 (UTC), window 2026-09-21..2026-10-18 America/Los_Angeles, source api. Rates as the API returns them, read as fraction (S2917 research 6).
 
 | Finding | Scope | Value | Band | Colour | Distinct users |
 |---------|-------|-------|------|--------|----------------|
@@ -261,17 +261,7 @@ the only writer of this block and the only script that reads that API.
 
 Google anomalies in the window: none.
 
-Top error issues by distinct users (4):
-- `CRASH` com.sza.fastmediasorter.core.cache.MediaFilesCacheManager.clearAllCaches at `java.lang.IllegalStateException` - 1 users, 1 reports, last versionCode 260915215 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/2e3fceb39a01cb7b3ff9e119aff3a3e5/details)
-  - `Exception java.lang.IllegalStateException:`
-  - `at android.util.LruCache.trimToSize (LruCache.java:203)`
-  - `at android.util.LruCache.evictAll (LruCache.java:311)`
-  - `at com.sza.fastmediasorter.core.cache.MediaFilesCacheManager.clearAllCaches (MediaFilesCacheManager.java:180)`
-  - `at com.sza.fastmediasorter.FastMediaSorterApp.releaseRecomputableCaches (FastMediaSorterApp.kt:699)`
-  - `at com.sza.fastmediasorter.FastMediaSorterApp.onTrimMemory (FastMediaSorterApp.kt:650)`
-  - `at android.app.ActivityThread.handleTrimMemory (ActivityThread.java:7053)`
-  - `at android.app.ActivityThread.-$$Nest$mhandleTrimMemory (ActivityThread.java)`
-  - `at android.app.ActivityThread$ApplicationThread.lambda$scheduleTrimMemory$0 (ActivityThread.java:1903)`
+Top error issues by distinct users (3):
 - `CRASH` com.sza.fastmediasorter.core.ui.BaseActivity.getBinding at `java.lang.IllegalStateException` - 1 users, 1 reports, last versionCode 261004154 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/81ac31a3e59c8e3b2089ff2fe8ded6af/details)
   - `Exception java.lang.IllegalStateException: Binding is only valid between onCreate and onDestroy`
   - `at com.sza.fastmediasorter.core.ui.BaseActivity.getBinding (BaseActivity.kt:77)`
@@ -292,7 +282,7 @@ Top error issues by distinct users (4):
   - `at kotlinx.coroutines.DispatchedTask.run (DispatchedTask.kt:108)`
   - `at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run (LimitedDispatcher.kt:115)`
   - `at kotlinx.coroutines.scheduling.TaskImpl.run (Tasks.kt:103)`
-- `CRASH` com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearSettingsMirrorStore$Companion$STAMP_MAP_TYPE$1.<init> at `java.lang.RuntimeException` - 1 users, 1 reports, last versionCode 260902195 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/daf4cfa06fbe2ac60ec520ebecc05e00/details)
+- `CRASH` com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearSettingsMirrorStore$Companion$STAMP_MAP_TYPE$1.<init> at `java.lang.RuntimeException` - 1 users, 2 reports, last versionCode 260902195 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/daf4cfa06fbe2ac60ec520ebecc05e00/details)
   - `Exception java.lang.ExceptionInInitializerError:`
   - `at com.sza.fastmediasorter.DaggerFastMediaSorterApp_HiltComponents_SingletonC$ViewModelCImpl.sharedPreferencesWearSettingsMirrorStore (DaggerFastMediaSorterApp_HiltComponents_SingletonC.java:4104)`
   - `at com.sza.fastmediasorter.DaggerFastMediaSorterApp_HiltComponents_SingletonC$ViewModelCImpl$SwitchingProvider.get (DaggerFastMediaSorterApp_HiltComponents_SingletonC.java:4384)`

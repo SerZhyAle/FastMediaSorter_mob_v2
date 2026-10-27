@@ -300,4 +300,6 @@
     <string name="drive_channel_send_no_devices">Nenhum dos seus outros dispositivos usou o Google Drive ainda. Ative também Arquivos pelo Google Drive no outro dispositivo e tente novamente.</string>
     <string name="drive_channel_send_waiting_for">Aguardando %1$s receber pelo Google Drive.</string>
     <string name="drive_channel_send_waiting_any">Aguardando um dos seus dispositivos receber pelo Google Drive.</string>
+    <string name="drive_channel_consent_required">O Google Drive ainda não deu a este app uma pasta própria. Permita para enviar e receber arquivos entre seus dispositivos. Nada foi excluído.</string>
+    <string name="drive_channel_consent_allow">Permitir</string>
 </resources>

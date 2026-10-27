@@ -2276,7 +2276,9 @@ if (isNoLegalBuild) {
                     // Rework lineage plus two weeks of maintenance, and is the better-tested of the two
                     // for every other site. Needs an on-device link-download to verify extraction -
                     // a pip resolve alone proves nothing.
-                    install("yt-dlp==2026.8.19")
+                    // 2026-10-27 (pre-release refresh, release 47): bumped 2026.8.19 → 2026.10.26, the
+                    // latest PyPI stable; stable stays the channel while it is not older than nightly.
+                    install("yt-dlp==2026.10.26")
                 }
             }
         }

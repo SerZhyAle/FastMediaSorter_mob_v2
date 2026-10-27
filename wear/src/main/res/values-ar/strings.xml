@@ -1103,4 +1103,9 @@
     <string name="wear_open_in_role_last_used">آخر استخدام</string>
     <string name="wear_open_in_role_browser">المتصفح</string>
     <string name="wear_open_in_role_maps">الخرائط</string>
+    <string name="wear_broadcast_server_announcing">الخادم: جارٍ الإعلان</string>
+    <string name="wear_broadcast_server_on">على خادم التبادل</string>
+    <string name="wear_broadcast_server_failed">خطأ في الخادم - راجع الهاتف</string>
+    <string name="wear_broadcast_server_local_only">هذه الشبكة فقط</string>
+    <string name="wear_scheduled_message_channel_name">الرسائل المجدولة</string>
 </resources>

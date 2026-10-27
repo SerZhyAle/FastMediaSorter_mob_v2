@@ -66,10 +66,10 @@
     <string name="exchange_devices_watch_code_refused">Le serveur n\'a pas émis de code : %1$s</string>
     <string name="exchange_devices_watch_none">Aucune montre connectée</string>
     <string name="exchange_devices_watch_companion_off">Le compagnon Wear est désactivé. Activez-le d\'abord dans les Paramètres.</string>
-    <string name="exchange_devices_pick_outgoing_title">Publier via quel serveur ?</string>
+    <string name="exchange_devices_pick_outgoing_title">Changer le serveur de publication</string>
     <string name="exchange_devices_pick_none">Ajoutez d\'abord un serveur sur l\'écran Mes appareils</string>
     <string name="settings_sftp_exchange_outgoing">Via le serveur %1$s</string>
-    <string name="settings_sftp_exchange_outgoing_none">Aucun serveur sortant choisi</string>
+    <string name="settings_sftp_exchange_outgoing_none">Aucun serveur ici ne peut publier - ajoutez-en un dans l’écran Mes appareils</string>
     <string name="settings_sftp_exchange_change">Modifier</string>
     <string name="exchange_signin_intake_hint">Coller une chaîne de serveur</string>
     <string name="exchange_signin_paste">Coller</string>
@@ -357,4 +357,10 @@
     </plurals>
     <string name="exchange_format_unsupported">Ce format est plus récent que ce que ce programme prend en charge. Rien n\'a été importé. Utilisez un programme compatible.</string>
     <string name="stream_source_live_badge">En direct</string>
+    <string name="broadcast_exchange_line_announcing">Serveur d’échange %1$s : annonce de la diffusion</string>
+    <string name="broadcast_exchange_line_on_server">Serveur d’échange %1$s : la diffusion est sur le serveur</string>
+    <string name="broadcast_exchange_line_relayed">Serveur d’échange %1$s : sur le serveur, relayée par le serveur</string>
+    <string name="broadcast_exchange_line_failed">Serveur d’échange %1$s : %2$s</string>
+    <string name="broadcast_exchange_line_local_only">Accessible uniquement sur ce réseau. Ajoutez un serveur d’échange dans Mes appareils</string>
+    <string name="broadcast_exchange_line_guest_only">Accessible uniquement sur ce réseau : un compte invité ne peut pas diffuser via le serveur d’échange</string>
 </resources>
