@@ -60,6 +60,9 @@ class BroadcastFileVideoService : Service(), ConnectChecker, ClientListener {
     lateinit var settingsRepository: SettingsRepository
 
     @Inject
+    lateinit var announceBroadcastEnd: AnnounceBroadcastEndUseCase
+
+    @Inject
     lateinit var credentialRegistry: BroadcastCredentialRegistry
 
     @Volatile
@@ -417,8 +420,15 @@ class BroadcastFileVideoService : Service(), ConnectChecker, ClientListener {
     }
 
     private fun stopBroadcast() {
+        // A live session ends in contract order (LIVE-BROADCAST item T, DEVICE-EXCHANGE item DX): the exchange server
+        // and the relay hear it first, then the viewers get the end signal of the stream, then the source stops.
+        val live = _state.value is BroadcastState.Live
+        if (live) {
+            announceBroadcastEnd()
+            rtspGate?.end()
+        }
         releaseServer()
-        rtspGate?.close()
+        if (!live) rtspGate?.close()
         rtspGate = null
         synchronized(stateLock) {
             _state.value = BroadcastState.Idle

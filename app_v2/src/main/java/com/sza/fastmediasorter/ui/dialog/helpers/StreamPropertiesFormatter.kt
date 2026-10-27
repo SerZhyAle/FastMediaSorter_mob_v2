@@ -139,6 +139,7 @@ class StreamPropertiesFormatter(private val resources: StreamInfoResources) {
     private fun outcomeRes(code: String?): Int = when (code?.uppercase()) {
         OUTCOME_OK -> R.string.stream_info_outcome_ok
         OUTCOME_FAIL -> R.string.stream_info_outcome_fail
+        OUTCOME_ENDED -> R.string.stream_status_ended
         else -> R.string.stream_info_outcome_never
     }
 
@@ -167,6 +168,7 @@ class StreamPropertiesFormatter(private val resources: StreamInfoResources) {
 
         const val OUTCOME_OK = "OK"
         const val OUTCOME_FAIL = "FAIL"
+        const val OUTCOME_ENDED = "ENDED"
 
         const val ACCESS_GEO = "geo"
     }

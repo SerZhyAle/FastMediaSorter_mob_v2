@@ -28,6 +28,9 @@ import kotlin.concurrent.thread
  *
  * RTP is carried inside the RTSP connection only: the library would send UDP to the gate's loopback address, so a
  * `SETUP` asking for UDP gets `461 Unsupported Transport` and the client falls back to TCP.
+ *
+ * A deliberate end goes through [end] (contract LIVE-BROADCAST item T): the port refuses new connections at once,
+ * every open session gets an RTCP BYE on each of its RTCP channels, then the connections close.
  */
 class RtspAuthGate(
     private val publicPort: Int,
@@ -41,6 +44,7 @@ class RtspAuthGate(
     private val nonce = BroadcastDigest.newNonce()
     private val lock = Any()
     private val open = CopyOnWriteArrayList<Closeable>()
+    private val streaming = CopyOnWriteArrayList<Session>()
     private val connectionSlots = Semaphore(maxConnections)
 
     @Volatile
@@ -75,6 +79,38 @@ class RtspAuthGate(
         }
         server?.let(::closeQuietly)
         active.forEach(::closeQuietly)
+    }
+
+    /**
+     * The deliberate end: the listening socket closes first, so a reconnect is refused while the BYEs go out, then
+     * every streaming session gets its BYE frames and [stop] closes everything. A client that stopped reading cannot
+     * hold the end past [timeoutMs]; its connection is closed with the rest.
+     */
+    fun end(timeoutMs: Long) {
+        Timber.d("S4442: rtsp gate end with BYE")
+        val server = synchronized(lock) {
+            stopped = true
+            listener.also { listener = null }
+        }
+        server?.let(::closeQuietly)
+        val sender = thread(name = "rtsp-auth-gate-bye", isDaemon = true) { streaming.forEach(::sayBye) }
+        sender.join(timeoutMs)
+        stop()
+    }
+
+    // Under the client stream's lock, so the BYE lands between two whole frames and nothing follows it.
+    private fun sayBye(session: Session) {
+        val out = session.clientOut ?: return
+        val frames = session.framer?.byeFrames().orEmpty()
+        try {
+            synchronized(out) {
+                session.ended = true
+                frames.forEach(out::write)
+                out.flush()
+            }
+        } catch (e: IOException) {
+            Timber.d("RtspAuthGate: BYE not delivered - %s", e.message)
+        }
     }
 
     private fun track(closeable: Closeable): Boolean {
@@ -124,7 +160,7 @@ class RtspAuthGate(
             client.soTimeout = firstRequestTimeoutMs
             val clientOut = client.getOutputStream()
             val clientIn = BufferedInputStream(client.getInputStream())
-            val session = Session()
+            val session = Session().also { it.clientOut = clientOut }
             var innerOut: OutputStream? = null
             fun ensureUpstream(): OutputStream {
                 innerOut?.let { return it }
@@ -132,10 +168,12 @@ class RtspAuthGate(
                 val upstream = Socket(LOOPBACK, innerPort)
                 if (!track(upstream)) throw IOException("gate stopped")
                 inner = upstream
-                val innerIn = upstream.getInputStream()
+                val framer = RtspDownstreamFramer(BufferedInputStream(upstream.getInputStream()))
                 val out = upstream.getOutputStream().also { innerOut = it }
+                session.framer = framer
+                streaming.add(session)
                 thread(name = "rtsp-auth-gate-down", isDaemon = true) {
-                    pipe(innerIn, clientOut, client, upstream, session)
+                    pipe(framer, clientOut, client, upstream, session)
                 }
                 return out
             }
@@ -151,6 +189,16 @@ class RtspAuthGate(
     private class Session {
         @Volatile
         var pair: BroadcastCredentialPair? = null
+
+        @Volatile
+        var clientOut: OutputStream? = null
+
+        @Volatile
+        var framer: RtspDownstreamFramer? = null
+
+        // Set under the client stream's lock once the BYE went out; the pipe forwards nothing after it.
+        @Volatile
+        var ended = false
 
         // Touched by the downstream pipe thread only.
         private var checkedAtNanos = System.nanoTime()
@@ -258,27 +306,35 @@ class RtspAuthGate(
     }
 
     // A quiet client sends nothing for long stretches while the stream keeps flowing down this pipe, so the pipe
-    // is where a revoked pair is noticed without waiting for the client's next request.
-    private fun pipe(from: InputStream, to: OutputStream, client: Socket, inner: Socket, session: Session) {
-        val buffer = ByteArray(PIPE_BUFFER_BYTES)
+    // is where a revoked pair is noticed without waiting for the client's next request. Whole units only: a BYE
+    // written by [end] must never split an RTP frame.
+    private fun pipe(from: RtspDownstreamFramer, to: OutputStream, client: Socket, inner: Socket, session: Session) {
         try {
-            var read = from.read(buffer)
-            while (read >= 0) {
-                if (session.revokedThrottled(pairs)) {
-                    Timber.d("RtspAuthGate: the pair of a streaming connection was revoked - closing it")
-                    break
-                }
-                synchronized(to) {
-                    to.write(buffer, 0, read)
-                    to.flush()
-                }
-                read = from.read(buffer)
+            var unit = from.next()
+            while (unit != null && stillAllowed(session) && forward(unit, to, session)) {
+                unit = from.next()
             }
         } catch (e: IOException) {
             Timber.d("RtspAuthGate: server side ended - %s", e.message)
         } finally {
+            streaming.remove(session)
             closeBoth(client, inner)
         }
+    }
+
+    private fun stillAllowed(session: Session): Boolean {
+        val revoked = session.revokedThrottled(pairs)
+        if (revoked) Timber.d("RtspAuthGate: the pair of a streaming connection was revoked - closing it")
+        return !revoked
+    }
+
+    /** False once the session's BYE went out: nothing of the stream may follow it. */
+    private fun forward(unit: ByteArray, to: OutputStream, session: Session): Boolean = synchronized(to) {
+        if (!session.ended) {
+            to.write(unit)
+            to.flush()
+        }
+        !session.ended
     }
 
     private fun closeBoth(client: Socket, inner: Socket?) {
@@ -362,7 +418,6 @@ class RtspAuthGate(
         const val INTERLEAVED_MARKER = '$'.code
         const val INTERLEAVED_HEADER_BYTES = 4
         const val MAX_HEAD_BYTES = 16 * 1024
-        const val PIPE_BUFFER_BYTES = 16 * 1024
         const val MAX_CONCURRENT_CONNECTIONS = 16
         const val FIRST_REQUEST_TIMEOUT_MS = 5_000
         const val REVOCATION_CHECK_NANOS = 250_000_000L

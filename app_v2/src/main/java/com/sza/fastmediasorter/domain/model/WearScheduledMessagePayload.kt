@@ -52,10 +52,13 @@ sealed interface WearScheduledMessageParseResult {
 
     data class Parsed(val payload: WearScheduledMessagePayload) : WearScheduledMessageParseResult
 
-    data class UnsupportedVersion(val version: Int) : WearScheduledMessageParseResult
+    /** [messageId] is what the phone's waiting run matches the refusal by. */
+    data class UnsupportedVersion(val version: Int, val messageId: String) : WearScheduledMessageParseResult
 
-    data object Malformed : WearScheduledMessageParseResult
+    /** [messageId] is null when the bytes carried no readable id; such a message stays unanswered by design. */
+    data class Malformed(val messageId: String? = null) : WearScheduledMessageParseResult
 
+    /** Never read for an id: the phone's encoder refuses to send a message this large. */
     data object TooLarge : WearScheduledMessageParseResult
 }
 
@@ -79,9 +82,10 @@ object WearScheduledMessageCodec {
         val title: String? = payload?.title
         val messageId: String? = payload?.messageId
         return when {
-            payload == null || title == null || messageId == null -> WearScheduledMessageParseResult.Malformed
+            payload == null || title == null || messageId == null ->
+                WearScheduledMessageParseResult.Malformed(messageId)
             payload.formatVersion != WearScheduledMessagePayload.FORMAT_VERSION ->
-                WearScheduledMessageParseResult.UnsupportedVersion(payload.formatVersion)
+                WearScheduledMessageParseResult.UnsupportedVersion(payload.formatVersion, messageId)
             else -> WearScheduledMessageParseResult.Parsed(payload)
         }
     }

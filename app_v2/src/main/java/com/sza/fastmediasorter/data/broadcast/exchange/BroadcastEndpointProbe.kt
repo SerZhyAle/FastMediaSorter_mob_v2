@@ -1,12 +1,17 @@
 package com.sza.fastmediasorter.data.broadcast.exchange
 
+import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeAccountClient
+import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeEnvelope
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeCertificateChangedException
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeCertificateUntrustedException
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeConnector
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeTrust
+import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeTunnelUnavailableException
 import com.sza.fastmediasorter.data.security.e2e.E2eRelayHttp
+import com.sza.fastmediasorter.domain.player.AfterEndAnswer
 import timber.log.Timber
 import java.io.IOException
+import java.net.ConnectException
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.URI
@@ -81,6 +86,80 @@ class BroadcastEndpointProbe @Inject constructor(
         null
     }
 
+    /**
+     * S4444, LIVE-BROADCAST item T: the one reconnect after a stop, asked of a LAN endpoint. A closed port is an end,
+     * so is a `404` or `410` to the first request; any other status is a live broadcast; silence is a lost connection.
+     * Only the status line is read, so the probe never holds the producer's listener slot.
+     */
+    fun lanAfterEnd(url: String): AfterEndAnswer {
+        val uri = runCatching { URI(url) }.getOrNull()
+        val host = uri?.host ?: return AfterEndAnswer.NO_ANSWER
+        val port = uri.port.takeIf { it > 0 } ?: defaultPort(uri.scheme)
+        return try {
+            Socket().use { socket ->
+                socket.connect(InetSocketAddress(host, port), LAN_TIMEOUT_MS)
+                socket.soTimeout = LAN_TIMEOUT_MS
+                socket.getOutputStream().apply {
+                    write(firstRequest(uri, url).toByteArray(Charsets.US_ASCII))
+                    flush()
+                }
+                val line = socket.getInputStream().bufferedReader(Charsets.US_ASCII).readLine()
+                answerOf(line?.split(' ', limit = STATUS_PARTS)?.getOrNull(1)?.toIntOrNull(), line != null)
+            }
+        } catch (e: ConnectException) {
+            Timber.d("BroadcastEndpointProbe: LAN endpoint refused after the end - %s", e.javaClass.simpleName)
+            AfterEndAnswer.ENDED
+        } catch (e: IOException) {
+            Timber.d("BroadcastEndpointProbe: LAN endpoint silent after the end - %s", e.javaClass.simpleName)
+            AfterEndAnswer.NO_ANSWER
+        }
+    }
+
+    /** S4444: the relay's status for [relay] read as an after-end answer; `404` and `410` both name an ended id. */
+    fun relayAfterEnd(relay: BroadcastExchangeEndpoint.Relay): AfterEndAnswer {
+        val status = relayStatus(relay)
+        return answerOf(status, status != null)
+    }
+
+    /**
+     * S4444: one `connect` for [tunnel]'s broadcast, closed at once. Only a refusal `ended` is an end (DEVICE-EXCHANGE
+     * 1.10 item DY): `unavailable` also stands for a broadcast at its tunnel limit, which passes, and is what a 1.9
+     * server answers for an ended one - that viewer falls back to the directory and the bounded reconnect. Any other
+     * refusal and a broken connection are silence.
+     */
+    fun tunnelAfterEnd(tunnel: BroadcastExchangeEndpoint.Tunnel): AfterEndAnswer = try {
+        DeviceExchangeAccountClient.connectByBroadcastId(
+            connector = connector,
+            host = tunnel.server.host,
+            port = tunnel.server.port,
+            broadcastId = tunnel.broadcastId,
+            scheme = tunnel.scheme,
+            trust = ExchangeTrust.Verified(tunnel.certFingerprint),
+        ).close()
+        AfterEndAnswer.ALIVE
+    } catch (e: ExchangeTunnelUnavailableException) {
+        Timber.d("BroadcastEndpointProbe: %s tunnel refused after the end - %s", tunnel.server.label, e.message)
+        Timber.d("S4448: tunnel after-end refusal reason=%s", e.reason)
+        if (e.reason == DeviceExchangeEnvelope.REASON_ENDED) AfterEndAnswer.ENDED else AfterEndAnswer.NO_ANSWER
+    } catch (e: IOException) {
+        Timber.d(e, "BroadcastEndpointProbe: %s tunnel silent after the end", tunnel.server.label)
+        AfterEndAnswer.NO_ANSWER
+    }
+
+    private fun answerOf(status: Int?, answered: Boolean): AfterEndAnswer = when {
+        status == HTTP_NOT_FOUND || status == HTTP_GONE -> AfterEndAnswer.ENDED
+        answered -> AfterEndAnswer.ALIVE
+        else -> AfterEndAnswer.NO_ANSWER
+    }
+
+    private fun firstRequest(uri: URI, url: String): String =
+        if (uri.scheme.equals("rtsp", ignoreCase = true)) {
+            "DESCRIBE $url RTSP/1.0\r\nCSeq: 1\r\nAccept: application/sdp\r\n\r\n"
+        } else {
+            val path = uri.rawPath.orEmpty().ifEmpty { "/" } + uri.rawQuery?.let { "?$it" }.orEmpty()
+            "GET $path HTTP/1.1\r\nHost: ${uri.rawAuthority}\r\nConnection: close\r\n\r\n"
+        }
+
     private fun defaultPort(scheme: String?): Int = when (scheme?.lowercase()) {
         "rtsp" -> RTSP_DEFAULT_PORT
         "https" -> HTTPS_DEFAULT_PORT
@@ -93,5 +172,7 @@ class BroadcastEndpointProbe @Inject constructor(
         const val HTTPS_DEFAULT_PORT = 443
         const val RTSP_DEFAULT_PORT = 554
         const val STATUS_PARTS = 3
+        const val HTTP_NOT_FOUND = 404
+        const val HTTP_GONE = 410
     }
 }

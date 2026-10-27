@@ -43,6 +43,9 @@ class BroadcastCaptureService : Service() {
     lateinit var settingsRepository: SettingsRepository
 
     @Inject
+    lateinit var announceBroadcastEnd: AnnounceBroadcastEndUseCase
+
+    @Inject
     lateinit var credentialRegistry: BroadcastCredentialRegistry
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -287,9 +290,17 @@ class BroadcastCaptureService : Service() {
     }
 
     private fun stopBroadcast() {
+        // A live session ends in contract order (LIVE-BROADCAST item T, DEVICE-EXCHANGE item DX): the exchange server
+        // and the relay hear it first, then the viewers get the end signal of the stream, then the source stops.
+        // The relay upload reads this server on loopback, so it keeps serving until the upload's zero-length chunk.
+        val live = _state.value is BroadcastState.Live
+        if (live) {
+            announceBroadcastEnd()
+            httpServer?.end(AnnounceBroadcastEndUseCase.STREAM_END_TIMEOUT_MS)
+        }
         // The capture loop sees the flag on its next read() return and releases the recorder itself.
         isRecording.set(false)
-        httpServer?.stop()
+        if (!live) httpServer?.stop()
         httpServer = null
         _state.value = BroadcastState.Idle
         _listenerCount.value = 0

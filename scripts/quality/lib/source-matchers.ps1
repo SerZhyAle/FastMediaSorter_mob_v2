@@ -29,6 +29,7 @@
 . (Join-Path $PSScriptRoot 'settings-snapshot-write.ps1')
 . (Join-Path $PSScriptRoot 'main-thread-bitmap-decode.ps1')
 . (Join-Path $PSScriptRoot 'loopback-endpoint-close.ps1')
+. (Join-Path $PSScriptRoot 'keystore-decrypt-caller-context.ps1')
 
 # --- rule predicates -------------------------------------------------------------------
 # Kept as named functions rather than inline lambdas so the two multi-step heuristics
@@ -1966,7 +1967,8 @@ function Get-SourceRules {
             CountInText  = { param($t) Measure-LoopbackEndpointCloseText $t }
             LocateInText = { param($t) Find-LoopbackEndpointCloseLines $t }
             FailMessage  = 'a ServerSocket-backed LoopbackEndpoint/WearExchangeRelayEndpoint close() that stops the listener/workers without closing tracked active connections (S4337). Close all registered client and upstream sockets in close() before shutdownNow().'
-        }
+        },
+        (New-KeystoreDecryptCallerContextRule)
     )
 }
 

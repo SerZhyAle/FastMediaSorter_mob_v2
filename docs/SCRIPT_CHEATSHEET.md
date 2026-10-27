@@ -216,7 +216,7 @@ scripts/add_to_dev_log.ps1
     -Description     (req)  [String]
     -Branch                 [String] = ""
     -AllowDuplicate         [SwitchParameter]
-  Exit: 0 - the entry was appended, or skipped as a recent duplicate (both are success: the row the
+  Exit: 0 - the entry was appended, skipped as a recent duplicate, or explicitly not applicable
 ```
 
 ### add_to_functionality_log.ps1
@@ -7375,6 +7375,15 @@ scripts/quality/lib/icon-tint-rule.ps1
   (no param block)
 ```
 
+### keystore-decrypt-caller-context.ps1
+Dot-sourced by source-matchers.ps1, so these predicates share its script scope. Split out to keep
+
+```
+scripts/quality/lib/keystore-decrypt-caller-context.ps1
+  Dot-sourced by source-matchers.ps1, so these predicates share its script scope. Split out to keep
+  (no param block)
+```
+
 ### listener-symmetry-count.ps1
 Counting core of the listener-symmetry gate (S1559).
 
@@ -8719,7 +8728,7 @@ scripts/spec_catalog/release-queue.ps1
     -Release     (req)  [String] = ''
     -Version            [String] = ''
     -DryRun             [SwitchParameter]
-  Exit: 0 success (for -Validate: no drift).; 1 error, or -Validate found drift.; 2 cannot verify - PLAN/RELEASE_QUEUE.md is missing (seed it before using the queue).
+  Exit: 0 success (for -Validate: no drift).; 1 error, or -Validate found drift.; 2 cannot verify - PLAN/RELEASE_QUEUE.md is missing (seed it before using the queue). -List is
 ```
 
 ### run-spec-all-queue.ps1
@@ -8759,6 +8768,7 @@ scripts/spec_catalog/search.ps1
     -Tag                     [String]
     -Type                    [String]
     -IncludeArchived         [SwitchParameter]
+    -Body                    [SwitchParameter]
     -Format                  [String] = 'table'  {table|json}
     -Help                    [SwitchParameter]
 ```

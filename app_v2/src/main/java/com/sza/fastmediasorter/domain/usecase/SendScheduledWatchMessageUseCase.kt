@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.data.wear.ScheduledWatchImageEncoder
 import com.sza.fastmediasorter.data.wear.ScheduledWatchReceiptRegistry
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
+import com.sza.fastmediasorter.domain.model.WearNode
 import com.sza.fastmediasorter.domain.model.WearScheduledMessageCodec
 import com.sza.fastmediasorter.domain.model.WearScheduledMessagePayload
 import com.sza.fastmediasorter.domain.model.WearScheduledMessageReceipt
@@ -38,11 +39,17 @@ class SendScheduledWatchMessageUseCase @Inject constructor(
 ) {
 
     suspend operator fun invoke(operation: ScheduledOperation): ScheduledExecutionResult {
+        Timber.d("S4248: scheduled watch message run, op=%d", operation.id)
         val unreachable = unreachableReason()
-        if (unreachable != null) return skipped(operation, unreachable)
-        val nodes = dataLayer.getConnectedNodes()
-        if (nodes.isEmpty()) return skipped(operation, "Watch not reachable")
+        val nodes = if (unreachable == null) dataLayer.getConnectedNodes() else emptyList()
+        return when {
+            unreachable != null -> skipped(operation, unreachable)
+            nodes.isEmpty() -> skipped(operation, "Watch not reachable")
+            else -> deliver(operation, nodes)
+        }
+    }
 
+    private suspend fun deliver(operation: ScheduledOperation, nodes: List<WearNode>): ScheduledExecutionResult {
         val imageBytes = operation.watchImageUri?.let { imageEncoder.encode(it) }
         val messageId = "${operation.id}-${System.currentTimeMillis()}"
         val payload = WearScheduledMessagePayload(
@@ -59,6 +66,7 @@ class SendScheduledWatchMessageUseCase @Inject constructor(
         return try {
             nodes.forEach { dataLayer.sendMessage(it.id, WearDataLayerPaths.SCHEDULED_MESSAGE, bytes) }
             val receipt = withTimeoutOrNull(RECEIPT_TIMEOUT_MS) { waiting.await() }
+            Timber.d("S4458: watch receipt on phone shown=%s reason=%s", receipt?.shown, receipt?.reason)
             outcomeOf(operation, receipt, pictureLost = operation.watchImageUri != null && imageBytes == null)
         } catch (e: CancellationException) {
             throw e

@@ -65,6 +65,7 @@
 {"file":"scripts/quality/help-map-baseline.txt","shape":"set","owner":"scripts/quality/assert-help-map.ps1","write":"hand-only","verdict":"safe"}
 {"file":"scripts/quality/icon-contract-baseline.txt","shape":"set","owner":"scripts/quality/assert-icon-contract.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/inline-delivery-block-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
+{"file":"scripts/quality/keystore-decrypt-caller-context-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/landscape-focus-parity-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/landscape-orphan-layout-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
 {"file":"scripts/quality/launch-in-oncleared-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}

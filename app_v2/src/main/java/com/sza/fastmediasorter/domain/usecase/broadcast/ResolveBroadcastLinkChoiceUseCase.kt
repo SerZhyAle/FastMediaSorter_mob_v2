@@ -18,8 +18,12 @@ class ResolveBroadcastLinkChoiceUseCase @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val linkPasswordStore: BroadcastLinkPasswordStore,
 ) {
+    /** S4440: the setting as the person left it, which differs from the live link when a prepared link started. */
+    suspend fun rememberedMode(): BroadcastLinkPasswordMode =
+        settingsRepository.getSettings().first().broadcast.linkPasswordMode
+
     suspend operator fun invoke(): BroadcastLinkChoice {
-        val mode = settingsRepository.getSettings().first().broadcast.linkPasswordMode
+        val mode = rememberedMode()
         Timber.d("S4405: resolve link choice for announcement mode=$mode")
         return when (mode) {
             BroadcastLinkPasswordMode.NONE -> BroadcastLinkChoice.Open

@@ -5,7 +5,7 @@ description: "The four ways to open a live broadcast on your device - the list B
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/broadcast-receive.html
 ---
-<sub class="doc-stamp">26.10.15 15:10</sub>
+<sub class="doc-stamp">26.10.26 00:56</sub>
 
 # Receiving a broadcast
 
@@ -32,6 +32,14 @@ Each of these adds a broadcast channel to your list. When the sender changes the
 ## 3. A link with a password
 
 A protected broadcast asks for its password before it plays: "Enter the broadcast password you were given with the link". The link and the QR code never carry the password, so you get it from the sender another way. A wrong password is refused and the broadcast stays closed.
+
+## A link to a broadcast that has not started
+
+A link, a QR code or a file can arrive before the broadcast begins. It opens the window "This broadcast has not started yet", which shows until when the link works and checks for the start while it is open.
+
+- **When the broadcast starts**, the window offers **Play**.
+- **Play awaited broadcasts at once** in the **Streams** settings plays it without the question.
+- **After the link's date** the window says the link no longer works.
 
 ## 4. A cast from another of your devices
 

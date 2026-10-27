@@ -80,7 +80,7 @@
         },
         "catalog-banner": {
           "summary": "Offers to refresh the channel list from the built-in catalog.",
-          "details": "The banner appears at the top only when Updating the channel list is set to Suggest when I open in the Streams section of Settings, and the last update was more than six hours ago or never happened. Update downloads the catalog; the close button dismisses the banner and changes nothing. It does not fade by itself, so you can answer when you are ready. Nothing is downloaded until you press Update."
+          "details": "The banner appears at the top only when Updating the channel list is set to Suggest when I open in the Streams section of Settings, and the channel list published on the server is newer than the one on this device, or the device has none at all. Update downloads the catalog; the close button hides the banner until a newer list is published. It does not fade by itself, so you can answer when you are ready. Nothing is downloaded until you press Update."
         },
         "search": {
           "summary": "Narrows the list as you type.",
@@ -258,7 +258,7 @@
         },
         "catalog-banner": {
           "summary": "Предлагает обновить список каналов из встроенного каталога.",
-          "details": "Баннер появляется вверху, только если в настройках, в разделе «Трансляции», пункт «Обновление списка каналов» стоит в положении «Предлагать при открытии», а последнее обновление было больше шести часов назад или не было вовсе. «Обновить» загружает каталог, кнопка закрытия просто убирает баннер. Он не исчезает сам, поэтому можно ответить, когда вам удобно. Пока вы не нажмёте «Обновить», ничего не загружается."
+          "details": "Баннер появляется вверху, только если в настройках, в разделе «Трансляции», пункт «Обновление списка каналов» стоит в положении «Предлагать при открытии», а список каналов, опубликованный на сервере, новее того, что есть на устройстве, или на устройстве списка нет вовсе. «Обновить» загружает каталог, кнопка закрытия скрывает баннер до публикации более нового списка. Он не исчезает сам, поэтому можно ответить, когда вам удобно. Пока вы не нажмёте «Обновить», ничего не загружается."
         },
         "search": {
           "summary": "Сужает список по мере набора.",
@@ -436,7 +436,7 @@
         },
         "catalog-banner": {
           "summary": "Пропонує оновити список каналів із вбудованого каталогу.",
-          "details": "Банер з’являється вгорі, лише якщо в налаштуваннях, у розділі «Трансляції», пункт «Оновлення списку каналів» стоїть у положенні «Пропонувати під час відкриття», а останнє оновлення було понад шість годин тому або не було взагалі. «Оновити» завантажує каталог, кнопка закриття просто прибирає банер. Він не зникає сам, тож можна відповісти, коли вам зручно. Доки ви не натиснете «Оновити», нічого не завантажується."
+          "details": "Банер з’являється вгорі, лише якщо в налаштуваннях, у розділі «Трансляції», пункт «Оновлення списку каналів» стоїть у положенні «Пропонувати під час відкриття», а список каналів, опублікований на сервері, новіший за той, що є на пристрої, або на пристрої списку немає взагалі. «Оновити» завантажує каталог, кнопка закриття ховає банер до публікації новішого списку. Він не зникає сам, тож можна відповісти, коли вам зручно. Доки ви не натиснете «Оновити», нічого не завантажується."
         },
         "search": {
           "summary": "Звужує список під час набору.",

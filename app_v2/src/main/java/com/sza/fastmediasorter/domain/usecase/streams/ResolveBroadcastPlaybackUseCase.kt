@@ -23,8 +23,9 @@ import javax.inject.Inject
  * tried in the producer's order - LAN, then `RELAY`, then `TUNNEL` - starting at the top on every call, which is
  * what a reconnect must do (`DEVICE-EXCHANGE` 7.7). An exchange endpoint of any server plays with no entry for
  * it: trust is the endpoint's `certFingerprint`, else the platform chain, and checking is never turned off
- * (item AF, item D). A row without a list plays its `url` exactly as before. A relay that answers `404` for the
- * row's broadcast has ended it (7.6): the walk stops there and the row reads as ended (item AF), not as a player error.
+ * (item AF, item D). A row without a list plays its `url` exactly as before. A relay that answers `404` (7.6) or
+ * `410` (item DX) for the row's broadcast has ended it: the walk stops there and the row reads as ended (item AF),
+ * not as a player error.
  */
 class ResolveBroadcastPlaybackUseCase @Inject constructor(
     private val probe: BroadcastEndpointProbe,
@@ -107,8 +108,12 @@ class ResolveBroadcastPlaybackUseCase @Inject constructor(
 
     // The TLS probe of a relay passes for an ended broadcast too; only the relay's own status line says the id is gone
     // (7.6: 404 for an unknown or ended id). Any other answer, silence included, leaves the choice to the player.
-    private fun BroadcastExchangeEndpoint.isEndedRelay(): Boolean =
-        this is BroadcastExchangeEndpoint.Relay && probe.relayStatus(this) == RELAY_NOT_FOUND
+    // S4444: DEVICE-EXCHANGE item DX answers `410` for an id whose broadcast ended, which says the same thing.
+    private fun BroadcastExchangeEndpoint.isEndedRelay(): Boolean {
+        if (this !is BroadcastExchangeEndpoint.Relay) return false
+        val status = probe.relayStatus(this)
+        return status == RELAY_NOT_FOUND || status == RELAY_GONE
+    }
 
     private fun attempt(endpoint: BroadcastExchangeEndpoint): Playback = when (endpoint) {
         is BroadcastExchangeEndpoint.Lan ->
@@ -150,6 +155,7 @@ class ResolveBroadcastPlaybackUseCase @Inject constructor(
 
     companion object {
         private const val RELAY_NOT_FOUND = 404
+        private const val RELAY_GONE = 410
 
         /** The exchange server a stored endpoint list plays through, as `host[:port]`; null for a LAN-only list. */
         fun exchangeServerLabel(endpoints: String?): String? =

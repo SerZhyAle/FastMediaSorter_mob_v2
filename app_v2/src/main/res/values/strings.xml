@@ -4591,4 +4591,33 @@
     <string name="scheduled_ops_watch_clear_image">Remove picture</string>
     <string name="scheduled_ops_watch_no_image">No picture</string>
     <string name="scheduled_ops_error_watch_title_required">Enter a title</string>
+    <string name="broadcast_prepared_action">Link in advance</string>
+    <string name="broadcast_prepared_list_title">Links in advance</string>
+    <string name="broadcast_prepared_row">%1$s, until %2$s</string>
+    <string name="broadcast_prepared_share">Share</string>
+    <string name="broadcast_prepared_revoke">Revoke</string>
+    <string name="broadcast_prepared_revoke_title">Revoke this link?</string>
+    <string name="broadcast_prepared_revoke_message">Everyone who got this link will not be able to watch the broadcast through it. This cannot be undone.</string>
+    <string name="broadcast_prepared_dialog_title">Link in advance</string>
+    <string name="broadcast_prepared_dialog_note">The link starts working when you start this kind of broadcast on this exchange server. The broadcast does not start by itself.</string>
+    <string name="broadcast_prepared_mode_label">Broadcast type</string>
+    <string name="broadcast_prepared_lifetime_label">The link works for</string>
+    <string name="broadcast_prepared_guests_hint">Guests: logins separated by commas or new lines</string>
+    <string name="broadcast_prepared_create">Create link</string>
+    <string name="broadcast_prepared_no_server">A link in advance goes through an exchange server. Add one in My devices.</string>
+    <string name="broadcast_prepared_limit">You can keep up to 5 links in advance. Revoke one to make a new one.</string>
+    <string name="broadcast_prepared_mismatch_title">The handed-out link will not work</string>
+    <string name="broadcast_prepared_mismatch_message">The link you handed out in advance was made for another kind of broadcast or another server. If you start now, people with that link will not see this broadcast.</string>
+    <string name="broadcast_prepared_mismatch_start">Start anyway</string>
+    <string name="broadcast_prepared_id_taken">The server already runs another broadcast under your link in advance. This broadcast went on air under a new link - share it again.</string>
+    <string name="broadcast_prepared_not_used">This broadcast did not use the link you handed out in advance. Share the current link instead.</string>
+    <string name="broadcast_prepared_share_title">Share link in advance</string>
+    <plurals name="broadcast_prepared_days">
+        <item quantity="one">%d day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
+    <string name="stream_broadcast_ended_title">Broadcast ended</string>
+    <string name="stream_broadcast_ended_message">\"%1$s\" is no longer on air. Reconnect when it starts again.</string>
+    <string name="stream_broadcast_reconnect">Reconnect</string>
+    <string name="stream_status_ended">Broadcast ended</string>
 </resources>

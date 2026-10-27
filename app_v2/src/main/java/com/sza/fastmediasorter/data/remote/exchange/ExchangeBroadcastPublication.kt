@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.data.remote.exchange
 
+import com.sza.fastmediasorter.data.broadcast.auth.BroadcastLinkChoice
 import com.sza.fastmediasorter.data.broadcast.auth.BroadcastVerifier
+import com.sza.fastmediasorter.domain.model.BroadcastLinkPasswordMode
 import com.sza.fastmediasorter.domain.model.SftpRendezvousBroadcast
 
 /**
@@ -14,6 +16,8 @@ data class ExchangeBroadcastPublication(
     val localPorts: Map<String, Int>,
     /** S4258, DEVICE-EXCHANGE item BF: one per pair that may listen through the relay; empty when unprotected. */
     val verifiers: List<BroadcastVerifier> = emptyList(),
+    /** S4440: what the announcer knew about the link's protection when it made this publication; logged only. */
+    val link: BroadcastLinkTrace? = null,
 ) {
 
     companion object {
@@ -22,3 +26,12 @@ data class ExchangeBroadcastPublication(
         const val NO_LISTENER_CAP = 0
     }
 }
+
+/**
+ * S4440: the remembered link mode next to the choice that protects the live link, which differ when a broadcast
+ * started under a prepared link. Kept in memory for the announce log line; it is never sent.
+ */
+data class BroadcastLinkTrace(
+    val remembered: BroadcastLinkPasswordMode,
+    val live: BroadcastLinkChoice?,
+)

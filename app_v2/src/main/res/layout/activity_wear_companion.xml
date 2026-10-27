@@ -35,6 +35,7 @@
             android:layout_height="wrap_content"
             android:minHeight="?attr/actionBarSize"
             app:navigationIcon="@drawable/ic_arrow_back"
+            app:stbTitleIcon="@drawable/ic_watch"
             app:title="@string/wear_companion">
 
             <LinearLayout

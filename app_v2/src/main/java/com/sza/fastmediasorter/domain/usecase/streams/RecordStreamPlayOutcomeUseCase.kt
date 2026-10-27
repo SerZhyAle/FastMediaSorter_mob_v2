@@ -54,9 +54,18 @@ class RecordStreamPlayOutcomeUseCase @Inject constructor(
         repository.recordPlayOutcome(id, outcome)
     }
 
+    /**
+     * S4444, LIVE-BROADCAST item T: the broadcast this row plays was ended by its owner. Neither green nor red - the
+     * channel worked, and nothing about it failed - and, like a failure, never counted as a play.
+     */
+    suspend fun recordPlayEnded(id: String) {
+        repository.recordPlayOutcome(id, OUTCOME_ENDED)
+    }
+
     companion object {
         const val OUTCOME_OK = "OK"
         const val OUTCOME_FAIL = "FAIL"
+        const val OUTCOME_ENDED = "ENDED"
         // S0700: an inconclusive probe; the row/tile bullet renders it as the amber "not yet confirmed" state.
         const val OUTCOME_UNKNOWN = "UNKNOWN"
 

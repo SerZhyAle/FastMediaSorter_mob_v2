@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.player.BroadcastPlaybackPairs
+import com.sza.fastmediasorter.domain.player.BroadcastStopSignal
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.player.ImageLoadingManager
 import com.sza.fastmediasorter.ui.player.PlayerActivity
@@ -60,6 +61,8 @@ class PlayerPlaybackCallbackImpl(
         // S0593: a stream URL that reached READY played OK here - record the green status in the
         // streams list. No-op for non-stream local files and http(s) media that is not a saved entry.
         val readyPath = viewModel.state.value.currentFile?.path
+        // S4444: a reconnected broadcast plays a newly resolved address the media list never saw.
+        (activity._videoPlayerManager?.currentFilePath ?: readyPath)?.let { activity.broadcastEnd.onReady(it) }
         if (readyPath != null && isStreamUrl(readyPath)) {
             viewModel.recordStreamPlayOk(readyPath)
         }
@@ -96,7 +99,10 @@ class PlayerPlaybackCallbackImpl(
         // instead of a silent skip. The ViewModel resolves the URL against the stored streams and
         // only shows the dialog when it maps to a saved row; otherwise the generic path runs.
         val currentPath = viewModel.state.value.currentFile?.path
+        val playingPath = activity._videoPlayerManager?.currentFilePath ?: currentPath
         when {
+            // S4444: a broadcast row plays a resolved address no stored row matches; its retry resolves again.
+            playingPath != null && activity.broadcastEnd.onFailureSurfaced(playingPath) -> Unit
             currentPath != null && isStreamUrl(currentPath) -> viewModel.onStreamPlaybackFailed(currentPath)
             userMessage != null -> {
                 // WHY: timeout-specific feedback should replace the generic skip toast, not stack with it.
@@ -191,6 +197,10 @@ class PlayerPlaybackCallbackImpl(
                 activity.advanceAudioBackgroundPhoto()
             }
         }
+    }
+
+    override fun onBroadcastStreamStopped(path: String, signal: BroadcastStopSignal) {
+        if (!activity.broadcastEnd.onStreamStopped(path, signal)) onPlaybackEnded()
     }
 
     override fun onAudioFormatChanged(format: VideoPlayerManager.AudioFormat?) {

@@ -35,6 +35,7 @@ import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
+import com.sza.fastmediasorter.domain.player.BroadcastPlaybackSession
 import com.sza.fastmediasorter.domain.streams.StreamFrameIngestor
 import com.sza.fastmediasorter.domain.usecase.exchange.ObserveLiveBroadcastSourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.PinnedStreamMove
@@ -146,6 +147,21 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     // S4160: a channel imported from a broadcast descriptor resolves its endpoint list before it plays.
     @Inject
     lateinit var broadcastEndpoints: com.sza.fastmediasorter.ui.streams.helpers.StreamBroadcastEndpointManager
+
+    // S4444: an inline broadcast's stop - ended, reconnect or lost connection (LIVE-BROADCAST item T).
+    @Inject
+    lateinit var broadcastEnd: com.sza.fastmediasorter.ui.streams.helpers.StreamBroadcastEndManager
+
+    private val broadcastEndHost = object : com.sza.fastmediasorter.ui.streams.helpers.StreamBroadcastEndManager.Host {
+        override fun stopAudio() = inlineAudio.stop()
+        override fun playResolved(session: BroadcastPlaybackSession, url: String) =
+            inlineAudio.play(session.source.copy(url = url), useBackgroundService = isBackgroundAudioEnabled())
+        override fun replayFromTop(session: BroadcastPlaybackSession) = playBroadcast(session.source)
+        override fun showUnavailable(session: BroadcastPlaybackSession) = showStreamUnavailable(session.source)
+        override fun remove(session: BroadcastPlaybackSession) {
+            viewModel.onRemove(session.source)
+        }
+    }
 
     // S4247: asks a waiting row's relay for its broadcast's start while the wait dialog is shown.
     @Inject
@@ -539,7 +555,13 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                 },
                 onError = ::showStreamUnavailable,
                 onPasswordRequired = ::askBroadcastPassword,
-                onSuccess = { viewModel.recordStreamPlaySuccess(it.id) },
+                onBroadcastStopped = { source, signal ->
+                    broadcastEnd.onStopped(this, source.url, signal, broadcastEndHost)
+                },
+                onSuccess = {
+                    viewModel.recordStreamPlaySuccess(it.id)
+                    broadcastEnd.onPlaying(this, it.url, broadcastEndHost)
+                },
                 // S1142: mirror the live now-playing track onto the active channel's grid tile. The id
                 // comes from the manager itself - reading it back via inlineAudio here crashed on the
                 // init-time emit (the lateinit is not yet assigned while the constructor runs).
@@ -1020,6 +1042,9 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * channel list. Inflated on first use only (Rule 18) - the policy may never raise it.
      *
      * S2896: dynamic D-pad focus routing ensures banner buttons are reachable via D-pad up from controls below.
+     *
+     * S4459: the offer exists only for a published list newer than the installed one, and Close is
+     * remembered for that list - the banner comes back when a newer one is published, not on the next open.
      */
     private fun showCatalogRefreshSuggestion() {
         val banner = catalogBanner ?: binding.stubCatalogBanner.inflate().also { catalogBanner = it }
@@ -1030,6 +1055,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             viewModel.onImportCatalog()
         }
         banner.findViewById<View>(R.id.btnCatalogBannerDismiss)?.setOnClickListener {
+            viewModel.onCatalogOfferDismissed()
             hideCatalogBanner()
         }
     }
@@ -1194,6 +1220,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             // same gesture both starts and stops the inline radio without hunting for the mini-control.
             // Stopping needs no network, so this toggle runs before the S0711 reachability gate below.
             source.mediaKind == "AUDIO" && inlineAudio.playingId == source.id -> {
+                broadcastEnd.onStopAll()
                 inlineAudio.stop()
                 // S1152: an explicit user stop clears the resume record so the next launch does not re-play it.
                 clearStreamResume()
@@ -1219,6 +1246,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             source.broadcastEndpoints,
             onWaiting = { showBroadcastWait(source) },
         ) { url ->
+            viewModel.onBroadcastResolved(source, url, broadcastEndpoints.storedUrl(source.id, source.url))
             startPlayback(source.copy(url = url))
         }
     }

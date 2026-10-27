@@ -181,6 +181,18 @@ class ResolveBroadcastPlaybackUseCaseTest {
     }
 
     @Test
+    fun aSavedRowWhoseRelayAnswersGone_isUnreachableAndNeverTriesTheTunnel() = runTest {
+        val bridges = mockk<BroadcastLoopbackBridges>(relaxed = true)
+
+        val outcome = savedUseCase(savedProbe(relayStatus = HTTP_GONE), bridges)(
+            row(deadLan(), listOf(lan(deadLan()), relay(pin = null), tunnel()))
+        )
+
+        assertEquals(Playback.Unreachable, outcome)
+        verify(exactly = 0) { bridges.tunnelPort(any()) }
+    }
+
+    @Test
     fun aRelayThatDoesNotAnswerNotFound_isPlayedAsBefore() = runTest {
         for (status in listOf(200, 401, 503, null)) {
             val outcome = savedUseCase(savedProbe(relayStatus = status))(
@@ -255,6 +267,7 @@ class ResolveBroadcastPlaybackUseCaseTest {
         const val PRESENTED = "SHA256:presented"
         const val TRUSTED = "trusted"
         const val CHANGED = "changed"
+        const val HTTP_GONE = 410
         const val FUTURE_MS = 4_070_908_800_000L
         const val PAST_MS = 978_307_200_000L
     }

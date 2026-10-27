@@ -41,21 +41,32 @@ class ScheduledMessageReceiver @Inject constructor(
 ) {
 
     suspend fun onMessage(sourceNodeId: String, data: ByteArray) {
+        Timber.d("S4248: scheduled message received on watch, bytes=%d", data.size)
         answer(sourceNodeId, receive(data))
     }
 
     internal suspend fun receive(data: ByteArray): WearScheduledMessageReceipt {
+        // Parsed before the offer is judged: a refusal only reaches the waiting phone run by carrying the id.
+        val parsed = WearScheduledMessageCodec.parse(data, gson)
         if (!capabilities.offersContentTransfer) {
-            return refusal(messageId = "", WearScheduledMessageReceiptReasons.NOT_OFFERED)
+            return refusal(messageIdOf(parsed), WearScheduledMessageReceiptReasons.NOT_OFFERED)
         }
-        return when (val parsed = WearScheduledMessageCodec.parse(data, gson)) {
+        return when (parsed) {
             is WearScheduledMessageParseResult.Parsed -> show(parsed.payload)
             is WearScheduledMessageParseResult.UnsupportedVersion ->
-                refusal(messageId = "", WearScheduledMessageReceiptReasons.UNSUPPORTED_VERSION)
-            WearScheduledMessageParseResult.Malformed,
+                refusal(parsed.messageId, WearScheduledMessageReceiptReasons.UNSUPPORTED_VERSION)
+            is WearScheduledMessageParseResult.Malformed,
             WearScheduledMessageParseResult.TooLarge ->
-                refusal(messageId = "", WearScheduledMessageReceiptReasons.MALFORMED)
+                refusal(messageIdOf(parsed), WearScheduledMessageReceiptReasons.MALFORMED)
         }
+    }
+
+    /** Empty when the message carried no readable id; the phone cannot match such a receipt and drops it. */
+    private fun messageIdOf(parsed: WearScheduledMessageParseResult): String = when (parsed) {
+        is WearScheduledMessageParseResult.Parsed -> parsed.payload.messageId
+        is WearScheduledMessageParseResult.UnsupportedVersion -> parsed.messageId
+        is WearScheduledMessageParseResult.Malformed -> parsed.messageId.orEmpty()
+        WearScheduledMessageParseResult.TooLarge -> ""
     }
 
     private suspend fun show(payload: WearScheduledMessagePayload): WearScheduledMessageReceipt {
@@ -102,6 +113,7 @@ class ScheduledMessageReceiver @Inject constructor(
 
     private fun refusal(messageId: String, reason: String): WearScheduledMessageReceipt {
         Timber.w("Scheduled message: not shown - %s", reason)
+        Timber.d("S4458: refusal receipt answered with id=%s reason=%s", messageId, reason)
         return WearScheduledMessageReceipt(messageId, shown = false, reason = reason)
     }
 }

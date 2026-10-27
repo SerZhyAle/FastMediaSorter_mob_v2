@@ -140,6 +140,22 @@ object SftpRendezvousCodec {
         else -> null
     }
 
+    /**
+     * Why [decodeBody] reads a broadcast body as nothing, for the log; null when it reads. Kept beside
+     * [decodeBroadcast] because the two must agree, which the codec test asserts.
+     */
+    fun broadcastRejection(body: JsonObject): String? = when {
+        body.string(KEY_BROADCAST_ID).isNullOrBlank() -> "no-broadcast-id"
+        body.string(KEY_DEVICE_ID).isNullOrBlank() -> "no-device-id"
+        body.string(KEY_MODE).isNullOrBlank() -> "no-mode"
+        body.get(KEY_DESCRIPTOR) !is JsonObject -> "descriptor-not-an-object"
+        else -> null
+    }
+
+    /** The broadcast id and device id a body names as written, for a log line about a body that did not read. */
+    fun broadcastIdsOf(body: JsonObject): Pair<String?, String?> =
+        body.string(KEY_BROADCAST_ID) to body.string(KEY_DEVICE_ID)
+
     /** Null for anything this build cannot use: refused, skipped, damaged or foreign. */
     fun decode(raw: String): SftpRendezvousRecord? {
         if (raw.toByteArray(Charsets.UTF_8).size > MAX_RECORD_BYTES) return null

@@ -14,6 +14,7 @@ import androidx.media3.common.Metadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.HttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
@@ -27,6 +28,8 @@ import com.sza.fastmediasorter.core.playback.resilience.StreamInlineRetryDecisio
 import com.sza.fastmediasorter.core.playback.resilience.StreamInlineRetryPolicy
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.domain.player.BroadcastPlaybackPairs
+import com.sza.fastmediasorter.domain.player.BroadcastPlaybackSessions
+import com.sza.fastmediasorter.domain.player.BroadcastStopSignal
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
 import com.sza.fastmediasorter.ui.player.helpers.StreamDataSourceFactoryProvider
 import com.sza.fastmediasorter.ui.streams.StreamTitleFormatter
@@ -106,6 +109,7 @@ class StreamInlineAudioManager(
                     reportSuccessfulPlayback()
                 }
                 Player.STATE_BUFFERING -> if (hasSuccessfulPlayback) scheduleToleranceTimeout()
+                Player.STATE_ENDED -> stopForBroadcast(BroadcastStopSignal.StreamEnded)
             }
         }
 
@@ -140,6 +144,8 @@ class StreamInlineAudioManager(
                 failed?.let(callbacks.onPasswordRequired)
                 return
             }
+            val badStatus = error.errorCode == PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS
+            if (badStatus && stopForBroadcast(BroadcastStopSignal.HttpStatus(error.responseCodeOrNull()))) return
             val decision = retryPolicy.onFailure(
                 failure = error.toStreamFailure(),
                 hasEverPlayed = hasSuccessfulPlayback,
@@ -386,6 +392,23 @@ class StreamInlineAudioManager(
      */
     private fun PlaybackException.toStreamFailure(): StreamAudioFailure =
         StreamAudioFailure(StreamFailureClass.classify(errorCode, httpStatus = null), errorCode)
+
+    /**
+     * S4444: hands a broadcast row's stop to the host instead of the retry ladder, in both the in-app and the
+     * service-owned mode; false for any other row, which keeps today's handling.
+     */
+    private fun stopForBroadcast(signal: BroadcastStopSignal): Boolean {
+        val source = currentSource?.takeIf { BroadcastPlaybackSessions.forUrl(it.url) != null } ?: return false
+        clearRecoveryState()
+        callbacks.onBroadcastStopped(source, signal)
+        return true
+    }
+
+    // The service path carries no cause chain across its controller, so the status is null there.
+    private fun PlaybackException.responseCodeOrNull(): Int? = generateSequence<Throwable>(this) { it.cause }
+        .filterIsInstance<HttpDataSource.InvalidResponseCodeException>()
+        .firstOrNull()
+        ?.responseCode
 
     private fun scheduleLocalRetry(delayMs: Long) {
         recoveryHandler.removeCallbacks(retryRunnable)

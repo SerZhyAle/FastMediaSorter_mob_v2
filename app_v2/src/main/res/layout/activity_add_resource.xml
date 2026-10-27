@@ -7,7 +7,7 @@
     <FrameLayout android:id="@+id/toolbarContainer" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorPrimary" android:elevation="@dimen/dimension_zero" app:layout_constraintTop_toTopOf="parent">
 
         <!-- S0800: early icon picker removed; the resource icon is assigned later in the resource editor. -->
-        <com.sza.fastmediasorter.ui.common.widget.StandardToolbar android:id="@+id/toolbar" style="@style/Widget.FastMediaSorter.Toolbar.Primary" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize" app:navigationIcon="@drawable/ic_arrow_back" app:navigationContentDescription="@string/back" app:title="@string/add_resource_title" />
+        <com.sza.fastmediasorter.ui.common.widget.StandardToolbar android:id="@+id/toolbar" style="@style/Widget.FastMediaSorter.Toolbar.Primary" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize" app:navigationIcon="@drawable/ic_arrow_back" app:navigationContentDescription="@string/back" app:title="@string/add_resource_title" app:stbTitleIcon="@drawable/ic_add" />
 
     </FrameLayout>
 

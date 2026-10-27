@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.broadcast.BroadcastMode
 import com.sza.fastmediasorter.databinding.ItemDeviceBroadcastRowBinding
 import com.sza.fastmediasorter.domain.model.ExchangeDeviceBroadcast
+import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeMessageText
 import com.sza.fastmediasorter.ui.streams.DeviceBroadcastsSectionState
 
 /**
@@ -78,11 +79,19 @@ class StreamDeviceBroadcastsManager(
         val parts = listOfNotNull(
             item.deviceName?.takeIf { it.isNotBlank() },
             context.getString(modeLabel(item.mode)),
-            context.getString(R.string.streams_device_broadcast_unsupported).takeIf { !item.playable },
+            problemLabel(item)?.let { context.getString(it) },
         )
         row.tvBroadcastDetails.text = parts.joinToString(DETAILS_SEPARATOR)
         row.root.setOnClickListener { onChosen(item) }
         return row.root
+    }
+
+    // Item CI: a record whose box did not open says why; a mode this build cannot play says that.
+    @StringRes
+    private fun problemLabel(item: ExchangeDeviceBroadcast): Int? = when {
+        item.sealNotice != null -> ExchangeMessageText.what(item.sealNotice)
+        !item.playable -> R.string.streams_device_broadcast_unsupported
+        else -> null
     }
 
     @StringRes

@@ -7,12 +7,15 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.security.PrivateDiagnosticValues
 import com.sza.fastmediasorter.data.local.db.CryptoHelper
 import com.sza.fastmediasorter.domain.model.ExchangeGrant
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -27,11 +30,15 @@ class ExchangeGrantRepository internal constructor(
     private val dataStore: DataStore<Preferences>,
     private val encrypt: (String) -> String?,
     private val decrypt: (String?) -> String?,
+    private val ioDispatcher: CoroutineDispatcher,
 ) {
 
     // The Keystore has no JVM implementation, so the cipher is a seam only a unit test replaces.
     @Inject
-    constructor(dataStore: DataStore<Preferences>) : this(dataStore, CryptoHelper::encrypt, CryptoHelper::decrypt)
+    constructor(
+        dataStore: DataStore<Preferences>,
+        @IoDispatcher ioDispatcher: CoroutineDispatcher,
+    ) : this(dataStore, CryptoHelper::encrypt, CryptoHelper::decrypt, ioDispatcher)
 
     val grants: Flow<List<ExchangeGrant>> = dataStore.data.map { decodeList(it[KEY_LIST]) }
 
@@ -57,9 +64,9 @@ class ExchangeGrantRepository internal constructor(
         }
     }
 
-    suspend fun password(login: String): String? =
+    suspend fun password(login: String): String? = withContext(ioDispatcher) {
         dataStore.data.first()[passwordKey(login)]?.let(decrypt)?.takeUnless(String::isEmpty)
-            ?.also { PrivateDiagnosticValues.register(it) }
+    }?.also { PrivateDiagnosticValues.register(it) }
 
     /**
      * The guests kept for a broadcast source (item BD): their logins only, since a broadcast grant's pair is made

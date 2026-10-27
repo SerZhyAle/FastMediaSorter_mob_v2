@@ -46,6 +46,9 @@ class BroadcastFileAudioService : Service() {
     lateinit var settingsRepository: SettingsRepository
 
     @Inject
+    lateinit var announceBroadcastEnd: AnnounceBroadcastEndUseCase
+
+    @Inject
     lateinit var credentialRegistry: BroadcastCredentialRegistry
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -320,12 +323,19 @@ class BroadcastFileAudioService : Service() {
     }
 
     private fun stopBroadcast() {
+        // A live session ends in contract order (LIVE-BROADCAST item T, DEVICE-EXCHANGE item DX): the exchange server
+        // and the relay hear it first, then the viewers get the end signal of the stream, then the source stops.
+        val live = _state.value is BroadcastState.Live
+        if (live) {
+            announceBroadcastEnd()
+            httpServer?.end(AnnounceBroadcastEndUseCase.STREAM_END_TIMEOUT_MS)
+        }
         // The playback loop sees the flag on its next paced wake and leaves the file alone.
         synchronized(stateLock) {
             isPlaying.set(false)
             _state.value = BroadcastState.Idle
         }
-        httpServer?.stop()
+        if (!live) httpServer?.stop()
         httpServer = null
         _listenerCount.value = 0
     }

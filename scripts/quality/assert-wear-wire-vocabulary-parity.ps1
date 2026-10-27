@@ -207,8 +207,8 @@ $vocabularies = @(
     @{ Name = 'BroadcastDescriptorDto @SerializedName fields'; Kind = 'Mirrored'; Compare = 'classSerializedNames'
        PhoneFile = 'data/broadcast/BroadcastDescriptorDto.kt'; WatchFile = 'data/broadcast/BroadcastDescriptorDto.kt'
        Class = 'BroadcastDescriptorDto'
-       PhoneOnly = @('auth', 'credentials')
-       PhoneOnlyReason = 'The watch copy is write side only and the watch never announces a protected broadcast; a descriptor handed to the watch with auth travels as a JsonObject on stream_broadcast_pass and its pass is a separate WearBroadcastPass (S4261), so the watch DTO never reads either member.' },
+       PhoneOnly = @('auth', 'credentials', 'pending')
+       PhoneOnlyReason = 'The watch copy is write side only and the watch never announces a protected broadcast; a descriptor handed to the watch with auth travels as a JsonObject on stream_broadcast_pass and its pass is a separate WearBroadcastPass (S4261), so the watch DTO never reads either member. pending marks a broadcast that has not started yet: the watch announces only its own live broadcast and never produces a pending descriptor, and LIVE-BROADCAST item S makes that legal - a producer at 1.3 hands out none and a consumer that does not know the member reads an ordinary RELAY or TUNNEL descriptor.' },
 
     @{ Name = 'BroadcastEndpointDto @SerializedName fields'; Kind = 'Mirrored'; Compare = 'classSerializedNames'
        PhoneFile = 'data/broadcast/BroadcastEndpointDto.kt'; WatchFile = 'data/broadcast/BroadcastEndpointDto.kt'

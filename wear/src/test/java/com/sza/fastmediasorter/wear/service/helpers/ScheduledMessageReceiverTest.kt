@@ -50,25 +50,48 @@ class ScheduledMessageReceiverTest {
         val receipt = receiver.receive(encode(WearScheduledMessagePayload("m1", title = "Hi")))
 
         assertFalse(receipt.shown)
+        assertEquals("m1", receipt.messageId)
         assertEquals(WearScheduledMessageReceiptReasons.NOT_OFFERED, receipt.reason)
         verify(exactly = 0) { notifier.notify(any(), any(), any()) }
     }
 
     @Test
-    fun `refuses malformed bytes`() = runTest {
+    fun `not offered wins over an unknown format version and keeps the id`() = runTest {
+        every { capabilities.offersContentTransfer } returns false
+        val bytes = """{"messageId":"m1","formatVersion":99,"title":"Hi"}""".toByteArray()
+
+        val receipt = receiver.receive(bytes)
+
+        assertEquals("m1", receipt.messageId)
+        assertEquals(WearScheduledMessageReceiptReasons.NOT_OFFERED, receipt.reason)
+    }
+
+    @Test
+    fun `refuses bytes with no readable id and answers with an empty one`() = runTest {
         val receipt = receiver.receive("not json".toByteArray())
 
         assertFalse(receipt.shown)
+        assertEquals("", receipt.messageId)
         assertEquals(WearScheduledMessageReceiptReasons.MALFORMED, receipt.reason)
     }
 
     @Test
-    fun `refuses an unknown format version`() = runTest {
+    fun `refuses a malformed message with the id it carried`() = runTest {
+        val receipt = receiver.receive("""{"messageId":"m1"}""".toByteArray())
+
+        assertFalse(receipt.shown)
+        assertEquals("m1", receipt.messageId)
+        assertEquals(WearScheduledMessageReceiptReasons.MALFORMED, receipt.reason)
+    }
+
+    @Test
+    fun `refuses an unknown format version with its id`() = runTest {
         val bytes = """{"messageId":"m1","formatVersion":99,"title":"Hi"}""".toByteArray()
 
         val receipt = receiver.receive(bytes)
 
         assertFalse(receipt.shown)
+        assertEquals("m1", receipt.messageId)
         assertEquals(WearScheduledMessageReceiptReasons.UNSUPPORTED_VERSION, receipt.reason)
     }
 

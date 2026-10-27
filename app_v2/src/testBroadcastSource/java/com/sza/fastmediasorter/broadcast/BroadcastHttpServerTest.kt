@@ -13,6 +13,7 @@ import org.junit.Before
 import org.junit.Test
 import java.net.HttpURLConnection
 import java.net.ServerSocket
+import java.net.Socket
 import java.net.URL
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
@@ -322,6 +323,40 @@ class BroadcastHttpServerTest {
         }
     }
 
+    // LIVE-BROADCAST item T: the deliberate end closes a listener's chunked body with its zero-length chunk, and
+    // the port is closed afterwards, so a reconnect is refused.
+    @Test
+    fun `end closes the chunked body cleanly and refuses a reconnect`() {
+        val port = findFreePort()
+        val srv = createServer(BroadcastSessionConfig.DEFAULT.copy(port = port))
+        server = srv
+        assertEquals(port, srv.start())
+        val received = java.io.ByteArrayOutputStream()
+        Socket(TEST_SERVER_ADDRESS, port).use { socket ->
+            socket.soTimeout = END_READ_TIMEOUT_MS
+            socket.getOutputStream().apply {
+                write("GET $ENDPOINT HTTP/1.1\r\nHost: $TEST_SERVER_ADDRESS\r\n\r\n".toByteArray(Charsets.ISO_8859_1))
+                flush()
+            }
+            awaitListeners(srv, 1)
+            srv.writeFrame(byteArrayOf(1, 2, 3, 4), 0, END_FRAME_BYTES)
+            thread(isDaemon = true) { srv.end(END_TIMEOUT_MS) }
+            val input = socket.getInputStream()
+            val buffer = ByteArray(END_FRAME_BYTES * END_FRAME_BYTES)
+            var read = input.read(buffer)
+            while (read >= 0 && !received.toString(Charsets.ISO_8859_1.name()).endsWith(CHUNKED_END)) {
+                received.write(buffer, 0, read)
+                read = input.read(buffer)
+            }
+        }
+
+        assertTrue(received.toString(Charsets.ISO_8859_1.name()).endsWith(CHUNKED_END))
+        val deadline = System.currentTimeMillis() + END_TIMEOUT_MS
+        while (srv.isAlive && System.currentTimeMillis() < deadline) Thread.sleep(END_POLL_MS)
+        val refused = runCatching { Socket(TEST_SERVER_ADDRESS, port).close() }.isFailure
+        assertTrue("a reconnect after the end must be refused", refused)
+    }
+
     private fun awaitListeners(srv: BroadcastHttpServer, expected: Int) {
         val deadline = System.currentTimeMillis() + 3000
         while (srv.listenerCount.value < expected && System.currentTimeMillis() < deadline) {
@@ -332,6 +367,11 @@ class BroadcastHttpServerTest {
 
     companion object {
         private const val TEST_SERVER_ADDRESS = "127.0.0.1"
+        private const val CHUNKED_END = "0\r\n\r\n"
+        private const val END_FRAME_BYTES = 4
+        private const val END_TIMEOUT_MS = 2_000L
+        private const val END_READ_TIMEOUT_MS = 3_000
+        private const val END_POLL_MS = 20L
         private const val ENDPOINT = BroadcastHttpServer.ENDPOINT
 
         /** Far more than one client queue plus one pipe can hold, so a blocking write would park here. */

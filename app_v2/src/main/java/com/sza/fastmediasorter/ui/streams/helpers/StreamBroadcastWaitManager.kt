@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.domain.usecase.streams.WatchBroadcastStartUseCase
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.Job
+import timber.log.Timber
 
 /**
  * S4247: the "has not started yet" state of a row imported from a link handed out before its broadcast began
@@ -41,6 +42,7 @@ class StreamBroadcastWaitManager(
     }
 
     private fun render(state: BroadcastStartState, playAtOnce: Boolean, onPlay: () -> Unit) {
+        Timber.d("S4247: receiver wait state ${state::class.simpleName} playAtOnce=$playAtOnce")
         when (state) {
             is BroadcastStartState.Waiting -> showing(waitMessage(state.untilMs), onPlay)
             BroadcastStartState.Started -> if (playAtOnce) {

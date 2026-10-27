@@ -132,6 +132,20 @@ class BroadcastCredentialRegistryTest {
     }
 
     @Test
+    fun `the live link choice follows begin, a prepared start, applyLink and end`() {
+        assertNull(registry.linkChoice)
+        registry.begin("b1", BroadcastLinkChoice.Open)
+        assertEquals(BroadcastLinkChoice.Open, registry.linkChoice)
+        registry.applyLink(BroadcastLinkChoice.Generated)
+        assertEquals(BroadcastLinkChoice.Generated, registry.linkChoice)
+        registry.end()
+        assertNull(registry.linkChoice)
+        val custom = BroadcastLinkChoice.Custom("secret")
+        registry.beginPrepared("b2", custom, BroadcastCredentialPair("listener", "secret"))
+        assertEquals(custom, registry.linkChoice)
+    }
+
+    @Test
     fun `applying a choice outside a broadcast does nothing`() {
         assertNull(registry.applyLink(BroadcastLinkChoice.Custom("secret")))
         assertNull(registry.pairs())

@@ -4,11 +4,14 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.security.PrivateDiagnosticValues
 import com.sza.fastmediasorter.data.local.db.CryptoHelper
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeTokenStore
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import java.security.MessageDigest
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -21,11 +24,12 @@ import javax.inject.Singleton
 @Singleton
 class KeystoreDeviceExchangeTokenStore @Inject constructor(
     private val dataStore: DataStore<Preferences>,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : DeviceExchangeTokenStore {
 
-    override suspend fun token(entry: DeviceExchangeAccountEntry): String? =
+    override suspend fun token(entry: DeviceExchangeAccountEntry): String? = withContext(ioDispatcher) {
         dataStore.data.first()[key(entry)]?.let(CryptoHelper::decrypt)?.takeUnless(String::isEmpty)
-            .also { token -> PrivateDiagnosticValues.register(token) }
+    }.also { token -> PrivateDiagnosticValues.register(token) }
 
     override suspend fun save(entry: DeviceExchangeAccountEntry, token: String): Boolean {
         PrivateDiagnosticValues.register(token)

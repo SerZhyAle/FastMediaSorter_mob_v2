@@ -319,6 +319,39 @@ Assert-RuleCount -Rule 'main-thread-bitmap-decode' -Name 'decode outside any Com
     'private fun decodeFrame(file: File): Bitmap? = BitmapFactory.decodeFile(file.path)',
     'val scope = rememberCoroutineScope()')
 
+# S4456 - keystore-decrypt-caller-context. A file that decrypts a DataStore value is clean only when a
+# dispatcher hop (withContext or flowOn) appears in it; a comment that mentions the hop does not count.
+Assert-SourceRule -Name 'keystore-decrypt-caller-context' -ExpectedBaseline 'keystore-decrypt-caller-context-baseline.txt'
+
+Assert-RuleCount -Rule 'keystore-decrypt-caller-context' -Name 'a decrypt over the DataStore with no hop is a hit' `
+    -Expected 1 -Lines @(
+    'class PinStore(private val dataStore: DataStore<Preferences>) {',
+    '    suspend fun pin(): String? = dataStore.data.first()[KEY]?.let(CryptoHelper::decrypt)',
+    '}')
+
+Assert-RuleCount -Rule 'keystore-decrypt-caller-context' -Name 'a withContext hop makes the file clean' `
+    -Expected 0 -Lines @(
+    'suspend fun pin(): String? = withContext(ioDispatcher) {',
+    '    dataStore.data.first()[KEY]?.let(CryptoHelper::decrypt)',
+    '}')
+
+Assert-RuleCount -Rule 'keystore-decrypt-caller-context' -Name 'a flowOn hop makes the file clean' `
+    -Expected 0 -Lines @(
+    'val values = dataStore.data.map { it[KEY] }.map { it?.let(CryptoHelper::decrypt) }.flowOn(ioDispatcher)')
+
+Assert-RuleCount -Rule 'keystore-decrypt-caller-context' -Name 'a hop named only in a comment does not count' `
+    -Expected 1 -Lines @(
+    '// the caller used to hop with withContext( here',
+    'val pin = dataStore.data.first()[KEY]?.let(CryptoHelper.decrypt)')
+
+Assert-RuleCount -Rule 'keystore-decrypt-caller-context' -Name 'a decrypt with no DataStore read is clean' `
+    -Expected 0 -Lines @(
+    'val plain = CryptoHelper.decrypt(encryptedPassword)')
+
+Assert-RuleCount -Rule 'keystore-decrypt-caller-context' -Name 'a DataStore read with no decrypt is clean' `
+    -Expected 0 -Lines @(
+    'val grants = dataStore.data.map { decodeList(it[KEY_LIST]) }')
+
 # S4429 - test-unjoined-scope. A name-bound scope the file joins is the cure the FailMessage
 # advertises, so it must not be counted; everything else keeps counting.
 Assert-RuleCount -Rule 'test-unjoined-scope' -Name 'name-bound scope with a same-name join is exempt' `

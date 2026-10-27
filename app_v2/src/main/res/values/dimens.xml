@@ -125,6 +125,7 @@
          ever draws one, so a bigger bitmap could not show more detail and would only cost cache space. -->
     <dimen name="installed_app_icon_cache_size">96dp</dimen>
     <dimen name="toolbar_height">56dp</dimen>
+    <dimen name="toolbar_title_icon_gap">8dp</dimen>
     <dimen name="card_corner_radius">8dp</dimen>
     <dimen name="card_elevation">2dp</dimen>
 

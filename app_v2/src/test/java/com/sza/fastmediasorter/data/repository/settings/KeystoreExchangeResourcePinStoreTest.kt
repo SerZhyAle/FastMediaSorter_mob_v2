@@ -4,6 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.emptyPreferences
 import com.sza.fastmediasorter.domain.model.ExchangeBinding
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
@@ -23,6 +24,7 @@ class KeystoreExchangeResourcePinStoreTest {
         dataStore = preferences,
         encrypt = { plain -> if (refuseWrites) null else "sealed:" + plain.reversed() },
         decrypt = { sealed -> sealed?.removePrefix("sealed:")?.reversed() },
+        ioDispatcher = Dispatchers.Unconfined,
     )
 
     @Test

@@ -7,9 +7,11 @@ import com.sza.fastmediasorter.data.repository.StreamCatalogCsvParser
 import com.sza.fastmediasorter.data.repository.StreamCollectionRepository
 import com.sza.fastmediasorter.data.repository.StreamCollectionsJsonParser
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
+import com.sza.fastmediasorter.data.repository.settings.StreamsSessionStore
 import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
 import com.sza.fastmediasorter.data.streams.StreamCatalogFacetNormalizer
 import com.sza.fastmediasorter.domain.delivery.DeliveryAssets
+import com.sza.fastmediasorter.domain.delivery.PublishedStreamCatalog
 import com.sza.fastmediasorter.domain.streams.facets.StreamBankFetchRetry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
@@ -28,6 +30,9 @@ import javax.inject.Inject
  * `streams.csv`), unzip + parse it, and merge-with-prune into the catalog-origin stream sources.
  * Reuses the shared [OkHttpClient]; the catalog is always fetched fresh (not SHA-pinned).
  */
+// One archive carries five payloads (rows, facets, atlas, collections, stamp) and each has its own
+// collaborator; splitting the constructor would only move the same wiring into a holder class.
+@Suppress("LongParameterList")
 class ImportStreamCatalogUseCase @Inject constructor(
     private val okHttpClient: OkHttpClient,
     private val parser: StreamCatalogCsvParser,
@@ -41,7 +46,10 @@ class ImportStreamCatalogUseCase @Inject constructor(
     private val collectionRepository: StreamCollectionRepository,
     // S1469: connectivity gate. Sits in the use case rather than in its callers so all four entry
     // points are covered at once; without it a dead network is only reported once OkHttp has timed out.
-    private val networkContextAnalyzer: NetworkContextAnalyzer
+    private val networkContextAnalyzer: NetworkContextAnalyzer,
+    // S4459: every entry point imports through this use case, so recording here is the one place that
+    // keeps the Streams banner from offering a list some other entry point has just installed.
+    private val sessionStore: StreamsSessionStore
 ) {
     suspend operator fun invoke(): CatalogImportResult = withContext(Dispatchers.IO) {
         Timber.i("Stream catalog import: starting")
@@ -132,6 +140,8 @@ class ImportStreamCatalogUseCase @Inject constructor(
         // payload that fails to parse or to store must not cost the user the bank that imported fine.
         applyCollections(payload.collectionsJson)
 
+        recordInstalledStamp(payload.stamp)
+
         Timber.i("Stream catalog import done: +%d ~%d -%d", merge.added, merge.updated, merge.removed)
         CatalogImportResult.Success(
             added = merge.added,
@@ -165,6 +175,21 @@ class ImportStreamCatalogUseCase @Inject constructor(
     }
 
     /**
+     * S4459: remembers which published archive this import installed, so the Streams banner offers an
+     * update only for a different one. Non-fatal by design: the rows are already merged, and a failed
+     * write costs one repeated offer at worst. A null stamp (the response carried no usable header)
+     * clears the stored one rather than leaving it vouching for content that has just been replaced.
+     */
+    private suspend fun recordInstalledStamp(stamp: String?) {
+        try {
+            sessionStore.writeCatalogInstalledStamp(stamp)
+        } catch (e: Exception) {
+            e.rethrowIfCancellation()
+            Timber.w(e, "Stream catalog import: installed stamp could not be stored; the bank is unaffected")
+        }
+    }
+
+    /**
      * Downloads the catalog zip and returns its [CatalogPayload] (CSV text + optional atlas PNG), or
      * null when the archive has no usable CSV. The zip is consumed in a SINGLE pass capturing both
      * entries; per-entry reads are capped to guard against a malformed/oversized zip. A 404 during the
@@ -184,7 +209,13 @@ class ImportStreamCatalogUseCase @Inject constructor(
             client.newCall(request).execute().use { response ->
                 if (response.isSuccessful) {
                     val stream = response.body?.byteStream() ?: error("empty response body")
-                    StreamBankFetchRetry.Attempt.Done(extractCatalog(stream))
+                    // S4459: taken from this very response, so the stored stamp describes the bytes that
+                    // were merged and not whatever the mirror serves a moment later.
+                    val stamp = PublishedStreamCatalog.stampOf(
+                        etag = response.header("ETag"),
+                        lastModified = response.header("Last-Modified"),
+                    )
+                    StreamBankFetchRetry.Attempt.Done(extractCatalog(stream)?.copy(stamp = stamp))
                 } else {
                     StreamBankFetchRetry.Attempt.HttpStatus(response.code)
                 }
@@ -280,7 +311,9 @@ class ImportStreamCatalogUseCase @Inject constructor(
         val csv: String,
         val atlasPng: ByteArray?,
         /** S2669: text of the `collections.json` entry, null when the archive did not carry one. */
-        val collectionsJson: String? = null
+        val collectionsJson: String? = null,
+        /** S4459: publication stamp of the archive this payload came from; null when the response had none. */
+        val stamp: String? = null
     )
 
     sealed interface CatalogImportResult {

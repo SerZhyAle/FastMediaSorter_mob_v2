@@ -93,6 +93,8 @@ class FaviconAtlasStoreTest {
         // S2669: an archive here never carries collections.json, so both collaborators stay inert.
         collectionsParser = StreamCollectionsJsonParser(),
         collectionRepository = mockk(relaxed = true),
+        // S4459: extractCatalog() never reaches the stamp write, which happens after the merge.
+        sessionStore = mockk(relaxed = true),
     )
 
     private fun zipOf(vararg entries: Pair<String, ByteArray>): ByteArray {

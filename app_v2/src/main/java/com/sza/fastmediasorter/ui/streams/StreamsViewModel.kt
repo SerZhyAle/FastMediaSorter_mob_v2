@@ -19,6 +19,7 @@ import com.sza.fastmediasorter.domain.model.StreamDefaultSort
 import com.sza.fastmediasorter.domain.model.StreamMediaTypeFilter
 import com.sza.fastmediasorter.domain.model.StreamResumeState
 import com.sza.fastmediasorter.domain.model.StreamsCatalogRefreshPolicy
+import com.sza.fastmediasorter.domain.player.BroadcastPlaybackSessions
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.StreamResumeStateRepository
 import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
@@ -40,6 +41,7 @@ import com.sza.fastmediasorter.domain.usecase.streams.PinnedStreamMove
 import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.RemoveStreamSourceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ReorderPinnedStreamUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.ResolveStreamCatalogOfferUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.UnpinStreamSourceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.UpdateStreamSourceUseCase
@@ -135,6 +137,8 @@ class StreamsViewModel @Inject constructor(
     private val observeStreamCollections: ObserveStreamCollectionsUseCase,
     // S4392: own exchange account live broadcasts for the "Own" category filter.
     private val observeLiveBroadcastSources: ObserveLiveBroadcastSourcesUseCase,
+    // S4459: the update banner is offered only for a catalog the mirror has published since the last import.
+    private val resolveStreamCatalogOffer: ResolveStreamCatalogOfferUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(StreamsUiState())
@@ -232,6 +236,11 @@ class StreamsViewModel @Inject constructor(
     // re-suggesting / re-fetching.
     @Volatile
     private var catalogPolicyApplied = false
+
+    // S4459: the published catalog stamp the visible update banner was offered for. Closing the banner
+    // stores exactly this one, so a list published later is offered again and the same one is not.
+    @Volatile
+    private var pendingOfferStamp: String? = null
 
     private val _events = Channel<StreamsEvent>(Channel.BUFFERED)
     val events: Flow<StreamsEvent> = _events.receiveAsFlow()
@@ -339,22 +348,38 @@ class StreamsViewModel @Inject constructor(
 
     /**
      * S0659: apply the catalog-refresh policy once per screen open. MANUAL does nothing; ON_OPEN offers a
-     * throttled, dismissible suggestion; PERIODIC_WIFI auto-refreshes when on Wi-Fi/unmetered and the daily
-     * throttle has elapsed. Throttling reads the last-refresh timestamp from the session store - opportunistic
-     * on-open only, no WorkManager job (strategic §3.2 "no heavy background work by default").
+     * dismissible suggestion; PERIODIC_WIFI auto-refreshes when on Wi-Fi/unmetered and the daily throttle has
+     * elapsed. Opportunistic on-open only, no WorkManager job (strategic §3.2 "no heavy background work by
+     * default").
+     *
+     * S4459: ON_OPEN offers only when the mirror has published a catalog that is neither the installed one
+     * nor one whose offer the user closed ([ResolveStreamCatalogOfferUseCase]); a timer alone offered the
+     * same unchanged list on almost every open. An unreachable mirror offers nothing.
      */
     fun onScreenOpened() = viewModelScope.launch {
         if (catalogPolicyApplied) return@launch
         catalogPolicyApplied = true
-        val now = System.currentTimeMillis()
-        val lastRefreshAt = sessionStore.read().lastCatalogRefreshAt
         when (settings.value.streamsCatalogRefreshPolicy) {
             StreamsCatalogRefreshPolicy.MANUAL -> Unit
-            StreamsCatalogRefreshPolicy.ON_OPEN ->
-                if (now - lastRefreshAt > ON_OPEN_THROTTLE_MS) _events.send(StreamsEvent.SuggestCatalogRefresh)
-            StreamsCatalogRefreshPolicy.PERIODIC_WIFI ->
-                if (networkContextAnalyzer.hasWifi() && now - lastRefreshAt > PERIODIC_THROTTLE_MS) onImportCatalog()
+            StreamsCatalogRefreshPolicy.ON_OPEN -> resolveStreamCatalogOffer()?.let { stamp ->
+                pendingOfferStamp = stamp
+                _events.send(StreamsEvent.SuggestCatalogRefresh)
+            }
+            StreamsCatalogRefreshPolicy.PERIODIC_WIFI -> {
+                val sinceRefresh = System.currentTimeMillis() - sessionStore.read().lastCatalogRefreshAt
+                if (networkContextAnalyzer.hasWifi() && sinceRefresh > PERIODIC_THROTTLE_MS) onImportCatalog()
+            }
         }
+    }
+
+    /**
+     * S4459: the user closed the update banner without taking it. The stamp it was offered for is stored so
+     * the same published list is not offered again; a list published later has a different stamp and is.
+     */
+    fun onCatalogOfferDismissed() {
+        val stamp = pendingOfferStamp ?: return
+        pendingOfferStamp = null
+        applicationScope.launch { sessionStore.writeCatalogDismissedStamp(stamp) }
     }
 
     /**
@@ -524,6 +549,14 @@ class StreamsViewModel @Inject constructor(
         }
         _events.send(StreamsEvent.Message(messageRes))
     }
+
+    /**
+     * S4444: [playedUrl] plays the broadcast row [source], stored at [storedUrl]. The player and the inline audio
+     * see only the played address, often a loopback bridge, and learn the row here to read its end and to resolve
+     * it again from the top (LIVE-BROADCAST item T, DEVICE-EXCHANGE 7.7).
+     */
+    fun onBroadcastResolved(source: StreamSourceEntity, playedUrl: String, storedUrl: String) =
+        BroadcastPlaybackSessions.register(playedUrl, source.copy(url = storedUrl))
 
     /** A protected broadcast refused [source]'s pair: keep the typed [password] and play the row again. */
     fun onBroadcastPasswordEntered(source: StreamSourceEntity, password: String) = viewModelScope.launch {
@@ -809,9 +842,8 @@ class StreamsViewModel @Inject constructor(
     }
 
     companion object {
-        // S0659: catalog-refresh throttles. ON_OPEN re-suggests at most every 6h; PERIODIC_WIFI
-        // opportunistically auto-refreshes at most once a day (no WorkManager periodic job).
-        private const val ON_OPEN_THROTTLE_MS = 6 * 60 * 60 * 1000L
+        // S0659: PERIODIC_WIFI opportunistically auto-refreshes at most once a day (no WorkManager periodic
+        // job). S4459: ON_OPEN has no timer any more - what is published decides.
         private const val PERIODIC_THROTTLE_MS = 24 * 60 * 60 * 1000L
         private const val SOURCE_ORIGIN_MANUAL = "MANUAL"
         private const val SOURCE_ORIGIN_LIVE_BROADCAST = "LIVE_BROADCAST"

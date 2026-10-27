@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorDto
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorSerializer
 import com.sza.fastmediasorter.data.broadcast.auth.BroadcastCredentialPair
 import com.sza.fastmediasorter.data.broadcast.auth.BroadcastLinkChoice
+import com.sza.fastmediasorter.data.remote.exchange.BroadcastLinkTrace
 import com.sza.fastmediasorter.data.remote.exchange.ExchangeBroadcastPublication
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpServerTunnelManager
 import com.sza.fastmediasorter.data.repository.DeviceExchangeAccountRepository
@@ -100,6 +101,11 @@ class ExchangeBroadcastAnnouncer @Inject constructor(
     @Volatile
     private var collidedKey: Announcement.Key? = null
 
+    // The live session [endDeliberately] ended, by its start time: until the service goes idle the collector still
+    // sees it live, and must not announce it again.
+    @Volatile
+    private var endedStartMs: Long? = null
+
     /** Follows [state] for the life of the process; a second call is ignored. */
     @Synchronized
     fun follow(state: StateFlow<BroadcastState>) {
@@ -177,8 +183,20 @@ class ExchangeBroadcastAnnouncer @Inject constructor(
         }
     }
 
+    /**
+     * The deliberate end of the live broadcast (contract DEVICE-EXCHANGE item DX, LIVE-BROADCAST item T), called by
+     * the broadcast service before it closes any stream: `broadcast-end` first, then the relay upload's clean end.
+     * Every wait is bounded, so it returns promptly with a dead server. True when `broadcast-end` was written.
+     */
+    fun endDeliberately(): Boolean {
+        val held = current ?: return false
+        endedStartMs = held.key.startedAtElapsedMs
+        return end()
+    }
+
     private suspend fun apply(live: BroadcastState.Live?, entry: DeviceExchangeAccountEntry?, accepted: String?) {
-        if (live == null || entry == null) {
+        if (live == null) endedStartMs = null
+        if (live == null || entry == null || live.startedAtElapsedRealtimeMs == endedStartMs) {
             end()
             return
         }
@@ -203,9 +221,10 @@ class ExchangeBroadcastAnnouncer @Inject constructor(
         val revision = credentials.revision.value
         if (descriptor == announced.value && revision == announcedRevision) return
         val verifiers = credentials.verifiers()
+        val link = BroadcastLinkTrace(resolveLinkChoice.rememberedMode(), credentials.linkChoice)
         announced.value = descriptor
         announcedRevision = revision
-        producer.announceBroadcast(publication(held, entry, descriptor).copy(verifiers = verifiers))
+        producer.announceBroadcast(publication(held, entry, descriptor).copy(verifiers = verifiers, link = link))
     }
 
     private suspend fun begin(
@@ -281,21 +300,27 @@ class ExchangeBroadcastAnnouncer @Inject constructor(
         prepared.guests.filterNot { it in kept }.forEach { grantRepository.keepBroadcastGuest(sourceKey, it) }
         preparedLinks.markConsumed(id)
         mutablePreparedOutcome.value = PreparedBroadcastStartOutcome.Consumed
+        Timber.d("S4247: broadcast consumed a prepared link")
         Timber.i("ExchangeBroadcastAnnouncer: on air under a prepared link ${id.take(LOGGED_ID_CHARS)}..")
     }
 
-    private fun end() {
-        current ?: return
+    // Item DX order: `broadcast-end`, then the upload's zero-length chunk, then the keys the tunnels and the relay
+    // were opened with. Synchronized because the service's deliberate end and the collector can both arrive here.
+    @Synchronized
+    private fun end(): Boolean {
+        current ?: return false
+        Timber.d("S4442: exchange end in DX order")
         current = null
         mutablePreparedOutcome.value = PreparedBroadcastStartOutcome.None
         announced.value = null
-        uploader.stop()
+        val told = producer.endBroadcast(ANNOUNCE_TIMEOUT_MS)
+        uploader.finish(RELAY_FINISH_TIMEOUT_MS)
         relayKeys.end()
         tunnelIdentities.end()
         credentials.end()
         grants.clear()
         announcedRevision = NOT_ANNOUNCED
-        producer.endBroadcast()
+        return told
     }
 
     private fun publication(
@@ -341,5 +366,11 @@ class ExchangeBroadcastAnnouncer @Inject constructor(
         const val OUTWARD_LINK_ID = "outward"
         const val NOT_ANNOUNCED = -1L
         const val LOGGED_ID_CHARS = 8
+
+        /** How long a deliberate end waits for `broadcast-end` to be written on the control stream. */
+        const val ANNOUNCE_TIMEOUT_MS = 750L
+
+        /** How long it then waits for the relay upload's zero-length chunk. */
+        const val RELAY_FINISH_TIMEOUT_MS = 750L
     }
 }

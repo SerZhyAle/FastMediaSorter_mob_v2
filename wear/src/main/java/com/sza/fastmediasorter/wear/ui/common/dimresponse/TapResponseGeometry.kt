@@ -25,4 +25,14 @@ object TapResponseGeometry {
 
     /** Width along a spark stripe: 0 at both ends, peaking mid-stroke. */
     fun widthProfile(t: Float): Float = sin(PI * t).toFloat()
+
+    /**
+     * S4443: top edge of the tap clock block. The block sits [gap] above the tap point so the fingertip
+     * that tapped does not cover it; a tap with no room above leaves it [gap] below the finger instead,
+     * kept inside the canvas.
+     */
+    fun clockTop(tapY: Float, blockHeight: Float, gap: Float, canvasHeight: Float): Float {
+        val above = tapY - gap - blockHeight
+        return if (above >= 0f) above else (tapY + gap).coerceAtMost(canvasHeight - blockHeight)
+    }
 }

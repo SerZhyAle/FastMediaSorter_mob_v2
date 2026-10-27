@@ -54,6 +54,8 @@ class BroadcastControlManager @Inject constructor(
     private val buildWatchBroadcastHandoff: Lazy<BuildWatchBroadcastHandoffUseCase>,
     private val settingsPanelManager: BroadcastSettingsPanelManager,
     private val observeExchangeState: Lazy<ObserveExchangeBroadcastPublishStateUseCase>,
+    private val preparedLinks: BroadcastPreparedLinksManager,
+    private val preparedStartGuard: BroadcastPreparedStartGuard,
 ) {
     /** Takes no dependencies of its own, so it is constructed here instead of going through Hilt. */
     private val preStreamPreview = BroadcastPreStreamPreviewManager()
@@ -134,7 +136,8 @@ class BroadcastControlManager @Inject constructor(
         setupLiveControls(activity, binding)
         landscapeVideo.bind(activity, binding) { controller.state.value }
         sharePanel.setup(activity, binding)
-        sourceEntries.setup(controller, activity, binding)
+        sourceEntries.setup(controller, activity, binding, preparedStartGuard)
+        preparedLinks.setup(activity, binding)
         setupCollapsibleSections(activity, binding)
 
         activity.lifecycleScope.launch {
@@ -232,14 +235,17 @@ class BroadcastControlManager @Inject constructor(
             // The port and title rows keep focus through the tap, so their edits reach the store only
             // once flushed - the stream would otherwise start on the previous port (S3234).
             settingsPanelManager.flushPending(binding.layoutBroadcastSettings)
-            binding.btnStartBroadcast.isEnabled = false
-            preStreamPreview.stop {
-                // The commit only starts the write; the stream must read the port the user typed, so
-                // the start waits for it to land (S3234).
-                activity.lifecycleScope.launch {
-                    settingsPanelManager.awaitPendingWrites()
-                    binding.btnStartBroadcast.isEnabled = true
-                    startSession(activity, binding)
+            // S4247: asked before the preview lets the camera go, so a cancel leaves the screen as it was.
+            preparedStartGuard.confirm(activity, selectedMode) {
+                binding.btnStartBroadcast.isEnabled = false
+                preStreamPreview.stop {
+                    // The commit only starts the write; the stream must read the port the user typed, so
+                    // the start waits for it to land (S3234).
+                    activity.lifecycleScope.launch {
+                        settingsPanelManager.awaitPendingWrites()
+                        binding.btnStartBroadcast.isEnabled = true
+                        startSession(activity, binding)
+                    }
                 }
             }
         }
@@ -562,6 +568,7 @@ class BroadcastControlManager @Inject constructor(
                 sharePanel.render(activity, binding)
                 previewBinder.attach(binding.previewContainer)
                 landscapeVideo.render(activity, binding, state)
+                preparedLinks.renderLive(activity, binding, state)
             }
             // The transient idle between the two services of an audio-video switch is not the end of the session.
             is BroadcastState.Idle -> if (switchTargetMode == null) renderPreStream(activity, binding, state)
@@ -591,6 +598,7 @@ class BroadcastControlManager @Inject constructor(
         previewBinder.detach()
         sharePanel.dismissQr()
         binding.btnStartBroadcast.visibility = View.VISIBLE
+        preparedLinks.renderPreStream(activity, binding)
         binding.layoutLiveControls.visibility = View.GONE
         binding.layoutSharePanel.visibility = View.GONE
         renderLightControls(binding, state)
@@ -763,6 +771,7 @@ class BroadcastControlManager @Inject constructor(
         selectionRows.clear()
         // setup() re-registers every launcher on the next attach, so dropping them here loses nothing.
         sharePanel.onDetach()
+        preparedLinks.onDetach()
         collapsibleSections?.clear()
         collapsibleSections = null
         cameraPermissionLauncher = null

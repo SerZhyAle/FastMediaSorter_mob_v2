@@ -31,9 +31,16 @@ class SetBroadcastLinkPasswordUseCase @Inject constructor(
         data object StoreFailed : Result
     }
 
-    /** The remembered mode, which the dialog opens on. */
-    suspend fun currentMode(): BroadcastLinkPasswordMode =
-        settingsRepository.getSettings().first().broadcast.linkPasswordMode
+    /**
+     * The mode the dialog opens on: the choice protecting the live link while a broadcast is announced, otherwise the
+     * remembered one. They differ when a broadcast started under a prepared link (S4247), which takes that link's
+     * choice - the remembered mode would then name a protection the live link does not have.
+     */
+    suspend fun currentMode(): BroadcastLinkPasswordMode {
+        val live = credentials.linkChoice?.mode
+        Timber.d("S4440: link password dialog mode live=$live")
+        return live ?: settingsRepository.getSettings().first().broadcast.linkPasswordMode
+    }
 
     suspend operator fun invoke(mode: BroadcastLinkPasswordMode, password: String?): Result {
         Timber.d("S4405: apply link password mode=$mode")

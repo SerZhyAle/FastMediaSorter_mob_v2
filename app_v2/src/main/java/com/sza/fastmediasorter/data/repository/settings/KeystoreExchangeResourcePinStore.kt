@@ -4,11 +4,14 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.security.PrivateDiagnosticValues
 import com.sza.fastmediasorter.data.local.db.CryptoHelper
 import com.sza.fastmediasorter.data.remote.exchange.ExchangeResourcePinStore
 import com.sza.fastmediasorter.domain.model.ExchangeBinding
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import java.security.MessageDigest
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -27,11 +30,15 @@ class KeystoreExchangeResourcePinStore internal constructor(
     private val dataStore: DataStore<Preferences>,
     private val encrypt: (String) -> String?,
     private val decrypt: (String?) -> String?,
+    private val ioDispatcher: CoroutineDispatcher,
 ) : ExchangeResourcePinStore {
 
     // The Keystore has no JVM implementation, so the cipher is a seam only the unit test replaces.
     @Inject
-    constructor(dataStore: DataStore<Preferences>) : this(dataStore, CryptoHelper::encrypt, CryptoHelper::decrypt)
+    constructor(
+        dataStore: DataStore<Preferences>,
+        @IoDispatcher ioDispatcher: CoroutineDispatcher,
+    ) : this(dataStore, CryptoHelper::encrypt, CryptoHelper::decrypt, ioDispatcher)
 
     private class Held(val pin: String?)
 
@@ -39,7 +46,9 @@ class KeystoreExchangeResourcePinStore internal constructor(
 
     override suspend fun pin(binding: ExchangeBinding): String? {
         cache[binding]?.let { return it.pin }
-        val stored = dataStore.data.first()[key(binding)]?.let(decrypt)?.takeUnless(String::isEmpty)
+        val stored = withContext(ioDispatcher) {
+            dataStore.data.first()[key(binding)]?.let(decrypt)?.takeUnless(String::isEmpty)
+        }
         PrivateDiagnosticValues.register(stored)
         cache[binding] = Held(stored)
         return stored

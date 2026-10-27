@@ -26,7 +26,7 @@ steps:
 
       Once Streams is on, **Update catalog** sits directly in the toolbar - no overflow menu to hunt through. Tap it and FastMediaSorter reports what changed, something like "Catalog: +48 new, 12 updated, 3 removed". If a catalog source turns out to be dead or painfully slow, the import now fails fast with a clear message instead of leaving the spinner turning.
 
-      Left the list for a while? A banner offers **Update the channel list?** with an **Update** button, and it clears itself once you act on it. Decide how eager that banner should be in **Settings**, the **Streams** section, **Updating the channel list**: **Only when I ask**, **Suggest when I open**, or **Automatically on Wi-Fi**.
+      When a newer channel list is published, a banner offers **Update the channel list?** with an **Update** button. It clears itself once you act on it, and if you close it, it stays away until a newer list is published. Decide how eager that banner should be in **Settings**, the **Streams** section, **Updating the channel list**: **Only when I ask**, **Suggest when I open**, or **Automatically on Wi-Fi**.
     image_bookmark:
       shot_id: streams.catalog-update-toolbar
       device_profile: phone
@@ -207,6 +207,6 @@ next_recipes:
     description: What happens once you actually tap a channel and playback starts.
 ---
 
-<sub class="doc-stamp">26.10.10 14:38</sub>
+<sub class="doc-stamp">26.10.26 18:01</sub>
 
 The [catalog](term:catalog) is how [Streams](term:streams-screen) goes from empty to thousands of [channels](term:channel) worth browsing: download it, keep it fresh, then find your way around with filters, curated collections, sorting and a list that remembers exactly where you left it.

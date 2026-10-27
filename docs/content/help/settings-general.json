@@ -259,7 +259,7 @@
         { "title": "Интерфейс списка ресурсов", "elements": ["grid-cell-size", "programs-panel"] },
         { "title": "Интерфейс браузера файлов", "elements": ["all-files", "hidden-files", "subfolders", "swipe-left", "swipe-right"] },
         { "title": "Удалённые ресурсы (SMB/(S)FTP/Облако)", "elements": ["smb", "ftp", "cloud"] },
-        { "title": "Доступ с телефона", "elements": ["sftp-server"] },
+        { "title": "Доступ к этому телефону", "elements": ["sftp-server"] },
         { "title": "Доступ отовсюду", "elements": ["drive-access", "exchange-server"] },
         { "title": "Авторизация и аккаунты", "elements": ["saved-auth", "secure-screens"] },
         { "title": "Резервные копии, восстановление и экспорт", "elements": ["export-settings", "import-settings", "backup", "restore", "reset-settings"] },

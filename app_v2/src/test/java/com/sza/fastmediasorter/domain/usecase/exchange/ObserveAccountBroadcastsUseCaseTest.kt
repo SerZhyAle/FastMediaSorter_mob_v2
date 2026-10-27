@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.domain.model.ExchangeDirectoryListing
 import com.sza.fastmediasorter.domain.model.ExchangeListedBroadcast
 import com.sza.fastmediasorter.domain.model.ExchangeListedDevice
+import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import com.sza.fastmediasorter.domain.model.ExchangeSealIssue
 import com.sza.fastmediasorter.domain.model.SftpRendezvousBroadcast
 import com.sza.fastmediasorter.domain.model.SftpRendezvousDevice
@@ -54,7 +55,7 @@ class ObserveAccountBroadcastsUseCaseTest {
     }
 
     @Test
-    fun `filters out broadcast with seal issue`() = runTest {
+    fun `lists a broadcast with a seal issue as not playable with its reason`() = runTest {
         val accountsRepo = mockk<DeviceExchangeAccountRepository> {
             every { entries } returns flowOf(emptyList())
         }
@@ -86,7 +87,10 @@ class ObserveAccountBroadcastsUseCaseTest {
         assertFalse(useCase.hasAccount().first())
 
         val result = useCase().first()
-        assertTrue(result.items.isEmpty())
+        val item = result.items.single()
+        assertEquals("b_broken_seal", item.broadcastId)
+        assertFalse(item.playable)
+        assertEquals(ExchangeMessage.SEALED_FAILED, item.sealNotice)
     }
 
     private fun device(name: String, vararg records: SftpRendezvousBroadcast, playable: Boolean = true) =

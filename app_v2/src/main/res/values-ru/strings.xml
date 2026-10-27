@@ -4135,7 +4135,7 @@
     <string name="sftp_server_notification_address">Подключайтесь к %1$s</string>
     <string name="sftp_server_notification_no_network">Нет Wi-Fi - другие устройства подключаются к телефону через сервер обмена или через Google Drive</string>
     <string name="sftp_server_action_stop">Остановить</string>
-    <string name="settings_sftp_server_title">Доступ с телефона</string>
+    <string name="settings_sftp_server_title">Доступ к этому телефону</string>
     <string name="settings_sftp_server_enable_title">SFTP-сервер</string>
     <string name="settings_sftp_server_enable_subtitle">Другие устройства в вашей сети смогут открыть выбранные папки</string>
     <string name="settings_sftp_server_status_off">Выключен</string>
@@ -4528,4 +4528,35 @@
     <string name="scheduled_ops_watch_clear_image">Убрать картинку</string>
     <string name="scheduled_ops_watch_no_image">Без картинки</string>
     <string name="scheduled_ops_error_watch_title_required">Введите заголовок</string>
+    <string name="broadcast_prepared_action">Ссылка заранее</string>
+    <string name="broadcast_prepared_list_title">Ссылки заранее</string>
+    <string name="broadcast_prepared_row">%1$s, до %2$s</string>
+    <string name="broadcast_prepared_share">Поделиться</string>
+    <string name="broadcast_prepared_revoke">Отозвать</string>
+    <string name="broadcast_prepared_revoke_title">Отозвать эту ссылку?</string>
+    <string name="broadcast_prepared_revoke_message">Все, кто получил эту ссылку, не смогут открыть по ней вещание. Отменить это нельзя.</string>
+    <string name="broadcast_prepared_dialog_title">Ссылка заранее</string>
+    <string name="broadcast_prepared_dialog_note">Ссылка заработает, когда вы начнёте такое вещание через этот сервер обмена. Само вещание не начнётся.</string>
+    <string name="broadcast_prepared_mode_label">Вид вещания</string>
+    <string name="broadcast_prepared_lifetime_label">Ссылка действует</string>
+    <string name="broadcast_prepared_guests_hint">Гости: логины через запятую или с новой строки</string>
+    <string name="broadcast_prepared_create">Создать ссылку</string>
+    <string name="broadcast_prepared_no_server">Ссылка заранее работает через сервер обмена. Добавьте его в разделе «Мои устройства».</string>
+    <string name="broadcast_prepared_limit">Можно держать до 5 ссылок заранее. Отзовите одну, чтобы создать новую.</string>
+    <string name="broadcast_prepared_mismatch_title">Розданная ссылка не заработает</string>
+    <string name="broadcast_prepared_mismatch_message">Ссылка, которую вы раздали заранее, сделана для другого вида вещания или другого сервера. Если начать сейчас, по ней это вещание не откроется.</string>
+    <string name="broadcast_prepared_mismatch_start">Начать всё равно</string>
+    <string name="broadcast_prepared_id_taken">На сервере уже идёт другое вещание под вашей ссылкой заранее. Это вещание вышло в эфир под новой ссылкой - поделитесь ею снова.</string>
+    <string name="broadcast_prepared_not_used">Это вещание не использует ссылку, розданную заранее. Поделитесь текущей ссылкой.</string>
+    <string name="broadcast_prepared_share_title">Поделиться ссылкой заранее</string>
+    <plurals name="broadcast_prepared_days">
+        <item quantity="one">%d день</item>
+        <item quantity="few">%d дня</item>
+        <item quantity="many">%d дней</item>
+        <item quantity="other">%d дня</item>
+    </plurals>
+    <string name="stream_broadcast_ended_title">Трансляция завершена</string>
+    <string name="stream_broadcast_ended_message">«%1$s» больше не в эфире. Подключитесь снова, когда трансляция возобновится.</string>
+    <string name="stream_broadcast_reconnect">Подключиться снова</string>
+    <string name="stream_status_ended">Трансляция завершена</string>
 </resources>

@@ -12,6 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="?actionBarSize"
         app:navigationIcon="@drawable/ic_arrow_back"
+        app:stbTitleIcon="@drawable/ic_widget_scheduled_tasks"
         app:title="@string/scheduled_ops_screen_title" />
 
     <LinearLayout

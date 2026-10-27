@@ -268,6 +268,69 @@ class RtspAuthGateTest {
         }
     }
 
+    // Item T: after the frames already on their way, exactly one BYE on the RTCP channel, then the end of stream;
+    // the port refuses a reconnect from the first moment of the end.
+    @Test
+    fun `end sends a BYE after whole frames, closes, and refuses a reconnect`() {
+        startRtpInner()
+        val port = startGate(protected = false)
+        val units = mutableListOf<ByteArray>()
+        Socket("127.0.0.1", port).use { socket ->
+            socket.soTimeout = IO_TIMEOUT_MS
+            socket.getOutputStream().apply {
+                write(
+                    (
+                        "SETUP rtsp://h:$port/live/trackID=0 RTSP/1.0\r\nCSeq: 3\r\n" +
+                            "Transport: RTP/AVP/TCP;unicast;interleaved=0-1\r\n\r\n"
+                        ).toByteArray(Charsets.ISO_8859_1),
+                )
+                flush()
+            }
+            val framer = RtspDownstreamFramer(socket.getInputStream())
+            repeat(FRAMES_BEFORE_END) { units += checkNotNull(framer.next()) }
+
+            thread(isDaemon = true) { gate?.end(IO_TIMEOUT_MS.toLong()) }
+            var unit = framer.next()
+            while (unit != null) {
+                units += unit
+                unit = framer.next()
+            }
+        }
+
+        val bye = units.last()
+        assertEquals('$'.code, bye[0].toInt())
+        assertEquals(1, bye[1].toInt())
+        assertEquals(BYE_TYPE, bye[BYE_TYPE_AT].toInt() and BYTE_MASK)
+        assertEquals(1, units.count { it[0] == '$'.code.toByte() && it[1].toInt() == 1 })
+        assertTrue(units.dropLast(1).drop(1).all { it.size == RTP_FRAME.size })
+        val refused = runCatching { Socket("127.0.0.1", port).close() }.isFailure
+        assertTrue("a reconnect after the end must be refused", refused)
+    }
+
+    // The fake library server answers SETUP with its interleaved pair, then streams RTP on channel 0.
+    private fun startRtpInner() = thread(isDaemon = true) {
+        val socket = innerServer.accept()
+        val reader = BufferedReader(InputStreamReader(socket.getInputStream(), Charsets.ISO_8859_1))
+        val head = generateSequence { reader.readLine() }.takeWhile { it.isNotEmpty() }.toList()
+        val cseq = head.firstOrNull { it.startsWith("CSeq") }?.substringAfter(':')?.trim() ?: return@thread
+        val out = socket.getOutputStream()
+        try {
+            out.write(
+                (
+                    "RTSP/1.0 200 OK\r\nCSeq: $cseq\r\n" +
+                        "Transport: RTP/AVP/TCP;unicast;interleaved=0-1;mode=play\r\n\r\n"
+                    ).toByteArray(Charsets.ISO_8859_1),
+            )
+            while (true) {
+                out.write(RTP_FRAME)
+                out.flush()
+                Thread.sleep(FRAME_INTERVAL_MS)
+            }
+        } catch (e: IOException) {
+            Timber.d(e, "fake library server: the gate hung up")
+        }
+    }
+
     private fun signedRequest(method: String, uri: String, cseq: Int, authorization: String) =
         "$method $uri RTSP/1.0\r\nCSeq: $cseq\r\nAuthorization: $authorization\r\n\r\n"
 
@@ -316,5 +379,17 @@ class RtspAuthGateTest {
         const val FRAME_INTERVAL_MS = 10L
         const val READ_CHUNK_BYTES = 1024
         val STREAM_FRAME = byteArrayOf('$'.code.toByte(), 0, 0, 4, 1, 2, 3, 4)
+        const val FRAMES_BEFORE_END = 4
+
+        // The interleaved header, then the eight-byte receiver report, then the BYE: its payload type is byte 13.
+        const val BYE_TYPE_AT = 13
+        const val BYE_TYPE = 203
+        const val BYTE_MASK = 0xFF
+
+        // An RTP packet on channel 0: V=2, payload type 96, SSRC 0x0A0B0C0D, four bytes of payload.
+        val RTP_FRAME = byteArrayOf(
+            '$'.code.toByte(), 0, 0, 16,
+            0x80.toByte(), 96, 0, 1, 0, 0, 0, 1, 0x0A, 0x0B, 0x0C, 0x0D, 1, 2, 3, 4,
+        )
     }
 }

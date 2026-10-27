@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical">
     
 
-    <com.sza.fastmediasorter.ui.common.widget.StandardToolbar android:id="@+id/toolbar" style="@style/Widget.FastMediaSorter.Toolbar.Primary" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize" android:nextFocusDown="@id/edit_exchange_admin_password" app:navigationIcon="@drawable/ic_arrow_back" app:title="@string/exchange_admin_title"/>
+    <com.sza.fastmediasorter.ui.common.widget.StandardToolbar android:id="@+id/toolbar" style="@style/Widget.FastMediaSorter.Toolbar.Primary" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize" android:nextFocusDown="@id/edit_exchange_admin_password" app:navigationIcon="@drawable/ic_arrow_back" app:title="@string/exchange_admin_title" app:stbTitleIcon="@drawable/ic_exchange_mono"/>
 
     <LinearLayout
         android:id="@+id/headerExchangeAdmin"

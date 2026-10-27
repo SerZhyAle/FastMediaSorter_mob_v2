@@ -5,6 +5,9 @@ import android.view.Window
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationVector1D
+import androidx.compose.animation.core.Easing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -87,11 +90,14 @@ private val SPARK_NORTH_COLOR = Color(SPARK_NORTH_COLOR_ARGB)
 
 private val SPARK_SOUTH_COLOR = Color(SPARK_SOUTH_COLOR_ARGB)
 
-/** S4139: long enough to read the time at a glance, short enough to hand the glass back to the dark. */
-private const val TAP_CLOCK_VISIBLE_MS = 1000
+/**
+ * S4443: real time the tap clock stays up, four times the second S4139 asked for. It runs on its own
+ * linear animation: measured against the ring's eased progress that old second lasted about 350 ms.
+ */
+private const val TAP_CLOCK_VISIBLE_MS = 4000
 
-/** Room between the tap point and the clock, so the finger that tapped does not cover it. */
-private val TAP_CLOCK_GAP = 24.dp
+/** S4443: room between the tap point and the clock, doubled because the finger that tapped still covered it. */
+private val TAP_CLOCK_GAP = 48.dp
 
 private const val MAX_BRIGHTNESS = 1.0f
 
@@ -120,12 +126,16 @@ private const val MAX_BRIGHTNESS = 1.0f
  *
  * S4020: the sheet draws no standing clock and no status line - the mode exists to spend nothing on a
  * picture, so the tap response below is the only thing it ever lights. S4139 narrowed it: the current
- * time and date are part of that tap response, above the tap point for one second, so a glance at the
+ * time and date are part of that tap response, above the tap point, so a glance at the
  * time no longer costs lifting the sheet. They go through [WearUnitDateTimeFormatter], so the clock
  * length and date order follow the watch's unit system like every other watch clock.
  *
+ * S4443: the time and date stay up for four seconds on a clock of their own, outliving the ring, and
+ * sit twice as far above the tap point so the fingertip does not hide them.
+ *
  * S4139: the window runs at the lowest brightness while the sheet is up and at full brightness while
- * a tap response animates; lifting the sheet restores the window brightness it found on the way in.
+ * a tap response animates - the ring, the sparks and the clock; lifting the sheet restores the window
+ * brightness it found on the way in.
  *
  * S3370: the tap now also throws a pair of tapered compass sparks out of the touch point - red
  * toward geographic north, blue toward south, driven by the live heading flow collected while this
@@ -139,6 +149,8 @@ internal fun WearDimOverlay(onExit: () -> Unit) {
     // Starts finished so nothing is drawn before the first tap. animateTo cancels a running animation,
     // so a tap during a ring restarts it from the new point instead of stacking a second ring.
     val tapProgress = remember { Animatable(1f) }
+    // S4443: the clock outlives the ring, so it needs a lifetime that is not the ring's eased progress.
+    val tapClockProgress = remember { Animatable(1f) }
     val scope = rememberCoroutineScope()
     // The callers pass a method reference, which is a fresh instance on every recomposition, and the
     // player recomposes about once a second while the track runs. Keying the gesture detector on it
@@ -168,7 +180,10 @@ internal fun WearDimOverlay(onExit: () -> Unit) {
     }
 
     BackHandler { currentExit() }
-    DimSheetBrightnessEffect(context = context, isTapResponseRunning = { tapProgress.value < 1f })
+    DimSheetBrightnessEffect(
+        context = context,
+        isTapResponseRunning = { tapProgress.value < 1f || tapClockProgress.value < 1f },
+    )
 
     Box(
         modifier = Modifier
@@ -183,16 +198,12 @@ internal fun WearDimOverlay(onExit: () -> Unit) {
                     onTap = { point ->
                         tapMark = point
                         tapClock = formatTapClock(clockFormatter, unitSystem)
+                        Timber.d("S4443: tap clock restarted at y=${point.y}")
                         val azimuth = heading?.takeIf { it.isTrustworthy }?.azimuthDegrees
                             ?: (Random.nextFloat() * FULL_CIRCLE_DEGREES)
                         sparkNorthAzimuthDegrees = (FULL_CIRCLE_DEGREES - azimuth) % FULL_CIRCLE_DEGREES
-                        scope.launch {
-                            tapProgress.snapTo(0f)
-                            tapProgress.animateTo(
-                                1f,
-                                tween(TAP_MARK_DURATION_MS, easing = LinearOutSlowInEasing)
-                            )
-                        }
+                        scope.launch { tapProgress.restart(TAP_MARK_DURATION_MS, LinearOutSlowInEasing) }
+                        scope.launch { tapClockProgress.restart(TAP_CLOCK_VISIBLE_MS, LinearEasing) }
                     },
                     onDoubleTap = { currentExit() },
                     onLongPress = { currentExit() }
@@ -213,10 +224,10 @@ internal fun WearDimOverlay(onExit: () -> Unit) {
                     if (sparkProgress < 1f) {
                         drawSparkPair(stripePath, center, sparkNorthAzimuthDegrees, sparkProgress)
                     }
-                    val clock = tapClock
-                    if (clock != null && progress * TAP_MARK_DURATION_MS < TAP_CLOCK_VISIBLE_MS) {
-                        drawTapClock(textMeasurer, clock, clockStyles, center)
-                    }
+                }
+                val clock = tapClock
+                if (center != null && clock != null && tapClockProgress.value < 1f) {
+                    drawTapClock(textMeasurer, clock, clockStyles, center)
                 }
             }
             .semantics { contentDescription = exitDesc }
@@ -293,6 +304,12 @@ private fun Window.setScreenBrightness(value: Float) {
     attributes = attributes.apply { screenBrightness = value }
 }
 
+/** Restarts the animation from zero, so a new tap replaces a running response instead of stacking on it. */
+private suspend fun Animatable<Float, AnimationVector1D>.restart(durationMs: Int, easing: Easing) {
+    snapTo(0f)
+    animateTo(1f, tween(durationMs, easing = easing))
+}
+
 /** Time on the first line, weekday and date on the second, in the unit system every watch clock obeys. */
 private fun formatTapClock(formatter: WearUnitDateTimeFormatter, system: UnitSystem): Pair<String, String> {
     val now = System.currentTimeMillis()
@@ -309,10 +326,7 @@ private fun DrawScope.drawTapClock(
     val timeLayout = textMeasurer.measure(clock.first, styles.first)
     val dateLayout = textMeasurer.measure(clock.second, styles.second)
     val blockHeight = (timeLayout.size.height + dateLayout.size.height).toFloat()
-    val gap = TAP_CLOCK_GAP.toPx()
-    val above = tap.y - gap - blockHeight
-    // A tap near the top edge leaves no room above it, so the clock moves below the finger instead.
-    val top = if (above >= 0f) above else (tap.y + gap).coerceAtMost(size.height - blockHeight)
+    val top = TapResponseGeometry.clockTop(tap.y, blockHeight, TAP_CLOCK_GAP.toPx(), size.height)
     drawText(timeLayout, topLeft = Offset(centeredLeft(tap.x, timeLayout.size.width), top))
     drawText(
         dateLayout,

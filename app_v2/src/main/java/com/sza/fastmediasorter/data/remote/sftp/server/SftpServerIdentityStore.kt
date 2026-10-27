@@ -5,13 +5,16 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.data.local.db.CryptoHelper
 import com.sza.fastmediasorter.data.repository.settings.SftpServerSettingsStore
 import com.sza.fastmediasorter.domain.model.SftpServerAuthMode
 import com.sza.fastmediasorter.domain.model.SftpServerClientCredentials
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import org.apache.sshd.common.config.keys.KeyUtils
 import org.apache.sshd.common.util.security.SecurityUtils
 import timber.log.Timber
@@ -41,6 +44,7 @@ import javax.inject.Singleton
 class SftpServerIdentityStore @Inject constructor(
     private val dataStore: DataStore<Preferences>,
     private val settingsStore: SftpServerSettingsStore,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) {
 
     private val mutex = Mutex()
@@ -88,7 +92,7 @@ class SftpServerIdentityStore @Inject constructor(
     private suspend fun loadKeyPair(): KeyPair? {
         val prefs = dataStore.data.first()
         val publicEncoded = prefs[keyHostPublic]
-        val privatePlain = prefs[keyHostPrivateEncrypted]?.let(CryptoHelper::decrypt)
+        val privatePlain = withContext(ioDispatcher) { prefs[keyHostPrivateEncrypted]?.let(CryptoHelper::decrypt) }
         if (publicEncoded == null || privatePlain.isNullOrEmpty()) {
             if (publicEncoded != null) {
                 Timber.w("SftpServerIdentityStore: stored host key unreadable, generating a new one")

@@ -48,14 +48,28 @@ class WearScheduledMessageCodecTest {
     }
 
     @Test
-    fun `unknown format version is reported, garbage is malformed`() {
+    fun `unknown format version is reported with its id, garbage is malformed`() {
         val future = """{"messageId":"m","formatVersion":9,"title":"t"}""".toByteArray()
 
-        assertEquals(WearScheduledMessageParseResult.UnsupportedVersion(9), WearScheduledMessageCodec.parse(future, gson))
-        assertEquals(WearScheduledMessageParseResult.Malformed, WearScheduledMessageCodec.parse("{]".toByteArray(), gson))
         assertEquals(
-            WearScheduledMessageParseResult.Malformed,
+            WearScheduledMessageParseResult.UnsupportedVersion(9, "m"),
+            WearScheduledMessageCodec.parse(future, gson),
+        )
+        assertEquals(
+            WearScheduledMessageParseResult.Malformed(),
+            WearScheduledMessageCodec.parse("{]".toByteArray(), gson),
+        )
+    }
+
+    @Test
+    fun `a malformed message keeps the id it carried`() {
+        assertEquals(
+            WearScheduledMessageParseResult.Malformed("m"),
             WearScheduledMessageCodec.parse("""{"messageId":"m"}""".toByteArray(), gson),
+        )
+        assertEquals(
+            WearScheduledMessageParseResult.Malformed(),
+            WearScheduledMessageCodec.parse("""{"title":"t"}""".toByteArray(), gson),
         )
     }
 
@@ -67,7 +81,9 @@ class WearScheduledMessageCodecTest {
             reason = WearScheduledMessageReceiptReasons.NO_NOTIFICATION_PERMISSION,
         )
 
-        assertEquals(receipt, WearScheduledMessageCodec.parseReceipt(WearScheduledMessageCodec.encodeReceipt(receipt, gson), gson))
+        val encoded = WearScheduledMessageCodec.encodeReceipt(receipt, gson)
+
+        assertEquals(receipt, WearScheduledMessageCodec.parseReceipt(encoded, gson))
         assertNull(WearScheduledMessageCodec.parseReceipt("""{"shown":true}""".toByteArray(), gson))
     }
 }

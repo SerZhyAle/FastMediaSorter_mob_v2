@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
+import com.sza.fastmediasorter.domain.player.BroadcastPlaybackSessions
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
 import com.sza.fastmediasorter.domain.usecase.GetMediaFilesUseCase
@@ -314,7 +315,8 @@ class PlayerMediaFilesLoader(
                     // S0592: derive MediaType from the catalog mediaKind so audio-only streams open on
                     // the audio branch instead of being forced to VIDEO. VIDEO/RTSP and unknown URLs
                     // (no catalog row) keep VIDEO.
-                    val streamSource = getStreamSourceByUrlUseCase(streamPath)
+                    val streamSource = BroadcastPlaybackSessions.forUrl(streamPath)?.source
+                        ?: getStreamSourceByUrlUseCase(streamPath)
                     val channelTitle = streamSource?.title?.takeIf { it.isNotBlank() }
                     val streamType = if (streamSource?.mediaKind == "AUDIO") MediaType.AUDIO else MediaType.VIDEO
                     val now = System.currentTimeMillis()
@@ -357,7 +359,9 @@ class PlayerMediaFilesLoader(
                     val targetUrl = currentFilePath?.takeIf {
                         it.startsWith("http://") || it.startsWith("https://") || it.startsWith("rtsp://")
                     } ?: streamPath
-                    val targetIndex = catalogFiles.indexOfFirst { it.path == targetUrl }
+                    // A tap may launch a temporary loopback URL; the catalog keeps the original row address.
+                    val storedTargetUrl = BroadcastPlaybackSessions.forUrl(targetUrl)?.source?.url ?: targetUrl
+                    val targetIndex = catalogFiles.indexOfFirst { it.path == storedTargetUrl }
                     val (streamFiles, streamIndex) =
                         if (targetIndex >= 0) {
                             catalogFiles to targetIndex

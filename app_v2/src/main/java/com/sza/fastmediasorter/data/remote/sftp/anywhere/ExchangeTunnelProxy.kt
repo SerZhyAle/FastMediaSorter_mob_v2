@@ -91,7 +91,8 @@ class ExchangeTunnelProxy(
 /**
  * The exchange server has no live registration for the share (unknown, ended or full - contract DEVICE-EXCHANGE
  * 7.5 answers all three alike), or it closed the stream before answering. Kept apart from transport,
- * authentication and host-key failures (`SHARE-SESSION` rule 7).
+ * authentication and host-key failures (`SHARE-SESSION` rule 7). [reason] is the refusal's reason, null when the
+ * server closed without one; only a `broadcastId` tunnel may name an ended broadcast (1.10 item DY).
  */
-class ExchangeTunnelUnavailableException(reason: String?) :
+class ExchangeTunnelUnavailableException(val reason: String?) :
     IOException("exchange tunnel unavailable: ${reason ?: "no answer"}")

@@ -418,6 +418,8 @@ class StreamGridAdapter(
                         R.color.stream_status_failed,
                         R.string.stream_status_failed
                     )
+                RecordStreamPlayOutcomeUseCase.OUTCOME_ENDED ->
+                    Triple(R.drawable.ic_stop, R.color.stream_status_unknown, R.string.stream_status_ended)
                 else ->
                     Triple(
                         R.drawable.ic_stream_status_unknown,

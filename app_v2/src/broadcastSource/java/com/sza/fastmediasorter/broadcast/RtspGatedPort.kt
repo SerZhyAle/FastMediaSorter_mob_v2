@@ -23,5 +23,9 @@ internal class RtspGatedPort(val publicPort: Int, registry: BroadcastCredentialR
         check(gate.start()) { "RTSP port $publicPort is occupied or unavailable" }
     }
 
+    /** Closes at once; kept for a session that failed or never went live, where there is no viewer to tell. */
     fun close() = gate.stop()
+
+    /** The deliberate end of a live session: new connections refused, an RTCP BYE on every stream, then close. */
+    fun end() = gate.end(AnnounceBroadcastEndUseCase.STREAM_END_TIMEOUT_MS)
 }

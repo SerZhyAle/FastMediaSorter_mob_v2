@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S4247: one live link prepared before the start, with its Share and Revoke actions. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:minHeight="@dimen/touch_target_min_height"
+    android:orientation="horizontal">
+
+    <TextView
+        android:id="@+id/tvPreparedLinkSummary"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurface"
+        tools:text="Audio only, until 2 Nov 2026" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnPreparedLinkShare"
+        style="@style/Widget.FastMediaSorter.Button.Text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minHeight="@dimen/touch_target_min_height"
+        android:clickable="true"
+        android:focusable="true"
+        android:nextFocusLeft="@id/btnPreparedLinkRevoke"
+        android:nextFocusRight="@id/btnPreparedLinkRevoke"
+        android:text="@string/broadcast_prepared_share" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnPreparedLinkRevoke"
+        style="@style/Widget.FastMediaSorter.Button.Text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minHeight="@dimen/touch_target_min_height"
+        android:clickable="true"
+        android:focusable="true"
+        android:nextFocusLeft="@id/btnPreparedLinkShare"
+        android:nextFocusRight="@id/btnPreparedLinkShare"
+        android:text="@string/broadcast_prepared_revoke" />
+</LinearLayout>

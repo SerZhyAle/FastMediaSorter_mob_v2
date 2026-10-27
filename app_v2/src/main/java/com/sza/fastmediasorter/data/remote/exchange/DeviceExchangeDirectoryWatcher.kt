@@ -76,6 +76,8 @@ class DeviceExchangeDirectoryWatcher @Inject constructor(
             when (envelope.type) {
                 DeviceExchangeEnvelope.TYPE_DIRECTORY -> {
                     val fresh = DeviceExchangeDirectoryState.of(DeviceExchangeDirectory.from(envelope))
+                    Timber.d("S4441: directory answer read")
+                    ExchangeBroadcastDiagnostics.logDirectory(fresh.directory)
                     state = fresh
                     out.send(fresh.directory)
                 }
@@ -96,9 +98,16 @@ class DeviceExchangeDirectoryWatcher @Inject constructor(
         envelope: DeviceExchangeEnvelope,
         out: SendChannel<DeviceExchangeDirectory>,
     ): DeviceExchangeDirectoryState? {
+        Timber.d("S4441: changed push read")
+        val changed = DeviceExchangeChanged.from(envelope)
         // A push that arrives before the first answer is covered by that answer.
-        if (held == null) return null
-        return when (val outcome = held.apply(DeviceExchangeChanged.from(envelope))) {
+        if (held == null) {
+            ExchangeBroadcastDiagnostics.logChanged(changed, null, OUTCOME_BEFORE_FIRST_ANSWER)
+            return null
+        }
+        val outcome = held.apply(changed)
+        ExchangeBroadcastDiagnostics.logChanged(changed, held.revision, ExchangeBroadcastDiagnostics.label(outcome))
+        return when (outcome) {
             is DeviceExchangeDirectoryState.Outcome.Applied -> outcome.state.also { out.send(it.directory) }
             DeviceExchangeDirectoryState.Outcome.Gap -> {
                 session.send(LIST)
@@ -111,6 +120,7 @@ class DeviceExchangeDirectoryWatcher @Inject constructor(
     companion object {
         const val KEEPALIVE_SECONDS = 30
         private const val MILLIS_PER_SECOND = 1_000L
+        private const val OUTCOME_BEFORE_FIRST_ANSWER = "before-first-answer"
         private val LIST = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_LIST)
         private val SUBSCRIBE = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_SUBSCRIBE)
         private val KEEPALIVE = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_KEEPALIVE)

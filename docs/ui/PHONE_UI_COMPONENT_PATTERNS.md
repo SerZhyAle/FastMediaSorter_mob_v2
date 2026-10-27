@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.02 18:41</sub>
+<sub class="doc-stamp">26.10.26 18:38</sub>
 
 # Phone UI Component Patterns and Unification Catalogue
 
@@ -310,6 +310,8 @@ class StandardToolbar @JvmOverloads constructor(
 }
 ```
 
+Two `declare-styleable StandardToolbar` attributes carry the title icon: `stbTitleIcon` (the glyph) and `stbTitleIconTint` (its colour, set by the style).
+
 `setUpNavigation` routes through `activity.onBackPressedDispatcher.onBackPressed()` in every case, so the three current wiring idioms collapse to one: 7 files pairing `setSupportActionBar` with `setDisplayHomeAsUpEnabled`, 19 files calling `toolbar.setNavigationOnClickListener(..)`, 25 files using `onBackPressedDispatcher`, and `BrowseActivity`'s hand-rolled `btnBack` wired independently of all three.
 
 Two styles, and only two:
@@ -324,15 +326,24 @@ Two styles, and only two:
     <item name="android:background">?attr/colorPrimary</item>
     <item name="navigationIconTint">?attr/colorOnPrimary</item>
     <item name="titleTextColor">?attr/colorOnPrimary</item>
+    <item name="stbTitleIconTint">?attr/colorOnPrimary</item>
 </style>
 
 <style name="Widget.FastMediaSorter.Toolbar.Flat">
     <item name="android:background">@android:color/transparent</item>
     <item name="navigationIconTint">?attr/colorControlNormal</item>
+    <item name="stbTitleIconTint">?attr/colorControlNormal</item>
 </style>
 ```
 
-A toolbar declaration carries `style="@style/Widget.FastMediaSorter.Toolbar.<Variant>"` and nothing else beyond `android:id`, layout params and `app:title`.
+A toolbar declaration carries `style="@style/Widget.FastMediaSorter.Toolbar.<Variant>"` and nothing else beyond `android:id`, layout params, `app:title` and `app:stbTitleIcon`.
+
+**Title icon (S4460).** The first line of a screen of a feature that has a glyph in the app starts with that glyph, between the back arrow and the title:
+
+- The glyph is the one the feature is entered by - its launcher tile in `InternalRouteCatalog`, or the icon of its settings row - never a new drawing made for the title.
+- A screen declares it as `app:stbTitleIcon="@drawable/ic_<feature>"` beside `app:title`, and its `layout-land` twin carries the same attribute. The colour is the style's `stbTitleIconTint`, never a hex value; the glyph is 24dp with an 8dp gap (`toolbar_title_icon_gap`) before the title.
+- A screen whose title comes from data (the player, the resource editor, a help page), a picker, a screen whose feature has no glyph, and every dialog or bottom sheet declares none.
+- A screen with its own title row instead of `StandardToolbar` (settings) sets `android:drawableStart`, `android:drawableTint` and `android:drawablePadding` (`toolbar_title_icon_gap`) on the title `TextView`, in every layout of that screen.
 
 Anti-patterns retired by S3248: 27 `MaterialToolbar` declarations in 7 attribute fingerprints, zero of them carrying a `style` attribute, so every visual decision was restated inline and a theme change had to be applied 27 times. All 27 are now `StandardToolbar` - 14 `Primary`, 13 `Flat` - and the `styleless-toolbar` dimension of `scripts/quality/assert-source-gates.ps1` holds the count at zero for both class names, so a new screen cannot reintroduce the pattern. Two sites needed a stated choice rather than a mechanical one: `activity_duplicates.xml` mixed Family A hosting with Family B tinting and went to `Primary`, and `fragment_permissions_management.xml` was the one primary-coloured settings fragment and went to `Flat` beside the licences fragment. `activity_streams.xml` keeps `ThemeOverlay.FastMediaSorter.Toolbar.Primary` alongside its style: it is the only site with an `app:menu`, and the overlay carries the action-menu text colour and the D-pad focus selectors that the two variants do not.
 

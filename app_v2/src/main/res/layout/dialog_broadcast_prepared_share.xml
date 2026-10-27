@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S4247: hands out a link prepared before the start through the live share panel's channels; scrolls, so no
+     landscape variant. -->
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingHorizontal="@dimen/dialog_padding_large"
+        android:paddingTop="@dimen/margin_small"
+        android:paddingBottom="@dimen/margin_small">
+
+        <ImageView
+            android:id="@+id/ivPreparedShareQr"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/broadcast_share_qr_cd" />
+
+        <TextView
+            android:id="@+id/tvPreparedSharePassword"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="?attr/colorOnSurface"
+            android:textIsSelectable="true"
+            android:visibility="gone"
+            tools:text="Password: abcd-efgh"
+            tools:visibility="visible" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPreparedShareCopy"
+            style="@style/Widget.FastMediaSorter.Button.Tonal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/touch_target_min_height"
+            android:focusable="true"
+            android:nextFocusDown="@+id/btnPreparedShareSend"
+            android:text="@string/broadcast_share_copy" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPreparedShareSend"
+            style="@style/Widget.FastMediaSorter.Button.Tonal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/touch_target_min_height"
+            android:focusable="true"
+            android:nextFocusUp="@id/btnPreparedShareCopy"
+            android:nextFocusDown="@+id/btnPreparedShareFile"
+            android:text="@string/broadcast_share_send_link" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPreparedShareFile"
+            style="@style/Widget.FastMediaSorter.Button.Tonal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/touch_target_min_height"
+            android:focusable="true"
+            android:nextFocusUp="@id/btnPreparedShareSend"
+            android:text="@string/broadcast_share_export_file" />
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

@@ -8,8 +8,10 @@ data class ExchangeDeviceBroadcast(
     val mode: String,
     val playable: Boolean,
     val descriptorJson: String,
+    /** Why the record's box did not open here (item CI): the row shows it and the broadcast is never played. */
+    val sealNotice: ExchangeMessage? = null,
 ) {
-    override fun toString(): String = "ExchangeDeviceBroadcast(mode=$mode, playable=$playable)"
+    override fun toString(): String = "ExchangeDeviceBroadcast(mode=$mode, playable=$playable, sealNotice=$sealNotice)"
 }
 
 /** What the "Broadcasts of my devices" section shows while it is open. */

@@ -27,6 +27,12 @@
     <attr name="launcherDesktopTextSecondary" format="color" />
 
     <!-- Consumed by CollapsibleSectionHeader.kt. All public attrs use the csh_ prefix. -->
+    <!-- S4460: optional feature glyph shown between the back arrow and the title; tint comes from the toolbar style. -->
+    <declare-styleable name="StandardToolbar">
+        <attr name="stbTitleIcon" format="reference" />
+        <attr name="stbTitleIconTint" format="color|reference" />
+    </declare-styleable>
+
     <declare-styleable name="CollapsibleSectionHeader">
         <attr name="csh_title" format="string|reference" />
         <attr name="csh_summary" format="string|reference" />

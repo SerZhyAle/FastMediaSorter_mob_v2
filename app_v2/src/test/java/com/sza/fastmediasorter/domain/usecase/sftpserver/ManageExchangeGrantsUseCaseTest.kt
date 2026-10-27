@@ -38,6 +38,7 @@ class ManageExchangeGrantsUseCaseTest {
         dataStore = InMemoryPreferencesStore(),
         encrypt = { "sealed:$it" },
         decrypt = { it?.removePrefix("sealed:") },
+        ioDispatcher = Dispatchers.Unconfined,
     )
     private val server = mockk<SftpServerController>(relaxed = true)
     private val identity = mockk<SftpServerIdentityStore>()

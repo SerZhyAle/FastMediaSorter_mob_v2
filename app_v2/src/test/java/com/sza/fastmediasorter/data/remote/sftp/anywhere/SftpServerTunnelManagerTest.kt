@@ -35,6 +35,8 @@ import java.io.InputStream
 import java.net.ServerSocket
 import java.net.Socket
 import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import javax.net.ssl.SSLContext
@@ -111,8 +113,20 @@ class SftpServerTunnelManagerTest {
             devices: List<SftpRendezvousDevice>?,
         ): SealedShareRecord = sealer(record, serverSeals, devices)
 
+        // S4440: a record whose title has a latch seals only once the latch opens, which holds one announce back.
+        override suspend fun sealedBroadcast(
+            entry: DeviceExchangeAccountEntry,
+            record: SftpRendezvousBroadcast,
+            devices: List<SftpRendezvousDevice>,
+        ): SealedBroadcastRecord {
+            record.title?.let(sealHolds::get)?.await()
+            return SealedBroadcastRecord(record, recipientsKey = "recipients")
+        }
+
         override fun tunnelTls(broadcastId: String): SSLContext = TunnelTestIdentity.context()
     }
+
+    private val sealHolds = ConcurrentHashMap<String, CountDownLatch>()
 
     private var grants: List<DeviceExchangeEnvelope> = emptyList()
 
@@ -463,13 +477,48 @@ class SftpServerTunnelManagerTest {
         manager.start(localServer.localPort, emptyList())
         withTimeout(WAIT_SECONDS * MILLIS) { manager.state.first { it is SftpTunnelState.Registered } }
         manager.announceBroadcast(publication(localServer.localPort))
-        manager.announceBroadcast(publication(localServer.localPort))
 
         assertEquals(DeviceExchangeEnvelope.TYPE_PUBLISH, poll(control).type)
         assertEquals(DeviceExchangeEnvelope.TYPE_BROADCAST_START, poll(control).type)
+        // S4440: a second announce made while the first is still unwritten would supersede it, so it waits.
+        manager.announceBroadcast(publication(localServer.localPort))
         assertEquals(DeviceExchangeEnvelope.TYPE_BROADCAST_UPDATE, poll(control).type)
         assertEquals(1, connections.get())
     }
+
+    @Test
+    fun `an older announce that seals slowly is never written after a newer one`() = withManager { manager ->
+        sealHolds["older"] = CountDownLatch(1)
+        val control = ArrayBlockingQueue<DeviceExchangeEnvelope>(SEALED_FRAMES + 2)
+        thread(isDaemon = true) {
+            exchange.accept().use { stream ->
+                repeat(SEALED_ANNOUNCE_HANDSHAKE_READS) { index ->
+                    control.put(read(stream))
+                    if (index == 0) write(stream, sealedWelcome())
+                }
+                write(stream, directoryWith(OTHER_DEVICE_ID))
+                repeat(SEALED_ANNOUNCE_TAIL_READS) { control.put(read(stream)) }
+                stream.getInputStream().read()
+            }
+        }
+
+        manager.announceBroadcast(publication(localServer.localPort, title = "first"))
+        // hello, list, subscribe, start; then the directory arrives and the box goes out as one update.
+        repeat(SEALED_ANNOUNCE_HANDSHAKE_READS) { poll(control) }
+        assertEquals("first", titleOf(poll(control)))
+
+        manager.announceBroadcast(publication(localServer.localPort, title = "older"))
+        manager.announceBroadcast(publication(localServer.localPort, title = "newer"))
+        val written = poll(control)
+        assertEquals(DeviceExchangeEnvelope.TYPE_BROADCAST_UPDATE, written.type)
+        assertEquals("newer", titleOf(written))
+
+        checkNotNull(sealHolds["older"]).countDown()
+        assertEquals(null, control.poll(STALE_QUIET_SECONDS, TimeUnit.SECONDS))
+    }
+
+    private fun titleOf(envelope: DeviceExchangeEnvelope): String =
+        envelope.members.getAsJsonObject("broadcast").get("title").asString
 
     @Test
     fun `turning the folder off keeps the announced broadcast and its control stream`() = withManager { manager ->
@@ -672,11 +721,11 @@ class SftpServerTunnelManagerTest {
         assertEquals(SftpTunnelState.Refused(DeviceExchangeEnvelope.REASON_UNAVAILABLE), refused)
     }
 
-    private fun publication(httpPort: Int) = ExchangeBroadcastPublication(
+    private fun publication(httpPort: Int, title: String = "Pixel") = ExchangeBroadcastPublication(
         record = SftpRendezvousBroadcast(
             broadcastId = BROADCAST_ID,
             deviceId = DEVICE_ID,
-            title = "Pixel",
+            title = title,
             mode = "AUDIO_ONLY",
             startedAtMs = 0L,
             updatedAtMs = 0L,
@@ -741,6 +790,9 @@ class SftpServerTunnelManagerTest {
         const val OTHER_DEVICE_ID = "GGGGGGGGGGGGGGGGGGGGGA"
         const val SEALED_FRAMES = 5
         const val SEALED_FIRST_READS = 3
+        const val SEALED_ANNOUNCE_HANDSHAKE_READS = 4
+        const val SEALED_ANNOUNCE_TAIL_READS = 3
+        const val STALE_QUIET_SECONDS = 2L
         const val SETTLE_MS = 300L
         const val TOKEN = "device-token"
         const val PAYLOAD = "SSH-2.0-test\r\n"

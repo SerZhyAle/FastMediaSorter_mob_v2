@@ -57,6 +57,9 @@ class BroadcastCredentialRegistry @Inject constructor(
 
     val linkPair: BroadcastCredentialPair? get() = live?.link
 
+    /** S4440: the choice that protects the live link - the prepared link's when the broadcast started under one. */
+    val linkChoice: BroadcastLinkChoice? get() = live?.choice
+
     @Synchronized
     fun begin(broadcastId: String, choice: BroadcastLinkChoice = BroadcastLinkChoice.Generated) {
         if (live?.broadcastId == broadcastId) return

@@ -4,11 +4,14 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.security.PrivateDiagnosticValues
 import com.sza.fastmediasorter.data.local.db.CryptoHelper
 import com.sza.fastmediasorter.domain.repository.BroadcastPasswordStore
 import com.sza.fastmediasorter.domain.repository.BroadcastPasswordStore.StoredPair
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import java.security.MessageDigest
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -27,11 +30,15 @@ class KeystoreBroadcastPasswordStore internal constructor(
     private val dataStore: DataStore<Preferences>,
     private val encrypt: (String) -> String?,
     private val decrypt: (String?) -> String?,
+    private val ioDispatcher: CoroutineDispatcher,
 ) : BroadcastPasswordStore {
 
     // The Keystore has no JVM implementation, so the cipher is a seam only the unit test replaces.
     @Inject
-    constructor(dataStore: DataStore<Preferences>) : this(dataStore, CryptoHelper::encrypt, CryptoHelper::decrypt)
+    constructor(
+        dataStore: DataStore<Preferences>,
+        @IoDispatcher ioDispatcher: CoroutineDispatcher,
+    ) : this(dataStore, CryptoHelper::encrypt, CryptoHelper::decrypt, ioDispatcher)
 
     private class Held(val pair: StoredPair?)
 
@@ -39,9 +46,10 @@ class KeystoreBroadcastPasswordStore internal constructor(
 
     override suspend fun get(streamId: String): StoredPair? {
         cache[streamId]?.let { return it.pair }
-        val prefs = dataStore.data.first()
-        val user = prefs[userKey(streamId)]
-        val password = prefs[passwordKey(streamId)]?.let(decrypt)?.takeUnless(String::isEmpty)
+        val (user, password) = withContext(ioDispatcher) {
+            val prefs = dataStore.data.first()
+            prefs[userKey(streamId)] to prefs[passwordKey(streamId)]?.let(decrypt)?.takeUnless(String::isEmpty)
+        }
         PrivateDiagnosticValues.register(password)
         val pair = user?.let { StoredPair(it, password) }
         cache[streamId] = Held(pair)

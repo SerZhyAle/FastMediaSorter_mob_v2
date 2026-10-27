@@ -4513,4 +4513,35 @@
     <string name="scheduled_ops_watch_clear_image">Прибрати зображення</string>
     <string name="scheduled_ops_watch_no_image">Без зображення</string>
     <string name="scheduled_ops_error_watch_title_required">Введіть заголовок</string>
+    <string name="broadcast_prepared_action">Посилання заздалегідь</string>
+    <string name="broadcast_prepared_list_title">Посилання заздалегідь</string>
+    <string name="broadcast_prepared_row">%1$s, до %2$s</string>
+    <string name="broadcast_prepared_share">Поділитися</string>
+    <string name="broadcast_prepared_revoke">Відкликати</string>
+    <string name="broadcast_prepared_revoke_title">Відкликати це посилання?</string>
+    <string name="broadcast_prepared_revoke_message">Усі, хто отримав це посилання, не зможуть відкрити за ним трансляцію. Скасувати це не можна.</string>
+    <string name="broadcast_prepared_dialog_title">Посилання заздалегідь</string>
+    <string name="broadcast_prepared_dialog_note">Посилання запрацює, коли ви почнете таку трансляцію через цей сервер обміну. Сама трансляція не почнеться.</string>
+    <string name="broadcast_prepared_mode_label">Вид трансляції</string>
+    <string name="broadcast_prepared_lifetime_label">Посилання діє</string>
+    <string name="broadcast_prepared_guests_hint">Гості: логіни через кому або з нового рядка</string>
+    <string name="broadcast_prepared_create">Створити посилання</string>
+    <string name="broadcast_prepared_no_server">Посилання заздалегідь працює через сервер обміну. Додайте його в розділі «Мої пристрої».</string>
+    <string name="broadcast_prepared_limit">Можна тримати до 5 посилань заздалегідь. Відкличте одне, щоб створити нове.</string>
+    <string name="broadcast_prepared_mismatch_title">Роздане посилання не запрацює</string>
+    <string name="broadcast_prepared_mismatch_message">Посилання, яке ви роздали заздалегідь, зроблене для іншого виду трансляції або іншого сервера. Якщо почати зараз, за ним ця трансляція не відкриється.</string>
+    <string name="broadcast_prepared_mismatch_start">Почати все одно</string>
+    <string name="broadcast_prepared_id_taken">На сервері вже йде інша трансляція під вашим посиланням заздалегідь. Ця трансляція вийшла в ефір під новим посиланням - поділіться ним знову.</string>
+    <string name="broadcast_prepared_not_used">Ця трансляція не використовує посилання, роздане заздалегідь. Поділіться поточним посиланням.</string>
+    <string name="broadcast_prepared_share_title">Поділитися посиланням заздалегідь</string>
+    <plurals name="broadcast_prepared_days">
+        <item quantity="one">%d день</item>
+        <item quantity="few">%d дні</item>
+        <item quantity="many">%d днів</item>
+        <item quantity="other">%d дня</item>
+    </plurals>
+    <string name="stream_broadcast_ended_title">Трансляцію завершено</string>
+    <string name="stream_broadcast_ended_message">«%1$s» більше не в ефірі. Підключіться знову, коли трансляція відновиться.</string>
+    <string name="stream_broadcast_reconnect">Підключитися знову</string>
+    <string name="stream_status_ended">Трансляцію завершено</string>
 </resources>
