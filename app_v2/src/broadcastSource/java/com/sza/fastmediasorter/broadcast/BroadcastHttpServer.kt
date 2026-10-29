@@ -7,12 +7,22 @@ import com.sza.fastmediasorter.data.broadcast.auth.BroadcastDigest
 import fi.iki.elonen.NanoHTTPD
 import kotlinx.coroutines.flow.asStateFlow
 import timber.log.Timber
+import java.io.Closeable
+import java.io.FilterInputStream
+import java.io.IOException
 import java.io.InputStream
+import java.io.OutputStream
 import java.io.PipedInputStream
 import java.io.PipedOutputStream
+import java.net.InetAddress
+import java.net.Socket
+import java.net.SocketException
+import java.net.SocketTimeoutException
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Local HTTP server broadcasting live audio with ICY metadata headers over LAN.
@@ -36,6 +46,9 @@ class BroadcastHttpServer(
          * out a network hiccup, short enough that a listener resuming from pause hears live audio.
          */
         private const val CLIENT_QUEUE_FRAMES = 64
+
+        /** How often [end] looks whether the open responses have finished their bodies. */
+        private const val END_POLL_MS = 10L
     }
 
     private var server: InternalServer? = null
@@ -43,6 +56,13 @@ class BroadcastHttpServer(
     private var activePort: Int = config.port
 
     private val clients = CopyOnWriteArrayList<ClientSink>()
+
+    // Set for the length of [end]: a listener arriving then gets 404 instead of a body that never starts.
+    @Volatile
+    private var ending = false
+
+    // Live responses whose body NanoHTTPD has not closed yet; it closes the body after the terminating chunk.
+    private val openResponses = AtomicInteger(0)
 
     private val _listenerCount = kotlinx.coroutines.flow.MutableStateFlow(0)
     val listenerCount: kotlinx.coroutines.flow.StateFlow<Int> = _listenerCount.asStateFlow()
@@ -57,6 +77,7 @@ class BroadcastHttpServer(
      */
     @Suppress("TooGenericExceptionCaught")
     fun start(): Int {
+        ending = false
         return try {
             val srv = InternalServer(config.port)
             srv.start()
@@ -98,6 +119,22 @@ class BroadcastHttpServer(
         }
     }
 
+    /**
+     * The deliberate end (contract LIVE-BROADCAST item T): new listeners get `404`, every open chunked body ends with
+     * its zero-length chunk, and only then is the port closed. A listener that stopped reading cannot hold the end
+     * past [timeoutMs]; [stop] closes it with the rest.
+     */
+    fun end(timeoutMs: Long) {
+        Timber.d("S4442: http audio clean end")
+        ending = true
+        clients.forEach { it.close() }
+        clients.clear()
+        _listenerCount.value = 0
+        val deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMs)
+        while (openResponses.get() > 0 && System.nanoTime() < deadline) Thread.sleep(END_POLL_MS)
+        stop()
+    }
+
     fun stop() {
         clients.forEach { it.close() }
         clients.clear()
@@ -113,7 +150,21 @@ class BroadcastHttpServer(
         val client = ClientSink(CLIENT_QUEUE_FRAMES, BUFFER_SIZE_BYTES)
         clients.add(client)
         _listenerCount.value = clients.size
-        return client.input
+        openResponses.incrementAndGet()
+        return CountedBody(client.input)
+    }
+
+    /** A listener's body, counted among [openResponses] until NanoHTTPD closes it after the last chunk. */
+    private inner class CountedBody(input: InputStream) : FilterInputStream(input) {
+        private val open = AtomicBoolean(true)
+
+        override fun close() {
+            try {
+                super.close()
+            } finally {
+                if (open.getAndSet(false)) openResponses.decrementAndGet()
+            }
+        }
     }
 
     /**
@@ -185,8 +236,54 @@ class BroadcastHttpServer(
 
     private inner class InternalServer(port: Int) : NanoHTTPD("0.0.0.0", port) {
 
+        override fun createClientHandler(finalAccept: Socket, inputStream: InputStream): ClientHandler =
+            NoLookupClientHandler(finalAccept, inputStream)
+
+        /**
+         * The library's handler builds its session from the socket's address, whose host name NanoHTTPD 2.3.1
+         * resolves by a reverse DNS query for every non-loopback peer before reading the request. A LAN whose
+         * resolver does not answer that query stalled each listener past its timeout with no status line, while
+         * the loopback relay uploader was served at once (S4491). Presetting the numeric host skips the query.
+         */
+        private inner class NoLookupClientHandler(
+            private val socket: Socket,
+            private val input: InputStream,
+        ) : ClientHandler(input, socket) {
+
+            @Suppress("TooGenericExceptionCaught")
+            override fun run() {
+                Timber.d("S4491: lookup-free client handler for ${socket.inetAddress.hostAddress}")
+                var output: OutputStream? = null
+                try {
+                    output = socket.getOutputStream()
+                    val peer = socket.inetAddress.let { InetAddress.getByAddress(it.hostAddress, it.address) }
+                    val session = HTTPSession(tempFileManagerFactory.create(), input, output, peer)
+                    while (!socket.isClosed) session.execute()
+                } catch (e: SocketException) {
+                    Timber.v("BroadcastHttpServer: client connection closed - ${e.message}")
+                } catch (e: SocketTimeoutException) {
+                    Timber.v("BroadcastHttpServer: client idle timeout - ${e.message}")
+                } catch (e: Exception) {
+                    Timber.w(e, "BroadcastHttpServer: client handler failed")
+                } finally {
+                    closeQuietly(output)
+                    closeQuietly(input)
+                    closeQuietly(socket)
+                    asyncRunner.closed(this)
+                }
+            }
+
+            private fun closeQuietly(closeable: Closeable?) {
+                try {
+                    closeable?.close()
+                } catch (e: IOException) {
+                    Timber.v("BroadcastHttpServer: client stream already closed - ${e.message}")
+                }
+            }
+        }
+
         override fun serve(session: IHTTPSession): Response {
-            if (session.uri != ENDPOINT && session.uri != "/live-audio") {
+            if (ending || (session.uri != ENDPOINT && session.uri != "/live-audio")) {
                 return newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_PLAINTEXT, "404 Not Found")
             }
 

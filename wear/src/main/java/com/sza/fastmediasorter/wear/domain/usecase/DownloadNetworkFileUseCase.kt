@@ -17,6 +17,7 @@ import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 private const val BYTES_PER_MB = 1024L * 1024L
@@ -63,11 +64,15 @@ class DownloadNetworkFileUseCase @Inject constructor(
 
     suspend operator fun invoke(selected: SelectedMedia, kind: Kind): Result<File> =
         withContext(Dispatchers.IO) {
+            val startedAt = System.nanoTime()
             resolveSource(selected.sourceId)
                 .mapCatching { source -> openStream(source, selected.streamUri).getOrThrow() }
-                .mapCatching { stream -> cacheStream(stream, selected, kind) }
+                .mapCatching { stream -> cacheStream(stream, selected, kind, openedAfterMs = sinceMs(startedAt)) }
                 .onFailure { Timber.e(it, "Failed to download network file: ${selected.file.name}") }
         }
+
+    private fun sinceMs(startedAtNanos: Long): Long =
+        TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedAtNanos)
 
     private suspend fun resolveSource(sourceId: String?): Result<NetworkSource> {
         val source = sourceId?.let { networkSourceRepository.getSourceById(it) }
@@ -105,17 +110,26 @@ class DownloadNetworkFileUseCase @Inject constructor(
         return connected.mapCatching { smbDataSource.getFileStream(streamUri).getOrThrow() }
     }
 
-    private fun cacheStream(stream: InputStream, selected: SelectedMedia, kind: Kind): File {
+    /**
+     * S4471: [openedAfterMs] is the time from the start of the call to the opened stream (route, session,
+     * channel); the copy is timed here. Both go into the one log line, which is how the ten seconds a
+     * watch spends on a short file get split before anybody decides what to change.
+     */
+    private fun cacheStream(stream: InputStream, selected: SelectedMedia, kind: Kind, openedAfterMs: Long): File {
         purgeLegacyCacheDirs()
 
         val cacheDir = File(context.cacheDir, kind.cacheDirName)
         cacheDir.mkdirs()
         val tempFile = File(cacheDir, "${selected.streamUri.hashCode()}_${selected.file.name}")
 
+        val copyStartedAt = System.nanoTime()
         stream.use { input ->
             FileOutputStream(tempFile).use { output -> input.copyTo(output) }
         }
-        Timber.d("Network file cached: ${tempFile.name}, ${tempFile.length()} bytes")
+        Timber.d(
+            "Network file cached: ${tempFile.name}, ${tempFile.length()} bytes, " +
+                "opened after $openedAfterMs ms, copied in ${sinceMs(copyStartedAt)} ms"
+        )
 
         MediaCacheEvictor.evictOldestUntilUnderCap(cacheDir, tempFile, kind.capBytes)
         return tempFile

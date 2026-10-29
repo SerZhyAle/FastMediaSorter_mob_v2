@@ -6,15 +6,21 @@ import com.sza.fastmediasorter.data.security.e2e.E2eBytes
 import com.sza.fastmediasorter.data.security.e2e.E2eRecipients
 import com.sza.fastmediasorter.data.security.e2e.E2eSealedBox
 import com.sza.fastmediasorter.wear.data.broadcast.BroadcastDescriptorDto
+import com.sza.fastmediasorter.wear.domain.broadcast.WearBroadcastPublishState
 import com.sza.fastmediasorter.wear.domain.broadcast.WearBroadcastSessionState
 import com.sza.fastmediasorter.wear.domain.broadcast.WearBroadcastSessionStateHolder
 import com.sza.fastmediasorter.wear.domain.broadcast.WearExchangeListenerCap
+import com.sza.fastmediasorter.wear.domain.model.WearExchangeMessage
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -42,6 +48,12 @@ class WearExchangeBroadcastAnnouncer @Inject constructor(
 ) {
 
     private var current: Announced? = null
+    private var latest: Snapshot? = null
+
+    private val mutablePublishState = MutableStateFlow(WearBroadcastPublishState.IDLE)
+
+    /** Item DU: where the live broadcast stands on the server; the watch screen shows it in short form. */
+    val publishState: StateFlow<WearBroadcastPublishState> = mutablePublishState.asStateFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun follow() {
@@ -55,15 +67,36 @@ class WearExchangeBroadcastAnnouncer @Inject constructor(
         }
             .distinctUntilChanged { old, new -> old?.identity == new?.identity }
             .flatMapLatest { entry -> entry?.let(directory::devices) ?: flowOf(null) }
-        combine(
+        val snapshots = combine(
             combine(broadcast.state, broadcast.lanListeners, ::Pair),
             outgoing,
             uploader.accepted,
-            streams.live,
+            combine(streams.live, streams.failures, ::Pair),
             devices,
-        ) { (state, humans), entry, accepted, live, listed ->
-            Snapshot(state as? WearBroadcastSessionState.Live, humans, entry, accepted, live, listed)
-        }.collect(::apply)
+        ) { (state, humans), entry, accepted, (live, failures), listed ->
+            Snapshot(state as? WearBroadcastSessionState.Live, humans, entry, accepted, live, failures, listed)
+        }
+        // One collector for both inputs keeps every state change on the same coroutine.
+        merge(snapshots, streams.events.map(::Answer)).collect { input ->
+            when (input) {
+                is Snapshot -> {
+                    latest = input
+                    apply(input)
+                }
+                is Answer -> answer(input.event)
+            }
+            mutablePublishState.value = publishStateOf(latest, current)
+        }
+    }
+
+    // Item DT: the server's answer to the `broadcast-start` this watch sent on the outgoing entry's stream.
+    private fun answer(event: WearExchangeControlEvent) {
+        val running = current?.takeIf { it.entry.identity == event.identity && it.sentGeneration != null } ?: return
+        when (event.envelope.type) {
+            WearExchangeEnvelope.TYPE_BROADCAST_STARTED ->
+                if (event.envelope.string(KEY_BROADCAST_ID) == running.broadcastId) running.started = true
+            WearExchangeEnvelope.TYPE_REFUSED -> if (!running.started) running.refused = true
+        }
     }
 
     private suspend fun apply(snapshot: Snapshot) {
@@ -124,6 +157,10 @@ class WearExchangeBroadcastAnnouncer @Inject constructor(
             }
             if (streams.send(announced.entry.identity, envelope)) {
                 Timber.i("WearExchangeBroadcastAnnouncer: %s, cap %d, relay %b", type, cap, relay)
+                if (isStart) {
+                    announced.started = false
+                    announced.refused = false
+                }
                 announced.sentGeneration = stream.generation
                 announced.sentCap = cap
                 announced.sentRelay = relay
@@ -164,14 +201,19 @@ class WearExchangeBroadcastAnnouncer @Inject constructor(
         }
     }
 
+    private sealed interface Input
+
+    private class Answer(val event: WearExchangeControlEvent) : Input
+
     private class Snapshot(
         val live: WearBroadcastSessionState.Live?,
         val humans: Int,
         val outgoing: WearExchangeEntry?,
         val accepted: String?,
         val streams: Map<String, WearExchangeLiveStream>,
+        val failures: Map<String, WearExchangeMessage>,
         val devices: Collection<WearDirectoryDevice>?,
-    )
+    ) : Input
 
     private class Announced(
         val entry: WearExchangeEntry,
@@ -186,12 +228,26 @@ class WearExchangeBroadcastAnnouncer @Inject constructor(
         var box: JsonObject? = null
         var boxKey: String? = null
         var sentBoxKey: String? = null
+        var started = false
+        var refused = false
     }
 
     internal companion object {
         const val KEY_BROADCAST = "broadcast"
         const val KEY_BROADCAST_ID = "broadcastId"
         const val KEY_MAX_LISTENERS = "maxListeners"
+
+        // A live broadcast whose descriptor cannot be announced never leaves this network.
+        private fun publishStateOf(snapshot: Snapshot?, running: Announced?): WearBroadcastPublishState {
+            val entry = snapshot?.outgoing
+            return when {
+                snapshot?.live == null -> WearBroadcastPublishState.IDLE
+                entry == null || running == null -> WearBroadcastPublishState.LOCAL_ONLY
+                running.refused || snapshot.failures[entry.identity] != null -> WearBroadcastPublishState.FAILED
+                running.started -> WearBroadcastPublishState.ON_SERVER
+                else -> WearBroadcastPublishState.ANNOUNCING
+            }
+        }
 
         internal fun boxKeyOf(sealing: WearSealing, relayKey: ByteArray?): String =
             E2eRecipients.keyOf(sealing.self, sealing.recipients) +

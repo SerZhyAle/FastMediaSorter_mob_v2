@@ -145,7 +145,6 @@
     <string name="keybinding_label_vr_zoom_end">Конец зума</string>
     <string name="keybinding_label_vr_zoom_grip">Масштаб (Grip)</string>
     <string name="keybinding_label_vr_zoom_start">Начало зума</string>
-    <string name="keybinding_remap_not_impl">Сброс всего - скоро</string>
     <string name="keybinding_remap_reset_all">Сбросить всё</string>
     <string name="keybinding_remap_search_hint">Поиск команд..</string>
     <string name="keybinding_row_no_binding">-</string>

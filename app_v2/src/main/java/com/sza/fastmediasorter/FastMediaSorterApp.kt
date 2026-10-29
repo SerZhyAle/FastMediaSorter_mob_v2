@@ -130,6 +130,12 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
     @Inject
     lateinit var appDatabase: dagger.Lazy<com.sza.fastmediasorter.data.local.db.AppDatabase>
 
+    // S4484: dereferenced by the onCreate IO warm-up so its preference file is loaded before
+    // MainActivity's cold-start redirect check reads it on the main thread.
+    @Inject
+    lateinit var launcherStartWindowManager:
+        dagger.Lazy<com.sza.fastmediasorter.core.launcher.LauncherStartWindowManager>
+
     @Inject
     lateinit var unifiedCache: dagger.Lazy<com.sza.fastmediasorter.core.cache.UnifiedFileCache>
 
@@ -299,6 +305,15 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
                 // stops a genuine rebuild failure from crashing the process via the warm-up coroutine.
                 Timber.e(e, "FastMediaSorterApp: Room warm-up failed")
             }
+        }
+
+        // S4484: MainActivity.onCreate decides the desktop-start redirect from a SharedPreferences flag,
+        // and the first read of that file is a disk read on whichever thread asks. Loading it here, off
+        // the main thread and not gated on firstFrameSignal, leaves the main-thread read memory-only.
+        // Residual race accepted, as in the Room warm-up above - a main-thread read that still gets
+        // there first waits for the load itself.
+        applicationScope.launch(Dispatchers.IO) {
+            launcherStartWindowManager.get().preload()
         }
 
         // S2250 / S2536: the only subscription that reaches AnimationPolicy in the process. Every

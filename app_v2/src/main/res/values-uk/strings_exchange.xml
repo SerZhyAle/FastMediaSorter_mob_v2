@@ -65,10 +65,10 @@
     <string name="exchange_devices_watch_code_refused">Сервер не видав код: %1$s</string>
     <string name="exchange_devices_watch_none">Немає підключеного годинника</string>
     <string name="exchange_devices_watch_companion_off">Компаньйон для годинника вимкнено. Спочатку увімкніть його в налаштуваннях.</string>
-    <string name="exchange_devices_pick_outgoing_title">Через який сервер публікувати?</string>
+    <string name="exchange_devices_pick_outgoing_title">Змінити сервер публікації</string>
     <string name="exchange_devices_pick_none">Спочатку додайте сервер на екрані «Мої пристрої»</string>
     <string name="settings_sftp_exchange_outgoing">Через сервер %1$s</string>
-    <string name="settings_sftp_exchange_outgoing_none">Вихідний сервер не вибрано</string>
+    <string name="settings_sftp_exchange_outgoing_none">Немає сервера, через який можна публікувати, - додайте його на екрані «Мої пристрої»</string>
     <string name="settings_sftp_exchange_change">Змінити</string>
     <string name="exchange_signin_intake_hint">Вставте рядок сервера</string>
     <string name="exchange_signin_paste">Вставити</string>
@@ -363,4 +363,10 @@
     </plurals>
     <string name="exchange_format_unsupported">Цей формат новіший, ніж підтримує програма. Нічого не імпортовано. Скористайтеся сумісною програмою.</string>
     <string name="stream_source_live_badge">Наживо</string>
+    <string name="broadcast_exchange_line_announcing">Сервер обміну %1$s: трансляція оголошується</string>
+    <string name="broadcast_exchange_line_on_server">Сервер обміну %1$s: трансляція на сервері</string>
+    <string name="broadcast_exchange_line_relayed">Сервер обміну %1$s: на сервері, роздається через сервер</string>
+    <string name="broadcast_exchange_line_failed">Сервер обміну %1$s: %2$s</string>
+    <string name="broadcast_exchange_line_local_only">Доступно лише в цій мережі. Додайте сервер обміну в «Моїх пристроях»</string>
+    <string name="broadcast_exchange_line_guest_only">Доступно лише в цій мережі: гостьовий обліковий запис не може транслювати через сервер обміну</string>
 </resources>

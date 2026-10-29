@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackMode
 import com.sza.fastmediasorter.wear.domain.playback.WearPlayerDisplayHoldPolicy
 import com.sza.fastmediasorter.wear.domain.playback.WearStationInfo
+import com.sza.fastmediasorter.wear.domain.playback.WearStreamFailure
 import com.sza.fastmediasorter.wear.util.formatWearDuration
 
 /**
@@ -13,6 +14,11 @@ import com.sza.fastmediasorter.wear.util.formatWearDuration
  */
 data class AudioPlayerUiState(
     val isLoading: Boolean = true,
+    /**
+     * S4471: a network track is being downloaded into the cache, so nothing can play yet. Narrower than
+     * [isLoading], which ExoPlayer buffering also raises; only this one puts the ring on the play button.
+     */
+    val isFetchingFile: Boolean = false,
     val mediaFile: WearMediaFile? = null,
     val isStream: Boolean = false,
     val isPlaying: Boolean = false,
@@ -25,6 +31,11 @@ data class AudioPlayerUiState(
     val currentPositionMs: Long = 0,
     val durationMs: Long = 0,
     val error: String? = null,
+    /**
+     * S4473: why a stream stopped delivering - the source failed, or its producer is gone - or null while
+     * nothing is wrong. A verdict rather than a message, so the screen owns the wording and the locale.
+     */
+    val streamFailure: WearStreamFailure? = null,
     val albumArtUrl: String? = null,
     // S1683: the screen-off mode of strategic 6.7. It is screen state and nothing else - playback does
     // not know about it, which is the whole point of the mode.
@@ -89,3 +100,20 @@ data class AudioPlayerUiState(
     val durationFormatted: String
         get() = formatWearDuration(durationMs)
 }
+
+/**
+ * S4473: the screen once a stream stopped delivering. The screen-off mode is left because a black sheet over
+ * a stopped stream hides the one thing the wearer now has to see.
+ */
+internal fun AudioPlayerUiState.withStreamFailure(failure: WearStreamFailure): AudioPlayerUiState =
+    copy(
+        isLoading = false,
+        isFetchingFile = false,
+        isPlaying = false,
+        isDimmed = false,
+        streamFailure = failure
+    )
+
+/** S4473: Retry pressed - the failure is withdrawn and the load that follows shows its own progress. */
+internal fun AudioPlayerUiState.withRetryStarted(): AudioPlayerUiState =
+    copy(streamFailure = null, error = null, isLoading = true)

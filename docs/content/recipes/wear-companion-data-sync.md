@@ -158,6 +158,7 @@ tips:
   - "**Settings do not seem to arrive?** Look at the Last synced line - if it did not move, the watch did not answer. Open the watch app and tap Sync settings again."
   - "**Watch storage filling up?** Switch off Album art in the Other group; cover pictures are downloaded for every synced song."
   - "**Want one photo on the watch, not a whole folder?** Open it on the phone and send it with **Send to..** - see [putting files on the watch](page:wear.watch-file-manager)."
+  - "**A message on the watch at set times?** Create a [scheduled operation](page:storage.scheduled-operations) of the kind **Show on watch**: the watch shows its title, text and picture as a notification at every slot."
 next_recipes:
   - title: Browsing files on the watch
     url: page:wear.watch-file-manager
@@ -176,6 +177,6 @@ next_recipes:
     description: The first steps, if the watch and phone do not see each other yet.
 ---
 
-<sub class="doc-stamp">26.10.15 01:19</sub>
+<sub class="doc-stamp">26.10.26 01:15</sub>
 
 Choose which [network resources](term:network-resource) the [watch](term:watch) gets, push them, read what the sync reports, and set the watch up from the phone's [Wear Companion](term:wear-companion) window - media types, slideshow, screen, color scheme, background and power saving.

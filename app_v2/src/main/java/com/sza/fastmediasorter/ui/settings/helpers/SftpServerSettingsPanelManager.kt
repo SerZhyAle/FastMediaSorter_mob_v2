@@ -36,7 +36,7 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
- * Binds the "Share over SFTP" card on the General settings tab: the on/off toggle, the shared-folder
+ * Binds the "Share from phone" card on the General settings tab: the on/off toggle, the shared-folder
  * list, the port, the login mode and the running status with the credentials a client needs.
  *
  * The toggle mirrors the server's real state rather than a stored wish, so a server the system
@@ -72,11 +72,16 @@ class SftpServerSettingsPanelManager(
     private val exchangePanel =
         SftpExchangeSettingsPanelManager(fragment, binding, manageSftpServer, manageExchangeProducer)
 
-    /** Hides the card when the server cannot run here; returns whether the card is shown. */
+    /**
+     * Hides the "Share from phone" card and the "Access from anywhere" card that follows it when the
+     * server cannot run here; returns whether the cards are shown.
+     */
     fun bind(): Boolean {
         val available = capabilityAvailability.isSftpServerAvailable(mediaCapabilities)
         binding.cardSftpServer.isVisible = available
         binding.headerSftpServer.isVisible = available
+        binding.cardSftpExchange.isVisible = available
+        binding.headerSftpExchange.isVisible = available
         if (!available) return false
         bindControls()
         fragment.collectOnLifecycle(

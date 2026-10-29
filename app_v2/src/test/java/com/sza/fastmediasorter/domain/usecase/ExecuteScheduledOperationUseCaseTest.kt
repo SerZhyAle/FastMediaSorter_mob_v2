@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
 import com.sza.fastmediasorter.domain.model.ScheduledRunOutcome
+import com.sza.fastmediasorter.domain.model.ScheduledRunReason
 import com.sza.fastmediasorter.domain.model.TimeFilter
 import com.sza.fastmediasorter.domain.mutation.Mutation
 import com.sza.fastmediasorter.domain.mutation.MutationRecorder
@@ -85,6 +86,7 @@ class ExecuteScheduledOperationUseCaseTest {
             ArchiveFilesUseCase(mockk(relaxed = true), mockk(relaxed = true)),
             cleanup,
             driveLeg,
+            mockk(relaxed = true),
         )
         coEvery { driveLeg.producerFor(any()) } returns null
     }
@@ -128,6 +130,8 @@ class ExecuteScheduledOperationUseCaseTest {
 
         assertFalse(result.isSuccess)
         assertTrue(result.errors.first().contains("Source resource not found"))
+        assertEquals(ScheduledRunReason.SOURCE_DELETED, result.reason)
+        assertTrue(result.pausesSchedule)
     }
 
     @Test
@@ -148,6 +152,23 @@ class ExecuteScheduledOperationUseCaseTest {
 
         assertFalse(result.isSuccess)
         assertTrue(result.errors.first().contains("Target resource not found"))
+        assertEquals(ScheduledRunReason.TARGET_DELETED, result.reason)
+        assertTrue(result.pausesSchedule)
+    }
+
+    @Test
+    fun `only a deleted resource pauses the schedule`() {
+        val transient = listOf(
+            ScheduledRunReason.SOURCE_MISSING,
+            ScheduledRunReason.TARGET_UNAVAILABLE,
+            ScheduledRunReason.SOURCE_UNREACHABLE,
+            ScheduledRunReason.TARGET_READ_ONLY,
+        )
+
+        transient.forEach { reason ->
+            assertFalse(reason.name, ScheduledExecutionResult(1L, 0, listOf("x"), reason = reason).pausesSchedule)
+        }
+        assertFalse(ScheduledExecutionResult(1L, 0, emptyList()).pausesSchedule)
     }
 
     @Test

@@ -125,6 +125,7 @@
          ever draws one, so a bigger bitmap could not show more detail and would only cost cache space. -->
     <dimen name="installed_app_icon_cache_size">96dp</dimen>
     <dimen name="toolbar_height">56dp</dimen>
+    <dimen name="toolbar_title_icon_gap">8dp</dimen>
     <dimen name="card_corner_radius">8dp</dimen>
     <dimen name="card_elevation">2dp</dimen>
 
@@ -258,6 +259,8 @@
     <!-- Browse Activity -->
     <dimen name="browse_scroll_button_size">40dp</dimen>
     <dimen name="browse_scroll_button_margin">40dp</dimen>
+    <!-- Browse strips sit in a gutter the list reserves at its end, so they need no clearance from the row buttons. -->
+    <dimen name="browse_scroll_strip_margin_end">4dp</dimen>
     <dimen name="browse_scroll_button_padding">6dp</dimen>
     <dimen name="browse_navigation_button_spacing">8dp</dimen>
     <dimen name="browse_filter_badge_size">18dp</dimen>
@@ -441,6 +444,8 @@
     <dimen name="settings_dropdown_wide_width">280dp</dimen>
     <!-- Max width cap for numeric settings inputs (e.g. network parallelism): stays compact on wide screens, shrinks on narrow ones. -->
     <dimen name="settings_input_numeric_max_width">140dp</dimen>
+    <!-- S4486: top and bottom padding of the field in an inline SettingsInputRow, so the box stays in proportion with the text-only rows around it (the outlined default is 16dp). -->
+    <dimen name="settings_inline_input_vertical_padding">8dp</dimen>
     <dimen name="settings_icon_size">@dimen/icon_tier_20</dimen>  <!-- S3433: was 18dp -->
 
     <!-- Dialog Layouts -->

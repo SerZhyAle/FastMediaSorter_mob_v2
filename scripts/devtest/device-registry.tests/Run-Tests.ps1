@@ -1,4 +1,5 @@
 #requires -Version 7.0
+# Parallel: serial
 <#
 .SYNOPSIS
     Contract tests for the device registry (S2855).

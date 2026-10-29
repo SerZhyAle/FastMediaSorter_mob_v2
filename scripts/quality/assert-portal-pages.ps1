@@ -13,9 +13,9 @@
                 so a defect found on a page has an addressee.
       variants  item F: every section has a page in each declared language (<base>.md for English,
                 <base>-<lang>.md for the rest); every diagrams/<name>-<lang>.svg exists in all of them; a page
-                embeds no diagrams/ picture of another language and none that is missing. The Russian-only
-                cards of from-windows/ are not judged here: they are S4242's dated exception, redrawn by the
-                Windows sections.
+                embeds no diagrams/ picture - Markdown image, src or srcset - of another language and none
+                that is missing. Only diagrams/ is judged; the Russian-only from-windows/ cards it once
+                skipped were removed by S4415.
       schemes   item I: scripts/docs/render-usage-schemes.ps1 -Check finds every picture current, so no scheme
                 is hand-edited or left behind its label files.
 
@@ -139,7 +139,7 @@ function Test-Variants {
     foreach ($file in $pageFiles) {
         $key = Get-PageKey $file.Name
         $text = [IO.File]::ReadAllText($file.FullName)
-        foreach ($m in [regex]::Matches($text, '(?:\]\(|src\s*=\s*["''])(?:\./)?diagrams/([^)"''\s]+)\.svg')) {
+        foreach ($m in [regex]::Matches($text, '(?:\]\(|(?:srcset|src)\s*=\s*["''])(?:\./)?diagrams/([^)"''\s]+)\.svg')) {
             $ref = $m.Groups[1].Value
             if ($ref -notmatch '^(?<name>.+)-(?<lang>[a-z]{2})$') { $findings.Add("variants: $($file.Name) embeds diagrams/$ref.svg, which carries no language suffix."); continue }
             if ($Matches.lang -ne $key.Lang) {

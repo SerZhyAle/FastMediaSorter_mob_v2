@@ -5,7 +5,7 @@ import java.util.Calendar
 data class ScheduledOperation(
     val id: Long = 0,
     val isEnabled: Boolean = true,
-    val sourceResourceId: Long,
+    val sourceResourceId: Long?,          // null only for WATCH_MESSAGE, which reads no resource
     val operationType: ScheduledOpType,
     val targetResourceId: Long?,          // null when operationType == DELETE
     val fileTypeMask: Int = FileTypeFlags.DEFAULT, // bitmask of FileTypeFlags constants
@@ -24,6 +24,10 @@ data class ScheduledOperation(
     // Kept apart from lastRunAt: a failed run must not hide when the operation last worked, and it
     // is the SINCE_LAST marker, so it only moves on a run that finished without a single error.
     val lastSuccessAt: Long? = null,
+    // S4248: set only for WATCH_MESSAGE; the image is a persisted content:// document URI.
+    val watchTitle: String? = null,
+    val watchText: String? = null,
+    val watchImageUri: String? = null,
 ) {
     /**
      * The moment [TimeFilter.SINCE_LAST] compares file dates against, or null when no run has ever
@@ -64,6 +68,9 @@ object ScheduledRunStatus {
     /** True for a status the schedule card marks with the warning badge until a run succeeds. */
     fun needsAttention(status: String?): Boolean =
         status != null && (status.startsWith(ERROR_PREFIX) || status.startsWith(SKIPPED_PREFIX))
+
+    /** True for a status that records a skipped run, which the card draws apart from a failure. */
+    fun isSkipped(status: String?): Boolean = status?.startsWith(SKIPPED_PREFIX) == true
 }
 
 /** Minimum honoured gap between scheduled runs - WorkManager-friendly floor shared by every caller. */

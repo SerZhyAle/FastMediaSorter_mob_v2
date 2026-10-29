@@ -145,7 +145,6 @@
     <string name="keybinding_label_vr_zoom_end">Zoom End</string>
     <string name="keybinding_label_vr_zoom_grip">Zoom (Grip)</string>
     <string name="keybinding_label_vr_zoom_start">Zoom Start</string>
-    <string name="keybinding_remap_not_impl">Reset All - coming soon</string>
     <string name="keybinding_remap_reset_all">Reset All</string>
     <string name="keybinding_remap_search_hint">Search commands..</string>
     <string name="keybinding_row_no_binding">-</string>

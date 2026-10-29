@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.ui.broadcast.helpers
 
 import com.sza.fastmediasorter.broadcast.BroadcastState
 import com.sza.fastmediasorter.domain.usecase.broadcast.EncodeBroadcastDescriptorUseCase
-import com.sza.fastmediasorter.domain.usecase.broadcast.RenewBroadcastLinkPasswordUseCase
 import com.sza.fastmediasorter.domain.usecase.broadcast.ResolveBroadcastShareDescriptorUseCase
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -14,7 +13,6 @@ import javax.inject.Inject
 class BroadcastShareManager @Inject constructor(
     private val encodeUseCase: EncodeBroadcastDescriptorUseCase,
     private val resolveShareDescriptor: ResolveBroadcastShareDescriptorUseCase,
-    private val renewLinkPassword: RenewBroadcastLinkPasswordUseCase,
 ) {
     val shareChanges: Flow<*> get() = resolveShareDescriptor.changes
 
@@ -29,5 +27,5 @@ class BroadcastShareManager @Inject constructor(
 
     fun linkPassword(live: BroadcastState.Live): String? = resolveShareDescriptor.linkPassword(live.descriptor)
 
-    fun renewLinkPassword(): String? = renewLinkPassword.invoke()
+    fun isAnnounced(live: BroadcastState.Live): Boolean = resolveShareDescriptor.isAnnounced(live.descriptor)
 }

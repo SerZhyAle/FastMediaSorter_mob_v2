@@ -106,6 +106,7 @@ tips:
   - "**Start with Copy.** Try a new job as a copy for a day or two; switch it to Move once you trust it."
   - "**A network destination must be reachable** at the scheduled time - for a home computer, choose an hour when it is on."
   - "**Not sure it will work?** Tap **Run now** once and look at the Log."
+  - "**A message to the watch.** Pick **Show on watch** as the operation, in app versions that work with a watch: enter a title, an optional text and one picture if you like, and at every slot the paired watch shows it as a notification - a tap opens the picture. An absent watch or a switched-off Wear Companion makes the run skipped, not failed."
 next_recipes:
   - title: Sorting files into destinations
     url: page:storage.destination-targets-setup
@@ -124,6 +125,6 @@ next_recipes:
     description: The other programs you can open from the same menu.
 ---
 
-<sub class="doc-stamp">26.10.14 18:55</sub>
+<sub class="doc-stamp">26.10.26 01:15</sub>
 
 Let the app copy, move or delete files by itself on a schedule - for example copy new camera photos to the home computer every night - and read the run history to see what was done.

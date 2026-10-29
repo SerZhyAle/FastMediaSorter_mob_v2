@@ -18,5 +18,9 @@ class ProgressiveOnlyStreamProtocolSupport @Inject constructor() : StreamProtoco
 
     override val supportsRtsp: Boolean = false
 
-    override fun createRtspMediaSource(uri: Uri, dataSourceFactory: DataSource.Factory): MediaSource? = null
+    override fun createRtspMediaSource(
+        uri: Uri,
+        dataSourceFactory: DataSource.Factory,
+        timeoutMs: Long?,
+    ): MediaSource? = null
 }

@@ -16,7 +16,9 @@ import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
+import timber.log.Timber
 
 /** DEVICE-EXCHANGE 27 items DI and DP: a folder through the server is used only from its opened `sealedAccess`. */
 class ExchangeSealedContentOpenerTest {
@@ -203,6 +205,89 @@ class ExchangeSealedContentOpenerTest {
         val to = listOf(E2eRecipient(CONSUMER, tablet.key.publicKey))
         val box = E2eSealedBox.seal(payload, E2eSealedBox.grantContext(GRANT), sender, to).toString()
         return broadcastRecord(box).copy(grantId = GRANT)
+    }
+
+    private fun ownBroadcastBox(
+        sender: E2eSelf = phone,
+        to: List<E2eRecipient> = listOf(E2eRecipient(CONSUMER, tablet.key.publicKey)),
+        context: String = E2eSealedBox.broadcastContext(BROADCAST),
+    ): String = E2eSealedBox.seal(JsonObject().apply { addProperty("relayKey", "k") }, context, sender, to).toString()
+
+    @Test
+    fun `an own broadcast whose box opens has no issue and the outcome is opened`() {
+        val opening = opener.opening(sealing, broadcastRecord(ownBroadcastBox()))
+
+        assertNull(opening.record.sealIssue)
+        assertEquals("opened", opening.outcome)
+    }
+
+    @Test
+    fun `an own broadcast whose box does not open is marked sealed-failed and says why`() {
+        val stranger = E2eSelf(PRODUCER, E2eDeviceKey.generate())
+        val addressedElsewhere = listOf(E2eRecipient("someone-else", tablet.key.publicKey))
+        val cases = mapOf(
+            "not-addressed" to ownBroadcastBox(to = addressedElsewhere),
+            "untrusted-sender" to ownBroadcastBox(sender = stranger),
+            "failed-bad_tag" to ownBroadcastBox(context = E2eSealedBox.broadcastContext("another")),
+            "failed-malformed" to "{}",
+        )
+
+        cases.forEach { (outcome, box) ->
+            val opening = opener.opening(sealing, broadcastRecord(box))
+
+            assertEquals(outcome, ExchangeSealIssue.SEALED_FAILED, opening.record.sealIssue)
+            assertEquals(outcome, opening.outcome)
+            assertNull(opening.record.sealed)
+        }
+    }
+
+    @Test
+    fun `an own broadcast delivered without a box gets no issue`() {
+        val opening = opener.opening(sealing, broadcastRecord(null))
+
+        assertNull(opening.record.sealIssue)
+        assertEquals("no-box", opening.outcome)
+    }
+
+    @Test
+    fun `an own sealed broadcast on a device without its own key is marked e2e-missing`() {
+        val keyless = ExchangeSealing(null, emptyList(), emptyMap(), mapOf(PRODUCER to phone.key.kem))
+
+        val opening = opener.opening(keyless, broadcastRecord(ownBroadcastBox()))
+
+        assertEquals(ExchangeSealIssue.E2E_MISSING, opening.record.sealIssue)
+        assertEquals("no-device-key", opening.outcome)
+    }
+
+    @Test
+    fun `a directory pass logs each broadcast outcome once until it changes`() = runTest {
+        val e2e = mockk<ExchangeE2eRepository>(relaxed = true)
+        coEvery { e2e.sealing(any(), any()) } returns sealing
+        coEvery { e2e.grantSenders(any()) } returns emptyMap()
+        val lines = mutableListOf<String>()
+        val tree = object : Timber.Tree() {
+            override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
+                if (message.contains("opener")) lines += message
+            }
+        }
+        Timber.plant(tree)
+        try {
+            val subject = ExchangeSealedContentOpener(e2e)
+            val entry = DeviceExchangeAccountEntry("h", PORT, "bob", CONSUMER, null)
+            val broken = broadcastRecord(ownBroadcastBox(context = E2eSealedBox.broadcastContext("another")))
+            val whole = DeviceExchangeDirectory(1L, emptyList(), emptyList(), listOf(broken))
+
+            subject.open(entry, whole)
+            subject.open(entry, whole)
+            subject.open(entry, whole.copy(broadcasts = listOf(broadcastRecord(ownBroadcastBox()))))
+
+            assertEquals(2, lines.size)
+            assertTrue(lines[0], lines[0].contains("outcome=failed-bad_tag"))
+            assertTrue(lines[1], lines[1].contains("outcome=opened"))
+            assertTrue(lines.joinToString(), lines.none { it.contains("relayKey") })
+        } finally {
+            Timber.uproot(tree)
+        }
     }
 
     private companion object {

@@ -35,6 +35,7 @@ import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
+import com.sza.fastmediasorter.domain.player.BroadcastPlaybackSession
 import com.sza.fastmediasorter.domain.streams.StreamFrameIngestor
 import com.sza.fastmediasorter.domain.usecase.exchange.ObserveLiveBroadcastSourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.PinnedStreamMove
@@ -51,6 +52,7 @@ import com.sza.fastmediasorter.ui.player.standalone.AudioStandaloneActivity
 import com.sza.fastmediasorter.ui.streams.helpers.StreamAtlasPromptManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamBroadcastImportManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamBroadcastPasswordPromptManager
+import com.sza.fastmediasorter.ui.streams.helpers.StreamBroadcastWaitManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamDeviceBroadcastsManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamFrameSnapshotManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamGridModeManager
@@ -145,6 +147,21 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     // S4160: a channel imported from a broadcast descriptor resolves its endpoint list before it plays.
     @Inject
     lateinit var broadcastEndpoints: com.sza.fastmediasorter.ui.streams.helpers.StreamBroadcastEndpointManager
+
+    // S4444: an inline broadcast's stop - ended, reconnect or lost connection (LIVE-BROADCAST item T).
+    @Inject
+    lateinit var broadcastEnd: com.sza.fastmediasorter.ui.streams.helpers.StreamBroadcastEndManager
+
+    private val broadcastEndHost = object : com.sza.fastmediasorter.ui.streams.helpers.StreamBroadcastEndManager.Host {
+        override fun stopAudio() = inlineAudio.stop()
+        override fun playResolved(session: BroadcastPlaybackSession, url: String) =
+            inlineAudio.play(session.source.copy(url = url), useBackgroundService = isBackgroundAudioEnabled())
+        override fun replayFromTop(session: BroadcastPlaybackSession) = playBroadcast(session.source)
+        override fun showUnavailable(session: BroadcastPlaybackSession) = showStreamUnavailable(session.source)
+        override fun remove(session: BroadcastPlaybackSession) {
+            viewModel.onRemove(session.source)
+        }
+    }
 
     // S0668: decodes a tile index into a 32 px bitmap, re-reading the atlas file on each (re)decode so
     // invalidate() after an import picks up the new atlas. Lazy so it is built after Hilt field injection.
@@ -456,6 +473,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     private val broadcastPasswordPrompt by lazy { StreamBroadcastPasswordPromptManager(this) }
 
+    private val broadcastWait by lazy { StreamBroadcastWaitManager(this, viewModel::watchBroadcastStart) }
+
     // The row the fullscreen player was opened for: its refusal result carries no row, and the password is kept
     // per row, never per played address.
     private var fullscreenSourceId: String? = null
@@ -532,7 +551,13 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                 },
                 onError = ::showStreamUnavailable,
                 onPasswordRequired = ::askBroadcastPassword,
-                onSuccess = { viewModel.recordStreamPlaySuccess(it.id) },
+                onBroadcastStopped = { source, signal ->
+                    broadcastEnd.onStopped(this, source.url, signal, broadcastEndHost)
+                },
+                onSuccess = {
+                    viewModel.recordStreamPlaySuccess(it.id)
+                    broadcastEnd.onPlaying(this, it.url, broadcastEndHost)
+                },
                 // S1142: mirror the live now-playing track onto the active channel's grid tile. The id
                 // comes from the manager itself - reading it back via inlineAudio here crashed on the
                 // init-time emit (the lateinit is not yet assigned while the constructor runs).
@@ -996,6 +1021,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                     broadcastPasswordPrompt.show(refused = false) { password ->
                         viewModel.onImportBroadcastDescriptor(event.payload, password)
                     }
+                is StreamsViewModel.StreamsEvent.BroadcastWaiting ->
+                    latestState.sources.firstOrNull { it.id == event.streamId }?.let(::showBroadcastWait)
             }
         }
     }
@@ -1011,6 +1038,9 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * channel list. Inflated on first use only (Rule 18) - the policy may never raise it.
      *
      * S2896: dynamic D-pad focus routing ensures banner buttons are reachable via D-pad up from controls below.
+     *
+     * S4459: the offer exists only for a published list newer than the installed one, and Close is
+     * remembered for that list - the banner comes back when a newer one is published, not on the next open.
      */
     private fun showCatalogRefreshSuggestion() {
         val banner = catalogBanner ?: binding.stubCatalogBanner.inflate().also { catalogBanner = it }
@@ -1021,6 +1051,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             viewModel.onImportCatalog()
         }
         banner.findViewById<View>(R.id.btnCatalogBannerDismiss)?.setOnClickListener {
+            viewModel.onCatalogOfferDismissed()
             hideCatalogBanner()
         }
     }
@@ -1185,6 +1216,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             // same gesture both starts and stops the inline radio without hunting for the mini-control.
             // Stopping needs no network, so this toggle runs before the S0711 reachability gate below.
             source.mediaKind == "AUDIO" && inlineAudio.playingId == source.id -> {
+                broadcastEnd.onStopAll()
                 inlineAudio.stop()
                 // S1152: an explicit user stop clears the resume record so the next launch does not re-play it.
                 clearStreamResume()
@@ -1202,9 +1234,22 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     }
 
     private fun playBroadcast(source: StreamSourceEntity) {
-        broadcastEndpoints.play(lifecycleScope, this, source.id, source.url, source.broadcastEndpoints) { url ->
+        broadcastEndpoints.play(
+            lifecycleScope,
+            this,
+            source.id,
+            source.url,
+            source.broadcastEndpoints,
+            onWaiting = { showBroadcastWait(source) },
+        ) { url ->
+            viewModel.onBroadcastResolved(source, url, broadcastEndpoints.storedUrl(source.id, source.url))
             startPlayback(source.copy(url = url))
         }
+    }
+
+    private fun showBroadcastWait(source: StreamSourceEntity) {
+        val playAtOnce = viewModel.settings.value.streamsPendingPlayAtOnce
+        broadcastWait.show(source.id, source.broadcastEndpoints, playAtOnce) { playBroadcast(source) }
     }
 
     private fun startPlayback(source: StreamSourceEntity) {
@@ -1293,7 +1338,10 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * (service) playback can continue in the background; OFF-mode audio is already torn down by onStop.
      */
     private fun finishOrNavigateUp() {
-        if (isTaskRoot) {
+        // S4474: a task the trampoline opened for a launcher or shortcut tap has the caller's screen
+        // underneath, so opening Main here would put the app's menu between the user and that screen.
+        Timber.d("S4474: streams exit taskRoot=$isTaskRoot")
+        if (isTaskRoot && !intent.getBooleanExtra(EXTRA_RETURN_TO_CALLER, false)) {
             startActivity(
                 Intent(this, com.sza.fastmediasorter.ui.main.MainActivity::class.java)
                     .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
@@ -1668,6 +1716,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         binding.rvStreams.removeOnScrollListener(streamScrollListener)
         // S1474: before the engines below are released, so a measurement never outlives its window.
         streamInfoDialogManager.dismiss()
+        broadcastWait.dismiss()
         // S1152: read the playback state BEFORE inlineAudio is released below.
         if (isFinishing) clearStreamResumeOnExit()
         // setupViews() is deferred to a post{}; guard against destroy before it ran.
@@ -1688,18 +1737,23 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         private const val BROADCAST_LINK_SCHEME = "fmsbcast"
         const val ACTION_PLAY_STREAM = "com.sza.fastmediasorter.action.PLAY_STREAM"
         const val EXTRA_STREAM_URL = "extra_stream_url"
+        private const val EXTRA_RETURN_TO_CALLER = "extra_return_to_caller"
 
         /**
          * S1471: no longer what a pinned shortcut carries. The shortcut now targets
          * `StreamPlayLaunchActivity`, and this is the fallback that trampoline starts when background
          * playback does not apply - non-audio channel, setting off, no network, or an unknown URL.
-         * Keeps the launcher task flags because the trampoline starts it from outside our task.
+         * S4474: always a task of its own. `NEW_TASK` alone joins the task that already holds
+         * `MainActivity` (same default affinity), so Back unwound player -> streams -> Main and never
+         * reached the desktop; `MULTIPLE_TASK` is the S2215 launcher policy for an own-package target.
+         * `CLEAR_TOP` is gone because a fresh task has nothing to clear.
          */
         fun createPlayShortcutIntent(context: Context, url: String): Intent =
             Intent(context, StreamsActivity::class.java).apply {
                 action = ACTION_PLAY_STREAM
                 putExtra(EXTRA_STREAM_URL, url)
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                putExtra(EXTRA_RETURN_TO_CALLER, true)
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK
             }
 
         /**

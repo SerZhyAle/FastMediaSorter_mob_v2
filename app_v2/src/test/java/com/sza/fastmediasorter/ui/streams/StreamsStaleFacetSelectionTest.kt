@@ -103,6 +103,8 @@ class StreamsStaleFacetSelectionTest {
             buildWatchBroadcastHandoff = mockk(relaxed = true),
             observeStreamCollections = observeStreamCollections,
             observeLiveBroadcastSources = observeLiveBroadcastSources,
+            resolveStreamCatalogOffer = mockk(relaxed = true),
+            watchBroadcastStartUseCase = mockk(relaxed = true),
         )
     }
 

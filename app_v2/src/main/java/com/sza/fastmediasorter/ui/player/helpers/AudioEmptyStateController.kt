@@ -78,6 +78,7 @@ class AudioEmptyStateController(
     // hides the video view -> the looping background never renders (S0407). onPrepared is the sole
     // entry point for the initial start; external start() calls only resume after a pause.
     private var isPrepared = false
+    private val recoveryPolicy = AudioVisualizationRecoveryPolicy()
 
     init {
         lifecycle.addObserver(this)
@@ -106,6 +107,7 @@ class AudioEmptyStateController(
         if (currentMode.isVideoMode() && !mode.isVideoMode()) {
             releaseMediaPlayer()
             videoActive = false
+            videoView.surfaceTextureListener = null
         }
         currentMode = mode
         hideAll()
@@ -122,6 +124,7 @@ class AudioEmptyStateController(
     fun hide() {
         Timber.d("AudioEmptyStateController: hide()")
         videoActive = false
+        recoveryPolicy.resetFailures()
         stopBars()
         stopWaves()
         releaseMediaPlayer()
@@ -158,7 +161,7 @@ class AudioEmptyStateController(
                         }
                         // S0893: released by onStop() while backgrounded-and-paused; rebuild now that
                         // playback resumed (onStart() only rebuilds when isPlaying was already true).
-                        !videoActive -> showVideo()
+                        !videoActive && recoveryPolicy.mayRecoverFromLifecycle() -> showVideo()
                     }
                 } else {
                     mediaPlayer?.let { mp ->
@@ -218,7 +221,8 @@ class AudioEmptyStateController(
     // !videoActive branch above), avoiding an eager rebuild of a still-paused background.
     override fun onStart(owner: LifecycleOwner) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return
-        if (isPlaying && currentMode.isVideoMode() && !videoActive) {
+        val rebuildDue = isPlaying && currentMode.isVideoMode() && !videoActive
+        if (rebuildDue && recoveryPolicy.mayRecoverFromLifecycle()) {
             showVideo()
         }
     }
@@ -249,6 +253,7 @@ class AudioEmptyStateController(
         releaseMediaPlayer()
         this.videoView.surfaceTextureListener = null
         videoActive = false
+        recoveryPolicy.resetFailures()
         this.audioCoverArtView = audioCoverArtView
         this.barsView = barsView
         this.videoView = videoView
@@ -308,6 +313,7 @@ class AudioEmptyStateController(
      * Works on API 16+. Falls back to no background (static note) when no clip is available or on any error.
      */
     private fun showVideo() {
+        Timber.d("S4425: showVideo attempt, canRecover=${recoveryPolicy.mayRecoverFromLifecycle()}")
         val file = deliveredSource.getRandomBackgroundFile()
         if (file == null) {
             videoActive = false
@@ -334,6 +340,8 @@ class AudioEmptyStateController(
             videoView.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
                 override fun onSurfaceTextureAvailable(texture: SurfaceTexture, w: Int, h: Int) {
                     Timber.d("AudioEmptyStateController: onSurfaceTextureAvailable ${w}x${h}")
+                    // A texture re-attached after an error or a mode switch belongs to no live request.
+                    if (!videoActive || !currentMode.isVideoMode()) return
                     startMediaPlayer(Surface(texture), file)
                 }
                 override fun onSurfaceTextureSizeChanged(t: SurfaceTexture, w: Int, h: Int) {
@@ -364,6 +372,7 @@ class AudioEmptyStateController(
         // `player` still points at the constructed instance so the catch block can release it instead
         // of orphaning it (previously only the Surface was released on such a throw).
         var player: MediaPlayer? = null
+        val token = recoveryPolicy.begin()
         try {
             player = MediaPlayer()
             player.apply {
@@ -378,6 +387,7 @@ class AudioEmptyStateController(
                 setVolume(0f, 0f)   // muted: decorative background only
                 isLooping = true
                 setOnPreparedListener { mp ->
+                    if (!recoveryPolicy.onPrepared(token)) return@setOnPreparedListener
                     isPrepared = true
                     Timber.d("AudioEmptyStateController: MediaPlayer prepared, " +
                         "isPlaying=$isPlaying, " +
@@ -407,10 +417,15 @@ class AudioEmptyStateController(
                         MediaPlayer.MEDIA_ERROR_TIMED_OUT -> "TIMED_OUT($extra)"
                         else -> "EXTRA_$extra"
                     }
+                    if (!recoveryPolicy.onFailure(token)) {
+                        Timber.w("AudioEmptyStateController: ignored error what=$whatStr of a superseded player")
+                        return@setOnErrorListener true
+                    }
                     Timber.e("AudioEmptyStateController: MediaPlayer error what=$whatStr extra=$extraStr file=${file.absolutePath} - no background shown")
                     // S0863: MediaPlayer.OnErrorListener contract - the object enters Error state and
                     // reset() must be called before reuse; releaseMediaPlayer() also clears isPrepared so
                     // the unguarded start() sites in onIsPlayingChanged/onResume never see a dead player.
+                    Timber.d("S4425: decorative video failed, static note shown, attempt invalidated")
                     releaseMediaPlayer()
                     videoActive = false
                     videoView.isVisible = false
@@ -426,6 +441,7 @@ class AudioEmptyStateController(
             }
             mediaPlayer = player
         } catch (e: Exception) {
+            recoveryPolicy.onStartFailure()
             player?.release()
             surface.release()
             currentSurface = null
@@ -475,6 +491,7 @@ class AudioEmptyStateController(
 
     private fun releaseMediaPlayer() {
         isPrepared = false
+        recoveryPolicy.invalidate()
         mediaPlayer?.let {
             try { if (it.isPlaying) it.stop() } catch (_: Exception) {}
             it.reset()

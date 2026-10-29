@@ -28,6 +28,10 @@ import javax.inject.Singleton
  * S0697: category/language facet selections and the pinned-only toggle are persisted too, so the full
  * filter (not just sort/media/query) survives a restart. S0699: the first-visible list position is
  * remembered so the next open lands the user on the same channel.
+ *
+ * S4459: [Session.catalogInstalledStamp] is the publication stamp of the catalog archive the last import
+ * installed, and [Session.catalogDismissedStamp] the stamp whose update offer the user closed; the update
+ * banner is offered only for a published stamp that equals neither.
  */
 private val Context.streamsSessionDataStore by preferencesDataStore(
     name = "streams_session",
@@ -55,6 +59,8 @@ class StreamsSessionStore @Inject constructor(
         val lastCatalogRefreshAt: Long,
         val lastDisplayMode: String?,
         val lastScrollPosition: Int?,
+        val catalogInstalledStamp: String? = null,
+        val catalogDismissedStamp: String? = null,
     )
 
     suspend fun read(): Session {
@@ -70,6 +76,8 @@ class StreamsSessionStore @Inject constructor(
             lastCatalogRefreshAt = prefs[KEY_LAST_CATALOG_REFRESH_AT] ?: 0L,
             lastDisplayMode = prefs[KEY_LAST_DISPLAY_MODE],
             lastScrollPosition = prefs[KEY_LAST_SCROLL_POSITION],
+            catalogInstalledStamp = prefs[KEY_CATALOG_INSTALLED_STAMP],
+            catalogDismissedStamp = prefs[KEY_CATALOG_DISMISSED_STAMP],
         )
     }
 
@@ -103,6 +111,28 @@ class StreamsSessionStore @Inject constructor(
         }
     }
 
+    /**
+     * S4459: the publication stamp of the archive the last successful import installed. Null removes the
+     * key, so an import whose response carried no usable header cannot leave the previous stamp standing
+     * as a claim about content that has since been replaced.
+     */
+    suspend fun writeCatalogInstalledStamp(stamp: String?) {
+        context.streamsSessionDataStore.edit { prefs ->
+            if (stamp != null) {
+                prefs[KEY_CATALOG_INSTALLED_STAMP] = stamp
+            } else {
+                prefs.remove(KEY_CATALOG_INSTALLED_STAMP)
+            }
+        }
+    }
+
+    /** S4459: the publication stamp whose update offer the user closed; a different stamp is offered again. */
+    suspend fun writeCatalogDismissedStamp(stamp: String) {
+        context.streamsSessionDataStore.edit { prefs ->
+            prefs[KEY_CATALOG_DISMISSED_STAMP] = stamp
+        }
+    }
+
     suspend fun writeDisplayMode(mode: String) {
         context.streamsSessionDataStore.edit { prefs ->
             prefs[KEY_LAST_DISPLAY_MODE] = mode
@@ -127,5 +157,7 @@ class StreamsSessionStore @Inject constructor(
         val KEY_LAST_CATALOG_REFRESH_AT = longPreferencesKey("last_catalog_refresh_at")
         val KEY_LAST_DISPLAY_MODE = stringPreferencesKey("last_display_mode")
         val KEY_LAST_SCROLL_POSITION = intPreferencesKey("last_scroll_position")
+        val KEY_CATALOG_INSTALLED_STAMP = stringPreferencesKey("catalog_installed_stamp")
+        val KEY_CATALOG_DISMISSED_STAMP = stringPreferencesKey("catalog_dismissed_stamp")
     }
 }

@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.18 17:45</sub>
+<sub class="doc-stamp">26.10.29 05:03</sub>
 
 # Pointer - `HARNESS-PROFILE`
 
 | | |
 | --- | --- |
 | **Id** | `HARNESS-PROFILE` |
-| **Version** | 0.12, draft. Owner: the canon (sza-unified-rules) |
+| **Version** | 0.14, draft. Owner: the canon (sza-unified-rules) |
 | **Home** | `rule-adoption/README.md` section 3 in the shared contracts catalog |
 | **Role here** | adopter - configures the shipped harness through `.sza-profile.json` |
 

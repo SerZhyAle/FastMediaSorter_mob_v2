@@ -9,6 +9,10 @@
 
   Checkpoints:
     cold-start          - `am start -W` TotalTime (ms) for MainActivity after force-stop.
+                          S4496: another emulator online beside the measured one marks the
+                          record contended=true and pass=false - a shared host CPU times the host,
+                          not the app, so the number neither passes nor counts as a regression.
+                          Stop the other emulators and re-measure.
     list-scroll         - `dumpsys gfxinfo` janky-frame %% (skill resets + scrolls first).
     player-open         - ms to first frame; skill supplies the wall-clock via -ElapsedMs.
     network-listing     - ms to BrowseLoadingManager COMPLETE; skill supplies -ElapsedMs.
@@ -169,6 +173,8 @@ $adbTarget = @(); if ($DeviceId) { $adbTarget = @('-s', $DeviceId) }
 $measured     = $null
 $detail       = ''
 $insufficient = $false
+# S4496: set by cold-start when another emulator shared the host during the launch.
+$contended    = $false
 # Set by a checkpoint that measured something other than the quantity it was asked for. Such a
 # record is reported but never gated on: the number is not wrong, it is a different number.
 $advisoryRequested = $false
@@ -177,11 +183,27 @@ $advisoryRequested = $false
 $MinFramesForJank = 100
 switch ($Checkpoint) {
     'cold-start' {
+        # S4496: every emulator shares the host CPU, so a launch measured beside another running
+        # emulator times the host, not the app. Measured 2026-10-29 on one APK: 6966-8011 ms on a
+        # Pixel_9 API 35 next to two other emulators, 2379-3213 ms on the same AVD alone.
+        $selfSerial = if ($DeviceId) { $DeviceId } else { $null }
+        $contendingEmulators = @(& $adb devices 2>$null | ForEach-Object {
+            $m = [regex]::Match("$_", '^(emulator-\d+)\s+device\s*$')
+            if ($m.Success -and $m.Groups[1].Value -ne $selfSerial) { $m.Groups[1].Value }
+        })
+        # Without -DeviceId the measured emulator is one of the listed ones, not a contender.
+        if (-not $selfSerial -and $contendingEmulators.Count -gt 0) {
+            $contendingEmulators = @($contendingEmulators | Select-Object -Skip 1)
+        }
         & $adb @adbTarget shell am force-stop $DebugPackage *> $null
         $out = & $adb @adbTarget shell am start -W -n "$DebugPackage/$CodePackage.ui.main.MainActivity" 2>&1
         $m = [regex]::Match("$out", 'TotalTime:\s*(\d+)')
         if ($m.Success) { $measured = [int]$m.Groups[1].Value; $detail = "am start -W TotalTime" }
         else { $detail = "TotalTime not parsed" }
+        if ($contendingEmulators.Count -gt 0) {
+            $contended = $true
+            $detail = "$detail (CONTENDED: $($contendingEmulators -join ', ') also online - stop them and re-measure alone)"
+        }
     }
     { $_ -in @('list-scroll', 'streams-list-scroll', 'streams-grid-scroll', 'streams-search') } {
         # gfxinfo reset + scroll are driven by the skill before this call; read the stats now.
@@ -363,6 +385,9 @@ elseif ($Checkpoint -eq 'play-bitmap-memory') {
 
 # Unmeasured (null) fails closed; otherwise pass when measured value is within the limit.
 $pass = ($null -ne $measured) -and ($limit -ne $null) -and ([double]$measured -le [double]$limit)
+# A contended launch fails closed too: it is neither the app's number nor a regression, so it may
+# neither pass the gate nor be read as one - the verdict labels it and the sweep re-measures alone.
+if ($contended) { $pass = $false }
 
 # Advisory: list-scroll gfxinfo janky% is not a valid release gate on an emulator. Keep the raw
 # measured/pass for transparency but flag the record so the verdict aggregator does not gate on it.
@@ -385,6 +410,7 @@ $record = [ordered]@{
     pass         = [bool]$pass
     advisory     = [bool]$advisory
     insufficient = [bool]$insufficient
+    contended    = [bool]$contended
     processState = $processState
     ramBucketGb  = $ramBucketGb
     detail       = $detail

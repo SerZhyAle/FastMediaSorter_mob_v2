@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.BroadcastLinkPasswordMode
 import com.sza.fastmediasorter.domain.model.BroadcastSettings
 import com.sza.fastmediasorter.domain.model.DEFAULT_BROADCAST_STREAM_TITLE
 import com.sza.fastmediasorter.domain.model.LEGACY_BROADCAST_STREAM_TITLE
@@ -58,6 +59,9 @@ object BroadcastSettingsStore {
     // S3237: the lens the broadcast screen last opened, so the choice survives an Activity recreation
     // and the next launch.
     private val keyCameraLensId = stringPreferencesKey("broadcast_camera_lens_id")
+
+    // S4405: stored by enum name; the custom password itself is in KeystoreBroadcastLinkPasswordStore.
+    private val keyLinkPasswordMode = stringPreferencesKey("broadcast_link_password_mode")
 
     /**
      * S3222: the session parameters are the domain group itself, so this store no longer restates the
@@ -113,6 +117,7 @@ object BroadcastSettingsStore {
             feedbackGuardEnabled = preferences[keyFeedbackGuardEnabled] ?: true,
             cameraLensId = preferences[keyCameraLensId],
             watchCameraStandby = preferences[keyWatchCameraStandby] ?: false,
+            linkPasswordMode = BroadcastLinkPasswordMode.fromStored(preferences[keyLinkPasswordMode]),
         ),
     )
 
@@ -135,6 +140,7 @@ object BroadcastSettingsStore {
         preferences[keyMicGainPercent] = broadcast.micGainPercent
         preferences[keyFeedbackGuardEnabled] = broadcast.feedbackGuardEnabled
         preferences[keyWatchCameraStandby] = broadcast.watchCameraStandby
+        preferences[keyLinkPasswordMode] = broadcast.linkPasswordMode.name
         // S3237: unlike the device id above, a null here is a real value - the user cleared the choice
         // or the stored lens no longer exists - so it removes the key instead of leaving a stale id.
         val lensId = broadcast.cameraLensId

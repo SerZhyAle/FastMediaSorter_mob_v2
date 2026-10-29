@@ -31,6 +31,13 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
     // while the dialog is still showing (prevents WindowLeaked).
     private var activeDialog: androidx.appcompat.app.AlertDialog? = null
 
+    // The loader emits ShowError and FinishActivity back to back; finishing at once used to discard
+    // the error before its surface could load the settings it depends on.
+    private val finishSequencer = PlayerErrorFinishSequencer {
+        Timber.d("S4422: player finishing after every error presentation ended")
+        activity.finish()
+    }
+
     /** Must be called from PlayerActivity.onDestroy() to clean up open dialogs. */
     fun onDestroy() {
         activeDialog?.dismiss()
@@ -56,7 +63,7 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
                     Toast.LENGTH_LONG
                 ).show()
             }
-            PlayerViewModel.PlayerEvent.FinishActivity -> activity.finish()
+            PlayerViewModel.PlayerEvent.FinishActivity -> finishSequencer.requestFinish()
             is PlayerViewModel.PlayerEvent.CastStateChanged -> {
                 val msg = if (event.isCasting && event.deviceName != null) {
                     activity.getString(com.sza.fastmediasorter.R.string.cast_connected, event.deviceName)
@@ -111,10 +118,12 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
     }
 
     fun showError(message: String, throwable: Throwable? = null) {
+        val presentationDone = finishSequencer.beginPresentation()
         val isInPip = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N &&
             activity.isInPictureInPictureMode
         if (activity.isFinishing || activity.isDestroyed || isInPip) {
             Timber.w("showError: Activity is finishing/destroyed/in PiP, skipping error dialog")
+            presentationDone()
             return
         }
 
@@ -128,6 +137,7 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
                 activity.deletePermissionLauncher.launch(
                     IntentSenderRequest.Builder(intentSender).build()
                 )
+                presentationDone()
                 return
             } catch (e: Exception) {
                 Timber.e(e, "showError: Failed to launch delete permission request")
@@ -143,19 +153,23 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
             if (settings.showDetailedErrors && !isSlideshowActive) {
                 if (activity.isFinishing || activity.isDestroyed) {
                     Timber.w("showError: Activity finished during settings load, skipping dialog")
+                    presentationDone()
                     return@launch
                 }
                 // S0118: keep the richer dialog surface, but do not expose raw stack traces to users.
-                activeDialog = com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog.show(
+                val dialog = com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog.show(
                     context = activity,
                     title = activity.getString(R.string.error),
                     message = message
                 )
+                activeDialog = dialog
+                if (dialog == null) presentationDone() else dialog.setOnDismissListener { presentationDone() }
             } else {
                 AppErrorNotifier.show(
                     activity = activity,
                     message = message,
-                    severity = ErrorSeverity.CRITICAL
+                    severity = ErrorSeverity.CRITICAL,
+                    onDismissed = presentationDone,
                 )
             }
         }

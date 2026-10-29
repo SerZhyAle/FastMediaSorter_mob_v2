@@ -206,6 +206,8 @@ data class AppSettings(
     val streamsVisualizeAsMusic: Boolean = false,
     // S4116: a cast from another device of the user plays without asking; off by default (DEVICE-EXCHANGE 7.8).
     val streamsCastPlayAtOnce: Boolean = false,
+    // S4247, LIVE-BROADCAST item S: off asks "Play" when a waited-for broadcast starts.
+    val streamsPendingPlayAtOnce: Boolean = false,
 
     // S2817: an absent preference preserves the broadcast session defaults used before settings existed.
     val enableBroadcasting: Boolean = false,

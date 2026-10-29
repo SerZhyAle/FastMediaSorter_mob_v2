@@ -66,10 +66,10 @@
     <string name="exchange_devices_watch_code_refused">El servidor no quiso emitir un código: %1$s</string>
     <string name="exchange_devices_watch_none">No hay ningún reloj conectado</string>
     <string name="exchange_devices_watch_companion_off">El complemento para Wear está desactivado. Actívalo primero en Ajustes.</string>
-    <string name="exchange_devices_pick_outgoing_title">¿Publicar a través de qué servidor?</string>
+    <string name="exchange_devices_pick_outgoing_title">Cambiar el servidor de publicación</string>
     <string name="exchange_devices_pick_none">Añade primero un servidor en la pantalla Mis dispositivos</string>
     <string name="settings_sftp_exchange_outgoing">A través del servidor %1$s</string>
-    <string name="settings_sftp_exchange_outgoing_none">No se ha elegido ningún servidor saliente</string>
+    <string name="settings_sftp_exchange_outgoing_none">Ningún servidor de aquí puede publicar - añade uno en la pantalla Mis dispositivos</string>
     <string name="settings_sftp_exchange_change">Cambiar</string>
     <string name="exchange_signin_intake_hint">Pega una cadena de servidor</string>
     <string name="exchange_signin_paste">Pegar</string>
@@ -360,4 +360,10 @@
     </plurals>
     <string name="exchange_format_unsupported">Este formato es más nuevo de lo que admite esta aplicación. No se importó nada. Usa una aplicación compatible.</string>
     <string name="stream_source_live_badge">En vivo</string>
+    <string name="broadcast_exchange_line_announcing">Servidor de intercambio %1$s: anunciando la emisión</string>
+    <string name="broadcast_exchange_line_on_server">Servidor de intercambio %1$s: la emisión está en el servidor</string>
+    <string name="broadcast_exchange_line_relayed">Servidor de intercambio %1$s: en el servidor, retransmitida a través del servidor</string>
+    <string name="broadcast_exchange_line_failed">Servidor de intercambio %1$s: %2$s</string>
+    <string name="broadcast_exchange_line_local_only">Accesible solo en esta red. Añade un servidor de intercambio en Mis dispositivos</string>
+    <string name="broadcast_exchange_line_guest_only">Accesible solo en esta red: una cuenta de invitado no puede emitir a través del servidor de intercambio</string>
 </resources>

@@ -12,6 +12,9 @@ sealed class DriveAppDataFailure(message: String) : IOException(message) {
 
     class AuthRequired : DriveAppDataFailure("Google Drive sign-in required")
 
+    /** S4427: signed in, but the app folder scope was never granted; a re-sign-in would not ask for it. */
+    class ConsentRequired : DriveAppDataFailure("Google Drive app folder access not granted")
+
     class RateLimited(val httpCode: Int) : DriveAppDataFailure("Google Drive rate limit (HTTP $httpCode)")
 
     class DailyLimit : DriveAppDataFailure("Google Drive daily upload limit reached")

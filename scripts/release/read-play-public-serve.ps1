@@ -2,7 +2,7 @@
 #requires -Version 7.0
 <#
 .SYNOPSIS
-    Read the version the public Google Play store page actually serves - anonymous, credential-free.
+    Read what the public Google Play store page actually serves - anonymous, credential-free.
 
 .DESCRIPTION
     The Play Developer API answers what each track HOLDS. It does not answer what the store
@@ -12,29 +12,53 @@
     build (S1256, S2272).
 
     This reader closes that gap. It fetches the store listing the way an anonymous visitor does -
-    no service account, no .venv, no edit session - and reports the version string the markup
-    carries. It is the producer of the `Public serve` row of docs/PLAY_PUBLISHING_STATE.md.
+    no service account, no .venv, no edit session - and reports two signals from the markup. It is
+    the producer of the `Public serve` row of docs/PLAY_PUBLISHING_STATE.md.
 
-    Version detection is layered and refusal-biased, because a bare four-segment scan of this page
-    returns five candidates: the served version, two unrelated Play feature-rollout versions, an
-    "0.0.0.0" server stamp, and a fragment of an SVG path. Layer 1 reads Play's own data-callback
-    key `"141"`, which holds the version alone. Layer 2 drops the key and matches the surrounding
-    `[[["<version>"]]]` shape, which the noise candidates do not have. Anything still ambiguous
-    exits 2 with the candidates named. The numeric key is Google's and may change without notice;
-    when it does, this degrades to layer 2 and then to a refusal, never to a wrong answer - a wrong
-    version in the state record is worse than a missing one, because that row is read as measured
-    fact.
+    Signal 1, the served version. Detection is layered and refusal-biased, because a bare
+    four-segment scan of this page returns five candidates: the served version, two unrelated Play
+    feature-rollout versions, an "0.0.0.0" server stamp, and a fragment of an SVG path. Layer 1 reads
+    Play's own data-callback key `"141"`, which held the version alone. Layer 2 drops the key and
+    matches the surrounding `[[["<version>"]]]` shape, which the noise candidates do not have. More
+    than one shaped node exits 2 with the candidates named. The numeric key is Google's and may
+    change without notice; a wrong version in the state record is worse than a missing one, because
+    that row is read as measured fact.
+
+    Measured 2026-10-27 the page carries NO version: key `"141"` reads `[[null,[]],[[[36]],[null,[]]]]`
+    and no shaped node exists, so layers 1 and 2 match nothing and the only four-segment strings left
+    are the noise above (S4463). That outcome is no longer a refusal: `servedVersion` is null and
+    `detectedBy` says so. A version that reappears in either shape is read again with no change.
+
+    Signal 2, the update stamp. Key `"146"` holds the `Updated on` display date and an epoch second
+    (`[["Oct 21, 2026",[1792541532,297000000]]]`), reported as `updatedOn` and `updatedAtUtc`. It moves
+    when the store publishes a new release, so "strictly newer than the stamp recorded last time" is
+    the credential-free test that a release reached the store; `-RequireUpdatedAfter` is that test.
+
+    The reader exits 2 rather than answer from a page it could not read: when the page carries neither
+    a version nor an update stamp, it did not render the listing data (consent wall, bot check or a
+    markup change), and nothing is reported.
 
 .PARAMETER Package
     Application id to read. Defaults to com.sza.fastmediasorter.
 
 .PARAMETER Json
-    Emit an object for a caller that parses it - package, servedVersion, updatedOn, sourceUrl and
+    Emit an object for a caller that parses it - package, servedVersion (null when the page carries
+    none), updatedOn, updatedAtUtc (null when the epoch second is absent), detectedBy, sourceUrl and
     measuredUtc. Default output is a single human-readable line.
 
 .PARAMETER RequireVersionAbove
     Turn the read into an assertion: exit 1 unless the served version is strictly above this one.
-    This is the one-command form of S2272 acceptance criterion 5.
+    Exit 2 when the page carries no version - use -RequireUpdatedAfter then.
+
+.PARAMETER RequireUpdatedAfter
+    Turn the read into an assertion: exit 1 unless the page's update stamp is strictly later than this
+    one. A full timestamp (`2026-10-21T00:12:12Z`, read as UTC unless it names an offset) is compared
+    to the second; a date alone (`2026-10-21`) means the end of that UTC day, so the update must fall
+    on a later day. Exit 2 when the value cannot be parsed or the page carries no epoch second.
+
+.PARAMETER HtmlPath
+    Read a saved copy of the listing page instead of fetching it. Used by the contract suite and to
+    replay captured evidence; the JSON `sourceUrl` then holds this path.
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/release/read-play-public-serve.ps1
@@ -43,20 +67,29 @@
     pwsh -NoProfile -File scripts/release/read-play-public-serve.ps1 -Json
 
 .EXAMPLE
+    pwsh -NoProfile -File scripts/release/read-play-public-serve.ps1 -RequireUpdatedAfter 2026-10-21T00:12:12Z
+
+.EXAMPLE
     pwsh -NoProfile -File scripts/release/read-play-public-serve.ps1 -RequireVersionAbove 2.60.8151.948
+
+.EXAMPLE
+    pwsh -NoProfile -File scripts/release/read-play-public-serve.ps1 -HtmlPath temp/scratch/play-page.html -Json
 
 .NOTES
     Exit codes:
-      0 - the served version was read (and the -RequireVersionAbove assertion held, when given)
-      1 - the -RequireVersionAbove assertion failed: the page still serves that version or older
-      2 - could not verify: the request failed, no version was found, or several candidates were
-          ambiguous
+      0 - the page was read (and the -RequireVersionAbove / -RequireUpdatedAfter assertion held, when given)
+      1 - an assertion failed: the store still serves that version or older, or was updated at or
+          before that stamp
+      2 - could not verify: the request failed, the page carries neither a version nor an update
+          stamp, several version candidates were ambiguous, or an assertion could not be evaluated
 #>
 [CmdletBinding()]
 param(
     [string] $Package = 'com.sza.fastmediasorter',
     [switch] $Json,
-    [string] $RequireVersionAbove
+    [string] $RequireVersionAbove,
+    [string] $RequireUpdatedAfter,
+    [string] $HtmlPath
 )
 
 $ErrorActionPreference = 'Stop'
@@ -65,21 +98,30 @@ $measuredUtc = [DateTime]::UtcNow.ToString('yyyy-MM-dd')
 $sourceUrl = "https://play.google.com/store/apps/details?id=$Package&hl=en&gl=US"
 $userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36'
 
-try {
-    $response = Invoke-WebRequest -Uri $sourceUrl -UserAgent $userAgent -TimeoutSec 45 -MaximumRedirection 5
-} catch {
-    $msg = "read-play-public-serve: request to $sourceUrl failed - $($_.Exception.Message)"
-    Write-Error $msg -ErrorAction Continue
-    exit 2
-}
+if ($HtmlPath) {
+    if (-not (Test-Path -LiteralPath $HtmlPath -PathType Leaf)) {
+        Write-Error "read-play-public-serve: saved page not found - $HtmlPath" -ErrorAction Continue
+        exit 2
+    }
+    $sourceUrl = $HtmlPath
+    $html = [System.IO.File]::ReadAllText((Resolve-Path -LiteralPath $HtmlPath).Path)
+} else {
+    try {
+        $response = Invoke-WebRequest -Uri $sourceUrl -UserAgent $userAgent -TimeoutSec 45 -MaximumRedirection 5
+    } catch {
+        $msg = "read-play-public-serve: request to $sourceUrl failed - $($_.Exception.Message)"
+        Write-Error $msg -ErrorAction Continue
+        exit 2
+    }
 
-if ($response.StatusCode -ne 200) {
-    $msg = "read-play-public-serve: $sourceUrl returned HTTP $($response.StatusCode), expected 200."
-    Write-Error $msg -ErrorAction Continue
-    exit 2
-}
+    if ($response.StatusCode -ne 200) {
+        $msg = "read-play-public-serve: $sourceUrl returned HTTP $($response.StatusCode), expected 200."
+        Write-Error $msg -ErrorAction Continue
+        exit 2
+    }
 
-$html = [string] $response.Content
+    $html = [string] $response.Content
+}
 
 # Every call site re-wraps the result in @(). PowerShell unrolls a single-element array on return,
 # and the scalar that arrives is a string whose .Count is 1 and whose [0] is its first character -
@@ -104,31 +146,46 @@ if ($keyed.Count -eq 1) {
     if ($shaped.Count -eq 1) {
         $servedVersion = $shaped[0]
         $detectedBy = 'version-shaped data node'
-    } else {
-        $loose = @(Get-DistinctCapture -Text $html -Pattern "($versionPattern)")
-        $found = @(if ($shaped.Count -gt 0) { $shaped } else { $loose })
-        $msg = if ($found.Count -eq 0) {
-            "read-play-public-serve: no version string found on $sourceUrl. The listing markup " +
-                'changed, or the page did not render a version.'
-        } else {
-            "read-play-public-serve: $($found.Count) ambiguous version candidates on $sourceUrl - " +
-                "$($found -join ', '). Refusing to guess."
-        }
+    } elseif ($shaped.Count -gt 1) {
+        $msg = "read-play-public-serve: $($shaped.Count) ambiguous version candidates on $sourceUrl - " +
+            "$($shaped -join ', '). Refusing to guess."
         Write-Error $msg -ErrorAction Continue
         exit 2
     }
 }
 
+# The display date and the epoch second share one node; the epoch is optional so a node that loses it
+# still yields the date instead of nothing.
 $updatedOn = $null
-$updatedMatch = [regex]::Match($html, '"146":\[\["([A-Z][a-z]{2} \d{1,2}, \d{4})"')
+$updatedAt = $null
+$updatedMatch = [regex]::Match($html, '"146":\[\["([A-Z][a-z]{2} \d{1,2}, \d{4})"(?:,\[(\d{9,11}),\d+\])?')
 if ($updatedMatch.Success) {
     $updatedOn = $updatedMatch.Groups[1].Value
+    if ($updatedMatch.Groups[2].Success) {
+        $updatedAt = [DateTimeOffset]::FromUnixTimeSeconds([long] $updatedMatch.Groups[2].Value).UtcDateTime
+    }
+}
+
+if (-not $servedVersion) {
+    if (-not $updatedOn) {
+        $msg = "read-play-public-serve: $sourceUrl carries neither a version nor an update stamp. The " +
+            'listing data did not render (consent wall, bot check) or its markup changed.'
+        Write-Error $msg -ErrorAction Continue
+        exit 2
+    }
+    $detectedBy = 'none - the listing page carries no version'
+}
+
+$updatedAtText = $null
+if ($updatedAt) {
+    $updatedAtText = $updatedAt.ToString('yyyy-MM-dd\THH:mm:ss\Z', [System.Globalization.CultureInfo]::InvariantCulture)
 }
 
 $result = [ordered] @{
     package       = $Package
     servedVersion = $servedVersion
     updatedOn     = $updatedOn
+    updatedAtUtc  = $updatedAtText
     detectedBy    = $detectedBy
     sourceUrl     = $sourceUrl
     measuredUtc   = $measuredUtc
@@ -137,11 +194,22 @@ $result = [ordered] @{
 if ($Json) {
     [pscustomobject] $result | ConvertTo-Json -Depth 3
 } else {
-    $updatedText = if ($updatedOn) { ", updated on $updatedOn" } else { '' }
-    Write-Host "$Package serves $servedVersion$updatedText (measured $measuredUtc UTC)."
+    $updatedText = if ($updatedOn) { "updated on $updatedOn" } else { 'no update date' }
+    if ($updatedAtText) { $updatedText += " ($updatedAtText)" }
+    if ($servedVersion) {
+        Write-Host "$Package serves $servedVersion, $updatedText (measured $measuredUtc UTC)."
+    } else {
+        Write-Host "$Package listing page carries no version; $updatedText (measured $measuredUtc UTC)."
+    }
 }
 
 if ($RequireVersionAbove) {
+    if (-not $servedVersion) {
+        $msg = 'read-play-public-serve: the page carries no version to compare with ' +
+            "'$RequireVersionAbove'. Use -RequireUpdatedAfter."
+        Write-Error $msg -ErrorAction Continue
+        exit 2
+    }
     $servedParsed = $null
     $requiredParsed = $null
     if (-not [version]::TryParse($servedVersion, [ref] $servedParsed) -or
@@ -158,6 +226,39 @@ if ($RequireVersionAbove) {
         exit 1
     }
     Write-Host "read-play-public-serve: $servedVersion is above $RequireVersionAbove."
+}
+
+if ($RequireUpdatedAfter) {
+    $invariant = [System.Globalization.CultureInfo]::InvariantCulture
+    $utcStyles = [System.Globalization.DateTimeStyles]::AssumeUniversal
+    $required = $null
+    if ($RequireUpdatedAfter -match '^\d{4}-\d{2}-\d{2}$') {
+        $day = [DateTime]::ParseExact($RequireUpdatedAfter, 'yyyy-MM-dd', $invariant, $utcStyles -bor [System.Globalization.DateTimeStyles]::AdjustToUniversal)
+        $required = $day.AddDays(1).AddSeconds(-1)
+    } else {
+        $parsed = [DateTimeOffset]::MinValue
+        if ([DateTimeOffset]::TryParse($RequireUpdatedAfter, $invariant, $utcStyles, [ref] $parsed)) {
+            $required = $parsed.UtcDateTime
+        }
+    }
+    if (-not $required) {
+        $msg = "read-play-public-serve: cannot parse '$RequireUpdatedAfter' as a date or a UTC timestamp."
+        Write-Error $msg -ErrorAction Continue
+        exit 2
+    }
+    if (-not $updatedAt) {
+        $msg = "read-play-public-serve: $sourceUrl carries no epoch update stamp to compare with " +
+            "'$RequireUpdatedAfter'."
+        Write-Error $msg -ErrorAction Continue
+        exit 2
+    }
+    if ($updatedAt -le $required) {
+        $msg = "read-play-public-serve: the store was last updated at $updatedAtText, which is not after " +
+            "$RequireUpdatedAfter."
+        Write-Error $msg -ErrorAction Continue
+        exit 1
+    }
+    Write-Host "read-play-public-serve: the store update $updatedAtText is after $RequireUpdatedAfter."
 }
 
 exit 0

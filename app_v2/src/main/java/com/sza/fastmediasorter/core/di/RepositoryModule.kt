@@ -33,11 +33,14 @@ import com.sza.fastmediasorter.data.repository.StorageVolumeRepositoryImpl
 import com.sza.fastmediasorter.data.repository.StorageVolumeSource
 import com.sza.fastmediasorter.data.repository.StreamingCacheRepositoryImpl
 import com.sza.fastmediasorter.data.repository.ThumbnailCacheRepositoryImpl
+import com.sza.fastmediasorter.data.repository.settings.DataStoreBroadcastPendingStore
 import com.sza.fastmediasorter.data.repository.settings.DeviceExchangeAccountStore
+import com.sza.fastmediasorter.data.repository.settings.KeystoreBroadcastLinkPasswordStore
 import com.sza.fastmediasorter.data.repository.settings.KeystoreBroadcastPasswordStore
 import com.sza.fastmediasorter.data.repository.settings.KeystoreDeviceExchangeE2eKeyStore
 import com.sza.fastmediasorter.data.repository.settings.KeystoreDeviceExchangeTokenStore
 import com.sza.fastmediasorter.data.repository.settings.KeystoreExchangeResourcePinStore
+import com.sza.fastmediasorter.data.repository.settings.KeystorePreparedBroadcastLinkStore
 import com.sza.fastmediasorter.data.repository.settings.MainListSessionStore
 import com.sza.fastmediasorter.data.repository.streams.RealStreamFrameIngestor
 import com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearDeliveredResourceStore
@@ -54,13 +57,16 @@ import com.sza.fastmediasorter.domain.detector.DeviceProfileDetector
 import com.sza.fastmediasorter.domain.game.GameStateRepository
 import com.sza.fastmediasorter.domain.port.MediaAddressResolver
 import com.sza.fastmediasorter.domain.repository.BatteryRuntimeEstimator
+import com.sza.fastmediasorter.domain.repository.BroadcastLinkPasswordStore
 import com.sza.fastmediasorter.domain.repository.BroadcastPasswordStore
+import com.sza.fastmediasorter.domain.repository.BroadcastPendingStore
 import com.sza.fastmediasorter.domain.repository.DeviceMemoryRepository
 import com.sza.fastmediasorter.domain.repository.DeviceProfileRepository
 import com.sza.fastmediasorter.domain.repository.FavoritesRepository
 import com.sza.fastmediasorter.domain.repository.MainListSessionRepository
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
+import com.sza.fastmediasorter.domain.repository.PreparedBroadcastLinkStore
 import com.sza.fastmediasorter.domain.repository.RawSettingsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
@@ -79,6 +85,8 @@ import dagger.hilt.components.SingletonComponent
 import java.time.Instant
 import javax.inject.Singleton
 
+// One binding per repository is the module's whole content; splitting it by count would scatter the graph.
+@Suppress("TooManyFunctions")
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class RepositoryModule {
@@ -305,6 +313,22 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindBroadcastPasswordStore(impl: KeystoreBroadcastPasswordStore): BroadcastPasswordStore
+
+    @Binds
+    @Singleton
+    abstract fun bindBroadcastPendingStore(impl: DataStoreBroadcastPendingStore): BroadcastPendingStore
+
+    @Binds
+    @Singleton
+    abstract fun bindPreparedBroadcastLinkStore(
+        impl: KeystorePreparedBroadcastLinkStore,
+    ): PreparedBroadcastLinkStore
+
+    @Binds
+    @Singleton
+    abstract fun bindBroadcastLinkPasswordStore(
+        impl: KeystoreBroadcastLinkPasswordStore,
+    ): BroadcastLinkPasswordStore
 
     @Binds
     @Singleton

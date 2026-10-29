@@ -23,7 +23,7 @@ import timber.log.Timber
  *
  * [open] reads the track before the stream is prepared, because the encoder needs its size and
  * rate; the library then calls [create], [start] with its surface texture, and [stop]/[release].
- * The pump runs on its own thread and reports the end of the track through [onFinished].
+ * The pump runs on its own thread; a finished track and a decoder that dies both reach [onFinished].
  */
 class BroadcastFileVideoSource(
     context: Context,
@@ -126,7 +126,7 @@ class BroadcastFileVideoSource(
     override fun isRunning(): Boolean = running
 
     /**
-     * Feeds samples and releases due frames until the track ends or [stop] lands. The codec is
+     * Feeds samples and releases due frames until the track ends, the codec throws or [stop] lands. The codec is
      * owned by this thread alone, so it is stopped and released here and nowhere else.
      */
     @Suppress("TooGenericExceptionCaught")
@@ -150,7 +150,10 @@ class BroadcastFileVideoSource(
         } finally {
             releaseCodec(decoder)
         }
-        if (reachedEnd) {
+        // stop() clears running before it joins this thread, so a flag still set here means the
+        // pump ended on its own - a track end or a codec throw - and the session must end with it.
+        if (reachedEnd || running) {
+            Timber.d("S4438: file pump reports the end of its track")
             running = false
             onFinished()
         }

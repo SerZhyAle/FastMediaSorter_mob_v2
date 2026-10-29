@@ -702,11 +702,13 @@
         <item name="android:background">?attr/colorPrimary</item>
         <item name="navigationIconTint">?attr/colorOnPrimary</item>
         <item name="titleTextColor">?attr/colorOnPrimary</item>
+        <item name="stbTitleIconTint">?attr/colorOnPrimary</item>
     </style>
 
     <style name="Widget.FastMediaSorter.Toolbar.Flat">
         <item name="android:background">@android:color/transparent</item>
         <item name="navigationIconTint">?attr/colorControlNormal</item>
+        <item name="stbTitleIconTint">?attr/colorControlNormal</item>
     </style>
 
 

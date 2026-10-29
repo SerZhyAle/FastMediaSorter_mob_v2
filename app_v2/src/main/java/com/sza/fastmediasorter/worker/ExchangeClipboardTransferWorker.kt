@@ -7,7 +7,6 @@ import android.content.pm.ServiceInfo
 import android.net.Uri
 import android.os.Build
 import android.provider.OpenableColumns
-import android.text.format.DateUtils
 import android.text.format.Formatter
 import androidx.annotation.StringRes
 import androidx.core.app.NotificationCompat
@@ -24,6 +23,7 @@ import com.sza.fastmediasorter.core.clipboard.ExchangeClipboardFiles
 import com.sza.fastmediasorter.core.clipboard.ExchangeClipboardPlacer
 import com.sza.fastmediasorter.core.clipboard.ExchangeClipboardReader
 import com.sza.fastmediasorter.core.di.IoDispatcher
+import com.sza.fastmediasorter.core.format.QuantityFormatter
 import com.sza.fastmediasorter.core.notification.NotificationIcons
 import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.domain.model.ExchangeClipboardEntryFailure
@@ -33,6 +33,8 @@ import com.sza.fastmediasorter.domain.model.ExchangeClipboardKind
 import com.sza.fastmediasorter.domain.model.ExchangeClipboardMeta
 import com.sza.fastmediasorter.domain.model.ExchangeClipboardSendOutcome
 import com.sza.fastmediasorter.domain.model.ExchangeMessage
+import com.sza.fastmediasorter.domain.model.Quantity
+import com.sza.fastmediasorter.domain.unit.UnitSystemProvider
 import com.sza.fastmediasorter.domain.usecase.exchange.GetClipboardFromServerUseCase
 import com.sza.fastmediasorter.domain.usecase.exchange.SendClipboardToServerUseCase
 import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeMessageText
@@ -70,6 +72,8 @@ class ExchangeClipboardTransferWorker @AssistedInject constructor(
     private val getClipboard: GetClipboardFromServerUseCase,
     private val files: ExchangeClipboardFiles,
     private val placer: ExchangeClipboardPlacer,
+    private val quantityFormatter: QuantityFormatter,
+    private val unitSystem: UnitSystemProvider,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : CoroutineWorker(context, params) {
 
@@ -349,13 +353,7 @@ class ExchangeClipboardTransferWorker @AssistedInject constructor(
     }
 
     private fun storedAtText(instant: Instant?, raw: String): String =
-        instant?.let {
-            DateUtils.formatDateTime(
-                context,
-                it.toEpochMilli(),
-                DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME,
-            )
-        } ?: raw
+        instant?.let { quantityFormatter.format(Quantity.DateTime(it.toEpochMilli()), unitSystem.value) } ?: raw
 
     private class Prepared(val meta: ExchangeClipboardMeta, val open: () -> InputStream)
 

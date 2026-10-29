@@ -5,7 +5,7 @@ description: "How to start a live broadcast from a phone - sound, camera, the sc
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/broadcast-start.html
 ---
-<sub class="doc-stamp">26.10.22 01:29</sub>
+<sub class="doc-stamp">26.10.26 00:56</sub>
 
 # Going on air: broadcast from a phone or a watch
 
@@ -48,7 +48,22 @@ Whether devices of your own account find the broadcast without any of these depe
 
 ## The password goes separately
 
-A broadcast can be protected by a password. The share screen shows it as **Password**, and the link and the QR code never carry it: tell it another way, by voice or in another messenger. **New password** makes a fresh one and the old one stops working.
+**Change password** on the share screen, or **Link password** in the broadcast settings, chooses how a link through the exchange server is protected:
+
+- **Automatic** - the device makes the password and the share screen shows it as **Password**; **Generate new** makes a fresh one and the old one stops working.
+- **My own** - you type the password yourself, from a simple word to a long phrase; a short one is easy to guess.
+- **No password** - anyone who has the link can open the broadcast.
+
+The link and the QR code never carry the password: tell it another way, by voice or in another messenger. Your own devices in **My devices** open the broadcast without asking, whichever option you chose.
+
+## Send the link in advance
+
+With an [exchange server](exchange-server.html) in **My devices**, **Link in advance** under **Start broadcast** makes a link, a QR code and a file for a broadcast you start later.
+
+- **Choose** the kind of broadcast, how long the link works - 7 days, up to 30 - and its password, the same three options as above.
+- **Up to five** links in advance exist at once; each one under the button has **Share** and **Revoke**.
+- **The link works** from the moment you start that kind of broadcast through that server; the broadcast never starts by itself.
+- **Starting another kind** of broadcast asks first: the link you handed out will not open it.
 
 ## How it reaches the listeners
 

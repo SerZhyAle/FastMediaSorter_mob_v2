@@ -60,6 +60,23 @@ class ExchangeRelayKeys @Inject constructor() {
         return key?.copyOf()
     }
 
+    /**
+     * S4247, DEVICE-EXCHANGE item DW: [key] made before the start becomes the group key of [linkId], so the relay
+     * seals under the key the prepared link handed out. False when [broadcastId] is not the live one, the key has
+     * the wrong length, or the ring has no room left.
+     */
+    @Synchronized
+    fun seedLink(broadcastId: String, linkId: String, key: ByteArray): Boolean {
+        val held = state?.takeIf { it.broadcastId == broadcastId } ?: return false
+        val fits = key.size == E2eRelayRecords.GROUP_KEY_LENGTH &&
+            (linkId in held.links || held.links.size + 1 < E2eRelayRecords.MAX_RING_ENTRIES)
+        if (fits) {
+            held.links[linkId] = key.copyOf()
+            held.linkSetVersion++
+        }
+        return fits
+    }
+
     /** Drops a link's or a grant's key; the running epoch then gives way, so the next ring leaves it out. */
     @Synchronized
     fun dropLink(broadcastId: String, linkId: String) {

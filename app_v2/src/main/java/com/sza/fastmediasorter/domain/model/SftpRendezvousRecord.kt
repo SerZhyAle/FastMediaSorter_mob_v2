@@ -130,7 +130,8 @@ data class SftpRendezvousResource(
 /**
  * DEVICE-EXCHANGE 6.3: a broadcast live right now. [descriptorJson] is the `LIVE-BROADCAST` descriptor as
  * one compact JSON object, kept verbatim so a receiver imports exactly what the broadcaster wrote. The
- * broadcast id is the capability of the secret-link model, so neither it nor the descriptor is logged.
+ * broadcast id is the capability of the secret-link model, so the descriptor is never logged and the id only by
+ * its first 8 characters (S4441), which a joint run needs to match a record across the two sides' logs.
  */
 data class SftpRendezvousBroadcast(
     val broadcastId: String,

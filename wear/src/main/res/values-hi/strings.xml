@@ -118,7 +118,6 @@
     <string name="wear_section_local">स्थानीय</string>
     <string name="wear_section_streams">स्ट्रीम</string>
     <string name="wear_section_apps">ऐप</string>
-    <string name="wear_coming_soon">जल्द आ रहा है</string>
     <string name="wear_phone_video">वीडियो</string>
     <string name="wear_phone_audio">ऑडियो</string>
     <string name="wear_phone_images">छवियां</string>
@@ -1100,4 +1099,11 @@
     <string name="wear_open_in_role_last_used">हाल ही में उपयोग किया गया</string>
     <string name="wear_open_in_role_browser">ब्राउज़र</string>
     <string name="wear_open_in_role_maps">मानचित्र</string>
+    <string name="wear_broadcast_server_announcing">सर्वर: घोषणा हो रही है</string>
+    <string name="wear_broadcast_server_on">एक्सचेंज सर्वर पर</string>
+    <string name="wear_broadcast_server_failed">सर्वर त्रुटि - फ़ोन देखें</string>
+    <string name="wear_broadcast_server_local_only">केवल यह नेटवर्क</string>
+    <string name="wear_scheduled_message_channel_name">निर्धारित संदेश</string>
+    <string name="wear_audio_fetching">ट्रैक लोड हो रहा है..</string>
+    <string name="wear_stream_ended">यह स्ट्रीम अब प्रसारित नहीं हो रही है। दोबारा शुरू होने पर फिर से कोशिश करें।</string>
 </resources>

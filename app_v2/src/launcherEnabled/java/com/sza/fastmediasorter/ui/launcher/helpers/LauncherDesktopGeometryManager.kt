@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherCellViewBinder
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherDesktopLayout
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
+import timber.log.Timber
 
 /**
  * S1541: the desktop's geometry answers - column count, viewport rows, current orientation - plus the
@@ -30,6 +31,42 @@ class LauncherDesktopGeometryManager(
     private var lastOrientation: LauncherOrientation = LauncherOrientation.PORTRAIT
 
     /**
+     * S4492: the window width the viewport was last measured at, and the outer width it had then. The
+     * pair is what lets [currentColumns] tell a measurement of this configuration from one left over
+     * from before a rotation, which would size the new orientation's grid from the old one's width.
+     */
+    private var measuredAtScreenWidthDp: Int = UNMEASURED
+    private var measuredOuterWidthPx: Int = 0
+
+    /**
+     * S4492: what the window loses beside the viewport - a side taskbar, the system bar insets. It does
+     * not change with rotation, so it stands in for the measurement until the new layout pass lands.
+     */
+    private var chromeWidthDp: Float = 0f
+
+    private val viewportWidthListener = View.OnLayoutChangeListener { _, left, _, right, _, oldLeft, _, oldRight, _ ->
+        val width = right - left
+        val stale = measuredAtScreenWidthDp != resources.configuration.screenWidthDp
+        if (width > 0 && (width != oldRight - oldLeft || stale)) {
+            recordMeasurement(width)
+            // Posted: this runs inside a layout pass, and the re-render it triggers requests another.
+            viewport.post { applyGridGeometry() }
+        }
+    }
+
+    init {
+        if (viewport.width > 0) {
+            recordMeasurement(viewport.width)
+        }
+        viewport.addOnLayoutChangeListener(viewportWidthListener)
+    }
+
+    /** Detaches the viewport listener; the host calls it once, when its views are destroyed. */
+    fun release() {
+        viewport.removeOnLayoutChangeListener(viewportWidthListener)
+    }
+
+    /**
      * Rotation and density changes re-resolve the column count and re-place every cell. Rebinding IS
      * the re-layout here, so there is no bound state that can go stale behind a changed column count -
      * the trap the RecyclerView renderer had, where requestLayout() never re-ran a bind (ADR-9).
@@ -46,11 +83,16 @@ class LauncherDesktopGeometryManager(
     fun applyGridGeometry() {
         val orientation = currentOrientation()
         val columns = currentColumns()
+        Timber.d("S4492: grid columns=$columns measured=$measuredOuterWidthPx widthDp=${contentWidthDp()}")
         viewModel.setOrientation(orientation)
         if (cellsMatchOrientation(viewModel.cells.value, orientation)) {
             renderDesktop()
         }
-        viewModel.persistColumns(orientation, columns)
+        // S4492: an estimate made before this configuration's layout pass is never written - a persisted
+        // change reflows every section, so a transient count would reflow the desktop twice.
+        if (isMeasuredForCurrentConfiguration()) {
+            viewModel.persistColumns(orientation, columns)
+        }
     }
 
     /**
@@ -79,10 +121,36 @@ class LauncherDesktopGeometryManager(
         )
     }
 
+    /**
+     * S4492: counted from the width the desktop is drawn in, not the window's. [LauncherDesktopLayout]
+     * divides only the viewport beside the taskbar by this count, so a count taken from the window gave
+     * a side taskbar's desktop cells a quarter smaller than the density factor promises.
+     */
     fun currentColumns(): Int = LauncherGridGeometry.columns(
-        availableWidthDp = resources.configuration.screenWidthDp.toFloat(),
+        availableWidthDp = contentWidthDp(),
         densityFactor = viewModel.densityFactor.value,
     )
+
+    private fun contentWidthDp(): Float {
+        val density = resources.displayMetrics.density
+        return viewportContentWidthDp(
+            screenWidthDp = resources.configuration.screenWidthDp,
+            measuredOuterWidthPx = measuredOuterWidthPx.takeIf { isMeasuredForCurrentConfiguration() },
+            chromeWidthDp = chromeWidthDp,
+            paddingPx = viewport.paddingStart + viewport.paddingEnd,
+            density = density,
+        )
+    }
+
+    private fun isMeasuredForCurrentConfiguration(): Boolean =
+        measuredAtScreenWidthDp == resources.configuration.screenWidthDp && measuredOuterWidthPx > 0
+
+    private fun recordMeasurement(outerWidthPx: Int) {
+        val screenWidthDp = resources.configuration.screenWidthDp
+        measuredAtScreenWidthDp = screenWidthDp
+        measuredOuterWidthPx = outerWidthPx
+        chromeWidthDp = (screenWidthDp - outerWidthPx / resources.displayMetrics.density).coerceAtLeast(0f)
+    }
 
     /**
      * S1288: how many rows the visible desktop covers, so edit mode can fill it with empty slots.
@@ -129,9 +197,12 @@ class LauncherDesktopGeometryManager(
      */
     fun seedDesktopIfNeeded() {
         val config = resources.configuration
+        // S4492: the other axis loses the same chrome beside the viewport, so it is subtracted from both.
+        val widthDp = contentWidthDp()
+        val lostDp = config.screenWidthDp - widthDp
         viewModel.seedDesktopIfNeeded(
-            widthDp = config.screenWidthDp.toFloat(),
-            heightDp = config.screenHeightDp.toFloat(),
+            widthDp = widthDp,
+            heightDp = config.screenHeightDp - lostDp,
             startedPortrait = currentOrientation() == LauncherOrientation.PORTRAIT,
         )
     }
@@ -155,6 +226,25 @@ class LauncherDesktopGeometryManager(
     }
 
     companion object {
+        private const val UNMEASURED = -1
+
+        /**
+         * S4492: the width, in dp, the desktop's columns divide. A viewport measured at the current window
+         * width answers exactly; without one, the window width minus the chrome last seen beside the
+         * viewport stands in, and the viewport's own padding comes off either way.
+         */
+        fun viewportContentWidthDp(
+            screenWidthDp: Int,
+            measuredOuterWidthPx: Int?,
+            chromeWidthDp: Float,
+            paddingPx: Int,
+            density: Float,
+        ): Float {
+            val safeDensity = density.takeIf { it > 0f } ?: 1f
+            val outerDp = measuredOuterWidthPx?.let { it / safeDensity } ?: (screenWidthDp - chromeWidthDp)
+            return (outerDp - paddingPx / safeDensity).coerceAtLeast(0f)
+        }
+
         /**
          * S2685: whether [cells] were resolved for [orientation]. The first cell answers for the whole
          * list because the desktop is resolved one orientation at a time, so a resolved list is

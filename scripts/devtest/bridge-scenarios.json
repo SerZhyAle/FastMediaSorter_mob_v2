@@ -753,6 +753,19 @@
       "notes": "S4228. Needs a live exchange server (FMS_W), a protected sftp-share of the account and the watch on its own Wi-Fi or LTE. Refusal reasons from the watch: malformed, unsupported_version, not_stored."
     },
     {
+      "id": "J17",
+      "slug": "phone-schedules-message-to-watch",
+      "group": "J",
+      "channels": [
+        "/fms/phone/scheduled_message",
+        "/fms/watch/scheduled_message_receipt"
+      ],
+      "logMarker": "/fms/watch/scheduled_message_receipt",
+      "requiresPair": true,
+      "expectation": "A Show on watch schedule run with a title, a text and a picture reaches the paired watch as a notification at its slot, a tap opens the picture, and the phone writes the receipt into the run journal: shown, or the reason it was not shown. With the watch out of range or Wear Companion off the run is skipped with its reason and no stale message appears on the watch later.",
+      "notes": "S4248. A message, not a Data Item, so a watch that was away receives no backlog. Receipt reasons from the watch: not_offered, unsupported_version, malformed, no_notification_permission. The shown outcome needs POST_NOTIFICATIONS granted on the watch."
+    },
+    {
       "id": "K1",
       "slug": "companion-off-mid-scenario",
       "group": "K",

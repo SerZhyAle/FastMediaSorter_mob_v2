@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointCodec
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
 import com.sza.fastmediasorter.domain.repository.BroadcastPasswordStore
+import com.sza.fastmediasorter.domain.repository.BroadcastPendingStore
 import com.sza.fastmediasorter.domain.usecase.streams.AddStreamSourceUseCase.AddResult
 import timber.log.Timber
 import javax.inject.Inject
@@ -16,6 +17,7 @@ class ImportStreamBroadcastUseCase @Inject constructor(
     private val addStreamSourceUseCase: AddStreamSourceUseCase,
     private val repository: StreamSourceRepository,
     private val passwordStore: BroadcastPasswordStore,
+    private val pendingStore: BroadcastPendingStore,
 ) {
     /** [password] is what the person typed for a protected descriptor; null keeps the one already stored. */
     suspend operator fun invoke(rawPayload: String, password: String? = null): ImportResult =
@@ -49,7 +51,27 @@ class ImportStreamBroadcastUseCase @Inject constructor(
         return passwordStore.put(streamId, user, password)
     }
 
+    /**
+     * S4247, LIVE-BROADCAST item S: a descriptor of a broadcast that has not started yet keeps a waiting row until
+     * its `until`; one past it stores nothing. A live descriptor of the same row ends its wait.
+     */
     private suspend fun resolveImport(dto: BroadcastDescriptorDto, password: String?): ImportResult {
+        val untilMs = dto.pending?.let { it.untilMs() ?: EXPIRED }
+        if (untilMs != null && untilMs <= System.currentTimeMillis()) return ImportResult.Expired
+        val result = keepRow(dto, password)
+        val streamId = if (result in KEPT_ROW) rowIdOf(dto) else null
+        return when {
+            streamId == null -> result
+            untilMs == null -> result.also { pendingStore.clear(streamId) }
+            else -> ImportResult.Waiting(streamId, untilMs).also { pendingStore.put(streamId, untilMs) }
+        }
+    }
+
+    private suspend fun rowIdOf(dto: BroadcastDescriptorDto): String? =
+        dto.sourceId?.trim()?.takeIf { it.isNotEmpty() }?.let { repository.getBySourceDeviceId(it)?.id }
+            ?: repository.getByUrl(dto.url.trim())?.id
+
+    private suspend fun keepRow(dto: BroadcastDescriptorDto, password: String?): ImportResult {
         val offered = dto.title?.trim()?.takeIf { it.isNotEmpty() }
         val deviceId = dto.sourceId?.trim()?.takeIf { it.isNotEmpty() }
         // S4160: the whole list is kept, so a broadcast reachable through an exchange server plays outside the
@@ -170,6 +192,12 @@ class ImportStreamBroadcastUseCase @Inject constructor(
         data object InvalidUrl : ImportResult
         data object InvalidDescriptor : ImportResult
         data object UnsupportedVersion : ImportResult
+
+        /** S4247: the row is kept and waits for the broadcast to start until [untilMs]. */
+        data class Waiting(val streamId: String, val untilMs: Long) : ImportResult
+
+        /** S4247: the link was made for a broadcast that never started before its `until`. */
+        data object Expired : ImportResult
     }
 
     private companion object {
@@ -178,6 +206,9 @@ class ImportStreamBroadcastUseCase @Inject constructor(
         const val KIND_VIDEO = "VIDEO"
         const val KIND_RTSP = "RTSP"
         const val RTSP_SCHEME = "rtsp://"
+
+        // A pending marker whose `until` is not an instant cannot be waited for, so it reads as expired.
+        const val EXPIRED = 0L
         val KEPT_ROW = setOf(ImportResult.Success, ImportResult.Updated, ImportResult.Duplicate)
 
         // A manufacturer model code as Build.MODEL reports it (SM-L310, SMR870): one token of capitals

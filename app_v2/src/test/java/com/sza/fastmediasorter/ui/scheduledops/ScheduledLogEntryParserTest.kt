@@ -41,6 +41,19 @@ class ScheduledLogEntryParserTest {
     }
 
     @Test
+    fun marksSkippedRunLineButNotPerFileSkipOrOkOrRawLines() {
+        val entries = ScheduledLogEntryParser.parse(
+            "2026-09-21 10:01 | COPY | Photos → Backup | SKIPPED: Target 'x' is unreachable\n" +
+                "2026-09-21 10:02 | ARCHIVE | Photos → Backup | SKIP: a.jpg: too large\n" +
+                "2026-09-21 10:03 | COPY | Photos → Backup | OK (2 files)\n" +
+                "someone edited this file by hand"
+        )
+
+        assertEquals(listOf(true, false, false, false), entries.map { it.isSkipped })
+        assertEquals(listOf(false, false, false, false), entries.map { it.isError })
+    }
+
+    @Test
     fun parsesDeleteLineWithoutTarget() {
         val entries = ScheduledLogEntryParser.parse(
             "2026-09-21 10:02 | DELETE | Downloads → - | OK (3 files)"

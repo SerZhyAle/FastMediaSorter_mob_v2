@@ -28,7 +28,8 @@ class ObserveLiveBroadcastSourcesUseCase @Inject constructor(
     operator fun invoke(refreshTrigger: Flow<Long>): Flow<List<StreamSourceEntity>> =
         refreshTrigger.flatMapLatest {
             observeAccountBroadcasts().map { broadcastGroup ->
-                broadcastGroup.items.mapNotNull(::toSyntheticSource)
+                // A record whose box did not open is listed with its reason elsewhere and is never a playable channel.
+                broadcastGroup.items.filter { it.sealNotice == null }.mapNotNull(::toSyntheticSource)
             }
         }
 

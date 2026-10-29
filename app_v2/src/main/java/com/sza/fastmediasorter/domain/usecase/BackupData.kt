@@ -465,6 +465,7 @@ data class BackupSettings(
         // BackupSettingsCoverageTest).
         val streamsVisualizeAsMusic: Boolean? = null,
         val streamsCastPlayAtOnce: Boolean? = null,
+        val streamsPendingPlayAtOnce: Boolean? = null,
         val broadcastStreamTitle: String? = null,
         val broadcastBitRateBps: Int? = null,
         val broadcastPort: Int? = null,
@@ -482,7 +483,9 @@ data class BackupSettings(
         val broadcastVideoWidth: Int? = null,
         val broadcastVideoHeight: Int? = null,
         val broadcastVideoFps: Int? = null,
-        val broadcastVideoBitrateBps: Int? = null
+        val broadcastVideoBitrateBps: Int? = null,
+        // S4405: the mode travels, the custom password never does - it stays in the Keystore store.
+        val broadcastLinkPasswordMode: String? = null
     )
 
     /** S2648: appearance and the general interaction settings that shape every screen. */
@@ -630,7 +633,11 @@ data class BackupScheduledOperation(
     val sourceExchangeAccount: String? = null,
     val sourceExchangeResourceId: String? = null,
     val targetExchangeAccount: String? = null,
-    val targetExchangeResourceId: String? = null
+    val targetExchangeResourceId: String? = null,
+    // S4248: set only for WATCH_MESSAGE; absent in every backup written before it, which restores unchanged.
+    val watchTitle: String? = null,
+    val watchText: String? = null,
+    val watchImageUri: String? = null
 )
 
 /**

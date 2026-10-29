@@ -5,6 +5,8 @@ import android.os.Handler
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.ViewGroup
+import com.pedro.encoder.input.video.CameraHelper
+import com.pedro.encoder.utils.gl.AspectRatioMode
 import com.pedro.library.view.GlStreamInterface
 import com.pedro.library.view.preview.MultiPreviewConfig
 import com.pedro.rtspserver.RtspServerCamera2
@@ -105,13 +107,20 @@ class BroadcastPreviewProvider @Inject constructor(
         val renderer = offscreenRenderer() ?: return
         val view = previewView?.get()?.takeIf { it.holder.surface.isValid } ?: return
         val frame = view.holder.surfaceFrame
-        // A copy scales the encoded image; rotating the control screen does not rotate a running stream.
-        val size = renderer.encoderSize
-        val portrait = size.x < size.y
+        // S4418: the stream's picture turns with the screen (VideoBroadcastService), so the copy takes its
+        // shape from the screen by the library's own rule, not from the encoder frame fixed at the start.
+        // Fill crops the way the pre-start PreviewView does, so going on air does not shrink the picture.
+        val portrait = CameraHelper.isPortrait(view.context)
+        Timber.d("S4418: broadcast preview copy fill portrait=$portrait frame=${frame.width()}x${frame.height()}")
         try {
             renderer.addMultiPreviewSurface(
                 view.holder.surface,
-                MultiPreviewConfig(width = frame.width(), height = frame.height(), isPortrait = portrait),
+                MultiPreviewConfig(
+                    width = frame.width(),
+                    height = frame.height(),
+                    aspectRatioMode = AspectRatioMode.Fill,
+                    isPortrait = portrait,
+                ),
             )
         } catch (e: Throwable) {
             Timber.w(e, "Broadcast preview: copy surface refused, the stream stays headless")

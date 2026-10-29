@@ -118,7 +118,6 @@
     <string name="wear_section_local">Locale</string>
     <string name="wear_section_streams">Stream</string>
     <string name="wear_section_apps">App</string>
-    <string name="wear_coming_soon">Prossimamente</string>
     <string name="wear_phone_video">Video</string>
     <string name="wear_phone_audio">Audio</string>
     <string name="wear_phone_images">Immagini</string>
@@ -1094,4 +1093,11 @@
     <string name="wear_open_in_failed">Impossibile aprire in %1$s.</string>
     <string name="wear_open_in_role_last_used">Ultimo utilizzato</string>
     <string name="wear_open_in_role_maps">Mappe</string>
+    <string name="wear_broadcast_server_announcing">Server: annuncio</string>
+    <string name="wear_broadcast_server_on">Sul server di scambio</string>
+    <string name="wear_broadcast_server_failed">Errore del server - vedi il telefono</string>
+    <string name="wear_broadcast_server_local_only">Solo questa rete</string>
+    <string name="wear_scheduled_message_channel_name">Messaggi programmati</string>
+    <string name="wear_audio_fetching">Caricamento del brano..</string>
+    <string name="wear_stream_ended">Questo stream non è più in onda. Riprova quando ripartirà.</string>
 </resources>

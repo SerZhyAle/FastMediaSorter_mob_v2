@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.15 13:39</sub>
+<sub class="doc-stamp">26.10.25 13:33</sub>
 
 # Play Console - Foreground service permissions declaration (S4241)
 
@@ -57,13 +57,14 @@ under `app_v2/src/` on 2026-10-15. The store flavor is `standard`; `noLegal` is 
   open neither camera nor microphone.
 - **`specialUse` - existing, no change.** `OverlayHostService`, the edge-gesture handle of the screen
   capture strip (`src/standardScreenCapture`, with a `PROPERTY_SPECIAL_USE_FGS_SUBTYPE` string).
-- **`dataSync` - NOT in release 46; returns with S4271.** S4263 decided it: `src/storeReleaseNoDataSync`
-  strips `FOREGROUND_SERVICE_DATA_SYNC` and the `dataSync` type from `SftpServerService` (the phone's folder
-  sharing, which then runs while the app is foreground-bound) and from WorkManager's
-  `SystemForegroundService` in every store release, `standard` included. `noLegal` keeps the type. The
-  return is one build switch, `fms.dataSyncFgsStandard` in `gradle.properties` (default `off`): set `on`
-  only after the declaration below is saved, because a `standard` bundle that carries the type commits with
-  HTTP 403 until then. The text and the video steps for it are in the `dataSync` section below.
+- **`dataSync` - declared; the store build carries it while the switch is `on` (S4271).** Until 2026-10-25 S4263
+  stripped it: `src/storeReleaseNoDataSync` removed `FOREGROUND_SERVICE_DATA_SYNC` and the `dataSync` type from
+  `SftpServerService` (the phone's folder sharing, which then ran while the app was foreground-bound) and from
+  WorkManager's `SystemForegroundService` in every store release. `noLegal` always keeps the type. The switch is
+  one build flag, `fms.dataSyncFgsStandard` in `gradle.properties`, default `on` since 2026-10-25; set `off` to
+  strip the type from `standard` again. The declaration was saved on 2026-10-15, so the Play commit no longer
+  answers HTTP 403 for a `standard` bundle that carries the type. The text and the video steps for it are in the
+  `dataSync` section below.
 
 Nothing about the exchange server, Google Drive or the clipboard adds a foreground-service type: those run
 inside the services above, in the caller's foreground, or in WorkManager.
@@ -140,7 +141,7 @@ Use case of each is chosen from the console's own list; the closest entry is nam
 - `specialUse`: unchanged. Re-read the text the console already holds; edit only if it names the strip in
   words that no longer match `OverlayHostService`.
 
-### `dataSync` (S4271 - declare before `fms.dataSyncFgsStandard` is set to `on`)
+### `dataSync` (S4271 - declared 2026-10-15; carried by the store build while `fms.dataSyncFgsStandard=on`)
 
 - **Use case (closest list entry):** transfer or sync data between the device and a server or other devices
   (pick the console's entry that says so; this wording was not read from Google's page).
@@ -152,17 +153,16 @@ Use case of each is chosen from the console's own list; the closest entry is nam
   when the user leaves the app."
 - **Impact of an interruption:** "Sharing or the transfer pauses and resumes the next time the app is in
   the foreground. Files already copied stay where they are."
-- **Video (owner records it, on a `standard` build made with `-Pfms.dataSyncFgsStandard=on`):**
+- **Video (recorded by the owner 2026-10-15; the steps stay here for a re-recording):**
   1) open the app, Settings, folder sharing, turn it on and pick a folder; 2) show the ongoing notification
   with the address and its Stop button; 3) press Home and, from another device, list the folder over SFTP;
   4) back in the app start a copy of several large files to a network folder; 5) press Home, pull the
   shade and show the transfer progress notification; 6) return and show the finished copy; 7) turn sharing
   off from the notification and show it gone. Use files and folders created for the recording.
   Scenario text for the owner: `docs/PLAY_STORE_VIDEO_GUIDE.md`, Video 1.
-- **Flip:** after the console shows the declaration saved, write its state and date into
-  `docs/PLAY_PUBLISHING_STATE.md`, then set `fms.dataSyncFgsStandard=on` in `gradle.properties` for the
-  release that should carry it. Nothing else in the build changes: `SftpServerService` reads the
-  permission from the merged manifest and promotes itself to a foreground service again.
+- **Switch:** `fms.dataSyncFgsStandard=on` in `gradle.properties`, the default since 2026-10-25. `off` drops the
+  type from the next `standard` build. Nothing else in the build changes: `SftpServerService` reads the
+  permission from the merged manifest and promotes itself to a foreground service when the type is present.
 - **Inventories to read once it is on:** `docs/PRIVACY_POLICY.md` (+ `-ru`, `-uk`), `docs/SECURITY_POSTURE.md`
   (the `FOREGROUND_SERVICE_DATA_SYNC` row names the switch), the `play/listing/<locale>/full_description.txt`
   line about folder sharing.
@@ -185,8 +185,8 @@ after the watch bundle lands: because the page names no form factor, the phone's
    date into `docs/PLAY_PUBLISHING_STATE.md` (no block for it exists there yet).
 2. Declare `camera` with the text above and the video the owner recorded. Declare `mediaProjection` if absent.
 3. Edit the `microphone` and `mediaPlayback` texts to the versions above.
-4. Leave `dataSync` alone for release 46. For the release that carries it (S4271): record the video, declare
-   `dataSync` with the text above, then set `fms.dataSyncFgsStandard=on`.
+4. `dataSync` (S4271): declared 2026-10-15 with the owner's video. `fms.dataSyncFgsStandard=on` is the default
+   from 2026-10-25; set `off` only to strip the type from `standard` again.
 5. Under a policy enforcement Play refuses automatic review - send the held edit from
    `Publishing overview -> Send changes for review`.
 

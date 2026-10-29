@@ -51,6 +51,25 @@ class LauncherStartWindowManagerTest {
     }
 
     @Test
+    fun `preload touches the preference file when the launcher surface is available`() {
+        every { contract.isAvailableInBuild } returns true
+        every { preferences.contains(LauncherStartWindowManager.KEY_START_WINDOW_ENABLED) } returns false
+
+        manager.preload()
+
+        verify(exactly = 1) { preferences.contains(LauncherStartWindowManager.KEY_START_WINDOW_ENABLED) }
+    }
+
+    @Test
+    fun `preload leaves the preference file alone in an unavailable build`() {
+        every { contract.isAvailableInBuild } returns false
+
+        manager.preload()
+
+        verify(exactly = 0) { context.getSharedPreferences(any(), any()) }
+    }
+
+    @Test
     fun `setting enabled persists the selected value`() {
         every { contract.isAvailableInBuild } returns true
 

@@ -213,6 +213,21 @@ private fun wearListDefaultContentPadding(): PaddingValues {
 }
 
 /**
+ * The width a row of a [WearListColumn] really gets out of [available], which is the width of the box
+ * the list stands in (S4469).
+ *
+ * The list pays [wearListDefaultContentPadding] at both sides, so a grid that divides the box's width
+ * into cells overstates every cell by the two insets; a cell sized against this value is the cell that
+ * is drawn.
+ */
+@Composable
+fun wearListRowWidth(available: Dp): Dp {
+    val insets = wearScreenInsets()
+    val layoutDirection = LocalLayoutDirection.current
+    return available - insets.calculateStartPadding(layoutDirection) - insets.calculateEndPadding(layoutDirection)
+}
+
+/**
  * Content padding for a list drawn inside a `Dialog` rather than inside a screen scaffold (S2762).
  *
  * A screen list pays [wearScreenInsets], a single proportional clearance that is true at the vertical

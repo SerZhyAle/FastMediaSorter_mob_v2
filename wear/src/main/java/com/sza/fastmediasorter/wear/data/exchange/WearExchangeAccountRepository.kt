@@ -73,8 +73,8 @@ class WearExchangeAccountRepository @Inject constructor(
 
     /**
      * Removes [entry] (item AB): revokes the watch's own device when the server answers, then forgets the token
-     * and the entry either way, without retrying in the background. Removing the outgoing entry moves the mark to
-     * the first one left, so the watch is never without an outgoing entry while it holds any.
+     * and the entry either way, without retrying in the background. Removing the outgoing entry passes the mark to
+     * the first entry left that may produce: the store applies item DS on every write.
      */
     suspend fun remove(entry: WearExchangeEntry): WearExchangeRemoval = withContext(Dispatchers.IO) {
         val token = store.token(entry.identity)
@@ -86,8 +86,6 @@ class WearExchangeAccountRepository @Inject constructor(
         store.forgetToken(entry.identity)
         e2e.forget(entry.deviceId)
         store.remove(entry.identity)
-        val left = store.all()
-        if (left.none { it.outgoing }) left.firstOrNull()?.let { store.setOutgoing(it.identity) }
         removal
     }
 

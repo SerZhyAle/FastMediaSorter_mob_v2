@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.data.remote.exchange
 
 import com.google.gson.JsonArray
-import com.google.gson.JsonObject
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpRendezvousCodec
 import com.sza.fastmediasorter.domain.model.SftpRendezvousBroadcast
 import com.sza.fastmediasorter.domain.model.SftpRendezvousDevice
@@ -34,7 +33,7 @@ data class DeviceExchangeDirectory(
 
         private inline fun <reified T> DeviceExchangeEnvelope.records(key: String, type: String): List<T> =
             (members.get(key) as? JsonArray).orEmpty().mapNotNull { element ->
-                (element as? JsonObject)?.let { SftpRendezvousCodec.decodeBody(type, it) } as? T
+                ExchangeBroadcastDiagnostics.decode(type, element) as? T
             }
 
         private fun JsonArray?.orEmpty(): JsonArray = this ?: JsonArray()

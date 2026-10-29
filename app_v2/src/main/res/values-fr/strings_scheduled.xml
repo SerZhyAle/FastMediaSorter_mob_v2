@@ -104,4 +104,24 @@
     <string name="scheduled_op_badge_error">La dernière exécution a échoué. Ouvrez l\'historique pour plus de détails.</string>
     <string name="scheduled_op_badge_skipped">La dernière exécution a été ignorée : un côté était injoignable. Une nouvelle tentative aura lieu au prochain créneau.</string>
     <string name="scheduled_ops_notif_failed_title">Échec de l\'opération planifiée</string>
+    <string name="scheduled_op_history_details">Détails</string>
+    <string name="scheduled_op_reason_source_unreachable">La source n\'a pas répondu</string>
+    <string name="scheduled_op_reason_target_unreachable">La cible n\'a pas répondu</string>
+    <string name="scheduled_op_reason_source_read_only">La source est en lecture seule</string>
+    <string name="scheduled_op_reason_target_read_only">La cible est en lecture seule</string>
+    <string name="scheduled_op_reason_source_missing">Le dossier source est introuvable</string>
+    <string name="scheduled_op_reason_target_unavailable">Le dossier cible est introuvable ou non accessible en écriture</string>
+    <string name="scheduled_op_reason_watch_unavailable">La connexion à la montre est désactivée ou non prise en charge ici</string>
+    <string name="scheduled_op_reason_watch_unreachable">La montre n\'a pas répondu</string>
+    <string name="scheduled_op_reason_watch_refused">La montre n\'a pas pu afficher le message</string>
+    <string name="scheduled_op_reason_message_too_long">Le message est trop long pour la montre</string>
+    <string name="scheduled_op_reason_pin_refused">Le code PIN du dossier n\'a pas été accepté</string>
+    <string name="scheduled_op_reason_permission_required">Votre autorisation ou une nouvelle connexion est nécessaire</string>
+    <string name="scheduled_op_reason_skipped_other">Impossible de démarrer cette fois</string>
+    <string name="scheduled_op_reason_error_other">L\'exécution ne s\'est pas terminée</string>
+    <string name="scheduled_op_last_run_retry">Une exécution manquée est relancée au créneau suivant.</string>
+    <string name="scheduled_op_last_run_title">Dernière exécution</string>
+    <string name="scheduled_op_reason_source_deleted">La source a été supprimée, cette planification est donc en pause</string>
+    <string name="scheduled_op_reason_target_deleted">La cible a été supprimée, cette planification est donc en pause</string>
+    <string name="scheduled_ops_log_failed">Une erreur s\'est produite</string>
 </resources>

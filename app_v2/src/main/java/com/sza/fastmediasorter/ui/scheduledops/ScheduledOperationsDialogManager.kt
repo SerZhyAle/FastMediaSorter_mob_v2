@@ -13,11 +13,14 @@ import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.di.ScheduledOperationsEntryPoint
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
+import com.sza.fastmediasorter.utils.queryDisplayName
 import com.sza.fastmediasorter.utils.queryTreeDisplayName
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
+
+private const val IMAGE_MIME_TYPES = "image/*"
 
 /**
  * One open create/edit dialog: what it was opened for, plus what it held when its host was torn down
@@ -30,6 +33,7 @@ class ScheduledOpDialogSession(
     var savedState: Bundle? = null
     var pendingPickSide: SchedOpPickSide? = null
     var pendingPickedUri: Uri? = null
+    var pendingPickedImageUri: Uri? = null
 }
 
 /**
@@ -47,6 +51,7 @@ class ScheduledOperationsDialogManager(
     private val mediaCapabilities: MediaCapabilities,
     private val scheduledViewModel: ScheduledOperationsViewModel,
     private val folderPickerLauncher: ActivityResultLauncher<Uri?>,
+    private val imagePickerLauncher: ActivityResultLauncher<Array<String>>,
 ) {
 
     private var currentDialog: ScheduledOperationDialog? = null
@@ -102,6 +107,7 @@ class ScheduledOperationsDialogManager(
                     session.pendingPickSide = side
                     folderPickerLauncher.launch(null)
                 },
+                onPickWatchImage = { imagePickerLauncher.launch(arrayOf(IMAGE_MIME_TYPES)) },
                 onSave = { draft -> scheduledViewModel.saveOperation(draft) },
             )
             dialog.setOnDismissListener {
@@ -116,6 +122,10 @@ class ScheduledOperationsDialogManager(
             session.pendingPickedUri?.let { uri ->
                 session.pendingPickedUri = null
                 onFolderPicked(uri)
+            }
+            session.pendingPickedImageUri?.let { uri ->
+                session.pendingPickedImageUri = null
+                onWatchImagePicked(uri)
             }
         }
     }
@@ -167,6 +177,39 @@ class ScheduledOperationsDialogManager(
                 ?: uri.lastPathSegment
                 ?: path
             currentDialog?.onLocalFolderPicked(side, path, name, readOnly = !writable)
+        }
+    }
+
+    /**
+     * S4248: receive the picture a "Show on watch" schedule sends. A result that lands while the dialog is
+     * still being rebuilt waits in the session, exactly as a folder pick does.
+     */
+    fun onWatchImagePicked(uri: Uri?) {
+        val session = scheduledViewModel.dialogSession
+        if (uri == null || session == null) return
+        if (currentDialog == null) {
+            session.pendingPickedImageUri = uri
+        } else {
+            applyImagePick(uri)
+        }
+    }
+
+    /** The worker reads the picture at every slot, long after this pick, so the read grant must persist. */
+    private fun applyImagePick(uri: Uri) {
+        try {
+            host.contentResolver.takePersistableUriPermission(
+                uri,
+                android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION,
+            )
+        } catch (e: SecurityException) {
+            // The pick still applies for this session; a later slot without the grant is skipped and logged.
+            Timber.w(e, "Could not persist picture permission for %s", uri)
+        }
+        host.lifecycleScope.launch {
+            val name = host.contentResolver.queryDisplayName(uri)
+                ?: uri.lastPathSegment
+                ?: uri.toString()
+            currentDialog?.onWatchImagePicked(uri.toString(), name)
         }
     }
 

@@ -7,7 +7,6 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityTouristInfoBinding
 import com.sza.fastmediasorter.domain.model.tourist.TouristDashboardState
 import com.sza.fastmediasorter.domain.model.tourist.TouristTileType
-import timber.log.Timber
 import java.util.Locale
 
 /**
@@ -47,8 +46,6 @@ class TouristHeroTileManager(
         bindStopwatchControls(state, tile)
 
         val isCompass = tile == TouristTileType.COMPASS
-        if (isCompass && binding.layoutHeroCompass.visibility != View.VISIBLE) {
-        }
         bindVisual(content.visual, isCompass, context)
     }
 

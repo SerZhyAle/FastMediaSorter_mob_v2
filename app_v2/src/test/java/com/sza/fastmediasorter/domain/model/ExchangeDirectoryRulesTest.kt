@@ -65,7 +65,7 @@ class ExchangeDirectoryRulesTest {
     }
 
     @Test
-    fun `a granted broadcast with no listed device is playable, and one whose box changed key is not`() {
+    fun `a granted broadcast with no listed device is playable, and one whose box changed key is listed unplayable`() {
         val granted = broadcast("b1", "AUDIO_ONLY").copy(deviceId = "owner", title = "Live", grantId = "g1")
         val forged = broadcast("b2", "AUDIO_ONLY").copy(
             deviceId = "other",
@@ -78,9 +78,12 @@ class ExchangeDirectoryRulesTest {
         val rows = ObserveDeviceBroadcastsUseCase.toBroadcasts(listing).items
 
         assertTrue(listing.devices.single { it.deviceId == "owner" }.online)
-        assertEquals(listOf("b1"), rows.map { it.broadcastId })
-        assertEquals("Live", rows.single().title)
-        assertTrue(rows.single().playable)
+        val byId = rows.associateBy { it.broadcastId }
+        assertEquals(setOf("b1", "b2"), byId.keys)
+        assertEquals("Live", byId.getValue("b1").title)
+        assertTrue(byId.getValue("b1").playable)
+        assertFalse(byId.getValue("b2").playable)
+        assertEquals(ExchangeMessage.KEY_CHANGED, byId.getValue("b2").sealNotice)
     }
 
     @Test

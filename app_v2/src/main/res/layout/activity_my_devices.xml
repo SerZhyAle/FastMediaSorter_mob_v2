@@ -16,6 +16,7 @@
             android:layout_height="?attr/actionBarSize"
             android:nextFocusDown="@id/rvExchangeServers"
             app:navigationIcon="@drawable/ic_arrow_back"
+            app:stbTitleIcon="@drawable/ic_exchange_mono"
             app:title="@string/exchange_devices_title" />
     </com.google.android.material.appbar.AppBarLayout>
 

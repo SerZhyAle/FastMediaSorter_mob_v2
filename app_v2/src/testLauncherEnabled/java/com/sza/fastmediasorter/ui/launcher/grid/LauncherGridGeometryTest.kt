@@ -344,7 +344,7 @@ class LauncherGridGeometryTest {
     fun `shortcutLayoutSpec at dense size scales down icon and paddings`() {
         val spec = LauncherGridGeometry.shortcutLayoutSpec(cellSizeDp = 64f)
         assertTrue(spec.iconSizeDp < 44f)
-        assertTrue(spec.iconSizeDp >= 26f)
+        assertTrue(spec.iconSizeDp >= 20f)
         assertTrue(spec.contentPaddingVerticalDp < 4f)
         assertTrue(spec.labelMarginTopDp < 3f)
     }

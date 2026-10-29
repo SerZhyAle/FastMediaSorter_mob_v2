@@ -22,11 +22,16 @@ class FullStreamProtocolSupport @Inject constructor() : StreamProtocolSupport {
 
     override val supportsRtsp: Boolean = true
 
-    override fun createRtspMediaSource(uri: Uri, dataSourceFactory: DataSource.Factory): MediaSource =
+    override fun createRtspMediaSource(
+        uri: Uri,
+        dataSourceFactory: DataSource.Factory,
+        timeoutMs: Long?,
+    ): MediaSource =
         // Force RTP-over-RTSP/TCP (interleaved): the most predictable transport across LAN/internet
         // and the iteration-1 baseline (UDP/multicast are deferred best-effort).
         RtspMediaSource.Factory()
             .setForceUseRtpTcp(true)
             .setSocketFactory(SdpSessionNameSocketFactory())
+            .apply { timeoutMs?.let(::setTimeoutMs) }
             .createMediaSource(MediaItem.fromUri(uri))
 }

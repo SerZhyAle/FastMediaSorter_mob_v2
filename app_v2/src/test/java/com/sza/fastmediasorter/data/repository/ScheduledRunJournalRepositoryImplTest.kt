@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.repository
 
 import com.sza.fastmediasorter.domain.model.ScheduledRunOutcome
+import com.sza.fastmediasorter.domain.model.ScheduledRunReason
 import com.sza.fastmediasorter.domain.model.ScheduledRunRecord
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -58,11 +59,36 @@ class ScheduledRunJournalRepositoryImplTest {
             filesProcessed = 7,
             message = "Failed to copy a.jpg",
             note = "Foreground service could not start: refused",
+            reason = ScheduledRunReason.TARGET_UNAVAILABLE,
         )
 
         journal.append(5L, original)
 
         assertEquals(original, journal.read(5L).single())
+    }
+
+    @Test
+    fun `a row written before the reason column existed reads without a reason`() = runTest {
+        directory.mkdirs()
+        File(directory, "7.tsv").writeText("100\t110\tSKIPPED\t0\tTarget x is unreachable\t\n")
+
+        val read = journal.read(7L).single()
+
+        assertEquals(ScheduledRunOutcome.SKIPPED, read.outcome)
+        assertEquals("Target x is unreachable", read.message)
+        assertNull(read.reason)
+    }
+
+    @Test
+    fun `a retired reason name reads as no reason and keeps the row`() = runTest {
+        directory.mkdirs()
+        File(directory, "8.tsv").writeText("100\t110\tERROR\t2\tboom\t\tNO_SUCH_REASON\n")
+
+        val read = journal.read(8L).single()
+
+        assertEquals(2, read.filesProcessed)
+        assertEquals("boom", read.message)
+        assertNull(read.reason)
     }
 
     @Test

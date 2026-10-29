@@ -136,7 +136,6 @@
     <string name="wear_section_local">На годиннику</string>
     <string name="wear_section_streams">Трансляції</string>
     <string name="wear_section_apps">Програми</string>
-    <string name="wear_coming_soon">Скоро з\'явиться</string>
     <string name="wear_phone_video">Відео</string>
     <string name="wear_phone_audio">Аудіо</string>
     <string name="wear_phone_images">Зображення</string>
@@ -1157,4 +1156,11 @@
     <string name="wear_open_in_role_last_used">Останнє</string>
     <string name="wear_open_in_role_browser">Браузер</string>
     <string name="wear_open_in_role_maps">Карти</string>
+    <string name="wear_broadcast_server_announcing">Сервер: оголошується</string>
+    <string name="wear_broadcast_server_on">На сервері обміну</string>
+    <string name="wear_broadcast_server_failed">Помилка сервера - див. телефон</string>
+    <string name="wear_broadcast_server_local_only">Лише в цій мережі</string>
+    <string name="wear_scheduled_message_channel_name">Повідомлення за розкладом</string>
+    <string name="wear_audio_fetching">Завантаження треку..</string>
+    <string name="wear_stream_ended">Ця трансляція більше не в ефірі. Повторіть, коли вона знову почнеться.</string>
 </resources>

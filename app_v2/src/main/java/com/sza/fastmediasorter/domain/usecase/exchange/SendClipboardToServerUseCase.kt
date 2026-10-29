@@ -5,11 +5,11 @@ import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeRefusedExcepti
 import com.sza.fastmediasorter.data.remote.exchange.ExchangeClipboardPutResult
 import com.sza.fastmediasorter.data.repository.ExchangeClipboardRepository
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
-import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import com.sza.fastmediasorter.domain.model.ExchangeClipboardEntryFailure
 import com.sza.fastmediasorter.domain.model.ExchangeClipboardEntryFailure.Cause
 import com.sza.fastmediasorter.domain.model.ExchangeClipboardMeta
 import com.sza.fastmediasorter.domain.model.ExchangeClipboardSendOutcome
+import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope

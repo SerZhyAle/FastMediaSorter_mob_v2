@@ -102,8 +102,9 @@ class DeviceExchangeEnvelopeTest {
             val envelope = DeviceExchangeEnvelope.of(type)
             assertEquals(envelope, DeviceExchangeEnvelope.decode(envelope.encode()))
         }
-        // 37 through the account amendments, plus the eight clipboard envelopes of 22 items BW and BY.
-        assertEquals(45, DeviceExchangeEnvelope.KNOWN_TYPES.size)
+        // 37 through the account amendments, plus the eight clipboard envelopes of 22 items BW and BY, plus the
+        // four admin envelopes (admin-auth, admin-auth-ok, admin-request, admin-reply).
+        assertEquals(49, DeviceExchangeEnvelope.KNOWN_TYPES.size)
         assertFalse(DeviceExchangeEnvelope.decode("""{"schemaVersion":2,"type":"ping"}""").isKnown)
     }
 

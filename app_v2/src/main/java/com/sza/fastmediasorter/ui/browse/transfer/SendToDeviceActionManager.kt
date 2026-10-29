@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.browse.transfer
 
+import android.app.Activity
 import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.domain.model.transfer.CrossDevicePayloadKind
 import com.sza.fastmediasorter.domain.model.transfer.CrossDeviceTarget
@@ -8,6 +9,7 @@ import com.sza.fastmediasorter.domain.transfer.DriveChannelSettings
 import com.sza.fastmediasorter.domain.transfer.DriveFileChannel
 import com.sza.fastmediasorter.domain.transfer.OwnDriveDevice
 import com.sza.fastmediasorter.domain.usecase.transfer.GetOwnDriveDevicesUseCase
+import com.sza.fastmediasorter.domain.usecase.transfer.GrantDriveAppFolderAccessUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -45,6 +47,7 @@ class SendToDeviceActionManager @Inject constructor(
     private val channel: DriveFileChannel,
     private val settings: DriveChannelSettings,
     private val getOwnDevices: GetOwnDriveDevicesUseCase,
+    private val grantAppFolder: GrantDriveAppFolderAccessUseCase,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
 
@@ -80,6 +83,9 @@ class SendToDeviceActionManager @Inject constructor(
             }
         )
     }
+
+    /** S4427: the Allow action after a send refused for a missing app folder grant; true once Google granted it. */
+    suspend fun grantAppFolderAccess(activity: Activity): Boolean = grantAppFolder(activity)
 
     /** Return to idle once the surface has shown the last outcome. */
     fun consumeState() {

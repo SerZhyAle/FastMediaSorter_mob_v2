@@ -75,7 +75,7 @@ steps:
 
       The home screen's own bottom row carries two more commands: **Settings**, and beside it **Close app**, which ends the watch app outright rather than leaving it running in the background - the next launch starts fresh at the home screen.
 
-      From nearly any screen, a moon-shaped **Screen off** button sits opposite the back arrow, at the right edge. Tap it and the display goes dark without stopping whatever it was doing; a single tap on the dark screen does not wake it - it sends a thin ring spreading out from where you touched and shows the current time and date above that spot for one second, so you can check the time and leave the watch dark. During that answer the screen is at full brightness; while dark it sits at the lowest, and it returns to its earlier brightness once you bring the screen back. To bring the screen back: double tap, press and hold, or use the watch's own button.
+      From nearly any screen, a moon-shaped **Screen off** button sits opposite the back arrow, at the right edge. Tap it and the display goes dark without stopping whatever it was doing; a single tap on the dark screen does not wake it - it sends a thin ring spreading out from where you touched and shows the current time and date above that spot for four seconds, so you can check the time and leave the watch dark. During that answer the screen is at full brightness; while dark it sits at the lowest, and it returns to its earlier brightness once you bring the screen back. To bring the screen back: double tap, press and hold, or use the watch's own button.
     image_bookmark:
       shot_id: wear.home-navigation-controls
       device_profile: watch
@@ -236,6 +236,6 @@ next_recipes:
     description: Set the watch's colors, background and more from the phone.
 ---
 
-<sub class="doc-stamp">26.10.10 14:39</sub>
+<sub class="doc-stamp">26.10.26 10:12</sub>
 
 A tour of the watch app's home screen - its sections, its recent and now-playing rows, [Favorites](term:favorites) - along with the clock, the back button, the first-run walk, and the Settings behind how it all looks.

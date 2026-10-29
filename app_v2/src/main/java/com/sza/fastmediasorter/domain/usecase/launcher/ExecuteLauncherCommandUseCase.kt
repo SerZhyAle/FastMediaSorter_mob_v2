@@ -296,6 +296,15 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
         const val GOOGLE_MAPS_PACKAGE = "com.google.android.apps.maps"
     }
 
+    /**
+     * Starts an intent a launcher surface built itself - a gadget's per-row or shuffle action that no
+     * stored cell can express - under the same task policy as every stored command.
+     */
+    fun startTarget(intent: Intent): Boolean {
+        Timber.d("S4422: launcher gadget start through the shared task policy")
+        return startIntent(intent)
+    }
+
     private fun startIntent(intent: Intent): Boolean {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         if (intent.component?.packageName == context.packageName) {

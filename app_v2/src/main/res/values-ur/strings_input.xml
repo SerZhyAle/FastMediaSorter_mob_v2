@@ -133,7 +133,6 @@
     <string name="keybinding_label_vr_zoom_end">زوم اینڈ</string>
     <string name="keybinding_label_vr_zoom_grip">زوم (گرفت)</string>
     <string name="keybinding_label_vr_zoom_start">زوم اسٹارٹ</string>
-    <string name="keybinding_remap_not_impl">سب کو دوبارہ ترتیب دیں - جلد آرہا ہے۔</string>
     <string name="keybinding_remap_reset_all">سبھی کو دوبارہ ترتیب دیں۔</string>
     <string name="keybinding_remap_search_hint">تلاش کے احکامات..</string>
     <string name="keybinding_row_remap">بائنڈنگ میں ترمیم کریں</string>

@@ -21,6 +21,8 @@
   Sourced, never executed directly, so it declares no exit codes of its own.
 #>
 
+. (Join-Path $PSScriptRoot 'invoke-child-pwsh.ps1')
+
 $script:consoleGone = $false
 
 function Write-Note {
@@ -65,8 +67,8 @@ function Invoke-AdbVerb {
     }
     $callArgs = @($Arguments)
     if ($script:dev) { $callArgs += @('-DeviceId', $script:dev) }
-    $output = & pwsh -NoProfile -File $adbWrapper @callArgs 2>&1
-    $exit = $LASTEXITCODE
+    $call = Invoke-ChildPwsh -Script $adbWrapper -Arguments $callArgs
+    $exit = $call.Exit
     Write-Timeline -Kind 'adb' -Detail ($Arguments -join ' ') -Extra @{ exit = $exit; device = $script:dev }
     if ($exit -lt 0) {
         $script:spawnFailures++
@@ -79,7 +81,7 @@ function Invoke-AdbVerb {
         }
     }
     else { $script:spawnFailures = 0 }
-    return [pscustomobject]@{ Exit = $exit; Output = (($output | ForEach-Object { $_.ToString() }) -join "`n") }
+    return [pscustomobject]@{ Exit = $exit; Output = $call.Output }
 }
 
 function Invoke-AdbJson {

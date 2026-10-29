@@ -84,7 +84,7 @@ class ManageExchangeProducerUseCaseTest {
     @Test
     fun `leaving with the server reachable unpublishes and keeps the entry`() = runTest {
         tunnel.value = SftpTunnelState.Registered(null)
-        coEvery { server.withdrawExchangePublication() } returns true
+        coEvery { server.unpublishExchangeFolder() } returns true
 
         assertEquals(ExchangeProducerLeave.UNPUBLISHED, useCase.leave())
 
@@ -94,9 +94,20 @@ class ManageExchangeProducerUseCaseTest {
     }
 
     @Test
+    fun `leaving unpublishes the folder only and never withdraws the broadcast`() = runTest {
+        tunnel.value = SftpTunnelState.Registered(null)
+        coEvery { server.unpublishExchangeFolder() } returns true
+
+        useCase.leave()
+
+        coVerify(exactly = 1) { server.unpublishExchangeFolder() }
+        coVerify(exactly = 0) { server.withdrawExchangePublication() }
+    }
+
+    @Test
     fun `leaving with the server down ends locally`() = runTest {
         tunnel.value = SftpTunnelState.Unreachable
-        coEvery { server.withdrawExchangePublication() } returns false
+        coEvery { server.unpublishExchangeFolder() } returns false
 
         assertEquals(ExchangeProducerLeave.LEFT_LOCALLY, useCase.leave())
 
@@ -105,7 +116,7 @@ class ManageExchangeProducerUseCaseTest {
 
     @Test
     fun `leaving while nothing ran says so`() = runTest {
-        coEvery { server.withdrawExchangePublication() } returns false
+        coEvery { server.unpublishExchangeFolder() } returns false
 
         assertEquals(ExchangeProducerLeave.NOTHING_PUBLISHED, useCase.leave())
     }
@@ -124,6 +135,7 @@ class ManageExchangeProducerUseCaseTest {
             accounts.setOutgoing(SECOND)
             server.applyExchangeSettings()
         }
+        coVerify(exactly = 0) { server.unpublishExchangeFolder() }
     }
 
     @Test

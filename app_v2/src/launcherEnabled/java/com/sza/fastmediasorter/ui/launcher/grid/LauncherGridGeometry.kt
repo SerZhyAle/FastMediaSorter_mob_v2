@@ -31,11 +31,36 @@ object LauncherGridGeometry {
     private const val DEFAULT_SHORTCUT_MODE_BADGE_SIZE_DP = 18f
     private const val DEFAULT_SHORTCUT_CONTENT_PADDING_VERTICAL_DP = 4f
     private const val DEFAULT_SHORTCUT_LABEL_MARGIN_TOP_DP = 3f
-    private const val MIN_SHORTCUT_ICON_SIZE_DP = 26f
+    private const val MIN_SHORTCUT_ICON_SIZE_DP = 20f
     private const val MIN_SHORTCUT_MONOGRAM_TEXT_SIZE_SP = 10f
     private const val MIN_SHORTCUT_MODE_BADGE_SIZE_DP = 12f
     private const val MIN_SHORTCUT_CONTENT_PADDING_VERTICAL_DP = 1f
     private const val MIN_SHORTCUT_LABEL_MARGIN_TOP_DP = 1f
+
+    // S4475: the caption's own numbers. Defaults mirror item_launcher_cell_shortcut.xml and its dimens, the
+    // same way the icon and badge defaults above mirror the layout.
+    private const val DEFAULT_LABEL_TEXT_SIZE_SP = 10f
+    private const val MIN_LABEL_TEXT_SIZE_SP = 8f
+    private const val DEFAULT_CONTENT_PADDING_HORIZONTAL_DP = 4f
+    private const val MIN_CONTENT_PADDING_HORIZONTAL_DP = 2f
+    private const val DEFAULT_LABEL_PLATE_PADDING_HORIZONTAL_DP = 4f
+    private const val MIN_LABEL_PLATE_PADDING_HORIZONTAL_DP = 2f
+    private const val DEFAULT_LABEL_PLATE_PADDING_VERTICAL_DP = 1f
+    private const val MIN_LABEL_PLATE_PADDING_VERTICAL_DP = 0.5f
+    private const val FULL_LABEL_LINES = 2
+
+    // Above a real font's ascent + descent (about 1.17 for Roboto, a little more for OEM faces), so a
+    // line counted as fitting is never clipped by the cell. The sp-to-dp factor is the user's font scale.
+    private const val LABEL_LINE_HEIGHT_FACTOR = 1.25f
+
+    // S4475: the section header's own numbers; the chevron mirrors icon_tier_24 and the title range the
+    // M3 label-large size the layout inherits.
+    private const val DEFAULT_SECTION_CHEVRON_SIZE_DP = 24f
+    private const val MIN_SECTION_CHEVRON_SIZE_DP = 16f
+    private const val DEFAULT_SECTION_INSET_HORIZONTAL_DP = 4f
+    private const val MIN_SECTION_INSET_HORIZONTAL_DP = 2f
+    private const val SECTION_TITLE_MAX_TEXT_SIZE_SP = 14f
+    private const val SECTION_TITLE_MIN_TEXT_SIZE_SP = 10f
 
     /** Higher [densityFactor] shrinks cells, so more of them fit across. */
     fun columns(availableWidthDp: Float, densityFactor: Float): Int {
@@ -53,6 +78,13 @@ object LauncherGridGeometry {
      * When [cellSizeDp] is at nominal size (>= 88dp), standard dimensions are returned.
      * At smaller sizes (dense grid mode), icon, paddings, and margins scale down so up to 2 lines of
      * label text fit without clipping.
+     *
+     * S4475: S1757 sized the icon from the cell ratio alone, so at 64dp the caption kept about 24dp -
+     * one line at an enlarged font. The second line, the only one that carries the ellipsis, was then
+     * cut off by the cell and the caption looked hard-clipped. The icon is now what is left after
+     * [FULL_LABEL_LINES] caption lines at the user's font scale, and [labelMaxLines] drops to one only
+     * when even the smallest icon leaves no room for two - so whatever the caption shows ends in an
+     * ellipsis rather than in a cut.
      */
     data class ShortcutCellLayoutSpec(
         val iconSizeDp: Float,
@@ -60,27 +92,51 @@ object LauncherGridGeometry {
         val modeBadgeSizeDp: Float,
         val contentPaddingVerticalDp: Float,
         val labelMarginTopDp: Float,
-    )
+        val labelTextSizeSp: Float,
+        val labelMaxLines: Int,
+        val contentPaddingHorizontalDp: Float,
+        val labelPlatePaddingHorizontalDp: Float,
+        val labelPlatePaddingVerticalDp: Float,
+    ) {
+        /** What the icon, the paddings and [labelMaxLines] caption lines add up to at [fontScale]. */
+        fun contentHeightDp(fontScale: Float): Float = iconSizeDp +
+            2 * contentPaddingVerticalDp +
+            labelMarginTopDp +
+            labelBlockHeightDp(labelTextSizeSp, labelMaxLines, labelPlatePaddingVerticalDp, fontScale)
+    }
 
-    fun shortcutLayoutSpec(cellSizeDp: Float): ShortcutCellLayoutSpec {
-        if (cellSizeDp >= NOMINAL_SHORTCUT_CELL_SIZE_DP || cellSizeDp <= MIN_SHORTCUT_CELL_SIZE_DP) {
-            return ShortcutCellLayoutSpec(
-                iconSizeDp = DEFAULT_SHORTCUT_ICON_SIZE_DP,
-                monogramTextSizeSp = DEFAULT_SHORTCUT_MONOGRAM_TEXT_SIZE_SP,
-                modeBadgeSizeDp = DEFAULT_SHORTCUT_MODE_BADGE_SIZE_DP,
-                contentPaddingVerticalDp = DEFAULT_SHORTCUT_CONTENT_PADDING_VERTICAL_DP,
-                labelMarginTopDp = DEFAULT_SHORTCUT_LABEL_MARGIN_TOP_DP,
-            )
-        }
-        val scale = (cellSizeDp / NOMINAL_SHORTCUT_CELL_SIZE_DP).coerceIn(
-            MIN_SHORTCUT_SCALE,
-            MAX_SHORTCUT_SCALE,
+    /** The icon size and the caption line count that fit one cell, decided together. */
+    private data class LabelFit(val lines: Int, val iconSizeDp: Float)
+
+    /**
+     * [fontScale] is the user's text scale: the caption is sized in sp, so a pure-dp estimate would repeat
+     * the S1757 miscount on exactly the phones that enlarge the font.
+     */
+    fun shortcutLayoutSpec(cellSizeDp: Float, fontScale: Float = 1f): ShortcutCellLayoutSpec {
+        if (cellSizeDp <= MIN_SHORTCUT_CELL_SIZE_DP) return nominalShortcutSpec()
+        val scale = cellScale(cellSizeDp)
+        val labelTextSizeSp = interpolateByScale(MIN_LABEL_TEXT_SIZE_SP, DEFAULT_LABEL_TEXT_SIZE_SP, scale)
+        val paddingVerticalDp = (DEFAULT_SHORTCUT_CONTENT_PADDING_VERTICAL_DP * scale).coerceIn(
+            MIN_SHORTCUT_CONTENT_PADDING_VERTICAL_DP,
+            DEFAULT_SHORTCUT_CONTENT_PADDING_VERTICAL_DP,
+        )
+        val marginTopDp = (DEFAULT_SHORTCUT_LABEL_MARGIN_TOP_DP * scale).coerceIn(
+            MIN_SHORTCUT_LABEL_MARGIN_TOP_DP,
+            DEFAULT_SHORTCUT_LABEL_MARGIN_TOP_DP,
+        )
+        val plateVerticalDp = (DEFAULT_LABEL_PLATE_PADDING_VERTICAL_DP * scale).coerceIn(
+            MIN_LABEL_PLATE_PADDING_VERTICAL_DP,
+            DEFAULT_LABEL_PLATE_PADDING_VERTICAL_DP,
+        )
+        val fit = fitLabel(
+            roomDp = cellSizeDp - 2 * paddingVerticalDp - marginTopDp,
+            labelTextSizeSp = labelTextSizeSp,
+            plateVerticalDp = plateVerticalDp,
+            scale = scale,
+            fontScale = fontScale,
         )
         return ShortcutCellLayoutSpec(
-            iconSizeDp = (DEFAULT_SHORTCUT_ICON_SIZE_DP * scale).coerceIn(
-                MIN_SHORTCUT_ICON_SIZE_DP,
-                DEFAULT_SHORTCUT_ICON_SIZE_DP,
-            ),
+            iconSizeDp = fit.iconSizeDp,
             monogramTextSizeSp = (DEFAULT_SHORTCUT_MONOGRAM_TEXT_SIZE_SP * scale).coerceIn(
                 MIN_SHORTCUT_MONOGRAM_TEXT_SIZE_SP,
                 DEFAULT_SHORTCUT_MONOGRAM_TEXT_SIZE_SP,
@@ -89,14 +145,113 @@ object LauncherGridGeometry {
                 MIN_SHORTCUT_MODE_BADGE_SIZE_DP,
                 DEFAULT_SHORTCUT_MODE_BADGE_SIZE_DP,
             ),
-            contentPaddingVerticalDp = (DEFAULT_SHORTCUT_CONTENT_PADDING_VERTICAL_DP * scale).coerceIn(
-                MIN_SHORTCUT_CONTENT_PADDING_VERTICAL_DP,
-                DEFAULT_SHORTCUT_CONTENT_PADDING_VERTICAL_DP,
+            contentPaddingVerticalDp = paddingVerticalDp,
+            labelMarginTopDp = marginTopDp,
+            labelTextSizeSp = labelTextSizeSp,
+            labelMaxLines = fit.lines,
+            contentPaddingHorizontalDp = (DEFAULT_CONTENT_PADDING_HORIZONTAL_DP * scale).coerceIn(
+                MIN_CONTENT_PADDING_HORIZONTAL_DP,
+                DEFAULT_CONTENT_PADDING_HORIZONTAL_DP,
             ),
-            labelMarginTopDp = (DEFAULT_SHORTCUT_LABEL_MARGIN_TOP_DP * scale).coerceIn(
-                MIN_SHORTCUT_LABEL_MARGIN_TOP_DP,
-                DEFAULT_SHORTCUT_LABEL_MARGIN_TOP_DP,
+            labelPlatePaddingHorizontalDp = (DEFAULT_LABEL_PLATE_PADDING_HORIZONTAL_DP * scale).coerceIn(
+                MIN_LABEL_PLATE_PADDING_HORIZONTAL_DP,
+                DEFAULT_LABEL_PLATE_PADDING_HORIZONTAL_DP,
             ),
+            labelPlatePaddingVerticalDp = plateVerticalDp,
+        )
+    }
+
+    /** The layout's own defaults - what a cell with no measured size (not laid out yet) is drawn at. */
+    private fun nominalShortcutSpec() = ShortcutCellLayoutSpec(
+        iconSizeDp = DEFAULT_SHORTCUT_ICON_SIZE_DP,
+        monogramTextSizeSp = DEFAULT_SHORTCUT_MONOGRAM_TEXT_SIZE_SP,
+        modeBadgeSizeDp = DEFAULT_SHORTCUT_MODE_BADGE_SIZE_DP,
+        contentPaddingVerticalDp = DEFAULT_SHORTCUT_CONTENT_PADDING_VERTICAL_DP,
+        labelMarginTopDp = DEFAULT_SHORTCUT_LABEL_MARGIN_TOP_DP,
+        labelTextSizeSp = DEFAULT_LABEL_TEXT_SIZE_SP,
+        labelMaxLines = FULL_LABEL_LINES,
+        contentPaddingHorizontalDp = DEFAULT_CONTENT_PADDING_HORIZONTAL_DP,
+        labelPlatePaddingHorizontalDp = DEFAULT_LABEL_PLATE_PADDING_HORIZONTAL_DP,
+        labelPlatePaddingVerticalDp = DEFAULT_LABEL_PLATE_PADDING_VERTICAL_DP,
+    )
+
+    /**
+     * Two caption lines when the smallest icon still leaves room for them, one otherwise. The icon is the
+     * scaled one, shrunk only as far as the lines need: the icon sits at a fixed offset whatever the
+     * caption wraps to (S2014), so its size can depend on the cell and the font but never on the text.
+     */
+    private fun fitLabel(
+        roomDp: Float,
+        labelTextSizeSp: Float,
+        plateVerticalDp: Float,
+        scale: Float,
+        fontScale: Float,
+    ): LabelFit {
+        val scaledIconDp = (DEFAULT_SHORTCUT_ICON_SIZE_DP * scale).coerceIn(
+            MIN_SHORTCUT_ICON_SIZE_DP,
+            DEFAULT_SHORTCUT_ICON_SIZE_DP,
+        )
+        val roomForFull = roomDp -
+            labelBlockHeightDp(labelTextSizeSp, FULL_LABEL_LINES, plateVerticalDp, fontScale)
+        if (roomForFull >= MIN_SHORTCUT_ICON_SIZE_DP) {
+            return LabelFit(FULL_LABEL_LINES, minOf(scaledIconDp, roomForFull))
+        }
+        val roomForOne = roomDp - labelBlockHeightDp(labelTextSizeSp, 1, plateVerticalDp, fontScale)
+        return LabelFit(1, minOf(scaledIconDp, roomForOne.coerceAtLeast(MIN_SHORTCUT_ICON_SIZE_DP)))
+    }
+
+    private fun labelBlockHeightDp(
+        labelTextSizeSp: Float,
+        lines: Int,
+        plateVerticalDp: Float,
+        fontScale: Float,
+    ): Float {
+        val textScale = if (fontScale > 0f) fontScale else 1f
+        return lines * labelTextSizeSp * textScale * LABEL_LINE_HEIGHT_FACTOR + 2 * plateVerticalDp
+    }
+
+    /** The cell's size relative to the nominal one, held between the S1757 floor and 1. */
+    private fun cellScale(cellSizeDp: Float): Float =
+        if (cellSizeDp <= MIN_SHORTCUT_CELL_SIZE_DP) {
+            MAX_SHORTCUT_SCALE
+        } else {
+            (cellSizeDp / NOMINAL_SHORTCUT_CELL_SIZE_DP).coerceIn(MIN_SHORTCUT_SCALE, MAX_SHORTCUT_SCALE)
+        }
+
+    private fun interpolateByScale(min: Float, max: Float, scale: Float): Float =
+        min + (max - min) * ((scale - MIN_SHORTCUT_SCALE) / (MAX_SHORTCUT_SCALE - MIN_SHORTCUT_SCALE))
+
+    /**
+     * S4475: what a section header gives back in a dense grid. The strip is a fixed
+     * [LauncherSectionMembership.HEADER_SPAN_W] cells wide, so the chevron, the root inset and the strip
+     * padding are the only width a longer title can be given, and the title shrinks between
+     * [titleMaxTextSizeSp] and [titleMinTextSizeSp] before its ellipsis shows.
+     */
+    data class SectionHeaderLayoutSpec(
+        val chevronSizeDp: Float,
+        val rootInsetHorizontalDp: Float,
+        val stripPaddingHorizontalDp: Float,
+        val titleMinTextSizeSp: Float,
+        val titleMaxTextSizeSp: Float,
+    )
+
+    fun sectionHeaderLayoutSpec(cellSizeDp: Float): SectionHeaderLayoutSpec {
+        val scale = cellScale(cellSizeDp)
+        return SectionHeaderLayoutSpec(
+            chevronSizeDp = (DEFAULT_SECTION_CHEVRON_SIZE_DP * scale).coerceIn(
+                MIN_SECTION_CHEVRON_SIZE_DP,
+                DEFAULT_SECTION_CHEVRON_SIZE_DP,
+            ),
+            rootInsetHorizontalDp = (DEFAULT_SECTION_INSET_HORIZONTAL_DP * scale).coerceIn(
+                MIN_SECTION_INSET_HORIZONTAL_DP,
+                DEFAULT_SECTION_INSET_HORIZONTAL_DP,
+            ),
+            stripPaddingHorizontalDp = (DEFAULT_LABEL_PLATE_PADDING_HORIZONTAL_DP * scale).coerceIn(
+                MIN_LABEL_PLATE_PADDING_HORIZONTAL_DP,
+                DEFAULT_LABEL_PLATE_PADDING_HORIZONTAL_DP,
+            ),
+            titleMinTextSizeSp = SECTION_TITLE_MIN_TEXT_SIZE_SP,
+            titleMaxTextSizeSp = SECTION_TITLE_MAX_TEXT_SIZE_SP,
         )
     }
 

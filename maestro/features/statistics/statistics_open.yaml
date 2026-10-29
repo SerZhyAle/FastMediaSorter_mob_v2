@@ -31,7 +31,10 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       id: "com.sza.fastmediasorter.debug:id/headerSystem"
-    timeout: 15000
+    # headerSystem sits below Interface and File browser, whose expanded state persists; the
+    # pre-release checklist expands both (theme, grid mode) and 15 s at speed 40 then ran out
+    # before the header came into view (S0484 sweep 2026-10-29).
+    timeout: 45000
     visibilityPercentage: 30
     centerElement: true
 - runFlow:

@@ -4,11 +4,51 @@ title: "Что нового в FastMediaSorter v2"
 permalink: /docs/WHATS_NEW-ru.html
 ---
 
-<sub class="doc-stamp">26.10.20 23:59</sub>
+<sub class="doc-stamp">26.10.29 16:39</sub>
 
 # Что нового в FastMediaSorter v2
 
-**Текущий релиз: 2.61.0202.359** (октябрь 2026)
+**Текущий релиз: 2.61.0291.639** (октябрь 2026)
+
+> Изменения с версии 2.61.0202.359
+
+---
+
+## Что нового
+
+- **Трансляция до её начала** - ссылка, QR-код и файл готовы заранее. <!-- af: broadcast.link-before-start -->
+- **Трансляции публикуются сами** - попадают на сервер обмена без лишних шагов. <!-- af: broadcast.exchange-auto-publish -->
+- **Пароль трансляции на ваш выбор** - автоматический, без пароля или свой, в одном диалоге. <!-- af: broadcast.password-protected-broadcast-through-the-exchange-server, broadcast.link-password-dialog-shows-the-live-protection -->
+- **Закончилась или оборвалась?** - зрители видят, завершена трансляция или пропала связь. <!-- af: broadcast.deliberate-broadcast-end-viewers-can-tell-from-a, streams.tell-a-deliberately-ended-broadcast-from-a-lost -->
+- **Живая картинка в альбомной ориентации** - трансляция поворачивается как плеер и заполняет экран. <!-- af: broadcast.landscape-fullscreen-live-picture -->
+- **Приём через все серверы обмена** - а трансляция, которую не открыть, объясняет причину. <!-- af: streams.casts-arrive-through-every-exchange-server, streams.unopenable-account-broadcast-shown-with-its-reason -->
+- **Сообщение на часы по расписанию** - текст или картинка на сопряжённых часах. <!-- af: wear.scheduled-message-to-watch -->
+- **Операции по расписанию объясняют себя** - история запусков, уведомления и отметки простыми словами. <!-- af: file-operations.scheduled-run-history-plain-reasons, file-operations.scheduled-failure-notification-and-run-log-in-plain, file-operations.scheduled-operation-status-mark-explains-the-last-run -->
+- **Звук на часах без пауз** - следующий сетевой трек загружается заранее. <!-- af: wear-os.audio-next-track-prefetch -->
+- **Одно согласие Google** - сразу на Drive и папку приложения. <!-- af: cloud.google-sign-in-app-folder-consent -->
+- **Понятнее настройки** - значки функций в заголовках экранов, общие настройки перегруппированы. <!-- af: settings-navigation.feature-icon-in-screen-titles, settings-navigation.general-tab-regrouped-around-the-resource-list-wording -->
+- **Умное обновление списка каналов** - предлагается и скачивается только при новом списке. <!-- af: streams.catalog-refresh-suggestion-banner, streams.automatic-catalog-refresh-only-for-a-new-list -->
+- **Тёмный экран часов** - касание показывает время на полной яркости, в стороне от пальца. <!-- af: wear-os.dark-screen-tap-clock-and-brightness -->
+- **Фоновая синхронизация в версии из Play** - раздача папок и передачи снова работают в фоне. <!-- af: permissions.background-data-sync-service-in-the-play-build -->
+
+## Что исправлено
+
+- Трансляция с телефона отвечает слушателям в локальной сети без задержки.
+- В Стримах «назад» и «вперёд» правильно открывают трансляции.
+- Операция по расписанию встаёт на паузу, если её папку удалили.
+- Форма операции по расписанию не показывает ошибки при открытии.
+- Кнопки прокрутки больше не закрывают меню строки.
+- Подписи лаунчера читаются на плотном рабочем столе.
+- Текст гаджетов лаунчера больше не обрезается.
+- Заголовок списка файлов показывает переведённую сортировку и понятный путь.
+- Часы сообщают о сбое или окончании потока.
+- Часы пропускают молчащий адрес в локальной сети.
+- Подписи сетки на часах не наезжают на значки.
+- Кнопки панели Стримов на часах помещаются в круглый экран.
+
+---
+
+## Предыдущий релиз: 2.61.0202.359 (октябрь 2026)
 
 > Изменения с версии 2.61.0141.503
 

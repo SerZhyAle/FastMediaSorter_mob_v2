@@ -519,8 +519,15 @@ foreach ($entry in $letters.GetEnumerator()) {
             $iconHtml = "<img src=`"$visPath`" alt=`"$canonical icon`" class=`"doc-term-icon`" loading=`"lazy`">"
         }
 
+        # Anchors of ids this record carried before a rename or merge: a released page keeps every id it had.
+        $formerAnchors = ""
+        if ($t.former_ids) {
+            foreach ($fid in $t.former_ids) { $formerAnchors += "<span id=`"term-$fid`" class=`"doc-term-former-anchor`"></span>" }
+        }
+
         $sb.AppendLine(@"
                             <article id="term-$termId" class="doc-term-card" data-term-id="$termId" data-category="$category" data-platforms="$platformsAttr" data-flavors="$flavorsAttr" data-keywords="$keywordsAttr">
+                                $formerAnchors
                                 <div class="doc-term-header">
                                     <div class="doc-term-title-wrapper">
                                         $iconHtml

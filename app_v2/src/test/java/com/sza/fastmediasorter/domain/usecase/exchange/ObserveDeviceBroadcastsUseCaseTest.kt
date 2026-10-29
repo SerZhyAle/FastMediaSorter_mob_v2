@@ -3,10 +3,13 @@ package com.sza.fastmediasorter.domain.usecase.exchange
 import com.sza.fastmediasorter.domain.model.ExchangeDirectoryListing
 import com.sza.fastmediasorter.domain.model.ExchangeListedBroadcast
 import com.sza.fastmediasorter.domain.model.ExchangeListedDevice
+import com.sza.fastmediasorter.domain.model.ExchangeMessage
+import com.sza.fastmediasorter.domain.model.ExchangeSealIssue
 import com.sza.fastmediasorter.domain.model.SftpRendezvousBroadcast
 import com.sza.fastmediasorter.domain.model.SftpRendezvousDevice
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -45,6 +48,25 @@ class ObserveDeviceBroadcastsUseCaseTest {
         assertFalse(rows.items.single().playable)
         assertTrue(rows.incomplete)
         assertTrue(rows.pending)
+    }
+
+    @Test
+    fun `a record whose box did not open stays listed with its reason and is not playable`() {
+        val opened = broadcast("b1", "Screen", "VIDEO_ONLY")
+        val unopened = broadcast("b2", "Camera", "VIDEO_ONLY").copy(sealIssue = ExchangeSealIssue.KEY_CHANGED)
+        val listing = ExchangeDirectoryListing(
+            devices = listOf(device("PC", opened, unopened)),
+            listedSources = setOf(SERVER),
+            unreachableSources = emptySet(),
+        )
+
+        val rows = ObserveDeviceBroadcastsUseCase.toBroadcasts(listing).items.associateBy { it.broadcastId }
+
+        assertEquals(setOf("b1", "b2"), rows.keys)
+        assertTrue(rows.getValue("b1").playable)
+        assertNull(rows.getValue("b1").sealNotice)
+        assertFalse(rows.getValue("b2").playable)
+        assertEquals(ExchangeMessage.KEY_CHANGED, rows.getValue("b2").sealNotice)
     }
 
     private fun device(name: String, vararg records: SftpRendezvousBroadcast, playable: Boolean = true) =

@@ -85,6 +85,16 @@ class BroadcastSelectionRowsManager {
         binding.rowLensSelection.setSelection(lensOptionIds.indexOf(lensId))
     }
 
+    /**
+     * Drops what the screen handed in. The owner is a singleton that outlives the activity, and both
+     * listeners capture that activity and its binding.
+     */
+    fun clear() {
+        modeSelectedListener = null
+        lensSelectedListener = null
+        lensOptionIds = emptyList()
+    }
+
     /** Both rows follow the live-switch lock: no list opens while the session is re-opening. */
     fun setEnabled(binding: ActivityBroadcastControlBinding, enabled: Boolean) {
         binding.rowBroadcastMode.isEnabled = enabled

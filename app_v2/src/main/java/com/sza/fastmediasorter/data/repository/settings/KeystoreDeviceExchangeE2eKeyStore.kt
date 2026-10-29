@@ -4,13 +4,16 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.data.local.db.CryptoHelper
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeE2eKeyStore
 import com.sza.fastmediasorter.data.security.e2e.E2eBytes
 import com.sza.fastmediasorter.data.security.e2e.E2eDeviceKey
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -23,6 +26,7 @@ import javax.inject.Singleton
 @Singleton
 class KeystoreDeviceExchangeE2eKeyStore @Inject constructor(
     private val dataStore: DataStore<Preferences>,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : DeviceExchangeE2eKeyStore {
 
     // Two enrollments of one id must not each make a key and race to store it.
@@ -32,11 +36,12 @@ class KeystoreDeviceExchangeE2eKeyStore @Inject constructor(
         existing(deviceId) ?: create(deviceId)
     }
 
-    override suspend fun existing(deviceId: String): E2eDeviceKey? =
+    override suspend fun existing(deviceId: String): E2eDeviceKey? = withContext(ioDispatcher) {
         dataStore.data.first()[key(deviceId)]
             ?.let(CryptoHelper::decrypt)
             ?.takeUnless(String::isEmpty)
             ?.let { hex -> runCatching { E2eDeviceKey.fromPrivate(E2eBytes.fromHex(hex)) }.getOrNull() }
+    }
 
     override suspend fun forget(deviceId: String) {
         dataStore.edit { it.remove(key(deviceId)) }

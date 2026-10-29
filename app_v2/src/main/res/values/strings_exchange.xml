@@ -65,10 +65,10 @@
     <string name="exchange_devices_watch_code_refused">The server would not issue a code: %1$s</string>
     <string name="exchange_devices_watch_none">No connected watch</string>
     <string name="exchange_devices_watch_companion_off">The Wear companion is off. Turn it on in Settings first.</string>
-    <string name="exchange_devices_pick_outgoing_title">Publish through which server?</string>
+    <string name="exchange_devices_pick_outgoing_title">Change the publishing server</string>
     <string name="exchange_devices_pick_none">Add a server on the My devices screen first</string>
     <string name="settings_sftp_exchange_outgoing">Through the server %1$s</string>
-    <string name="settings_sftp_exchange_outgoing_none">No outgoing server chosen</string>
+    <string name="settings_sftp_exchange_outgoing_none">No server here can publish - add one on the My devices screen</string>
     <string name="settings_sftp_exchange_change">Change</string>
     <string name="exchange_signin_intake_hint">Paste a server string</string>
     <string name="exchange_signin_paste">Paste</string>
@@ -361,4 +361,10 @@
     </plurals>
     <string name="exchange_format_unsupported">This format is newer than this program supports. Nothing was imported. Use a compatible program.</string>
     <string name="stream_source_live_badge">Live</string>
+    <string name="broadcast_exchange_line_announcing">Exchange server %1$s: announcing the broadcast</string>
+    <string name="broadcast_exchange_line_on_server">Exchange server %1$s: the broadcast is on the server</string>
+    <string name="broadcast_exchange_line_relayed">Exchange server %1$s: on the server, relayed through the server</string>
+    <string name="broadcast_exchange_line_failed">Exchange server %1$s: %2$s</string>
+    <string name="broadcast_exchange_line_local_only">Reachable on this network only. Add an exchange server in My devices</string>
+    <string name="broadcast_exchange_line_guest_only">Reachable on this network only: a guest account cannot broadcast through the exchange server</string>
 </resources>

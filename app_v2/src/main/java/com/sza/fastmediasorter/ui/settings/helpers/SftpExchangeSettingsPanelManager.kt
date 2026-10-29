@@ -27,13 +27,15 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
- * Binds the "Access from anywhere" part of the SFTP server card: the opt-in that lets the share's
+ * Binds the "Access from anywhere" card that follows the "Share from phone" card: the opt-in that lets the share's
  * address and password reach the user's Google Drive (DEVICE-EXCHANGE section 15 item X), the publish
  * switch that puts the share in the directory of the outgoing exchange entry (item AC), the share link and
  * the publication status.
  *
  * The exchange account entries themselves live on the "My devices" screen; this card only names the outgoing
- * one, lets the user change it, and opens the picker when publishing starts with none chosen.
+ * one and lets the user change it. Item DS assigns the outgoing entry by itself, so publishing that starts
+ * without one means no entry may produce, and the card leads to "My devices" to add one. The legacy-QR
+ * button it toggles stays in the "Share from phone" card, next to the QR it belongs to.
  */
 class SftpExchangeSettingsPanelManager(
     private val fragment: Fragment,

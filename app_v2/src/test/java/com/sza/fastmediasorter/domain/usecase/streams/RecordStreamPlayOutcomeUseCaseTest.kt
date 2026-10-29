@@ -84,6 +84,14 @@ class RecordStreamPlayOutcomeUseCaseTest {
     }
 
     @Test
+    fun `an ended broadcast is recorded as ended and never counts as a play`() = runTest {
+        seedChannel()
+        useCase.recordPlayEnded(CHANNEL_ID)
+        assertEquals(RecordStreamPlayOutcomeUseCase.OUTCOME_ENDED, repo.playOutcome(CHANNEL_ID))
+        assertTrue(stats.isEmpty())
+    }
+
+    @Test
     fun `recording a failure never counts as a play`() = runTest {
         seedChannel()
         useCase.recordPlayFailure(CHANNEL_ID, hasNetwork = true)

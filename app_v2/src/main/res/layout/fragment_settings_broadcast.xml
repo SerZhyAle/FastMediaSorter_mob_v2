@@ -30,6 +30,20 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
+        <!-- S4405: opens the link password dialog the share panel uses; the mode applies once the broadcast is announced.
+             S4486: inside the group so its value joins the column the rows below share. -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+            android:id="@+id/rowLinkPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_tiny"
+            android:layout_marginBottom="@dimen/margin_tiny"
+            android:focusable="true"
+            android:clickable="true"
+            app:ssr_title="@string/broadcast_link_password_title"
+            app:ssr_subtitle="@string/broadcast_link_password_settings_lan"
+            app:ssr_showChevron="true" />
+
         <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
             android:id="@+id/rowBitRate"
             android:layout_width="match_parent"

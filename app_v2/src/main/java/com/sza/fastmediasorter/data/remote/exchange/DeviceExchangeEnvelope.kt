@@ -118,6 +118,9 @@ data class DeviceExchangeEnvelope(
         const val REASON_CAPACITY = "capacity"
         const val REASON_PORT_UNAVAILABLE = "port-unavailable"
         const val REASON_UNAVAILABLE = "unavailable"
+
+        /** 1.10 item DY: a tunnel `connect {broadcastId}` for a broadcast the server remembers as ended. */
+        const val REASON_ENDED = "ended"
         const val REASON_RATE_LIMITED = "rate-limited"
         const val REASON_DECLINED = "declined"
         const val REASON_TIMEOUT = "timeout"

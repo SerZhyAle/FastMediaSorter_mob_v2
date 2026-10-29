@@ -51,7 +51,7 @@ data class DeviceExchangeChanged(
 
         private inline fun <reified T> JsonObject.records(key: String, type: String): List<T> =
             ((get(key) as? JsonArray) ?: JsonArray()).mapNotNull { element ->
-                (element as? JsonObject)?.let { SftpRendezvousCodec.decodeBody(type, it) } as? T
+                ExchangeBroadcastDiagnostics.decode(type, element) as? T
             }
 
         private fun JsonObject.ids(key: String): Set<String> =

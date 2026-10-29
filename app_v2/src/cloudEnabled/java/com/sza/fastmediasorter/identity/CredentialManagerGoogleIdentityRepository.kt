@@ -19,6 +19,7 @@ import com.sza.fastmediasorter.data.identity.transfer.TransferableSignInWriter
 import com.sza.fastmediasorter.domain.identity.GoogleAccessToken
 import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
 import com.sza.fastmediasorter.domain.identity.GoogleScope
+import com.sza.fastmediasorter.domain.identity.GoogleTokenResult
 import com.sza.fastmediasorter.domain.identity.IdentityFailureReason
 import com.sza.fastmediasorter.domain.identity.IdentitySignInResult
 import com.sza.fastmediasorter.domain.identity.NeedsResignInReason
@@ -60,7 +61,8 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
     private val tokenIssuer: GoogleTokenIssuer,
     @ApplicationScope private val scope: CoroutineScope,
     @Named("googleWebClientId") private val webClientId: String,
-    private val transferableSignInWriter: TransferableSignInWriter
+    private val transferableSignInWriter: TransferableSignInWriter,
+    private val scopeAuthorizer: GoogleScopeAuthorizer
 ) : GoogleIdentityRepository {
 
     private val _state = MutableStateFlow<PrimaryGoogleAccountState>(PrimaryGoogleAccountState.Unbound)
@@ -111,6 +113,13 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
                 }
             }
             .getOrThrow()
+            .also { result ->
+                // S4427: a declined consent screen returns without an exception, so the progress
+                // state set above would otherwise stick.
+                if (result is IdentitySignInResult.Cancelled) {
+                    _state.compareAndSet(PrimaryGoogleAccountState.Authenticating, previous)
+                }
+            }
     }
 
     @Suppress("ReturnCount")
@@ -125,13 +134,27 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
             return IdentitySignInResult.Failed(IdentityFailureReason.UnknownError)
         }
         val tokenCred = GoogleIdTokenCredential.createFrom(customCred.data)
+        // S4427: the ID token grants no OAuth scope, so the binding records what this authorization
+        // returned - never the requested set, which is how a never-granted drive.appdata got listed.
+        val oauthScopes = scopes - IDENTITY_SCOPES
+        val granted = when (val auth = scopeAuthorizer.authorize(activityContext, tokenCred.id, oauthScopes)) {
+            is ScopeAuthorization.Granted -> auth.scopes
+            ScopeAuthorization.Cancelled -> return IdentitySignInResult.Cancelled
+            is ScopeAuthorization.Failed -> {
+                _state.value = PrimaryGoogleAccountState.Error(IdentityFailureReason.UnknownError)
+                return IdentitySignInResult.Failed(IdentityFailureReason.UnknownError, auth.cause)
+            }
+        }
+        Timber.d("S4427: sign-in authorization granted ${granted.size} of ${oauthScopes.size} scope(s)")
         val account = PrimaryGoogleAccount(
             email = tokenCred.id,
             displayName = tokenCred.displayName,
             photoUrl = tokenCred.profilePictureUri?.toString(),
-            grantedScopes = scopes,
+            grantedScopes = (scopes intersect IDENTITY_SCOPES) + granted,
             boundAt = Instant.now()
         )
+        // A token cached under the previous grant would outlive the consent the user just changed.
+        tokenIssuer.invalidate()
         if (!store.save(account)) {
             // An unpersisted binding would vanish on the next restart, so the sign-in is reported as failed.
             _state.value = PrimaryGoogleAccountState.Error(IdentityFailureReason.UnknownError)
@@ -177,6 +200,28 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
             return IdentitySignInResult.Cancelled
         }
         return result
+    }
+
+    override suspend fun grantScopes(activityContext: Context, scopes: Set<GoogleScope>): IdentitySignInResult {
+        restoreJob.join()
+        val current = (_state.value as? PrimaryGoogleAccountState.Bound)?.account
+            ?: return IdentitySignInResult.Failed(IdentityFailureReason.UnknownError)
+        return when (val auth = scopeAuthorizer.authorize(activityContext, current.email, scopes)) {
+            ScopeAuthorization.Cancelled -> IdentitySignInResult.Cancelled
+            is ScopeAuthorization.Failed -> IdentitySignInResult.Failed(IdentityFailureReason.UnknownError, auth.cause)
+            is ScopeAuthorization.Granted -> {
+                // A consent refusal remembered before this grant would keep answering "needs consent".
+                tokenIssuer.forgetConsentRefusals()
+                val updated = current.copy(grantedScopes = current.grantedScopes + auth.scopes)
+                if (store.save(updated)) {
+                    publishTransferableEnvelope(updated)
+                    _state.value = PrimaryGoogleAccountState.Bound(updated)
+                    IdentitySignInResult.Success(updated)
+                } else {
+                    IdentitySignInResult.Failed(IdentityFailureReason.UnknownError)
+                }
+            }
+        }
     }
 
     override suspend fun requestSecondaryAccount(activityContext: Context, scopes: Set<GoogleScope>): IdentitySignInResult {
@@ -231,11 +276,15 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
         // for consent if any cached server-side state survives.
     }
 
-    override suspend fun getAccessToken(scopes: Set<GoogleScope>): GoogleAccessToken? {
+    override suspend fun getAccessToken(scopes: Set<GoogleScope>): GoogleAccessToken? =
+        (issueAccessToken(scopes) as? GoogleTokenResult.Granted)?.token
+
+    override suspend fun issueAccessToken(scopes: Set<GoogleScope>): GoogleTokenResult {
         restoreJob.join()
-        val bound = (_state.value as? PrimaryGoogleAccountState.Bound)?.account ?: return null
+        val bound = (_state.value as? PrimaryGoogleAccountState.Bound)?.account ?: return GoogleTokenResult.Unavailable
         return when (val result = tokenIssuer.issue(bound.email, scopes)) {
-            is TokenIssueResult.Success -> result.token
+            is TokenIssueResult.Success -> GoogleTokenResult.Granted(result.token)
+            TokenIssueResult.ConsentRequired -> consentRequired(bound, scopes)
             TokenIssueResult.AccountAbsent -> {
                 // Bound account is no longer on the device (GMS ACCOUNT_NOT_PRESENT). Drop the stale
                 // binding so the next sign-in re-binds to a present account instead of dead-ending on
@@ -246,13 +295,24 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
                 // account that is not there either.
                 transferableSignInWriter.removeEntry(TransferableSignInProviderKeys.GOOGLE_PRIMARY)
                 _state.value = PrimaryGoogleAccountState.Unbound
-                null
+                GoogleTokenResult.Unavailable
             }
             TokenIssueResult.Failed -> {
                 _state.value = PrimaryGoogleAccountState.NeedsResignIn(bound, NeedsResignInReason.TokenExpired)
-                null
+                GoogleTokenResult.Unavailable
             }
         }
+    }
+
+    // S4427: GMS asks for consent both when a scope was never granted and when a grant was revoked.
+    // Only the binding tells them apart - a re-sign-in cures the revoked grant, while a scope the
+    // user never granted needs the grant itself, so the account must not be marked as expired.
+    private fun consentRequired(bound: PrimaryGoogleAccount, scopes: Set<GoogleScope>): GoogleTokenResult {
+        val missing = scopes - bound.grantedScopes
+        Timber.d("S4427: token needs consent, missing ${missing.size} scope(s)")
+        if (missing.isNotEmpty()) return GoogleTokenResult.ConsentRequired(missing)
+        _state.value = PrimaryGoogleAccountState.NeedsResignIn(bound, NeedsResignInReason.ScopeRevoked)
+        return GoogleTokenResult.Unavailable
     }
 
     override suspend fun invalidateToken() {
@@ -426,5 +486,8 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
         const val PAYLOAD_EMAIL = "email"
         const val PAYLOAD_SCOPES = "scopes"
         const val SCOPE_SEPARATOR = ","
+
+        // Granted by the ID token itself; the authorization call is asked for the rest only.
+        val IDENTITY_SCOPES: Set<GoogleScope> = setOf(GoogleScope.EMAIL, GoogleScope.PROFILE, GoogleScope.OPENID)
     }
 }

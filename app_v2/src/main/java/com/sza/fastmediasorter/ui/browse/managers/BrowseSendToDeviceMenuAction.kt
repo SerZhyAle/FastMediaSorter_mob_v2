@@ -6,11 +6,13 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.BottomSheetBinaryFileBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.transfer.CrossDeviceTarget
 import com.sza.fastmediasorter.domain.model.transfer.DriveChannelOff
+import com.sza.fastmediasorter.domain.model.transfer.DriveConsentRequired
 import com.sza.fastmediasorter.domain.model.transfer.DriveDailyLimit
 import com.sza.fastmediasorter.domain.model.transfer.DriveQueueFull
 import com.sza.fastmediasorter.domain.model.transfer.DriveSignInRequired
@@ -85,9 +87,26 @@ class BrowseSendToDeviceMenuAction @Inject constructor(
         toast(context.getString(R.string.cross_device_transfer_sending))
         activity.lifecycleScope.launch {
             val sent = actionManager.send(filePath = mediaFile.path, target = target)
-            toast(outcomeText(sent.exceptionOrNull(), target))
+            val error = sent.exceptionOrNull()
+            if (error is DriveConsentRequired) {
+                offerAppFolderGrant(activity, mediaFile, target)
+            } else {
+                toast(outcomeText(error, target))
+            }
             actionManager.consumeState()
         }
+    }
+
+    // S4427: a toast cannot carry an action, and the grant stays the user's choice (strategic 3.1).
+    private fun offerAppFolderGrant(activity: ComponentActivity, mediaFile: MediaFile, target: CrossDeviceTarget?) {
+        val root = activity.window.decorView.rootView
+        Snackbar.make(root, R.string.drive_channel_consent_required, Snackbar.LENGTH_INDEFINITE)
+            .setAction(R.string.drive_channel_consent_allow) {
+                activity.lifecycleScope.launch {
+                    if (actionManager.grantAppFolderAccess(activity)) send(activity, mediaFile, target)
+                }
+            }
+            .show()
     }
 
     private fun outcomeText(error: Throwable?, target: CrossDeviceTarget?): String = when (error) {

@@ -80,6 +80,7 @@ permalink: /docs/ICON_LEGEND-ru.html
 
 | Значок | Значение |
 |---|---|
+| <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Всё об этом приложении |
 | <img src="icons/svg/ic_apps.svg" alt="ic_apps" width="24" height="24"> | Дополнительные программы и сценарии |
 | <img src="icons/svg/ic_cloud_upload.svg" alt="ic_cloud_upload" width="24" height="24"> | Резервные копии, восстановление и экспорт |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Аудио, обложки и фоновые визуализации |
@@ -99,7 +100,8 @@ permalink: /docs/ICON_LEGEND-ru.html
 | <img src="icons/svg/ic_gesture.svg" alt="ic_gesture" width="24" height="24"> | Жесты с краёв экрана |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Запись видео с экрана |
 | <img src="icons/svg/ic_share.svg" alt="ic_share" width="24" height="24"> | Команды отправить файл в.. |
-| <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | Доступ с телефона |
+| <img src="icons/svg/ic_exchange_mono.svg" alt="ic_exchange_mono" width="24" height="24"> | Доступ отовсюду |
+| <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | Доступ к этому телефону |
 | <img src="icons/svg/ic_stream.svg" alt="ic_stream" width="24" height="24"> | Трансляции |
 | <img src="icons/svg/ic_refresh.svg" alt="ic_refresh" width="24" height="24"> | Фоновая синхронизация, сеть и кэш |
 | <img src="icons/svg/ic_android.svg" alt="ic_android" width="24" height="24"> | Взаимодействие с операционной системой |

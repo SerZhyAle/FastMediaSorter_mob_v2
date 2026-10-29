@@ -22,10 +22,13 @@ import javax.inject.Singleton
  * The stream it opens is the device's control stream (7.2), so for the outgoing entry it replaces the producer's
  * for as long as it lives, exactly as a one-shot `list` does; the producer's reconnect takes it back and this
  * flow then ends with the last directory it emitted. It is collected only while a directory surface is open.
+ * For any other entry the stream is lent to [ExchangeReceiverControlStreams] while it lives (item BM), so casts
+ * keep arriving on it and that entry's receive-only stream does not take the presence back.
  */
 @Singleton
 class DeviceExchangeDirectoryWatcher @Inject constructor(
     private val client: DeviceExchangeAccountClient,
+    private val receivers: ExchangeReceiverControlStreams,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) {
 
@@ -38,14 +41,18 @@ class DeviceExchangeDirectoryWatcher @Inject constructor(
     fun watch(entry: DeviceExchangeAccountEntry): Flow<DeviceExchangeDirectory> = channelFlow {
         val session = client.openAuthenticated(entry, KEEPALIVE_SECONDS)
         val intervalMs = (session.welcome.keepaliveSeconds ?: KEEPALIVE_SECONDS).toLong() * MILLIS_PER_SECOND
+        receivers.lend(entry, session)
         val keepalive = launch { keepalive(session, intervalMs) }
         launch {
-            read(session, channel)
+            read(entry, session, channel)
             keepalive.cancel()
             channel.close()
         }
         // A blocked socket read ignores cancellation; closing the stream is what releases it.
-        awaitClose { session.close() }
+        awaitClose {
+            receivers.giveBack(entry, session)
+            session.close()
+        }
     }.flowOn(ioDispatcher)
 
     // The server answers every keepalive (7.3); [read] drops the answers.
@@ -56,7 +63,11 @@ class DeviceExchangeDirectoryWatcher @Inject constructor(
         }
     }
 
-    private suspend fun read(session: DeviceExchangeSession, out: SendChannel<DeviceExchangeDirectory>) {
+    private suspend fun read(
+        entry: DeviceExchangeAccountEntry,
+        session: DeviceExchangeSession,
+        out: SendChannel<DeviceExchangeDirectory>,
+    ) {
         session.send(LIST)
         session.send(SUBSCRIBE)
         var state: DeviceExchangeDirectoryState? = null
@@ -65,6 +76,8 @@ class DeviceExchangeDirectoryWatcher @Inject constructor(
             when (envelope.type) {
                 DeviceExchangeEnvelope.TYPE_DIRECTORY -> {
                     val fresh = DeviceExchangeDirectoryState.of(DeviceExchangeDirectory.from(envelope))
+                    Timber.d("S4441: directory answer read")
+                    ExchangeBroadcastDiagnostics.logDirectory(fresh.directory)
                     state = fresh
                     out.send(fresh.directory)
                 }
@@ -72,7 +85,7 @@ class DeviceExchangeDirectoryWatcher @Inject constructor(
                 DeviceExchangeEnvelope.TYPE_REFUSED -> throw DeviceExchangeRefusedException(
                     envelope.string(DeviceExchangeEnvelope.KEY_REASON) ?: DeviceExchangeAccountClient.REASON_UNKNOWN
                 )
-                else -> Unit
+                else -> receivers.deliver(entry, envelope)
             }
             envelope = session.receive()
         }
@@ -85,9 +98,16 @@ class DeviceExchangeDirectoryWatcher @Inject constructor(
         envelope: DeviceExchangeEnvelope,
         out: SendChannel<DeviceExchangeDirectory>,
     ): DeviceExchangeDirectoryState? {
+        Timber.d("S4441: changed push read")
+        val changed = DeviceExchangeChanged.from(envelope)
         // A push that arrives before the first answer is covered by that answer.
-        if (held == null) return null
-        return when (val outcome = held.apply(DeviceExchangeChanged.from(envelope))) {
+        if (held == null) {
+            ExchangeBroadcastDiagnostics.logChanged(changed, null, OUTCOME_BEFORE_FIRST_ANSWER)
+            return null
+        }
+        val outcome = held.apply(changed)
+        ExchangeBroadcastDiagnostics.logChanged(changed, held.revision, ExchangeBroadcastDiagnostics.label(outcome))
+        return when (outcome) {
             is DeviceExchangeDirectoryState.Outcome.Applied -> outcome.state.also { out.send(it.directory) }
             DeviceExchangeDirectoryState.Outcome.Gap -> {
                 session.send(LIST)
@@ -100,6 +120,7 @@ class DeviceExchangeDirectoryWatcher @Inject constructor(
     companion object {
         const val KEEPALIVE_SECONDS = 30
         private const val MILLIS_PER_SECOND = 1_000L
+        private const val OUTCOME_BEFORE_FIRST_ANSWER = "before-first-answer"
         private val LIST = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_LIST)
         private val SUBSCRIBE = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_SUBSCRIBE)
         private val KEEPALIVE = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_KEEPALIVE)

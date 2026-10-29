@@ -7084,6 +7084,10 @@
         {
           "url": "http://icecast-studio21.cdnvideo.ru/S21cl_1r",
           "order": 125
+        },
+        {
+          "url": "https://live.radioblago.ru/live-2.ogg",
+          "order": 126
         }
       ]
     },
@@ -8111,6 +8115,66 @@
         {
           "url": "https://streaming.fabrik.fm/heartfm/echocast/audio/low/index.m3u8",
           "order": 254
+        },
+        {
+          "url": "https://ecmanager2.pro-fhi.net:1515/stream",
+          "order": 255
+        },
+        {
+          "url": "https://streaming.fabrik.fm/umgungundlovufm/echocast/audio/low/index.m3u8",
+          "order": 256
+        },
+        {
+          "url": "http://9090streaming.mobtada.com/9090FMEGYPT",
+          "order": 257
+        },
+        {
+          "url": "http://25533.live.streamtheworld.com:3690/FM702_SC",
+          "order": 258
+        },
+        {
+          "url": "http://28973.live.streamtheworld.com:3690/FM947AAC_SC",
+          "order": 259
+        },
+        {
+          "url": "http://29334.live.streamtheworld.com/FM947_SC",
+          "order": 260
+        },
+        {
+          "url": "https://radio.interspacemusic.com/stream.mp3",
+          "order": 261
+        },
+        {
+          "url": "https://radiojambo-atunwadigital.streamguys1.com/radiojambo",
+          "order": 262
+        },
+        {
+          "url": "https://dreamsiteradiocp2.com/proxy/rmmozambique2?mp=/stream",
+          "order": 263
+        },
+        {
+          "url": "https://stream.zeno.fm/gbktm9u0czzuv",
+          "order": 264
+        },
+        {
+          "url": "https://strw3.openstream.co/495",
+          "order": 265
+        },
+        {
+          "url": "https://rhythmfmlagos-atunwadigital.streamguys1.com/rhythmfmlagos",
+          "order": 266
+        },
+        {
+          "url": "https://naijafmlagos-atunwadigital.streamguys1.com/naijafmlagos/playlist.m3u8",
+          "order": 267
+        },
+        {
+          "url": "https://beatfmlagos-atunwadigital.streamguys1.com/beatfmlagos/playlist.m3u8",
+          "order": 268
+        },
+        {
+          "url": "http://21633.live.streamtheworld.com/FM702_SC",
+          "order": 269
         }
       ]
     },
@@ -19981,6 +20045,22 @@
         {
           "url": "http://d131.rndfnk.com/ard/rbb/radioeins/live/mp3/48/stream.mp3?cid=01FC1WH12KJ93TCQPDSE2E5PZ9&sid=3KoKLQ7m6YfTuXUWNfcwV6iuOpJ&token=hNLDebzO_REM12pouYsTnZ9jcTOw4mq6cyG5otTv1ak&tvf=GeOQK85Q3xhkMTMxLnJuZGZuay5jb20",
           "order": 2337
+        },
+        {
+          "url": "http://s1-webradio.antenne.de/hits-fuer-kids",
+          "order": 2338
+        },
+        {
+          "url": "https://wdr-radio.ard-mcdn.de/wdr/radio/wdr2ruhrgb/hls/master.m3u8",
+          "order": 2339
+        },
+        {
+          "url": "http://s5-webradio.antenne.de/hits-fuer-kids",
+          "order": 2340
+        },
+        {
+          "url": "http://mdr-991101-0.sslcast.mdr.de/mdr/991101/0/mp3/high/stream.mp3",
+          "order": 2341
         }
       ]
     },
@@ -21512,6 +21592,42 @@
         {
           "url": "https://radio-server.dship.biz/listen/dealership_radio/radio.mp3",
           "order": 380
+        },
+        {
+          "url": "https://ice6.somafm.com/7soul-128-mp3",
+          "order": 381
+        },
+        {
+          "url": "https://ice6.somafm.com/bootliquor-320-mp3",
+          "order": 382
+        },
+        {
+          "url": "https://streaming.radio.co/s0d090ee43/listen",
+          "order": 383
+        },
+        {
+          "url": "https://streaming.live365.com/a21553",
+          "order": 384
+        },
+        {
+          "url": "https://ice8.securenetsystems.net:80/WOTJ",
+          "order": 385
+        },
+        {
+          "url": "https://knon.streamguys1.com/live",
+          "order": 386
+        },
+        {
+          "url": "https://19273.live.streamtheworld.com/CC9_S01AAC_96_SC",
+          "order": 387
+        },
+        {
+          "url": "https://ice2.somafm.com/7soul-128-mp3",
+          "order": 388
+        },
+        {
+          "url": "https://streaming.live365.com/a77923",
+          "order": 389
         }
       ]
     },
@@ -22778,6 +22894,10 @@
         {
           "url": "https://stream.wa3.live/wa3.mp3",
           "order": 159
+        },
+        {
+          "url": "http://jazzblues.ice.infomaniak.ch/jazzblues-high.mp3",
+          "order": 160
         }
       ]
     }

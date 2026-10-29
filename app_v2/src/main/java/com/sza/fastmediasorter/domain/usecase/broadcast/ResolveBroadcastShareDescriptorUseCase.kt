@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase.broadcast
 
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorDto
 import com.sza.fastmediasorter.data.broadcast.auth.BroadcastCredentialRegistry
+import com.sza.fastmediasorter.data.broadcast.exchange.BroadcastExchangeEndpoints
 import com.sza.fastmediasorter.data.broadcast.exchange.ExchangeBroadcastAnnouncer
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -26,4 +27,14 @@ class ResolveBroadcastShareDescriptorUseCase @Inject constructor(
      */
     fun linkPassword(live: BroadcastDescriptorDto): String? =
         credentials.linkPair?.password?.takeIf { invoke(live).isProtected }
+
+    /**
+     * S4405: the shared descriptor carries the exchange endpoints. Apart from [linkPassword], because a broadcast
+     * with an open link is announced and has no password - Guests and the full Copy link follow this one.
+     */
+    fun isAnnounced(live: BroadcastDescriptorDto): Boolean =
+        invoke(live).endpoints.orEmpty().any { endpoint ->
+            BroadcastExchangeEndpoints.TRANSPORT_RELAY.equals(endpoint.transport, ignoreCase = true) ||
+                BroadcastExchangeEndpoints.TRANSPORT_TUNNEL.equals(endpoint.transport, ignoreCase = true)
+        }
 }

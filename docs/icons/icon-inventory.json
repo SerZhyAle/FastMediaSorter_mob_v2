@@ -1121,6 +1121,14 @@
   },
   {
     "surface": "settings-header",
+    "key": "headerAboutApp",
+    "feature": "settings_category_about_app",
+    "drawable": "ic_info",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
     "key": "headerAdditionalPrograms",
     "feature": "settings_category_additional_programs",
     "drawable": "ic_apps",
@@ -1268,6 +1276,14 @@
     "key": "headerSendCommands",
     "feature": "settings_send_commands_group",
     "drawable": "ic_share",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
+    "key": "headerSftpExchange",
+    "feature": "settings_sftp_exchange_title",
+    "drawable": "ic_exchange_mono",
     "assetFormat": "vector",
     "public": true
   },

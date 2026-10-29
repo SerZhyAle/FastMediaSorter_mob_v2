@@ -22,6 +22,13 @@
     changed, so a closure touching none of them skips the ~28 s gradle run and the gate
     finishes in about three seconds. The four cheap stages always run.
 
+    Stage 2 is release tier (CLAUDE.md Rule 37): in the Fast tier it is not run even when a
+    manifest input changed, and the gate prints the RELEASE command that runs it. The tier is
+    -Tier, else FMS_TIER (post-change.ps1 exports it), else the agent-shell rule of
+    lib/gate-tier.ps1. S4495: the closure classed this gate fast on a journal that timed only
+    the replay of its exit code, so a settings layout in a fast-tier set started a gradle
+    unit-test run that outlived the caller's timeout.
+
     Exit codes:
       0 - every stage passed.
       1 - a stage found real drift (the failing stage is named).
@@ -47,6 +54,8 @@ param(
     [switch] $SkipManifestTest,  # escape hatch for environments without a JVM/gradle
     [string[]] $ChangedFiles,    # delta path: skip the gradle stage when nothing feeds the manifest
     [switch] $SkipHowToStage,    # the caller runs assert-howto-settings-paths.ps1 as its own gate
+    [ValidateSet('Fast', 'Release')]
+    [string] $Tier,              # Fast never runs the gradle stage; resolution order in the header
     [int] $TimeoutSeconds = 600
 )
 
@@ -58,6 +67,8 @@ $ErrorActionPreference = 'Stop'
 # reads the same file - so the facade cannot run this gate on a set no stage can see, and this
 # gate cannot judge a stage the facade did not intend to fire.
 . (Join-Path $RepoRoot "scripts/quality/lib/settings-doc-inputs.ps1")
+. (Join-Path $RepoRoot "scripts/quality/lib/gate-tier.ps1")
+$activeTier = Resolve-ActiveTier $Tier
 
 function Fail([string] $stage, [string] $detail) {
     if ($detail) { Write-Host "  $detail" }
@@ -125,7 +136,13 @@ if ($catalogExit -ne 0) {
 # manifest, and paying ~28 s of gradle to re-prove that is the 35 s-per-run cost this gate was cited
 # for. This stage is SKIPPED rather than deferred: it is the expensive one, and not running it costs
 # nothing to report.
-if (-not $SkipManifestTest -and $manifestAffected) {
+$manifestDeferred = $manifestAffected -and -not $SkipManifestTest -and $activeTier -eq 'Fast'
+if ($manifestDeferred) {
+    # post-change.ps1 matches 'manifest stage is release tier' to name the stage in its verdict line.
+    Write-Host ("settings-doc-sync: manifest stage is release tier - not run until the release. " +
+        "RELEASE: pwsh -NoProfile -File scripts/quality/assert-settings-doc-sync.ps1 -Gate -Tier Release") -ForegroundColor Yellow
+}
+if (-not $SkipManifestTest -and $manifestAffected -and -not $manifestDeferred) {
     $reportFileFiltered = Join-Path $RepoRoot 'app_v2/build/test-results/testStandardDebugUnitTest-filtered/TEST-com.sza.fastmediasorter.ui.settings.search.SettingsManifestExportTest.xml'
     $reportFileStandard = Join-Path $RepoRoot 'app_v2/build/test-results/testStandardDebugUnitTest/TEST-com.sza.fastmediasorter.ui.settings.search.SettingsManifestExportTest.xml'
     $reportFile = if (Test-Path $reportFileFiltered) { $reportFileFiltered } else { $reportFileStandard }
@@ -238,7 +255,8 @@ if (-not $SkipHowToStage) {
 
 # Name what was actually judged: a verdict that claims "manifest fresh" after skipping the
 # manifest stage is the same false certification the closure facade was fixed for in phase 02.
-$manifestVerdict = if (-not $SkipManifestTest -and $manifestAffected) { 'manifest fresh' } else { 'manifest stage NOT run' }
+$manifestVerdict = if ($manifestDeferred) { 'manifest stage NOT run (release tier)' }
+elseif (-not $SkipManifestTest -and $manifestAffected) { 'manifest fresh' } else { 'manifest stage NOT run' }
 $howToVerdict = if ($SkipHowToStage) { 'HOW_TO recipes judged by the caller' } else { 'HOW_TO recipes in sync' }
 
 # S2604, widened by S2831: every other stage passed, and one or more stages found a divergence this

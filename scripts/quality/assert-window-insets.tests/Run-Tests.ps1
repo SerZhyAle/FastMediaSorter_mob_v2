@@ -1,4 +1,5 @@
 # Run-Tests.ps1 (S1347) - regression suite proving Rule 17's window-insets gate actually fires.
+# Parallel: serial
 #
 # S1338 package I built scripts/quality/assert-window-insets.ps1 and baselined it at 28
 # pre-existing sites. S1340's audit found no test anywhere asserting the gate's exit code flips

@@ -299,4 +299,6 @@
     <string name="drive_channel_send_no_devices">আপনার অন্য কোনো ডিভাইস এখনও Google Drive ব্যবহার করেনি। অন্য ডিভাইসেও Google Drive-এর মাধ্যমে ফাইল চালু করুন, তারপর আবার চেষ্টা করুন।</string>
     <string name="drive_channel_send_waiting_for">Google Drive-এর মাধ্যমে %1$s-এর গ্রহণ করার অপেক্ষায়।</string>
     <string name="drive_channel_send_waiting_any">Google Drive-এর মাধ্যমে আপনার কোনো একটি ডিভাইসের গ্রহণ করার অপেক্ষায়।</string>
+    <string name="drive_channel_consent_required">Google Drive এখনও এই অ্যাপকে নিজস্ব ফোল্ডার দেয়নি। আপনার ডিভাইসগুলোর মধ্যে ফাইল পাঠাতে ও পেতে এটিকে অনুমতি দিন। কিছুই মুছে ফেলা হয়নি।</string>
+    <string name="drive_channel_consent_allow">অনুমতি দিন</string>
 </resources>

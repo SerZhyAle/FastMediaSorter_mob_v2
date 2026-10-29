@@ -23,6 +23,11 @@ interface StreamProtocolSupport {
     /**
      * Builds an RTSP [MediaSource] for [uri], or null when RTSP is unsupported in this flavor.
      * Implementations baseline RTP-over-RTSP/TCP (interleaved) for predictable LAN/internet delivery.
+     * [timeoutMs] replaces the library's 8 s silence timeout, the only way an RTSP end reaches the player (S4444).
      */
-    fun createRtspMediaSource(uri: Uri, dataSourceFactory: DataSource.Factory): MediaSource?
+    fun createRtspMediaSource(
+        uri: Uri,
+        dataSourceFactory: DataSource.Factory,
+        timeoutMs: Long? = null,
+    ): MediaSource?
 }

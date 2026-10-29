@@ -304,7 +304,8 @@ class StreamSourceAdapter(
         /**
          * S0593: local play-status bullet. Shape AND colour both encode the state (TalkBack reads the
          * contentDescription), so the meaning survives colour-blindness and greyscale: a hollow ring =
-         * not played yet, a check = played OK here, an exclamation = the last attempt failed.
+         * not played yet, a check = played OK here, an exclamation = the last attempt failed, a stop square = the
+         * broadcast was ended by its owner (S4444).
          */
         private fun bindPlayStatus(outcome: String?) {
             val (iconRes, colorRes, descRes) = when (outcome) {
@@ -316,6 +317,8 @@ class StreamSourceAdapter(
                         R.color.stream_status_failed,
                         R.string.stream_status_failed
                     )
+                RecordStreamPlayOutcomeUseCase.OUTCOME_ENDED ->
+                    Triple(R.drawable.ic_stop, R.color.stream_status_unknown, R.string.stream_status_ended)
                 else ->
                     Triple(
                         R.drawable.ic_stream_status_unknown,

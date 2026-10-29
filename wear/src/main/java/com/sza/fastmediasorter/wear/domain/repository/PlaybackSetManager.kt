@@ -62,12 +62,29 @@ class PlaybackSetManager @Inject constructor() {
      */
     var shuffleEnabled: Boolean = false
 
+    /**
+     * S4471: the shuffle draw a peek made, so the file that was fetched ahead is the file [next] plays.
+     * It is valid only for the list instance and the position it was drawn from; a new publish, a
+     * removal or a move to another position leaves it unmatched and the next draw is fresh.
+     */
+    private var queuedShuffle: ShufflePick? = null
+
     /** Past the end the set wraps to its first file (strategic S1683 section 6.5). */
     fun next(): WearMediaFile? = moveByIndex { index, files ->
-        if (shuffleEnabled) {
-            otherIndex(index, files.size)
+        successorIndex(index, files).also { queuedShuffle = null }
+    }
+
+    /**
+     * S4471: the file [next] would answer, without moving to it. The audio player fetches it while the
+     * current track plays, which is why shuffle has to commit to its draw here instead of at the call
+     * to [next].
+     */
+    fun peekNext(): WearMediaFile? {
+        val set = _currentSet.value
+        return if (set == null || set.files.isEmpty()) {
+            null
         } else {
-            (index + 1) % files.size
+            set.files[successorIndex(set.index, set.files)]
         }
     }
 
@@ -128,6 +145,18 @@ class PlaybackSetManager @Inject constructor() {
         Timber.d("PlaybackSetManager: set cleared")
         _currentSet.value = null
     }
+
+    private fun successorIndex(index: Int, files: List<WearMediaFile>): Int {
+        if (!shuffleEnabled) {
+            return (index + 1) % files.size
+        }
+        val queued = queuedShuffle?.takeIf { it.files === files && it.fromIndex == index }
+        return queued?.toIndex ?: otherIndex(index, files.size).also {
+            queuedShuffle = ShufflePick(files, index, it)
+        }
+    }
+
+    private class ShufflePick(val files: List<WearMediaFile>, val fromIndex: Int, val toIndex: Int)
 
     /**
      * A uniform pick among every index except [current]. Drawing an offset in 1..size-1 rather than

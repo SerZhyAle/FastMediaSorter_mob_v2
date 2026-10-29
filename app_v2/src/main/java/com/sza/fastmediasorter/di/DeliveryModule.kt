@@ -67,6 +67,13 @@ abstract class DeliveryModule {
         impl: com.sza.fastmediasorter.data.delivery.DeliveryAssetSizeClient
     ): com.sza.fastmediasorter.domain.delivery.DeliveryAssetSizeSource
 
+    /** S4459: which stream-catalog archive the mirror serves now, so the Streams banner offers only a newer one. */
+    @Binds
+    @Singleton
+    abstract fun bindStreamCatalogPublicationSource(
+        impl: com.sza.fastmediasorter.data.delivery.StreamCatalogPublicationClient
+    ): com.sza.fastmediasorter.domain.delivery.StreamCatalogPublicationSource
+
     companion object {
 
         /**

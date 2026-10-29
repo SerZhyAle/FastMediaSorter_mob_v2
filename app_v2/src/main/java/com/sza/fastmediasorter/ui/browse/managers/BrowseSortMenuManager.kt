@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.utils.UserActionLogger
+import timber.log.Timber
 
 /**
  * Manages sort mode popup menu and sort mode display names for BrowseActivity.
@@ -77,25 +78,26 @@ class BrowseSortMenuManager(
     }
 
     fun getSortModeShortName(mode: SortMode): String {
+        Timber.d("S4483: sort button label for ${mode.name}")
         return when (mode) {
-            SortMode.MANUAL -> "Manual"
-            SortMode.NAME_ASC -> "A-Z"
-            SortMode.NAME_DESC -> "Z-A"
-            SortMode.DATE_ASC -> "Old ↑"
-            SortMode.DATE_DESC -> "New ↓"
-            SortMode.SIZE_ASC -> "Size ↑"
-            SortMode.SIZE_DESC -> "Size ↓"
-            SortMode.TYPE_ASC -> "Type ↑"
-            SortMode.TYPE_DESC -> "Type ↓"
-            SortMode.ARTIST_ASC -> "Artist ↑"
-            SortMode.ARTIST_DESC -> "Artist ↓"
-            SortMode.TITLE_ASC -> "Title ↑"
-            SortMode.TITLE_DESC -> "Title ↓"
-            SortMode.DURATION_ASC -> "Duration ↑"
-            SortMode.DURATION_DESC -> "Duration ↓"
-            SortMode.DATE_TAKEN_ASC -> "DateTaken ↑"
-            SortMode.DATE_TAKEN_DESC -> "DateTaken ↓"
-            SortMode.RANDOM -> "Random"
+            SortMode.MANUAL -> context.getString(R.string.sort_short_manual)
+            SortMode.NAME_ASC -> context.getString(R.string.sort_short_name_asc)
+            SortMode.NAME_DESC -> context.getString(R.string.sort_short_name_desc)
+            SortMode.DATE_ASC -> context.getString(R.string.sort_short_date_asc)
+            SortMode.DATE_DESC -> context.getString(R.string.sort_short_date_desc)
+            SortMode.SIZE_ASC -> context.getString(R.string.sort_short_size_asc)
+            SortMode.SIZE_DESC -> context.getString(R.string.sort_short_size_desc)
+            SortMode.TYPE_ASC -> context.getString(R.string.sort_short_type_asc)
+            SortMode.TYPE_DESC -> context.getString(R.string.sort_short_type_desc)
+            SortMode.ARTIST_ASC -> context.getString(R.string.sort_short_artist_asc)
+            SortMode.ARTIST_DESC -> context.getString(R.string.sort_short_artist_desc)
+            SortMode.TITLE_ASC -> context.getString(R.string.sort_short_title_asc)
+            SortMode.TITLE_DESC -> context.getString(R.string.sort_short_title_desc)
+            SortMode.DURATION_ASC -> context.getString(R.string.sort_short_duration_asc)
+            SortMode.DURATION_DESC -> context.getString(R.string.sort_short_duration_desc)
+            SortMode.DATE_TAKEN_ASC -> context.getString(R.string.sort_short_date_taken_asc)
+            SortMode.DATE_TAKEN_DESC -> context.getString(R.string.sort_short_date_taken_desc)
+            SortMode.RANDOM -> context.getString(R.string.sort_short_random)
         }
     }
 

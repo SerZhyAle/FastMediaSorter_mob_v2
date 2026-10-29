@@ -2,27 +2,19 @@ package com.sza.fastmediasorter.ui.browse.managers
 
 import android.content.Context
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.core.di.UnitSystemEntryPoint
-import com.sza.fastmediasorter.domain.model.FileFilter
-import com.sza.fastmediasorter.domain.model.Quantity
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.ui.browse.BrowseState
-import dagger.hilt.android.EntryPointAccessors
+import com.sza.fastmediasorter.util.VirtualPathUtils
+import timber.log.Timber
 
 /**
  * Utility functions for BrowseActivity UI string formatting.
- * Handles resource info and filter description generation.
+ * Handles resource info generation for the title strip. The active-filter text is built by
+ * BrowseStateUiUpdater, which reads the filter dialog's own labels.
  */
 class BrowseUtilityManager(
     private val context: Context
 ) {
-    
-    // S2795: built by hand rather than by Hilt, so it reaches the format seam the way the project's
-    // other out-of-graph surfaces do. The system itself is read per call, so a switched setting shows
-    // the next time the title strip is rebuilt.
-    private val unitSeam: UnitSystemEntryPoint by lazy {
-        EntryPointAccessors.fromApplication(context.applicationContext, UnitSystemEntryPoint::class.java)
-    }
 
     /**
      * Builds resource info string for title display.
@@ -37,11 +29,12 @@ class BrowseUtilityManager(
         if (state.loadingProgress > 0) {
             return resource.name
         }
-        
+
+        Timber.d("S4494: title strip selected=${state.selectedFiles.size} subfolder=${state.isSubfolderMode}")
         val selected = if (state.selectedFiles.isEmpty()) {
             ""
         } else {
-            " • ${state.selectedFiles.size} selected"
+            " • " + context.getString(R.string.browse_title_selected_count, state.selectedFiles.size)
         }
         
         // Add file count if available
@@ -100,8 +93,11 @@ class BrowseUtilityManager(
     // not a hierarchical filesystem path - there is no meaningful "parent path" to show, and the
     // segment-matching logic below always misses (the last segment is an id, never the real
     // name), which used to leak the raw id string. Omit the path segment entirely for cloud.
+    // S4483: a virtual collection ("virtual://all_audio") is an internal MediaStore scheme with no
+    // location the user could open, so it gets the same empty segment.
     private fun buildRootPathDisplay(resourcePath: String, resourceName: String, isCloudResource: Boolean): String {
-        if (isCloudResource) return ""
+        Timber.d("S4483: root path display for $resourceName virtual=${VirtualPathUtils.isVirtualPath(resourcePath)}")
+        if (isCloudResource || VirtualPathUtils.isVirtualPath(resourcePath)) return ""
 
         val normalizedPath = resourcePath.trimEnd('/', '\\')
         val lastSegment = normalizedPath.substringAfterLast('/').substringAfterLast('\\')
@@ -122,57 +118,8 @@ class BrowseUtilityManager(
     // a name from currentPath - a path segment is not a folder name for cloud resources
     // (opaque provider id).
     private fun buildBreadcrumb(state: BrowseState): String {
+        val rootLabel = context.getString(R.string.browse_breadcrumb_root)
         val parts = state.folderNameStack + listOfNotNull(state.currentFolderName)
-        if (parts.isEmpty()) {
-            return "📁 Root"
-        }
-        return "📁 " + listOf("Root").plus(parts).joinToString(" > ")
+        return "📁 " + listOf(rootLabel).plus(parts).joinToString(" > ")
     }
-    
-    /**
-     * Builds human-readable filter description.
-     * Format: "⚠ Filter active: {types}, {name}, {dates}, {sizes}"
-     */
-    fun buildFilterDescription(filter: FileFilter): String {
-        val parts = mutableListOf<String>()
-        
-        // Media types filter
-        filter.mediaTypes?.let { types ->
-            if (types.isNotEmpty()) {
-                val typeNames = types.map { it.name.lowercase().replaceFirstChar { char -> char.uppercase() } }.sorted()
-                parts.add(typeNames.joinToString(", "))
-            }
-        }
-        
-        // Name filter
-        filter.nameContains?.let {
-            parts.add("name contains '$it'")
-        }
-        
-        // Date filters
-        if (filter.minDate != null && filter.maxDate != null) {
-            parts.add("created ${formatDate(filter.minDate)} - ${formatDate(filter.maxDate)}")
-        } else if (filter.minDate != null) {
-            parts.add("created after ${formatDate(filter.minDate)}")
-        } else if (filter.maxDate != null) {
-            parts.add("created before ${formatDate(filter.maxDate)}")
-        }
-        
-        // Size filters
-        if (filter.minSizeMb != null && filter.maxSizeMb != null) {
-            parts.add("size ${filter.minSizeMb} - ${filter.maxSizeMb} MB")
-        } else if (filter.minSizeMb != null) {
-            parts.add("size >= ${filter.minSizeMb} MB")
-        } else if (filter.maxSizeMb != null) {
-            parts.add("size <= ${filter.maxSizeMb} MB")
-        }
-        
-        return "⚠ Filter active: " + parts.joinToString(", ")
-    }
-    
-    /**
-     * Formats date for filter descriptions.
-     */
-    private fun formatDate(timestamp: Long): String =
-        unitSeam.quantityFormatter().format(Quantity.Date(timestamp), unitSeam.unitSystemProvider().value)
 }

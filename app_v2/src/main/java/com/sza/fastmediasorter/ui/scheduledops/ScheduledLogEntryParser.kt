@@ -1,8 +1,11 @@
 package com.sza.fastmediasorter.ui.scheduledops
 
+import com.sza.fastmediasorter.domain.model.ScheduledRunStatus
+
 /**
  * One parsed run-history line. [raw] always carries the original line, so an entry the parser could
- * not fully read is still shown rather than dropped.
+ * not fully read is still shown rather than dropped. [isSkipped] marks a whole run that could not start
+ * (`SKIPPED: ...`), not the per-file `SKIP: name` lines; both flags only describe a well-formed line.
  */
 data class ScheduledLogEntry(
     val timestamp: String?,
@@ -12,6 +15,7 @@ data class ScheduledLogEntry(
     val message: String,
     val isError: Boolean,
     val raw: String,
+    val isSkipped: Boolean = false,
 )
 
 /**
@@ -51,8 +55,9 @@ object ScheduledLogEntryParser {
                 source = sides?.getOrNull(0),
                 target = sides?.getOrNull(1),
                 message = message,
-                isError = message.startsWith("ERROR"),
+                isError = message.startsWith(ScheduledRunStatus.ERROR_PREFIX),
                 raw = line,
+                isSkipped = message.startsWith(ScheduledRunStatus.SKIPPED_PREFIX),
             )
         }
     }

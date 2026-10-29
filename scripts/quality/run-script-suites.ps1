@@ -42,18 +42,39 @@
     tool must still be able to close a ticket) and fatal before a release (where the environment must
     be complete). Both readings come from this one classifier; only the caller's -Gate switch differs.
 
-    A PASS IS REMEMBERED IN THE PER-TICKET MODE ONLY (S3515). The closure of one adb.ps1 change took
-    146 s, 134.5 s of it the three adb suites the agent had run by hand a minute earlier against the
-    same files. With -ChangedFiles, a passing suite is recorded under a fingerprint - SHA-256 over the
-    path and content hash of every file in the suite's directory, of every resolved subject, and of
-    every existing .ps1 those files name in a string literal (one level: the dot-sourced libraries) -
-    and the next run with an identical fingerprint within -CacheMaxAgeMinutes reports a cached PASS
-    without executing. A failure, a could-not-verify and a skip are never recorded. The age bound is
-    there because a suite may still read a file the fingerprint does not cover (a path built from
-    several Join-Path segments, a library's own library, the canon harness behind a forwarder); the
-    release-scope sweep, which passes no changed set, neither reads nor writes the cache, so every
-    release still executes every suite. Run a suite through this runner rather than by its own path
-    and the closure reuses the result.
+    A PASS IS REMEMBERED IN TWO SEPARATE MODES, AND NEVER ACROSS THEM.
+    Per ticket (S3515). The closure of one adb.ps1 change took 146 s, 134.5 s of it the three adb
+    suites the agent had run by hand a minute earlier against the same files. With -ChangedFiles, a
+    passing suite is recorded under a fingerprint - SHA-256 over the path and content hash of every
+    file in the suite's directory, of every resolved subject, and of every existing .ps1 those files
+    name in a string literal (one level: the dot-sourced libraries) - and the next run with an
+    identical fingerprint within -CacheMaxAgeMinutes reports a cached PASS without executing. The age
+    bound is there because a suite may still read a file the fingerprint does not cover (a path built
+    from several Join-Path segments, a library's own library, the canon harness behind a forwarder).
+    Per release campaign (S4413). Release 46 paid 35.7 + 33.1 + 31.9 min for three identical full
+    sweeps inside one campaign. With no changed set and a campaign id - -CampaignId, or the open
+    campaign of scripts/release/lib/release-campaign.ps1 - a passing suite is recorded under the same
+    fingerprint in a separate store keyed by suite and stamped with the campaign id; a later sweep in
+    the same campaign reuses it with no age bound, an entry from another campaign is ignored and
+    overwritten, so the first sweep of every campaign is cold and executes every suite.
+    In both modes a failure, a could-not-verify and a skip are never recorded and drop a prior entry,
+    and -NoCache executes regardless. A full sweep with no campaign neither reads nor writes either
+    store. Run a suite through this runner rather than by its own path and the closure reuses the
+    result. Every result carries Source (run or campaign-cache), and inside a campaign every suite's
+    duration is journalled as phase "suite:<path>" whatever -Quiet says.
+
+    SEVERAL EXECUTORS, ONE SERIAL LANE (S4413). A full sweep is 165 suites one after another, about
+    32 minutes, while most of them share nothing. With -Workers N above 1 the suites that are not
+    served from a cache run on N child pwsh processes at once, and the suites that declare
+    `# Parallel: serial` in their 40-line header - the same header `# Subject:` is read from - run
+    one at a time on one extra lane beside the pool. A suite declares itself serial when it works on
+    a real store a sibling also touches: the lock store, the device lease and registry stores, the
+    ticket journal, the live process table, a fixed fixture directory. Executors stay child
+    PROCESSES, never in-process runspaces: the re-entry guard FMS_SCRIPT_SUITE_RUNNER is set on each
+    child's own environment block, where a runspace pool would race on the parent's. Cache lookups
+    happen before scheduling and cache writes after completion, so -Workers changes neither the
+    cache semantics nor the verdict, and results are reported in suite-path order whatever order
+    they finished in. -Workers 1 (the default) is the plain in-order loop of before.
 
 .PARAMETER ChangedFiles
     Changed-file set. Only the suites whose subject is in the set run. Accepts a comma-separated
@@ -66,6 +87,18 @@
 .PARAMETER CacheMaxAgeMinutes
     Oldest recorded PASS that may stand in for a run (default 120). The store is
     temp/metrics/script-suite-pass-cache.json, or the path in FMS_SCRIPT_SUITE_CACHE.
+
+.PARAMETER CampaignId
+    Release campaign whose pass store a full sweep reads and writes. Absent, a sweep with no
+    -ChangedFiles takes the id of the open campaign; with neither, the campaign store is untouched.
+    Ignored with -ChangedFiles, which keeps the per-ticket store. The store is a file of its own
+    under temp/metrics/, beside the per-ticket one, or the path in FMS_SCRIPT_SUITE_CAMPAIGN_CACHE.
+    Source on a result reads run, campaign-cache, or ticket-cache for a per-ticket cached PASS.
+
+.PARAMETER Workers
+    Number of child executors for the suites that are not declared serial (default 1, range 1..16).
+    Above 1, the serial suites run on one additional lane in parallel with the pool, so the peak is
+    Workers + 1 child processes. 1 keeps the sequential in-order run.
 
 .PARAMETER Gate
     Fail-closed on an incomplete environment: exit 2 when a suite could not verify. Without it the
@@ -97,6 +130,8 @@
     pwsh -NoProfile -File scripts/quality/run-script-suites.ps1 -ChangedFiles "scripts/post-change.ps1"
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/run-script-suites.ps1 -ListOnly
+.EXAMPLE
+    pwsh -NoProfile -File scripts/quality/run-script-suites.ps1 -Workers 4 -Json temp/scratch/suites.json
 
 .NOTES
     Exit codes (CLAUDE.md Rule 7):
@@ -114,6 +149,9 @@ param(
     [string]$Json,
     [switch]$NoCache,
     [int]$CacheMaxAgeMinutes = 120,
+    [string]$CampaignId,
+    [ValidateRange(1, 16)]
+    [int]$Workers = 1,
     [switch]$Help
 )
 
@@ -172,6 +210,13 @@ function Get-DeclaredSubject([string]$SuitePath) {
     return @($declared | ForEach-Object { ($_ -replace '\\', '/').TrimEnd('/') })
 }
 
+function Test-DeclaredSerial([string]$SuitePath) {
+    # Same 40-line header as the subject: a suite that must not share the machine with its siblings
+    # says so where its other contract lines are, with no registry to fall out of sync.
+    $head = Get-Content -LiteralPath $SuitePath -TotalCount 40 -ErrorAction SilentlyContinue
+    return [bool](@($head | Where-Object { $_ -match '^\s*#\s*Parallel:\s*serial\s*$' }).Count -gt 0)
+}
+
 function Get-SuiteDescriptor([string]$SuitePath) {
     $suiteDir = Split-Path -Parent $SuitePath
     $suiteDirRel = ConvertTo-RelPath $suiteDir
@@ -215,6 +260,7 @@ function Get-SuiteDescriptor([string]$SuitePath) {
         DirSubjects  = @($dirSubjects)
         Subjects     = @($existing)
         Resolved     = ($existing.Count -gt 0)
+        Serial       = (Test-DeclaredSerial $SuitePath)
     }
 }
 
@@ -257,8 +303,11 @@ if ($ListOnly) {
     Write-Host "run-script-suites: $($selected.Count) suite(s) selected of $($discovered.Count) discovered under $(ConvertTo-RelPath $scanRoot)" -ForegroundColor Cyan
     foreach ($descriptor in $selected) {
         $subjectText = if ($descriptor.Resolved) { ($descriptor.Subjects -join ', ') } else { 'NO RESOLVABLE SUBJECT - declare one with a "# Subject:" header line' }
-        Write-Host ("  {0}`n      subject: {1}" -f $descriptor.Rel, $subjectText)
+        $laneText = if ($descriptor.Serial) { '  [serial]' } else { '' }
+        Write-Host ("  {0}{1}`n      subject: {2}" -f $descriptor.Rel, $laneText, $subjectText)
     }
+    $serialCount = @($selected | Where-Object { $_.Serial }).Count
+    Write-Host "run-script-suites: $serialCount of $($selected.Count) selected suite(s) declare '# Parallel: serial'." -ForegroundColor Cyan
     if ($Json) {
         # -AsArray: a one-suite selection would otherwise serialise as a bare object, and the
         # consumer's `@(ConvertFrom-Json)` would then iterate the object's properties.
@@ -269,7 +318,7 @@ if ($ListOnly) {
         # no list and refused the whole closure as COULD NOT VERIFY - a change touching no suite's
         # subject is the ordinary case, so "nothing selected" must serialise as `[]` (S2720).
         $listRecords = @($selected | ForEach-Object {
-            [pscustomobject]@{ Suite = $_.Rel; Subjects = @($_.Subjects); Resolved = $_.Resolved }
+            [pscustomobject]@{ Suite = $_.Rel; Subjects = @($_.Subjects); Resolved = $_.Resolved; Serial = $_.Serial }
         })
         # -InputObject instead of the pipeline, and therefore WITHOUT -AsArray: an array handed over
         # this way already serialises as a JSON array at every length, including zero, while -AsArray
@@ -292,6 +341,26 @@ $pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") { "$env:Prog
 
 $useCache = $normalizedChanged.Count -gt 0
 $cachePath = if ($env:FMS_SCRIPT_SUITE_CACHE) { $env:FMS_SCRIPT_SUITE_CACHE } else { Join-Path $repoRoot 'temp/metrics/script-suite-pass-cache.json' }
+
+# The campaign library only measures; a checkout without it, or one where it fails to load, keeps
+# the plain sequential sweep instead of losing its verdict to a journal.
+$campaignLibLoaded = $false
+$campaignLib = Join-Path $repoRoot 'scripts/release/lib/release-campaign.ps1'
+if (Test-Path -LiteralPath $campaignLib) {
+    try {
+        . $campaignLib
+        $campaignLibLoaded = $true
+    }
+    catch { Write-Host "run-script-suites: release-campaign library not loaded - $($_.Exception.Message)" -ForegroundColor DarkGray }
+}
+if (-not $useCache -and -not $CampaignId -and $campaignLibLoaded) {
+    $openCampaign = Get-ActiveReleaseCampaign
+    if ($openCampaign) { $CampaignId = [string]$openCampaign.id }
+}
+# A changed set always means the per-ticket store: a closure inside a campaign must not stamp the
+# campaign store with a pass over a selection that is not the full sweep's.
+$campaignMode = (-not $useCache) -and [bool]$CampaignId
+$campaignCachePath = if ($env:FMS_SCRIPT_SUITE_CAMPAIGN_CACHE) { $env:FMS_SCRIPT_SUITE_CAMPAIGN_CACHE } else { Join-Path $repoRoot 'temp/metrics/script-suite-campaign-cache.json' }
 
 $scriptLiteral = [regex]::new('[''"]([^''"\r\n$]+?\.ps1)[''"]')
 
@@ -324,60 +393,72 @@ function Get-SuiteFingerprint([object]$Descriptor) {
     return [System.Convert]::ToHexString([System.Security.Cryptography.SHA256]::HashData($bytes))
 }
 
-function Read-PassCache {
-    if (-not (Test-Path -LiteralPath $cachePath)) { return @{} }
+function Read-PassCache([string]$Path) {
+    if (-not (Test-Path -LiteralPath $Path)) { return @{} }
     # An unreadable store is treated as empty: the cost is one re-run, never a wrong PASS.
-    try { return (Get-Content -LiteralPath $cachePath -Raw | ConvertFrom-Json -AsHashtable) ?? @{} }
+    try { return (Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json -AsHashtable) ?? @{} }
     catch { return @{} }
 }
 
-function Save-PassCache([hashtable]$Cache) {
-    $dir = Split-Path -Parent $cachePath
+function Save-PassCache([hashtable]$Cache, [string]$Path) {
+    $dir = Split-Path -Parent $Path
     if ($dir -and -not (Test-Path -LiteralPath $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
-    $tmp = "$cachePath.$PID.tmp"
+    $tmp = "$Path.$PID.tmp"
     Set-Content -LiteralPath $tmp -Value ($Cache | ConvertTo-Json -Depth 4) -Encoding utf8NoBOM
-    Move-Item -LiteralPath $tmp -Destination $cachePath -Force
+    Move-Item -LiteralPath $tmp -Destination $Path -Force
 }
 
-$passCache = if ($useCache) { Read-PassCache } else { @{} }
+function ConvertTo-RecordedAt([object]$Value) {
+    # ConvertFrom-Json turns an ISO timestamp into a [datetime] by itself; parse only a string.
+    if ($Value -is [datetime]) { return $Value }
+    return [datetime]::Parse([string]$Value, [cultureinfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::RoundtripKind)
+}
+
+function Write-SuitePhase([object]$Result, [long]$ElapsedMs) {
+    # Journalled whatever -Quiet says: release scope runs this runner quiet, and before S4413 the
+    # per-suite durations of a release sweep were recorded nowhere.
+    if (-not $campaignLibLoaded) { return }
+    Add-ReleaseCampaignPhase -Name "suite:$($Result.Suite)" -State point -ElapsedMs $ElapsedMs -ExitCode $Result.ExitCode -Detail $Result.Source
+}
+
+$passCache = if ($useCache) { Read-PassCache $cachePath } else { @{} }
 $cacheDirty = $false
+$campaignCache = if ($campaignMode) { Read-PassCache $campaignCachePath } else { @{} }
+$campaignDirty = $false
 
-$results = [System.Collections.Generic.List[object]]::new()
-foreach ($descriptor in $selected) {
-    $fingerprint = $null
+function New-CachedResult([object]$Descriptor, [string]$Source, [string]$LastLine) {
+    return [pscustomobject]@{
+        Suite    = $Descriptor.Rel
+        Verdict  = 'PASS'
+        ExitCode = 0
+        Seconds  = 0
+        Source   = $Source
+        LastLine = $LastLine
+        Output   = @()
+    }
+}
+
+function Find-CachedResult([object]$Descriptor, [string]$Fingerprint) {
+    if ($NoCache) { return $null }
     if ($useCache) {
-        $fingerprint = Get-SuiteFingerprint $descriptor
-        $entry = $passCache[$descriptor.Rel]
-        if (-not $NoCache -and $entry -and $entry.fingerprint -eq $fingerprint) {
-            # ConvertFrom-Json turns an ISO timestamp into a [datetime] by itself; parse only a string.
-            $recordedAt = if ($entry.at -is [datetime]) { $entry.at } else {
-                [datetime]::Parse([string]$entry.at, [cultureinfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::RoundtripKind)
-            }
-            if (((Get-Date).ToUniversalTime() - $recordedAt.ToUniversalTime()).TotalMinutes -le $CacheMaxAgeMinutes) {
-                $results.Add([pscustomobject]@{
-                        Suite    = $descriptor.Rel
-                        Verdict  = 'PASS'
-                        ExitCode = 0
-                        Seconds  = 0
-                        LastLine = "cached PASS from $($recordedAt.ToLocalTime().ToString('HH:mm:ss')) - suite and subjects unchanged (-NoCache to re-run)"
-                        Output   = @()
-                    })
-                continue
-            }
-        }
+        $entry = $passCache[$Descriptor.Rel]
+        if (-not $entry -or $entry.fingerprint -ne $Fingerprint) { return $null }
+        $recordedAt = ConvertTo-RecordedAt $entry.at
+        if (((Get-Date).ToUniversalTime() - $recordedAt.ToUniversalTime()).TotalMinutes -gt $CacheMaxAgeMinutes) { return $null }
+        return New-CachedResult $Descriptor 'ticket-cache' "cached PASS from $($recordedAt.ToLocalTime().ToString('HH:mm:ss')) - suite and subjects unchanged (-NoCache to re-run)"
     }
-    $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
-    $env:FMS_SCRIPT_SUITE_RUNNER = '1'
-    try {
-        $output = @(& $pwshExe -NoProfile -File $descriptor.Path *>&1 | ForEach-Object { [string]$_ })
-        $code = [int]$LASTEXITCODE
+    if ($campaignMode) {
+        $entry = $campaignCache[$Descriptor.Rel]
+        # No age bound here: the campaign id is the bound, and the next campaign starts cold.
+        if (-not $entry -or [string]$entry.campaign -ne $CampaignId -or $entry.fingerprint -ne $Fingerprint) { return $null }
+        $recordedAt = ConvertTo-RecordedAt $entry.at
+        return New-CachedResult $Descriptor 'campaign-cache' "campaign-cached PASS from $($recordedAt.ToLocalTime().ToString('HH:mm:ss')) in $CampaignId - suite and subjects unchanged (-NoCache to re-run)"
     }
-    finally {
-        $env:FMS_SCRIPT_SUITE_RUNNER = $null
-        $stopwatch.Stop()
-    }
+    return $null
+}
 
-    $verdict = switch ($code) {
+function New-ExecutedResult([object]$Descriptor, [int]$Code, [string[]]$Output, [double]$Seconds) {
+    $verdict = switch ($Code) {
         0 { 'PASS' }
         2 { 'CANNOT-VERIFY' }
         default { 'FAIL' }
@@ -385,33 +466,183 @@ foreach ($descriptor in $selected) {
     # A child's stderr arrives wrapped in ANSI colour escapes; they render as garbage once this line
     # is quoted inside another runner's report, which is where it is actually read.
     $lastLine = ''
-    for ($i = $output.Count - 1; $i -ge 0; $i--) {
-        $candidate = ($output[$i] -replace "`e\[[0-9;]*m", '').Trim()
+    for ($i = $Output.Count - 1; $i -ge 0; $i--) {
+        $candidate = ($Output[$i] -replace "`e\[[0-9;]*m", '').Trim()
         if (-not [string]::IsNullOrWhiteSpace($candidate)) { $lastLine = $candidate; break }
     }
-
-    $results.Add([pscustomobject]@{
-            Suite    = $descriptor.Rel
-            Verdict  = $verdict
-            ExitCode = $code
-            Seconds  = [math]::Round($stopwatch.Elapsed.TotalSeconds, 1)
-            LastLine = $lastLine
-            Output   = $output
-        })
-
-    if ($useCache) {
-        if ($verdict -eq 'PASS') {
-            $passCache[$descriptor.Rel] = @{ fingerprint = $fingerprint; at = (Get-Date).ToUniversalTime().ToString('o') }
-        }
-        else { $passCache.Remove($descriptor.Rel) }
-        $cacheDirty = $true
+    return [pscustomobject]@{
+        Suite    = $Descriptor.Rel
+        Verdict  = $verdict
+        ExitCode = $Code
+        Seconds  = [math]::Round($Seconds, 1)
+        Source   = 'run'
+        LastLine = $lastLine
+        Output   = $Output
     }
 }
 
+function Invoke-SuiteInline([object]$Descriptor) {
+    $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+    $env:FMS_SCRIPT_SUITE_RUNNER = '1'
+    try {
+        $output = @(& $pwshExe -NoProfile -File $Descriptor.Path *>&1 | ForEach-Object { [string]$_ })
+        $code = [int]$LASTEXITCODE
+    }
+    finally {
+        $env:FMS_SCRIPT_SUITE_RUNNER = $null
+        $stopwatch.Stop()
+    }
+    return [pscustomobject]@{
+        Result    = (New-ExecutedResult $Descriptor $code $output $stopwatch.Elapsed.TotalSeconds)
+        ElapsedMs = [long]$stopwatch.ElapsedMilliseconds
+    }
+}
+
+function Start-SuiteProcess([object]$Descriptor) {
+    $psi = [System.Diagnostics.ProcessStartInfo]::new($pwshExe)
+    foreach ($argument in @('-NoProfile', '-File', $Descriptor.Path)) { $psi.ArgumentList.Add($argument) }
+    $psi.UseShellExecute = $false
+    $psi.CreateNoWindow = $true
+    $psi.RedirectStandardInput = $true
+    $psi.RedirectStandardOutput = $true
+    $psi.RedirectStandardError = $true
+    $psi.StandardOutputEncoding = [System.Text.Encoding]::UTF8
+    $psi.StandardErrorEncoding = [System.Text.Encoding]::UTF8
+    $psi.WorkingDirectory = (Get-Location).ProviderPath
+    # The child's own environment block: siblings and this process never observe it.
+    $psi.Environment['FMS_SCRIPT_SUITE_RUNNER'] = '1'
+    $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+    $process = [System.Diagnostics.Process]::Start($psi)
+    $process.StandardInput.Close()
+    # Both pipes drained from the start: a child that fills one pipe while nobody reads it blocks
+    # forever, and a pool only polls.
+    return [pscustomobject]@{
+        Descriptor = $Descriptor
+        Process    = $process
+        StdOut     = $process.StandardOutput.ReadToEndAsync()
+        StdErr     = $process.StandardError.ReadToEndAsync()
+        Stopwatch  = $stopwatch
+    }
+}
+
+function Complete-SuiteProcess([object]$Running) {
+    $Running.Process.WaitForExit()
+    $Running.Stopwatch.Stop()
+    $text = $Running.StdOut.GetAwaiter().GetResult() + $Running.StdErr.GetAwaiter().GetResult()
+    $output = @($text -split "\r?\n")
+    if ($output.Count -gt 0 -and $output[-1] -eq '') { $output = @($output | Select-Object -SkipLast 1) }
+    $code = [int]$Running.Process.ExitCode
+    $Running.Process.Dispose()
+    return [pscustomobject]@{
+        Result    = (New-ExecutedResult $Running.Descriptor $code $output $Running.Stopwatch.Elapsed.TotalSeconds)
+        ElapsedMs = [long]$Running.Stopwatch.ElapsedMilliseconds
+    }
+}
+
+# Slot per selected suite, in selection (= suite path) order, so the report and the JSON read the
+# same whatever order the executors finished in.
+$slots = [object[]]::new($selected.Count)
+$fingerprints = @{}
+$pending = [System.Collections.Generic.List[int]]::new()
+for ($index = 0; $index -lt $selected.Count; $index++) {
+    $descriptor = $selected[$index]
+    if ($useCache -or $campaignMode) {
+        $fingerprints[$index] = Get-SuiteFingerprint $descriptor
+        $cached = Find-CachedResult $descriptor $fingerprints[$index]
+        if ($cached) {
+            $slots[$index] = $cached
+            Write-SuitePhase $cached 0
+            continue
+        }
+    }
+    $pending.Add($index)
+}
+
+function Register-Executed([int]$Index, [object]$Outcome) {
+    $script:slots[$Index] = $Outcome.Result
+    Write-SuitePhase $Outcome.Result $Outcome.ElapsedMs
+    $rel = $Outcome.Result.Suite
+    $passed = ($Outcome.Result.Verdict -eq 'PASS')
+    if ($useCache) {
+        if ($passed) { $passCache[$rel] = @{ fingerprint = $fingerprints[$Index]; at = (Get-Date).ToUniversalTime().ToString('o') } }
+        else { $passCache.Remove($rel) }
+        $script:cacheDirty = $true
+    }
+    elseif ($campaignMode) {
+        if ($passed) { $campaignCache[$rel] = @{ campaign = $CampaignId; fingerprint = $fingerprints[$Index]; at = (Get-Date).ToUniversalTime().ToString('o') } }
+        else { $campaignCache.Remove($rel) }
+        $script:campaignDirty = $true
+    }
+}
+
+$wallClock = [System.Diagnostics.Stopwatch]::StartNew()
+if ($Workers -le 1) {
+    foreach ($index in $pending) { Register-Executed $index (Invoke-SuiteInline $selected[$index]) }
+}
+else {
+    $parallelQueue = [System.Collections.Generic.Queue[int]]::new()
+    $serialQueue = [System.Collections.Generic.Queue[int]]::new()
+    foreach ($index in $pending) {
+        if ($selected[$index].Serial) { $serialQueue.Enqueue($index) } else { $parallelQueue.Enqueue($index) }
+    }
+    $poolRunning = [System.Collections.Generic.List[object]]::new()
+    $serialRunning = $null
+    try {
+        while ($parallelQueue.Count -gt 0 -or $serialQueue.Count -gt 0 -or $poolRunning.Count -gt 0 -or $serialRunning) {
+            while ($poolRunning.Count -lt $Workers -and $parallelQueue.Count -gt 0) {
+                $index = $parallelQueue.Dequeue()
+                $started = Start-SuiteProcess $selected[$index]
+                $started | Add-Member -NotePropertyName Index -NotePropertyValue $index
+                $poolRunning.Add($started)
+            }
+            if (-not $serialRunning -and $serialQueue.Count -gt 0) {
+                $index = $serialQueue.Dequeue()
+                $serialRunning = Start-SuiteProcess $selected[$index]
+                $serialRunning | Add-Member -NotePropertyName Index -NotePropertyValue $index
+            }
+            $progressed = $false
+            foreach ($running in @($poolRunning)) {
+                if ($running.Process.HasExited) {
+                    Register-Executed $running.Index (Complete-SuiteProcess $running)
+                    [void]$poolRunning.Remove($running)
+                    $progressed = $true
+                }
+            }
+            if ($serialRunning -and $serialRunning.Process.HasExited) {
+                Register-Executed $serialRunning.Index (Complete-SuiteProcess $serialRunning)
+                $serialRunning = $null
+                $progressed = $true
+            }
+            if (-not $progressed) { Start-Sleep -Milliseconds 100 }
+        }
+    }
+    finally {
+        # An interrupted sweep must not leave executors running against real stores.
+        foreach ($orphan in @(@($poolRunning) + @($serialRunning) | Where-Object { $_ })) {
+            if (-not $orphan.Process.HasExited) {
+                try { $orphan.Process.Kill($true) } catch { Write-Host "run-script-suites: could not stop $($orphan.Descriptor.Rel) - $($_.Exception.Message)" -ForegroundColor DarkGray }
+            }
+        }
+    }
+}
+$wallClock.Stop()
+
+$results = [System.Collections.Generic.List[object]]::new()
+foreach ($slot in $slots) { $results.Add($slot) }
+
 if ($cacheDirty) {
     # A store that cannot be written costs the next closure one re-run; it never changes this verdict.
-    try { Save-PassCache $passCache }
+    try { Save-PassCache $passCache $cachePath }
     catch { Write-Host "run-script-suites: pass cache not written - $($_.Exception.Message)" -ForegroundColor DarkGray }
+}
+if ($campaignDirty) {
+    # Entries of an earlier campaign can never be reused again, so they are dropped rather than kept
+    # to grow the store release after release.
+    foreach ($staleKey in @($campaignCache.Keys | Where-Object { [string]$campaignCache[$_].campaign -ne $CampaignId })) {
+        $campaignCache.Remove($staleKey)
+    }
+    try { Save-PassCache $campaignCache $campaignCachePath }
+    catch { Write-Host "run-script-suites: campaign cache not written - $($_.Exception.Message)" -ForegroundColor DarkGray }
 }
 
 $failed = @($results | Where-Object { $_.Verdict -eq 'FAIL' })
@@ -435,15 +666,22 @@ foreach ($result in $failed) {
 if ($Json) {
     $jsonPath = if ([System.IO.Path]::IsPathRooted($Json)) { $Json } else { Join-Path $repoRoot $Json }
     $results |
-        Select-Object Suite, Verdict, ExitCode, Seconds, LastLine |
+        Select-Object Suite, Verdict, ExitCode, Seconds, Source, LastLine |
         ConvertTo-Json -Depth 4 |
         Set-Content -LiteralPath $jsonPath -Encoding utf8NoBOM
     Write-Host "Written: $jsonPath"
 }
 
 $totalSeconds = [math]::Round((@($results | ForEach-Object { $_.Seconds }) | Measure-Object -Sum).Sum, 1)
-Write-Host ("run-script-suites: {0} suite(s), {1} passed, {2} failed, {3} could not verify, {4}s total." -f
-    $results.Count, @($results | Where-Object { $_.Verdict -eq 'PASS' }).Count, $failed.Count, $unverified.Count, $totalSeconds) -ForegroundColor Cyan
+# Two figures on purpose: the per-suite sum is what the suites cost, the wall clock is what the
+# caller waited, and only the second shrinks with -Workers.
+Write-Host ("run-script-suites: {0} suite(s), {1} passed, {2} failed, {3} could not verify, {4}s total, {5}s wall with {6} worker(s)." -f
+    $results.Count, @($results | Where-Object { $_.Verdict -eq 'PASS' }).Count, $failed.Count, $unverified.Count, $totalSeconds,
+    [math]::Round($wallClock.Elapsed.TotalSeconds, 1), $Workers) -ForegroundColor Cyan
+if ($campaignMode) {
+    $reused = @($results | Where-Object { $_.Source -eq 'campaign-cache' }).Count
+    Write-Host ("campaign cache: {0} reused, {1} executed ({2})" -f $reused, ($results.Count - $reused), $CampaignId) -ForegroundColor Cyan
+}
 
 if ($failed.Count -gt 0) {
     $names = (@($failed | ForEach-Object { $_.Suite }) -join ', ')

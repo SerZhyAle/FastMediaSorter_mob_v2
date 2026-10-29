@@ -66,6 +66,7 @@ import com.sza.fastmediasorter.ui.main.helpers.MainCommandBarTooltipManager
 import com.sza.fastmediasorter.ui.main.helpers.MainCommandOverflowMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainDropdownMenuPopupManager
 import com.sza.fastmediasorter.ui.main.helpers.MainExitButtonManager
+import com.sza.fastmediasorter.ui.main.helpers.MainFullExitManager
 import com.sza.fastmediasorter.ui.main.helpers.MainHelpEntryManager
 import com.sza.fastmediasorter.ui.main.helpers.MainHelperFactory
 import com.sza.fastmediasorter.ui.main.helpers.MainLayoutChromeManager
@@ -154,6 +155,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private lateinit var linkDownloadMenuManager: MainLinkDownloadMenuManager
     private lateinit var linkDownloadManager: MainLinkDownloadManager
     private lateinit var exitButtonManager: MainExitButtonManager
+    private val fullExitManager by lazy { MainFullExitManager(broadcastSourceController, lifecycleScope) }
     private lateinit var programsMenuCoordinator: MainProgramsMenuCoordinator
     private val dropdownMenuPopupManager = MainDropdownMenuPopupManager()
 
@@ -1595,9 +1597,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      *  bug (see stopAudioPlaybackService), then finishAffinity() + killProcess(). The minimize branch
      *  deliberately does NOT go through here so background services stay alive. */
     private fun performFullExit() {
-        stopAudioPlaybackService()
-        finishAffinity()
-        android.os.Process.killProcess(android.os.Process.myPid())
+        fullExitManager.exit {
+            stopAudioPlaybackService()
+            finishAffinity()
+            android.os.Process.killProcess(android.os.Process.myPid())
+        }
     }
 
     /** Stop AudioPlaybackService before exiting the app. Prevents OS from restarting the process due to foreground service being alive. CRITICAL FIX: Without this, finishAffinity() + Process.killProcess() causes the OS to restart the same process within 1 second (double startup bug). */

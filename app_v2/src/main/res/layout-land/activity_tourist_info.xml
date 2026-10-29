@@ -14,6 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="?actionBarSize"
         app:navigationIcon="@drawable/ic_arrow_back"
+        app:stbTitleIcon="@drawable/ic_tourist"
         app:title="@string/tourist_info_title" />
 
     <!-- S4069: explains a missing grant and offers the request; gone while every needed grant is present. -->

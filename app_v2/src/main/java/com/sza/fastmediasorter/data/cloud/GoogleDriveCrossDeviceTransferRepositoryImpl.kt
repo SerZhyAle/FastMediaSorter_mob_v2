@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.domain.model.transfer.CrossDevicePacketExpiry
 import com.sza.fastmediasorter.domain.model.transfer.CrossDevicePacketFile
 import com.sza.fastmediasorter.domain.model.transfer.CrossDevicePacketManifest
 import com.sza.fastmediasorter.domain.model.transfer.CrossDeviceQueueSnapshot
+import com.sza.fastmediasorter.domain.model.transfer.DriveConsentRequired
 import com.sza.fastmediasorter.domain.model.transfer.DriveDailyLimit
 import com.sza.fastmediasorter.domain.model.transfer.DrivePacketNames
 import com.sza.fastmediasorter.domain.model.transfer.DriveQueueFull
@@ -211,6 +212,7 @@ class GoogleDriveCrossDeviceTransferRepositoryImpl @Inject constructor(
 
     private fun toDomain(error: Throwable): Throwable = when (error) {
         is DriveAppDataFailure.AuthRequired -> DriveSignInRequired()
+        is DriveAppDataFailure.ConsentRequired -> DriveConsentRequired()
         is DriveAppDataFailure.DailyLimit -> DriveDailyLimit()
         is DriveAppDataFailure.StorageFull -> DriveQueueFull(freeBytes = null)
         is DriveAppDataFailure ->

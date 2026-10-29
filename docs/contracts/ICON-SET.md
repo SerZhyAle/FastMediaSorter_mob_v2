@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.18 17:46</sub>
+<sub class="doc-stamp">26.10.29 05:03</sub>
 
 # Pointer - `ICON-SET`
 
 | | |
 | --- | --- |
 | **Id** | `ICON-SET` |
-| **Version** | 0.36, draft. Owner: this product |
+| **Version** | 0.37, draft. Owner: this product |
 | **Home** | `iconography/README.md` section 2 in the shared contracts catalog |
 | **Role here** | owner and reference implementation - phone, launcher, watch, documentation and the website |
 

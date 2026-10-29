@@ -39,6 +39,11 @@
          four full-resolution photos on the home screen would be a needless multi-MB decode. -->
     <dimen name="launcher_gadget_thumb_size">72dp</dimen>
 
+    <!-- S4476: the least height a gadget tile's headline value keeps next to its detail lines. A one-row
+         tile on a dense grid has about 30dp of content height, which holds a 20dp value (about 17sp)
+         or a value and nothing else, never a value squeezed to nothing under three lines. -->
+    <dimen name="launcher_gadget_value_min_height">20dp</dimen>
+
     <!-- S0404: the play/random buttons in a list gadget's header. Below the 48dp touch-target minimum
          on purpose and knowingly: the whole gadget is one grid cell tall in its header row, and a 48dp
          control would leave the resource name ~45dp at density factor 1.5. 40dp with an 8dp inset is

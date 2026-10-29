@@ -229,7 +229,15 @@ function Invoke-DetektPass {
                 if (-not ($jars | Where-Object { $_ -match 'detekt-cli' })) {
                     Exit-CannotVerify "detekt-cli $detektVersion is not in the dependency cache (looked under $CacheRoot)."
                 }
-                $lastOutput = @(& java -cp ($jars -join ';') io.gitlab.arturbosch.detekt.cli.Main @argv 2>&1 |
+                # A java @argfile, not a command line: the classpath plus a release-wide --input list
+                # overran the 32 767-character Windows ceiling ("The filename or extension is too long")
+                # over ~300 changed Kotlin files. Forward slashes keep the quoted lines free of the
+                # backslash escapes the argfile syntax applies inside quotes.
+                $argLines = @('-cp', ($jars -join ';'), 'io.gitlab.arturbosch.detekt.cli.Main') + @($argv) |
+                    ForEach-Object { '"' + ([string]$_).Replace('\', '/') + '"' }
+                $argFile = Join-Path $reportDir "$module.java-args.txt"
+                [System.IO.File]::WriteAllLines($argFile, [string[]]$argLines)
+                $lastOutput = @(& java "@$argFile" 2>&1 |
                         Where-Object { $_ -notmatch '^SLF4J:' })
                 if (Test-Path -LiteralPath $report) {
                     if ($kotlinVersion -ne $script:PreferredKotlin) {

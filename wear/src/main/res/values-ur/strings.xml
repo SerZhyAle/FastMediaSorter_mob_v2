@@ -118,7 +118,6 @@
     <string name="wear_section_local">مقامی</string>
     <string name="wear_section_streams">اسٹریمز</string>
     <string name="wear_section_apps">ایپس</string>
-    <string name="wear_coming_soon">جلد آ رہا ہے</string>
     <string name="wear_phone_video">ویڈیو</string>
     <string name="wear_phone_audio">آڈیو</string>
     <string name="wear_phone_images">تصاویر</string>
@@ -1100,4 +1099,11 @@
     <string name="wear_open_in_role_last_used">آخری بار استعمال شدہ</string>
     <string name="wear_open_in_role_browser">براؤزر</string>
     <string name="wear_open_in_role_maps">نقشے</string>
+    <string name="wear_broadcast_server_announcing">سرور: اعلان ہو رہا ہے</string>
+    <string name="wear_broadcast_server_on">ایکسچینج سرور پر</string>
+    <string name="wear_broadcast_server_failed">سرور میں خرابی - فون دیکھیں</string>
+    <string name="wear_broadcast_server_local_only">صرف یہ نیٹ ورک</string>
+    <string name="wear_scheduled_message_channel_name">طے شدہ پیغامات</string>
+    <string name="wear_audio_fetching">ٹریک لوڈ ہو رہا ہے..</string>
+    <string name="wear_stream_ended">یہ اسٹریم اب نشر نہیں ہو رہی۔ دوبارہ شروع ہونے پر پھر کوشش کریں۔</string>
 </resources>

@@ -372,6 +372,16 @@ object WearDataLayerPaths {
     const val LISTEN_ACK = "/fms/watch/listen_ack"
 
     /**
+     * Message, phone -> watch. One scheduled message - title, text, optional picture (S4248). Under the
+     * `/fms/phone` prefix the watch manifest already declares; a message, not a Data Item, so a watch
+     * that was away never receives a backlog of stale ones.
+     */
+    const val SCHEDULED_MESSAGE = "/fms/phone/scheduled_message"
+
+    /** Message, watch -> phone. Says whether the scheduled message was shown, or why not (S4248). */
+    const val SCHEDULED_MESSAGE_RECEIPT = "/fms/watch/scheduled_message_receipt"
+
+    /**
      * Message, watch → phone. Asks the paired phone to serve its camera and microphone (S2551).
      *
      * Under the `/fms/watch` prefix `app_v2/src/wearGms/AndroidManifest.xml` already declares for

@@ -120,6 +120,10 @@ class ScheduledOperationRunTest {
         assertTrue(ScheduledRunStatus.needsAttention("SKIPPED: x"))
         assertTrue(!ScheduledRunStatus.needsAttention("OK"))
         assertTrue(!ScheduledRunStatus.needsAttention(null))
+        assertTrue(ScheduledRunStatus.isSkipped("SKIPPED: x"))
+        assertTrue(!ScheduledRunStatus.isSkipped("ERROR: x"))
+        assertTrue(!ScheduledRunStatus.isSkipped("OK"))
+        assertTrue(!ScheduledRunStatus.isSkipped(null))
     }
 
     // --- the grid ---------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.14 19:37</sub>
+<sub class="doc-stamp">26.10.28 22:55</sub>
 
 # scripts/release - Operator Handbook
 
@@ -11,6 +11,9 @@ Scripts that publish FastMediaSorter to GitHub Releases so that **GitHub Store**
 | Script | Purpose |
 |--------|---------|
 | `assert-sweep-verdicts.ps1` | Release-point read of the phone and watch pre-release verdicts - each must exist, pass and be newer than its scope's fingerprint (S4249). |
+| `release-campaign.ps1` | Open, mark, report and close a release campaign - the record and phase journal under `temp/metrics/` that every gate and sweep step writes its duration to (S4413). |
+| `run-ci-parity.ps1` | `/skill-release` Step 6b: runs locally the checks GitHub CI runs (whole-tree static gates, lint of both modules, lint-detector tests, both unit suites), every step even after a red, before the first push. |
+| `assert-fgs-types-vs-previous.ps1` | Release assessment check: the merged standard-release manifest's foreground-service types against the previous release's `fgs-types.json` snapshot, or the registry's standard rows until one exists (S4413). |
 | `apply-github-store-metadata.ps1` | Apply repo `description`, `topics`, `homepage` from `PLAN/S0214_github-store-publication/DECISIONS.md` to GitHub via REST. Idempotent. |
 | `publish-github-release.ps1` | Publish a stable release: discover prebuilt APKs, stage them with deterministic names, create a GitHub Release tag from `main`, attach release notes from `docs/WHATS_NEW.md`, upload both APKs as assets. |
 | `publish-play-release.ps1` | Publish the standard AAB to Google Play Console: attach the bundle if its versionCode is already in the library else upload it, fetch generated Fastlane changelogs for that versionCode, update specified track (internal/alpha/beta/production) as draft/completed, and commit edit. |
@@ -20,7 +23,7 @@ Scripts that publish FastMediaSorter to GitHub Releases so that **GitHub Store**
 | `read-play-vitals.ps1` | Read-only: Android vitals from the Play Developer Reporting API (S2917) - user-perceived crash, ANR and low-memory-kill rates over 28 days by versionCode and device model, both February-2027 memory sets, the top grouped error issues with their console links and Google's own anomalies. A separate Google service from the publishing API: it needs enabling on the service account's Cloud project and a Play Console permission, and its exit 2 names whichever is missing. |
 | `watch-play-vitals.ps1` | The Play vitals watch (`.\a.ps1 pv`, S2917): read -> judge against Google's published bands -> rewrite block 4 of `docs/PLAY_PUBLISHING_STATE.md` and section 3.2 of `dev/PLAY_QUALITY_THRESHOLDS_2027.md` -> file one Draft ticket per red finding through the catalog CLI. No model takes part. `-Check` writes nothing (exit 1 = out of date); a failed read writes nothing. |
 | `register-play-vitals-task.ps1` | Register, remove or inspect the daily Windows scheduled task that runs the watch with no session open. Not registered by default; `-WhatIf` prints the definition. Logs and `last-exit.json` land in `temp/play-vitals/`. |
-| `read-play-public-serve.ps1` | Read-only: what the store actually **serves** - the version on the anonymous listing page, plus its `Updated on` date. Needs no credentials at all. The two readers answer different questions and disagree in practice, which is why both exist (S1256, S2272); `-RequireVersionAbove` turns it into a one-command release check. |
+| `read-play-public-serve.ps1` | Read-only: what the store actually **serves** - the anonymous listing page's `Updated on` stamp (to the second) and, while the page carries one, its version. Needs no credentials at all. The two readers answer different questions and disagree in practice, which is why both exist (S1256, S2272); `-RequireUpdatedAfter` turns the stamp into a one-command release check, `-RequireVersionAbove` does the same for a version (S4463: the page carries none since 2026-10-27). |
 | `extract-release-notes.ps1` | Helper used by `publish-github-release.ps1`. Emits the section from `docs/WHATS_NEW.md` for a given `-Version`. Exit 0 on match, 2 if not found. |
 | `expected-signing-fingerprint.txt` | (Phase 04) Pinned SHA-256 of the release signing key. Aborts the publisher on mismatch. |
 | `retain-deobfuscation.ps1` | **Invoked automatically by the release builds - do not call it by hand as a release step.** Stores one variant's R8 mapping and native symbols under `<archive>\<versionCode>\<variant>-deobfuscation.zip`. `a.ps1 r` calls it with `-Bundle` (the shipped `.aab`, the strongest provenance); `build-release-spectrum.ps1` calls it with `-Mapping` for the APK-only flavors. A hand call with `-Mapping` for a variant that has a bundle would replace bundle-grade evidence with a weaker record. Legitimate manual use is repair, when the pre-release gate reports a miss - it prints the exact command. |

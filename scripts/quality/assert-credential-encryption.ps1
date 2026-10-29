@@ -13,6 +13,11 @@
     preferences and DTO trees of both modules. A credential held in a view state or passed as a
     function parameter is out of scope by construction - it is not written to storage.
 
+    A file under a domain/ tree is judged by the Room @Entity it carries and never by its file-name
+    suffix: the domain layer holds interfaces and in-memory models, and what it hands to the secret
+    store is written - and judged - on the data side. The suffix alone put a store interface's value
+    carrier on the ratchet beside the columns it was written to protect.
+
     A finding is one property declaration whose name is credential-shaped (password, secret, token,
     credential, passphrase, api key, private key, access key) and whose type is a plain String,
     unless one of two things is true:
@@ -74,6 +79,8 @@ $baselineFile = if ($BaselinePath) { $BaselinePath } else { Join-Path $PSScriptR
 $rxPersistenceTree = [regex]'(?i)/(?:data/(?:local|db|database|preferences|prefs|store)|data/[^/]+/(?:dto|entity))/'
 $rxEntityAnnotation = [regex]'@Entity\b'
 $rxPersistedFileName = [regex]'(?i)(Entity|Dto|Prefs|Preferences|Store)\.kt$'
+# The domain layer persists nothing by itself; only an @Entity declared there is a table.
+$rxDomainTree = [regex]'(?i)/domain/'
 
 # A property declaration, at the start of a line OR straight after a constructor's ( or , -
 # a single-line data class is valid Kotlin, and anchoring on the line start alone let one
@@ -93,8 +100,8 @@ function Get-CredentialEncryptionFindings {
     if ([string]::IsNullOrEmpty($Text)) { return $findings }
 
     $inScope = $rxPersistenceTree.IsMatch("/$Relative") -or
-        $rxPersistedFileName.IsMatch($Relative) -or
-        $rxEntityAnnotation.IsMatch($Text)
+        $rxEntityAnnotation.IsMatch($Text) -or
+        ($rxPersistedFileName.IsMatch($Relative) -and -not $rxDomainTree.IsMatch("/$Relative"))
     if (-not $inScope) { return $findings }
 
     foreach ($m in $rxProperty.Matches($Text)) {

@@ -133,7 +133,6 @@
     <string name="keybinding_label_vr_zoom_end">Fim do zoom</string>
     <string name="keybinding_label_vr_zoom_grip">Zoom (Aperto)</string>
     <string name="keybinding_label_vr_zoom_start">Iniciar Zoom</string>
-    <string name="keybinding_remap_not_impl">Reiniciar tudo - em breve</string>
     <string name="keybinding_remap_reset_all">Redefinir tudo</string>
     <string name="keybinding_remap_search_hint">Comandos de pesquisa..</string>
     <string name="keybinding_row_remap">Editar atalho</string>

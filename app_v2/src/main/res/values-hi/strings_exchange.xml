@@ -66,10 +66,10 @@
     <string name="exchange_devices_watch_code_refused">सर्वर ने कोड जारी नहीं किया: %1$s</string>
     <string name="exchange_devices_watch_none">कोई घड़ी कनेक्ट नहीं है</string>
     <string name="exchange_devices_watch_companion_off">Wear कंपेनियन बंद है। पहले सेटिंग में इसे चालू करें।</string>
-    <string name="exchange_devices_pick_outgoing_title">किस सर्वर के ज़रिए प्रकाशित करें?</string>
+    <string name="exchange_devices_pick_outgoing_title">प्रकाशन सर्वर बदलें</string>
     <string name="exchange_devices_pick_none">पहले मेरे डिवाइस स्क्रीन पर एक सर्वर जोड़ें</string>
     <string name="settings_sftp_exchange_outgoing">सर्वर %1$s के ज़रिए</string>
-    <string name="settings_sftp_exchange_outgoing_none">कोई आउटगोइंग सर्वर नहीं चुना गया</string>
+    <string name="settings_sftp_exchange_outgoing_none">यहाँ कोई भी सर्वर प्रकाशित नहीं कर सकता - “मेरे डिवाइस” स्क्रीन पर एक जोड़ें</string>
     <string name="settings_sftp_exchange_change">बदलें</string>
     <string name="exchange_signin_intake_hint">सर्वर स्ट्रिंग पेस्ट करें</string>
     <string name="exchange_signin_paste">पेस्ट करें</string>
@@ -360,4 +360,10 @@
     </plurals>
     <string name="exchange_format_unsupported">यह प्रारूप इस प्रोग्राम के समर्थन से नया है। कुछ भी आयात नहीं किया गया। किसी संगत प्रोग्राम का उपयोग करें।</string>
     <string name="stream_source_live_badge">लाइव</string>
+    <string name="broadcast_exchange_line_announcing">एक्सचेंज सर्वर %1$s: प्रसारण की घोषणा हो रही है</string>
+    <string name="broadcast_exchange_line_on_server">एक्सचेंज सर्वर %1$s: प्रसारण सर्वर पर है</string>
+    <string name="broadcast_exchange_line_relayed">एक्सचेंज सर्वर %1$s: सर्वर पर है, सर्वर के माध्यम से रिले हो रहा है</string>
+    <string name="broadcast_exchange_line_failed">एक्सचेंज सर्वर %1$s: %2$s</string>
+    <string name="broadcast_exchange_line_local_only">केवल इसी नेटवर्क पर पहुँच योग्य। “मेरे डिवाइस” में एक एक्सचेंज सर्वर जोड़ें</string>
+    <string name="broadcast_exchange_line_guest_only">केवल इसी नेटवर्क पर पहुँच योग्य: अतिथि खाता एक्सचेंज सर्वर के माध्यम से प्रसारण नहीं कर सकता</string>
 </resources>

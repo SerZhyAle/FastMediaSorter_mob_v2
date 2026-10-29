@@ -387,9 +387,12 @@ private fun StreamsMainContent(
         // that leaves exactly that width there, and the two are inverses, so the row ends up as wide
         // as it needs to be and no wider. On a display whose own tenth is already lower than the
         // chord asks - a large or a square one - the screen inset wins and nothing moves.
-        val toolbarTop = wearBandEdgeOffset(TOOLBAR_BAND_WIDTH)
+        // S4470: both calls clear the glass in the ORIGINAL view as well. Its uniform inset left the
+        // row 182 dp wide where the chord is about 148 dp, so the first and third buttons lost their
+        // outer top corners on the Galaxy Watch 7; the owner ruled that clip a defect for this row.
+        val toolbarTop = wearBandEdgeOffset(TOOLBAR_BAND_WIDTH, clearInOriginal = true)
             .coerceAtLeast(screenInsets.calculateTopPadding())
-        val toolbarSideInset = wearChordInset(toolbarTop)
+        val toolbarSideInset = wearChordInset(toolbarTop, clearInOriginal = true)
         val toolbarBandHeight = toolbarTop + TOOLBAR_ROW_HEIGHT
 
         // The empty and failed cases take the whole screen rather than a row inside the list, which

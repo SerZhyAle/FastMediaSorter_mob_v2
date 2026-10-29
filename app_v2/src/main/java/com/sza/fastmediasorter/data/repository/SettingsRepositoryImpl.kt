@@ -453,6 +453,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     streamsDefaultAudioLanguage = streams.streamsDefaultAudioLanguage,
                     streamsDefaultSubtitleLanguage = streams.streamsDefaultSubtitleLanguage,
                     streamsCastPlayAtOnce = streams.streamsCastPlayAtOnce,
+                    streamsPendingPlayAtOnce = streams.streamsPendingPlayAtOnce,
                     enableBroadcasting = broadcastStored.enableBroadcasting,
                     // S3222: the whole group is restored at once. Before the fold this line carried the
                     // eight session fields by hand and the six of S3038/S3049 were written to DataStore

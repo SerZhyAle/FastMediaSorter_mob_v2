@@ -118,6 +118,9 @@ class SettingsInputRow @JvmOverloads constructor(
      * Sets the input field hint.
      */
     fun setHint(hint: CharSequence?) {
+        // A layout with its floating label off drops the hint silently, so a hint set after an inline
+        // row turned the label off must turn it back on.
+        if (!hint.isNullOrEmpty()) inputLayout.isHintEnabled = true
         inputLayout.hint = hint
     }
 
@@ -313,6 +316,7 @@ class SettingsInputRow @JvmOverloads constructor(
             width = if (fieldWidthPx > 0) fieldWidthPx else LayoutParams.WRAP_CONTENT
             weight = 0f
         }
+        compactField()
         inlineTailSpacer.visibility = View.VISIBLE
         inlineTailSpacer.updateLayoutParams<LayoutParams> {
             width = 0
@@ -321,6 +325,18 @@ class SettingsInputRow @JvmOverloads constructor(
             // the row to the full height of the card it sits in and pushed the screen's actions out.
             height = 0
         }
+    }
+
+    /**
+     * Shrinks the outlined box of an inline field to the height of the rows around it (S4486). The
+     * box reserves a line for a floating label and pads the text 16dp above and below, which makes a
+     * short numeric value sit in a box several times taller than its caption. A field with a hint keeps
+     * its label, because the hint is the only thing naming it.
+     */
+    private fun compactField() {
+        if (inputLayout.hint.isNullOrEmpty()) inputLayout.isHintEnabled = false
+        val vertical = resources.getDimensionPixelSize(R.dimen.settings_inline_input_vertical_padding)
+        editText.setPaddingRelative(editText.paddingStart, vertical, editText.paddingEnd, vertical)
     }
 
     /**

@@ -4,6 +4,7 @@ import android.view.View
 import android.widget.ImageButton
 import android.widget.TextView
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
+import com.sza.fastmediasorter.domain.player.BroadcastStopSignal
 
 /**
  * Constructor holders for [StreamInlineAudioManager]. Grouping the view handles and the host callbacks
@@ -38,4 +39,7 @@ data class StreamInlineAudioCallbacks(
     // LIVE-BROADCAST item M: a protected broadcast refused this device's pair, or it holds none. Retrying
     // cannot help, so this replaces onError and the host asks for the password instead.
     val onPasswordRequired: (StreamSourceEntity) -> Unit = {},
+    // S4444, LIVE-BROADCAST item T: a broadcast row's stream ended or answered a bad status. Retrying blindly would
+    // keep reconnecting to a broadcast its owner stopped, so the host decides between ended and reconnect.
+    val onBroadcastStopped: (StreamSourceEntity, BroadcastStopSignal) -> Unit = { _, _ -> },
 )

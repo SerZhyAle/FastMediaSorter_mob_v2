@@ -27,6 +27,7 @@ class BroadcastFileEntryManager {
         controller: BroadcastSourceController,
         activity: AppCompatActivity,
         binding: ActivityBroadcastControlBinding,
+        preparedStartGuard: BroadcastPreparedStartGuard,
     ) {
         filePickerLauncher = activity.registerForActivityResult(
             ActivityResultContracts.OpenDocument()
@@ -37,7 +38,9 @@ class BroadcastFileEntryManager {
             }
         }
         binding.btnBroadcastFile.setOnClickListener {
-            filePickerLauncher?.launch(arrayOf(MIME_AUDIO, MIME_VIDEO))
+            preparedStartGuard.confirm(activity, mode = null) {
+                filePickerLauncher?.launch(arrayOf(MIME_AUDIO, MIME_VIDEO))
+            }
         }
     }
 

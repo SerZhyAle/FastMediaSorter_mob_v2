@@ -3,14 +3,18 @@ package com.sza.fastmediasorter.domain.usecase.streams
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointCodec
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointDto
 import com.sza.fastmediasorter.data.broadcast.exchange.BroadcastEndpointProbe
+import com.sza.fastmediasorter.data.broadcast.exchange.BroadcastEndpointProbe.ExchangeAnswer
 import com.sza.fastmediasorter.data.broadcast.exchange.BroadcastLoopbackBridges
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeCertificateChangedException
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeConnection
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeConnector
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeTrust
+import com.sza.fastmediasorter.domain.repository.BroadcastPendingStore
 import com.sza.fastmediasorter.domain.usecase.streams.ResolveBroadcastPlaybackUseCase.Playback
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -48,8 +52,56 @@ class ResolveBroadcastPlaybackUseCaseTest {
         BroadcastEndpointProbe(connector),
         BroadcastLoopbackBridges(connector),
         mockk(relaxed = true),
+        pending,
         Dispatchers.Unconfined,
     )
+
+    private val pending = FakePendingStore()
+
+    private class FakePendingStore : BroadcastPendingStore {
+        val rows = mutableMapOf<String, Long>()
+        override suspend fun untilMs(streamId: String) = rows[streamId]
+        override suspend fun put(streamId: String, untilMs: Long) {
+            rows[streamId] = untilMs
+        }
+        override suspend fun clear(streamId: String) {
+            rows.remove(streamId)
+        }
+    }
+
+    private fun waitingUseCase(status: Int?): ResolveBroadcastPlaybackUseCase {
+        val probe = mockk<BroadcastEndpointProbe>(relaxed = true)
+        every { probe.relayStatus(any()) } returns status
+        return ResolveBroadcastPlaybackUseCase(
+            probe,
+            mockk(relaxed = true),
+            mockk(relaxed = true),
+            pending,
+            Dispatchers.Unconfined,
+        )
+    }
+
+    @Test
+    fun waitingRowWhoseRelayKnowsNoBroadcast_hasNotStarted() = runTest {
+        pending.rows["row"] = FUTURE_MS
+        val endpoints = BroadcastEndpointCodec.encode(listOf(relay(PIN)))
+
+        val playback = waitingUseCase(404)(RELAY_URL, endpoints, streamId = "row")
+
+        assertEquals(Playback.NotStarted(FUTURE_MS), playback)
+        assertEquals(FUTURE_MS, pending.rows["row"])
+    }
+
+    @Test
+    fun waitingRowPastItsExpiry_expiresAndForgetsTheWait() = runTest {
+        pending.rows["row"] = PAST_MS
+        val endpoints = BroadcastEndpointCodec.encode(listOf(relay(PIN)))
+
+        val playback = waitingUseCase(404)(RELAY_URL, endpoints, streamId = "row")
+
+        assertEquals(Playback.Expired, playback)
+        assertEquals(emptyMap<String, Long>(), pending.rows)
+    }
 
     @Test
     fun aRowWithoutAList_playsItsUrlUntouched() = runTest {
@@ -86,7 +138,8 @@ class ResolveBroadcastPlaybackUseCaseTest {
 
         val url = (outcome as Playback.Playable).url
         assertTrue(url, url.matches(Regex("http://127\\.0\\.0\\.1:\\d+/v2/b/$BROADCAST_ID/stream")))
-        assertEquals(listOf<String?>(PIN), connector.pins)
+        // One handshake judges trust, one reads the relay's status line; both carry the descriptor's pin.
+        assertEquals(listOf<String?>(PIN, PIN), connector.pins)
     }
 
     @Test
@@ -114,6 +167,62 @@ class ResolveBroadcastPlaybackUseCaseTest {
 
         assertEquals(Playback.Unreachable, outcome)
     }
+
+    @Test
+    fun aSavedRowWhoseRelayKnowsNoBroadcast_isUnreachableAndNeverTriesTheTunnel() = runTest {
+        val bridges = mockk<BroadcastLoopbackBridges>(relaxed = true)
+
+        val outcome = savedUseCase(savedProbe(relayStatus = 404), bridges)(
+            row(deadLan(), listOf(lan(deadLan()), relay(pin = null), tunnel()))
+        )
+
+        assertEquals(Playback.Unreachable, outcome)
+        verify(exactly = 0) { bridges.tunnelPort(any()) }
+    }
+
+    @Test
+    fun aSavedRowWhoseRelayAnswersGone_isUnreachableAndNeverTriesTheTunnel() = runTest {
+        val bridges = mockk<BroadcastLoopbackBridges>(relaxed = true)
+
+        val outcome = savedUseCase(savedProbe(relayStatus = HTTP_GONE), bridges)(
+            row(deadLan(), listOf(lan(deadLan()), relay(pin = null), tunnel()))
+        )
+
+        assertEquals(Playback.Unreachable, outcome)
+        verify(exactly = 0) { bridges.tunnelPort(any()) }
+    }
+
+    @Test
+    fun aRelayThatDoesNotAnswerNotFound_isPlayedAsBefore() = runTest {
+        for (status in listOf(200, 401, 503, null)) {
+            val outcome = savedUseCase(savedProbe(relayStatus = status))(
+                row(deadLan(), listOf(lan(deadLan()), relay(pin = null)))
+            )
+
+            assertEquals("relay status $status", Playback.Playable(RELAY_URL), outcome)
+        }
+    }
+
+    @Test
+    fun anAnsweringLan_winsWithoutAskingTheRelay() = runTest {
+        val probe = savedProbe(relayStatus = 404, lanAnswers = true)
+
+        val outcome = savedUseCase(probe)(row(deadLan(), listOf(lan(deadLan()), relay(pin = null), tunnel())))
+
+        assertEquals(Playback.Playable(deadLan()), outcome)
+        verify(exactly = 0) { probe.relayStatus(any()) }
+    }
+
+    private fun savedProbe(relayStatus: Int?, lanAnswers: Boolean = false) = mockk<BroadcastEndpointProbe>().also {
+        every { it.lanAnswers(any()) } returns lanAnswers
+        every { it.exchangeAnswers(any(), any()) } returns ExchangeAnswer.TRUSTED
+        every { it.relayStatus(any()) } returns relayStatus
+    }
+
+    private fun savedUseCase(
+        probe: BroadcastEndpointProbe,
+        bridges: BroadcastLoopbackBridges = mockk(relaxed = true),
+    ) = ResolveBroadcastPlaybackUseCase(probe, bridges, mockk(relaxed = true), pending, Dispatchers.Unconfined)
 
     private suspend operator fun ResolveBroadcastPlaybackUseCase.invoke(row: StreamSourceEntity) =
         invoke(row.url, row.broadcastEndpoints)
@@ -158,5 +267,8 @@ class ResolveBroadcastPlaybackUseCaseTest {
         const val PRESENTED = "SHA256:presented"
         const val TRUSTED = "trusted"
         const val CHANGED = "changed"
+        const val HTTP_GONE = 410
+        const val FUTURE_MS = 4_070_908_800_000L
+        const val PAST_MS = 978_307_200_000L
     }
 }

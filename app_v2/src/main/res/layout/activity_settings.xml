@@ -15,7 +15,7 @@
             <ImageButton android:id="@+id/backButton" android:layout_width="32dp" android:layout_height="32dp" android:src="@drawable/ic_arrow_back" android:background="?attr/colorPrimary" android:elevation="@dimen/dimension_zero" android:contentDescription="@string/back" app:tint="?attr/colorOnPrimary" />
 
             <!-- Settings title -->
-            <TextView android:id="@+id/titleText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings" android:textColor="?attr/colorOnPrimary" android:textSize="@dimen/activity_player_btnInfo_textSize" android:textStyle="bold" tools:ignore="SpUsage" />
+            <TextView android:id="@+id/titleText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings" android:drawableStart="@drawable/ic_settings" android:drawableTint="?attr/colorOnPrimary" android:drawablePadding="@dimen/toolbar_title_icon_gap" android:textColor="?attr/colorOnPrimary" android:textSize="@dimen/activity_player_btnInfo_textSize" android:textStyle="bold" tools:ignore="SpUsage" />
 
             <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1" />
 

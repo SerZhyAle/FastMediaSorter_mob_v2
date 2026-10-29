@@ -9,6 +9,7 @@ import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.sza.fastmediasorter.core.ui.SelfManagedScreenOrientation
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.ActivityBroadcastControlBinding
 import com.sza.fastmediasorter.ui.broadcast.helpers.BroadcastCastManager
@@ -18,8 +19,9 @@ import com.sza.fastmediasorter.ui.common.help.HelpOverlayEntryManager
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
+/** Turns by the player's rotation settings (S4418), applied by `BroadcastLandscapeVideoManager`. */
 @AndroidEntryPoint
-class BroadcastControlActivity : AppCompatActivity() {
+class BroadcastControlActivity : AppCompatActivity(), SelfManagedScreenOrientation {
 
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(LocaleHelper.applyLocale(newBase))

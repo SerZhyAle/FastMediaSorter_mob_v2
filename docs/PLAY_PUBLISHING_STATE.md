@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.20 13:45</sub>
+<sub class="doc-stamp">26.10.28 22:55</sub>
 
 # Play publishing state
 
@@ -25,11 +25,18 @@ of those two rows reads as green.
 What an anonymous visitor actually receives. Produced by
 `pwsh -NoProfile -File scripts/release/read-play-public-serve.ps1 -Json`.
 
+**The listing page carries no version since 2026-10-27 (S4463).** The `Served version` cell reads
+`not on the page` while that holds, and the signal is the store's `Updated at (UTC)` stamp: it moves
+when the store publishes a new release, and `Updated on` is its date. A release has landed when
+`read-play-public-serve.ps1 -RequireUpdatedAfter <the Updated at value recorded below>` exits 0.
+Cross-read the `production` row of block 2 for the version that stamp belongs to. If the page serves a
+version again, the reader reads it with no change and the cell shows it.
+
 <!-- s2272:measured:public-serve:begin -->
 
-| Served version | Store `Updated on` | Detected by | Measured (UTC) |
-|----------------|--------------------|-------------|----------------|
-| `2.60.9260.042` | Sep 26, 2026 | data-callback key 141 | 2026-10-04 |
+| Served version | Store `Updated on` | Updated at (UTC) | Detected by | Measured (UTC) |
+|----------------|--------------------|------------------|-------------|----------------|
+| not on the page | Oct 21, 2026 | `2026-10-21T00:12:12Z` | none - the listing page carries no version | 2026-10-28 |
 
 Reader exit code: 0.
 
@@ -50,13 +57,13 @@ keeps reporting `completed`, so review state is invisible from here and from the
 
 | Track | versionName | versionCode | Status | Measured (UTC) |
 |-------|-------------|-------------|--------|----------------|
-| `production` | `2.61.0041.544` | `261004154` | completed | 2026-10-04 |
-| `beta` | - | - | no release | 2026-10-04 |
-| `alpha` | - | - | no release | 2026-10-04 |
-| `internal` | `2.60.6222.324` | `260622232` | completed | 2026-10-04 |
-| `wear:beta` | - | - | no release | 2026-10-04 |
-| `wear:internal` | - | - | no release | 2026-10-04 |
-| `wear:production` | `2.61.0031.801` | `261003186` | completed | 2026-10-04 |
+| `production` | `2.61.0202.359` | `261020235` | completed | 2026-10-28 |
+| `beta` | - | - | no release | 2026-10-28 |
+| `alpha` | - | - | no release | 2026-10-28 |
+| `internal` | `2.60.6222.324` | `260622232` | completed | 2026-10-28 |
+| `wear:beta` | - | - | no release | 2026-10-28 |
+| `wear:internal` | - | - | no release | 2026-10-28 |
+| `wear:production` | `2.61.0210.141` | `261021018` | completed | 2026-10-28 |
 
 Reader exit code: 0.
 
@@ -225,8 +232,8 @@ The pre-release gate reads this block, so keep the three field lines above in th
 **Video:** recorded
 
 The owner reported on 2026-10-15 that the demonstration video is recorded and the `dataSync`
-declaration is saved in Play Console. The `standard` store build still ships without `dataSync`
-until `fms.dataSyncFgsStandard=on` is set after release 46 ships (S4271 phase 02). The text that was
+declaration is saved in Play Console. The `standard` store build carries `dataSync` while
+`fms.dataSyncFgsStandard=on`, the default since 2026-10-25 (S4271 phase 02). The text that was
 submitted, the video steps and the rollback are in `store_assets/PLAY_FGS_DECLARATIONS.md`. Allowed
 states are the same as for the Contacts declaration above; the owner updates this block after
 reading each Play verdict.
@@ -250,7 +257,7 @@ the only writer of this block and the only script that reads that API.
 
 <!-- s2272:measured:vitals:begin -->
 
-**Verdict:** `insufficient-data` - measured 2026-10-21 (UTC), window 2026-09-18..2026-10-15 America/Los_Angeles, source api. Rates as the API returns them, read as fraction (S2917 research 6).
+**Verdict:** `insufficient-data` - measured 2026-10-29 (UTC), window 2026-09-21..2026-10-18 America/Los_Angeles, source api. Rates as the API returns them, read as fraction (S2917 research 6).
 
 | Finding | Scope | Value | Band | Colour | Distinct users |
 |---------|-------|-------|------|--------|----------------|
@@ -261,17 +268,7 @@ the only writer of this block and the only script that reads that API.
 
 Google anomalies in the window: none.
 
-Top error issues by distinct users (4):
-- `CRASH` com.sza.fastmediasorter.core.cache.MediaFilesCacheManager.clearAllCaches at `java.lang.IllegalStateException` - 1 users, 1 reports, last versionCode 260915215 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/2e3fceb39a01cb7b3ff9e119aff3a3e5/details)
-  - `Exception java.lang.IllegalStateException:`
-  - `at android.util.LruCache.trimToSize (LruCache.java:203)`
-  - `at android.util.LruCache.evictAll (LruCache.java:311)`
-  - `at com.sza.fastmediasorter.core.cache.MediaFilesCacheManager.clearAllCaches (MediaFilesCacheManager.java:180)`
-  - `at com.sza.fastmediasorter.FastMediaSorterApp.releaseRecomputableCaches (FastMediaSorterApp.kt:699)`
-  - `at com.sza.fastmediasorter.FastMediaSorterApp.onTrimMemory (FastMediaSorterApp.kt:650)`
-  - `at android.app.ActivityThread.handleTrimMemory (ActivityThread.java:7053)`
-  - `at android.app.ActivityThread.-$$Nest$mhandleTrimMemory (ActivityThread.java)`
-  - `at android.app.ActivityThread$ApplicationThread.lambda$scheduleTrimMemory$0 (ActivityThread.java:1903)`
+Top error issues by distinct users (3):
 - `CRASH` com.sza.fastmediasorter.core.ui.BaseActivity.getBinding at `java.lang.IllegalStateException` - 1 users, 1 reports, last versionCode 261004154 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/81ac31a3e59c8e3b2089ff2fe8ded6af/details)
   - `Exception java.lang.IllegalStateException: Binding is only valid between onCreate and onDestroy`
   - `at com.sza.fastmediasorter.core.ui.BaseActivity.getBinding (BaseActivity.kt:77)`
@@ -292,7 +289,7 @@ Top error issues by distinct users (4):
   - `at kotlinx.coroutines.DispatchedTask.run (DispatchedTask.kt:108)`
   - `at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run (LimitedDispatcher.kt:115)`
   - `at kotlinx.coroutines.scheduling.TaskImpl.run (Tasks.kt:103)`
-- `CRASH` com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearSettingsMirrorStore$Companion$STAMP_MAP_TYPE$1.<init> at `java.lang.RuntimeException` - 1 users, 1 reports, last versionCode 260902195 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/daf4cfa06fbe2ac60ec520ebecc05e00/details)
+- `CRASH` com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearSettingsMirrorStore$Companion$STAMP_MAP_TYPE$1.<init> at `java.lang.RuntimeException` - 1 users, 2 reports, last versionCode 260902195 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/daf4cfa06fbe2ac60ec520ebecc05e00/details)
   - `Exception java.lang.ExceptionInInitializerError:`
   - `at com.sza.fastmediasorter.DaggerFastMediaSorterApp_HiltComponents_SingletonC$ViewModelCImpl.sharedPreferencesWearSettingsMirrorStore (DaggerFastMediaSorterApp_HiltComponents_SingletonC.java:4104)`
   - `at com.sza.fastmediasorter.DaggerFastMediaSorterApp_HiltComponents_SingletonC$ViewModelCImpl$SwitchingProvider.get (DaggerFastMediaSorterApp_HiltComponents_SingletonC.java:4384)`
@@ -482,8 +479,10 @@ a clear run before a publish is undone by that publish; the clear must always co
 ### Step 3 - Submit the phone release from current code
 
 **Executor:** owner (Play Console).
-**Proof:** block 1 reports a served version above the one recorded there today, checked with
-`read-play-public-serve.ps1 -RequireVersionAbove <previous>` rather than by reading the Console.
+**Proof:** block 1 reports a store update stamp later than the one recorded there today (a served
+version above the recorded one, while the page carries a version), checked with
+`read-play-public-serve.ps1 -RequireUpdatedAfter <previous>` (`-RequireVersionAbove <previous>` for a
+version) rather than by reading the Console.
 
 An ordinary `standard` campaign, with no watch artifact in the batch.
 

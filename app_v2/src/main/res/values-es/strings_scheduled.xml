@@ -105,4 +105,24 @@
     <string name="scheduled_op_badge_error">La última ejecución falló. Abre el Historial para ver los detalles.</string>
     <string name="scheduled_op_badge_skipped">La última ejecución se omitió: no se pudo acceder a uno de los lados. Se vuelve a intentar en el siguiente turno.</string>
     <string name="scheduled_ops_notif_failed_title">Falló la operación programada</string>
+    <string name="scheduled_op_history_details">Detalles</string>
+    <string name="scheduled_op_reason_source_unreachable">El origen no respondió</string>
+    <string name="scheduled_op_reason_target_unreachable">El destino no respondió</string>
+    <string name="scheduled_op_reason_source_read_only">El origen es de solo lectura</string>
+    <string name="scheduled_op_reason_target_read_only">El destino es de solo lectura</string>
+    <string name="scheduled_op_reason_source_missing">Falta la carpeta de origen</string>
+    <string name="scheduled_op_reason_target_unavailable">Falta la carpeta de destino o no se puede escribir en ella</string>
+    <string name="scheduled_op_reason_watch_unavailable">La conexión con el reloj está desactivada o no es compatible aquí</string>
+    <string name="scheduled_op_reason_watch_unreachable">El reloj no respondió</string>
+    <string name="scheduled_op_reason_watch_refused">El reloj no pudo mostrar el mensaje</string>
+    <string name="scheduled_op_reason_message_too_long">El mensaje es demasiado largo para el reloj</string>
+    <string name="scheduled_op_reason_pin_refused">No se aceptó el PIN de la carpeta</string>
+    <string name="scheduled_op_reason_permission_required">Necesita tu permiso o un nuevo inicio de sesión</string>
+    <string name="scheduled_op_reason_skipped_other">No se pudo iniciar esta vez</string>
+    <string name="scheduled_op_reason_error_other">La ejecución no terminó</string>
+    <string name="scheduled_op_last_run_retry">Una ejecución omitida se reintenta en el siguiente horario.</string>
+    <string name="scheduled_op_last_run_title">Última ejecución</string>
+    <string name="scheduled_op_reason_source_deleted">Se eliminó el origen, así que esta programación está en pausa</string>
+    <string name="scheduled_op_reason_target_deleted">Se eliminó el destino, así que esta programación está en pausa</string>
+    <string name="scheduled_ops_log_failed">Algo salió mal</string>
 </resources>

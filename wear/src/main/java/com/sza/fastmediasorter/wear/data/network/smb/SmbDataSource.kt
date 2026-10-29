@@ -397,7 +397,9 @@ private class SmbjLinkOpener : SmbLinkOpener {
         if (network == null) {
             open(source)
         } else {
-            val bound = SMBClient(baseConfig().withSocketFactory(network.socketFactory).build())
+            val bound = withContext(Dispatchers.IO) {
+                SMBClient(baseConfig().withSocketFactory(network.socketFactory).build())
+            }
             openOn(bound, source, ownsClient = true)
         }
 

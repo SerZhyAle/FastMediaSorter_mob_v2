@@ -27,10 +27,18 @@ data class BroadcastDescriptorDto(
     @SerializedName("auth") val auth: BroadcastAuthDto? = null,
     /** S4258: the own pair from an opened directory record's box; never on a descriptor that is shared. */
     @SerializedName("credentials") val credentials: BroadcastCredentialsDto? = null,
+    /**
+     * LIVE-BROADCAST item S (S4247): present when the broadcast has not started yet; optional at schemaVersion 1,
+     * so a reader that does not know it reads an ordinary RELAY and TUNNEL descriptor.
+     */
+    @SerializedName("pending") val pending: BroadcastPendingDto? = null,
 ) {
 
     /** True when a listener must answer a `password-v1` challenge to play this broadcast. */
     val isProtected: Boolean get() = auth?.isPasswordV1 == true
+
+    /** True for a link handed out before its broadcast started (LIVE-BROADCAST item S). */
+    val isPending: Boolean get() = pending != null
 
     /**
      * Returns explicit [endpoints] if present and non-empty, or synthesizes a single legacy endpoint

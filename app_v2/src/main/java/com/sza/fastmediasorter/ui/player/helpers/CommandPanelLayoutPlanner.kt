@@ -24,8 +24,9 @@ private const val AB_LOOP_PRIORITY = 720
 // render adjacently in the sorted overflow list.
 private const val ROTATE_CONTENT_CCW_PRIORITY = 670
 
-// S4325: lowest-priority overflow-only command so Help always renders at the bottom of the menu.
-private const val HELP_PRIORITY = 680
+// S4325: lowest-priority overflow-only command so Help always renders at the bottom of the menu. It has to
+// stay above the highest overflow-only priority (AB_LOOP_PRIORITY), or a newer command sorts under it.
+private const val HELP_PRIORITY = 730
 
 // S1474: "about this channel", one past INFO(495) so the window reads directly under the file details
 // wherever both are offered. Top-level like the two above, and necessarily so: an enum entry is

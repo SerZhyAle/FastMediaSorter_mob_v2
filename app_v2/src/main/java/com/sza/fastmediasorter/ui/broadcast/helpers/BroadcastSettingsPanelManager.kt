@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.broadcast.helpers
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.databinding.FragmentSettingsBroadcastBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -11,6 +12,7 @@ import com.sza.fastmediasorter.ui.settings.fragments.BroadcastSettingsOptions
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -24,6 +26,7 @@ import javax.inject.Singleton
 @Singleton
 class BroadcastSettingsPanelManager @Inject constructor(
     private val settingsRepository: SettingsRepository,
+    private val linkPasswordDialog: BroadcastLinkPasswordDialogManager,
 ) {
 
     // A write lands back through the settings Flow, and re-rendering a row fires its listener again;
@@ -37,6 +40,7 @@ class BroadcastSettingsPanelManager @Inject constructor(
     private var pendingWrite: Job? = null
 
     fun bind(activity: AppCompatActivity, panel: FragmentSettingsBroadcastBinding) {
+        Timber.d("S4486: broadcast settings panel bound - values share one column, port box compact")
         panel.rowBitRate.setEntries(BroadcastSettingsOptions.bitRateLabels(activity))
         panel.rowAudioFormat.setEntries(BroadcastSettingsOptions.audioFormatLabels(activity))
         panel.rowMicGain.setEntries(BroadcastSettingsOptions.micGainLabels())
@@ -45,6 +49,13 @@ class BroadcastSettingsPanelManager @Inject constructor(
             val title = value.toString().trim()
             if (title.isNotEmpty()) {
                 update(activity) { it.copy(broadcast = it.broadcast.copy(streamTitle = title)) }
+            }
+        }
+
+        // S4405: "Generate new" belongs to the share panel, so the settings row never offers it.
+        panel.rowLinkPassword.setOnRowClickListener {
+            linkPasswordDialog.show(activity, isLive = false) { messageRes ->
+                Snackbar.make(panel.root, messageRes, Snackbar.LENGTH_LONG).show()
             }
         }
 
@@ -123,6 +134,12 @@ class BroadcastSettingsPanelManager @Inject constructor(
         currentPort = settings.broadcast.port
         renderingFromSettings = true
         panel.rowStreamTitle.isVisible = settings.enableBroadcasting
+        panel.rowLinkPassword.isVisible = settings.enableBroadcasting
+        panel.rowLinkPassword.setValue(
+            panel.root.context.getString(
+                BroadcastLinkPasswordDialogManager.labelFor(settings.broadcast.linkPasswordMode)
+            )
+        )
         panel.broadcastConfigGroup.isVisible = settings.enableBroadcasting
         panel.rowFeedbackGuard.isVisible = settings.enableBroadcasting
         panel.rowAutoOpenShare.isVisible = settings.enableBroadcasting

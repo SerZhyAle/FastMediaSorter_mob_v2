@@ -30,6 +30,9 @@ class ExchangeSealedContentOpener @Inject constructor(
     private val e2e: ExchangeE2eRepository,
 ) {
 
+    // The last outcome logged per entry and broadcast, so a re-opened directory does not repeat itself.
+    private val reported = HashMap<String, String>()
+
     suspend fun open(entry: DeviceExchangeAccountEntry, directory: DeviceExchangeDirectory): DeviceExchangeDirectory {
         val sealing = e2e.sealing(entry, directory.devices)
         val grants = GrantTrust(e2e.grantSenders(entry))
@@ -39,14 +42,34 @@ class ExchangeSealedContentOpener @Inject constructor(
             sealing.self != null && grantId != null &&
                 E2eSealedBox.addressesNobody(box?.let { runCatching { JsonParser.parseString(it) }.getOrNull() })
         }
+        val (hidden, shown) = directory.broadcasts.partition { registering(it.grantId, it.sealed) }
+        val openings = shown.map { opening(sealing, it, grants) }
         val opened = directory.copy(
             resources = directory.resources.filterNot { registering(it.grantId, it.sealedAccess) }
                 .map { openAccess(sealing, it, grants) },
-            broadcasts = directory.broadcasts.filterNot { registering(it.grantId, it.sealed) }
-                .map { openBroadcast(sealing, it, grants) },
+            broadcasts = openings.map { it.record },
         )
+        val outcomes = hidden.map { it to OUTCOME_HIDDEN_REGISTERING } + openings.map { it.source to it.outcome }
+        reportBroadcasts(entry, outcomes)
         e2e.learnGrantSenders(entry, grants.learned)
         return opened
+    }
+
+    // Every pass re-opens the whole directory, so a record logs again only when its outcome changed or it left the
+    // directory and came back; an unchanged directory stays silent. S4441: the joint run needs one reason per record.
+    private fun reportBroadcasts(
+        entry: DeviceExchangeAccountEntry,
+        outcomes: List<Pair<SftpRendezvousBroadcast, String>>,
+    ) {
+        val scope = entry.identity + KEY_SEPARATOR
+        val fresh = synchronized(reported) {
+            val current = outcomes.mapTo(HashSet()) { scope + it.first.broadcastId }
+            reported.keys.removeAll { it.startsWith(scope) && it !in current }
+            outcomes.filter { (record, outcome) -> reported.put(scope + record.broadcastId, outcome) != outcome }
+        }
+        fresh.forEach { (record, outcome) ->
+            ExchangeBroadcastDiagnostics.logOutcome(record, outcome, outcome !in QUIET_OUTCOMES)
+        }
     }
 
     /** A broadcast offered by `cast` (7.8), opened with the keys this device already trusts. */
@@ -62,7 +85,20 @@ class ExchangeSealedContentOpener @Inject constructor(
         sealing: ExchangeSealing,
         record: SftpRendezvousBroadcast,
         grants: GrantTrust = GrantTrust(emptyMap()),
-    ): SftpRendezvousBroadcast {
+    ): SftpRendezvousBroadcast = opening(sealing, record, grants).record
+
+    /** A broadcast as the server delivered it ([source]), as it stands once opened ([record]), and how it went. */
+    internal class BroadcastOpening(
+        val source: SftpRendezvousBroadcast,
+        val record: SftpRendezvousBroadcast,
+        val outcome: String,
+    )
+
+    internal fun opening(
+        sealing: ExchangeSealing,
+        record: SftpRendezvousBroadcast,
+        grants: GrantTrust = GrantTrust(emptyMap()),
+    ): BroadcastOpening {
         val box = record.sealed?.let { runCatching { JsonParser.parseString(it) }.getOrNull() }
         val self = sealing.self
         val grantId = record.grantId
@@ -76,9 +112,9 @@ class ExchangeSealedContentOpener @Inject constructor(
         }
         val opened = result as? E2eOpenResult.Opened
         if (grantId != null) opened?.let { grants.learn(grantId, it.fromKey) }
-        val issue = if (grantId == null || opened != null) null else grantIssue(result)
+        val issue = brokenBoxIssue(record, opened, result, keyless = self == null)
         val descriptor = runCatching { JsonParser.parseString(record.descriptorJson).asJsonObject }.getOrNull()
-        return if (descriptor == null) {
+        val unsealed = if (descriptor == null) {
             record.copy(sealed = null, sealIssue = issue)
         } else {
             E2eBroadcastSeals.withKeys(descriptor, opened?.payload)
@@ -88,6 +124,36 @@ class ExchangeSealedContentOpener @Inject constructor(
                 ?.let { descriptor.add(E2eBroadcastSeals.KEY_CREDENTIALS, it) }
             record.copy(descriptorJson = descriptor.toString(), sealed = null, sealIssue = issue)
         }
+        return BroadcastOpening(record, unsealed, outcomeOf(record.sealed != null, self, result))
+    }
+
+    // A granted record always names its reason (item DJ). An own-account record names one only when it came sealed
+    // and the box did not open (item CI), so a record delivered without a box stays as it was.
+    private fun brokenBoxIssue(
+        record: SftpRendezvousBroadcast,
+        opened: E2eOpenResult.Opened?,
+        result: E2eOpenResult?,
+        keyless: Boolean,
+    ): ExchangeSealIssue? = when {
+        opened != null -> null
+        record.grantId != null -> grantIssue(result)
+        record.sealed == null -> null
+        keyless -> ExchangeSealIssue.E2E_MISSING
+        else -> ExchangeSealIssue.SEALED_FAILED
+    }
+
+    private fun outcomeOf(hasBox: Boolean, self: E2eSelf?, result: E2eOpenResult?): String = when {
+        !hasBox -> OUTCOME_NO_BOX
+        self == null -> OUTCOME_NO_KEY
+        result is E2eOpenResult.Opened -> OUTCOME_OPENED
+        result is E2eOpenResult.Failed -> failureOutcome(result.reason)
+        else -> OUTCOME_FAILED_PREFIX + E2eOpenFailure.MALFORMED.name.lowercase()
+    }
+
+    private fun failureOutcome(reason: E2eOpenFailure): String = when (reason) {
+        E2eOpenFailure.NO_ENTRY -> OUTCOME_NOT_ADDRESSED
+        E2eOpenFailure.UNTRUSTED_SENDER -> OUTCOME_UNTRUSTED_SENDER
+        else -> OUTCOME_FAILED_PREFIX + reason.name.lowercase()
     }
 
     private fun grantIssue(result: E2eOpenResult?): ExchangeSealIssue =
@@ -204,5 +270,17 @@ class ExchangeSealedContentOpener @Inject constructor(
         const val KEY_ACCESS = "access"
         const val KEY_DESCRIPTOR = "descriptor"
         const val KEY_ROOT = "root"
+        const val KEY_SEPARATOR = '|'
+
+        const val OUTCOME_OPENED = "opened"
+        const val OUTCOME_NO_BOX = "no-box"
+        const val OUTCOME_NO_KEY = "no-device-key"
+        const val OUTCOME_NOT_ADDRESSED = "not-addressed"
+        const val OUTCOME_UNTRUSTED_SENDER = "untrusted-sender"
+        const val OUTCOME_FAILED_PREFIX = "failed-"
+        const val OUTCOME_HIDDEN_REGISTERING = "hidden-registering-box"
+
+        // Outcomes that need no attention: the box opened, there was none, or the hiding is item DJ working.
+        val QUIET_OUTCOMES = setOf(OUTCOME_OPENED, OUTCOME_NO_BOX, OUTCOME_HIDDEN_REGISTERING)
     }
 }

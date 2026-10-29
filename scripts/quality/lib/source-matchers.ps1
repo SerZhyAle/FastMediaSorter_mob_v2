@@ -29,6 +29,7 @@
 . (Join-Path $PSScriptRoot 'settings-snapshot-write.ps1')
 . (Join-Path $PSScriptRoot 'main-thread-bitmap-decode.ps1')
 . (Join-Path $PSScriptRoot 'loopback-endpoint-close.ps1')
+. (Join-Path $PSScriptRoot 'keystore-decrypt-caller-context.ps1')
 
 # --- rule predicates -------------------------------------------------------------------
 # Kept as named functions rather than inline lambdas so the two multi-step heuristics
@@ -782,9 +783,11 @@ function Measure-UnpolicedAnimationText([string]$Text) {
 # outlive the test body on a real dispatcher - the path by which an exception reaches the global
 # ExceptionCollector and is charged to the next unrelated test on the worker (S2746).
 # Lexical by necessity: the link between a field scope and the `@After` that should join it cannot
-# be established by a regex, so the rule counts CONSTRUCTIONS and the ratchet stops growth. The
-# nine sites S2748 fixed stay counted - their cure is the teardown, not the construction.
+# be established by a regex, so the rule counts CONSTRUCTIONS and the ratchet stops growth. One
+# exemption (S4429): a NAME-BOUND construction is not counted when the same file contains
+# `<name>.coroutineContext.job.cancelAndJoin()`, the cure the FailMessage itself advertises.
 $script:TestUnjoinedScopeRx = [regex]'\bCoroutineScope\s*\('
+$script:TestScopeBindRx = [regex]'\b(?:val|var)\s+(\w+)\s*(?::[^=]+)?=\s*CoroutineScope\s*\('
 # Case-insensitive: a scheduler-bound scope reaches the dispatcher through a rule field as often as
 # through the type name (`CoroutineScope(dispatcherRule.testDispatcher)`), and both are correct.
 $script:TestScopeAllowRx = [regex]'(?i)testdispatcher|testscheduler|testscope'
@@ -796,6 +799,8 @@ function Find-TestUnjoinedScopeLines([string]$Text) {
     for ($i = 0; $i -lt $lines.Count; $i++) {
         $line = $lines[$i]
         if ($script:TestScopeAllowRx.IsMatch($line)) { continue }
+        $bound = $script:TestScopeBindRx.Match($line)
+        if ($bound.Success -and [regex]::IsMatch($Text, '\b' + [regex]::Escape($bound.Groups[1].Value) + '\.coroutineContext\.job\.cancelAndJoin\(\)')) { continue }
         foreach ($match in $script:TestUnjoinedScopeRx.Matches($line)) {
             $hits += ($i + 1)
         }
@@ -1962,7 +1967,8 @@ function Get-SourceRules {
             CountInText  = { param($t) Measure-LoopbackEndpointCloseText $t }
             LocateInText = { param($t) Find-LoopbackEndpointCloseLines $t }
             FailMessage  = 'a ServerSocket-backed LoopbackEndpoint/WearExchangeRelayEndpoint close() that stops the listener/workers without closing tracked active connections (S4337). Close all registered client and upstream sockets in close() before shutdownNow().'
-        }
+        },
+        (New-KeystoreDecryptCallerContextRule)
     )
 }
 

@@ -27,6 +27,7 @@ import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.databinding.ActivityBroadcastControlBinding
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SendStreamToWatchUseCase
+import com.sza.fastmediasorter.domain.usecase.broadcast.ObserveExchangeBroadcastPublishStateUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.BuildWatchBroadcastHandoffUseCase
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.util.showBoundTo
@@ -38,8 +39,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-// S4261: one past detekt's ceiling with the watch hand-off form; this class is the screen's coordinator and every
-// collaborator is already a single-purpose manager or use case, so a wrapper would only move the list.
+// Past detekt's ceiling with the watch hand-off form and the exchange line; this class is the screen's coordinator
+// and every collaborator is already a single-purpose manager or use case, so a wrapper would only move the list.
 @Suppress("LongParameterList")
 class BroadcastControlManager @Inject constructor(
     private val controller: BroadcastSourceController,
@@ -52,6 +53,9 @@ class BroadcastControlManager @Inject constructor(
     private val sendStreamToWatch: Lazy<SendStreamToWatchUseCase>,
     private val buildWatchBroadcastHandoff: Lazy<BuildWatchBroadcastHandoffUseCase>,
     private val settingsPanelManager: BroadcastSettingsPanelManager,
+    private val observeExchangeState: Lazy<ObserveExchangeBroadcastPublishStateUseCase>,
+    private val preparedLinks: BroadcastPreparedLinksManager,
+    private val preparedStartGuard: BroadcastPreparedStartGuard,
 ) {
     /** Takes no dependencies of its own, so it is constructed here instead of going through Hilt. */
     private val preStreamPreview = BroadcastPreStreamPreviewManager()
@@ -62,6 +66,11 @@ class BroadcastControlManager @Inject constructor(
 
     /** S4281: built here because this singleton is what keeps its on/off flag alive across a rotation. */
     private val lightFrame = BroadcastLightFrameManager()
+
+    /** S4418: built here for the same reason - its "controls asked for" flag has to survive a rotation. */
+    private val landscapeVideo = BroadcastLandscapeVideoManager()
+
+    private val exchangeStatus = BroadcastExchangeStatusManager()
 
     /**
      * The mode a live switch is re-opening the session in, null while nothing switches. Until that mode
@@ -125,8 +134,10 @@ class BroadcastControlManager @Inject constructor(
         }
         setupPreStreamControls(activity, binding)
         setupLiveControls(activity, binding)
+        landscapeVideo.bind(activity, binding) { controller.state.value }
         sharePanel.setup(activity, binding)
-        sourceEntries.setup(controller, activity, binding)
+        sourceEntries.setup(controller, activity, binding, preparedStartGuard)
+        preparedLinks.setup(activity, binding)
         setupCollapsibleSections(activity, binding)
 
         activity.lifecycleScope.launch {
@@ -149,6 +160,11 @@ class BroadcastControlManager @Inject constructor(
                     }
                 }
                 launch {
+                    observeExchangeState.get()().collect { state ->
+                        exchangeStatus.render(activity, binding.tvExchangeServerStatus, state)
+                    }
+                }
+                launch {
                     controller.feedbackSuppressed.collect { suppressed ->
                         renderFeedbackWarning(activity, binding, suppressed)
                     }
@@ -158,6 +174,11 @@ class BroadcastControlManager @Inject constructor(
                         wearSendAvailable = settings.enableWearCompanion &&
                             mediaCapabilities.supportsWearCompanion
                         renderSendToWatch(binding, controller.state.value)
+                        landscapeVideo.applyRotationPolicy(
+                            activity,
+                            followSystem = settings.playerFollowSystemRotation,
+                            sensorEnabled = settings.playerRotationSensorEnabled,
+                        )
                     }
                 }
             }
@@ -214,14 +235,17 @@ class BroadcastControlManager @Inject constructor(
             // The port and title rows keep focus through the tap, so their edits reach the store only
             // once flushed - the stream would otherwise start on the previous port (S3234).
             settingsPanelManager.flushPending(binding.layoutBroadcastSettings)
-            binding.btnStartBroadcast.isEnabled = false
-            preStreamPreview.stop {
-                // The commit only starts the write; the stream must read the port the user typed, so
-                // the start waits for it to land (S3234).
-                activity.lifecycleScope.launch {
-                    settingsPanelManager.awaitPendingWrites()
-                    binding.btnStartBroadcast.isEnabled = true
-                    startSession(activity, binding)
+            // S4247: asked before the preview lets the camera go, so a cancel leaves the screen as it was.
+            preparedStartGuard.confirm(activity, selectedMode) {
+                binding.btnStartBroadcast.isEnabled = false
+                preStreamPreview.stop {
+                    // The commit only starts the write; the stream must read the port the user typed, so
+                    // the start waits for it to land (S3234).
+                    activity.lifecycleScope.launch {
+                        settingsPanelManager.awaitPendingWrites()
+                        binding.btnStartBroadcast.isEnabled = true
+                        startSession(activity, binding)
+                    }
                 }
             }
         }
@@ -543,6 +567,8 @@ class BroadcastControlManager @Inject constructor(
                 renderSendToWatch(binding, state)
                 sharePanel.render(activity, binding)
                 previewBinder.attach(binding.previewContainer)
+                landscapeVideo.render(activity, binding, state)
+                preparedLinks.renderLive(activity, binding, state)
             }
             // The transient idle between the two services of an audio-video switch is not the end of the session.
             is BroadcastState.Idle -> if (switchTargetMode == null) renderPreStream(activity, binding, state)
@@ -572,10 +598,12 @@ class BroadcastControlManager @Inject constructor(
         previewBinder.detach()
         sharePanel.dismissQr()
         binding.btnStartBroadcast.visibility = View.VISIBLE
+        preparedLinks.renderPreStream(activity, binding)
         binding.layoutLiveControls.visibility = View.GONE
         binding.layoutSharePanel.visibility = View.GONE
         renderLightControls(binding, state)
         renderScreenRealEstate(binding, state)
+        landscapeVideo.render(activity, binding, state)
         selectionRows.setEnabled(binding, true)
         refreshPreStreamPreview(activity, binding)
     }
@@ -740,8 +768,10 @@ class BroadcastControlManager @Inject constructor(
         blankScreenManager.detach()
         lightFrame.detach()
         sourceEntries.onDetach()
+        selectionRows.clear()
         // setup() re-registers every launcher on the next attach, so dropping them here loses nothing.
         sharePanel.onDetach()
+        preparedLinks.onDetach()
         collapsibleSections?.clear()
         collapsibleSections = null
         cameraPermissionLauncher = null

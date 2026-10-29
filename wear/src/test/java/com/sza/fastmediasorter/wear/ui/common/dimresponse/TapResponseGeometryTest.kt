@@ -51,6 +51,55 @@ class TapResponseGeometryTest {
         assertEquals(0f, TapResponseGeometry.widthProfile(1f), DELTA)
     }
 
+    @Test
+    fun `clock sits one gap above the tap point when the block fits there`() {
+        val top = TapResponseGeometry.clockTop(
+            tapY = 200f,
+            blockHeight = 60f,
+            gap = 48f,
+            canvasHeight = 400f,
+        )
+
+        assertEquals(92f, top, DELTA)
+        assertEquals(200f - 48f, top + 60f, DELTA)
+    }
+
+    @Test
+    fun `clock drops below the finger when there is no room above it`() {
+        val top = TapResponseGeometry.clockTop(
+            tapY = 100f,
+            blockHeight = 60f,
+            gap = 48f,
+            canvasHeight = 400f,
+        )
+
+        assertEquals(148f, top, DELTA)
+    }
+
+    @Test
+    fun `clock flush with the top edge still counts as fitting above`() {
+        val top = TapResponseGeometry.clockTop(
+            tapY = 108f,
+            blockHeight = 60f,
+            gap = 48f,
+            canvasHeight = 400f,
+        )
+
+        assertEquals(0f, top, DELTA)
+    }
+
+    @Test
+    fun `clock below the finger never leaves the bottom of the canvas`() {
+        val top = TapResponseGeometry.clockTop(
+            tapY = 40f,
+            blockHeight = 60f,
+            gap = 48f,
+            canvasHeight = 120f,
+        )
+
+        assertEquals(60f, top, DELTA)
+    }
+
     private companion object {
         const val DELTA = 1e-4f
     }

@@ -91,7 +91,8 @@ package com.sza.fastmediasorter.data.broadcast
 data class BroadcastDescriptorDto(
     @SerializedName("url") val url: String,
     @SerializedName("auth") val auth: String? = null,
-    @SerializedName("credentials") val credentials: String? = null
+    @SerializedName("credentials") val credentials: String? = null,
+    @SerializedName("pending") val pending: Boolean? = null
 )
 '@ | Set-Content (Join-Path $phoneBroadcast 'BroadcastDescriptorDto.kt') -Encoding utf8NoBOM
 
@@ -627,7 +628,8 @@ try {
 package com.sza.fastmediasorter.data.broadcast
 data class BroadcastDescriptorDto(
     @SerializedName("url") val url: String,
-    @SerializedName("auth") val auth: String? = null
+    @SerializedName("auth") val auth: String? = null,
+    @SerializedName("pending") val pending: Boolean? = null
 )
 '@ | Set-Content (Join-Path $sb.Phone 'data/broadcast/BroadcastDescriptorDto.kt') -Encoding utf8NoBOM
     $code = Invoke-GateOnSandbox $sb

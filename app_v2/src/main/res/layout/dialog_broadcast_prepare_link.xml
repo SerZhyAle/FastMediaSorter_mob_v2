@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S4247: prepares a broadcast link before the start; a scrolling dialog, so no landscape variant. -->
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="@dimen/dialog_padding_large"
+        android:paddingTop="@dimen/margin_small">
+
+        <TextView
+            android:id="@+id/tvPreparedNote"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:text="@string/broadcast_prepared_dialog_note"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSurfaceVariant" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/broadcast_prepared_mode_label"
+            android:textAppearance="?attr/textAppearanceTitleSmall"
+            android:textColor="?attr/colorOnSurface" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/groupPreparedMode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_small"
+            app:selectionRequired="true"
+            app:singleSelection="true">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipPreparedModeAudio"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:focusable="true"
+                android:text="@string/broadcast_entry_mode_audio_only" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipPreparedModeVideoAudio"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:focusable="true"
+                android:text="@string/broadcast_entry_mode_video_audio" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipPreparedModeVideo"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:focusable="true"
+                android:text="@string/broadcast_entry_mode_video_only" />
+        </com.google.android.material.chip.ChipGroup>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/broadcast_prepared_lifetime_label"
+            android:textAppearance="?attr/textAppearanceTitleSmall"
+            android:textColor="?attr/colorOnSurface" />
+
+        <TextView
+            android:id="@+id/tvPreparedLifetime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            tools:text="7 days" />
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/sliderPreparedLifetime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:stepSize="1"
+            android:value="7"
+            android:valueFrom="1"
+            android:valueTo="30" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/broadcast_link_password_title"
+            android:textAppearance="?attr/textAppearanceTitleSmall"
+            android:textColor="?attr/colorOnSurface" />
+
+        <RadioGroup
+            android:id="@+id/groupPreparedPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/radioPreparedPasswordAuto"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:minHeight="@dimen/touch_target_min_height"
+                android:nextFocusDown="@+id/radioPreparedPasswordCustom"
+                android:text="@string/broadcast_link_password_mode_auto" />
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/radioPreparedPasswordCustom"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="@dimen/touch_target_min_height"
+                android:nextFocusDown="@+id/radioPreparedPasswordNone"
+                android:text="@string/broadcast_link_password_mode_custom" />
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/radioPreparedPasswordNone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="@dimen/touch_target_min_height"
+                android:nextFocusDown="@+id/etPreparedGuests"
+                android:text="@string/broadcast_link_password_mode_none" />
+        </RadioGroup>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilPreparedPassword"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/broadcast_link_password_field_hint"
+            android:visibility="gone"
+            app:endIconContentDescription="@string/broadcast_link_password_show_cd"
+            app:endIconMode="password_toggle">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etPreparedPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:imeOptions="actionNext|flagNoExtractUi|flagNoPersonalizedLearning"
+                android:importantForAutofill="no"
+                android:inputType="textPassword"
+                android:singleLine="true" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:id="@+id/tvPreparedPasswordNoneNote"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/broadcast_link_password_none_note"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:visibility="gone" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilPreparedGuests"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:hint="@string/broadcast_prepared_guests_hint">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etPreparedGuests"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="top|start"
+                android:importantForAutofill="no"
+                android:inputType="textMultiLine|textNoSuggestions"
+                android:minLines="2"
+                android:nextFocusDown="@+id/btnPreparedCreate" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:gravity="end"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPreparedCancel"
+                style="@style/Widget.FastMediaSorter.Button.DialogCancel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/margin_small"
+                android:minHeight="@dimen/touch_target_min_height"
+                android:nextFocusRight="@+id/btnPreparedCreate"
+                android:text="@string/cancel" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPreparedCreate"
+                style="@style/Widget.FastMediaSorter.Button.DialogConfirm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minHeight="@dimen/touch_target_min_height"
+                android:nextFocusLeft="@id/btnPreparedCancel"
+                android:text="@string/broadcast_prepared_create" />
+        </LinearLayout>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.18 17:46</sub>
+<sub class="doc-stamp">26.10.29 05:03</sub>
 
 # Pointer - `UPDATE-MANIFEST`
 
 | | |
 | --- | --- |
 | **Id** | `UPDATE-MANIFEST` |
-| **Version** | 0.12, draft. Owner: sza.od.ua hub |
+| **Version** | 0.13, draft. Owner: sza.od.ua hub |
 | **Home** | `app-update-feed/README.md` in the shared contracts catalog |
 | **Role here** | declared consumer; no feed client ships here yet (section 1) |
 

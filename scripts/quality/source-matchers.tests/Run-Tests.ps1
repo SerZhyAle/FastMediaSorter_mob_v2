@@ -319,6 +319,75 @@ Assert-RuleCount -Rule 'main-thread-bitmap-decode' -Name 'decode outside any Com
     'private fun decodeFrame(file: File): Bitmap? = BitmapFactory.decodeFile(file.path)',
     'val scope = rememberCoroutineScope()')
 
+# S4456 - keystore-decrypt-caller-context. A file that decrypts a DataStore value is clean only when a
+# dispatcher hop (withContext or flowOn) appears in it; a comment that mentions the hop does not count.
+Assert-SourceRule -Name 'keystore-decrypt-caller-context' -ExpectedBaseline 'keystore-decrypt-caller-context-baseline.txt'
+
+Assert-RuleCount -Rule 'keystore-decrypt-caller-context' -Name 'a decrypt over the DataStore with no hop is a hit' `
+    -Expected 1 -Lines @(
+    'class PinStore(private val dataStore: DataStore<Preferences>) {',
+    '    suspend fun pin(): String? = dataStore.data.first()[KEY]?.let(CryptoHelper::decrypt)',
+    '}')
+
+Assert-RuleCount -Rule 'keystore-decrypt-caller-context' -Name 'a withContext hop makes the file clean' `
+    -Expected 0 -Lines @(
+    'suspend fun pin(): String? = withContext(ioDispatcher) {',
+    '    dataStore.data.first()[KEY]?.let(CryptoHelper::decrypt)',
+    '}')
+
+Assert-RuleCount -Rule 'keystore-decrypt-caller-context' -Name 'a flowOn hop makes the file clean' `
+    -Expected 0 -Lines @(
+    'val values = dataStore.data.map { it[KEY] }.map { it?.let(CryptoHelper::decrypt) }.flowOn(ioDispatcher)')
+
+Assert-RuleCount -Rule 'keystore-decrypt-caller-context' -Name 'a hop named only in a comment does not count' `
+    -Expected 1 -Lines @(
+    '// the caller used to hop with withContext( here',
+    'val pin = dataStore.data.first()[KEY]?.let(CryptoHelper.decrypt)')
+
+Assert-RuleCount -Rule 'keystore-decrypt-caller-context' -Name 'a decrypt with no DataStore read is clean' `
+    -Expected 0 -Lines @(
+    'val plain = CryptoHelper.decrypt(encryptedPassword)')
+
+Assert-RuleCount -Rule 'keystore-decrypt-caller-context' -Name 'a DataStore read with no decrypt is clean' `
+    -Expected 0 -Lines @(
+    'val grants = dataStore.data.map { decodeList(it[KEY_LIST]) }')
+
+# S4429 - test-unjoined-scope. A name-bound scope the file joins is the cure the FailMessage
+# advertises, so it must not be counted; everything else keeps counting.
+Assert-RuleCount -Rule 'test-unjoined-scope' -Name 'name-bound scope with a same-name join is exempt' `
+    -Expected 0 -Lines @(
+    'private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())',
+    '@After fun tearDown() { runBlocking { scope.coroutineContext.job.cancelAndJoin() } }')
+
+Assert-RuleCount -Rule 'test-unjoined-scope' -Name 'explicitly typed name-bound scope with a join is exempt' `
+    -Expected 0 -Lines @(
+    'private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO)',
+    '@After fun tearDown() { runBlocking { scope.coroutineContext.job.cancelAndJoin() } }')
+
+Assert-RuleCount -Rule 'test-unjoined-scope' -Name 'name-bound scope without a join still counts' `
+    -Expected 1 -Lines @(
+    'private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())')
+
+Assert-RuleCount -Rule 'test-unjoined-scope' -Name 'a bare cancel is not a join' `
+    -Expected 1 -Lines @(
+    'private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())',
+    '@After fun tearDown() { scope.cancel() }')
+
+Assert-RuleCount -Rule 'test-unjoined-scope' -Name 'a join of a different name does not exempt' `
+    -Expected 1 -Lines @(
+    'private val scope = CoroutineScope(Dispatchers.IO)',
+    '@After fun tearDown() { runBlocking { myscope.coroutineContext.job.cancelAndJoin() } }')
+
+Assert-RuleCount -Rule 'test-unjoined-scope' -Name 'an inline construction beside a joined scope still counts' `
+    -Expected 1 -Lines @(
+    'private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())',
+    'val gate = Gate(CoroutineScope(Dispatchers.Unconfined))',
+    '@After fun tearDown() { runBlocking { scope.coroutineContext.job.cancelAndJoin() } }')
+
+Assert-RuleCount -Rule 'test-unjoined-scope' -Name 'a scheduler-bound scope stays clean without a join' `
+    -Expected 0 -Lines @(
+    'private val scope = CoroutineScope(UnconfinedTestDispatcher() + SupervisorJob())')
+
 # End to end, because every case above calls CountInText directly and so proves nothing about
 # Roots, PathFilter or the exit code - the rule could be correct and still never reach scripts/.
 # The probe file is removed in a finally block: left behind it would turn every later closure red

@@ -1,4 +1,5 @@
 #requires -Version 7.0
+# Parallel: serial
 <#
 .SYNOPSIS
     Contract suite for scripts/devtest/lib/device-state-journal.ps1 (S3201).

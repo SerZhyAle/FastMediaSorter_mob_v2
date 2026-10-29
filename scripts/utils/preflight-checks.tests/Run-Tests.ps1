@@ -1,4 +1,5 @@
 #requires -Version 7.0
+# Parallel: serial
 <#
 .SYNOPSIS
     S2872 - contract tests for scripts/utils/preflight-checks.ps1.

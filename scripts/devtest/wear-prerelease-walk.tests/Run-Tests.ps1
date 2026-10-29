@@ -38,7 +38,8 @@ $shapeLib = Join-Path $repoRoot 'scripts/devtest/lib/clip-shape-outcome.ps1'
 $positionLib = Join-Path $repoRoot 'scripts/devtest/lib/wear-walk-position.ps1'
 $foreignLib = Join-Path $repoRoot 'scripts/devtest/lib/wear-foreign-window.ps1'
 $batteryLib = Join-Path $repoRoot 'scripts/devtest/lib/wear-battery.ps1'
-$walk = Join-Path $repoRoot 'scripts/devtest/wear-prerelease-walk.ps1'
+$packageLib = Join-Path $repoRoot 'scripts/devtest/lib/wear-walk-package.ps1'
+$walk =Join-Path $repoRoot 'scripts/devtest/wear-prerelease-walk.ps1'
 $fixtures = Join-Path $PSScriptRoot 'fixtures'
 
 if (-not (Test-Path -LiteralPath $lib)) {
@@ -70,6 +71,12 @@ if (-not (Test-Path -LiteralPath $batteryLib)) {
     exit 1
 }
 . $batteryLib
+
+if (-not (Test-Path -LiteralPath $packageLib)) {
+    Write-Host "FAIL | library not found: $packageLib" -ForegroundColor Red
+    exit 1
+}
+. $packageLib
 
 $script:passed = 0
 $script:failed = 0
@@ -616,9 +623,16 @@ Assert-Equal -Label 'a Samsung system window with a uid parses as the Samsung pa
     -Expected 'com.samsung.android.systemui' `
     -Actual (Get-TopWindowPackage (Read-Fixture 'window-foreign-with-uid.txt'))
 
-# S3181: a debug install's own window was read as foreign and three screens went `manual`.
-Assert-Equal -Label 'the debug install window is the app, not a foreign window' `
-    -Expected $true -Actual (Test-IsAppWindowPackage -Package 'com.sza.fastmediasorter.debug' -AppPackage 'com.sza.fastmediasorter')
+# S3181: a debug install's own window was read as foreign and three screens went `manual`. S4485 fixed
+# it at the root: the walk is handed the id it drives, so the comparison is exact.
+Assert-Equal -Label 'the debug install window is the app when the debug build is the one walked' `
+    -Expected $true -Actual (Test-IsAppWindowPackage -Package 'com.sza.fastmediasorter.debug' -AppPackage 'com.sza.fastmediasorter.debug')
+
+Assert-Equal -Label 'the debug install window is foreign when the release build is the one walked' `
+    -Expected $false -Actual (Test-IsAppWindowPackage -Package 'com.sza.fastmediasorter.debug' -AppPackage 'com.sza.fastmediasorter')
+
+Assert-Equal -Label 'the release install window is foreign when the debug build is the one walked' `
+    -Expected $false -Actual (Test-IsAppWindowPackage -Package 'com.sza.fastmediasorter' -AppPackage 'com.sza.fastmediasorter.debug')
 
 Assert-Equal -Label 'the release install window is the app' `
     -Expected $true -Actual (Test-IsAppWindowPackage -Package 'com.sza.fastmediasorter' -AppPackage 'com.sza.fastmediasorter')
@@ -811,7 +825,7 @@ param(
     [Parameter(Position = 0)][string]$Verb,
     [string]$Cmd, [string]$DeviceId, [string]$Label, [string]$ResourceId, [switch]$Exact,
     [string]$X, [string]$Y, [string]$X2, [string]$Y2, [string]$Duration,
-    [string]$Key, [string]$Repeat, [string]$OutDir, [string]$Module, [switch]$Release,
+    [string]$Key, [string]$Repeat, [string]$OutDir, [string]$Module, [switch]$Release, [string]$Package,
     [switch]$Json, [string]$Tail
 )
 # Same as adb.ps1: the walk decodes this process's stdout as UTF-8, and a translated label is the case.
@@ -823,6 +837,10 @@ $statePath = Join-Path $dir 'state.json'
 # and indexing a string answers a character.
 $stack = @(if (Test-Path -LiteralPath $statePath) { Get-Content -LiteralPath $statePath -Raw | ConvertFrom-Json } else { $scenario.start })
 Add-Content -LiteralPath (Join-Path $dir 'calls.log') -Value ("$Verb|$Label|$Cmd|$Key".TrimEnd('|')) -Encoding UTF8
+# The package a verb was pointed at, journalled apart so calls.log keeps the shape every older case reads.
+if ($Package) { Add-Content -LiteralPath (Join-Path $dir 'packages.log') -Value "$Verb|$Package" -Encoding UTF8 }
+# The package whose window is in front; the base id unless a case says another build is.
+$front = if ($scenario.PSObject.Properties['front']) { $scenario.front } else { 'com.sza.fastmediasorter' }
 function Save-Stack { param([object[]]$Stack) ConvertTo-Json -InputObject @($Stack) -Compress | Set-Content -LiteralPath $statePath -Encoding UTF8 }
 $screen = $scenario.screens.($stack[-1])
 switch ($Verb) {
@@ -830,12 +848,13 @@ switch ($Verb) {
         switch -Regex ($Cmd) {
             '^dumpsys power' { 'mWakefulness=Awake' }
             '^wm size' { 'Physical size: 384x384' }
+            '^pm list packages' { @($scenario.packages) | ForEach-Object { "package:$_" } }
             '^dumpsys package' { "versionName=$($scenario.versionName)" }
-            '^dumpsys window' { '  mCurrentFocus=Window{1 com.sza.fastmediasorter/com.sza.fastmediasorter.wear.MainActivity}' }
+            '^dumpsys window' { "  mCurrentFocus=Window{1 $front/com.sza.fastmediasorter.wear.MainActivity}" }
         }
         exit 0
     }
-    'current' { 'mResumedActivity: com.sza.fastmediasorter/.wear.MainActivity'; exit 0 }
+    'current' { "mResumedActivity: ActivityRecord{1 u0 $front/com.sza.fastmediasorter.wear.MainActivity t1}"; exit 0 }
     'uidump' { [pscustomobject]@{ ok = $true; data = [pscustomobject]@{ nodes = @($screen.nodes) } } | ConvertTo-Json -Depth 6 -Compress; exit 0 }
     'tap-label' {
         $target = $screen.taps.PSObject.Properties[$Label]
@@ -863,8 +882,15 @@ $fakeScreenList = [ordered]@{
 }
 
 function Invoke-FakeWalk {
-    # One walk against the fake watch. Returns its exit code, its JSON result and the verbs it sent.
-    param([Parameter(Mandatory)][hashtable]$Screens)
+    # One walk against the fake watch. Returns its exit code, its JSON result and the verbs it sent,
+    # plus the package each verb was pointed at. `-Packages` is what the watch reports installed and
+    # `-Front` the id whose window is in front; `-WalkArgs` are passed to the walk as the owner would.
+    param(
+        [Parameter(Mandatory)][hashtable]$Screens,
+        [string[]]$Packages = @('com.sza.fastmediasorter'),
+        [string]$Front = 'com.sza.fastmediasorter',
+        [string[]]$WalkArgs = @()
+    )
 
     $dir = Join-Path ([System.IO.Path]::GetTempPath()) ("s4210-walk-" + [guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Path $dir -Force | Out-Null
@@ -874,17 +900,18 @@ function Invoke-FakeWalk {
         Set-Content -LiteralPath $adb -Value $fakeAdb -Encoding UTF8
         $list = Join-Path $dir 'screens.json'
         $fakeScreenList | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $list -Encoding UTF8
-        [ordered]@{ start = 'home'; versionName = '2.61.0141.503-DEBUG'; screens = $Screens } |
+        [ordered]@{ start = 'home'; versionName = '2.61.0141.503-DEBUG'; packages = @($Packages); front = $Front; screens = $Screens } |
             ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $dir 'scenario.json') -Encoding UTF8
 
         $env:FAKE_ADB_DIR = $dir
         $out = & pwsh -NoProfile -File $walk -AdbWrapper $adb -ScreenList $list -OutDir (Join-Path $dir 'out') `
-            -SettleMs 0 -MinBatteryPct 0 -SkipLogAudit -SkipShapeCheck -Json 2>&1
+            -SettleMs 0 -MinBatteryPct 0 -SkipLogAudit -SkipShapeCheck -Json @WalkArgs 2>&1
         $exit = $LASTEXITCODE
         $parsed = $null
         try { $parsed = ($out | Where-Object { "$_" -match '^\s*\{' } | Select-Object -Last 1) | ConvertFrom-Json } catch { $parsed = $null }
         $calls = @(Get-Content -LiteralPath (Join-Path $dir 'calls.log') -ErrorAction SilentlyContinue)
-        return [pscustomobject]@{ Exit = $exit; Result = $parsed; Calls = $calls }
+        $packageCalls = @(Get-Content -LiteralPath (Join-Path $dir 'packages.log') -ErrorAction SilentlyContinue)
+        return [pscustomobject]@{ Exit = $exit; Result = $parsed; Calls = $calls; PackageCalls = $packageCalls }
     }
     finally {
         $env:FAKE_ADB_DIR = $previousDir
@@ -989,6 +1016,164 @@ $phoneBoundUnreachableVerdict = Invoke-VerdictOnScreens @(
 
 Assert-Equal -Label 'verdict: an unreachable screen beside phoneBound still fails' `
     -Expected 'False/False' -Actual "$([bool]$phoneBoundUnreachableVerdict.pass)/$([bool]$phoneBoundUnreachableVerdict.blocked)"
+
+# --- S4485: the walk names the package it drives -----------------------------------------------------
+# Found 2026-10-28 on a Galaxy Watch 7 carrying the store build and the debug build: a walk started right
+# after the debug install drove the store build, so its verdict described the wrong artifact.
+
+$releaseId = 'com.sza.fastmediasorter'
+$debugId = 'com.sza.fastmediasorter.debug'
+$pmBoth = "package:$releaseId`npackage:$debugId"
+
+function Format-Choice {
+    param($Choice)
+    return "$($Choice.Package)/$($Choice.ChosenBy)"
+}
+
+$both = Select-WearWalkPackage -PmListOutput $pmBoth
+Assert-Equal -Label 'package: both builds installed and none named is a refusal, never a guess' `
+    -Expected '/' -Actual (Format-Choice $both)
+
+Assert-Equal -Label 'package: the refusal names both ids and both ways out' `
+    -Expected $true -Actual ([bool]($both.Error -match "both $releaseId and $debugId" -and $both.Error -match '-Package' -and $both.Error -match '-DebugBuild'))
+
+Assert-Equal -Label 'package: the refusal still reports what is installed, release first' `
+    -Expected "$releaseId,$debugId" -Actual (@($both.Installed) -join ',')
+
+Assert-Equal -Label 'package: -DebugBuild picks the debug id among two installed builds' `
+    -Expected "$debugId/debugBuild" -Actual (Format-Choice (Select-WearWalkPackage -PmListOutput $pmBoth -DebugBuild))
+
+Assert-Equal -Label 'package: -Package picks the release id among two installed builds' `
+    -Expected "$releaseId/package" -Actual (Format-Choice (Select-WearWalkPackage -PmListOutput $pmBoth -Requested $releaseId))
+
+Assert-Equal -Label 'package: -Package picks the debug id among two installed builds' `
+    -Expected "$debugId/package" -Actual (Format-Choice (Select-WearWalkPackage -PmListOutput $pmBoth -Requested $debugId))
+
+Assert-Equal -Label 'package: the only installed build is walked without a flag - debug' `
+    -Expected "$debugId/only-installed" -Actual (Format-Choice (Select-WearWalkPackage -PmListOutput "package:$debugId"))
+
+Assert-Equal -Label 'package: the only installed build is walked without a flag - release' `
+    -Expected "$releaseId/only-installed" -Actual (Format-Choice (Select-WearWalkPackage -PmListOutput "package:$releaseId"))
+
+Assert-Equal -Label 'package: a watch with neither build is a refusal' `
+    -Expected '/' -Actual (Format-Choice (Select-WearWalkPackage -PmListOutput ''))
+
+Assert-Equal -Label 'package: an unread capture is a refusal, never the release id by default' `
+    -Expected '/' -Actual (Format-Choice (Select-WearWalkPackage -PmListOutput $null))
+
+Assert-Equal -Label 'package: asking for the debug build when only the release is installed is a refusal' `
+    -Expected '/' -Actual (Format-Choice (Select-WearWalkPackage -PmListOutput "package:$releaseId" -DebugBuild))
+
+Assert-Equal -Label 'package: the refusal for an absent build names it' `
+    -Expected $true -Actual ([bool]((Select-WearWalkPackage -PmListOutput "package:$releaseId" -DebugBuild).Error -match [regex]::Escape("$debugId, is not installed")))
+
+Assert-Equal -Label 'package: -Package together with -DebugBuild is a refusal' `
+    -Expected '/' -Actual (Format-Choice (Select-WearWalkPackage -PmListOutput $pmBoth -Requested $releaseId -DebugBuild))
+
+Assert-Equal -Label 'package: an id of another application is refused' `
+    -Expected '/' -Actual (Format-Choice (Select-WearWalkPackage -PmListOutput $pmBoth -Requested 'com.example.other'))
+
+# pm list packages filters by substring: a leftover androidTest neighbour is not the debug build.
+Assert-Equal -Label 'package: a leftover test neighbour is not a debug install' `
+    -Expected "$releaseId/only-installed" `
+    -Actual (Format-Choice (Select-WearWalkPackage -PmListOutput "package:$releaseId`npackage:$debugId.test"))
+
+$releaseFront = 'mResumedActivity: ActivityRecord{1 u0 com.sza.fastmediasorter/.wear.MainActivity t1}'
+$debugFront = 'topResumedActivity=ActivityRecord{2 u0 com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.MainActivity t2}'
+$debugFocus = 'mCurrentFocus=Window{abc u0 com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.MainActivity}'
+
+Assert-Equal -Label 'in front: the release build in front is the release walk' `
+    -Expected $true -Actual (Test-WearWalkAppInFront -CurrentOutput $releaseFront -Package $releaseId)
+
+Assert-Equal -Label 'in front: the debug build in front is NOT the release walk - the substring read it as one' `
+    -Expected $false -Actual (Test-WearWalkAppInFront -CurrentOutput $debugFront -Package $releaseId)
+
+Assert-Equal -Label 'in front: the debug build in front is the debug walk' `
+    -Expected $true -Actual (Test-WearWalkAppInFront -CurrentOutput $debugFront -Package $debugId)
+
+Assert-Equal -Label 'in front: the release build in front is NOT the debug walk' `
+    -Expected $false -Actual (Test-WearWalkAppInFront -CurrentOutput $releaseFront -Package $debugId)
+
+Assert-Equal -Label 'in front: the focus-window form is read the same way - debug walk' `
+    -Expected $true -Actual (Test-WearWalkAppInFront -CurrentOutput $debugFocus -Package $debugId)
+
+Assert-Equal -Label 'in front: the focus-window form is read the same way - release walk' `
+    -Expected $false -Actual (Test-WearWalkAppInFront -CurrentOutput $debugFocus -Package $releaseId)
+
+Assert-Equal -Label 'in front: an unknown current activity is not in front' `
+    -Expected $false -Actual (Test-WearWalkAppInFront -CurrentOutput '(unknown)' -Package $releaseId)
+
+Assert-Equal -Label 'in front: an unread current activity is not in front' `
+    -Expected $false -Actual (Test-WearWalkAppInFront -CurrentOutput $null -Package $releaseId)
+
+Assert-Equal -Label 'the walk no longer points the wrapper at -Release' `
+    -Expected $false -Actual ($walkText -match "'-Release'")
+
+# End to end against the fake watch.
+$packageScreens = @{
+    home = @{ nodes = @(@{ label = 'Local' }, @{ label = 'Programs' }, @{ label = $russianHint }); taps = @{ Programs = 'apps' } }
+    apps = @{ nodes = @(@{ label = 'Calculator' }); taps = @{} }
+}
+
+$refused = Invoke-FakeWalk -Screens $packageScreens -Packages @($releaseId, $debugId)
+Assert-Equal -Label 'e2e: two builds installed and none named - the walk exits 2' `
+    -Expected 2 -Actual $refused.Exit
+
+Assert-Equal -Label 'e2e: the refusal reason names the choice it could not make' `
+    -Expected $true -Actual ([bool]($refused.Result -and "$($refused.Result.reason)" -match 'will not guess'))
+
+Assert-Equal -Label 'e2e: the refusal records both installed ids and walks nothing' `
+    -Expected '2/' -Actual "$(@($refused.Result.installedPackages).Count)/$($refused.Result.package)"
+
+Assert-Equal -Label 'e2e: the refusal touches nothing on the watch - no journal, no dump, no tap, no launch' `
+    -Expected 0 -Actual @($refused.Calls | Where-Object { $_ -match '^(state-begin|uidump|tap-label|tap-id|launch|stop|key)' }).Count
+
+$debugWalk = Invoke-FakeWalk -Screens $packageScreens -Packages @($releaseId, $debugId) -Front $debugId -WalkArgs @('-DebugBuild')
+Assert-Equal -Label 'e2e: -DebugBuild walks the debug build and exits 0' -Expected 0 -Actual $debugWalk.Exit
+
+Assert-Equal -Label 'e2e: walk.json names the package, how it was chosen and what else was installed' `
+    -Expected "$debugId/debugBuild/2" `
+    -Actual "$($debugWalk.Result.package)/$($debugWalk.Result.packageChosenBy)/$(@($debugWalk.Result.installedPackages).Count)"
+
+Assert-Equal -Label 'e2e: the version is read from the debug package, not the store build' `
+    -Expected 1 -Actual @($debugWalk.Calls | Where-Object { $_ -eq "shell||dumpsys package $debugId" }).Count
+
+Assert-Equal -Label 'e2e: the version is never read from the release package' `
+    -Expected 0 -Actual @($debugWalk.Calls | Where-Object { $_ -eq "shell||dumpsys package $releaseId" }).Count
+
+Assert-Equal -Label 'e2e: the state journal is opened on the debug package' `
+    -Expected 1 -Actual @($debugWalk.PackageCalls | Where-Object { $_ -eq "state-begin|$debugId" }).Count
+
+Assert-Equal -Label 'e2e: no verb is ever pointed at the release package in a debug walk' `
+    -Expected 0 -Actual @($debugWalk.PackageCalls | Where-Object { $_ -match "\|$([regex]::Escape($releaseId))$" }).Count
+
+$releaseWalk = Invoke-FakeWalk -Screens $packageScreens -Packages @($releaseId, $debugId) -Front $releaseId -WalkArgs @('-Package', $releaseId)
+Assert-Equal -Label 'e2e: -Package <release id> walks the release build among two' `
+    -Expected "0/$releaseId/package" -Actual "$($releaseWalk.Exit)/$($releaseWalk.Result.package)/$($releaseWalk.Result.packageChosenBy)"
+
+Assert-Equal -Label 'e2e: and the journal follows it' `
+    -Expected 1 -Actual @($releaseWalk.PackageCalls | Where-Object { $_ -eq "state-begin|$releaseId" }).Count
+
+$onlyDebug = Invoke-FakeWalk -Screens $packageScreens -Packages @($debugId) -Front $debugId
+Assert-Equal -Label 'e2e: a watch with only the debug build is walked without any flag' `
+    -Expected "0/$debugId/only-installed" -Actual "$($onlyDebug.Exit)/$($onlyDebug.Result.package)/$($onlyDebug.Result.packageChosenBy)"
+
+$neither = Invoke-FakeWalk -Screens $packageScreens -Packages @()
+Assert-Equal -Label 'e2e: a watch with no FastMediaSorter package exits 2' -Expected 2 -Actual $neither.Exit
+
+$absent = Invoke-FakeWalk -Screens $packageScreens -Packages @($releaseId) -WalkArgs @('-DebugBuild')
+Assert-Equal -Label 'e2e: -DebugBuild with no debug build installed exits 2' -Expected 2 -Actual $absent.Exit
+
+$conflict = Invoke-FakeWalk -Screens $packageScreens -Packages @($releaseId, $debugId) -WalkArgs @('-DebugBuild', '-Package', $releaseId)
+Assert-Equal -Label 'e2e: -DebugBuild together with -Package exits 2' -Expected 2 -Actual $conflict.Exit
+
+# The wrong artifact in front: the relaunch goes to the id being walked, never to the other build.
+$wrongFront = Invoke-FakeWalk -Screens $packageScreens -Packages @($releaseId, $debugId) -Front $releaseId -WalkArgs @('-DebugBuild')
+Assert-Equal -Label 'e2e: the store build in front of a debug walk is relaunched as the debug build' `
+    -Expected $true -Actual (@($wrongFront.PackageCalls | Where-Object { $_ -eq "launch|$debugId" }).Count -ge 1)
+
+Assert-Equal -Label 'e2e: and the store build is never relaunched or stopped' `
+    -Expected 0 -Actual @($wrongFront.PackageCalls | Where-Object { $_ -match "^(launch|stop)\|$([regex]::Escape($releaseId))$" }).Count
 
 Write-Host ""
 Write-Host "wear-prerelease-walk.tests: $(if ($script:failed -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:passed + $script:failed) skipped=0)"

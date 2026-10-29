@@ -17,7 +17,9 @@
     at least one of their English values, so a UI rename surfaces here instead of in a page that no
     longer matches the screen. Edition names come from docs/flavors/flavor-matrix.json, never from
     a list written here. A forbidden synonym may not equal another record's canonical name, and no
-    canonical name or definition may contain a forbidden synonym.
+    canonical name or definition may contain a forbidden synonym. The optional former_ids list holds
+    the ids a record carried before a rename or merge, so the glossary can keep their anchors (a
+    released page never loses one); an entry must be kebab-case and may not be a live record id.
 
     SCAN HALF. Every corpus page is judged for forbidden synonyms in prose only: fenced blocks,
     backtick spans, link and image targets, page:/term: targets, bare URLs, HTML comments and HTML
@@ -153,8 +155,10 @@ catch {
 if ($knownFlavors.Count -eq 0) { Exit-CannotVerify 'flavor matrix declares no flavors: docs/flavors/flavor-matrix.json' }
 
 $allowedFields = @('id', 'canonical_en', 'category', 'definition_en', 'disambiguation_en', 'forbidden_synonyms_en',
-    'ui_strings', 'locales', 'flavors', 'platforms', 'related_terms', 'reference_visual')
-$requiredFields = $allowedFields | Where-Object { $_ -ne 'reference_visual' }
+    'ui_strings', 'locales', 'flavors', 'platforms', 'related_terms', 'reference_visual', 'former_ids')
+# former_ids: ids a record carried before a rename or merge. The glossary keeps their anchors, because a
+# released page may never lose one (assert-released-addresses.ps1).
+$requiredFields = $allowedFields | Where-Object { $_ -notin @('reference_visual', 'former_ids') }
 $categories = @('entity', 'navigation_surface', 'ui_component', 'distribution_edition', 'hardware_platform', 'network_stream')
 $platforms = @('phone', 'wear', 'vr')
 
@@ -218,7 +222,7 @@ foreach ($rec in $records) {
     foreach ($key in 'definition_en', 'disambiguation_en') {
         if ($d.Contains($key) -and -not (Test-IsText $d[$key])) { Add-SchemaFinding $ln "$key must be a non-empty string" }
     }
-    foreach ($key in 'forbidden_synonyms_en', 'ui_strings', 'related_terms') {
+    foreach ($key in 'forbidden_synonyms_en', 'ui_strings', 'related_terms', 'former_ids') {
         if (-not $d.Contains($key)) { continue }
         $value = $d[$key]
         if (-not (Test-IsList $value)) { Add-SchemaFinding $ln "$key must be an array"; continue }
@@ -343,6 +347,15 @@ foreach ($rec in $records) {
     foreach ($rt in $d['related_terms']) {
         if ($rt -ceq $d['id']) { Add-SchemaFinding $rec.Line "related_terms names the record itself ('$rt')" }
         elseif (-not $byId.ContainsKey($rt)) { Add-SchemaFinding $rec.Line "related_terms names unknown id '$rt'" }
+    }
+}
+
+foreach ($rec in $records) {
+    $d = $rec.Data
+    if (-not $d.Contains('former_ids') -or -not (Test-IsStringList $d['former_ids'])) { continue }
+    foreach ($fid in $d['former_ids']) {
+        if ($fid -cnotmatch '^[a-z0-9]+(-[a-z0-9]+)*$') { Add-SchemaFinding $rec.Line "former_ids holds '$fid', which is not a kebab-case id" }
+        elseif ($byId.ContainsKey($fid)) { Add-SchemaFinding $rec.Line "former_ids names '$fid', which is a live record id" }
     }
 }
 

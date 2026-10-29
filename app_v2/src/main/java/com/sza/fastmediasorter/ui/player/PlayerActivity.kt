@@ -52,6 +52,7 @@ import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
 import com.sza.fastmediasorter.ui.player.helpers.DocumentSelectionActionModeAugmentingCallback
 import com.sza.fastmediasorter.ui.player.helpers.DocumentSelectionActionModeCallback
 import com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews
+import com.sza.fastmediasorter.ui.player.helpers.PlayerBroadcastEndManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerDialogAndUiStateManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerDisplayMode
 import com.sza.fastmediasorter.ui.player.helpers.PlayerFpsMeter
@@ -403,6 +404,9 @@ class PlayerActivity :
 
     @Inject lateinit var xrDetectionFacade: XrDetectionFacade
 
+    // S4444: a broadcast row's stop - ended, reconnect or lost connection (LIVE-BROADCAST item T).
+    @Inject internal lateinit var broadcastEnd: PlayerBroadcastEndManager
+
     @Inject lateinit var castControllerFactory: com.sza.fastmediasorter.core.cast.CastControllerFactory
 
     @Inject lateinit var activeCastControllerHolder: com.sza.fastmediasorter.core.cast.ActiveCastControllerHolder
@@ -546,6 +550,7 @@ class PlayerActivity :
             ?: intent.getStringExtra(EXTRA_WINDOW_ID)
             ?: ResumeStateRepository.WINDOW_ID_MAIN
         super.onCreate(savedInstanceState)
+        broadcastEnd.bind(this)
         lifecycleManager = com.sza.fastmediasorter.ui.player.helpers.PlayerLifecycleManager(
             activity = this,
             viewModel = viewModel,

@@ -50,6 +50,12 @@ interface SftpServerRepository {
      */
     suspend fun withdrawExchangePublication(): Boolean
 
+    /**
+     * Unpublishes the share only (item DT): a live broadcast stays announced on the same control stream. True when
+     * the server was told, false when the switch-off ended on this device only; never retried.
+     */
+    suspend fun unpublishExchangeFolder(): Boolean
+
     /** Re-registers with the current exchange settings while the server runs; nothing otherwise. */
     fun applyExchangeSettings()
 

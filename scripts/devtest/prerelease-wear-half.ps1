@@ -164,6 +164,16 @@ if ($gateCodes['content-gates'] -ne 0 -or $gateCodes['release-probes'] -ne 0) {
 $small = $shapes[0]
 $large = $shapes[1]
 
+# A walk that stops early writes no walk.json, and the verdict stage would then read the previous
+# run's file and print a fresh PASS over a shape nobody walked (release 47, small-round: the walk
+# refused on two installed packages and the verdict judged the 2026-10-21 walk). Without the old
+# files a failed walk leaves the verdict at "walk results not found", exit 2.
+foreach ($s in $shapes) {
+    foreach ($stale in 'walk.json', 'wear_session.log', 'verdict.json') {
+        Remove-Item -LiteralPath (Join-Path $s.Out $stale) -Force -ErrorAction SilentlyContinue
+    }
+}
+
 function New-ShapeTail {
     param($Shape, [string]$Requires)
     $verdictFile = Join-Path $Shape.Out 'verdict.json'

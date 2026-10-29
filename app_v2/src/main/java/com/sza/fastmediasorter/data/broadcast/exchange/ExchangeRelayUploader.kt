@@ -19,8 +19,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
 import java.io.Closeable
 import java.io.IOException
@@ -37,7 +40,7 @@ import javax.inject.Singleton
  * the first keyframe.
  *
  * [accepted] names the broadcast whose upload the server accepted, so the descriptor lists `RELAY` only while an
- * upload actually runs; a dropped upload is retried until [stop].
+ * upload actually runs; a dropped upload is retried until [stop] or [finish].
  */
 @Singleton
 class ExchangeRelayUploader @Inject constructor(
@@ -58,6 +61,7 @@ class ExchangeRelayUploader @Inject constructor(
         private val lock = Any()
         private val streams = mutableSetOf<Closeable>()
         private var stopped = false
+        private var finishing = false
 
         fun registerOrClose(stream: Closeable): Boolean = synchronized(lock) {
             if (stopped) {
@@ -82,6 +86,16 @@ class ExchangeRelayUploader @Inject constructor(
 
         val isStopped: Boolean
             get() = synchronized(lock) { stopped }
+
+        /** Set by [finish]: the upload leaves at the next chunk boundary and ends with the zero-length chunk. */
+        val isFinishing: Boolean
+            get() = synchronized(lock) { finishing }
+
+        fun beginFinish() = synchronized(lock) { finishing = true }
+
+        /** Neither stopped nor finishing: the upload keeps sending and reconnects a dropped stream. */
+        val isRunning: Boolean
+            get() = synchronized(lock) { !stopped && !finishing }
     }
 
     /** Uploads the ADTS stream served at [sourceUrl] as broadcast [broadcastId] through [entry]. */
@@ -104,6 +118,19 @@ class ExchangeRelayUploader @Inject constructor(
 
     @Synchronized
     fun stop() = stopLocked()
+
+    /**
+     * Ends the upload cleanly (contract DEVICE-EXCHANGE item DX): the zero-length chunk of 7.6 goes out at the next
+     * chunk boundary, before the data stream closes. Waits at most [timeoutMs] for it, then stops as [stop] does.
+     */
+    fun finish(timeoutMs: Long) {
+        val running = synchronized(this) {
+            activeGeneration?.beginFinish()
+            job
+        }
+        running?.let { upload -> runBlocking { withTimeoutOrNull(timeoutMs) { upload.join() } } }
+        stop()
+    }
 
     private fun stopLocked() {
         job?.cancel()
@@ -136,7 +163,7 @@ class ExchangeRelayUploader @Inject constructor(
         var backoffMs = INITIAL_BACKOFF_MS
         var refused = false
         try {
-            while (currentCoroutineContext().isActive && !refused && !generation.isStopped) {
+            while (currentCoroutineContext().isActive && !refused && generation.isRunning) {
                 try {
                     refused = !upload(generation, entry, source)
                     backoffMs = INITIAL_BACKOFF_MS
@@ -145,7 +172,7 @@ class ExchangeRelayUploader @Inject constructor(
                 } finally {
                     clearAccepted(generation)
                 }
-                if (refused || !currentCoroutineContext().isActive || generation.isStopped) break
+                if (refused || !currentCoroutineContext().isActive || !generation.isRunning) break
                 delay(backoffMs)
                 backoffMs = (backoffMs * 2).coerceAtMost(MAX_BACKOFF_MS)
             }
@@ -194,7 +221,7 @@ class ExchangeRelayUploader @Inject constructor(
                     val writer = ExchangeRelayChunkWriter(session.connection.output, headerChunk, sealer)
                     when (source) {
                         is Source.Adts -> forward(generation, source.url, writer)
-                        is Source.Ts -> pump(source.feed, writer)
+                        is Source.Ts -> pump(generation, source.feed, writer)
                     }
                     writer.end()
                 }
@@ -232,7 +259,7 @@ class ExchangeRelayUploader @Inject constructor(
                 val batch = mutableListOf<ByteArray>()
                 val buffer = ByteArray(READ_BUFFER_BYTES)
                 var read = input.read(buffer)
-                while (read >= 0 && !generation.isStopped) {
+                while (read >= 0 && generation.isRunning) {
                     batch += splitter.feed(buffer, read)
                     if (batch.size >= FRAMES_PER_CHUNK) {
                         writer.write(batch.flatten(), joinable = true)
@@ -271,10 +298,11 @@ class ExchangeRelayUploader @Inject constructor(
             authorization?.let { setRequestProperty(BroadcastDigest.HEADER_AUTHORIZATION, it) }
         }
 
-    // Runs until the job is cancelled; a write to a dropped stream throws and the caller reconnects.
-    private suspend fun pump(feed: ExchangeVideoRelayFeed, writer: ExchangeRelayChunkWriter) {
+    // Runs until the job is cancelled or the upload finishes; a write to a dropped stream throws and the caller
+    // reconnects.
+    private suspend fun pump(generation: Generation, feed: ExchangeVideoRelayFeed, writer: ExchangeRelayChunkWriter) {
         var joined = false
-        feed.chunks.collect { chunk ->
+        feed.chunks.takeWhile { !generation.isFinishing }.collect { chunk ->
             val room = ExchangeRelayChunkWriter.MAX_CHUNK_LENGTH - ExchangeRelaySealer.RECORD_OVERHEAD
             val fits = chunk.payload.size < room
             // A skipped chunk would leave the listeners mid-picture, so the upload waits for the next keyframe.

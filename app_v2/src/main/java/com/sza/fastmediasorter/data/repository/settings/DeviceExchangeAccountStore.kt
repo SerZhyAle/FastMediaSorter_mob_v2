@@ -12,6 +12,7 @@ import com.google.gson.JsonSyntaxException
 import com.sza.fastmediasorter.core.security.PrivateDiagnosticValues
 import com.sza.fastmediasorter.data.remote.exchange.ExchangePinRecorder
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
+import com.sza.fastmediasorter.domain.model.DeviceExchangeOutgoingRule
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -95,10 +96,13 @@ class DeviceExchangeAccountStore @Inject constructor(
 
     suspend fun remove(identity: String) = mutate { current -> current.filterNot { it.identity == identity } }
 
-    /** The entry the device publishes and broadcasts through (item AC), or null while none is chosen. */
+    /** The entry the device publishes and broadcasts through (item AC); null only while no entry may produce (DS). */
     suspend fun outgoing(): DeviceExchangeAccountEntry? = snapshot().firstOrNull { it.outgoing }
 
-    /** Moves the outgoing flag to the entry of [identity] in one edit; null clears it from every entry. */
+    /**
+     * Moves the outgoing flag to the entry of [identity] in one edit. Null clears it only while no entry may produce:
+     * otherwise item DS gives it straight to the first producing entry.
+     */
     suspend fun setOutgoing(identity: String?) = mutate { current ->
         current.map { held -> held.copy(outgoing = held.identity == identity) }
     }
@@ -122,19 +126,22 @@ class DeviceExchangeAccountStore @Inject constructor(
 
     private suspend fun mutate(change: (List<DeviceExchangeAccountEntry>) -> List<DeviceExchangeAccountEntry>) {
         dataStore.edit { preferences ->
-            val updated = change(decode(preferences[keyEntries]))
+            // Item DS: enrollment, removal, a guest demotion through update() and a restore all keep an outgoing entry.
+            val updated = DeviceExchangeOutgoingRule.normalize(change(decode(preferences[keyEntries])))
             if (updated.isEmpty()) preferences.remove(keyEntries) else preferences[keyEntries] = encode(updated)
         }
     }
 
-    // A list written with the flag on two entries keeps it on the first only: one device, one outgoing entry.
+    // A list written with the flag on two entries keeps it on the first only: one device, one outgoing entry. A list
+    // an older build wrote with no outgoing entry reads with one at once (item DS); the next write persists it.
     private fun decode(stored: String?): List<DeviceExchangeAccountEntry> {
         val array = stored?.takeIf(String::isNotEmpty)?.let(::parseArray) ?: return emptyList()
         val decoded = array.mapNotNull { element ->
             element.takeIf(JsonElement::isJsonObject)?.asJsonObject?.let(::entryOf)
         }
         val first = decoded.indexOfFirst { it.outgoing }
-        return decoded.mapIndexed { i, entry -> entry.copy(outgoing = i == first) }
+        val oneFlag = decoded.mapIndexed { i, entry -> entry.copy(outgoing = i == first) }
+        return DeviceExchangeOutgoingRule.normalize(oneFlag)
     }
 
     private fun parseArray(stored: String): JsonArray? = try {

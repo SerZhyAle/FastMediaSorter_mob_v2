@@ -1,4 +1,5 @@
 #requires -Version 7.0
+# Parallel: serial
 <#
 .SYNOPSIS
     Contract tests for scripts/devtest/lib/device-store-paths.ps1 (S3036).

@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.transfer.drive
 
 import com.sza.fastmediasorter.domain.model.transfer.CrossDeviceQueueSnapshot
+import com.sza.fastmediasorter.domain.model.transfer.DriveConsentRequired
 import com.sza.fastmediasorter.domain.model.transfer.DriveSignInRequired
 import com.sza.fastmediasorter.domain.model.transfer.DriveTemporarilyUnavailable
 import com.sza.fastmediasorter.domain.transfer.DriveChannelSettings
@@ -102,6 +103,19 @@ class DriveChannelPollCoordinatorTest {
 
         coVerify(exactly = 1) { cycle.run() }
         assertEquals(DrivePollState.SignInRequired, coordinator.pollState.value)
+    }
+
+    @Test
+    fun `a missing app folder grant stops the loop`() = runTest {
+        coEvery { cycle.run() } returns Result.failure(DriveConsentRequired())
+        val coordinator = DriveChannelPollCoordinator(cycle, settings, { flowOf(true) }, backgroundScope)
+
+        coordinator.start()
+        runCurrent()
+        advanceTimeBy(TWENTY_FIVE_SECONDS)
+
+        coVerify(exactly = 1) { cycle.run() }
+        assertEquals(DrivePollState.ConsentRequired, coordinator.pollState.value)
     }
 
     private companion object {

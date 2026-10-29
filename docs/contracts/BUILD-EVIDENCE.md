@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.02 20:46</sub>
+<sub class="doc-stamp">26.10.29 05:03</sub>
 
 # Pointer - `BUILD-EVIDENCE`
 
 | | |
 | --- | --- |
 | **Id** | `BUILD-EVIDENCE` |
-| **Version** | 0.10, draft. Owner: this product |
+| **Version** | 0.11, draft. Owner: this product |
 | **Home** | `automated-checks/README.md` section 5, in the shared contracts catalog |
 | **Role here** | owner |
 

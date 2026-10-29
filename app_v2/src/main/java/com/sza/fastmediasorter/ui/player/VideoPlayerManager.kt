@@ -37,6 +37,7 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.models.TranslationFontFamily
 import com.sza.fastmediasorter.domain.models.TranslationFontSize
+import com.sza.fastmediasorter.domain.player.BroadcastStopSignal
 import com.sza.fastmediasorter.domain.player.StreamProtocolSupport
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
@@ -134,6 +135,9 @@ class VideoPlayerManager(
         fun onBuffering(isBuffering: Boolean)
         fun onPlaybackStateChanged(isPlaying: Boolean)
         fun onPlaybackEnded()
+
+        /** S4444: a broadcast row's stream stopped with [signal]; the host decides between ended and reconnect. */
+        fun onBroadcastStreamStopped(path: String, signal: BroadcastStopSignal) = Unit
         fun onAudioFormatChanged(format: AudioFormat?)
         fun showError(message: String)
         fun showFileNotFound(fileName: String)

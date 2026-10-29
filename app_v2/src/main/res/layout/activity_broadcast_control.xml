@@ -32,6 +32,24 @@
             android:textColor="?attr/colorOnSurfaceVariant"
             tools:text="0 listeners" />
 
+        <!-- S4419 item DU: where the live broadcast stands on the exchange server; focusable and clickable are
+             turned on by code only for the states a tap can act on. -->
+        <TextView
+            android:id="@+id/tvExchangeServerStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_normal"
+            android:clickable="false"
+            android:focusable="false"
+            android:gravity="center"
+            android:minHeight="@dimen/touch_target_min_height"
+            android:nextFocusDown="@id/rowBroadcastMode"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:visibility="gone"
+            tools:text="Exchange server exchange.example.org:8443: the broadcast is on the server"
+            tools:visibility="visible" />
+
         <TextView
             android:id="@+id/tvFeedbackWarning"
             android:layout_width="match_parent"
@@ -51,37 +69,48 @@
             android:background="@android:color/black"
             android:layout_marginBottom="@dimen/margin_normal" />
 
-        <!-- MODE & CAMERA SELECTION: S4336 the owner moved both choices to a list - one dropdown row
-             each, the option list lives in code (mode) or in the lens enumeration (camera). -->
-        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-            android:id="@+id/rowBroadcastMode"
+        <!-- S4486: one value column for the entry rows and the card. The mode and lens rows stay outside the
+             card because the card is hidden while on air and the two stay usable for a live switch; the spanning
+             group is what lets their values start at the x the card's rows use. -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsValueRowGroup
+            android:id="@+id/groupBroadcastEntry"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/margin_small"
-            app:sdr_title="@string/broadcast_entry_mode_label"
-            app:sdr_valueAsText="true" />
+            app:svrg_spanDescendants="true">
 
-        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-            android:id="@+id/rowLensSelection"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/margin_small"
-            android:visibility="gone"
-            app:sdr_title="@string/broadcast_entry_lens_label"
-            app:sdr_valueAsText="true" />
+            <!-- MODE & CAMERA SELECTION: S4336 the owner moved both choices to a list - one dropdown row
+                 each, the option list lives in code (mode) or in the lens enumeration (camera). -->
+            <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                android:id="@+id/rowBroadcastMode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                app:sdr_title="@string/broadcast_entry_mode_label"
+                app:sdr_valueAsText="true" />
 
-        <!-- BROADCAST SETTINGS CARD -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardBroadcastSettings"
-            style="?attr/materialCardViewOutlinedStyle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/margin_normal">
+            <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                android:id="@+id/rowLensSelection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                android:visibility="gone"
+                app:sdr_title="@string/broadcast_entry_lens_label"
+                app:sdr_valueAsText="true" />
 
-            <include
-                android:id="@+id/layoutBroadcastSettings"
-                layout="@layout/fragment_settings_broadcast" />
-        </com.google.android.material.card.MaterialCardView>
+            <!-- BROADCAST SETTINGS CARD -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardBroadcastSettings"
+                style="?attr/materialCardViewOutlinedStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_normal">
+
+                <include
+                    android:id="@+id/layoutBroadcastSettings"
+                    layout="@layout/fragment_settings_broadcast" />
+            </com.google.android.material.card.MaterialCardView>
+
+        </com.sza.fastmediasorter.ui.common.widget.SettingsValueRowGroup>
 
         <!-- START BROADCAST ACTION (IDLE STATE) -->
         <com.google.android.material.button.MaterialButton
@@ -96,6 +125,43 @@
             android:clickable="true"
             android:text="@string/broadcast_entry_start"
             app:icon="@drawable/ic_live_broadcast" />
+
+        <!-- S4247, owner decision В5: a link handed out before the start, right under "Start" (IDLE STATE) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPrepareBroadcastLink"
+            style="@style/Widget.FastMediaSorter.Button.Tonal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:minHeight="@dimen/touch_target_min_height"
+            android:focusable="true"
+            android:clickable="true"
+            android:text="@string/broadcast_prepared_action" />
+
+        <LinearLayout
+            android:id="@+id/layoutPreparedLinks"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:orientation="vertical"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <TextView
+                android:id="@+id/tvPreparedLinksTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/broadcast_prepared_list_title"
+                android:textAppearance="?attr/textAppearanceTitleSmall"
+                android:textColor="?attr/colorOnSurface" />
+
+            <LinearLayout
+                android:id="@+id/containerPreparedLinks"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </LinearLayout>
 
         <!-- S4234: BROADCAST A STORED FILE (IDLE STATE) - the picker hands the uri to the controller -->
         <com.google.android.material.button.MaterialButton
@@ -426,7 +492,7 @@
                 android:textIsSelectable="true"
                 android:layout_marginBottom="@dimen/margin_small" />
 
-            <!-- Shown only for a protected broadcast: the password goes to the person apart from the link and the QR code. -->
+            <!-- Shown while the broadcast is announced (S4405): the password, or "none", goes to the person apart from the link. -->
             <TextView
                 android:id="@+id/tvSharePassword"
                 android:layout_width="wrap_content"
@@ -438,7 +504,7 @@
                 android:layout_marginBottom="@dimen/margin_small" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnShareNewPassword"
+                android:id="@+id/btnShareChangePassword"
                 style="@style/Widget.FastMediaSorter.Button.Tonal"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -446,8 +512,8 @@
                 android:focusable="true"
                 android:clickable="true"
                 android:visibility="gone"
-                android:contentDescription="@string/broadcast_share_new_password_cd"
-                android:text="@string/broadcast_share_new_password"
+                android:contentDescription="@string/broadcast_link_password_change_cd"
+                android:text="@string/broadcast_link_password_change"
                 android:layout_marginBottom="@dimen/margin_small" />
 
             <LinearLayout

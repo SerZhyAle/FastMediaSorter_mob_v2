@@ -12,7 +12,11 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -22,6 +26,7 @@ import java.io.ByteArrayOutputStream
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 class ExchangeRelayUploaderGenerationTest {
 
@@ -151,5 +156,81 @@ class ExchangeRelayUploaderGenerationTest {
 
         assertEquals("Accepted must remain gen2", "gen2", uploader.accepted.value)
         uploader.stop()
+    }
+
+    @Test
+    fun `finish ends the upload with the zero-length chunk and does not reconnect`() = runBlocking {
+        val output = ByteArrayOutputStream()
+        val closed = AtomicBoolean(false)
+        val connection = mockk<ExchangeConnection>(relaxed = true)
+        every { connection.output } returns output
+        val welcome = mockk<DeviceExchangeWelcome>(relaxed = true)
+        every { welcome.features } returns listOf(DeviceExchangeAccountEntry.FEATURE_SEALED)
+        val session = mockk<DeviceExchangeSession>(relaxed = true)
+        every { session.connection } returns connection
+        every { session.welcome } returns welcome
+        every { session.close() } answers { closed.set(true) }
+        val acceptEnvelope = mockk<DeviceExchangeEnvelope>()
+        every { acceptEnvelope.type } returns DeviceExchangeEnvelope.TYPE_UPLOAD_ACCEPTED
+        every { session.receive() } returns acceptEnvelope
+        val opened = AtomicInteger()
+        val client = mockk<DeviceExchangeAccountClient>()
+        coEvery { client.openAuthenticated(entry) } coAnswers {
+            opened.incrementAndGet()
+            session
+        }
+        val ring = ExchangeRelayRing(
+            epoch = 1L,
+            epochKey = ByteArray(KEY_BYTES),
+            groupKeys = listOf(ByteArray(KEY_BYTES)),
+        )
+        val keys = mockk<ExchangeRelayKeys>(relaxed = true)
+        every { keys.newEpoch(FINISHED_ID) } returns ring
+        every { keys.isCurrent(FINISHED_ID, ring) } returns true
+        val uploadScope = CoroutineScope(Dispatchers.Default)
+        val uploader = ExchangeRelayUploader(
+            client,
+            keys,
+            uploadScope,
+            Dispatchers.Default,
+            mockk<BroadcastCredentialRegistry>(relaxed = true),
+        )
+        val feed = ExchangeVideoRelayFeed()
+        feed.open(ByteArray(HEADER_BYTES))
+        uploader.startVideo(entry, FINISHED_ID, feed)
+        var waited = 0
+        while (uploader.accepted.value != FINISHED_ID && waited < POLL_ROUNDS) {
+            feed.offer(ExchangeRelayChunk(ByteArray(CHUNK_BYTES), joinable = true))
+            delay(POLL_MS)
+            waited++
+        }
+        val source = launch(Dispatchers.Default) {
+            while (isActive) {
+                feed.offer(ExchangeRelayChunk(ByteArray(CHUNK_BYTES), joinable = true))
+                delay(POLL_MS)
+            }
+        }
+
+        uploader.finish(FINISH_TIMEOUT_MS)
+        source.cancel()
+
+        val bytes = output.toByteArray()
+        val ended = bytes.takeLast(END_BYTES).all { it == 0.toByte() }
+        assertTrue("the upload must end with the zero-length chunk", ended)
+        assertTrue("the session must be closed", closed.get())
+        assertEquals("a finished upload must not reconnect", 1, opened.get())
+        assertNull(uploader.accepted.value)
+        uploadScope.coroutineContext.job.cancelAndJoin()
+    }
+
+    private companion object {
+        const val FINISHED_ID = "finished"
+        const val KEY_BYTES = 32
+        const val HEADER_BYTES = 10
+        const val CHUNK_BYTES = 188
+        const val END_BYTES = 4
+        const val POLL_ROUNDS = 50
+        const val POLL_MS = 50L
+        const val FINISH_TIMEOUT_MS = 3_000L
     }
 }

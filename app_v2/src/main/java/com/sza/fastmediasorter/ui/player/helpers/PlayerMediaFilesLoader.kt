@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
+import com.sza.fastmediasorter.domain.player.BroadcastPlaybackSessions
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
 import com.sza.fastmediasorter.domain.usecase.GetMediaFilesUseCase
@@ -27,6 +28,7 @@ import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import com.sza.fastmediasorter.domain.usecase.streams.GetStreamSourceByUrlUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCase
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
+import com.sza.fastmediasorter.util.VirtualPathUtils
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -62,6 +64,28 @@ internal fun reconcileFavoriteFlags(
     }.getOrElse {
         file
     }
+}
+
+/**
+ * The folder the slow-path reload lists, or null for the whole resource.
+ *
+ * A virtual collection (`virtual://all_audio` and its siblings) is a MediaStore query, not a folder:
+ * the parent directory of its selected file is not a subfolder of it. Listing that directory instead
+ * returns nothing when direct enumeration is refused, although MediaStore still serves the file, and
+ * the player then closes with "no media files" (S4422).
+ */
+internal fun resolvePlayerFolderScope(
+    resourcePath: String,
+    initialFilePath: String?,
+    currentFilePath: String?,
+): String? {
+    if (VirtualPathUtils.isVirtualPath(resourcePath)) return null
+    return parentDirectoryOf(initialFilePath) ?: parentDirectoryOf(currentFilePath)
+}
+
+private fun parentDirectoryOf(path: String?): String? {
+    val lastSlash = path?.lastIndexOf('/') ?: return null
+    return if (lastSlash > 0) path.substring(0, lastSlash) else null
 }
 
 internal fun describeMediaFileForLog(file: MediaFile): String =
@@ -291,7 +315,8 @@ class PlayerMediaFilesLoader(
                     // S0592: derive MediaType from the catalog mediaKind so audio-only streams open on
                     // the audio branch instead of being forced to VIDEO. VIDEO/RTSP and unknown URLs
                     // (no catalog row) keep VIDEO.
-                    val streamSource = getStreamSourceByUrlUseCase(streamPath)
+                    val streamSource = BroadcastPlaybackSessions.forUrl(streamPath)?.source
+                        ?: getStreamSourceByUrlUseCase(streamPath)
                     val channelTitle = streamSource?.title?.takeIf { it.isNotBlank() }
                     val streamType = if (streamSource?.mediaKind == "AUDIO") MediaType.AUDIO else MediaType.VIDEO
                     val now = System.currentTimeMillis()
@@ -334,7 +359,9 @@ class PlayerMediaFilesLoader(
                     val targetUrl = currentFilePath?.takeIf {
                         it.startsWith("http://") || it.startsWith("https://") || it.startsWith("rtsp://")
                     } ?: streamPath
-                    val targetIndex = catalogFiles.indexOfFirst { it.path == targetUrl }
+                    // A tap may launch a temporary loopback URL; the catalog keeps the original row address.
+                    val storedTargetUrl = BroadcastPlaybackSessions.forUrl(targetUrl)?.source?.url ?: targetUrl
+                    val targetIndex = catalogFiles.indexOfFirst { it.path == storedTargetUrl }
                     val (streamFiles, streamIndex) =
                         if (targetIndex >= 0) {
                             catalogFiles to targetIndex
@@ -454,10 +481,12 @@ class PlayerMediaFilesLoader(
                         Timber.w("Cache miss! Loading files via UseCase (slow path)")
                     }
 
-                    val currentFolderPath = initialFileDir ?: stateFlow.value.currentFile?.path?.let { filePath ->
-                        val lastSlash = filePath.lastIndexOf('/')
-                        if (lastSlash > 0) filePath.substring(0, lastSlash) else null
-                    }
+                    val currentFolderPath = resolvePlayerFolderScope(
+                        resourcePath = resource.path,
+                        initialFilePath = initialFilePath,
+                        currentFilePath = stateFlow.value.currentFile?.path,
+                    )
+                    Timber.d("S4422: player reload scope=%s for resource %s", currentFolderPath, resource.path)
 
                     Timber.d("PlayerViewModel: Loading files from currentFolderPath=$currentFolderPath")
 

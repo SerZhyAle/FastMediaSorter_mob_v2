@@ -8,9 +8,11 @@ import android.view.View
 import android.widget.FrameLayout
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.GadgetHomeWidgetBinding
+import com.sza.fastmediasorter.domain.usecase.launcher.ExecuteLauncherCommandUseCase
 import com.sza.fastmediasorter.widget.CameraQuickCaptureActivity
 import com.sza.fastmediasorter.widget.CameraQuickCaptureWidgetProvider
 import timber.log.Timber
+import javax.inject.Inject
 
 /**
  * S1930: the camera quick-capture widget as a desktop cell - one tap shoots into the target this cell
@@ -27,7 +29,9 @@ import timber.log.Timber
  * what the home-screen twin shows, so the difference between the two widgets stays in what they do,
  * not in how they look.
  */
-class CameraQuickCaptureGadget : LauncherGadget {
+class CameraQuickCaptureGadget @Inject constructor(
+    private val executeCommand: ExecuteLauncherCommandUseCase,
+) : LauncherGadget {
 
     override val key: String = LauncherGadgetRegistry.KEY_CAMERA_QUICK_CAPTURE
     override val defaultSpanW: Int = SPAN
@@ -39,7 +43,7 @@ class CameraQuickCaptureGadget : LauncherGadget {
     override val requiresResourceParam: Boolean = false
 
     override fun createView(container: FrameLayout, host: LauncherGadgetHost, param: String?): View =
-        CameraQuickCaptureGadgetView(container.context, ConfigurableWidgetCatalog.tokenOf(param))
+        CameraQuickCaptureGadgetView(container.context, ConfigurableWidgetCatalog.tokenOf(param), executeCommand)
 
     private companion object {
         /** `targetCellWidth` / `targetCellHeight` of widget_camera_quick_capture_info.xml. */
@@ -50,6 +54,7 @@ class CameraQuickCaptureGadget : LauncherGadget {
 private class CameraQuickCaptureGadgetView(
     context: Context,
     private val token: Int?,
+    private val executeCommand: ExecuteLauncherCommandUseCase,
 ) : LauncherGadgetView(context) {
 
     init {
@@ -98,9 +103,10 @@ private class CameraQuickCaptureGadgetView(
                 token = instance,
             ) ?: return
         }
-        runCatching {
-            context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-        }.onFailure { Timber.w(it, "Launcher quick capture gadget: camera refused to open") }
+        // The shared launcher task policy, not a bare NEW_TASK: the configuration screen shares the app
+        // affinity, so alone that flag would make Back unwind into whatever app screen was open last.
+        Timber.d("S4428: quick capture gadget starts its target through the shared task policy")
+        executeCommand.startTarget(intent)
     }
 
     private fun captureIntent(instance: Int): Intent =

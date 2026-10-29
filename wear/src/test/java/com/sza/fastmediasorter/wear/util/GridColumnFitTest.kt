@@ -62,8 +62,43 @@ class GridColumnFitTest {
         }
     }
 
+    /**
+     * S4469: "Изображения" is about 74 dp wide at the 12sp caption floor, and a three-column cell on the
+     * 170 dp usable width is 54 dp - the label reached the glass as "Изображен..".
+     */
+    @Test
+    fun `a label that fits the cell keeps the requested columns`() {
+        assertEquals(3, GridColumnFit.columnsFittingLabel(columns = 3, availableWidthDp = 170, widestLabelDp = 40))
+    }
+
+    @Test
+    fun `a label wider than a three column cell steps down to two`() {
+        assertEquals(2, GridColumnFit.columnsFittingLabel(columns = 3, availableWidthDp = 170, widestLabelDp = 74))
+    }
+
+    @Test
+    fun `a label wider than every shared cell lands on one column`() {
+        assertEquals(1, GridColumnFit.columnsFittingLabel(columns = 3, availableWidthDp = 170, widestLabelDp = 90))
+    }
+
+    @Test
+    fun `fitting a label never adds a column`() {
+        for (requested in 1..LABEL_SWEEP_MAX_COLUMNS) {
+            for (labelDp in 0..LABEL_SWEEP_MAX_WIDTH_DP) {
+                val fitted = GridColumnFit.columnsFittingLabel(
+                    columns = requested,
+                    availableWidthDp = 170,
+                    widestLabelDp = labelDp
+                )
+                assertTrue("requested=$requested label=$labelDp fitted=$fitted", fitted in 1..requested)
+            }
+        }
+    }
+
     private companion object {
         const val SWEEP_MIN_WIDTH_DP = 60
         const val SWEEP_MAX_WIDTH_DP = 240
+        const val LABEL_SWEEP_MAX_COLUMNS = 3
+        const val LABEL_SWEEP_MAX_WIDTH_DP = 200
     }
 }

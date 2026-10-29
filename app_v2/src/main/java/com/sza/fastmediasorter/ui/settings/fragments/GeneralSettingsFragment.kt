@@ -62,7 +62,6 @@ import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsResetHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsViewSetupHelper
 import com.sza.fastmediasorter.ui.settings.helpers.SftpServerSettingsPanelManager
 import com.sza.fastmediasorter.ui.settings.helpers.UnusedCredentialsHelper
-import com.sza.fastmediasorter.ui.systeminfo.helpers.SystemInfoDialogManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.utils.viewScoped
 import dagger.hilt.android.AndroidEntryPoint
@@ -87,8 +86,6 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
     @Inject lateinit var deleteUnusedCredentialsUseCase: DeleteUnusedCredentialsUseCase
 
     @Inject lateinit var streamingCacheRepository: StreamingCacheRepository
-
-    @Inject lateinit var systemInfoDialogManager: SystemInfoDialogManager
 
     /** S2707: the power-saving row needs the device fact, not a setting, to explain a dead threshold. */
     @Inject lateinit var powerStateObserver: PowerStateObserver
@@ -235,7 +232,6 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
             binding = binding,
             fragment = this,
             saveLogsLauncher = saveLogsLauncher,
-            systemInfoDialogManager = systemInfoDialogManager,
             getDestinationsUseCase = viewModel.getDestinationsUseCase,
             saveTextFileToResourceUseCase = saveTextFileToResourceUseCase,
         )
@@ -544,12 +540,14 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         register(binding.headerFileBrowser, binding.containerFileBrowser, "general__file_browser")
         register(binding.headerRemoteSources, binding.containerRemoteSources, "general__remote_sources")
         register(binding.headerSftpServer, binding.containerSftpServer, "general__sftp_server")
+        register(binding.headerSftpExchange, binding.containerSftpExchange, "general__sftp_exchange")
         register(binding.headerAuthorization, binding.containerAuthorization, "general__authorization")
         register(binding.headerAppData, binding.containerAppData, "general__app_data")
         register(binding.headerSystem, binding.containerSystem, "general__system")
         if (BuildConfig.DEBUG) {
             register(binding.headerDebugSettings, binding.containerDebugSettings, "general__debug")
         }
+        register(binding.headerAboutApp, binding.containerAboutApp, "general__about_app")
     }
 
     private fun setupGeneralLayouts() {

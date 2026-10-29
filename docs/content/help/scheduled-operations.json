@@ -14,7 +14,7 @@
     { "id": "history-clear", "viewId": "btnScheduledHistoryClear", "labelKey": "scheduled_ops_log_clear" },
     { "id": "list", "viewId": "rvScheduledOps" },
     { "id": "op-switch", "viewId": "switchEnabled", "labelKey": "scheduled_op_enabled_toggle" },
-    { "id": "op-warning", "viewId": "tvErrorBadge" },
+    { "id": "op-warning", "viewId": "btnRunStatus" },
     { "id": "op-history", "viewId": "btnHistory", "labelKey": "scheduled_op_history" },
     { "id": "op-run-now", "viewId": "btnRunNow", "labelKey": "scheduled_op_run_now" },
     { "id": "op-edit", "viewId": "btnEdit", "labelKey": "edit" },
@@ -65,7 +65,7 @@
         },
         "add": {
           "summary": "Creates a new scheduled operation.",
-          "details": "A form opens where you describe the job once. Source is one of your resources or any folder on the device. Operation is Copy, Move, Archive or Delete, and everything except Delete also asks for a Destination. Then pick the file types, optionally a time filter such as only files that are new since the last run, extra limits by name, age or size, the start time and how often to repeat (at least every 15 minutes). A read-only source allows Copy only. Save operation puts the new card in the list.\n\nWhen you arrive from the file browser, the form opens with the folder you were in already set as the source. Move and Delete remove the original files in the background, which on some devices needs access to all files; the app tells you in a notification when it is missing."
+          "details": "A form opens where you describe the job once. Source is one of your resources or any folder on the device. Operation is Copy, Move, Archive or Delete, and everything except Delete also asks for a Destination. Then pick the file types, optionally a time filter such as only files that are new since the last run, extra limits by name, age or size, the start time and how often to repeat (at least every 15 minutes). A read-only source allows Copy only. Save operation puts the new card in the list.\n\nWhen you arrive from the file browser, the form opens with the folder you were in already set as the source. Move and Delete remove the original files in the background, which on some devices needs access to all files; the app tells you in a notification when it is missing.\n\nShow on watch is the last operation in the list, in app versions that work with a watch. It needs no source or destination: you enter a title, an optional text and, if you like, one picture, and at every slot the paired watch shows it as a notification. A tap on the notification opens the picture on the watch. A watch that is out of reach or a switched-off Wear Companion makes the run skipped, not failed, and the next slot sends it again."
         },
         "run-all": {
           "summary": "Starts every enabled operation once, right now.",
@@ -106,7 +106,7 @@
         "op-warning": {
           "name": "Warning mark",
           "summary": "Tells you the last run of this operation did not finish.",
-          "details": "It appears after a run that failed or was skipped, for example because the source or the destination could not be reached. A skipped run is tried again at the next time. The mark stays until a run succeeds; open the card History to see why."
+          "details": "It appears after a run that did not finish. A failed run shows a red mark with an exclamation sign; a skipped run, for example because the source or the destination could not be reached, shows a grey information mark. Tap or press and hold the mark to see why the last run did not finish; its History button opens the earlier runs. A skipped run is tried again at the next time. The mark stays until a run succeeds."
         },
         "op-history": {
           "summary": "Shows the recent runs of this operation only.",
@@ -167,7 +167,7 @@
         },
         "add": {
           "summary": "Создаёт новую операцию по расписанию.",
-          "details": "Открывается форма, в которой вы один раз описываете задание. Источник - один из ваших ресурсов или любая папка на устройстве. Операция - копирование, перемещение, архивирование или удаление; для всего, кроме удаления, нужно ещё назначение. Затем выберите типы файлов, при желании - фильтр по времени (например, только новые с прошлой операции), дополнительные ограничения по имени, возрасту или размеру, время начала и как часто повторять (не чаще чем раз в 15 минут). Если источник только для чтения, доступно лишь копирование. Кнопка «Сохранить в список операций» добавляет новую карточку в список.\n\nЕсли вы пришли из браузера файлов, форма открывается с уже выбранным источником - папкой, в которой вы были. Перемещение и удаление убирают исходные файлы в фоне, а на некоторых устройствах для этого нужен доступ ко всем файлам; если его нет, приложение сообщит об этом в уведомлении."
+          "details": "Открывается форма, в которой вы один раз описываете задание. Источник - один из ваших ресурсов или любая папка на устройстве. Операция - копирование, перемещение, архивирование или удаление; для всего, кроме удаления, нужно ещё назначение. Затем выберите типы файлов, при желании - фильтр по времени (например, только новые с прошлой операции), дополнительные ограничения по имени, возрасту или размеру, время начала и как часто повторять (не чаще чем раз в 15 минут). Если источник только для чтения, доступно лишь копирование. Кнопка «Сохранить в список операций» добавляет новую карточку в список.\n\nЕсли вы пришли из браузера файлов, форма открывается с уже выбранным источником - папкой, в которой вы были. Перемещение и удаление убирают исходные файлы в фоне, а на некоторых устройствах для этого нужен доступ ко всем файлам; если его нет, приложение сообщит об этом в уведомлении.\n\nПоследний пункт списка операций - «Показать на часах», в версиях приложения, которые работают с часами. Источник и назначение ему не нужны: вы вводите заголовок, при желании текст и одну картинку, и в каждый слот часы в паре показывают это как уведомление. Нажатие на уведомление открывает картинку на часах. Если часы вне связи или Wear Companion выключен, запуск считается пропущенным, а не ошибкой, и следующий слот отправит сообщение снова."
         },
         "run-all": {
           "summary": "Сразу запускает все включённые операции по одному разу.",
@@ -208,7 +208,7 @@
         "op-warning": {
           "name": "Значок предупреждения",
           "summary": "Сообщает, что последний запуск этой операции не завершился.",
-          "details": "Значок появляется после запуска, который не удался или был пропущен, например из-за недоступного источника или назначения. Пропущенный запуск повторяется в следующий срок. Значок остаётся, пока запуск не пройдёт успешно; причину смотрите в «Истории» на карточке."
+          "details": "Значок появляется после запуска, который не завершился. Запуск, который не удался, показывается красным значком с восклицательным знаком; пропущенный запуск, например из-за недоступного источника или назначения, - серым информационным значком. Коснитесь значка или задержите на нём палец, чтобы узнать, почему последний запуск не завершился; кнопка «История» в окне открывает прежние запуски. Пропущенный запуск повторяется в следующий срок. Значок остаётся, пока запуск не пройдёт успешно."
         },
         "op-history": {
           "summary": "Показывает последние запуски только этой операции.",
@@ -269,7 +269,7 @@
         },
         "add": {
           "summary": "Створює нову операцію за розкладом.",
-          "details": "Відкривається форма, у якій ви один раз описуєте завдання. Джерело - один із ваших ресурсів або будь-яка папка на пристрої. Операція - копіювання, переміщення, архівування або видалення; для всього, крім видалення, потрібне ще й призначення. Далі виберіть типи файлів, за бажанням - фільтр за часом (наприклад, лише нові з попередньої операції), додаткові обмеження за іменем, віком чи розміром, час початку й те, як часто повторювати (не частіше ніж раз на 15 хвилин). Якщо джерело лише для читання, доступне тільки копіювання. Кнопка «Зберегти в список операцій» додає нову картку до списку.\n\nЯкщо ви прийшли з браузера файлів, форма відкривається з уже вибраним джерелом - папкою, у якій ви були. Переміщення й видалення прибирають вихідні файли у фоні, а на деяких пристроях для цього потрібен доступ до всіх файлів; якщо його немає, застосунок повідомить про це у сповіщенні."
+          "details": "Відкривається форма, у якій ви один раз описуєте завдання. Джерело - один із ваших ресурсів або будь-яка папка на пристрої. Операція - копіювання, переміщення, архівування або видалення; для всього, крім видалення, потрібне ще й призначення. Далі виберіть типи файлів, за бажанням - фільтр за часом (наприклад, лише нові з попередньої операції), додаткові обмеження за іменем, віком чи розміром, час початку й те, як часто повторювати (не частіше ніж раз на 15 хвилин). Якщо джерело лише для читання, доступне тільки копіювання. Кнопка «Зберегти в список операцій» додає нову картку до списку.\n\nЯкщо ви прийшли з браузера файлів, форма відкривається з уже вибраним джерелом - папкою, у якій ви були. Переміщення й видалення прибирають вихідні файли у фоні, а на деяких пристроях для цього потрібен доступ до всіх файлів; якщо його немає, застосунок повідомить про це у сповіщенні.\n\nОстанній пункт списку операцій - «Показати на годиннику», у версіях застосунку, які працюють з годинником. Джерело й призначення йому не потрібні: ви вводите заголовок, за бажанням текст і одну картинку, і в кожний слот годинник у парі показує це як сповіщення. Натискання на сповіщення відкриває картинку на годиннику. Якщо годинник поза зв'язком або Wear Companion вимкнено, запуск вважається пропущеним, а не помилкою, і наступний слот надішле повідомлення знову."
         },
         "run-all": {
           "summary": "Одразу запускає всі ввімкнені операції по одному разу.",
@@ -310,7 +310,7 @@
         "op-warning": {
           "name": "Значок попередження",
           "summary": "Повідомляє, що останній запуск цієї операції не завершився.",
-          "details": "Значок з’являється після запуску, який не вдався або був пропущений, наприклад через недоступне джерело чи призначення. Пропущений запуск повторюється в наступний термін. Значок лишається, поки запуск не пройде успішно; причину дивіться в «Історії» на картці."
+          "details": "Значок з’являється після запуску, який не завершився. Запуск, що не вдався, показується червоним значком зі знаком оклику; пропущений запуск, наприклад через недоступне джерело чи призначення, - сірим інформаційним значком. Торкніться значка або затримайте на ньому палець, щоб дізнатися, чому останній запуск не завершився; кнопка «Історія» у вікні відкриває попередні запуски. Пропущений запуск повторюється в наступний термін. Значок лишається, поки запуск не пройде успішно."
         },
         "op-history": {
           "summary": "Показує останні запуски лише цієї операції.",

@@ -115,6 +115,18 @@ try {
     $r = Invoke-Gate $site 'variants'
     Assert-That ($r.Exit -eq 1 -and $r.Output -match 'index-uk\.md is the uk variant but embeds diagrams/three-ways-ru\.svg') 'the gate refuses a foreign-language picture'
 
+    Write-Host 'case: a srcset source naming a picture of another language'
+    $site = New-Portal; $sites.Add($site)
+    Write-Text $site 'docs/portal/index-uk.md' "# Home`n`n<picture><source media=`"(max-width: 768px)`" srcset=`"diagrams/three-ways-ru.svg`"><img src=`"diagrams/three-ways-uk.svg`" alt=`"x`"></picture>`n"
+    $r = Invoke-Gate $site 'variants'
+    Assert-That ($r.Exit -eq 1 -and $r.Output -match 'index-uk\.md is the uk variant but embeds diagrams/three-ways-ru\.svg') 'the gate refuses a foreign-language srcset picture'
+
+    Write-Host 'case: a srcset source naming a missing picture'
+    $site = New-Portal; $sites.Add($site)
+    Write-Text $site 'docs/portal/index-uk.md' "# Home`n`n<picture><source media=`"(max-width: 768px)`" srcset=`"diagrams/three-ways-phone-uk.svg`"><img src=`"diagrams/three-ways-uk.svg`" alt=`"x`"></picture>`n"
+    $r = Invoke-Gate $site 'variants'
+    Assert-That ($r.Exit -eq 1 -and $r.Output -match 'embeds diagrams/three-ways-phone-uk\.svg, which does not exist') 'the gate refuses a srcset picture that does not exist'
+
     Write-Host 'case: the renderer finds a stale picture'
     $site = New-Portal; $sites.Add($site)
     Write-Renderer $site 1

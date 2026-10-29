@@ -10,6 +10,7 @@
         style="@style/Widget.FastMediaSorter.Toolbar.Flat"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        app:stbTitleIcon="@drawable/ic_info"
         android:title="@string/settings_system_info_title"
         app:navigationIcon="@drawable/ic_arrow_back"
         app:menu="@menu/menu_system_info" />

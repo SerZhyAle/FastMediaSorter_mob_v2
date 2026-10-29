@@ -291,7 +291,13 @@ class FdSecContainer(
             is FdSecHeadResult.Refused -> return PrefixResult.Refused(opened.outcome)
             is FdSecHeadResult.Ok -> opened.view
         }
-        val metadata = openMetadata(file, view) ?: return PrefixResult.Refused(FdSecOutcome.WrongCredentialOrTamper)
+        val block = openMetadataBlock(file, view) ?: return PrefixResult.Refused(FdSecOutcome.WrongCredentialOrTamper)
+        if (FdSecMetadata.hasMalformedName(block)) {
+            // The block authenticated, so this is damage and not a wrong credential. The message is
+            // constant on purpose: the sealed name never reaches a log or a screen.
+            return PrefixResult.Refused(FdSecOutcome.Damaged("the sealed name is not valid UTF-8"))
+        }
+        val metadata = FdSecMetadata.decode(block) ?: return PrefixResult.Refused(FdSecOutcome.WrongCredentialOrTamper)
         val damaged = lengthMismatch(length, view, metadata.realSize)
         return if (damaged != null) {
             PrefixResult.Refused(FdSecOutcome.Damaged(damaged))
@@ -300,17 +306,16 @@ class FdSecContainer(
         }
     }
 
-    private fun openMetadata(file: RandomAccessFile, view: FdSecHeadView): FdSecMetadata? {
+    private fun openMetadataBlock(file: RandomAccessFile, view: FdSecHeadView): ByteArray? {
         val sealed = ByteArray(FdSecFormat.METADATA_ON_DISK_SIZE)
         file.seek(FdSecFormat.HEAD_SIZE.toLong())
         file.readFully(sealed)
-        val block = XChaCha20Poly1305.open(
+        return XChaCha20Poly1305.open(
             view.fileKey,
             schedule.metadataNonce(view.fileKey),
             FdSecHead.metadataAssociatedData(view.headerDigest),
             sealed,
-        ) ?: return null
-        return FdSecMetadata.decode(block)
+        )
     }
 
     private fun lengthMismatch(length: Long, view: FdSecHeadView, realSize: Long): String? {

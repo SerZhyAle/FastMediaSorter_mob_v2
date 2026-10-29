@@ -216,7 +216,7 @@ scripts/add_to_dev_log.ps1
     -Description     (req)  [String]
     -Branch                 [String] = ""
     -AllowDuplicate         [SwitchParameter]
-  Exit: 0 - the entry was appended, or skipped as a recent duplicate (both are success: the row the
+  Exit: 0 - the entry was appended, skipped as a recent duplicate, or explicitly not applicable
 ```
 
 ### add_to_functionality_log.ps1
@@ -326,6 +326,8 @@ scripts/post-change.ps1
     -ShowSkips           [SwitchParameter]
     -ShowPasses          [SwitchParameter]
     -NoReuse             [SwitchParameter]
+    -Tier                [String]  {Fast|Release}
+    -GatesOnly           [SwitchParameter]
   Exit: 0 every gate that ran passed. The verdict line reads either
 ```
 
@@ -1737,6 +1739,8 @@ scripts/devtest/wear-prerelease-walk.ps1
   S1984 - walk the declared watch screens, capture evidence for each, then audit the process log.
   Params:
     -DeviceId                       [String]
+    -Package                        [String]
+    -DebugBuild                     [SwitchParameter]
     -OutDir                         [String] = 'temp/scratch/wear-prerelease'
     -ScreenList                     [String]
     -SettleMs                       [Int32] = 1200
@@ -2241,6 +2245,15 @@ S2547 - reads a watch's wakefulness out of `dumpsys power`, for the pre-release 
 ```
 scripts/devtest/lib/wear-wakefulness.ps1
   S2547 - reads a watch's wakefulness out of `dumpsys power`, for the pre-release walk.
+  (no param block)
+```
+
+### wear-walk-package.ps1
+S4485 - which installed FastMediaSorter package the watch walk drives, and whether the app is in front.
+
+```
+scripts/devtest/lib/wear-walk-package.ps1
+  S4485 - which installed FastMediaSorter package the watch walk drives, and whether the app is in front.
   (no param block)
 ```
 
@@ -4137,6 +4150,7 @@ scripts/quality/assert-fast-gates.ps1
     -FailOnSkipped         [SwitchParameter]
     -ThrottleLimit         [Int32] = 0  {range 0..64}
     -ShowPasses            [SwitchParameter]
+    -Tier                  [String]  {Fast|Release}
   Exit: 30 of 36, scoped runs in 0 of 10.
 ```
 
@@ -5091,6 +5105,18 @@ scripts/quality/assert-release-scope-gates.ps1
   Exit: 0 every gate passed (or reused this session's own green run under -ReuseFinding). (S4130,
 ```
 
+### assert-release-tier-closure.ps1
+S4488: the release pre-flight half of the closure battery - every per-ticket gate, at the release tier, over everything that changed since the last release.
+
+```
+scripts/quality/assert-release-tier-closure.ps1
+  S4488: the release pre-flight half of the closure battery - every per-ticket gate, at the release tier, over everything that changed since the last release.
+  Params:
+    -Gate            [SwitchParameter]
+    -Quiet           [SwitchParameter]
+    -BaseRef         [String]
+```
+
 ### assert-release-tree-binding.ps1
 Gate: the release artifact is bound to the tested build - tested tree equals tagged tree equals built tree, plus the versionCode read back from the built bundle (BUILD-EVIDENCE 0.10 rule 8).
 
@@ -5290,6 +5316,7 @@ scripts/quality/assert-settings-doc-sync.ps1
     -SkipManifestTest         [SwitchParameter]
     -ChangedFiles             [String[]]
     -SkipHowToStage           [SwitchParameter]
+    -Tier                     [String]  {Fast|Release}
     -TimeoutSeconds           [Int32] = 600
   Exit: 0 - every stage passed.; 1 - a stage found real drift (the failing stage is named).; 2 - a stage could not be judged: either the manifest test never ran because the
 ```
@@ -5939,6 +5966,22 @@ scripts/quality/fanout-audit-slices.ps1
   Exit: 0 - every slice created or skipped; with -WhatIf, the plan was printed and nothing written.; 1 - the catalog refused an insert or a file could not be written; the run stopped there.; 2 - cannot verify: the manifest, the template or the repo root cannot be read, the schema is
 ```
 
+### generate-gate-tiers.ps1
+S4488: derive scripts/quality/gate-tiers.json - the fast/release class of every closure gate - from the gate telemetry journal.
+
+```
+scripts/quality/generate-gate-tiers.ps1
+  S4488: derive scripts/quality/gate-tiers.json - the fast/release class of every closure gate - from the gate telemetry journal.
+  Params:
+    -Telemetry           [String]
+    -Out                 [String]
+    -FastSeconds         [Double] = 5.0
+    -MinRuns             [Int32] = 5
+    -WindowDays          [Int32] = 30
+    -Check               [SwitchParameter]
+  Exit: 2 the journal is missing or empty, so nothing was derived.
+```
+
 ### generate-toolchain-pins.ps1
 Generate canonical toolchain version pins from the build configuration.
 
@@ -6115,6 +6158,18 @@ scripts/quality/remove-ticket-probes.ps1
     -BackupDirectory         [String] = 'temp/scratch'
     -WhatIf                  [SwitchParameter]
   Exit: 3 refused - a named ticket is still in BlockNeedUserTest, so its probe is required (use -Force).
+```
+
+### run-fast-tier.ps1
+S4488: the one between-release check - the fast tier (checks of 5 s or less) over the files you changed.
+
+```
+scripts/quality/run-fast-tier.ps1
+  S4488: the one between-release check - the fast tier (checks of 5 s or less) over the files you changed.
+  Params:
+    -Files              [String[]]
+    -ChangeType         [String]  {Doc|Script|Config|Tooling|Kotlin|Xml|Mixed}
+    -Module             [String]  {app_v2|wear}
 ```
 
 ### run-script-suites.ps1
@@ -7348,6 +7403,15 @@ scripts/quality/lib/gate-telemetry.ps1
   (no param block)
 ```
 
+### gate-tier.ps1
+S4488: the tier of a check - Fast (5 s or less) or Release - and the question every runner asks before it
+
+```
+scripts/quality/lib/gate-tier.ps1
+  S4488: the tier of a check - Fast (5 s or less) or Release - and the question every runner asks before it
+  (no param block)
+```
+
 ### git-index-membership.ps1
 Split a set of paths into the ones git's index knows and the ones it does not (S2616).
 
@@ -7372,6 +7436,15 @@ S3430: ICON-RENDER rule 2 for the phone's glyph files - a glyph that paints a li
 ```
 scripts/quality/lib/icon-tint-rule.ps1
   S3430: ICON-RENDER rule 2 for the phone's glyph files - a glyph that paints a literal colour must
+  (no param block)
+```
+
+### keystore-decrypt-caller-context.ps1
+Dot-sourced by source-matchers.ps1, so these predicates share its script scope. Split out to keep
+
+```
+scripts/quality/lib/keystore-decrypt-caller-context.ps1
+  Dot-sourced by source-matchers.ps1, so these predicates share its script scope. Split out to keep
   (no param block)
 ```
 
@@ -7943,16 +8016,18 @@ scripts/release/publish-play-release.ps1
 ```
 
 ### read-play-public-serve.ps1
-Read the version the public Google Play store page actually serves - anonymous, credential-free.
+Read what the public Google Play store page actually serves - anonymous, credential-free.
 
 ```
 scripts/release/read-play-public-serve.ps1
-  Read the version the public Google Play store page actually serves - anonymous, credential-free.
+  Read what the public Google Play store page actually serves - anonymous, credential-free.
   Params:
     -Package                     [String] = 'com.sza.fastmediasorter'
     -Json                        [SwitchParameter]
     -RequireVersionAbove         [String]
-  Exit: 0 - the served version was read (and the -RequireVersionAbove assertion held, when given); 1 - the -RequireVersionAbove assertion failed: the page still serves that version or older; 2 - could not verify: the request failed, no version was found, or several candidates were
+    -RequireUpdatedAfter         [String]
+    -HtmlPath                    [String]
+  Exit: 0 - the page was read (and the -RequireVersionAbove / -RequireUpdatedAfter assertion held, when given); 1 - an assertion failed: the store still serves that version or older, or was updated at or
 ```
 
 ### read-play-tracks.ps1
@@ -8266,6 +8341,18 @@ scripts/release/publish-play-release.tests/Run-Tests.ps1
   Run-Tests.ps1 (S2346) - regression suite for the exit-code contract of the Play AAB uploader.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 the suite could not run (a subject is missing, or the project virtual environment is absent).
+```
+
+## scripts\release\read-play-public-serve.tests
+
+### Run-Tests.ps1
+Contract tests for scripts/release/read-play-public-serve.ps1 (S4463).
+
+```
+scripts/release/read-play-public-serve.tests/Run-Tests.ps1
+  Contract tests for scripts/release/read-play-public-serve.ps1 (S4463).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
 ```
 
 ## scripts\release\release-campaign.tests
@@ -8719,7 +8806,7 @@ scripts/spec_catalog/release-queue.ps1
     -Release     (req)  [String] = ''
     -Version            [String] = ''
     -DryRun             [SwitchParameter]
-  Exit: 0 success (for -Validate: no drift).; 1 error, or -Validate found drift.; 2 cannot verify - PLAN/RELEASE_QUEUE.md is missing (seed it before using the queue).
+  Exit: 0 success (for -Validate: no drift).; 1 error, or -Validate found drift.; 2 cannot verify - PLAN/RELEASE_QUEUE.md is missing (seed it before using the queue). -List is
 ```
 
 ### run-spec-all-queue.ps1
@@ -8759,6 +8846,7 @@ scripts/spec_catalog/search.ps1
     -Tag                     [String]
     -Type                    [String]
     -IncludeArchived         [SwitchParameter]
+    -Body                    [SwitchParameter]
     -Format                  [String] = 'table'  {table|json}
     -Help                    [SwitchParameter]
 ```
@@ -9447,20 +9535,6 @@ scripts/utils/archive-temp.ps1
   Exit: 0 - completed (or dry run completed); 1 - a move failed; 2 - could not verify: repo root or spec catalog CLI not found
 ```
 
-### archive-untriaged-drafts.ps1
-S4190: list, and archive past their deadline, the agent-parked findings nobody triaged.
-
-```
-scripts/utils/archive-untriaged-drafts.ps1
-  S4190: list, and archive past their deadline, the agent-parked findings nobody triaged.
-  Params:
-    -Days                  [Int32] = 14
-    -List                  [SwitchParameter]
-    -RepoRoot              [String]
-    -ArchiveScript         [String]
-  Exit: 0 - listed, or every expired non-exempt ticket archived (including none); exempt tickets
-```
-
 ### archive-vscode-cruft.ps1
 Reclaims disk space from VSCode / VSCode Insiders user data and Claude Code transcripts.
 
@@ -9545,9 +9619,8 @@ scripts/utils/capture-draft.ps1
     -Verify                       [String] = ''
     -Complexity                   [String] = ''
     -AppendToOpen                 [SwitchParameter]
-    -Parked                       [SwitchParameter]
     -RepoRoot                     [String] = ''
-  Exit: 0 ticket created or text appended, or -WhatIf finished its dedup report.; 1 the catalog refused the insert, the spec file could not be written, or -Parked could not
+  Exit: 0 ticket created or text appended, or -WhatIf finished its dedup report.; 1 the catalog refused the insert or the spec file could not be written.; 2 bad invocation - invalid slug, no text or both text forms, missing attachment or template.; 3 refused - the dedup query hit a ticket in a closed status; pass -AllowClosedDuplicate for a
 ```
 
 ### check-child-context.ps1
@@ -10375,6 +10448,8 @@ scripts/utils/run-spec-queue.ps1
     -Kill                      [SwitchParameter]
     -KeepSkipCache             [SwitchParameter]
     -RepoRoot                  [String] = ''
+    -AgentJson                 [String] = ''
+    -ExitOnLimit               [SwitchParameter]
     -Help                      [SwitchParameter]
   Exit: 2 = invalid invocation - the Claude CLI or the preflight script could not be found or
 ```
@@ -10731,18 +10806,6 @@ Test suite for scripts/utils/archive-temp.ps1 (S3037).
 scripts/utils/archive-temp.tests/Run-Tests.ps1
   Test suite for scripts/utils/archive-temp.ps1 (S3037).
   (no param block)
-```
-
-## scripts\utils\archive-untriaged-drafts.tests
-
-### Run-Tests.ps1
-Contract suite for scripts/utils/archive-untriaged-drafts.ps1 (S4190).
-
-```
-scripts/utils/archive-untriaged-drafts.tests/Run-Tests.ps1
-  Contract suite for scripts/utils/archive-untriaged-drafts.ps1 (S4190).
-  (no param block)
-  Exit: 0 - every case passed.; 1 - at least one case failed.
 ```
 
 ## scripts\utils\capture-draft.tests

@@ -136,7 +136,6 @@
     <string name="wear_section_local">На часах</string>
     <string name="wear_section_streams">Трансляции</string>
     <string name="wear_section_apps">Программы</string>
-    <string name="wear_coming_soon">Скоро появится</string>
     <string name="wear_phone_video">Видео</string>
     <string name="wear_phone_audio">Аудио</string>
     <string name="wear_phone_images">Изображения</string>
@@ -1157,4 +1156,11 @@
     <string name="wear_open_in_role_last_used">Последнее</string>
     <string name="wear_open_in_role_browser">Браузер</string>
     <string name="wear_open_in_role_maps">Карты</string>
+    <string name="wear_broadcast_server_announcing">Сервер: объявляется</string>
+    <string name="wear_broadcast_server_on">На сервере обмена</string>
+    <string name="wear_broadcast_server_failed">Ошибка сервера - см. телефон</string>
+    <string name="wear_broadcast_server_local_only">Только в этой сети</string>
+    <string name="wear_scheduled_message_channel_name">Сообщения по расписанию</string>
+    <string name="wear_audio_fetching">Загрузка трека..</string>
+    <string name="wear_stream_ended">Эта трансляция больше не в эфире. Повторите, когда она снова начнётся.</string>
 </resources>

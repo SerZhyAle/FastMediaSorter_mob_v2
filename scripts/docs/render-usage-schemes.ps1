@@ -84,6 +84,8 @@ foreach ($code in $sets.Keys) {
     }
 }
 
+# The render loop overwrites $script:Lang (the drawings read it), so the whole-set judgement is taken now.
+$allLanguages = -not $Lang
 $languages = if ($Lang) { $Lang } else { @($sets.Keys) }
 $outRoot = Join-Path $repoRoot $OutDir
 if (-not $Check -and -not (Test-Path $outRoot)) { New-Item -ItemType Directory -Force -Path $outRoot | Out-Null }
@@ -122,7 +124,7 @@ foreach ($code in $languages) {
 }
 
 $unused = @($reference | Where-Object { -not $script:LabelsUsed.Contains($_) })
-if ($unused -and -not $Lang) {
+if ($unused -and $allLanguages) {
     Write-Host "render-usage-schemes: label keys no picture reads: $($unused -join ', ')"
     exit 2
 }

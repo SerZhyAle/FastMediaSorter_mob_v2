@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Debug-only screen of DriveAppDataProbeActivity (standardDebug source set, never in a release build). -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/driveProbeRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/debug_drive_probe_title"
+            android:textAppearance="?attr/textAppearanceHeadlineSmall" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/debug_drive_probe_hint"
+            android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDriveProbeWrite"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:nextFocusDown="@id/btnDriveProbeDelete"
+            android:text="@string/debug_drive_probe_write" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDriveProbeDelete"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:nextFocusUp="@id/btnDriveProbeWrite"
+            android:nextFocusDown="@id/tvDriveProbeReport"
+            android:text="@string/debug_drive_probe_delete" />
+
+        <TextView
+            android:id="@+id/tvDriveProbeReport"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="?attr/selectableItemBackground"
+            android:focusable="true"
+            android:fontFamily="monospace"
+            android:nextFocusUp="@id/btnDriveProbeDelete"
+            android:text="@string/debug_drive_probe_idle"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textIsSelectable="true" />
+    </LinearLayout>
+</ScrollView>

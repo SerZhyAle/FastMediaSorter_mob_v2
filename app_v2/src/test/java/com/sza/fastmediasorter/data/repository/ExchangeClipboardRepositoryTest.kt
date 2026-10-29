@@ -5,7 +5,6 @@ import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.domain.model.ExchangeClipboardKind
 import com.sza.fastmediasorter.domain.model.ExchangeClipboardMeta
 import io.mockk.mockk
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -57,16 +56,12 @@ class ExchangeClipboardRepositoryTest {
         }
 
         val job = launch {
-            try {
-                repository().put(
-                    entry = entry,
-                    meta = meta,
-                    openSource = { fakeStream },
-                    onProgress = {},
-                )
-            } catch (e: CancellationException) {
-                throw e
-            }
+            repository().put(
+                entry = entry,
+                meta = meta,
+                openSource = { fakeStream },
+                onProgress = {},
+            )
         }
         jobRef = job
 

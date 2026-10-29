@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.data.cloud.helpers
 import android.content.Context
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.data.cloud.AppDataToken
 import com.sza.fastmediasorter.data.cloud.CloudFile
 import com.sza.fastmediasorter.data.cloud.CloudResult
 import com.sza.fastmediasorter.data.cloud.GoogleDriveAuthCoordinator
@@ -63,9 +64,9 @@ class GoogleDriveAppDataApi @Inject constructor(
     /** Children of [parentFolderId] inside the appdata space. */
     suspend fun listChildren(parentFolderId: String): CloudResult<List<CloudFile>> =
         withContext(Dispatchers.IO) {
-            when (val token = auth.fetchAppDataAccessToken()) {
-                null -> CloudResult.Error(reauthRequiredMessage(), DriveAppDataFailure.AuthRequired())
-                else -> requestChildren(parentFolderId, token)
+            when (val token = auth.fetchAppDataToken()) {
+                is AppDataToken.Token -> requestChildren(parentFolderId, token.value)
+                else -> CloudResult.Error(reauthRequiredMessage(), failureOf(token))
             }
         }
 
@@ -101,9 +102,9 @@ class GoogleDriveAppDataApi @Inject constructor(
         mimeType: String,
         content: ByteArray
     ): CloudResult<CloudFile> = withContext(Dispatchers.IO) {
-        when (val token = auth.fetchAppDataAccessToken()) {
-            null -> CloudResult.Error(reauthRequiredMessage(), DriveAppDataFailure.AuthRequired())
-            else -> uploadContent(fileName, parentFolderId, mimeType, content, token)
+        when (val token = auth.fetchAppDataToken()) {
+            is AppDataToken.Token -> uploadContent(fileName, parentFolderId, mimeType, content, token.value)
+            else -> CloudResult.Error(reauthRequiredMessage(), failureOf(token))
         }
     }
 
@@ -116,9 +117,9 @@ class GoogleDriveAppDataApi @Inject constructor(
      * and a [CloudResult.Error] is returned before whole-body allocation.
      */
     suspend fun downloadFile(fileId: String, maxBytes: Long): CloudResult<ByteArray> = withContext(Dispatchers.IO) {
-        when (val token = auth.fetchAppDataAccessToken()) {
-            null -> CloudResult.Error(reauthRequiredMessage(), DriveAppDataFailure.AuthRequired())
-            else -> readBytes(fileId, token, maxBytes)
+        when (val token = auth.fetchAppDataToken()) {
+            is AppDataToken.Token -> readBytes(fileId, token.value, maxBytes)
+            else -> CloudResult.Error(reauthRequiredMessage(), failureOf(token))
         }
     }
 
@@ -129,11 +130,19 @@ class GoogleDriveAppDataApi @Inject constructor(
      * delete" frees the user's quota at once instead of after a trash retention period.
      */
     suspend fun deleteEntry(fileId: String): CloudResult<Boolean> = withContext(Dispatchers.IO) {
-        when (val token = auth.fetchAppDataAccessToken()) {
-            null -> CloudResult.Error(reauthRequiredMessage(), DriveAppDataFailure.AuthRequired())
-            else -> deleteById(fileId, token)
+        when (val token = auth.fetchAppDataToken()) {
+            is AppDataToken.Token -> deleteById(fileId, token.value)
+            else -> CloudResult.Error(reauthRequiredMessage(), failureOf(token))
         }
     }
+
+    // S4427: a missing app folder grant must stay distinguishable from a dead sign-in downstream.
+    private fun failureOf(token: AppDataToken): DriveAppDataFailure =
+        if (token is AppDataToken.ConsentRequired) {
+            DriveAppDataFailure.ConsentRequired()
+        } else {
+            DriveAppDataFailure.AuthRequired()
+        }
 
     private fun reauthRequiredMessage(): String =
         context.getString(R.string.cloud_auth_required, context.getString(R.string.google_drive))
@@ -250,8 +259,10 @@ class GoogleDriveAppDataApi @Inject constructor(
 
     private suspend fun <T> withToken(block: suspend (String) -> Result<T>): Result<T> =
         withContext(Dispatchers.IO) {
-            val token = auth.fetchAppDataAccessToken()
-            if (token == null) Result.failure(DriveAppDataFailure.AuthRequired()) else block(token)
+            when (val token = auth.fetchAppDataToken()) {
+                is AppDataToken.Token -> block(token.value)
+                else -> Result.failure(failureOf(token))
+            }
         }
 
     private fun entryOf(item: JSONObject): DriveAppDataEntry = DriveAppDataEntry(
@@ -269,8 +280,10 @@ class GoogleDriveAppDataApi @Inject constructor(
     private data class ListedPages(val items: List<JSONObject>, val serverDateMs: Long?)
 
     private suspend fun createFolder(folderName: String, parentFolderId: String): CloudResult<CloudFile> {
-        val token = auth.fetchAppDataAccessToken()
-        if (token == null) return CloudResult.Error(reauthRequiredMessage(), DriveAppDataFailure.AuthRequired())
+        val token = when (val issued = auth.fetchAppDataToken()) {
+            is AppDataToken.Token -> issued.value
+            else -> return CloudResult.Error(reauthRequiredMessage(), failureOf(issued))
+        }
         val body = JSONObject().apply {
             put("name", folderName)
             put("mimeType", MIME_TYPE_FOLDER)

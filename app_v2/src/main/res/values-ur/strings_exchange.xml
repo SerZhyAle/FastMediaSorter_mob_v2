@@ -66,10 +66,10 @@
     <string name="exchange_devices_watch_code_refused">سرور نے کوڈ جاری نہیں کیا: %1$s</string>
     <string name="exchange_devices_watch_none">کوئی منسلک گھڑی نہیں</string>
     <string name="exchange_devices_watch_companion_off">Wear ساتھی بند ہے۔ پہلے ترتیبات میں اسے آن کریں۔</string>
-    <string name="exchange_devices_pick_outgoing_title">کس سرور کے ذریعے شائع کریں؟</string>
+    <string name="exchange_devices_pick_outgoing_title">اشاعتی سرور تبدیل کریں</string>
     <string name="exchange_devices_pick_none">پہلے میرے آلات اسکرین پر سرور شامل کریں</string>
     <string name="settings_sftp_exchange_outgoing">سرور %1$s کے ذریعے</string>
-    <string name="settings_sftp_exchange_outgoing_none">کوئی جانے والا سرور منتخب نہیں کیا گیا</string>
+    <string name="settings_sftp_exchange_outgoing_none">یہاں کوئی سرور اشاعت نہیں کر سکتا - “میرے آلات” اسکرین پر ایک شامل کریں</string>
     <string name="settings_sftp_exchange_change">تبدیل کریں</string>
     <string name="exchange_signin_intake_hint">سرور کا متن چسپاں کریں</string>
     <string name="exchange_signin_paste">چسپاں کریں</string>
@@ -360,4 +360,10 @@
     </plurals>
     <string name="exchange_format_unsupported">یہ فارمیٹ اس پروگرام کی سپورٹ سے نیا ہے۔ کچھ درآمد نہیں ہوا۔ ہم آہنگ پروگرام استعمال کریں۔</string>
     <string name="stream_source_live_badge">لائیو</string>
+    <string name="broadcast_exchange_line_announcing">ایکسچینج سرور %1$s: نشریے کا اعلان کیا جا رہا ہے</string>
+    <string name="broadcast_exchange_line_on_server">ایکسچینج سرور %1$s: نشریہ سرور پر ہے</string>
+    <string name="broadcast_exchange_line_relayed">ایکسچینج سرور %1$s: سرور پر ہے، سرور کے ذریعے ریلے ہو رہا ہے</string>
+    <string name="broadcast_exchange_line_failed">ایکسچینج سرور %1$s: %2$s</string>
+    <string name="broadcast_exchange_line_local_only">صرف اسی نیٹ ورک پر قابلِ رسائی۔ “میرے آلات” میں ایک ایکسچینج سرور شامل کریں</string>
+    <string name="broadcast_exchange_line_guest_only">صرف اسی نیٹ ورک پر قابلِ رسائی: مہمان اکاؤنٹ ایکسچینج سرور کے ذریعے نشر نہیں کر سکتا</string>
 </resources>

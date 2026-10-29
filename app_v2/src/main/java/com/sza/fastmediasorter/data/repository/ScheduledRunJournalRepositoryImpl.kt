@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.repository
 
 import android.content.Context
 import com.sza.fastmediasorter.domain.model.ScheduledRunOutcome
+import com.sza.fastmediasorter.domain.model.ScheduledRunReason
 import com.sza.fastmediasorter.domain.model.ScheduledRunRecord
 import com.sza.fastmediasorter.domain.repository.ScheduledRunJournalRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -92,6 +93,7 @@ class ScheduledRunJournalRepositoryImpl(
         record.filesProcessed.toString(),
         sanitize(record.message),
         sanitize(record.note),
+        record.reason?.name.orEmpty(),
     ).joinToString(SEPARATOR.toString())
 
     /** A tab or a line break inside a free-text field would shift every later column of its row. */
@@ -114,6 +116,8 @@ class ScheduledRunJournalRepositoryImpl(
                 filesProcessed = numbers[2].toInt(),
                 message = parts.getOrNull(MESSAGE_INDEX)?.takeIf { it.isNotEmpty() },
                 note = parts.getOrNull(NOTE_INDEX)?.takeIf { it.isNotEmpty() },
+                // A row written before the column existed has no sixth field; a retired name reads as none.
+                reason = ScheduledRunReason.fromName(parts.getOrNull(REASON_INDEX)),
             )
         }
     }
@@ -131,6 +135,7 @@ class ScheduledRunJournalRepositoryImpl(
         private const val FILES_INDEX = 3
         private const val MESSAGE_INDEX = 4
         private const val NOTE_INDEX = 5
+        private const val REASON_INDEX = 6
         private const val NUMERIC_COLUMNS = 3
     }
 }

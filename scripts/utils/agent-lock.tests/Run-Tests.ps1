@@ -1,4 +1,5 @@
 #requires -Version 7.0
+# Parallel: serial
 <#
 .SYNOPSIS
     Regression tests for agent-lock.ps1: the domain taxonomy (S2109), the stale-JAVA_HOME
@@ -254,6 +255,12 @@ $env:SZA_PROJECT_ROOT = $Sandbox
 $env:SZA_PROFILE_PATH = (Join-Path $Sandbox '.sza-profile.json')
 $env:FMS_AGENT_CHAT_ROOT = (Join-Path $Sandbox 'chat')
 $env:FMS_AGENT_ID = 's2697-self'
+# S4413: no inherited transcript. The holder's lock carried the CALLER's transcript path, and a
+# caller idle past SessionStaleMinutes - an agent waiting on a background release sweep - made the
+# contender read the one-second-old lock as foreign-stale and take it, so the exit-4 step found an
+# empty queue and the whole probe died on it (release 46, third sweep). Without a transcript the
+# liveness falls to the acquire time, which is what this probe means by a live holder.
+$env:CLAUDE_CODE_SESSION_ID = $null
 . (Join-Path $LocksDir 'agent-lock.ps1')
 
 $r = [ordered]@{}
@@ -311,8 +318,13 @@ $foreignSeq = if ($queued.Count -gt 0) { [int]$queued[0].seq } else { -1 }
 $r.contendedScriptsUntouched = (Test-ScriptsUntouched)
 
 # A declared domain with no paths writes an empty array, not an absent field.
-[string]$emptyPath = Save-AgentLockTicketHandoff -Tickets @{ 'Code.Fixture' = $queued[0] } -Reason 'S2697 empty'
-$r.emptyPathsIsArray = ((Get-Content -LiteralPath $emptyPath -Raw) -match '"paths":\[\]')
+# Guarded: with no queued contender the probe still reports every other field instead of dying on
+# an out-of-range index and leaving nine cases with a null verdict.
+$r.emptyPathsIsArray = $false
+if ($queued.Count -gt 0) {
+    [string]$emptyPath = Save-AgentLockTicketHandoff -Tickets @{ 'Code.Fixture' = $queued[0] } -Reason 'S2697 empty'
+    $r.emptyPathsIsArray = ((Get-Content -LiteralPath $emptyPath -Raw) -match '"paths":\[\]')
+}
 
 $r.releaseExit = (Invoke-Entry 'exit-code-lock.ps1' 's2697-self' @('-Name', 'Code.Fixture'))
 $r.released = (-not (Test-Path -LiteralPath $fixtureLock))
@@ -1033,8 +1045,10 @@ $guardSource = Get-Content -LiteralPath $agentLockSourcePath -Raw
     else {
         $s2697Sandbox = Join-Path $repoRoot 'temp/S2697/agent-lock-tests-sandbox'
         $s2697Probe = Join-Path $s2697Sandbox 'probe.ps1'
-        $s2697Out = Join-Path $repoRoot 'temp/S2697-domain-stdout.log'
-        $s2697Err = Join-Path $repoRoot 'temp/S2697-domain-stderr.log'
+        # Beside the sandbox, not inside it (the sandbox is wiped at the start), and never at the temp/
+        # root: a failed probe keeps these for diagnosis, and a root file fails assert-temp-root-inventory.
+        $s2697Out = Join-Path $repoRoot 'temp/S2697/agent-lock-domain-stdout.log'
+        $s2697Err = Join-Path $repoRoot 'temp/S2697/agent-lock-domain-stderr.log'
         $s2697Passed = $false
         try {
             Remove-Item -LiteralPath $s2697Sandbox -Recurse -Force -ErrorAction SilentlyContinue

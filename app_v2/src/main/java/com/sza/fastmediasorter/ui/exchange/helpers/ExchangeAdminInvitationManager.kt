@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.domain.model.ExchangeAdminKinds
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringCodec
 import com.sza.fastmediasorter.ui.companionimport.qr.QrCodeEncoder
 import com.sza.fastmediasorter.ui.exchange.ExchangeServerAdminViewModel
+import com.sza.fastmediasorter.util.applicationScope
 import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -88,9 +89,17 @@ class ExchangeAdminInvitationManager(
         }
     }
 
-    /** Removes the directory of shared invitation files; called when the screen opens and when it dies. */
+    /**
+     * Removes the directory of shared invitation files; called when the screen opens and when it dies.
+     * The delete runs on the application scope (IO): the activity scope is already gone on the second call,
+     * and neither call may do file I/O on the main thread. Only the application context is captured, so a
+     * delete still running does not hold the dying activity.
+     */
     fun clearSharedFiles() {
-        File(activity.cacheDir, SHARED_DIR).deleteRecursively()
+        val appContext = activity.applicationContext
+        appContext.applicationScope().launch {
+            File(appContext.cacheDir, SHARED_DIR).deleteRecursively()
+        }
     }
 
     private fun sendAsText(created: ExchangeAdminCreatedInvitation) {

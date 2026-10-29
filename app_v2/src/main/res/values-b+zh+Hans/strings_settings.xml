@@ -298,4 +298,6 @@
     <string name="drive_channel_send_no_devices">您的其他设备都还没有使用过 Google 云端硬盘。请在另一台设备上也开启“通过 Google 云端硬盘传输文件”，然后重试。</string>
     <string name="drive_channel_send_waiting_for">正在等待 %1$s 通过 Google 云端硬盘接收。</string>
     <string name="drive_channel_send_waiting_any">正在等待您的某台设备通过 Google 云端硬盘接收。</string>
+    <string name="drive_channel_consent_required">Google Drive 尚未为此应用提供专属文件夹。请允许它在您的设备之间发送和接收文件。未删除任何内容。</string>
+    <string name="drive_channel_consent_allow">允许</string>
 </resources>

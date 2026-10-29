@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.data.wear.OpenOnPhoneNotifier
+import com.sza.fastmediasorter.data.wear.ScheduledWatchReceiptRegistry
 import com.sza.fastmediasorter.data.wear.WearIncomingFileRegistry
 import com.sza.fastmediasorter.data.wear.WearSendToNotifier
 import com.sza.fastmediasorter.domain.model.WearEventEnvelope
@@ -37,6 +38,7 @@ import com.sza.fastmediasorter.domain.model.WearPhoneResourceRequest
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceRequestKind
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceResponseStatus
 import com.sza.fastmediasorter.domain.model.WearPlaybackStatePayload
+import com.sza.fastmediasorter.domain.model.WearScheduledMessageCodec
 import com.sza.fastmediasorter.domain.model.WearSettingsDivergence
 import com.sza.fastmediasorter.domain.model.WearSettingsFieldIssue
 import com.sza.fastmediasorter.domain.model.WearSettingsPayloadDecoder
@@ -108,6 +110,8 @@ class PhoneWearListenerService : WearableListenerService() {
     @Inject lateinit var wearSendToNotifier: WearSendToNotifier
 
     @Inject lateinit var gson: Gson
+
+    @Inject lateinit var scheduledWatchReceipts: ScheduledWatchReceiptRegistry
 
     @Inject lateinit var mergeWearSettingsReportUseCase: MergeWearSettingsReportUseCase
 
@@ -208,6 +212,7 @@ class PhoneWearListenerService : WearableListenerService() {
             WearDataLayerPaths.FILE_TRANSFER_ACK -> handleFileTransferAck(event.data)
             WearDataLayerPaths.FILE_TRANSFER_META -> handleFileTransferMeta(event.data)
             WearDataLayerPaths.LISTEN_ACK -> handleListenAck(event.data)
+            WearDataLayerPaths.SCHEDULED_MESSAGE_RECEIPT -> handleScheduledMessageReceipt(event.data)
             WearDataLayerPaths.CAMERA_VIEW_START ->
                 phoneCameraSessionCommandManager.handleStart(event.sourceNodeId, event.data)
             WearDataLayerPaths.CAMERA_VIEW_STOP ->
@@ -362,6 +367,16 @@ class PhoneWearListenerService : WearableListenerService() {
                 Timber.e(e, "Failed to deserialize stream transfer ack")
             }
         }
+    }
+
+    /** S4248: the watch's answer to a scheduled message, handed to the run waiting for it. */
+    private fun handleScheduledMessageReceipt(data: ByteArray) {
+        val receipt = WearScheduledMessageCodec.parseReceipt(data, gson)
+        if (receipt == null) {
+            Timber.w("Dropped a scheduled watch receipt that carries no message id")
+            return
+        }
+        scheduledWatchReceipts.complete(receipt)
     }
 
     /**
@@ -828,9 +843,6 @@ class PhoneWearListenerService : WearableListenerService() {
         return encodePage(page.copy(items = page.items?.map { it.withoutThumbnail() }))
     }
 
-    private fun WearPhoneResourceItem.withoutThumbnail(): WearPhoneResourceItem =
-        if (thumbnailBase64 == null) this else copy(thumbnailBase64 = null)
-
     private fun handleSyncRequest() {
         Timber.i("Watch requested sync - sending resources")
         applicationScope.launch {
@@ -859,3 +871,6 @@ class PhoneWearListenerService : WearableListenerService() {
         private const val MAX_DATA_ITEM_BYTES = 100 * 1024
     }
 }
+
+private fun WearPhoneResourceItem.withoutThumbnail(): WearPhoneResourceItem =
+    if (thumbnailBase64 == null) this else copy(thumbnailBase64 = null)

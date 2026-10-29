@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.02 20:40</sub>
+<sub class="doc-stamp">26.10.29 01:54</sub>
 
 # Build vs Release - workflow glossary
 
@@ -26,23 +26,23 @@ Skills `/build`, `/skill-release` and `/skill-release-wear` reference this file 
 
 ## CI cost map
 
-Seven GitHub Actions workflows exist. `android-ci.yml` and `static-gates.yml` fire on a push to `main` **and** on a push to a `DEBUG-v0NN` branch; two more are keyed to `main` (push) or a pull request targeting `main`; two are on a clock and fire on no push at all; the sixth is the nightly device loop, which is on a clock as well.
+Seven GitHub Actions workflows exist, and since S4488 (owner order 2026-10-29: the full build and every check over 5 seconds run only before or during a release) none of them fires on a `DEBUG-v0NN` push, on a pull request or on a clock. Six fire on a push to `main`, which is the release run and the only push that reaches `main` (`scripts/githooks/pre-push`); every one also takes a manual dispatch, which is how the owner names a run between releases. The seventh, `jekyll-gh-pages.yml`, deploys the site on a push to `main` and builds and tests nothing of the app.
 
 | Workflow | Triggers | Fires on a `DEBUG-v0NN` push? |
 |----------|----------|:-----------------------------:|
-| `android-ci.yml` (jobs `verify`, `verify-wear`, `manifest-risk`, `build-flavors`, `release-check`, `notify`; `regenerate-lint-baseline` on manual dispatch only) | push to `main` and to `DEBUG-v*`, PR to `main`, manual dispatch. Both push and PR are path-filtered to `app_v2/**`, `wear/**`, `gradle/**`, `*.kts`, `gradlew*`, `scripts/**`, `dev/**` and the workflow file itself | **Yes** |
-| `static-gates.yml` (the fast static batch; job `static-gates`) | push to `main` and to `DEBUG-v*`, PR to `main`, manual dispatch. No path filter: the batch reads the whole tracked tree, so a filter would skip gates whose inputs changed (S4057, CHECK-PLACEMENT rule 2) | **Yes** |
-| `maestro-tests.yml` (emulator E2E; job `maestro-tests`) | PR to `main`, manual dispatch | No |
+| `android-ci.yml` (jobs `verify`, `verify-wear`, `manifest-risk`, `build-flavors`, `release-check`, `notify`; `regenerate-lint-baseline` on manual dispatch only) | push to `main`, manual dispatch. The push is path-filtered to `app_v2/**`, `wear/**`, `gradle/**`, `*.kts`, `gradlew*`, `scripts/**`, `dev/**` and the workflow file itself | No |
+| `static-gates.yml` (the fast static batch; job `static-gates`) | push to `main`, manual dispatch. No path filter: the batch reads the whole tracked tree, so a filter would skip gates whose inputs changed (S4057, CHECK-PLACEMENT rule 2). A run there resolves to the Release tier (CI is not an agent shell), so the whole batch runs | No |
+| `maestro-tests.yml` (emulator E2E; job `maestro-tests`) | push to `main` (path-filtered to `app_v2/**`, `wear/**`, `gradle/**`, `*.kts`, `gradlew*`, `maestro/**` and the workflow file), manual dispatch | No |
 | `jekyll-gh-pages.yml` (site deploy; jobs `build`, `deploy`) | push to `main` (path-filtered to the site sources), manual dispatch | No |
-| `security-scan.yml` (full-tree secret scan; job `secret-scan`) | weekly schedule (Monday 03:17 UTC), manual dispatch | No |
-| `dependency-scan.yml` (jobs `submit-graph`, `dependency-review`, `sbom`) | push to `main` (path-filtered to the version catalog, the build scripts and the workflow file), PR to `main`, weekly schedule (Monday 04:41 UTC), manual dispatch | No |
-| `nightly-device-loop.yml` (leak watch over the critical flows; job `leak-watch`) | nightly schedule (02:23 UTC), manual dispatch | No |
+| `security-scan.yml` (full-tree secret scan; job `secret-scan`) | push to `main`, manual dispatch | No |
+| `dependency-scan.yml` (jobs `submit-graph`, `dependency-review`, `sbom`) | push to `main` (path-filtered to the version catalog, the build scripts and the workflow file), manual dispatch | No |
+| `nightly-device-loop.yml` (leak watch over the critical flows; job `leak-watch`) | push to `main`, manual dispatch | No |
 
-That path filter is not much of a narrowing in practice: it carries `dev/**`, and `scripts/add_to_dev_log.ps1` writes `dev/CHANGELOG.md` on every closure, so a DEBUG push carrying a dev-log row fires the whole pipeline even when no Kotlin changed.
+A DEBUG push fires nothing, so a test build costs no CI run at all; the local checks between releases are the fast tier only (`.\a.ps1 ff`, see `docs/BUILD_TEST_FAST_PATH.md`).
 
 ### The nightly device loop: cadence and measured cost
 
-Decided in S3371 phase 05 (strategic ADR-4): **nightly schedule plus manual dispatch now, PR gating deferred until the contour is stable.** A leak-watch run needs a booted emulator and an instrumented install, and a contour that has never run unattended has no failure history to judge a false positive against - gating a merge on it before that history exists buys a blocked PR queue instead of a found leak. The decision is reversible in one `on:` block once the nightly runs have a record.
+Decided in S3371 phase 05 (strategic ADR-4): **scheduled plus manual dispatch, PR gating deferred until the contour is stable**; S4488 moved the schedule to the release push (`main`), so the loop runs against the release's own tree and manual dispatch stays for a run the owner names. A leak-watch run needs a booted emulator and an instrumented install, and a contour that has never run unattended has no failure history to judge a false positive against - gating a merge on it before that history exists buys a blocked PR queue instead of a found leak. The decision is reversible in one `on:` block once the nightly runs have a record.
 
 What the contour costs, measured 2026-09-22 on the dedicated test phone (`SM-G996U1`, Android 15) via `check-standard-fast.ps1 -Mode ConnectedAndroidTest -Tests com.sza.fastmediasorter.leakwatch`:
 
@@ -63,7 +63,7 @@ Nothing in money - because the repository is public, not because CI stays quiet.
 
 Flip the repository to private and the claim inverts: a DEBUG push starts billing ubuntu minutes at roughly the length of its run - about 30 per push at the current pipeline - while `maestro-tests.yml` stays unaffected, since it never fires outside a PR.
 
-Conclusion: **a test build (commit + push to a DEBUG branch) bills 0 minutes because the repository is public.** It does run the full `android-ci.yml` pipeline. No flow in this repository spends paid Actions minutes at present; what the `main` boundary adds is the site deploy and the publication itself, not the bill.
+Conclusion: **a test build (commit + push to a DEBUG branch) bills 0 minutes because the repository is public.** Since S4488 it also runs nothing: the full `android-ci.yml` pipeline runs on the release push to `main` only. No flow in this repository spends paid Actions minutes at present; what the `main` boundary adds is the site deploy and the publication itself, not the bill.
 
 ---
 

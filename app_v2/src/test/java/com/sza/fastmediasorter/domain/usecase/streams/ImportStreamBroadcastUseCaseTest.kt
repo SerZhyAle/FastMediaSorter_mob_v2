@@ -7,10 +7,12 @@ import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorParser
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorSerializer
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointCodec
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointDto
+import com.sza.fastmediasorter.data.broadcast.BroadcastPendingDto
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
 import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import com.sza.fastmediasorter.domain.repository.BroadcastPasswordStore
+import com.sza.fastmediasorter.domain.repository.BroadcastPendingStore
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.testing.InMemoryRoomRule
@@ -54,7 +56,8 @@ class ImportStreamBroadcastUseCaseTest {
     private val serializer = BroadcastDescriptorSerializer()
     private val addStreamUseCase get() = AddStreamSourceUseCase(repo, StreamMediaKindClassifier(), stats)
     private val passwords = FakeBroadcastPasswordStore()
-    private val importUseCase get() = ImportStreamBroadcastUseCase(parser, addStreamUseCase, repo, passwords)
+    private val pending = FakeBroadcastPendingStore()
+    private val importUseCase get() = ImportStreamBroadcastUseCase(parser, addStreamUseCase, repo, passwords, pending)
 
     private class FakeBroadcastPasswordStore : BroadcastPasswordStore {
         val pairs = mutableMapOf<String, BroadcastPasswordStore.StoredPair>()
@@ -67,6 +70,53 @@ class ImportStreamBroadcastUseCaseTest {
             pairs.remove(streamId)
         }
     }
+
+    private class FakeBroadcastPendingStore : BroadcastPendingStore {
+        val rows = mutableMapOf<String, Long>()
+        override suspend fun untilMs(streamId: String) = rows[streamId]
+        override suspend fun put(streamId: String, untilMs: Long) {
+            rows[streamId] = untilMs
+        }
+        override suspend fun clear(streamId: String) {
+            rows.remove(streamId)
+        }
+    }
+
+    @Test
+    fun importPendingDescriptor_keepsAWaitingRowWithItsExpiry() = runTest {
+        val result = importUseCase(serializer.serialize(pendingDescriptor(FUTURE)))
+
+        val id = requireNotNull(dao.getByUrl(RELAY_URL)).id
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Waiting(id, FUTURE_MS), result)
+        assertEquals(FUTURE_MS, pending.rows[id])
+    }
+
+    @Test
+    fun importLiveDescriptorOfAWaitingRow_endsTheWait() = runTest {
+        importUseCase(serializer.serialize(pendingDescriptor(FUTURE)))
+
+        val result = importUseCase(serializer.serialize(pendingDescriptor(FUTURE).copy(pending = null)))
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Duplicate, result)
+        assertEquals(emptyMap<String, Long>(), pending.rows)
+    }
+
+    @Test
+    fun importPendingDescriptorPastItsExpiry_storesNothing() = runTest {
+        val result = importUseCase(serializer.serialize(pendingDescriptor(PAST)))
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Expired, result)
+        assertNull(dao.getByUrl(RELAY_URL))
+        assertEquals(emptyMap<String, Long>(), pending.rows)
+    }
+
+    private fun pendingDescriptor(until: String) = BroadcastDescriptorDto(
+        schemaVersion = 1,
+        url = RELAY_URL,
+        title = "Tonight",
+        mode = "AUDIO_ONLY",
+        pending = BroadcastPendingDto(until),
+    )
 
     private fun protectedDescriptor() = BroadcastDescriptorDto(
         schemaVersion = 1,
@@ -469,6 +519,10 @@ class ImportStreamBroadcastUseCaseTest {
     )
 
     private companion object {
+        const val RELAY_URL = "https://exchange.example.org:8443/v2/b/AbCdEfGh12/stream"
+        const val FUTURE = "2099-01-01T00:00:00Z"
+        const val FUTURE_MS = 4_070_908_800_000L
+        const val PAST = "2001-01-01T00:00:00Z"
         const val WATCH_ID = "6f1a8f0e-0f4e-4a2b-9d1c-2b7f1a8f0e00"
         const val FIRST_URL = "http://192.168.1.77:41000/live-audio.aac"
         const val SECOND_URL = "http://192.168.1.77:52311/live-audio.aac"

@@ -11,6 +11,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.broadcast.BroadcastMode
 import com.sza.fastmediasorter.broadcast.BroadcastSourceController
 import com.sza.fastmediasorter.broadcast.BroadcastState
 import com.sza.fastmediasorter.databinding.ActivityBroadcastControlBinding
@@ -32,6 +33,7 @@ class BroadcastScreenEntryManager {
         controller: BroadcastSourceController,
         activity: AppCompatActivity,
         binding: ActivityBroadcastControlBinding,
+        preparedStartGuard: BroadcastPreparedStartGuard,
     ) {
         consentLauncher = activity.registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
@@ -44,12 +46,16 @@ class BroadcastScreenEntryManager {
             }
         }
         binding.btnBroadcastScreen.setOnClickListener {
-            val projectionManager = activity.getSystemService(MediaProjectionManager::class.java)
-            if (projectionManager != null) {
-                consentLauncher?.launch(consentIntent(projectionManager))
-            } else {
-                Timber.w("BroadcastScreenEntryManager: no MediaProjectionManager on this device")
-            }
+            preparedStartGuard.confirm(activity, BroadcastMode.VIDEO_ONLY) { requestConsent(activity) }
+        }
+    }
+
+    private fun requestConsent(activity: AppCompatActivity) {
+        val projectionManager = activity.getSystemService(MediaProjectionManager::class.java)
+        if (projectionManager != null) {
+            consentLauncher?.launch(consentIntent(projectionManager))
+        } else {
+            Timber.w("BroadcastScreenEntryManager: no MediaProjectionManager on this device")
         }
     }
 

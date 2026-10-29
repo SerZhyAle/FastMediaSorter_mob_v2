@@ -118,7 +118,6 @@
     <string name="wear_section_local">本地</string>
     <string name="wear_section_streams">直播源</string>
     <string name="wear_section_apps">应用</string>
-    <string name="wear_coming_soon">敬请期待</string>
     <string name="wear_phone_video">视频</string>
     <string name="wear_phone_audio">音频</string>
     <string name="wear_phone_images">图片</string>
@@ -1100,4 +1099,11 @@
     <string name="wear_open_in_role_last_used">上次使用</string>
     <string name="wear_open_in_role_browser">浏览器</string>
     <string name="wear_open_in_role_maps">地图</string>
+    <string name="wear_broadcast_server_announcing">服务器：正在通告</string>
+    <string name="wear_broadcast_server_on">在交换服务器上</string>
+    <string name="wear_broadcast_server_failed">服务器错误 - 请查看手机</string>
+    <string name="wear_broadcast_server_local_only">仅限此网络</string>
+    <string name="wear_scheduled_message_channel_name">定时消息</string>
+    <string name="wear_audio_fetching">正在加载曲目..</string>
+    <string name="wear_stream_ended">此直播已停播。请在重新开播时重试。</string>
 </resources>

@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.07 04:59</sub>
+<sub class="doc-stamp">26.10.25 17:34</sub>
 
 # Pointer - `REPO-STAMP`
 
 | | |
 | --- | --- |
 | **Id** | `REPO-STAMP` |
-| **Version** | 0.12, draft. Owner: the canon (sza-unified-rules) |
+| **Version** | 0.13, draft. Owner: the canon (sza-unified-rules) |
 | **Home** | `rule-adoption/README.md` section 2 in the shared contracts catalog |
 | **Role here** | adopter - declares itself through `.sza-canon.json` |
 

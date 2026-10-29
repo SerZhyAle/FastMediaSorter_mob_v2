@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.settings.cloud
 
+import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.domain.model.transfer.CrossDevicePacketEntry
@@ -7,6 +8,7 @@ import com.sza.fastmediasorter.domain.model.transfer.CrossDevicePacketManifest
 import com.sza.fastmediasorter.domain.model.transfer.CrossDevicePayloadKind
 import com.sza.fastmediasorter.domain.model.transfer.CrossDeviceTransferOption
 import com.sza.fastmediasorter.domain.model.transfer.DriveChannelOff
+import com.sza.fastmediasorter.domain.model.transfer.DriveConsentRequired
 import com.sza.fastmediasorter.domain.model.transfer.DriveDailyLimit
 import com.sza.fastmediasorter.domain.model.transfer.DriveQueueFull
 import com.sza.fastmediasorter.domain.model.transfer.DriveSignInRequired
@@ -22,6 +24,7 @@ import com.sza.fastmediasorter.domain.usecase.transfer.BuildTransferPayloadUseCa
 import com.sza.fastmediasorter.domain.usecase.transfer.CleanExpiredCrossDevicePacketsUseCase
 import com.sza.fastmediasorter.domain.usecase.transfer.DeleteCrossDevicePacketUseCase
 import com.sza.fastmediasorter.domain.usecase.transfer.GetPendingCrossDevicePacketsUseCase
+import com.sza.fastmediasorter.domain.usecase.transfer.GrantDriveAppFolderAccessUseCase
 import com.sza.fastmediasorter.domain.usecase.transfer.ReceiveCrossDevicePacketUseCase
 import com.sza.fastmediasorter.domain.usecase.transfer.SendCrossDevicePacketUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -56,6 +59,9 @@ sealed interface CrossDeviceQueueNotice {
 
     data object SignInRequired : CrossDeviceQueueNotice
 
+    /** S4427: signed in, only the app folder grant is missing - rendered with an Allow action. */
+    data object ConsentRequired : CrossDeviceQueueNotice
+
     data object DailyLimit : CrossDeviceQueueNotice
 
     data class NotEnoughSpace(val freeBytes: Long?) : CrossDeviceQueueNotice
@@ -80,6 +86,9 @@ data class CrossDeviceQueueUiState(
  * The local device name is read here rather than passed in from the dialog: it is the one piece of
  * identity every call needs, and the domain layer deliberately has none.
  */
+// S4427: one use case per queue action keeps each one separately testable; a holder object would
+// only move the same list behind an indirection.
+@Suppress("LongParameterList")
 @HiltViewModel
 class CrossDeviceTransferViewModel @Inject constructor(
     private val getPendingPackets: GetPendingCrossDevicePacketsUseCase,
@@ -88,6 +97,7 @@ class CrossDeviceTransferViewModel @Inject constructor(
     private val buildTransferPayload: BuildTransferPayloadUseCase,
     private val sendPacket: SendCrossDevicePacketUseCase,
     private val deletePacket: DeleteCrossDevicePacketUseCase,
+    private val grantAppFolder: GrantDriveAppFolderAccessUseCase,
     private val identity: LocalDeviceIdentitySource,
     private val settings: DriveChannelSettings,
     private val queue: DriveQueueSnapshots
@@ -244,6 +254,13 @@ class CrossDeviceTransferViewModel @Inject constructor(
         }
     }
 
+    /** S4427: the Allow action of the consent notice; the list is re-read once Google grants the folder. */
+    fun grantAppFolderAccess(activity: Activity) {
+        viewModelScope.launch {
+            if (grantAppFolder(activity)) refresh()
+        }
+    }
+
     /** Drop the notice once the dialog has shown it, so a rotation does not repeat the message. */
     fun consumeNotice() {
         _state.update { it.copy(notice = null) }
@@ -265,6 +282,7 @@ class CrossDeviceTransferViewModel @Inject constructor(
         fun noticeFor(error: Throwable): CrossDeviceQueueNotice = when (error) {
             is DriveChannelOff -> CrossDeviceQueueNotice.ChannelOff
             is DriveSignInRequired -> CrossDeviceQueueNotice.SignInRequired
+            is DriveConsentRequired -> CrossDeviceQueueNotice.ConsentRequired
             is DriveDailyLimit -> CrossDeviceQueueNotice.DailyLimit
             is DriveQueueFull -> CrossDeviceQueueNotice.NotEnoughSpace(error.freeBytes)
             is PacketTooLarge -> CrossDeviceQueueNotice.TooLarge(error.limitBytes)

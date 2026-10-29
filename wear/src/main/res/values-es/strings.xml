@@ -118,7 +118,6 @@
     <string name="wear_section_local">Local</string>
     <string name="wear_section_streams">Emisiones</string>
     <string name="wear_section_apps">Apps</string>
-    <string name="wear_coming_soon">Próximamente</string>
     <string name="wear_phone_video">Vídeo</string>
     <string name="wear_phone_audio">Audio</string>
     <string name="wear_phone_images">Imágenes</string>
@@ -1098,4 +1097,11 @@
     <string name="wear_open_in_role_last_used">Último usado</string>
     <string name="wear_open_in_role_browser">Navegador</string>
     <string name="wear_open_in_role_maps">Mapas</string>
+    <string name="wear_broadcast_server_announcing">Servidor: anunciando</string>
+    <string name="wear_broadcast_server_on">En el servidor de intercambio</string>
+    <string name="wear_broadcast_server_failed">Error del servidor - ver el teléfono</string>
+    <string name="wear_broadcast_server_local_only">Solo esta red</string>
+    <string name="wear_scheduled_message_channel_name">Mensajes programados</string>
+    <string name="wear_audio_fetching">Cargando la pista..</string>
+    <string name="wear_stream_ended">Esta emisión ya no está en el aire. Vuelve a intentarlo cuando empiece de nuevo.</string>
 </resources>

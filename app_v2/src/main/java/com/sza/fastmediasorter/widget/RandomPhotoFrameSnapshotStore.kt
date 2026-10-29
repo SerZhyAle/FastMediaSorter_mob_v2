@@ -16,18 +16,19 @@ object RandomPhotoFrameSnapshotStore {
      * S1170: who a snapshot belongs to. A home-screen widget is identified by its `appWidgetId`; a
      * launcher desktop cell has no widget id and never will, so it needs its own namespace.
      *
-     * **[Widget.token] must stay byte-identical forever.** It is the suffix already written into
+     * **[Widget.keySuffix] must stay byte-identical forever.** It is the suffix already written into
      * `random_photo_frame_widget` prefs on every device that has a configured frame; changing it would
      * orphan those users' photo frames silently - the widget would render as unconfigured and the old
-     * keys would linger. That is why a widget's token is the bare number it has always been, and the
+     * keys would linger. That is why a widget's suffix is the bare number it has always been, and the
      * cell namespace gets a letter prefix instead: `"7"` and `"cell7"` can never collide, whereas two
      * numeric spaces would.
      */
     sealed interface SnapshotOwner {
-        val token: String
+        /** An identifier appended to every prefs key of this owner - not a credential of any kind. */
+        val keySuffix: String
 
         data class Widget(val appWidgetId: Int) : SnapshotOwner {
-            override val token: String get() = appWidgetId.toString()
+            override val keySuffix: String get() = appWidgetId.toString()
         }
 
         /**
@@ -35,7 +36,7 @@ object RandomPhotoFrameSnapshotStore {
          * cell's row id - the add flow configures a cell before inserting it, so no row id exists yet.
          */
         data class LauncherCell(val instanceId: Long) : SnapshotOwner {
-            override val token: String get() = "$CELL_PREFIX$instanceId"
+            override val keySuffix: String get() = "$CELL_PREFIX$instanceId"
         }
 
         companion object {
@@ -199,7 +200,7 @@ object RandomPhotoFrameSnapshotStore {
 
     /**
      * For a widget owner this produces exactly the string the previous `"${key}_$appWidgetId"` did -
-     * that identity is the whole point, and the reason [SnapshotOwner.Widget.token] is a bare number.
+     * that identity is the whole point, and the reason [SnapshotOwner.Widget.keySuffix] is a bare number.
      */
-    private fun namespaced(key: String, owner: SnapshotOwner): String = "${key}_${owner.token}"
+    private fun namespaced(key: String, owner: SnapshotOwner): String = "${key}_${owner.keySuffix}"
 }

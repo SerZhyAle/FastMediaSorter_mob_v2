@@ -5,7 +5,6 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.net.Uri
-import android.view.View
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -43,6 +42,7 @@ class BroadcastSharePanelManager @Inject constructor(
     private val controller: BroadcastSourceController,
     private val shareManager: BroadcastShareManager,
     private val guests: ManageBroadcastGuestsUseCase,
+    private val linkPasswordDialog: BroadcastLinkPasswordDialogManager,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) {
     /** Takes no dependencies of its own, so it is constructed here instead of going through Hilt. */
@@ -95,14 +95,15 @@ class BroadcastSharePanelManager @Inject constructor(
 
         binding.tvShareUrl.text = url
         renderSharePassword(activity, binding, liveState)
-        // Strategic S4272 3.4: only a broadcast announced through an exchange server by a member account.
-        binding.btnShareGuests.isVisible = isProtected(liveState) && guests.available
+        // Strategic S4272 3.4: only a broadcast announced through an exchange server by a member account. S4405:
+        // "announced", not "has a password" - an open link is announced too.
+        binding.btnShareGuests.isVisible = isAnnounced(liveState) && guests.available
         binding.btnShareGuests.setOnClickListener { guestsDialog.show(activity) }
 
         binding.btnCopyUrl.setOnClickListener {
             val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            // A bare URL would strip `auth`, and the receiver would meet a challenge it cannot answer (item M).
-            val copied = if (isProtected(liveState)) shareManager.generateShareLink(liveState) else url
+            // A bare URL would strip `auth` and the relay's sealing key, and the receiver could not open it (item M).
+            val copied = if (isAnnounced(liveState)) shareManager.generateShareLink(liveState) else url
             val clip = ClipData.newPlainText("Broadcast URL", copied)
             clipboard.setPrimaryClip(clip)
             Toast.makeText(activity, R.string.broadcast_share_saved, Toast.LENGTH_SHORT).show()
@@ -143,24 +144,32 @@ class BroadcastSharePanelManager @Inject constructor(
         }
     }
 
-    fun isProtected(live: BroadcastState.Live): Boolean = shareManager.linkPassword(live) != null
+    private fun isAnnounced(live: BroadcastState.Live): Boolean = shareManager.isAnnounced(live)
 
-    /** The link password is told apart from the link: neither the link, the file nor the QR code carries it. */
+    /**
+     * The link password is told apart from the link: neither the link, the file nor the QR code carries it. Shown
+     * while the broadcast is announced, "none" included (S4405).
+     */
     private fun renderSharePassword(
         activity: AppCompatActivity,
         binding: ActivityBroadcastControlBinding,
         live: BroadcastState.Live,
     ) {
+        val announced = isAnnounced(live)
+        binding.tvSharePassword.isVisible = announced
+        binding.btnShareChangePassword.isVisible = announced
+        if (!announced) return
         val password = shareManager.linkPassword(live)
-        val visibility = if (password != null) View.VISIBLE else View.GONE
-        binding.tvSharePassword.visibility = visibility
-        binding.btnShareNewPassword.visibility = visibility
-        if (password == null) return
-        binding.tvSharePassword.text = activity.getString(R.string.broadcast_share_password, password)
-        binding.btnShareNewPassword.setOnClickListener {
-            if (shareManager.renewLinkPassword() == null) return@setOnClickListener
-            render(activity, binding)
-            Snackbar.make(binding.root, R.string.broadcast_share_password_hint, Snackbar.LENGTH_LONG).show()
+        binding.tvSharePassword.text = if (password != null) {
+            activity.getString(R.string.broadcast_link_password_row, password)
+        } else {
+            activity.getString(R.string.broadcast_link_password_none_row)
+        }
+        binding.btnShareChangePassword.setOnClickListener {
+            linkPasswordDialog.show(activity, isLive = true) { messageRes ->
+                render(activity, binding)
+                Snackbar.make(binding.root, messageRes, Snackbar.LENGTH_LONG).show()
+            }
         }
     }
 

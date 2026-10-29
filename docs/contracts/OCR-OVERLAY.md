@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.02 12:24</sub>
+<sub class="doc-stamp">26.10.29 05:03</sub>
 
 # Pointer - `OCR-OVERLAY`
 
 | | |
 | --- | --- |
 | **Id** | `OCR-OVERLAY` |
-| **Version** | 1.3, active. Owner: shared (amendments through the domain page) |
+| **Version** | 1.4, active. Owner: shared (amendments through the domain page) |
 | **Home** | `ocr-overlay/README.md` in the shared contracts catalog |
 | **Role here** | consumer - the player's OCR + translation overlay |
 

@@ -33,6 +33,7 @@ import com.sza.fastmediasorter.wear.domain.playback.WearBackgroundSessionState
 import com.sza.fastmediasorter.wear.domain.playback.WearPlaybackStallPolicy
 import com.sza.fastmediasorter.wear.domain.playback.WearPlaybackStallWatchdog
 import com.sza.fastmediasorter.wear.domain.playback.WearStationInfo
+import com.sza.fastmediasorter.wear.domain.playback.WearStreamFailure
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
@@ -52,8 +53,10 @@ import com.sza.fastmediasorter.wear.ui.player.common.backwardSeekTarget
 import com.sza.fastmediasorter.wear.ui.player.common.forwardSeekTarget
 import com.sza.fastmediasorter.wear.ui.player.common.jumpToLive
 import com.sza.fastmediasorter.wear.ui.player.common.resolveFavoriteIdentity
+import com.sza.fastmediasorter.wear.ui.player.common.streamFailure
 import com.sza.fastmediasorter.wear.ui.player.common.togglePlayPause
 import com.sza.fastmediasorter.wear.ui.player.common.wearPlaybackStatePayload
+import com.sza.fastmediasorter.wear.ui.player.helpers.AudioPrefetchManager
 import com.sza.fastmediasorter.wear.ui.player.helpers.StreamPlaybackSessionFactory
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -67,6 +70,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.io.File
 import javax.inject.Inject
 
 /** S3099: ICY and `Format` both state a bitrate in bits per second; the glass shows kbps. */
@@ -146,6 +150,11 @@ class AudioPlayerViewModel @Inject constructor(
      * finishing last put its track into the player under the newer track's title.
      */
     private var loadJob: Job? = null
+
+    /** S4471: the next network track, fetched while this one plays. */
+    private val audioPrefetch = AudioPrefetchManager(viewModelScope) { selection ->
+        downloadNetworkFile(selection, DownloadNetworkFileUseCase.Kind.AUDIO)
+    }
 
     /**
      * S2166: read once into a field because [onHostStopped] runs on the lifecycle edge and cannot
@@ -232,7 +241,11 @@ class AudioPlayerViewModel @Inject constructor(
                     // A set of one is excluded deliberately: it has nowhere to advance to, and
                     // restarting the only track is exactly the endless loop S0902 removed below.
                     val setSize = playbackSetManager.currentSet.value?.files?.size ?: 0
-                    if (_uiState.value.playbackMode == WearPlaybackMode.LOOP) {
+                    if (networkSelection?.isDirectStream == true) {
+                        // S4473: a live source has no last second to finish on - its end is the producer
+                        // stopping, and moving on to another station or rewinding to 0:00 would hide that.
+                        showStreamFailure(WearStreamFailure.ENDED)
+                    } else if (_uiState.value.playbackMode == WearPlaybackMode.LOOP) {
                         exoPlayer.seekTo(0)
                         exoPlayer.play()
                     } else if (setSize > 1) {
@@ -258,6 +271,7 @@ class AudioPlayerViewModel @Inject constructor(
 
         override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
             streamPlaybackSession.stop()
+            Timber.w(error, "AudioPlayerViewModel: playback error %s", error.errorCodeName)
             if (selectedMediaManager.getSelectedFileById(fileId)?.sourceId == SOURCE_ID_VOICE_NOTE) {
                 _uiState.update {
                     it.copy(
@@ -265,7 +279,22 @@ class AudioPlayerViewModel @Inject constructor(
                         error = context.getString(R.string.wear_voice_note_unavailable)
                     )
                 }
+            } else {
+                // S4473: this callback used to be silent for everything but a voice note, which left an
+                // idle player drawn as a paused one - 0:00 and a Play button that could not restart it.
+                showStreamFailure(error.streamFailure())
             }
+        }
+
+        /**
+         * S4473: puts the source's failure or its producer's end on the screen and settles the session
+         * under it. Pausing is what releases the display hold, which follows `playWhenReady`.
+         */
+        private fun showStreamFailure(failure: WearStreamFailure) {
+            exoPlayer.pause()
+            streamPlaybackSession.stop()
+            _uiState.update { it.withStreamFailure(failure) }
+            publishPlaybackState()
         }
     }
 
@@ -496,7 +525,7 @@ class AudioPlayerViewModel @Inject constructor(
         exoPlayer.stop()
         exoPlayer.clearMediaItems()
         _uiState.update {
-            it.withMediaFile(file).copy(currentPositionMs = 0, durationMs = 0, error = null)
+            it.withMediaFile(file).copy(currentPositionMs = 0, durationMs = 0, error = null, streamFailure = null)
         }
         fetchRemoteAlbumArt(file)
         val selection = networkSelection
@@ -662,9 +691,9 @@ class AudioPlayerViewModel @Inject constructor(
             exoPlayer.playWhenReady = true
             return
         }
-        _uiState.update { it.copy(isLoading = true) }
+        _uiState.update { it.copy(isLoading = true, isFetchingFile = true) }
 
-        val downloaded = downloadNetworkFile(selected, DownloadNetworkFileUseCase.Kind.AUDIO)
+        val downloaded = fetchAudioFile(selected)
         // A page turn cancels this load; a download that ignored the cancel must not reach the player.
         currentCoroutineContext().ensureActive()
         downloaded.fold(
@@ -680,18 +709,79 @@ class AudioPlayerViewModel @Inject constructor(
                     .build()
                 exoPlayer.setMediaItem(mediaItem)
                 exoPlayer.prepare()
-                _uiState.update { it.copy(isLoading = false) }
+                _uiState.update { it.copy(isLoading = false, isFetchingFile = false) }
                 exoPlayer.playWhenReady = true
+                prefetchNextTrack(selected)
             },
             onFailure = { e ->
                 _uiState.update {
-                    it.copy(isLoading = false, error = "Failed to load: ${e.message}")
+                    it.copy(isLoading = false, isFetchingFile = false, error = "Failed to load: ${e.message}")
                 }
             }
         )
     }
 
-    fun togglePlayPause() = streamPlaybackSession.togglePlayPause(exoPlayer)
+    /**
+     * S4471: the copy the previous track's prefetch left for this file, else a fresh download. A prefetch
+     * that failed is not an answer - the wearer asked for this track now, so it is retried rather than
+     * reported as the failure of a request that was never made.
+     */
+    private suspend fun fetchAudioFile(selected: SelectedMedia): Result<File> {
+        val prefetched = audioPrefetch.take(selected)?.await()?.takeIf { it.isSuccess }
+        return prefetched ?: downloadNetworkFile(selected, DownloadNetworkFileUseCase.Kind.AUDIO)
+    }
+
+    /**
+     * S4471: starts the download of the track that follows the one just prepared, so the gap at its end
+     * holds no transfer.
+     */
+    private fun prefetchNextTrack(current: SelectedMedia) {
+        val next = nextPrefetchSelection(current)
+        next?.let(audioPrefetch::prefetch)
+    }
+
+    /**
+     * S4471: the selection to fetch ahead, built exactly as [playFile] builds its paged selection so the
+     * two keys meet. Loop repeats the file on screen, a set of one has no successor, and a copy that
+     * cannot sit in the cache beside the playing one would evict the file ExoPlayer is reading, so a
+     * pair that does not fit the cap together - or a next file of unknown size - is left to the normal
+     * download.
+     */
+    private fun nextPrefetchSelection(current: SelectedMedia): SelectedMedia? {
+        val next = playbackSetManager.peekNext()?.takeIf { it.id != current.file.id && it.size > 0 }
+        val fitsBeside = next != null &&
+            current.file.size + next.size <= DownloadNetworkFileUseCase.Kind.AUDIO.capBytes
+        val wanted = fitsBeside && _uiState.value.playbackMode != WearPlaybackMode.LOOP
+        return next?.takeIf { wanted }?.let { current.copy(file = it, streamUri = it.uri.toString()) }
+    }
+
+    fun togglePlayPause() {
+        // S4471: until the copy lands the player holds nothing to play, and the ring on the button says so.
+        if (_uiState.value.isFetchingFile) {
+            return
+        }
+        streamPlaybackSession.togglePlayPause(exoPlayer)
+    }
+
+    /**
+     * S4473: the Retry of the failure screen. An errored player sits idle and `play()` does not prepare it
+     * again, so the load path that opened the track is entered afresh - the network one with the selection
+     * paging kept current, a local file by its uri, and the first-open path when neither is remembered.
+     */
+    fun retryPlayback() {
+        if (_uiState.value.streamFailure == null) return
+        _uiState.update { it.withRetryStarted() }
+        exoPlayer.stop()
+        exoPlayer.clearMediaItems()
+        loadJob?.cancel()
+        val selection = networkSelection
+        val file = _uiState.value.mediaFile
+        when {
+            selection != null -> loadJob = viewModelScope.launch { loadNetworkAudio(selection) }
+            file != null -> playLocalFile(file)
+            else -> loadAudioFile()
+        }
+    }
 
     /** S3217: a file has no live edge, so only a direct stream is re-prepared. */
     fun jumpToLive() {

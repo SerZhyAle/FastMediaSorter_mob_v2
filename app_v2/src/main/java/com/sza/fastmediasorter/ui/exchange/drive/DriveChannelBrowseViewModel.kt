@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.ui.exchange.drive
 
+import android.app.Activity
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.domain.model.transfer.DriveConsentRequired
 import com.sza.fastmediasorter.domain.model.transfer.DriveDailyLimit
 import com.sza.fastmediasorter.domain.model.transfer.DriveListingEntry
 import com.sza.fastmediasorter.domain.model.transfer.DriveRefusalReason
@@ -10,6 +12,7 @@ import com.sza.fastmediasorter.domain.model.transfer.DriveSignInRequired
 import com.sza.fastmediasorter.domain.transfer.DriveFileChannel
 import com.sza.fastmediasorter.domain.transfer.DriveProducerTarget
 import com.sza.fastmediasorter.domain.transfer.DriveRequestProgress
+import com.sza.fastmediasorter.domain.usecase.transfer.GrantDriveAppFolderAccessUseCase
 import com.sza.fastmediasorter.domain.usecase.transfer.ResolveDriveProducerUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -45,6 +48,9 @@ sealed interface DriveBrowseStatus {
 
     data object SignInRequired : DriveBrowseStatus
 
+    /** S4427: signed in, only the app folder grant is missing - the primary button offers it. */
+    data object ConsentRequired : DriveBrowseStatus
+
     data object DailyLimit : DriveBrowseStatus
 
     data object Failed : DriveBrowseStatus
@@ -70,6 +76,7 @@ data class DriveBrowseUiState(
 class DriveChannelBrowseViewModel @Inject constructor(
     private val channel: DriveFileChannel,
     private val resolveProducer: ResolveDriveProducerUseCase,
+    private val grantAppFolder: GrantDriveAppFolderAccessUseCase,
     savedState: SavedStateHandle,
 ) : ViewModel() {
 
@@ -119,6 +126,13 @@ class DriveChannelBrowseViewModel @Inject constructor(
     }
 
     fun retry() = lastAction()
+
+    /** S4427: the Allow action; the interrupted request is repeated once Google grants the folder. */
+    fun grantAppFolderAccess(activity: Activity) {
+        viewModelScope.launch {
+            if (grantAppFolder(activity)) retry()
+        }
+    }
 
     fun saveSelected() {
         val state = _state.value
@@ -188,6 +202,7 @@ class DriveChannelBrowseViewModel @Inject constructor(
 
         fun statusFor(error: Throwable): DriveBrowseStatus = when (error) {
             is DriveSignInRequired -> DriveBrowseStatus.SignInRequired
+            is DriveConsentRequired -> DriveBrowseStatus.ConsentRequired
             is DriveDailyLimit -> DriveBrowseStatus.DailyLimit
             else -> DriveBrowseStatus.Failed
         }

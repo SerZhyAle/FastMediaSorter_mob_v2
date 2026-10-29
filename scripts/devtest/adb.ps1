@@ -178,7 +178,9 @@
         for different next moves - the first usually means an animation was still running, the
         list needs scrolling, or the target simply is not on this screen and the name was guessed
         rather than read off `uidump`. Both verbs also return 8 when the centre of the node lies under the
-        open soft keyboard: the keyboard would take the tap, and hiding it is the caller's decision (S4290, S4302)
+        open soft keyboard: the keyboard would take the tap, and hiding it is the caller's decision (S4290, S4302),
+        and when the only match is a sliver under 8 px at the display edge, whose centre can round off
+        the glass - scrolling it into view is the caller's move (`set-text` included)
     9 - `clip-check`: at least one node is OFF-GLASS. EDGE and CLIPPED never reach this code
    10 - `clip-check -Strict`: at least one node is CLIPPED in THIS frame. Separate from 9 because
         the two answer different questions - 9 is "no scroll position saves it", 10 is "a reviewer
@@ -1508,6 +1510,11 @@ switch ($Verb.ToLowerInvariant()) {
         $file  = Join-Path (Get-TempDir) ("uitree_$($id -replace '[^A-Za-z0-9_.-]', '_')_$(Get-Stamp).xml")
         $nodes = @(Get-UiNodes (Get-UiTree $id $file -Stable))
         $hits  = @(Select-UiNodesById $nodes $ResourceId -Exact:$Exact)
+        $slivers = @($hits | Where-Object { -not (Test-UiNodeTappable $_) })
+        $hits  = @($hits | Where-Object { Test-UiNodeTappable $_ })
+        if ($hits.Count -eq 0 -and $slivers.Count -gt 0) {
+            Fail 8 "'$ResourceId' shows only a sliver at the display edge ($($slivers[0].x1),$($slivers[0].y1)..$($slivers[0].x2),$($slivers[0].y2)) - nothing was tapped. Scroll it into view and run tap-id again; the tree is at $file"
+        }
         if ($hits.Count -eq 0) {
             Fail 8 "no visible node carries the resource-id '$ResourceId' - nothing was tapped. The tree is at $file; run 'uidump -Ids' and match an id from ITS output. Causes, commonest first: this node carries no resource-id at all (TabLayout tabs carry none - reach those with tap-label), the list needs scrolling, the screen is still animating"
         }
@@ -1542,6 +1549,11 @@ switch ($Verb.ToLowerInvariant()) {
             if ($Exact) { $_.text -eq $Label -or $_.desc -eq $Label }
             else { $_.text -like "*$Label*" -or $_.desc -like "*$Label*" }
         })
+        $slivers = @($hits | Where-Object { -not (Test-UiNodeTappable $_) })
+        $hits  = @($hits | Where-Object { Test-UiNodeTappable $_ })
+        if ($hits.Count -eq 0 -and $slivers.Count -gt 0) {
+            Fail 8 "'$Label' shows only a sliver at the display edge ($($slivers[0].x1),$($slivers[0].y1)..$($slivers[0].x2),$($slivers[0].y2)) - nothing was tapped. Scroll it into view and run tap-label again; the tree is at $file"
+        }
         if ($hits.Count -eq 0) {
             Fail 8 "no visible node carries '$Label' - nothing was tapped. The tree is at $file; run 'uidump' and match a label from ITS output rather than a guessed or translated one. Causes, commonest first: the name is not on this screen at all, the list needs scrolling, the screen is still animating"
         }
@@ -1575,7 +1587,8 @@ switch ($Verb.ToLowerInvariant()) {
         $id = Select-Device
         $script:result.device = $id
         $file  = Join-Path (Get-TempDir) ("uitree_$($id -replace '[^A-Za-z0-9_.-]', '_')_$(Get-Stamp).xml")
-        $hits  = @(Select-UiNodesById @(Get-UiNodes (Get-UiTree $id $file -Stable)) $ResourceId -Exact:$Exact)
+        $hits  = @(Select-UiNodesById @(Get-UiNodes (Get-UiTree $id $file -Stable)) $ResourceId -Exact:$Exact |
+            Where-Object { Test-UiNodeTappable $_ })
         if ($hits.Count -eq 0) {
             Fail 8 "no visible node carries the resource-id '$ResourceId' - nothing was typed. The tree is at $file; run 'uidump -Ids' and match an id from ITS output"
         }

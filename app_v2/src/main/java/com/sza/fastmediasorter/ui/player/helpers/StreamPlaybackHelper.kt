@@ -24,8 +24,12 @@ import com.sza.fastmediasorter.core.playback.resilience.StreamFailureClass
 import com.sza.fastmediasorter.core.playback.resilience.StreamVideoFailure
 import com.sza.fastmediasorter.core.playback.resilience.StreamVideoRetryDecision
 import com.sza.fastmediasorter.core.playback.resilience.StreamVideoRetryPolicy
+import com.sza.fastmediasorter.di.PlayerStreamPlaybackEntryPoint
 import com.sza.fastmediasorter.di.StreamQualityMemoryEntryPoint
 import com.sza.fastmediasorter.domain.player.BroadcastPlaybackPairs
+import com.sza.fastmediasorter.domain.player.BroadcastPlaybackSessions
+import com.sza.fastmediasorter.domain.player.BroadcastStopSignal
+import com.sza.fastmediasorter.domain.usecase.streams.ResolveBroadcastPlaybackUseCase.Playback
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import com.sza.fastmediasorter.ui.player.VideoTrackSelectionManager
 import com.sza.fastmediasorter.util.applicationScope
@@ -37,10 +41,12 @@ import timber.log.Timber
 import java.net.URI
 
 // S4258: a protected broadcast's pair reaches the RTSP source only, never the path, which is logged and shown.
+// S4444: a broadcast row notices its end sooner than the library's 8 s silence; the after-end check absorbs a jitter.
 private fun VideoPlayerManager.rtspSourceFor(path: String, dataSourceFactory: DataSource.Factory) =
     streamProtocolSupport.createRtspMediaSource(
         Uri.parse(BroadcastPlaybackPairs.withRtspUserInfo(URI(path)).toString()),
         dataSourceFactory,
+        BROADCAST_RTSP_TIMEOUT_MS.takeIf { BroadcastPlaybackSessions.forUrl(path) != null },
     )
 
 /**
@@ -59,9 +65,12 @@ private fun VideoPlayerManager.rtspSourceFor(path: String, dataSourceFactory: Da
  * dialog. RTSP on a flavor without the module surfaces an explicit message instead of silently failing.
  */
 @UnstableApi
-internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenReady: Boolean = true) {
+internal suspend fun VideoPlayerManager.playStreamVideo(requestedPath: String, playWhenReady: Boolean = true) {
     // Setup runs inside the tracked load; cancelling it here would abort the replacement.
     releasePlayer(cancelPendingLoad = false)
+
+    val path = resolveStreamPath(requestedPath) ?: return
+    Timber.d("S4447: selected stream endpoint resolved")
 
     // S0936: a fresh playback session starts with a full watchdog-recovery window, and a stale
     // "reconnecting" flag must not leak a RECONNECTING label into the new stream's first buffering.
@@ -168,12 +177,12 @@ internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenRe
     // S1144 (ADR-4/ADR-6): seat the channel's remembered track languages before prepare so the first
     // track selection already honours them; null leaves the global default in charge. This function is
     // already suspending, so the DAO read needs no extra scope.
-    trackSelectionManager.channelPreference = streamTrackPreferenceUseCase.read(path)
+    trackSelectionManager.channelPreference = streamTrackPreferenceUseCase.read(requestedPath)
     // S1511: the ceiling this channel settled on last time. Read here, where suspending is free, because
     // the only place it can be applied - the rendition inventory - runs inside a Media3 callback. RTSP has
     // no ladder, so it has nothing to remember.
-    activeStreamMemoryPath = if (isRtsp) null else path
-    activeStreamQualityMemory = if (isRtsp) null else readStreamQualityMemory(path)
+    activeStreamMemoryPath = if (isRtsp) null else requestedPath
+    activeStreamQualityMemory = if (isRtsp) null else readStreamQualityMemory(requestedPath)
     // S1144 (phase 04): stream-wide defaults sit under the per-channel pick and over the generic
     // player settings, so both are seated together and cleared together in playVideo.
     val streamSettings = settingsRepository.getSettings().first()
@@ -186,6 +195,24 @@ internal suspend fun VideoPlayerManager.playStreamVideo(path: String, playWhenRe
     player.prepare()
     player.playWhenReady = playWhenReady
     Timber.i("VideoPlayerManager.playStreamVideo: prepared %s (rtsp=%s)", path, isRtsp)
+}
+
+// The tracked load owns resolution, so rapid navigation cancels the previous endpoint walk.
+private suspend fun VideoPlayerManager.resolveStreamPath(requestedPath: String): String? {
+    val playback = EntryPointAccessors.fromApplication(
+        context.applicationContext,
+        PlayerStreamPlaybackEntryPoint::class.java,
+    ).resolvePlayerStreamUseCase()(requestedPath)
+    if (playback is Playback.Playable) return playback.url
+    val message = when (playback) {
+        is Playback.TrustRefused -> context.getString(R.string.stream_broadcast_trust_refused, playback.server)
+        is Playback.NotStarted -> context.getString(R.string.stream_broadcast_wait_title)
+        Playback.Expired -> context.getString(R.string.stream_broadcast_link_expired)
+        else -> context.getString(R.string.stream_broadcast_ended)
+    }
+    playerCallback.onBuffering(false)
+    playerCallback.showError(message)
+    return null
 }
 
 /**
@@ -597,7 +624,12 @@ private fun VideoPlayerManager.streamPlaybackListener(
                 }
                 Player.STATE_ENDED -> {
                     cancelStreamStallWatchdog()
-                    playerCallback.onPlaybackEnded()
+                    // S4444: a live broadcast has no natural end; its stream ending is a stop to classify.
+                    if (BroadcastPlaybackSessions.forUrl(path) != null) {
+                        playerCallback.onBroadcastStreamStopped(path, BroadcastStopSignal.StreamEnded)
+                    } else {
+                        playerCallback.onPlaybackEnded()
+                    }
                 }
                 Player.STATE_IDLE -> cancelStreamStallWatchdog()
             }
@@ -702,7 +734,7 @@ private fun VideoPlayerManager.streamPlaybackListener(
                     reconnecting = false
                     playerCallback.onBuffering(false)
                     playerCallback.onStreamWaitPhase(null)
-                    playerCallback.onPlaybackError(error)
+                    surfaceStreamFailure(path, error)
                 }
             }
         }
@@ -733,6 +765,23 @@ private fun VideoPlayerManager.streamPlaybackListener(
             }
         }
     }
+
+/**
+ * S4444, LIVE-BROADCAST item T: a broadcast row answered `404` or `410` is a stop to classify - an ended broadcast
+ * answers exactly that - rather than an error to show; every other failure surfaces as before.
+ */
+private fun VideoPlayerManager.surfaceStreamFailure(path: String, error: PlaybackException) {
+    val status = error.httpStatusOrNull()
+    if (isBroadcastEndStatus(status) && BroadcastPlaybackSessions.forUrl(path) != null) {
+        playerCallback.onBroadcastStreamStopped(path, BroadcastStopSignal.HttpStatus(status))
+    } else {
+        playerCallback.onPlaybackError(error)
+    }
+}
+
+// A function, not a top-level val: a non-constant top-level field stops PlayerReleaseDetector treating this
+// file as a facade of extension functions, and it would then demand a release() for the player built above.
+private fun isBroadcastEndStatus(status: Int?): Boolean = status == HTTP_NOT_FOUND || status == HTTP_GONE
 
 /**
  * The response code the server answered with, or null when none is on record.
@@ -789,6 +838,9 @@ private fun VideoPlayerManager.updateNowPlayingTitle(title: String) {
     }
 }
 
+private const val BROADCAST_RTSP_TIMEOUT_MS = 3_000L
+private const val HTTP_NOT_FOUND = 404
+private const val HTTP_GONE = 410
 private const val STREAM_FRAME_CAPTURE_DELAY_MS = 750L
 private const val STREAM_FRAME_CAPTURE_WIDTH = 640
 private const val STREAM_FRAME_CAPTURE_HEIGHT = 360

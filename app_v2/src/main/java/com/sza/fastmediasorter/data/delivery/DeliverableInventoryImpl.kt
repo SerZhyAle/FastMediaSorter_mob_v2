@@ -288,14 +288,11 @@ class DeliverableInventoryImpl @Inject constructor(
         // S0971: a bundled set ships inside the APK, so it is always installed - never surface a
         // (Play-forbidden) download for it. Short-circuit before the repository/marker state.
         if (bundled.contains(set)) return flowOf(ExtensionStatus.Installed)
+        // Seeded NotInstalled without a payload stat: getExtensions() runs on the main thread, and the
+        // seed is never shown - the combine below reads this flow only for Downloading/Failed, while
+        // Installed comes from the repository's state flow.
         val active = activeDownloads.getOrPut(moduleKey(set)) {
-            MutableStateFlow(
-                if (repository.isInstalledBlocking(set)) {
-                    ExtensionStatus.Installed
-                } else {
-                    ExtensionStatus.NotInstalled
-                }
-            )
+            MutableStateFlow(ExtensionStatus.NotInstalled)
         }
         return combine(repository.stateOf(set), active) { cap, download ->
             when {

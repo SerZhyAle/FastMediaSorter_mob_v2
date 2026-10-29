@@ -51,7 +51,16 @@ function Start-PooledGate {
     if (-not $script:GatePoolEnabled) { return }
     $argv = @($args)
     if ($argv.Count -eq 0) { return }
-    $key = Get-GatePoolKey $argv
+    # S4488: a gate the active tier does not run is not started at all - its call site skips it, and a
+    # job started for a skipped site would burn the CPU the fast tier exists to save. Read defensively:
+    # batch runners that dot-source this file may never resolve a tier.
+    $activeTier = Get-Variable -Name ActiveTier -Scope Script -ValueOnly -ErrorAction SilentlyContinue
+    if ($activeTier -eq 'Fast' -and (Get-Command Get-GateTierRow -ErrorAction SilentlyContinue)) {
+        # Only a script the registry names as release is held back: a script with no row still starts, so
+        # the fast gates keep overlapping instead of queueing up inline at their call sites.
+        $pooledRow = Get-GateTierRow -Kind scripts -Name (Get-ArgvScriptName $argv)
+        if ($null -ne $pooledRow -and [string]$pooledRow.tier -ne 'fast') { return }
+    }    $key = Get-GatePoolKey $argv
     if ($script:GatePool.ContainsKey($key)) { return }
     $script:GatePool[$key] = Start-ThreadJob -ThrottleLimit 6 -ScriptBlock {
         param($PwshExe, $A)

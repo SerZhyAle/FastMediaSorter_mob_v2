@@ -93,6 +93,9 @@ $cases = @(
     @{ Name = 'unknown ui_strings key fails'; Mutate = { param($r) $r[0]['ui_strings'] = @('no_such_key') }; Pages = @{ 'a.md' = $cleanPage }; Exit = 1 }
     @{ Name = 'canonical_en absent from its keyed English value fails'; Mutate = { param($r) $r[2]['ui_strings'] = @('fav_title') }; Pages = @{ 'a.md' = $cleanPage }; Exit = 1 }
     @{ Name = 'dangling related_terms id fails'; Mutate = { param($r) $r[2]['related_terms'] = @('ghost') }; Pages = @{ 'a.md' = $cleanPage }; Exit = 1 }
+    @{ Name = 'former_ids naming a retired id passes'; Mutate = { param($r) $r[2]['former_ids'] = @('tint') }; Pages = @{ 'a.md' = $cleanPage }; Exit = 0 }
+    @{ Name = 'former_ids naming a live record id fails'; Mutate = { param($r) $r[2]['former_ids'] = @('favorite') }; Pages = @{ 'a.md' = $cleanPage }; Exit = 1; Expect = 'live record id' }
+    @{ Name = 'former_ids holding a non-kebab id fails'; Mutate = { param($r) $r[2]['former_ids'] = @('Old Name') }; Pages = @{ 'a.md' = $cleanPage }; Exit = 1; Expect = 'kebab-case' }
     @{ Name = 'flavor not in the matrix fails'; Mutate = { param($r) $r[2]['flavors'] = @('standard', 'pro') }; Pages = @{ 'a.md' = $cleanPage }; Exit = 1 }
     @{ Name = "'all' mixed with a flavor fails"; Mutate = { param($r) $r[2]['flavors'] = @('all', 'lite') }; Pages = @{ 'a.md' = $cleanPage }; Exit = 1 }
     @{ Name = 'forbidden synonym equal to another canonical_en fails'; Mutate = { param($r) $r[0]['forbidden_synonyms_en'] = @('explorer', 'favorite') }; Pages = @{ 'a.md' = "Open it.`n" }; Exit = 1 }

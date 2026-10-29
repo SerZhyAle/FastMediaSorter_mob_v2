@@ -2,6 +2,8 @@ package com.sza.fastmediasorter.ui.main.helpers
 
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
+import androidx.core.view.children
 import androidx.core.view.isVisible
 import com.google.android.material.tabs.TabLayout
 import com.sza.fastmediasorter.R
@@ -9,6 +11,7 @@ import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 import com.sza.fastmediasorter.core.capability.RemoteSourceId
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.main.ResourceTab
+import com.sza.fastmediasorter.utils.keepLongestWordOnOneLine
 import kotlinx.coroutines.CoroutineScope
 
 /**
@@ -91,6 +94,7 @@ class MainResourceTabsManager(
         }
         applyLeadingCellAccent(fixedGrid)
         applyLeadingAnchor()
+        fitTabLabels()
 
         // S0781: (re)bind per-tab long-press to collapse + apply the persisted collapsed state.
         collapseManager.onTabsRebuilt()
@@ -189,6 +193,22 @@ class MainResourceTabsManager(
                 tabView.layoutParams = lp
             }
             tabView.minimumWidth = 0
+        }
+    }
+
+    /**
+     * S4477: the S1659 division leaves a rest tab about 80dp wide on a 412dp phone, and Material's tab
+     * padding plus the 14sp label left "Локальные" room for six letters and an ellipsis. The fitter shrinks a
+     * label only as far as its widest word needs, so the tab widths and the division stay as they are.
+     */
+    private fun fitTabLabels() {
+        val strip = tabLayout.getChildAt(0) as? ViewGroup ?: return
+        val floorPx = tabLayout.resources.getDimension(R.dimen.text_size_tiny)
+        timber.log.Timber.d("S4477: fit tab labels tabs=${strip.childCount} floorPx=$floorPx")
+        for (i in 0 until strip.childCount) {
+            (strip.getChildAt(i) as? ViewGroup)?.children
+                ?.filterIsInstance<TextView>()
+                ?.forEach { it.keepLongestWordOnOneLine(floorPx) }
         }
     }
 

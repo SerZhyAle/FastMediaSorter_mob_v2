@@ -179,14 +179,59 @@ class DeviceExchangeAccountStoreTest {
     }
 
     @Test
-    fun `clearing the outgoing flag keeps every entry`() = runTest {
+    fun `the flag cannot be cleared while an entry may produce`() = runTest {
         store.put(entry(HOST_A, LOGIN_ONE, DEVICE_1))
-        store.setOutgoing(store.snapshot().single().identity)
 
         store.setOutgoing(null)
 
-        assertNull(store.outgoing())
+        assertEquals(DEVICE_1, store.outgoing()?.deviceId)
         assertEquals(listOf(DEVICE_1), store.snapshot().map { it.deviceId })
+    }
+
+    @Test
+    fun `the first entry recorded becomes outgoing and the second does not take it`() = runTest {
+        store.put(entry(HOST_A, LOGIN_ONE, DEVICE_1))
+        store.put(entry(HOST_B, LOGIN_ONE, DEVICE_3))
+
+        assertEquals(listOf(true, false), store.snapshot().map { it.outgoing })
+    }
+
+    @Test
+    fun `removing the outgoing entry passes the flag to the next one`() = runTest {
+        store.put(entry(HOST_A, LOGIN_ONE, DEVICE_1))
+        store.put(entry(HOST_B, LOGIN_ONE, DEVICE_3))
+
+        store.remove(store.snapshot().first().identity)
+
+        assertEquals(DEVICE_3, store.outgoing()?.deviceId)
+    }
+
+    @Test
+    fun `an outgoing entry that turns out a guest passes the flag on`() = runTest {
+        store.put(entry(HOST_A, LOGIN_ONE, DEVICE_1))
+        store.put(entry(HOST_B, LOGIN_ONE, DEVICE_3))
+
+        store.update(store.snapshot().first().identity) { it.copy(accountKind = "guest") }
+
+        assertEquals(DEVICE_3, store.outgoing()?.deviceId)
+    }
+
+    @Test
+    fun `a guest-only list keeps its flags`() = runTest {
+        store.put(entry(HOST_A, LOGIN_ONE, DEVICE_1).copy(accountKind = "guest"))
+
+        assertNull(store.outgoing())
+    }
+
+    @Test
+    fun `a list an older build wrote without the flag reads with one`() = runTest {
+        dataStore.edit {
+            it[stringPreferencesKey(ENTRIES_KEY)] =
+                """[{"host":"$HOST_A","port":8443,"login":"$LOGIN_ONE",""" +
+                """"deviceId":"$DEVICE_1","accountKind":"member"}]"""
+        }
+
+        assertEquals(DEVICE_1, store.outgoing()?.deviceId)
     }
 
     @Test

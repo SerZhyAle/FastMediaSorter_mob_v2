@@ -14,6 +14,11 @@
 -keepclassmembers class com.sza.fastmediasorter.domain.usecase.Backup** { <fields>; }
 -keep class com.sza.fastmediasorter.data.model.TrashMetadata { *; }
 -keepclassmembers class com.sza.fastmediasorter.domain.game.** { <fields>; }
+# KeystorePreparedBroadcastLinkStore writes the prepared links as one encrypted Gson list that
+# outlives an update, and Gson writes PreparedLinkChoice by its constant name, so a rename of
+# either surface makes a stored link read back incomplete or drops its password mode.
+-keepclassmembers class com.sza.fastmediasorter.domain.model.PreparedBroadcastLink { <fields>; }
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.PreparedLinkChoice { <fields>; }
 
 # Cached file lists persist MediaFile JSON across app updates. Keep its field names stable so a
 # release mapping change cannot turn an existing cache blob into an incomplete object.
@@ -348,6 +353,9 @@
 # S1674: these enum member names are persisted by Room, DataStore, or SharedPreferences and
 # must remain readable after an update built with a different R8 mapping.
 -keepclassmembernames enum com.sza.fastmediasorter.data.cloud.CloudProvider {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.BroadcastLinkPasswordMode {
     <fields>;
 }
 -keepclassmembernames enum com.sza.fastmediasorter.domain.model.DisplayMode {
@@ -738,6 +746,18 @@
     <fields>;
 }
 -keepclassmembernames enum com.sza.fastmediasorter.domain.model.ScheduledRunOutcome {
+    <fields>;
+}
+# ScheduledRunReason.name is the reason column of the same scheduled-run journal line and is restored
+# by ScheduledRunReason.fromName, so a rename silently drops the skip reason of every stored run.
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.ScheduledRunReason {
+    <fields>;
+}
+# S4451: E2eOpenFailure.name is the reason text of the joint run's failed-<reason> outcome
+# (ExchangeSealedContentOpener.outcomeOf / failureOutcome), kept in memory to log a change once and
+# written to the log by ExchangeBroadcastDiagnostics. Nothing persists it; the rule keeps the log
+# reason readable after R8 and satisfies the gate's .name receiver resolution.
+-keepclassmembernames enum com.sza.fastmediasorter.data.security.e2e.E2eOpenFailure {
     <fields>;
 }
 

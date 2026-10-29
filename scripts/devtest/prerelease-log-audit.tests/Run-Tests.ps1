@@ -165,6 +165,21 @@ $crashed = Invoke-Audit 'logcat_webview_renderer_crash_sample.txt'
 Assert-Equal $true ((Get-ActionableTags $crashed) -contains 'chromium') 'S4013: a renderer crash without its own kill line stays actionable'
 Assert-Equal 1 $crashed.exitCode 'S4013: an unreaped renderer crash still exits 1'
 
+# Case 10 - S4465: the emulator's SwiftShader swap-behavior line and WebView's first-run cache-creation
+# pair. Benign only in a capture that carries EGL_emulation; the same three lines from a device keep
+# their defect meaning under their own tags.
+$swapCache = Invoke-Audit 'logcat_emulator_swap_cache_sample.txt'
+Assert-Equal 0 $swapCache.actionableCount 'S4465: swap-behavior and WebView cache lines are not actionable on a software-rendered capture'
+Assert-Equal 3 $swapCache.benignCount 'S4465: the three clusters are kept and reported as benign'
+Assert-Equal 0 $swapCache.exitCode 'S4465: an otherwise clean emulator run exits 0'
+
+$swapCacheDevice = Invoke-Audit 'logcat_device_swap_cache_sample.txt'
+$swapCacheTags = Get-ActionableTags $swapCacheDevice
+Assert-Equal $false $swapCacheDevice.softwareRendered 'S4465: no EGL_emulation means the device capture is not software-rendered'
+Assert-Equal $true ($swapCacheTags -contains 'OpenGLRenderer') 'S4465: OpenGLRenderer stays actionable without the marker'
+Assert-Equal $true ($swapCacheTags -contains 'chromium') 'S4465: WebView cache lines stay actionable without the marker'
+Assert-Equal 1 $swapCacheDevice.exitCode 'S4465: the same lines from a device still exit 1'
+
 Write-Host ''
 Write-Host "prerelease-log-audit.tests: $(if ($script:failed -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:passed + $script:failed) skipped=0)"
 if ($script:failed -gt 0) { exit 1 }

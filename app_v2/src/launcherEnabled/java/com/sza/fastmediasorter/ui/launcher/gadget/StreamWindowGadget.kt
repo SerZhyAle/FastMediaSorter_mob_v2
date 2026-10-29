@@ -23,6 +23,7 @@ import com.sza.fastmediasorter.databinding.GadgetLauncherStreamWindowControlsBin
 import com.sza.fastmediasorter.databinding.GadgetLauncherStreamWindowPlayerBinding
 import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
+import com.sza.fastmediasorter.domain.usecase.launcher.ExecuteLauncherCommandUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.GetStreamSourceByIdentityUseCase
 import com.sza.fastmediasorter.ui.launcher.gadget.nowplaying.NowPlayingCommand
 import com.sza.fastmediasorter.ui.launcher.gadget.nowplaying.OwnSessionNowPlayingSource
@@ -32,6 +33,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -48,6 +50,7 @@ class StreamWindowGadget @Inject constructor(
     private val getStreamByIdentity: GetStreamSourceByIdentityUseCase,
     private val faviconAtlasStore: FaviconAtlasStore,
     private val streamFrameCache: StreamFrameCache,
+    private val executeCommand: ExecuteLauncherCommandUseCase,
 ) : LauncherGadget {
 
     override val key: String = LauncherGadgetRegistry.KEY_STREAM_WINDOW
@@ -76,6 +79,7 @@ class StreamWindowGadget @Inject constructor(
             faviconAtlasStore = faviconAtlasStore,
             faviconSlicer = faviconSlicer,
             streamFrameCache = streamFrameCache,
+            executeCommand = executeCommand,
         )
 }
 
@@ -88,6 +92,7 @@ private class StreamWindowGadgetView(
     private val faviconAtlasStore: FaviconAtlasStore,
     private val faviconSlicer: FaviconAtlasSlicer,
     private val streamFrameCache: StreamFrameCache,
+    private val executeCommand: ExecuteLauncherCommandUseCase,
 ) : LauncherGadgetView(context) {
 
     private val binding =
@@ -256,8 +261,10 @@ private class StreamWindowGadgetView(
             // extra rides raw rather than as a createIntent parameter - that factory already sits
             // past the detekt parameter-list ceiling.
             .putExtra(PlayerActivity.EXTRA_ENTER_PIP_ON_READY, enterPipOnReady)
-            .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-        context.startActivity(intent)
+        // The shared launcher task policy, not a bare NEW_TASK: alone, that flag joins the task holding
+        // the last app screen, so Back from the player would unwind into it instead of the desktop.
+        Timber.d("S4428: stream window gadget starts its player through the shared task policy")
+        executeCommand.startTarget(intent)
     }
 
     private fun inflatePlayerFace(): GadgetLauncherStreamWindowPlayerBinding =

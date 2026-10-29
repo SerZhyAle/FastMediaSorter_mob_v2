@@ -71,9 +71,14 @@ internal class StreamServiceRetryPolicy(
     private var hasEverPlayed = false
     private var attempt = 0
     private var retryStartedAtMs = NOT_STAMPED
+    private var currentStreamKey: String? = null
 
-    /** A new media item is loading: the connect window restarts and every budget is refilled. */
-    fun onStreamChanged(nowMs: Long) {
+    /**
+     * A new media item is loading: the connect window restarts and every budget is refilled.
+     * [streamKey] names the item, so a late catalog answer about the previous one can be told apart.
+     */
+    fun onStreamChanged(nowMs: Long, streamKey: String? = null) {
+        currentStreamKey = streamKey
         connectionStartedAtMs = nowMs
         hasEverPlayed = false
         attempt = 0
@@ -84,9 +89,12 @@ internal class StreamServiceRetryPolicy(
      * The catalog answered whether this url ever played; the lookup lands after [onStreamChanged].
      * Assigns rather than accumulates, as the field did - a false answer overwrites a ready state
      * that arrived while the lookup was in flight.
+     * S4424: an answer about another stream is dropped - the lookup outlived a station switch.
      */
-    fun onKnownPlayedBefore(playedBefore: Boolean) {
-        hasEverPlayed = playedBefore
+    fun onKnownPlayedBefore(playedBefore: Boolean, streamKey: String? = null) {
+        if (isCurrentStream(streamKey)) {
+            hasEverPlayed = playedBefore
+        }
     }
 
     /** A confirmed ready state: refill the ladder and close the reconnect window. */
@@ -98,12 +106,15 @@ internal class StreamServiceRetryPolicy(
     /**
      * S1291: only a catalog stream earns the reconnect window. Set for every media item, this flag
      * made an ordinary file retry forever instead of taking the fatal path that stops the service.
+     * S4424: a late answer about the previous station must not grant the window to the next item.
      */
-    fun onCatalogStreamPlaying() {
-        hasEverPlayed = true
+    fun onCatalogStreamPlaying(streamKey: String? = null) {
+        if (isCurrentStream(streamKey)) {
+            hasEverPlayed = true
+        }
     }
 
-    /** The user paused before the pending retry fired, so its window starts over on the next one. */
+    /** The user paused or stopped before the pending retry fired, so its window starts over. */
     fun onRetryDropped() {
         retryStartedAtMs = NOT_STAMPED
     }
@@ -138,6 +149,10 @@ internal class StreamServiceRetryPolicy(
         }
         return if (spent) StreamServiceRetryDecision.GiveUp else StreamServiceRetryDecision.Ignore
     }
+
+    // A null key is a caller that does not track identity; it keeps the unconditional write.
+    private fun isCurrentStream(streamKey: String?): Boolean =
+        streamKey == null || streamKey == currentStreamKey
 
     companion object {
 

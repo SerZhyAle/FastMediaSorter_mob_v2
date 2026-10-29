@@ -4,8 +4,6 @@ import android.app.Activity
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.lifecycleScope
-import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringCodec
-import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringRefusal
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringResult
 import com.sza.fastmediasorter.ui.companionimport.qr.CompanionQrScanActivity
 import kotlinx.coroutines.launch

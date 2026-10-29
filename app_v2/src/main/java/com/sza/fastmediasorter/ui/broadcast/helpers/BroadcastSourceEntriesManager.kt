@@ -19,9 +19,10 @@ class BroadcastSourceEntriesManager {
         controller: BroadcastSourceController,
         activity: AppCompatActivity,
         binding: ActivityBroadcastControlBinding,
+        preparedStartGuard: BroadcastPreparedStartGuard,
     ) {
-        fileEntry.setup(controller, activity, binding)
-        screenEntry.setup(controller, activity, binding)
+        fileEntry.setup(controller, activity, binding, preparedStartGuard)
+        screenEntry.setup(controller, activity, binding, preparedStartGuard)
     }
 
     fun render(

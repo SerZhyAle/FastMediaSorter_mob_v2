@@ -32,6 +32,7 @@ class SendToDeviceActionManagerTest {
         channel,
         mockk<DriveChannelSettings>(relaxed = true),
         mockk<GetOwnDriveDevicesUseCase>(relaxed = true),
+        mockk(),
         Dispatchers.Unconfined
     )
 

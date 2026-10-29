@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -20,6 +21,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
+import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
@@ -32,14 +34,21 @@ import com.sza.fastmediasorter.wear.domain.model.NetworkBasePath
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.WearBrowseCategory
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
+import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.BrowseCategoryPresentation
+import com.sza.fastmediasorter.wear.ui.common.CellCaption
+import com.sza.fastmediasorter.wear.ui.common.LocalWearCaptionGroup
 import com.sza.fastmediasorter.wear.ui.common.SingleColumnTileCell
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
+import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_NO_ANCHOR
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
 import com.sza.fastmediasorter.wear.ui.common.WearStateKind
+import com.sza.fastmediasorter.wear.ui.common.rememberWearCaptionGroup
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
+import com.sza.fastmediasorter.wear.ui.common.rememberWidestCaptionWordDp
+import com.sza.fastmediasorter.wear.ui.common.wearListRowWidth
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.ui.network.viewmodel.NetworkSourceMediaTypeViewModel
 import com.sza.fastmediasorter.wear.ui.settings.SettingsViewModel
@@ -47,6 +56,9 @@ import com.sza.fastmediasorter.wear.ui.settings.allowedContentTypes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 
 private const val SINGLE_COLUMN = 1
+
+/** A two-word label breaks between its words in a cell rather than being cut to one line (S4469). */
+private const val CATEGORY_CAPTION_LINES = 2
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
 private val TITLE_VERTICAL_PADDING = 12.dp
 
@@ -77,7 +89,12 @@ fun NetworkSourceMediaTypeScreen(
 ) {
     val settings by settingsViewModel.uiState.collectAsStateWithLifecycle()
     val source by mediaTypeViewModel.source.collectAsStateWithLifecycle()
-    val listState = rememberWearListState(positionKey = "source_media_type/$sourceId")
+    // No opening anchor (S4469): the list is the source's name over at most two or three rows of
+    // categories, so all of it fits the glass and the anchor only scrolls the name off the top edge.
+    val listState = rememberWearListState(
+        initialCenterItemIndex = WEAR_LIST_NO_ANCHOR,
+        positionKey = "source_media_type/$sourceId"
+    )
     val stateScrollState = rememberScrollState()
 
     val categories = remember(source, settings.allowedContentTypes()) {
@@ -126,10 +143,44 @@ fun NetworkSourceMediaTypeScreen(
             return@WearScreenScaffold
         }
 
-        // The column count comes from the width this composable actually gets, never from the mode
-        // name - the same rule the other browse screens apply, so this step cannot drift from them.
-        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-            val columns = GridColumnFit.columnsFor(settings.viewMode, maxWidth.value.toInt())
+        CategoryGrid(
+            sourceName = sourceName,
+            categories = categories,
+            viewMode = settings.viewMode,
+            listState = listState,
+            onCategoryClick = { category ->
+                navController.navigate(routeFor(category, sourceId, sourceName, source))
+            }
+        )
+    }
+}
+
+/**
+ * The source's name over its categories, drawn as one grid whose captions share a size (S4469).
+ *
+ * The column count comes from the width this composable actually gets, never from the mode name - the
+ * same rule the other browse screens apply, so this step cannot drift from them. The second step gives
+ * the longest label a cell it fits in: the tap-target rule alone left "Изображения" a 54 dp cell for a
+ * 74 dp word, which the caption then cut to "Изображен..".
+ */
+@Composable
+private fun CategoryGrid(
+    sourceName: String,
+    categories: List<WearBrowseCategory>,
+    viewMode: WearViewMode,
+    listState: ScalingLazyListState,
+    onCategoryClick: (WearBrowseCategory) -> Unit
+) {
+    val labels = categories.map { category -> stringResource(BrowseCategoryPresentation.labelFor(category)) }
+    val captionGroup = rememberWearCaptionGroup(labels)
+    val widestLabelDp = rememberWidestCaptionWordDp(labels)
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val columns = GridColumnFit.columnsFittingLabel(
+            columns = GridColumnFit.columnsFor(viewMode, maxWidth.value.toInt()),
+            availableWidthDp = wearListRowWidth(maxWidth).value.toInt(),
+            widestLabelDp = widestLabelDp
+        )
+        CompositionLocalProvider(LocalWearCaptionGroup provides captionGroup) {
             WearListColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = listState
@@ -148,9 +199,7 @@ fun NetworkSourceMediaTypeScreen(
                 categoryItems(
                     categories = categories,
                     columns = columns,
-                    onCategoryClick = { category ->
-                        navController.navigate(routeFor(category, sourceId, sourceName, source))
-                    }
+                    onCategoryClick = onCategoryClick
                 )
             }
         }
@@ -267,7 +316,8 @@ private fun CategoryCell(
         thumbnail = WearThumbnail.Unavailable,
         caption = label,
         onClick = onClick,
-        modifier = modifier
+        modifier = modifier,
+        captionLayout = CellCaption(maxLines = CATEGORY_CAPTION_LINES)
     ) { glyphModifier ->
         Icon(
             painter = painterResource(BrowseCategoryPresentation.glyphFor(category)),

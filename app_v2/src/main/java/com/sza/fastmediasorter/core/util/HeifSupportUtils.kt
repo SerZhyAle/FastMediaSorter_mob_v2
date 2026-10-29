@@ -20,7 +20,10 @@ object HeifSupportUtils {
     fun isAvifSupported(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
     /** Returns true if the device can natively decode JXL images (not supported natively in Android framework). */
-    fun isJxlSupported(): Boolean = false
+    fun isJxlSupported(): Boolean = NATIVE_JXL_DECODER
+
+    // No framework decoder exists on any API level yet; the day one ships this becomes an SDK check like the two above.
+    private const val NATIVE_JXL_DECODER = false
 
     /**
      * Returns true if the given file extension can be decoded on this device.

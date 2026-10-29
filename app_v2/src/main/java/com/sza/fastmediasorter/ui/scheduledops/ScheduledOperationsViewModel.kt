@@ -80,6 +80,15 @@ class ScheduledOperationsViewModel @Inject constructor(
     val resources: StateFlow<List<MediaResource>> = getResourcesUseCase()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    // [resources] drops hidden ad-hoc folders, so a card over a folder picked by path would read as deleted
+    // while its resource is alive; the labels take their names from the unfiltered list instead.
+    val resourceNames: StateFlow<Map<Long, String>> = getResourcesUseCase.allIncludingHidden()
+        .map { list -> list.associate { it.id to it.name } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    /** The name to show for [id], or null when no resource row carries it. */
+    fun resourceNameOf(id: Long?): String? = id?.let { resourceNames.value[it] }
+
     // S3365: the program's off-switch - the same enableScheduledOperations setting the settings
     // card owned, now the registry disable target (strategic S3365 §6.2 resolution).
     val isEnabled: StateFlow<Boolean> = storedEnabled
@@ -99,6 +108,10 @@ class ScheduledOperationsViewModel @Inject constructor(
     /** A SAF result delivered before the recreated screen could take it waits for the reopened dialog. */
     fun deferFolderPick(uri: Uri?) {
         if (uri != null) dialogSession?.pendingPickedUri = uri
+    }
+
+    fun deferWatchImagePick(uri: Uri?) {
+        if (uri != null) dialogSession?.pendingPickedImageUri = uri
     }
 
     fun setEnabled(enabled: Boolean) {

@@ -76,6 +76,7 @@ class ExecuteScheduledOperationDriveLegTest {
             ArchiveFilesUseCase(mockk(relaxed = true), mockk(relaxed = true)),
             mockk(relaxed = true),
             driveLeg,
+            mockk(relaxed = true),
         )
         resourceRepo.testConnectionResult = Result.failure(IOException("no route to host"))
         coEvery { driveLeg.producerFor(any()) } returns producer

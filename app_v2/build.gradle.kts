@@ -418,6 +418,12 @@ val defaultAppVersionName = "2.60.9012.140"
 val unitTestTimeoutMinutes: Long =
     providers.gradleProperty("fms.unitTestTimeoutMinutes").orNull?.toLongOrNull() ?: 20L
 
+// CI-only switch: logs every test as it STARTS. A worker that stops answering never writes a result, so
+// the last STARTED line with no later line from its worker is the only record of which test it was in.
+// Declared at the top level for the same reason the two values above are.
+val unitTestLogStarts: Boolean =
+    providers.gradleProperty("fms.unitTestLogStarts").orNull.toBoolean()
+
 // S2851: how many test worker JVMs run at once, shared with wear through gradle.properties for the
 // same reason the timeout above is. Declared at the top level, not inside testOptions.unitTests.all,
 // because that lambda binds `it` to the Test task and a nested provider lambda would shadow it.
@@ -1482,6 +1488,13 @@ android {
                 // with this line removed that single test fails and the other 13 in the pair of classes pass.
                 // Remove the line only together with that compatibility guard.
                 it.jvmArgs("--add-opens=java.base/java.time=ALL-UNNAMED")
+                // Robolectric registers Conscrypt as a JVM-wide TLS provider, and Conscrypt reads
+                // InetAddress.holder() reflectively inside every handshake. Whether a plain-JVM TLS test
+                // (BroadcastTunnelTlsTest) meets that provider depends on which Robolectric class ran earlier
+                // in the same worker, so it passed on the workstation and failed on the Linux CI runner with
+                // InaccessibleObjectException, on a difference the app never sees.
+                it.jvmArgs("--add-opens=java.base/java.net=ALL-UNNAMED")
+                if (unitTestLogStarts) it.testLogging { events("started") }
                 unitTestTmpDir?.let { dir ->
                     dir.mkdirs()
                     it.systemProperty("java.io.tmpdir", dir.absolutePath)
@@ -2263,7 +2276,9 @@ if (isNoLegalBuild) {
                     // Rework lineage plus two weeks of maintenance, and is the better-tested of the two
                     // for every other site. Needs an on-device link-download to verify extraction -
                     // a pip resolve alone proves nothing.
-                    install("yt-dlp==2026.8.19")
+                    // 2026-10-27 (pre-release refresh, release 47): bumped 2026.8.19 → 2026.10.26, the
+                    // latest PyPI stable; stable stays the channel while it is not older than nightly.
+                    install("yt-dlp==2026.10.26")
                 }
             }
         }

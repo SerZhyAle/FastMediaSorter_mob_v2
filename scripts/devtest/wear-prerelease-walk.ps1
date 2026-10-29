@@ -53,6 +53,15 @@
 .PARAMETER DeviceId
     Serial of the watch. Omitted: the wrapper picks, and refuses when the choice is ambiguous.
 
+.PARAMETER Package
+    The application id to walk: `com.sza.fastmediasorter` (release) or `com.sza.fastmediasorter.debug`.
+    Omitted, the walk drives the one FastMediaSorter package installed on the watch, and refuses
+    (exit 2) when both are installed, since a verdict about the wrong artifact is worse than none
+    (S4485). The id it drives is named in walk.json as `package` and `packageChosenBy`.
+
+.PARAMETER DebugBuild
+    Shorthand for `-Package com.sza.fastmediasorter.debug`. Naming both is a refusal.
+
 .PARAMETER OutDir
     Where the screenshots, the dumps, the log and walk.json land.
 
@@ -88,7 +97,9 @@
       1  at least one screen failed or was unreachable, an OFF-GLASS finding was recorded, or the
          log audit reported a finding. A finding on an entry whose `acceptedOffGlass.flavors` names
          the installed flavor is recorded `shapeAccepted` and does not set this code (S3189)
-      2  could not verify: the watch display could not be woken (S2547 - every reading under a
+      2  could not verify: the package to walk could not be chosen (S4485 - none installed, both
+         installed with no -Package / -DebugBuild, or the named one absent), the watch display
+         could not be woken (S2547 - every reading under a
          sleeping display describes the watch face, not this app), the battery is below -MinBatteryPct
          (S2794 - a dying battery triggers a system panel that takes the display, and every screen
          reading under it describes the panel, not this app), the screen list is missing or
@@ -101,6 +112,10 @@
 [CmdletBinding()]
 param(
     [string]$DeviceId,
+
+    [string]$Package,
+
+    [switch]$DebugBuild,
 
     [string]$OutDir = 'temp/scratch/wear-prerelease',
 
@@ -145,7 +160,7 @@ $ErrorActionPreference = 'Stop'
 
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 
-$APP_PACKAGE = 'com.sza.fastmediasorter'
+$APP_BASE_PACKAGE = 'com.sza.fastmediasorter'
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 if (-not $AdbWrapper) { $AdbWrapper = Join-Path $repoRoot 'scripts/devtest/adb.ps1' }
@@ -155,12 +170,19 @@ $logAudit = Join-Path $repoRoot 'scripts/devtest/prerelease-log-audit.ps1'
 . (Join-Path $PSScriptRoot 'lib/wear-walk-position.ps1')
 . (Join-Path $PSScriptRoot 'lib/wear-foreign-window.ps1')
 . (Join-Path $PSScriptRoot 'lib/wear-battery.ps1')
+. (Join-Path $PSScriptRoot 'lib/wear-walk-package.ps1')
+. (Join-Path $PSScriptRoot 'lib/invoke-child-pwsh.ps1')
 if (-not $ScreenList) { $ScreenList = Join-Path $PSScriptRoot 'wear-prerelease-screens.json' }
 
 $result = [ordered]@{
     ok            = $false
     exitCode      = 2
     device        = $null
+    # S4485: the application id this run drove, how it was chosen (package, debugBuild, only-installed)
+    # and every FastMediaSorter id the watch carried, so a verdict always names its artifact.
+    package       = $null
+    packageChosenBy = $null
+    installedPackages = @()
     outDir        = $null
     screenSize    = $null
     flavor        = $null
@@ -204,8 +226,7 @@ function Invoke-AdbVerb {
     param([Parameter(Mandatory)][string[]]$Arguments)
     $callArgs = @($Arguments)
     if ($DeviceId) { $callArgs += @('-DeviceId', $DeviceId) }
-    $output = & pwsh -NoProfile -File $AdbWrapper @callArgs 2>&1
-    return [pscustomobject]@{ Exit = $LASTEXITCODE; Output = ($output -join "`n") }
+    return (Invoke-ChildPwsh -Script $AdbWrapper -Arguments $callArgs)
 }
 
 # --- Device state journal (S3201) ---------------------------------------------------------------
@@ -216,7 +237,11 @@ function Invoke-AdbVerb {
 $script:stateJournalOpen = $false
 
 function Open-DeviceStateJournal {
-    $begin = Invoke-AdbVerb -Arguments @('state-begin')
+    # Named, so the DataStore snapshot is the walked build's: unnamed, the wrapper snapshots the
+    # debug package first, and a run walking the release build would journal the wrong app's files.
+    param([Parameter(Mandatory)][string]$TargetPackage)
+
+    $begin = Invoke-AdbVerb -Arguments @('state-begin', '-Package', $TargetPackage)
     $script:stateJournalOpen = ($begin.Exit -eq 0)
     $result.stateBegin = $begin.Output
 }
@@ -229,7 +254,24 @@ function Close-DeviceStateJournal {
     $result.stateRestored = @($check.Output -split "`r?`n" | Where-Object { $_ -like 'RESTORED *' })
 }
 
-Open-DeviceStateJournal
+# --- Package under walk (S4485) -------------------------------------------------------------------
+# Chosen before the first change to the watch, so a refusal leaves it exactly as found. Installed
+# state is read, never assumed: a watch can carry the store build and a debug build side by side.
+
+$packageProbe = Invoke-AdbVerb -Arguments @('shell', '-Cmd', "pm list packages $APP_BASE_PACKAGE")
+if ($packageProbe.Exit -ne 0) {
+    Stop-Run 2 "the installed packages could not be read (pm list packages exited $($packageProbe.Exit)), so the package to walk cannot be chosen."
+}
+$packageChoice = Select-WearWalkPackage -PmListOutput @($packageProbe.Output) -Requested $Package `
+    -DebugBuild:$DebugBuild -BasePackage $APP_BASE_PACKAGE
+$result.installedPackages = @($packageChoice.Installed)
+if ($packageChoice.Error) { Stop-Run 2 $packageChoice.Error }
+$walkPackage = $packageChoice.Package
+$result.package = $walkPackage
+$result.packageChosenBy = $packageChoice.ChosenBy
+if (-not $Json) { Write-Host "walk: driving $walkPackage ($($packageChoice.ChosenBy); installed: $($packageChoice.Installed -join ', '))" -ForegroundColor DarkGray }
+
+Open-DeviceStateJournal -TargetPackage $walkPackage
 
 # --- Wakefulness (S2547) -------------------------------------------------------------------------
 
@@ -336,7 +378,7 @@ $result.screenSize = "${screenW}x${screenH}"
 
 # S3189 - which flavor is installed, read once. Both flavors share the application id, so only the
 # versionName suffix separates them, and an entry may accept a shape finding for one flavor alone.
-$versionProbe = Invoke-AdbVerb -Arguments @('shell', '-Cmd', "dumpsys package $APP_PACKAGE")
+$versionProbe = Invoke-AdbVerb -Arguments @('shell', '-Cmd', "dumpsys package $walkPackage")
 $versionName = $null
 if ($versionProbe.Exit -eq 0) {
     $versionMatch = [regex]::Match([string]$versionProbe.Output, 'versionName=(\S+)')
@@ -533,9 +575,11 @@ function Restore-WalkPosition {
     # the first level it tried to re-enter was already on screen behind it. The app-in-front guard has
     # carried the same flaw since S1984 - it relaunches an app that LEFT the foreground, and a task
     # left alive resumes where it was rather than at the start destination.
-    Invoke-AdbVerb -Arguments @('stop', '-Module', 'wear', '-Release') | Out-Null
+    # Named by id rather than `-Release`: the wrapper's own pick prefers one build and falls back to the
+    # other, which is how a walk started after a debug install relaunched the store build (S4485).
+    Invoke-AdbVerb -Arguments @('stop', '-Module', 'wear', '-Package', $walkPackage) | Out-Null
     Start-Sleep -Milliseconds $SettleFor
-    Invoke-AdbVerb -Arguments @('launch', '-Module', 'wear', '-Release') | Out-Null
+    Invoke-AdbVerb -Arguments @('launch', '-Module', 'wear', '-Package', $walkPackage) | Out-Null
     Start-Sleep -Milliseconds $SettleFor
 
     $restored = 0
@@ -570,7 +614,7 @@ function Get-ForeignWindowPackage {
     $dump = Invoke-AdbVerb -Arguments @('shell', '-Cmd', 'dumpsys window')
     if ($dump.Exit -ne 0) { return $null }
     $pkg = Get-TopWindowPackage $dump.Output
-    if ($null -eq $pkg -or (Test-IsAppWindowPackage -Package $pkg -AppPackage $APP_PACKAGE)) { return $null }
+    if ($null -eq $pkg -or (Test-IsAppWindowPackage -Package $pkg -AppPackage $walkPackage)) { return $null }
     return $pkg
 }
 
@@ -754,7 +798,7 @@ foreach ($screen in $screens) {
     # unreachable from Home by construction, so a recovery that stopped at the launch would turn one
     # lost position into a cascade of its own.
     $current = Invoke-AdbVerb -Arguments @('current')
-    $appLeft = ($current.Exit -eq 0 -and $current.Output -notmatch [regex]::Escape($APP_PACKAGE))
+    $appLeft = ($current.Exit -eq 0 -and -not (Test-WearWalkAppInFront -CurrentOutput $current.Output -Package $walkPackage))
     $cascade = Test-WearWalkCascade -ConsecutiveUnreachable $consecutiveUnreachable -Threshold $RehomeAfterUnreachable
     $positionRestored = $false
     if ($appLeft -or $cascade) {
@@ -1032,9 +1076,9 @@ if (-not $SkipLogAudit) {
             $result.logAuditExit = 2
         }
         else {
-            # The audit already defaults to the shared application id, which the watch publishes
-            # under, so it attributes the log to the watch process without any change of its own.
-            $auditOutput = & pwsh -NoProfile -File $logAudit -LogFile $logPath -Package $APP_PACKAGE 2>&1
+            # The audit attributes the log to this id's process, so a debug walk is read as the debug
+            # process and not as the release one it shares a code namespace with.
+            $auditOutput = & pwsh -NoProfile -File $logAudit -LogFile $logPath -Package $walkPackage 2>&1
             $result.logAuditExit = $LASTEXITCODE
             if ($result.logAuditExit -ne 0 -and -not $Json) { Write-Host ($auditOutput -join "`n") }
         }
@@ -1068,6 +1112,6 @@ $result.ok = ($verdict -eq 0)
 if ($Json) { [pscustomobject]$result | ConvertTo-Json -Depth 8 -Compress }
 else {
     $batteryNote = if ($null -ne $result.batteryPct) { "battery $($result.batteryPct)%; " } else { '' }
-    Write-Host ("wear-prerelease-walk: ${batteryNote}observed $($result.counts.observed), failed $($result.counts.failed), unreachable $($result.counts.unreachable), manual $($result.counts.manual), outOfFlavor $($result.counts.outOfFlavor), phoneBound $($result.counts.phoneBound), shapeFailures $shapeFailuresCount, shapeUnchecked $shapeUncheckedCount, shapeAccepted $shapeAcceptedCount ($($result.flavor)), rehomes $rehomeCount; coverage $($result.coverage.walked) walked + $($result.coverage.excluded) excluded; log audit $($result.logAuditExit); walk $walkPath") -ForegroundColor Cyan
+    Write-Host ("wear-prerelease-walk: $walkPackage; ${batteryNote}observed $($result.counts.observed), failed $($result.counts.failed), unreachable $($result.counts.unreachable), manual $($result.counts.manual), outOfFlavor $($result.counts.outOfFlavor), phoneBound $($result.counts.phoneBound), shapeFailures $shapeFailuresCount, shapeUnchecked $shapeUncheckedCount, shapeAccepted $shapeAcceptedCount ($($result.flavor)), rehomes $rehomeCount; coverage $($result.coverage.walked) walked + $($result.coverage.excluded) excluded; log audit $($result.logAuditExit); walk $walkPath") -ForegroundColor Cyan
 }
 exit $verdict

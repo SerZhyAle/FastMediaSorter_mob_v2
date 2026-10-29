@@ -80,6 +80,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 
 | Icon | Meaning |
 |---|---|
+| <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | All about this application |
 | <img src="icons/svg/ic_apps.svg" alt="ic_apps" width="24" height="24"> | Additional programs and scenarios |
 | <img src="icons/svg/ic_cloud_upload.svg" alt="ic_cloud_upload" width="24" height="24"> | Backups, restore and settings export |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Audio playback, covers and visuals |
@@ -99,6 +100,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_gesture.svg" alt="ic_gesture" width="24" height="24"> | Edge screen gestures |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Screen recording |
 | <img src="icons/svg/ic_share.svg" alt="ic_share" width="24" height="24"> | Send file to.. |
+| <img src="icons/svg/ic_exchange_mono.svg" alt="ic_exchange_mono" width="24" height="24"> | Access from anywhere |
 | <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | Share from phone |
 | <img src="icons/svg/ic_stream.svg" alt="ic_stream" width="24" height="24"> | Streams |
 | <img src="icons/svg/ic_refresh.svg" alt="ic_refresh" width="24" height="24"> | Background sync, network and cache |

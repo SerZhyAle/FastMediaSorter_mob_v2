@@ -133,7 +133,6 @@
     <string name="keybinding_label_vr_zoom_end">نهاية التكبير</string>
     <string name="keybinding_label_vr_zoom_grip">تكبير (قبضة)</string>
     <string name="keybinding_label_vr_zoom_start">بدء التكبير</string>
-    <string name="keybinding_remap_not_impl">إعادة ضبط الكل - قريباً</string>
     <string name="keybinding_remap_reset_all">إعادة ضبط الكل</string>
     <string name="keybinding_remap_search_hint">أوامر البحث..</string>
     <string name="keybinding_row_remap">تعديل الربط</string>

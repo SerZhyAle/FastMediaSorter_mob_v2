@@ -61,6 +61,10 @@ class StreamsSettingsFragment : BaseSettingsFragment() {
         bindSwitch(binding.rowCastPlayAtOnce) { isChecked ->
             viewModel.updateSettings { it.copy(streamsCastPlayAtOnce = isChecked) }
         }
+        // S4247: off keeps asking "Play" when a broadcast waited for since its link was opened starts (item CI).
+        bindSwitch(binding.rowPendingPlayAtOnce) { isChecked ->
+            viewModel.updateSettings { it.copy(streamsPendingPlayAtOnce = isChecked) }
+        }
 
         // S2787: second entry point to the app-wide PiP flag, mirroring PlaybackSettingsFragment.
         // Same API 31+ gate as the original row; the shared settings Flow keeps the two copies in sync.
@@ -138,6 +142,7 @@ class StreamsSettingsFragment : BaseSettingsFragment() {
             setSwitchChecked(binding.rowSmartBuffering, settings.streamsSmartBuffering)
             setSwitchChecked(binding.rowVisualizeAsMusic, settings.streamsVisualizeAsMusic)
             setSwitchChecked(binding.rowCastPlayAtOnce, settings.streamsCastPlayAtOnce)
+            setSwitchChecked(binding.rowPendingPlayAtOnce, settings.streamsPendingPlayAtOnce)
             setSwitchChecked(binding.rowStreamsEnablePip, settings.enablePictureInPicture)
             withSettingsUpdate {
                 setDropdownSelection(binding.rowDefaultSort, settings.streamsDefaultSort.ordinal)

@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.18 17:45</sub>
+<sub class="doc-stamp">26.10.29 05:03</sub>
 
 # Pointer - `DOC-INTERNAL-QUALITY`
 
 | | |
 | --- | --- |
 | **Id** | `DOC-INTERNAL-QUALITY` |
-| **Version** | 0.10, draft; wire carrier: file tree layout and check invariants. Owner: this product |
+| **Version** | 0.11, draft; wire carrier: file tree layout and check invariants. Owner: this product |
 | **Home** | `documentation-quality/README.md` section 2, in the shared contracts catalog |
 | **Role here** | owner and reference implementation |
 

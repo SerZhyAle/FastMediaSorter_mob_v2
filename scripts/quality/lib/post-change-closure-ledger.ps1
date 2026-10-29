@@ -75,7 +75,9 @@ function Get-ClosureFingerprint {
         [string[]]$Deleted = @(),
         [string]$ChangeType,
         [string]$Module,
-        [bool]$Scoped
+        [bool]$Scoped,
+        # S4488: a Fast-tier pass skipped the release-tier checks, so it must never stand in for a Release run.
+        [string]$Tier = 'Release'
     )
 
     $stamps = [System.Collections.Generic.List[object]]::new()
@@ -91,6 +93,7 @@ function Get-ClosureFingerprint {
         changeType = $ChangeType
         module     = $Module
         scoped     = $Scoped
+        tier       = $Tier
         head       = Get-ClosureLedgerHead $RepositoryRoot
         files      = @($stamps | Sort-Object -Property path)
         deleted    = @(@($Deleted | ForEach-Object { ($_ -replace '\\', '/') -replace '^\./', '' }) | Sort-Object)
@@ -152,6 +155,10 @@ function Find-ReusableClosure {
             if ([string]$record.changeType -ne [string]$Fingerprint.changeType) { continue }
             if ([string]$record.module -ne [string]$Fingerprint.module) { continue }
             if ([bool]$record.scoped -ne [bool]$Fingerprint.scoped) { continue }
+            # S4488: a record written before tiers existed is a full run (Release). A Release request is met by a
+            # Release record only; a Fast request is met by either.
+            $recordTier = if ($record.PSObject.Properties['tier']) { [string]$record.tier } else { 'Release' }
+            if ([string]$Fingerprint.tier -eq 'Release' -and $recordTier -ne 'Release') { continue }
             if ([string]$record.head -ne [string]$Fingerprint.head) { continue }
             $stamped = [datetime]::Parse([string]$record.timestampUtc, [cultureinfo]::InvariantCulture,
                 [System.Globalization.DateTimeStyles]::AdjustToUniversal -bor [System.Globalization.DateTimeStyles]::AssumeUniversal)
@@ -202,6 +209,7 @@ function Add-ClosureLedgerRecord {
             changeType   = $Fingerprint.changeType
             module       = $Fingerprint.module
             scoped       = $Fingerprint.scoped
+            tier         = $Fingerprint.tier
             head         = $Fingerprint.head
             files        = @($Fingerprint.files)
             deleted      = @($Fingerprint.deleted)

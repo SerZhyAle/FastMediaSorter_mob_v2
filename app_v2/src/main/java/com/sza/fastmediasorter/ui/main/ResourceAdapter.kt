@@ -608,13 +608,13 @@ class ResourceAdapter(
         fun bind(resource: MediaResource, selectedId: Long?) {
             binding.apply {
                 tvResourceName.text = resource.name
-                var textSize = when {
-                    resource.name.length <= 10 -> binding.root.context.resources.getDimension(R.dimen.text_size_huge)
-                    resource.name.length <= 16 -> binding.root.context.resources.getDimension(R.dimen.text_size_large)
-                    else -> binding.root.context.resources.getDimension(R.dimen.text_size_normal)
-                }
+                // One size for every tile: a size chosen by name length made neighbouring tiles read as
+                // different fonts. Only keepLongestWordOnOneLine may shrink a name, and only for a word
+                // wider than the tile.
+                var textSize = binding.root.context.resources.getDimension(R.dimen.text_size_normal)
                 if (useCompactElements) textSize *= 0.8f
                 tvResourceName.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, textSize)
+                timber.log.Timber.d("S4477: grid tile name size px=$textSize name=${resource.name}")
 
                 if (useCompactElements) {
                     val iconSize = (24 * root.resources.displayMetrics.density).toInt()

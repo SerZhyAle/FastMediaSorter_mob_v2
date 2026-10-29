@@ -60,7 +60,7 @@
     <string name="cloud_list_files_failed">Не вдалося завантажити файли з хмари. Спробуйте ще раз.</string>
     <string name="cloud_list_folders_failed">Не вдалося завантажити папки з хмари. Спробуйте ще раз.</string>
     <string name="cloud_metadata_failed">Не вдалося завантажити відомості про файл із хмари. Спробуйте ще раз.</string>
-    <string name="cloud_restore_instructions">Потрібно відновити з\'єднання з Google Drive.\n\nБудь ласка:\n1. Відкрийте головний екран\n2. Натисніть на \"%1$s\"\n3. Увійдіть за допомогою Google-акаунту</string>
+    <string name="cloud_restore_instructions">Потрібно відновити з\'єднання з Google Drive.\n\nБудь ласка:\n1. Відкрийте список ресурсів\n2. Натисніть на \"%1$s\"\n3. Увійдіть за допомогою Google-акаунту</string>
     <string name="cloud_search_failed">Не вдалося виконати пошук у хмарному сховищі. Спробуйте ще раз.</string>
     <string name="cloud_sign_out_failed">Не вдалося вийти з хмарного облікового запису. Спробуйте ще раз.</string>
     <string name="cloud_storage">Хмарне сховище</string>

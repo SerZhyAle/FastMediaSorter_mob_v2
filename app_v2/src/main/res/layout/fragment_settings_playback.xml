@@ -447,7 +447,7 @@
 
         <!-- GROUP: Behaviour (collapsible) - primary player, shared files, resume on next launch -->
 
-        <com.google.android.material.button.MaterialButton android:id="@+id/btnResetPlaybackSection" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="end" android:layout_marginEnd="@dimen/margin_small" android:layout_marginTop="@dimen/margin_small" android:text="@string/reset_playback_section" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnResetPlaybackSection" style="@style/Widget.FastMediaSorter.SettingsButton.OutlinedIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="end" android:layout_marginTop="@dimen/margin_small" android:layout_marginEnd="@dimen/margin_small" android:text="@string/reset_playback_section" app:icon="@drawable/ic_restore_defaults" app:iconSize="@dimen/settings_icon_size" />
 
         <!-- Controls & Keybindings entry -->
 

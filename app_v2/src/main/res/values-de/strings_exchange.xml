@@ -64,10 +64,10 @@
     <string name="exchange_devices_watch_code_refused">Der Server hat keinen Code ausgestellt: %1$s</string>
     <string name="exchange_devices_watch_none">Keine verbundene Uhr</string>
     <string name="exchange_devices_watch_companion_off">Der Wear Companion ist ausgeschaltet. Schalte ihn zuerst in den Einstellungen ein.</string>
-    <string name="exchange_devices_pick_outgoing_title">Über welchen Server veröffentlichen?</string>
+    <string name="exchange_devices_pick_outgoing_title">Veröffentlichungsserver ändern</string>
     <string name="exchange_devices_pick_none">Füge zuerst auf dem Bildschirm „Meine Geräte“ einen Server hinzu</string>
     <string name="settings_sftp_exchange_outgoing">Über den Server %1$s</string>
-    <string name="settings_sftp_exchange_outgoing_none">Kein ausgehender Server gewählt</string>
+    <string name="settings_sftp_exchange_outgoing_none">Kein Server hier kann veröffentlichen - füge auf dem Bildschirm Meine Geräte einen hinzu</string>
     <string name="settings_sftp_exchange_change">Ändern</string>
     <string name="exchange_signin_intake_hint">Serverzeichenfolge einfügen</string>
     <string name="exchange_signin_paste">Einfügen</string>
@@ -348,4 +348,10 @@
         <item quantity="other">%1$d Geräte wurden abgemeldet.</item>
     </plurals>
     <string name="exchange_format_unsupported">Dieses Format ist neuer, als dieses Programm unterstützt. Es wurde nichts importiert. Verwende ein kompatibles Programm.</string>
+    <string name="broadcast_exchange_line_announcing">Austauschserver %1$s: Übertragung wird angekündigt</string>
+    <string name="broadcast_exchange_line_on_server">Austauschserver %1$s: Die Übertragung liegt auf dem Server</string>
+    <string name="broadcast_exchange_line_relayed">Austauschserver %1$s: auf dem Server, über den Server weitergeleitet</string>
+    <string name="broadcast_exchange_line_failed">Austauschserver %1$s: %2$s</string>
+    <string name="broadcast_exchange_line_local_only">Nur in diesem Netzwerk erreichbar. Füge unter Meine Geräte einen Austauschserver hinzu</string>
+    <string name="broadcast_exchange_line_guest_only">Nur in diesem Netzwerk erreichbar: Ein Gastkonto kann nicht über den Austauschserver übertragen</string>
 </resources>

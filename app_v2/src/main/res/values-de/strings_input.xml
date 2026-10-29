@@ -133,7 +133,6 @@
     <string name="keybinding_label_vr_zoom_end">Zoom Ende</string>
     <string name="keybinding_label_vr_zoom_grip">Zoom (Griff)</string>
     <string name="keybinding_label_vr_zoom_start">Zoom-Start</string>
-    <string name="keybinding_remap_not_impl">Alles zurücksetzen - demnächst verfügbar</string>
     <string name="keybinding_remap_reset_all">Alles zurücksetzen</string>
     <string name="keybinding_remap_search_hint">Suchbefehle..</string>
     <string name="keybinding_row_remap">Belegung bearbeiten</string>

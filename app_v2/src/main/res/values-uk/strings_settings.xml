@@ -300,4 +300,6 @@
     <string name="drive_channel_send_no_devices">Інші ваші пристрої ще не користувалися Google Drive. Увімкніть файли через Google Drive і на іншому пристрої, потім спробуйте знову.</string>
     <string name="drive_channel_send_waiting_for">Чекає, поки %1$s отримає його через Google Drive.</string>
     <string name="drive_channel_send_waiting_any">Чекає, поки один із ваших пристроїв отримає його через Google Drive.</string>
+    <string name="drive_channel_consent_required">Google Drive ще не надав застосунку його власну теку. Дозвольте її, щоб передавати файли між пристроями. Нічого не видалено.</string>
+    <string name="drive_channel_consent_allow">Дозволити</string>
 </resources>

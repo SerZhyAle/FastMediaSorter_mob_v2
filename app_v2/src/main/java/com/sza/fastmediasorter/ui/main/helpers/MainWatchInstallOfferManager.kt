@@ -20,7 +20,9 @@ import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
 import com.sza.fastmediasorter.ui.wear.companion.helpers.WatchFaceNudgeManager
 import com.sza.fastmediasorter.util.launchBoundToHost
 import com.sza.fastmediasorter.util.showBoundToHost
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
@@ -38,18 +40,23 @@ class MainWatchInstallOfferManager(
     private val findOffer: FindWatchInstallOfferUseCase,
     private val openWatchApp: OpenWatchAppOnWatchUseCase,
     private val openWatchFace: OpenWatchFaceOnWatchUseCase,
+    private val ioDispatcher: CoroutineDispatcher,
 ) {
 
-    // The home screen's shared preference file is already in memory by now (the Chrome OS banner reads
-    // it on every resume), so the flag read below is no disk access. The use cases are main-safe: the
-    // repository moves the Wear queries to IO itself.
+    // The shared preference file is not in memory on a cold start: the first access loads it from disk
+    // (S4484 measured it on the main thread under StrictMode), so the first access is made on IO, which
+    // also runs this lazy initialiser there. The resumed read and the write in show() come later, when
+    // the file is loaded and they are memory-only. The use cases are main-safe: the repository moves
+    // the Wear queries to IO itself.
     private val prefs by lazy {
         activity.applicationContext.getSharedPreferences(WatchFaceNudgeManager.PREFS_NAME, Context.MODE_PRIVATE)
     }
 
     fun offerIfNeeded() {
-        if (prefs.getBoolean(KEY_OFFER_SHOWN, false)) return
         activity.lifecycleScope.launch {
+            val alreadyShown = withContext(ioDispatcher) { prefs.getBoolean(KEY_OFFER_SHOWN, false) }
+            Timber.d("S4484: watch offer flag read off the main thread, alreadyShown=$alreadyShown")
+            if (alreadyShown) return@launch
             val offer = findOffer() ?: return@launch
             activity.withResumed {
                 if (!prefs.getBoolean(KEY_OFFER_SHOWN, false)) show(offer)

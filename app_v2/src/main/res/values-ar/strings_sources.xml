@@ -61,7 +61,7 @@
     <string name="cloud_list_files_failed">تعذر تحميل الملفات من السحابة. حاول مرة أخرى.</string>
     <string name="cloud_list_folders_failed">تعذر تحميل المجلدات من السحابة. حاول مرة أخرى.</string>
     <string name="cloud_metadata_failed">تعذر تحميل تفاصيل الملف من السحابة. حاول مرة أخرى.</string>
-    <string name="cloud_restore_instructions">يجب استعادة الاتصال بـ Google Drive.\n\nيرجى:\n1. فتح الشاشة الرئيسية\n2. النقر على \"%1$s\"\n3. تسجيل الدخول بحساب Google</string>
+    <string name="cloud_restore_instructions">يجب استعادة اتصال Google Drive.\n\nيرجى:\n1. افتح قائمة الموارد\n2. اضغط على \"%1$s\"\n3. سجّل الدخول بحساب Google</string>
     <string name="cloud_search_failed">تعذر البحث في التخزين السحابي. حاول مرة أخرى.</string>
     <string name="cloud_sign_out_failed">تعذر تسجيل الخروج من حساب السحابة. حاول مرة أخرى.</string>
     <string name="cloud_storage">التخزين السحابي</string>

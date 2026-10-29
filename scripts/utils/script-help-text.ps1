@@ -107,6 +107,17 @@ function Get-ScriptHeaderText {
     $i = 0
     while ($i -lt $lines.Count -and ($lines[$i].Trim() -eq '' -or $lines[$i].Trim() -match '^#(requires\b|!)')) { $i++ }
 
+    # A suite's contract markers (`# Parallel: serial`, `# Subject: ..`) are read by run-script-suites from
+    # the same 40-line header, so they sit above a block-comment header as well. Ahead of a block they are
+    # preamble like #requires: read as the header they became a one-line hash run that hid the .SYNOPSIS
+    # and the exit codes behind them. A marker run NOT followed by a block stays the header, as before.
+    $afterMarkers = $i
+    while ($afterMarkers -lt $lines.Count -and
+        ($lines[$afterMarkers].Trim() -eq '' -or $lines[$afterMarkers].Trim() -match '^#\s*(Parallel|Subject):')) { $afterMarkers++ }
+    if ($afterMarkers -gt $i -and $afterMarkers -lt $lines.Count -and $lines[$afterMarkers].Trim().StartsWith($openToken)) {
+        $i = $afterMarkers
+    }
+
     if ($i -lt $lines.Count) {
         $first = $lines[$i].Trim()
         if ($first.StartsWith($openToken)) {

@@ -3,9 +3,9 @@ package com.sza.fastmediasorter.data.repository
 import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeClipboardClient
 import com.sza.fastmediasorter.data.remote.exchange.ExchangeClipboardAnswer
+import com.sza.fastmediasorter.data.remote.exchange.ExchangeClipboardGetResult
 import com.sza.fastmediasorter.data.remote.exchange.ExchangeClipboardKeySource
 import com.sza.fastmediasorter.data.remote.exchange.ExchangeClipboardKeys
-import com.sza.fastmediasorter.data.remote.exchange.ExchangeClipboardGetResult
 import com.sza.fastmediasorter.data.remote.exchange.ExchangeClipboardPutResult
 import com.sza.fastmediasorter.data.remote.exchange.ExchangeClipboardState
 import com.sza.fastmediasorter.data.security.e2e.E2eBytes

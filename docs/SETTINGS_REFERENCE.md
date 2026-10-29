@@ -198,6 +198,7 @@ _Available in: Standard, Legacy, VR, FOSS_
 | Default order | Sets the order channels appear in when you open the Streams screen. |
 | Subtitle language for streams | Picks the subtitle language the app prefers when a stream offers several. A channel that you set a language for yourself keeps its own choice. |
 | Enable Streams | Master switch for the Streams feature. When off, the Streams item is hidden from the main menu and the welcome screen. |
+| Play awaited broadcasts at once | When you open a link to a broadcast that has not started yet, the app waits for it while the waiting window is open; with this on, the broadcast starts playing as soon as it begins, without the Play question. Off by default. |
 | Ultra-smart stream buffering | Makes radio playback more resilient on a weak connection: waits a few seconds longer before starting so there is a bigger cushion, and quietly reconnects after short signal drops instead of stopping. Off means plain standard playback. |
 | Enable Picture-in-Picture | Enables Picture-in-Picture mode so playback continues in a floating window when you leave the player. Same setting as in the playback section. |
 | Visualize audio streams as music | Opens an audio stream in the full-screen visualizer player instead of the inline mini-control when tapped. |

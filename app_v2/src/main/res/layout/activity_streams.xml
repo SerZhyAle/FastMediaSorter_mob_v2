@@ -20,6 +20,7 @@
             android:theme="@style/ThemeOverlay.FastMediaSorter.Toolbar.Primary"
             app:navigationIcon="@drawable/ic_arrow_back"
             app:menu="@menu/menu_streams"
+            app:stbTitleIcon="@drawable/ic_stream"
             app:title="@string/streams_title">
 
 

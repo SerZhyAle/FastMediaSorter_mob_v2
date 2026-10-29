@@ -107,7 +107,6 @@ object LoggingHelper {
      */
     fun getExportableLogFiles(context: Context): List<File> {
         val logFiles = getLogFiles()
-        val crashCount = logFiles.count { it.name.startsWith(CRASH_FILE_PREFIX) }
         val watchReports = listLogFiles(getLogsDirectory(context), WATCH_LOG_PREFIX, WATCH_LOG_SUFFIX)
         return (logFiles + watchReports).sortedByDescending { it.lastModified() }
     }

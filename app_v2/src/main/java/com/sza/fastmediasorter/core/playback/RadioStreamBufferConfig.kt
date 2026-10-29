@@ -141,7 +141,7 @@ object RadioStreamBufferConfig {
      * Loader-level resilience (smart mode only; stock behavior otherwise). Consulted at error time,
      * so flipping the setting takes effect without a player rebuild. Connectivity errors retry
      * "forever" with capped backoff - the audible result is silence-then-resume instead of a fatal
-     * stop - while data/format errors keep the stock give-up threshold to avoid infinite loops.
+     * stop - while data/format errors and HTTP client errors keep the stock give-up threshold.
      */
     fun createLoadErrorHandlingPolicy(context: Context): LoadErrorHandlingPolicy {
         val appContext = context.applicationContext
@@ -174,18 +174,32 @@ object RadioStreamBufferConfig {
         BufferProfile.STOCK -> BUFFER_FOR_PLAYBACK_MS
     }
 
+    /**
+     * The first link of the cause chain that names a transport failure decides. A client error answer
+     * is the server's verdict, not a lost link: a dead channel or an ended broadcast answers 404/410 on
+     * every attempt, so retrying it "forever" buffered indefinitely and never reached the player's
+     * unavailable dialog. InvalidResponseCodeException is an HttpDataSourceException, hence the
+     * explicit exclusion. 408 and 429 are transient by definition and keep the reconnect.
+     */
     private fun isConnectivityError(error: Throwable?): Boolean {
-        var cause: Throwable? = error
-        while (cause != null) {
-            if (cause is HttpDataSource.HttpDataSourceException ||
+        val decisive = generateSequence(error) { it.cause }.firstOrNull { cause ->
+            cause is HttpDataSource.HttpDataSourceException ||
                 cause is SocketTimeoutException ||
                 cause is ConnectException ||
                 cause is UnknownHostException
-            ) {
-                return true
-            }
-            cause = cause.cause
         }
-        return false
+        return decisive != null && !isClientErrorVerdict(decisive)
     }
+
+    private fun isClientErrorVerdict(error: Throwable): Boolean {
+        val code = (error as? HttpDataSource.InvalidResponseCodeException)?.responseCode ?: return false
+        return code in HTTP_CLIENT_ERROR_MIN..HTTP_CLIENT_ERROR_MAX &&
+            code != HTTP_REQUEST_TIMEOUT &&
+            code != HTTP_TOO_MANY_REQUESTS
+    }
+
+    private const val HTTP_CLIENT_ERROR_MIN = 400
+    private const val HTTP_CLIENT_ERROR_MAX = 499
+    private const val HTTP_REQUEST_TIMEOUT = 408
+    private const val HTTP_TOO_MANY_REQUESTS = 429
 }

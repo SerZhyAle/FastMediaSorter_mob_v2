@@ -1827,7 +1827,7 @@
       "layout": "fragment_settings_general",
       "kind": "SECTION_HEADER",
       "titleEn": "Share from phone",
-      "titleRu": "Доступ с телефона",
+      "titleRu": "Доступ к этому телефону",
       "titleUk": "Доступ з телефону"
     },
     {
@@ -3869,6 +3869,16 @@
       "titleEn": "Enable Streams",
       "titleRu": "Включить трансляции",
       "titleUk": "Увімкнути трансляції"
+    },
+    {
+      "key": "rowPendingPlayAtOnce",
+      "sectionId": "streams",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_streams",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Play awaited broadcasts at once",
+      "titleRu": "Сразу играть ожидаемые трансляции",
+      "titleUk": "Одразу грати очікувані трансляції"
     },
     {
       "key": "rowSmartBuffering",

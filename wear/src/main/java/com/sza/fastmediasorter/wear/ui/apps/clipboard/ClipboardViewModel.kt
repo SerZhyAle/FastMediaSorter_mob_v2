@@ -2,16 +2,17 @@ package com.sza.fastmediasorter.wear.ui.apps.clipboard
 
 import android.content.ClipboardManager
 import android.content.Context
-import android.text.format.DateUtils
 import android.text.format.Formatter
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.core.util.WearUnitDateTimeFormatter
 import com.sza.fastmediasorter.wear.data.wear.WatchFileOpenEvents
 import com.sza.fastmediasorter.wear.domain.model.WearOpenInTarget
 import com.sza.fastmediasorter.wear.domain.model.WearServerClipboardReceiveReport
 import com.sza.fastmediasorter.wear.domain.model.WearServerClipboardValue
 import com.sza.fastmediasorter.wear.domain.repository.WearClipboardTextOutcome
+import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearServerClipboardRepository
 import com.sza.fastmediasorter.wear.domain.usecase.BuildWearServerClipboardOpenInObjectUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.GetWearServerClipboardUseCase
@@ -25,6 +26,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -43,6 +45,8 @@ class ClipboardViewModel @Inject constructor(
     private val sendWearClipboardText: SendWearClipboardTextUseCase,
     private val getServerClipboard: GetWearServerClipboardUseCase,
     private val serverClipboard: WearServerClipboardRepository,
+    private val preferences: WearPreferencesRepository,
+    private val dateTimeFormatter: WearUnitDateTimeFormatter,
     listOpenInTargets: ListWearOpenInTargetsUseCase,
     launchOpenIn: LaunchWearOpenInUseCase,
     buildServerOpenInObject: BuildWearServerClipboardOpenInObjectUseCase,
@@ -133,14 +137,12 @@ class ClipboardViewModel @Inject constructor(
 
     private fun refreshServerState() {
         viewModelScope.launch {
-            serverClipboard.latestState()?.let(::showStored)
+            serverClipboard.latestState()?.let { showStored(it) }
         }
     }
 
-    private fun showStored(value: WearServerClipboardValue) {
-        val stamp = value.storedAtMillis?.let {
-            DateUtils.formatDateTime(context, it, DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME)
-        }
+    private suspend fun showStored(value: WearServerClipboardValue) {
+        val stamp = value.storedAtMillis?.let { dateTimeFormatter.formatDateTime(it, preferences.unitSystem.first()) }
         updateServer { it.copy(stateWhen = stamp, stateFrom = value.sourceDeviceName) }
     }
 

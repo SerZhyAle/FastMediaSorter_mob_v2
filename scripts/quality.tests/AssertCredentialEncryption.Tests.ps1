@@ -46,6 +46,7 @@ $pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") { "$env:Prog
 $fixtureRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("credential-encryption-fixture-{0}" -f $PID)
 $dbDir = Join-Path $fixtureRoot 'app_v2/src/main/java/com/sza/fastmediasorter/data/local/db'
 $uiDir = Join-Path $fixtureRoot 'app_v2/src/main/java/com/sza/fastmediasorter/ui/network'
+$domainDir = Join-Path $fixtureRoot 'app_v2/src/main/java/com/sza/fastmediasorter/domain/repository'
 $baseline = Join-Path $fixtureRoot 'baseline.txt'
 
 # The scoped path refuses a tree whose HEAD cannot be resolved (exit 2, CHECK-VERDICT rule 2.12), so the
@@ -59,6 +60,7 @@ function Reset-Fixture {
     if (Test-Path -LiteralPath $fixtureRoot) { Remove-Item -LiteralPath $fixtureRoot -Recurse -Force }
     New-Item -ItemType Directory -Path $dbDir -Force | Out-Null
     New-Item -ItemType Directory -Path $uiDir -Force | Out-Null
+    New-Item -ItemType Directory -Path $domainDir -Force | Out-Null
     Initialize-FixtureRepo
     Set-Content -LiteralPath $baseline -Value '0' -Encoding UTF8
 }
@@ -158,6 +160,29 @@ try {
         )
         $r = Invoke-Gate
         Assert-Equal 1 $r.ExitCode "stray entity verdict - output: $($r.Output)"
+    }
+
+    Test-Case 'a Store interface in the domain layer is judged by no file-name suffix' {
+        Reset-Fixture
+        Set-Content -LiteralPath (Join-Path $domainDir 'SecretStore.kt') -Encoding UTF8 -Value @(
+            'interface SecretStore {',
+            '    data class StoredPair(val user: String, val password: String?)',
+            '}'
+        )
+        $r = Invoke-Gate
+        Assert-Equal 0 $r.ExitCode "domain store verdict - output: $($r.Output)"
+    }
+
+    Test-Case 'an entity declared in the domain layer is still judged' {
+        Reset-Fixture
+        Set-Content -LiteralPath (Join-Path $domainDir 'DomainEntity.kt') -Encoding UTF8 -Value @(
+            '@Entity(tableName = "domain_stray")',
+            'data class DomainEntity(',
+            '    val apiKey: String',
+            ')'
+        )
+        $r = Invoke-Gate
+        Assert-Equal 1 $r.ExitCode "domain entity verdict - output: $($r.Output)"
     }
 
     Test-Case 'a baseline at the current count suppresses the existing finding' {

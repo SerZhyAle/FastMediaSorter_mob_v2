@@ -45,6 +45,13 @@ interface GoogleIdentityRepository {
     suspend fun requestAdditionalScopes(activityContext: Context, scopes: Set<GoogleScope>): IdentitySignInResult
 
     /**
+     * S4427: shows the Google consent screen for [scopes] alone, for the already bound primary
+     * account, without the account chooser. On success the binding gains the scopes Google granted.
+     * Returns [IdentitySignInResult.Failed] when no account is bound.
+     */
+    suspend fun grantScopes(activityContext: Context, scopes: Set<GoogleScope>): IdentitySignInResult
+
+    /**
      * Drops the primary binding. Cached tokens are invalidated; remote revocation is queued via
      * `PendingRevocationDao` so it survives network/process loss.
      */
@@ -59,6 +66,14 @@ interface GoogleIdentityRepository {
      * Never logs the returned token.
      */
     suspend fun getAccessToken(scopes: Set<GoogleScope>): GoogleAccessToken?
+
+    /**
+     * Same issuance as [getAccessToken], with the reason kept. [GoogleTokenResult.ConsentRequired]
+     * leaves [state] untouched: the account is signed in, only the listed scopes are not granted.
+     * A consent request for a scope the binding already lists as granted means the grant was
+     * revoked, and moves [state] to [PrimaryGoogleAccountState.NeedsResignIn] as any other failure.
+     */
+    suspend fun issueAccessToken(scopes: Set<GoogleScope>): GoogleTokenResult
 
     /** Marks every cached token as expired so the next [getAccessToken] forces a refresh. */
     suspend fun invalidateToken()

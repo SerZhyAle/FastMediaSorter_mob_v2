@@ -69,7 +69,6 @@ import com.sza.fastmediasorter.ui.launcher.helpers.LauncherStreamActionManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarCallbacks
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarPlacementManager
-import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarStripLocator
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTrayManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherWallpaperManager
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayCallbacks
@@ -231,11 +230,6 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     )
 
     private lateinit var taskbarManager: LauncherTaskbarManager
-
-    // S2728: asked on every ACTION_DOWN, so it holds its own Rect rather than allocating one per touch.
-    private val taskbarStripLocator: LauncherTaskbarStripLocator by lazy {
-        LauncherTaskbarStripLocator(binding.launcherTaskbar)
-    }
 
     private lateinit var placementManager: LauncherTaskbarPlacementManager
 
@@ -425,7 +419,9 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
     // Lazy for the same reason the overlay managers below are: it needs the inflated binding, and its
     // first read happens inside setupViews(), after BaseActivity has inflated it.
-    private val geometryManager: LauncherDesktopGeometryManager by lazy {
+    // S4492: held apart so onDestroy can release the manager's viewport listener without creating it.
+    // Declared before the property it backs: a delegate is read when that property is initialised.
+    private val geometryManagerDelegate: Lazy<LauncherDesktopGeometryManager> = lazy {
         LauncherDesktopGeometryManager(
             resources = resources,
             desktop = binding.launcherDesktop,
@@ -434,6 +430,7 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             viewModel = viewModel,
         )
     }
+    private val geometryManager: LauncherDesktopGeometryManager by geometryManagerDelegate
 
     /** Gadgets reach the desktop only through the one launch guard every other surface shares. */
     private val gadgetHost = object : LauncherGadgetHost {
@@ -578,6 +575,7 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             onPreviousScreen = { pagingManager.previous() },
             onBlackScreen = ::showBlackScreen,
         )
+        val desktopBounds = android.graphics.Rect()
         desktopGestureManager = LauncherAllAppsGestureManager(
             container = binding.launcherDesktop,
             viewport = binding.launcherGridScroll,
@@ -588,13 +586,9 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             },
             gestureArea = binding.launcherRoot,
             isGestureStartAllowed = { event ->
-                !binding.launcherDesktop.hasGadgetAtScreenPosition(event.rawX, event.rawY)
-            },
-            // S2728: the taskbar strips scroll on the same axis the desktop pages on, so a swipe that
-            // started inside one of them belongs to the strip. S2534's admission elsewhere is untouched.
-            isHorizontalSwipeAllowedAtStart = { event ->
-                val onStrip = taskbarStripLocator.isTouchOnScrollingStrip(event.rawX, event.rawY)
-                !onStrip
+                binding.launcherGridScroll.getGlobalVisibleRect(desktopBounds) &&
+                    desktopBounds.contains(event.rawX.toInt(), event.rawY.toInt()) &&
+                    !binding.launcherDesktop.hasGadgetAtScreenPosition(event.rawX, event.rawY)
             },
             onSwipe = { direction, startedOnRightHalf ->
                 val settings = viewModel.launcherDesktopSettings.value
@@ -1053,6 +1047,7 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // hierarchy reachable for as long as anything still references the manager.
         statusStripManager.unbind()
         if (::idleScreenOffManager.isInitialized) idleScreenOffManager.onDestroy()
+        if (geometryManagerDelegate.isInitialized()) geometryManager.release()
         super.onDestroy()
     }
 

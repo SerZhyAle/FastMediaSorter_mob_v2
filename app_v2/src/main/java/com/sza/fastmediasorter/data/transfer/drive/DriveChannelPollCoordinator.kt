@@ -5,6 +5,7 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.util.JitteredBackoff
 import com.sza.fastmediasorter.domain.model.transfer.CrossDeviceQueueSnapshot
+import com.sza.fastmediasorter.domain.model.transfer.DriveConsentRequired
 import com.sza.fastmediasorter.domain.model.transfer.DriveDailyLimit
 import com.sza.fastmediasorter.domain.model.transfer.DriveSignInRequired
 import com.sza.fastmediasorter.domain.transfer.DriveChannelSettings
@@ -106,7 +107,7 @@ class DriveChannelPollCoordinator @Inject constructor(
             result.getOrNull()?.let { latest.emit(it) }
             val waitMs = when (failure) {
                 null -> intervalMs.also { backoff.reset() }
-                is DriveSignInRequired -> null
+                is DriveSignInRequired, is DriveConsentRequired -> null
                 // Listings go on; only uploads hit the daily limit, and nothing retries them in a loop.
                 is DriveDailyLimit -> intervalMs
                 else -> backoff.nextDelayMs()
@@ -120,6 +121,7 @@ class DriveChannelPollCoordinator @Inject constructor(
     private fun stateFor(failure: Throwable?, intervalMs: Long, waitMs: Long?): DrivePollState = when {
         failure == null -> DrivePollState.Polling(intervalMs)
         failure is DriveSignInRequired -> DrivePollState.SignInRequired
+        failure is DriveConsentRequired -> DrivePollState.ConsentRequired
         failure is DriveDailyLimit -> DrivePollState.DailyLimit
         else -> DrivePollState.BackingOff(clock() + (waitMs ?: 0L))
     }

@@ -4,14 +4,15 @@ import android.content.Context
 import com.sza.fastmediasorter.domain.identity.GoogleAccessToken
 import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
 import com.sza.fastmediasorter.domain.identity.GoogleScope
+import com.sza.fastmediasorter.domain.identity.GoogleTokenResult
 import com.sza.fastmediasorter.domain.identity.IdentityFailureReason
 import com.sza.fastmediasorter.domain.identity.IdentitySignInResult
 import com.sza.fastmediasorter.domain.identity.PrimaryGoogleAccountState
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * No-op implementation of [GoogleIdentityRepository] for the `cloudDisabled` source set (lite, foss).
@@ -38,12 +39,17 @@ class NoOpGoogleIdentityRepository @Inject constructor() : GoogleIdentityReposit
     override suspend fun requestAdditionalScopes(activityContext: Context, scopes: Set<GoogleScope>): IdentitySignInResult =
         IdentitySignInResult.Failed(IdentityFailureReason.UnknownError)
 
+    override suspend fun grantScopes(activityContext: Context, scopes: Set<GoogleScope>): IdentitySignInResult =
+        IdentitySignInResult.Failed(IdentityFailureReason.UnknownError)
+
     // S2101: nothing to restore - this flavor binds no Google account in the first place.
     override suspend fun restoreTransferredBinding(email: String, scopes: Set<GoogleScope>): Boolean = false
 
     override suspend fun signOutPrimary() = Unit
 
     override suspend fun getAccessToken(scopes: Set<GoogleScope>): GoogleAccessToken? = null
+
+    override suspend fun issueAccessToken(scopes: Set<GoogleScope>): GoogleTokenResult = GoogleTokenResult.Unavailable
 
     override suspend fun invalidateToken() = Unit
 

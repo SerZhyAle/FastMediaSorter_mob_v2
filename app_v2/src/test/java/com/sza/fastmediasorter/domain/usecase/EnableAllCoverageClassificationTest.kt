@@ -339,6 +339,8 @@ class EnableAllCoverageClassificationTest {
                 // S4116: it drops the consent prompt for content another device sends, so the button must
                 // not answer "may a cast start playing on its own" for the user.
                 "streamsCastPlayAtOnce",
+                // S4247: the same consent, for a broadcast waited for since its link was opened (item CI).
+                "streamsPendingPlayAtOnce",
             ),
             Coverage.STARTS_ON_REACH to setOf(
                 // S3224: SosActivity starts SosService as it resolves its mode, so opening the program

@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
-import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.widget.Button
@@ -11,7 +10,6 @@ import androidx.media3.common.VideoSize
 import androidx.media3.ui.PlayerView
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.slot
 import io.mockk.verify
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -64,20 +62,15 @@ class VideoInteractionManagersTest {
     }
 
     @Test
-    fun `mouse zoom only transforms the surface and a new file resets it`() {
-        val mouseListener = slot<View.OnGenericMotionListener>()
-        every { playerView.setOnGenericMotionListener(capture(mouseListener)) } answers { }
+    fun `command zoom only transforms the surface and a new file resets it`() {
         var item = MediaItem.fromUri("file:///first.mp4")
         every { player.currentMediaItem } answers { item }
         val manager = VideoZoomGestureManager(playerView)
         manager.onPreDraw()
-        val coordinates = MotionEvent.PointerCoords().apply { setAxisValue(MotionEvent.AXIS_VSCROLL, 1f) }
-        val properties = MotionEvent.PointerProperties().apply { id = 0 }
-        MotionEvent.obtain(
-            0, 10, MotionEvent.ACTION_SCROLL, 1, arrayOf(properties), arrayOf(coordinates),
-            KeyEvent.META_CTRL_ON, 0, 1f, 1f, 0, 0, 0, 0
-        ).useEvent { assertTrue(mouseListener.captured.onGenericMotion(playerView, it)) }
-        assertEquals(1.25f, surface.scaleX, 0f)
+        // Ctrl+wheel no longer reaches the manager as a motion event: PlayerKeyboardCallbackImpl turns it into
+        // zoomAt, the same entry point the zoom keys use, so this is the contract the manager still owns.
+        assertTrue(manager.zoomAt(ViewerZoomMath.STEP, 1f, 1f))
+        assertEquals(ViewerZoomMath.STEP, surface.scaleX, 0f)
         verify(exactly = 0) { playerView.setScaleX(any()) }
         item = MediaItem.fromUri("file:///second.mp4")
         manager.onPreDraw()

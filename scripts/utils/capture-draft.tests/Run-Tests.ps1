@@ -138,10 +138,13 @@ try {
     $firstId = [regex]::Match($r1.Out, '^(S\d{4}) ', 'Multiline').Groups[1].Value
     Assert-That '-AppendToOpen creates once, then appends into the open ticket' ($r1.Code -eq 0 -and $r2.Code -eq 0 -and $after -eq ($before + 1) -and $r2.Out -match "^$firstId .* - appended \(Draft\)" -and $spec -match '(?s)first slice findings.*\*\*Дописано:\*\* \d{4}-\d{2}-\d{2}\s+second slice findings\s+---\s+## 1\.') "r1 $($r1.Code): $($r1.Out) | r2 $($r2.Code): $($r2.Out)"
 
-    $r = Invoke-Subject @('-Slug', 'parked-finding-idea', '-Text', 'out-of-scope symptom', '-Parked')
-    $parkedId = [regex]::Match($r.Out, '^(S\d{4}) ', 'Multiline').Groups[1].Value
-    $parkedRow = @(Get-Content -LiteralPath $catalog | Where-Object { $_ -match "`"id`":`"$parkedId`"" } | Select-Object -Last 1)
-    Assert-That '-Parked leaves the ticket in BlockQuestions with the untriaged marker and date (S4190)' ($r.Code -eq 0 -and $r.Out -match '- BlockQuestions \(parked, untriaged\)\.' -and $parkedRow.Count -eq 1 -and $parkedRow[0] -match '"status":"BlockQuestions"' -and $parkedRow[0] -match 'Parked finding, untriaged' -and $parkedRow[0] -match 'parked: \d{2}-\d{2}-\d{2}') "exit $($r.Code): $($r.Out) | row: $parkedRow"
+    # An agent-parked finding is an ordinary Draft the runner may take; BlockQuestions is reserved for a real owner question.
+    $r = Invoke-Subject @('-Slug', 'parked-finding-idea', '-Text', 'out-of-scope symptom')
+    $draftId = [regex]::Match($r.Out, '^(S\d{4}) ', 'Multiline').Groups[1].Value
+    $draftRow = @(Get-Content -LiteralPath $catalog | Where-Object { $_ -match "`"id`":`"$draftId`"" } | Select-Object -Last 1)
+    Assert-That 'a capture stays Draft with no block note' ($r.Code -eq 0 -and $r.Out -match '^S\d{4} parked-finding-idea - Draft\.' -and $draftRow.Count -eq 1 -and $draftRow[0] -match '"status":"Draft"' -and $draftRow[0] -notmatch 'statusNote') "exit $($r.Code): $($r.Out) | row: $draftRow"
+    $r = Invoke-Subject @('-Slug', 'parked-flag-retired', '-Text', 'x', '-Parked')
+    Assert-That 'the retired -Parked switch is refused' ($r.Code -ne 0) "exit $($r.Code): $($r.Out)"
 
     $closedBatch = '{"id":"S9991","name":"bugfix-audit-device-browse","status":"BlockNeedUserTest","priority":90,"tier":3,"file":"PLAN/S9991_bugfix-audit-device-browse.md","created":"2026-01-01","updated":"2026-01-02"}'
     Add-Content -LiteralPath $catalog -Value $closedBatch

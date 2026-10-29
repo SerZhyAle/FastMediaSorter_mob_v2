@@ -136,7 +136,6 @@
     <string name="wear_section_local">Local</string>
     <string name="wear_section_streams">Streams</string>
     <string name="wear_section_apps">Programs</string>
-    <string name="wear_coming_soon">Coming soon</string>
     <string name="wear_phone_video">Video</string>
     <string name="wear_phone_audio">Audio</string>
     <string name="wear_phone_images">Images</string>
@@ -1155,4 +1154,11 @@
     <string name="wear_open_in_role_last_used">Last used</string>
     <string name="wear_open_in_role_browser">Browser</string>
     <string name="wear_open_in_role_maps">Maps</string>
+    <string name="wear_broadcast_server_announcing">Server: announcing</string>
+    <string name="wear_broadcast_server_on">On the exchange server</string>
+    <string name="wear_broadcast_server_failed">Server error - see phone</string>
+    <string name="wear_broadcast_server_local_only">This network only</string>
+    <string name="wear_scheduled_message_channel_name">Scheduled messages</string>
+    <string name="wear_audio_fetching">Loading the track..</string>
+    <string name="wear_stream_ended">This stream is no longer on air. Retry when it starts again.</string>
 </resources>
