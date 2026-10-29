@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.20 23:59</sub>
+<sub class="doc-stamp">26.10.29 21:45</sub>
 
 # FastMediaSorter v2 🚀
 
@@ -82,7 +82,7 @@ FastMediaSorter is a complete shell for an Android device - home screen, media p
 
 > *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
 
-## What's New in v2.61.0291.639 (October 2026)
+## What's New in v2.61.0292.144 (October 2026)
 
 **New:**
 Broadcast links, QR codes and files ready before the broadcast starts, broadcasts that publish themselves to the exchange server, a broadcast password your way, viewers told an ended broadcast from a lost one, a landscape live picture, casts through every exchange server, scheduled messages to the watch, scheduled operations explained in plain words, gap-free network audio on the watch, one Google consent for Drive and the app folder, feature icons in screen titles, smarter channel list updates, background sync in the Play build.
