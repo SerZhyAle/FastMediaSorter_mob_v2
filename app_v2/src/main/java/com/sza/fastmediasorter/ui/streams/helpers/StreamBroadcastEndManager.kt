@@ -62,7 +62,6 @@ class StreamBroadcastEndManager @Inject constructor(
             removalWatch = id?.let {
                 owner.collectOnLifecycle(observeRemoval(it)) { removed ->
                     val readNow = hold.onDirectory(removed)
-                    Timber.d("S4448: inline directory removed=%s read now=%s", removed, readNow)
                     if (readNow) {
                         onStopped(owner, playedUrl, BroadcastStopSignal.DirectoryRemoved, host)
                     }
@@ -89,7 +88,6 @@ class StreamBroadcastEndManager @Inject constructor(
         val session = BroadcastPlaybackSessions.forUrl(playedUrl) ?: return
         val signal = hold.atStop(stopSignal)
         Timber.i("StreamBroadcastEndManager: broadcast stopped - %s (reported %s)", signal, stopSignal)
-        Timber.d("S4444: inline broadcast stop %s", signal)
         pending?.cancel()
         pending = owner.lifecycleScope.launch {
             when (val decision = handleStop(session, signal)) {

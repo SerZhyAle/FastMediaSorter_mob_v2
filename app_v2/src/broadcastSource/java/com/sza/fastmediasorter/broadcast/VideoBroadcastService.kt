@@ -329,7 +329,6 @@ class VideoBroadcastService : Service(), ConnectChecker, ClientListener {
      */
     private fun followScreenRotation(camera: RtspServerCamera2) {
         val renderer = camera.glInterface as? GlStreamInterface ?: return
-        Timber.d("S4418: broadcast stream picture follows the screen rotation")
         renderer.autoHandleOrientation = true
     }
 

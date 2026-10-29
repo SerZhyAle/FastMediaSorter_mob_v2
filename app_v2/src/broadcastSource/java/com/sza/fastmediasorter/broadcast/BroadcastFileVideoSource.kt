@@ -153,7 +153,6 @@ class BroadcastFileVideoSource(
         // stop() clears running before it joins this thread, so a flag still set here means the
         // pump ended on its own - a track end or a codec throw - and the session must end with it.
         if (reachedEnd || running) {
-            Timber.d("S4438: file pump reports the end of its track")
             running = false
             onFinished()
         }

@@ -20,7 +20,6 @@ import com.sza.fastmediasorter.ui.scheduledops.ScheduledRunReasonText
 import com.sza.fastmediasorter.util.showBoundTo
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * S4211: shows one schedule's run journal - when each run happened, how many files it handled and why
@@ -36,7 +35,6 @@ class ScheduledRunHistoryDialogManager(private val host: ComponentActivity) {
                 .fromApplication(host.applicationContext, ScheduledOperationsEntryPoint::class.java)
                 .getRunJournalUseCase()
             val records = journal(operationId)
-            Timber.d("S4478: run history dialog opened, records=${records.size}")
             val body = DialogScheduledRunHistoryBinding.inflate(LayoutInflater.from(host))
             body.tvScheduleLabel.text = scheduleLabel
             body.tvRunHistoryEmpty.isVisible = records.isEmpty()
@@ -60,7 +58,6 @@ class ScheduledRunHistoryDialogManager(private val host: ComponentActivity) {
      */
     fun showLastRun(operationId: Long, scheduleLabel: String, skipped: Boolean) {
         host.lifecycleScope.launch {
-            Timber.d("S4479: last-run reason dialog opened, skipped=$skipped")
             val journal = EntryPointAccessors
                 .fromApplication(host.applicationContext, ScheduledOperationsEntryPoint::class.java)
                 .getRunJournalUseCase()

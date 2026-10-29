@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import dagger.hilt.android.qualifiers.ApplicationContext
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -25,7 +24,6 @@ class LauncherStartWindowManager @Inject constructor(
     fun preload() {
         if (!contract.isAvailableInBuild) return
         prefs().contains(KEY_START_WINDOW_ENABLED)
-        Timber.d("S4484: launcher start-window prefs preloaded on thread ${Thread.currentThread().name}")
     }
 
     fun setEnabled(enabled: Boolean) {

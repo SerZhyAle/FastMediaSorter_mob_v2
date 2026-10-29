@@ -117,7 +117,6 @@ class ScheduledOperationsWorker @AssistedInject constructor(
                 )
                 if (execResult.pausesSchedule) {
                     Timber.w("ScheduledOperationsWorker: op=$operationId paused - ${execResult.reason}")
-                    Timber.d("S4480: schedule op=$operationId paused after its resource was deleted")
                 }
                 reportRun(operation, execResult, journalRecord(execResult, startedAt, finishedAt, foregroundNote))
             }
@@ -200,7 +199,6 @@ class ScheduledOperationsWorker @AssistedInject constructor(
             !operation.silentMode &&
             NotificationManagerCompat.from(context).areNotificationsEnabled()
         if (!wanted) return
-        Timber.d("S4493: failure notification worded from the reason code")
         createNotificationChannel()
         val label = scheduleLabel(operation)
         // S4493: the English run message stays in the journal; the notification says it in the interface language.

@@ -59,7 +59,6 @@ class BroadcastPreparedShareDialogManager @Inject constructor(
     }
 
     fun show(activity: AppCompatActivity, link: PreparedBroadcastLink) {
-        Timber.d("S4247: prepared link share dialog opened $link")
         val descriptor = resolveShare(link)
         val payload = encode.compress(descriptor)
         val shareLink = BroadcastShareLinkFactory.create(payload)

@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.core.view.children
 import com.sza.fastmediasorter.R
-import timber.log.Timber
 
 /**
  * S4476: the text column of a gadget tile - a headline value (the one child with a `layout_weight`) and
@@ -62,7 +61,6 @@ class GadgetValueColumn @JvmOverloads constructor(
         }
         if (dropped.size != lastDroppedCount) {
             lastDroppedCount = dropped.size
-            Timber.d("S4476: gadget column drops ${dropped.size} of ${details.size} detail lines in $available px")
         }
 
         val widest = shown.maxOfOrNull { it.measuredWidth + paramsOf(it).leftMargin + paramsOf(it).rightMargin } ?: 0

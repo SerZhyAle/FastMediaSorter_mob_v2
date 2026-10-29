@@ -90,7 +90,6 @@ class BroadcastPreparedLinksManager @Inject constructor(
         prepareDialog.show(activity) { mode, days, choice, customPassword, guests ->
             activity.lifecycleScope.launch {
                 val outcome = manageLinks.prepare(mode, days, choice, customPassword, guests)
-                Timber.d("S4247: prepare link mode=$mode days=$days outcome=${outcome::class.simpleName}")
                 messageFor(outcome)?.let { Snackbar.make(binding.root, it, Snackbar.LENGTH_LONG).show() }
                 if (outcome is ManagePreparedBroadcastLinksUseCase.Outcome.Prepared) {
                     shareDialog.show(activity, outcome.link)
@@ -134,7 +133,6 @@ class BroadcastPreparedLinksManager @Inject constructor(
             .setTitle(R.string.broadcast_prepared_revoke_title)
             .setMessage(R.string.broadcast_prepared_revoke_message)
             .setPositiveButton(R.string.broadcast_prepared_revoke) { _, _ ->
-                Timber.d("S4247: prepared link revoked $link")
                 activity.lifecycleScope.launch { manageLinks.revoke(link.broadcastId) }
             }
             .setNegativeButton(R.string.cancel, null)
@@ -162,7 +160,6 @@ class BroadcastPreparedLinksManager @Inject constructor(
     private fun tellCollision(binding: ActivityBroadcastControlBinding, session: Long) {
         if (collisionToldFor == session) return
         collisionToldFor = session
-        Timber.d("S4247: id-collision notice shown")
         Timber.w("Broadcast went on air under a new id: the prepared one was taken")
         Snackbar.make(binding.root, R.string.broadcast_prepared_id_taken, Snackbar.LENGTH_LONG).show()
     }
@@ -181,7 +178,6 @@ class BroadcastPreparedLinksManager @Inject constructor(
             val stillLive = checkStart(null) == CheckPreparedBroadcastStartUseCase.Verdict.Matches
             if (stillLive && notUsedToldFor != session && liveStartedAt == session) {
                 notUsedToldFor = session
-                Timber.d("S4247: file start did not use the prepared link")
                 Snackbar.make(binding.root, R.string.broadcast_prepared_not_used, Snackbar.LENGTH_LONG).show()
             }
         }

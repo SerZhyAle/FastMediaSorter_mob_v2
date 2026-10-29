@@ -25,7 +25,6 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
 import com.sza.fastmediasorter.ui.icon.RecyclableIconTint
-import timber.log.Timber
 import kotlin.math.roundToInt
 
 /**
@@ -561,7 +560,6 @@ class LauncherCellViewBinder(
     ) {
         val plateHorPx = (spec.labelPlatePaddingHorizontalDp * density).toInt()
         val plateVertPx = (spec.labelPlatePaddingVerticalDp * density).toInt()
-        Timber.d("S4475: caption lines=${spec.labelMaxLines} text=${spec.labelTextSizeSp}sp icon=${spec.iconSizeDp}dp")
         binding.cellLabel.setPadding(plateHorPx, plateVertPx, plateHorPx, plateVertPx)
         binding.cellLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, spec.labelTextSizeSp)
         binding.cellLabel.maxLines = spec.labelMaxLines
@@ -593,7 +591,6 @@ class LauncherCellViewBinder(
             binding.sectionStrip.paddingBottom,
         )
         val chevronPx = (spec.chevronSizeDp * density).toInt()
-        Timber.d("S4475: section chevron=${spec.chevronSizeDp}dp title min=${spec.titleMinTextSizeSp}sp")
         binding.sectionChevron.layoutParams.width = chevronPx
         binding.sectionChevron.layoutParams.height = chevronPx
         TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(

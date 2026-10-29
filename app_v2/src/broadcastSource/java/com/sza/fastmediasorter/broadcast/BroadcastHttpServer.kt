@@ -125,7 +125,6 @@ class BroadcastHttpServer(
      * past [timeoutMs]; [stop] closes it with the rest.
      */
     fun end(timeoutMs: Long) {
-        Timber.d("S4442: http audio clean end")
         ending = true
         clients.forEach { it.close() }
         clients.clear()
@@ -252,7 +251,6 @@ class BroadcastHttpServer(
 
             @Suppress("TooGenericExceptionCaught")
             override fun run() {
-                Timber.d("S4491: lookup-free client handler for ${socket.inetAddress.hostAddress}")
                 var output: OutputStream? = null
                 try {
                     output = socket.getOutputStream()

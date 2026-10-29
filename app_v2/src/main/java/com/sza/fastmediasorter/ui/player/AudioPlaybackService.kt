@@ -165,7 +165,6 @@ class AudioPlaybackService : MediaSessionService() {
             bufferSizeMs: Long,
             elapsedSinceLastFeedMs: Long
         ) {
-            Timber.d("S4423: audio underrun reached the classifier")
             val current = player
             val context = AudioDiagnosticClassifier.classifyUnderrun(
                 playWhenReady = current?.playWhenReady == true,
@@ -789,7 +788,6 @@ class AudioPlaybackService : MediaSessionService() {
     // Unconditional: Handler.hasCallbacks is API 29, and with no outage in flight the reconnect
     // window is already unstamped, so dropping it again changes nothing.
     private fun cancelPendingStreamRetry() {
-        Timber.d("S4424: session stop cancels any pending stream retry")
         autoStopHandler.removeCallbacks(streamRetryRunnable)
         streamRetryPolicy.onRetryDropped()
     }
@@ -818,7 +816,6 @@ class AudioPlaybackService : MediaSessionService() {
     private fun resetStreamRecovery(mediaItem: MediaItem?) {
         autoStopHandler.removeCallbacks(streamRetryRunnable)
         val streamUrl = mediaItem?.localConfiguration?.uri?.toString()
-        Timber.d("S4424: stream recovery reset for the new item")
         streamRetryPolicy.onStreamChanged(SystemClock.elapsedRealtime(), streamUrl)
         streamPlayCountedUrl = null
         if (streamUrl == null) return

@@ -650,7 +650,6 @@ class SftpServerTunnelManager @Inject constructor(
         if (starting) mutableWire.value = BroadcastWire.Sent(id)
         val sent = sendQuietly(control.session, envelope)
         if (sent) {
-            Timber.d("S4440: broadcast announce written")
             val line = BroadcastAnnounceTrace.describe(type, publication)
             Timber.i("SftpServerTunnelManager: broadcast announced %s", line)
         } else {

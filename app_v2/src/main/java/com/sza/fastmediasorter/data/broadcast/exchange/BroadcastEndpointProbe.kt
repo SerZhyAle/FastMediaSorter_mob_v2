@@ -139,7 +139,6 @@ class BroadcastEndpointProbe @Inject constructor(
         AfterEndAnswer.ALIVE
     } catch (e: ExchangeTunnelUnavailableException) {
         Timber.d("BroadcastEndpointProbe: %s tunnel refused after the end - %s", tunnel.server.label, e.message)
-        Timber.d("S4448: tunnel after-end refusal reason=%s", e.reason)
         if (e.reason == DeviceExchangeEnvelope.REASON_ENDED) AfterEndAnswer.ENDED else AfterEndAnswer.NO_ANSWER
     } catch (e: IOException) {
         Timber.d(e, "BroadcastEndpointProbe: %s tunnel silent after the end", tunnel.server.label)

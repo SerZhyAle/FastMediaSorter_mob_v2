@@ -299,7 +299,6 @@ class ExchangeBroadcastAnnouncer @Inject constructor(
         prepared.guests.filterNot { it in kept }.forEach { grantRepository.keepBroadcastGuest(sourceKey, it) }
         preparedLinks.markConsumed(id)
         mutablePreparedOutcome.value = PreparedBroadcastStartOutcome.Consumed
-        Timber.d("S4247: broadcast consumed a prepared link")
         Timber.i("ExchangeBroadcastAnnouncer: on air under a prepared link ${id.take(LOGGED_ID_CHARS)}..")
     }
 
@@ -308,7 +307,6 @@ class ExchangeBroadcastAnnouncer @Inject constructor(
     @Synchronized
     private fun end(): Boolean {
         current ?: return false
-        Timber.d("S4442: exchange end in DX order")
         current = null
         mutablePreparedOutcome.value = PreparedBroadcastStartOutcome.None
         announced.value = null

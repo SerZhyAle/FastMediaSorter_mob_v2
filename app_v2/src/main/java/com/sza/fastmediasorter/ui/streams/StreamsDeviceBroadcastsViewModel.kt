@@ -71,7 +71,6 @@ class StreamsDeviceBroadcastsViewModel @Inject constructor(
 
     fun onBroadcastChosen(item: ExchangeDeviceBroadcast) {
         if (!item.playable) {
-            Timber.d("S4441: unplayable broadcast tapped")
             val reason = item.sealNotice?.let(ExchangeMessageText::what)
             _messages.trySend(reason ?: R.string.streams_device_broadcast_unsupported)
             return

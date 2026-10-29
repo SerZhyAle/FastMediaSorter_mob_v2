@@ -14,7 +14,6 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.broadcast.BroadcastState
 import com.sza.fastmediasorter.databinding.ActivityBroadcastControlBinding
 import com.sza.fastmediasorter.ui.player.helpers.ScreenRotationManager
-import timber.log.Timber
 
 /**
  * S4418: the broadcast control screen's share of the player's rotation rule (S0667) - landscape means
@@ -43,7 +42,6 @@ class BroadcastLandscapeVideoManager {
         if (!activity.packageManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER)) return
         val orientation = ScreenRotationManager.orientationFor(followSystem, sensorEnabled)
         if (activity.requestedOrientation == orientation) return
-        Timber.d("S4418: broadcast screen takes the player rotation policy orientation=$orientation")
         activity.requestedOrientation = orientation
     }
 

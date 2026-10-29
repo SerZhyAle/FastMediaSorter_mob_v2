@@ -7,7 +7,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
-import timber.log.Timber
 
 /**
  * The app's full exit with a live broadcast (contract LIVE-BROADCAST item T: closing the app is a deliberate end).
@@ -28,7 +27,6 @@ class MainFullExitManager(
         if (controller.state.value !is BroadcastState.Live) {
             teardown()
         } else {
-            Timber.d("S4442: full exit waits for the broadcast end")
             exiting = true
             controller.stop()
             scope.launch {

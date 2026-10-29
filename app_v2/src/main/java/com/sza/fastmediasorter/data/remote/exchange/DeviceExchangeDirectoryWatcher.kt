@@ -76,7 +76,6 @@ class DeviceExchangeDirectoryWatcher @Inject constructor(
             when (envelope.type) {
                 DeviceExchangeEnvelope.TYPE_DIRECTORY -> {
                     val fresh = DeviceExchangeDirectoryState.of(DeviceExchangeDirectory.from(envelope))
-                    Timber.d("S4441: directory answer read")
                     ExchangeBroadcastDiagnostics.logDirectory(fresh.directory)
                     state = fresh
                     out.send(fresh.directory)
@@ -98,7 +97,6 @@ class DeviceExchangeDirectoryWatcher @Inject constructor(
         envelope: DeviceExchangeEnvelope,
         out: SendChannel<DeviceExchangeDirectory>,
     ): DeviceExchangeDirectoryState? {
-        Timber.d("S4441: changed push read")
         val changed = DeviceExchangeChanged.from(envelope)
         // A push that arrives before the first answer is covered by that answer.
         if (held == null) {

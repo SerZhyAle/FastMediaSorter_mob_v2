@@ -87,7 +87,6 @@ class RtspAuthGate(
      * hold the end past [timeoutMs]; its connection is closed with the rest.
      */
     fun end(timeoutMs: Long) {
-        Timber.d("S4442: rtsp gate end with BYE")
         val server = synchronized(lock) {
             stopped = true
             listener.also { listener = null }

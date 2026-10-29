@@ -10,7 +10,6 @@ import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherCellViewBinder
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherDesktopLayout
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
-import timber.log.Timber
 
 /**
  * S1541: the desktop's geometry answers - column count, viewport rows, current orientation - plus the
@@ -83,7 +82,6 @@ class LauncherDesktopGeometryManager(
     fun applyGridGeometry() {
         val orientation = currentOrientation()
         val columns = currentColumns()
-        Timber.d("S4492: grid columns=$columns measured=$measuredOuterWidthPx widthDp=${contentWidthDp()}")
         viewModel.setOrientation(orientation)
         if (cellsMatchOrientation(viewModel.cells.value, orientation)) {
             renderDesktop()

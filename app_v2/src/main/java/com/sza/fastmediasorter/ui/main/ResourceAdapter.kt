@@ -614,7 +614,6 @@ class ResourceAdapter(
                 var textSize = binding.root.context.resources.getDimension(R.dimen.text_size_normal)
                 if (useCompactElements) textSize *= 0.8f
                 tvResourceName.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, textSize)
-                timber.log.Timber.d("S4477: grid tile name size px=$textSize name=${resource.name}")
 
                 if (useCompactElements) {
                     val iconSize = (24 * root.resources.displayMetrics.density).toInt()

@@ -92,7 +92,6 @@ class AppStartupInitializer @Inject constructor(
     }
 
     suspend fun runDeferredStartupTasks() {
-        Timber.d("S4423: deferred startup tasks pass started")
         runDeferredTask("record-launch-baseline") { recordLaunchBaseline() }
         if (BuildConfig.DEBUG) {
             runDeferredTask("permissions-status") { logPermissionsStatus() }

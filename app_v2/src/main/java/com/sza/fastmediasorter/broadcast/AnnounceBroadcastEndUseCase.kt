@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.broadcast
 
 import com.sza.fastmediasorter.data.broadcast.exchange.ExchangeBroadcastAnnouncer
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -19,7 +18,6 @@ class AnnounceBroadcastEndUseCase @Inject constructor(
 
     /** True when `broadcast-end` was written; false with no announcement, no control stream or a failed write. */
     operator fun invoke(): Boolean {
-        Timber.d("S4442: deliberate broadcast end announced first")
         return announcer.endDeliberately()
     }
 

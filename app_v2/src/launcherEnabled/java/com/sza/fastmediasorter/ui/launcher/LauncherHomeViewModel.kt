@@ -64,7 +64,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
@@ -909,7 +908,6 @@ class LauncherHomeViewModel @Inject constructor(
                 }
                 repository.updateColumns(orientation, columns)
                 if (previous > 0 && previous != columns) {
-                    Timber.d("S4492: reflow sections $orientation columns $previous -> $columns")
                     LauncherSectionMembership.sectionsInOrder(repository.observeCells(orientation).first())
                         .forEach { header -> repository.resortSection(orientation, header.id, columns) }
                 }

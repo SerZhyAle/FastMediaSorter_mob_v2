@@ -301,7 +301,6 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
      * stored cell can express - under the same task policy as every stored command.
      */
     fun startTarget(intent: Intent): Boolean {
-        Timber.d("S4422: launcher gadget start through the shared task policy")
         return startIntent(intent)
     }
 

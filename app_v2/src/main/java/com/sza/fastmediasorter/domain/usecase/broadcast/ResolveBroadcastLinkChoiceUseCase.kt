@@ -6,7 +6,6 @@ import com.sza.fastmediasorter.domain.model.BroadcastLinkPasswordRules
 import com.sza.fastmediasorter.domain.repository.BroadcastLinkPasswordStore
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.first
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -24,7 +23,6 @@ class ResolveBroadcastLinkChoiceUseCase @Inject constructor(
 
     suspend operator fun invoke(): BroadcastLinkChoice {
         val mode = rememberedMode()
-        Timber.d("S4405: resolve link choice for announcement mode=$mode")
         return when (mode) {
             BroadcastLinkPasswordMode.NONE -> BroadcastLinkChoice.Open
             BroadcastLinkPasswordMode.CUSTOM -> linkPasswordStore.get()

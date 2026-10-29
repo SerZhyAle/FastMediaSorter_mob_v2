@@ -31,7 +31,6 @@ import com.sza.fastmediasorter.ui.scheduledops.helpers.ScheduledOpConditionsForm
 import com.sza.fastmediasorter.ui.scheduledops.helpers.ScheduledOpWatchMessageFormManager
 import com.sza.fastmediasorter.util.showBoundToHost
 import dagger.hilt.android.EntryPointAccessors
-import timber.log.Timber
 import java.util.Calendar
 
 /** S1009: which scheduled-op field an ad-hoc local-folder pick targets. */
@@ -268,7 +267,6 @@ class ScheduledOperationDialog(
         trackTouched(b.actvTarget) { targetTouched = true }
         b.actvOperation.doAfterTextChanged { updateSaveButtonState() }
         updateSaveButtonState()
-        Timber.d("S4481: schedule form opened, sourceError=%s", b.tilSource.error != null)
     }
 
     // A required-field error belongs to a field the user already left or edited; one painted on open
