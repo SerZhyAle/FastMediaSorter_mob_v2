@@ -24,6 +24,7 @@ import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.model.ScheduledRunOutcome
+import com.sza.fastmediasorter.domain.model.ScheduledRunReason
 import com.sza.fastmediasorter.domain.model.ScheduledRunRecord
 import com.sza.fastmediasorter.domain.model.afterRun
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
@@ -32,6 +33,7 @@ import com.sza.fastmediasorter.domain.repository.ScheduledRunJournalRepository
 import com.sza.fastmediasorter.domain.usecase.ExecuteScheduledOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.ScheduledExecutionResult
 import com.sza.fastmediasorter.ui.scheduledops.ScheduledOperationsActivity
+import com.sza.fastmediasorter.ui.scheduledops.ScheduledRunReasonText
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import timber.log.Timber
@@ -107,9 +109,16 @@ class ScheduledOperationsWorker @AssistedInject constructor(
             val operation = scheduledOperationRepository.getById(operationId)
             if (operation != null && operation.isEnabled) {
                 val finishedAt = System.currentTimeMillis()
+                val afterRun = operation.afterRun(execResult.outcome, runReason(execResult), startedAt, finishedAt)
+                // Cleared in the same write as the status that explains it; the reschedule observer only
+                // re-queues an enabled row, so this is what ends the chain.
                 scheduledOperationRepository.update(
-                    operation.afterRun(execResult.outcome, runReason(execResult), startedAt, finishedAt)
+                    if (execResult.pausesSchedule) afterRun.copy(isEnabled = false) else afterRun
                 )
+                if (execResult.pausesSchedule) {
+                    Timber.w("ScheduledOperationsWorker: op=$operationId paused - ${execResult.reason}")
+                    Timber.d("S4480: schedule op=$operationId paused after its resource was deleted")
+                }
                 reportRun(operation, execResult, journalRecord(execResult, startedAt, finishedAt, foregroundNote))
             }
 
@@ -175,7 +184,9 @@ class ScheduledOperationsWorker @AssistedInject constructor(
         outcome = result.outcome,
         filesProcessed = result.filesProcessed,
         message = runReason(result),
-        note = foregroundNote
+        note = foregroundNote,
+        // A permission halt is raised by a boolean on the result, not by a coded producer.
+        reason = result.reason ?: ScheduledRunReason.PERMISSION_REQUIRED.takeIf { result.permissionRequired }
     )
 
     /**
@@ -189,12 +200,14 @@ class ScheduledOperationsWorker @AssistedInject constructor(
             !operation.silentMode &&
             NotificationManagerCompat.from(context).areNotificationsEnabled()
         if (!wanted) return
+        Timber.d("S4493: failure notification worded from the reason code")
         createNotificationChannel()
         val label = scheduleLabel(operation)
+        // S4493: the English run message stays in the journal; the notification says it in the interface language.
         val text = context.getString(
             R.string.scheduled_ops_notif_failed_text,
             label,
-            runReason(result).orEmpty()
+            context.getString(ScheduledRunReasonText.of(result.reason, result.outcome))
         )
         val notification = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
             .setContentTitle(context.getString(R.string.scheduled_ops_notif_failed_title))

@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.06 20:05</sub>
+<sub class="doc-stamp">26.10.29 05:03</sub>
 
 # Pointer - `WAVE-PARTICLES`
 
 | | |
 | --- | --- |
 | **Id** | `WAVE-PARTICLES` |
-| **Version** | 0.15, draft. Owner: this product |
+| **Version** | 0.16, draft. Owner: this product |
 | **Home** | `animated-backdrop/README.md` in the shared contracts catalog |
 | **Role here** | owner and producer - phone, launcher wallpaper, watch, and the website hero |
 

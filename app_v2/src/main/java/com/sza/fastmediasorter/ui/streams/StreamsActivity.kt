@@ -1338,7 +1338,10 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * (service) playback can continue in the background; OFF-mode audio is already torn down by onStop.
      */
     private fun finishOrNavigateUp() {
-        if (isTaskRoot) {
+        // S4474: a task the trampoline opened for a launcher or shortcut tap has the caller's screen
+        // underneath, so opening Main here would put the app's menu between the user and that screen.
+        Timber.d("S4474: streams exit taskRoot=$isTaskRoot")
+        if (isTaskRoot && !intent.getBooleanExtra(EXTRA_RETURN_TO_CALLER, false)) {
             startActivity(
                 Intent(this, com.sza.fastmediasorter.ui.main.MainActivity::class.java)
                     .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
@@ -1734,18 +1737,23 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         private const val BROADCAST_LINK_SCHEME = "fmsbcast"
         const val ACTION_PLAY_STREAM = "com.sza.fastmediasorter.action.PLAY_STREAM"
         const val EXTRA_STREAM_URL = "extra_stream_url"
+        private const val EXTRA_RETURN_TO_CALLER = "extra_return_to_caller"
 
         /**
          * S1471: no longer what a pinned shortcut carries. The shortcut now targets
          * `StreamPlayLaunchActivity`, and this is the fallback that trampoline starts when background
          * playback does not apply - non-audio channel, setting off, no network, or an unknown URL.
-         * Keeps the launcher task flags because the trampoline starts it from outside our task.
+         * S4474: always a task of its own. `NEW_TASK` alone joins the task that already holds
+         * `MainActivity` (same default affinity), so Back unwound player -> streams -> Main and never
+         * reached the desktop; `MULTIPLE_TASK` is the S2215 launcher policy for an own-package target.
+         * `CLEAR_TOP` is gone because a fresh task has nothing to clear.
          */
         fun createPlayShortcutIntent(context: Context, url: String): Intent =
             Intent(context, StreamsActivity::class.java).apply {
                 action = ACTION_PLAY_STREAM
                 putExtra(EXTRA_STREAM_URL, url)
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                putExtra(EXTRA_RETURN_TO_CALLER, true)
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK
             }
 
         /**

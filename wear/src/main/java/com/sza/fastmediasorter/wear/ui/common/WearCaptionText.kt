@@ -74,6 +74,30 @@ object WearCaptionScale {
     }
 }
 
+/** Characters a line may legitimately end after, so a break behind one is a word boundary and not a tear. */
+private const val BREAK_AFTER_CHARS = "-/"
+
+/**
+ * Whether wrapping tore a word in two (S4468).
+ *
+ * Compose breaks a word that is wider than its line by characters, and it counts that against
+ * `maxLines` like any other wrap: `tone_te` over `st` stays inside the line budget, so
+ * [TextLayoutResult.hasVisualOverflow] stays false and the shrink loop never runs on it. A break is
+ * a tear when neither neighbour of the boundary is whitespace and the character before it is not one
+ * a line may end after. A line that ends on the whitespace that wrapped it, or behind a hyphen or
+ * slash, is a clean break.
+ *
+ * Pure so the rule is checkable without a composition.
+ *
+ * @param lineEnds exclusive end offset of every line except the last; the last line carries no break.
+ */
+internal fun breaksMidWord(text: String, lineEnds: List<Int>): Boolean = lineEnds.any { end ->
+    end in 1 until text.length &&
+        !text[end - 1].isWhitespace() &&
+        !text[end].isWhitespace() &&
+        text[end - 1] !in BREAK_AFTER_CHARS
+}
+
 /**
  * A caption that starts at [WearCaptionScale.Ceiling] and steps down until it fits.
  *
@@ -81,10 +105,18 @@ object WearCaptionScale {
  * BOM 2024.02.00, where `Text` has no `autoSize` parameter. Do not swap this for a library call
  * that does not exist at this version.
  *
+ * "Fits" means two things: no visual overflow, and no word torn across lines ([breaksMidWord]). A
+ * word that is still torn at [WearCaptionScale.Floor] collapses the caption to one ellipsized line,
+ * because the alternative on a narrow cell is a label read as three unrelated fragments.
+ *
  * The chosen size is remembered per [text] and [maxLines] so it settles on one value instead of
  * oscillating between two. A width change alone - a column-count change, not something the watch
  * does while a list is on screen - therefore keeps the size already settled, which can be smaller
  * than the new width would allow but is never too large to fit.
+ *
+ * Inside a [WearCaptionGroup] (S4469) the size is the group's instead: every caption of the grid draws
+ * at one value and any of them that overflows steps that value down. Only the size is shared - the
+ * collapse to one ellipsized line stays with the caption whose word is torn.
  *
  * Colour and the remaining typography come from the ambient text style, so a caller inside a chip
  * slot keeps that slot's colour; only the size is owned here.
@@ -108,10 +140,27 @@ fun WearCaptionText(
     color: Color = Color.Unspecified,
     outlineColor: Color = Color.Unspecified
 ) {
-    var size by remember(text, maxLines) { mutableStateOf(WearCaptionScale.Ceiling) }
+    val group = LocalWearCaptionGroup.current
+    var ownSize by remember(text, maxLines) { mutableStateOf(WearCaptionScale.Ceiling) }
+    var collapsed by remember(text, maxLines) { mutableStateOf(false) }
+    val size = group?.size ?: ownSize
+    val lines = if (collapsed) 1 else maxLines
+    val lowerSize: (TextUnit) -> Unit = { smaller ->
+        if (group != null) {
+            group.lowerTo(smaller)
+        } else {
+            ownSize = smaller
+        }
+    }
     val shrinkOnOverflow: (TextLayoutResult) -> Unit = { result ->
-        if (result.hasVisualOverflow) {
-            WearCaptionScale.nextSmaller(size)?.let { smaller -> size = smaller }
+        val torn = breaksMidWord(text, (0 until result.lineCount - 1).map { line -> result.getLineEnd(line) })
+        if (result.hasVisualOverflow || torn) {
+            val smaller = WearCaptionScale.nextSmaller(size)
+            if (smaller != null) {
+                lowerSize(smaller)
+            } else if (torn) {
+                collapsed = true
+            }
         }
     }
     if (outlineColor == Color.Unspecified) {
@@ -119,7 +168,7 @@ fun WearCaptionText(
             text = text,
             color = color,
             fontSize = size,
-            maxLines = maxLines,
+            maxLines = lines,
             overflow = TextOverflow.Ellipsis,
             textAlign = textAlign,
             modifier = modifier,
@@ -146,7 +195,7 @@ fun WearCaptionText(
             text = text,
             color = outlineColor,
             fontSize = size,
-            maxLines = maxLines,
+            maxLines = lines,
             overflow = TextOverflow.Ellipsis,
             textAlign = textAlign,
             style = outlineStyle
@@ -155,7 +204,7 @@ fun WearCaptionText(
             text = text,
             color = color,
             fontSize = size,
-            maxLines = maxLines,
+            maxLines = lines,
             overflow = TextOverflow.Ellipsis,
             textAlign = textAlign,
             onTextLayout = shrinkOnOverflow

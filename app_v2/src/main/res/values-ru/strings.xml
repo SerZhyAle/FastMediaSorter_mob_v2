@@ -4559,4 +4559,24 @@
     <string name="stream_broadcast_ended_message">«%1$s» больше не в эфире. Подключитесь снова, когда трансляция возобновится.</string>
     <string name="stream_broadcast_reconnect">Подключиться снова</string>
     <string name="stream_status_ended">Трансляция завершена</string>
+    <string name="sort_short_manual">Вручную</string>
+    <string name="sort_short_name_asc">А-Я</string>
+    <string name="sort_short_name_desc">Я-А</string>
+    <string name="sort_short_date_asc">Старые ↑</string>
+    <string name="sort_short_date_desc">Новые ↓</string>
+    <string name="sort_short_size_asc">Размер ↑</string>
+    <string name="sort_short_size_desc">Размер ↓</string>
+    <string name="sort_short_type_asc">Тип ↑</string>
+    <string name="sort_short_type_desc">Тип ↓</string>
+    <string name="sort_short_artist_asc">Исполнитель ↑</string>
+    <string name="sort_short_artist_desc">Исполнитель ↓</string>
+    <string name="sort_short_title_asc">Название ↑</string>
+    <string name="sort_short_title_desc">Название ↓</string>
+    <string name="sort_short_duration_asc">Длительность ↑</string>
+    <string name="sort_short_duration_desc">Длительность ↓</string>
+    <string name="sort_short_date_taken_asc">Дата снимка ↑</string>
+    <string name="sort_short_date_taken_desc">Дата снимка ↓</string>
+    <string name="sort_short_random">Случайно</string>
+    <string name="browse_title_selected_count">выбрано: %1$d</string>
+    <string name="browse_breadcrumb_root">Корень</string>
 </resources>

@@ -24,7 +24,8 @@ enum class WearGeometryMode {
      * The geometry that stood before that review: content is placed against the full width of the
      * display, and the round glass cuts the outer edges of what reaches it. That clipping is the point
      * of this view, not a defect in it - the owner asked for the layout he built rather than the one
-     * the review bought.
+     * the review bought. The one exception is the Streams toolbar, whose cut corners the owner ruled a
+     * defect (S4470): it clears the glass in this view too.
      */
     ORIGINAL
 }

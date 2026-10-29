@@ -359,6 +359,10 @@ class StreamsViewModel @Inject constructor(
      * S4459: ON_OPEN offers only when the mirror has published a catalog that is neither the installed one
      * nor one whose offer the user closed ([ResolveStreamCatalogOfferUseCase]); a timer alone offered the
      * same unchanged list on almost every open. An unreachable mirror offers nothing.
+     *
+     * S4461: PERIODIC_WIFI downloads only when the published list differs from the installed one. The probe
+     * is a cheap HEAD and is asked last, so it never runs without Wi-Fi or before the day has passed; an
+     * unreachable mirror downloads nothing and the next open asks again.
      */
     fun onScreenOpened() = viewModelScope.launch {
         if (catalogPolicyApplied) return@launch
@@ -371,7 +375,12 @@ class StreamsViewModel @Inject constructor(
             }
             StreamsCatalogRefreshPolicy.PERIODIC_WIFI -> {
                 val sinceRefresh = System.currentTimeMillis() - sessionStore.read().lastCatalogRefreshAt
-                if (networkContextAnalyzer.hasWifi() && sinceRefresh > PERIODIC_THROTTLE_MS) onImportCatalog()
+                if (networkContextAnalyzer.hasWifi() &&
+                    sinceRefresh > PERIODIC_THROTTLE_MS &&
+                    resolveStreamCatalogOffer.isUpdateAvailable()
+                ) {
+                    onImportCatalog()
+                }
             }
         }
     }
@@ -850,7 +859,8 @@ class StreamsViewModel @Inject constructor(
 
     companion object {
         // S0659: PERIODIC_WIFI opportunistically auto-refreshes at most once a day (no WorkManager periodic
-        // job). S4459: ON_OPEN has no timer any more - what is published decides.
+        // job). S4459: ON_OPEN has no timer any more - what is published decides. S4461: the day only bounds
+        // how often PERIODIC_WIFI asks; the download itself still waits for a changed published list.
         private const val PERIODIC_THROTTLE_MS = 24 * 60 * 60 * 1000L
         private const val SOURCE_ORIGIN_MANUAL = "MANUAL"
         private const val SOURCE_ORIGIN_LIVE_BROADCAST = "LIVE_BROADCAST"

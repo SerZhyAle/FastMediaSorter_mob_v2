@@ -107,4 +107,24 @@
     <string name="scheduled_op_badge_skipped">Останній запуск пропущено: одна зі сторін недоступна. Операція повториться в наступний термін.</string>
     <string name="scheduled_ops_notif_failed_title">Операцію за розкладом не виконано</string>
     <string name="scheduled_ops_notif_failed_text">%1$s: %2$s</string>
+    <string name="scheduled_op_history_details">Подробиці</string>
+    <string name="scheduled_op_reason_source_unreachable">Джерело не відповідає</string>
+    <string name="scheduled_op_reason_target_unreachable">Призначення не відповідає</string>
+    <string name="scheduled_op_reason_source_read_only">Джерело тільки для читання</string>
+    <string name="scheduled_op_reason_target_read_only">Призначення тільки для читання</string>
+    <string name="scheduled_op_reason_source_missing">Папку-джерело не знайдено</string>
+    <string name="scheduled_op_reason_target_unavailable">Папку призначення не знайдено або вона закрита для запису</string>
+    <string name="scheduled_op_reason_watch_unavailable">Підключення до годинника вимкнено або не підтримується</string>
+    <string name="scheduled_op_reason_watch_unreachable">Годинник не відповідає</string>
+    <string name="scheduled_op_reason_watch_refused">Годинник не зміг показати повідомлення</string>
+    <string name="scheduled_op_reason_message_too_long">Повідомлення задовге для годинника</string>
+    <string name="scheduled_op_reason_pin_refused">PIN-код папки не прийнято</string>
+    <string name="scheduled_op_reason_permission_required">Потрібен ваш дозвіл або повторний вхід</string>
+    <string name="scheduled_op_reason_skipped_other">Цього разу запуск не відбувся</string>
+    <string name="scheduled_op_reason_error_other">Запуск не завершився</string>
+    <string name="scheduled_op_last_run_retry">Пропущений запуск повториться в наступний термін.</string>
+    <string name="scheduled_op_last_run_title">Останній запуск</string>
+    <string name="scheduled_op_reason_source_deleted">Джерело видалено, розклад призупинено</string>
+    <string name="scheduled_op_reason_target_deleted">Призначення видалено, розклад призупинено</string>
+    <string name="scheduled_ops_log_failed">Щось пішло не так</string>
 </resources>

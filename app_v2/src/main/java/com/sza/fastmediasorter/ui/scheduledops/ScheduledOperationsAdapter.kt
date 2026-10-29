@@ -1,11 +1,14 @@
 package com.sza.fastmediasorter.ui.scheduledops
 
+import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.view.isVisible
+import androidx.core.widget.ImageViewCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.di.UnitSystemEntryPoint
 import com.sza.fastmediasorter.databinding.ItemScheduledOperationBinding
@@ -23,6 +26,7 @@ class ScheduledOperationsAdapter(
     private val onDelete: (ScheduledOperation) -> Unit,
     private val onRunNow: (ScheduledOperation) -> Unit,
     private val onHistory: (ScheduledOperation) -> Unit,
+    private val onRunStatus: (ScheduledOperation) -> Unit,
     private val resourceNameProvider: (Long?) -> String?
 ) : ListAdapter<ScheduledOperation, ScheduledOperationsAdapter.ViewHolder>(DiffCallback) {
 
@@ -75,16 +79,7 @@ class ScheduledOperationsAdapter(
                     ?: ctx.getString(R.string.scheduled_op_unknown_resource)
             }
 
-            // Warning badge: stays until a run succeeds. It is also the only mark on a device that
-            // withheld the notification permission, so a skipped run explains itself in its description.
-            b.tvErrorBadge.isVisible = ScheduledRunStatus.needsAttention(op.lastRunStatus)
-            b.tvErrorBadge.contentDescription = ctx.getString(
-                if (op.lastRunStatus?.startsWith(ScheduledRunStatus.SKIPPED_PREFIX) == true) {
-                    R.string.scheduled_op_badge_skipped
-                } else {
-                    R.string.scheduled_op_badge_error
-                }
-            )
+            bindRunStatus(op)
 
             // Schedule info
             val hh = op.startTimeHour.toString().padStart(2, '0')
@@ -123,6 +118,30 @@ class ScheduledOperationsAdapter(
             b.btnRunNow.setOnClickListener { onRunNow(op) }
             b.btnEdit.setOnClickListener { onEdit(op) }
             b.btnDelete.setOnClickListener { onDelete(op) }
+        }
+
+        // Stays until a run succeeds. It is also the only mark on a device that withheld the notification
+        // permission, so it carries the reason on a tap. A skip is a normal state (S4203) and reads as
+        // information; only a failure takes the error colour.
+        private fun bindRunStatus(op: ScheduledOperation) {
+            val badge = b.btnRunStatus
+            val skipped = ScheduledRunStatus.isSkipped(op.lastRunStatus)
+            badge.isVisible = ScheduledRunStatus.needsAttention(op.lastRunStatus)
+            badge.setImageResource(if (skipped) R.drawable.ic_info else R.drawable.ic_error_outline)
+            val tintAttr = if (skipped) {
+                com.google.android.material.R.attr.colorOnSurfaceVariant
+            } else {
+                androidx.appcompat.R.attr.colorError
+            }
+            ImageViewCompat.setImageTintList(badge, ColorStateList.valueOf(MaterialColors.getColor(badge, tintAttr)))
+            badge.contentDescription = badge.context.getString(
+                if (skipped) R.string.scheduled_op_badge_skipped else R.string.scheduled_op_badge_error
+            )
+            badge.setOnClickListener { onRunStatus(op) }
+            badge.setOnLongClickListener {
+                onRunStatus(op)
+                true
+            }
         }
 
         private fun buildFileTypeMaskLabel(ctx: android.content.Context, mask: Int): String {

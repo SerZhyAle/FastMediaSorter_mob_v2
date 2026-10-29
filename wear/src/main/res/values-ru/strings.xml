@@ -1161,4 +1161,6 @@
     <string name="wear_broadcast_server_failed">Ошибка сервера - см. телефон</string>
     <string name="wear_broadcast_server_local_only">Только в этой сети</string>
     <string name="wear_scheduled_message_channel_name">Сообщения по расписанию</string>
+    <string name="wear_audio_fetching">Загрузка трека..</string>
+    <string name="wear_stream_ended">Эта трансляция больше не в эфире. Повторите, когда она снова начнётся.</string>
 </resources>

@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.07 12:50</sub>
+<sub class="doc-stamp">26.10.29 05:03</sub>
 
 # Pointer - `PACKAGE-VERSIONING`
 
 | | |
 | --- | --- |
 | **Id** | `PACKAGE-VERSIONING` |
-| **Version** | 0.5, draft. Owner: this product |
+| **Version** | 0.6, draft. Owner: this product |
 | **Home** | `package-versioning/README.md` in the shared contracts catalog |
 | **Role here** | owner and reference implementation (the version stamps of the phone app, the watch app and the watch face) |
 

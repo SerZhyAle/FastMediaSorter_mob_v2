@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S4478: one recorded run - time, outcome and plain-language reason in one line of text, and the
+     technical detail behind a button that is shown only when the run left any. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingVertical="@dimen/token_spacing_8">
+
+    <TextView
+        android:id="@+id/tvRunHeadline"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceBody2"
+        android:textColor="?attr/colorOnSurface" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnRunDetails"
+        style="@style/Widget.FastMediaSorter.Button.Text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:focusable="true"
+        android:text="@string/scheduled_op_history_details"
+        android:visibility="gone" />
+
+    <com.google.android.material.divider.MaterialDivider
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/token_spacing_8" />
+
+</LinearLayout>

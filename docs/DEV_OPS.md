@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.25 16:55</sub>
+<sub class="doc-stamp">26.10.29 02:02</sub>
 
 # FastMediaSorter v2: OPS & Guidelines
 
@@ -2877,3 +2877,9 @@ Verbs, parameters and exit codes: `scripts/devtest/dynamic-audit/da.ps1` (its he
 - **Measured backup cost.** On Pixel_9 API 35 the debug build's private directory was 355 files, 308 MB as a tar; the capture took 7.0 s and a restore of it 21-29 s. 51 restores of that one backup were recorded across the first-pass runs, each compared with the manifest.
 - **The restore timeout must cover a deletion, not only a copy.** A 10000-item fixture set is ten thousand FUSE deletions: the removal of the stand's fixture root ran into the 120 s default adb timeout (measured 120197 ms on 2026-10-13), left the root on the device and failed the restore comparison. The removal now has its own long timeout and fails the restore step on a non-zero exit instead of being judged only by the later comparison.
 - **Emulator only.** Every device verb accepts only an `emulator-*` serial whose kernel reports `ro.kernel.qemu=1`; the stand cannot run against a phone listed in `docs/DEVICE_FLEET.md`.
+
+## Fast tier between releases (S4488)
+
+- Owner order 2026-10-29: the full build and every check over 5 s run only before or during a release. Class of each check: `scripts/quality/gate-tiers.json`, generated from the gate journal by `generate-gate-tiers.ps1` (median 5 s or less over 5 executed runs in 30 days = fast; no record = release). Tier resolution and the fail-safe: `scripts/quality/lib/gate-tier.ps1`.
+- Fast command: `.\a.ps1 ff -Files "<paths>"`. A docs-only set measured 4.8-5.0 s on 2026-10-29; a script set 12.8-13.2 s, because the closure facade starts its gates in two waves and wave two waits for the Kotlin formatter - a correctness property, so the wave order was not touched.
+- The release run is `FMS_TIER=Release` (`a.ps1` targets) or `-Tier Release`; `assert-release-scope-gates.ps1` exports it and runs `assert-release-tier-closure.ps1` over every file changed since the last `v*` tag. Branch CI fires on the push to `main` only (`docs/BUILD_VS_RELEASE.md`).

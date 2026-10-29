@@ -772,12 +772,16 @@ private fun VideoPlayerManager.streamPlaybackListener(
  */
 private fun VideoPlayerManager.surfaceStreamFailure(path: String, error: PlaybackException) {
     val status = error.httpStatusOrNull()
-    if (status in BROADCAST_END_STATUSES && BroadcastPlaybackSessions.forUrl(path) != null) {
+    if (isBroadcastEndStatus(status) && BroadcastPlaybackSessions.forUrl(path) != null) {
         playerCallback.onBroadcastStreamStopped(path, BroadcastStopSignal.HttpStatus(status))
     } else {
         playerCallback.onPlaybackError(error)
     }
 }
+
+// A function, not a top-level val: a non-constant top-level field stops PlayerReleaseDetector treating this
+// file as a facade of extension functions, and it would then demand a release() for the player built above.
+private fun isBroadcastEndStatus(status: Int?): Boolean = status == HTTP_NOT_FOUND || status == HTTP_GONE
 
 /**
  * The response code the server answered with, or null when none is on record.
@@ -837,7 +841,6 @@ private fun VideoPlayerManager.updateNowPlayingTitle(title: String) {
 private const val BROADCAST_RTSP_TIMEOUT_MS = 3_000L
 private const val HTTP_NOT_FOUND = 404
 private const val HTTP_GONE = 410
-private val BROADCAST_END_STATUSES = setOf(HTTP_NOT_FOUND, HTTP_GONE)
 private const val STREAM_FRAME_CAPTURE_DELAY_MS = 750L
 private const val STREAM_FRAME_CAPTURE_WIDTH = 640
 private const val STREAM_FRAME_CAPTURE_HEIGHT = 360

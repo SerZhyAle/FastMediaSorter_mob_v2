@@ -7,9 +7,8 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import android.view.LayoutInflater
 import android.view.View
-import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.activity.result.ActivityResultLauncher
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
@@ -21,8 +20,10 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.databinding.ActivityScheduledOperationsBinding
+import com.sza.fastmediasorter.databinding.ItemScheduledLogRowBinding
 import com.sza.fastmediasorter.domain.model.PermissionTask
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
+import com.sza.fastmediasorter.domain.model.ScheduledRunStatus
 import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
 import com.sza.fastmediasorter.ui.common.permissions.permissionRationaleShort
 import com.sza.fastmediasorter.ui.scheduledops.helpers.ScheduledRunHistoryDialogManager
@@ -66,7 +67,8 @@ class ScheduledOperationsScreenManager(
             onDelete = ::confirmDeleteScheduledOp,
             onRunNow = { op -> scheduledViewModel.runNow(op.id) },
             onHistory = ::showRunHistory,
-            resourceNameProvider = { id -> scheduledViewModel.resources.value.find { it.id == id }?.name },
+            onRunStatus = ::showLastRun,
+            resourceNameProvider = scheduledViewModel::resourceNameOf,
         )
         binding.rvScheduledOps.layoutManager = LinearLayoutManager(activity)
         binding.rvScheduledOps.itemAnimator = null
@@ -93,8 +95,11 @@ class ScheduledOperationsScreenManager(
             binding.tvNoScheduledOps.isVisible = ops.isEmpty() && scheduledViewModel.isEnabled.value
         }
         activity.collectOnLifecycle(scheduledViewModel.loadedOperations) { scheduleToggleReconcile() }
-        activity.collectOnLifecycle(scheduledViewModel.resources) {
+        activity.collectOnLifecycle(scheduledViewModel.resourceNames) {
+            Timber.d("S4480: card names refreshed from ${it.size} resources")
             scheduledAdapter.notifyItemRangeChanged(0, scheduledAdapter.itemCount)
+        }
+        activity.collectOnLifecycle(scheduledViewModel.resources) {
             autoOpenFromBrowse()
         }
         activity.collectOnLifecycle(scheduledViewModel.isEnabled) { enabled ->
@@ -173,51 +178,69 @@ class ScheduledOperationsScreenManager(
         }
     }
 
+    /**
+     * S4493: a failed or skipped line is worded in the interface language and its English log text sits
+     * behind "Details" - the persisted line carries no reason code, so the sentence stays generic.
+     */
     private fun buildHistoryRow(entry: ScheduledLogEntry): View {
-        val row = LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(0, 0, 0, activity.resources.getDimensionPixelSize(R.dimen.margin_tiny))
-        }
-        val headline = TextView(activity).apply {
-            text = buildString {
-                entry.timestamp?.let { timestamp -> append(timestamp) }
-                entry.operation?.let { append("  ·  ").append(it) }
-                if (entry.source != null && entry.target != null) {
-                    append("\n").append(entry.source).append(" → ").append(entry.target)
-                }
+        val row = ItemScheduledLogRowBinding.inflate(
+            LayoutInflater.from(activity),
+            binding.containerScheduledHistoryRows,
+            false,
+        )
+        row.tvLogHeadline.text = buildString {
+            entry.timestamp?.let { timestamp -> append(timestamp) }
+            entry.operation?.let { append("  ·  ").append(it) }
+            if (entry.source != null && entry.target != null) {
+                append("\n").append(entry.source).append(" → ").append(entry.target)
             }
-            setTextAppearance(R.style.TextAppearance_FastMediaSorter_Item_Subtitle)
         }
-        val message = TextView(activity).apply {
-            text = entry.message
-            setTextColor(
-                MaterialColors.getColor(
-                    this,
-                    if (entry.isError) {
-                        androidx.appcompat.R.attr.colorError
-                    } else {
-                        com.google.android.material.R.attr.colorOnSurfaceVariant
-                    },
-                ),
-            )
+        val sentence = when {
+            entry.isError -> activity.getString(R.string.scheduled_ops_log_failed)
+            entry.isSkipped -> activity.getString(R.string.scheduled_op_reason_skipped_other)
+            else -> null
         }
-        row.addView(headline)
-        row.addView(message)
-        row.contentDescription = entry.raw
-        return row
+        row.tvLogMessage.text = sentence ?: entry.message
+        row.tvLogMessage.setTextColor(
+            MaterialColors.getColor(
+                row.tvLogMessage,
+                if (entry.isError) {
+                    androidx.appcompat.R.attr.colorError
+                } else {
+                    com.google.android.material.R.attr.colorOnSurfaceVariant
+                },
+            ),
+        )
+        if (sentence != null) {
+            Timber.d("S4493: run log row shows the localized sentence with Details")
+            row.btnLogDetails.isVisible = true
+            row.btnLogDetails.setOnClickListener { runHistoryDialogManager.showDetails(entry.message) }
+        }
+        row.root.contentDescription = if (sentence != null) "${row.tvLogHeadline.text}. $sentence" else entry.raw
+        return row.root
     }
 
     /** The card's own journal, headed by the same "source -> target" names the card shows. */
     private fun showRunHistory(op: ScheduledOperation) {
-        val resources = scheduledViewModel.resources.value
+        runHistoryDialogManager.show(op.id, scheduleLabelOf(op))
+    }
+
+    private fun showLastRun(op: ScheduledOperation) {
+        runHistoryDialogManager.showLastRun(
+            op.id,
+            scheduleLabelOf(op),
+            ScheduledRunStatus.isSkipped(op.lastRunStatus),
+        )
+    }
+
+    private fun scheduleLabelOf(op: ScheduledOperation): String {
         val unknown = activity.getString(R.string.scheduled_op_unknown_resource)
-        val source = resources.find { it.id == op.sourceResourceId }?.name ?: unknown
-        val label = if (op.targetResourceId == null) {
+        val source = scheduledViewModel.resourceNameOf(op.sourceResourceId) ?: unknown
+        return if (op.targetResourceId == null) {
             source
         } else {
-            "$source → ${resources.find { it.id == op.targetResourceId }?.name ?: unknown}"
+            "$source → ${scheduledViewModel.resourceNameOf(op.targetResourceId) ?: unknown}"
         }
-        runHistoryDialogManager.show(op.id, label)
     }
 
     private fun confirmClearHistory() {

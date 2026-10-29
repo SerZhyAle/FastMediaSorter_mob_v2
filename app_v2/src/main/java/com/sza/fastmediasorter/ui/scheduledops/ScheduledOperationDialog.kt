@@ -10,7 +10,9 @@ import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.LinearLayout
 import android.widget.NumberPicker
+import android.widget.TextView
 import android.widget.Toast
+import androidx.core.widget.doAfterTextChanged
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.di.UnitSystemEntryPoint
@@ -61,6 +63,10 @@ class ScheduledOperationDialog(
     // could map a duplicate name onto a different server or folder than the one chosen.
     private var selectedSourceId: Long? = null
     private var selectedTargetId: Long? = null
+
+    // A required-field error appears only for a field the user has left or edited, never on open.
+    private var sourceTouched = false
+    private var targetTouched = false
 
     // S0535: Conditions section uses the unified orchestrator + consolidated store, default collapsed.
     private val sectionsManager by lazy { CollapsibleSectionsManager(context) }
@@ -215,6 +221,8 @@ class ScheduledOperationDialog(
         putInt(STATE_FILE_TYPE_MASK, buildFileTypeMask())
         putBoolean(STATE_OVERWRITE, b.switchOverwrite.isChecked)
         putBoolean(STATE_SILENT_MODE, b.switchSilentMode.isChecked)
+        putBoolean(STATE_SOURCE_TOUCHED, sourceTouched)
+        putBoolean(STATE_TARGET_TOUCHED, targetTouched)
         watchForm.saveState(this)
     }
 
@@ -234,6 +242,8 @@ class ScheduledOperationDialog(
         applyFileTypeMask(savedInstanceState.getInt(STATE_FILE_TYPE_MASK, FileTypeFlags.DEFAULT))
         b.switchOverwrite.isChecked = savedInstanceState.getBoolean(STATE_OVERWRITE)
         b.switchSilentMode.isChecked = savedInstanceState.getBoolean(STATE_SILENT_MODE)
+        sourceTouched = savedInstanceState.getBoolean(STATE_SOURCE_TOUCHED)
+        targetTouched = savedInstanceState.getBoolean(STATE_TARGET_TOUCHED)
         watchForm.restoreState(savedInstanceState)
         applyOperationVisibility(resolveOperationType(b.actvOperation.text.toString()))
         if (stagedSourceFolderPath != null) {
@@ -254,22 +264,37 @@ class ScheduledOperationDialog(
     }
 
     private fun setupSaveButtonState() {
-        val watcher = object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) = updateSaveButtonState()
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        }
-        b.actvSource.addTextChangedListener(watcher)
-        b.actvTarget.addTextChangedListener(watcher)
-        b.actvOperation.addTextChangedListener(watcher)
+        trackTouched(b.actvSource) { sourceTouched = true }
+        trackTouched(b.actvTarget) { targetTouched = true }
+        b.actvOperation.doAfterTextChanged { updateSaveButtonState() }
         updateSaveButtonState()
+        Timber.d("S4481: schedule form opened, sourceError=%s", b.tilSource.error != null)
     }
 
+    // A required-field error belongs to a field the user already left or edited; one painted on open
+    // reads as a rejection of input nobody gave. The previous focus listener is chained because the
+    // exposed-dropdown end icon keeps its own state there.
+    private fun trackTouched(field: TextView, markTouched: () -> Unit) {
+        field.doAfterTextChanged {
+            if (field.hasFocus()) markTouched()
+            updateSaveButtonState()
+        }
+        val previous = field.onFocusChangeListener
+        field.setOnFocusChangeListener { v, hasFocus ->
+            previous?.onFocusChange(v, hasFocus)
+            if (!hasFocus) {
+                markTouched()
+                updateSaveButtonState()
+            }
+        }
+    }
+
+    // Save stays disabled until the form is valid; an error text is shown only for a touched field.
     private fun updateSaveButtonState() {
         if (isWatchMessageSelected()) {
             b.tilSource.error = null
             b.tilTarget.error = null
-            b.btnSave.isEnabled = watchForm.validate()
+            b.btnSave.isEnabled = watchForm.refreshValidation()
             return
         }
         watchForm.clearValidation()
@@ -277,12 +302,10 @@ class ScheduledOperationDialog(
         val isDelete = resolveOperationType(b.actvOperation.text.toString()) == ScheduledOpType.DELETE
         val targetEmpty = !isDelete && b.actvTarget.text.isNullOrBlank()
 
-        b.tilSource.error = if (sourceEmpty) context.getString(R.string.scheduled_ops_error_source_required) else null
-        if (!isDelete) {
-            b.tilTarget.error = if (targetEmpty) context.getString(R.string.scheduled_ops_error_target_required) else null
-        } else {
-            b.tilTarget.error = null
-        }
+        b.tilSource.error =
+            if (sourceEmpty && sourceTouched) context.getString(R.string.scheduled_ops_error_source_required) else null
+        b.tilTarget.error =
+            if (targetEmpty && targetTouched) context.getString(R.string.scheduled_ops_error_target_required) else null
 
         b.btnSave.isEnabled = !sourceEmpty && !targetEmpty
     }
@@ -706,5 +729,7 @@ class ScheduledOperationDialog(
         const val STATE_SILENT_MODE = "scheduled_op_silent_mode"
         const val STATE_SELECTED_SOURCE_ID = "scheduled_op_selected_source_id"
         const val STATE_SELECTED_TARGET_ID = "scheduled_op_selected_target_id"
+        const val STATE_SOURCE_TOUCHED = "scheduled_op_source_touched"
+        const val STATE_TARGET_TOUCHED = "scheduled_op_target_touched"
     }
 }

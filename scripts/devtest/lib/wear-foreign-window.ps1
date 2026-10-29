@@ -54,15 +54,17 @@ function Get-TopWindowPackage {
 function Test-IsAppWindowPackage {
     <#
     .SYNOPSIS
-      True when a window package belongs to the app, in its release or its debug install.
+      True when a window package is the application id the walk drives, and no other.
 
     .DESCRIPTION
-      The walk runs against a release artifact, but a live-watch check on a debug install is the same
-      walk. The debug build carries the `.debug` applicationId suffix, and comparing against the release
-      id alone read the app's own window as foreign: S3181 measured three screens recorded `manual`
-      with the foreign package named as `com.sza.fastmediasorter.debug` itself.
+      The walk is handed the id it drives (S4485), the release or the debug one. S3181 once measured
+      three screens recorded `manual` with the foreign package named as `com.sza.fastmediasorter.debug`
+      itself, because the walk compared against the release id alone; the fix then was to accept both
+      ids. The walk now names its package, so the other build's window is the wrong artifact in front
+      of the walked one, and accepting it would let the walk judge a window of the build it was not
+      asked about.
     #>
     param([string]$Package, [string]$AppPackage)
 
-    return ($Package -eq $AppPackage -or $Package -eq "$AppPackage.debug")
+    return ($Package -eq $AppPackage)
 }

@@ -50,8 +50,11 @@
     fl   - Android lint, app_v2 (:app_v2:lintStandardDebug) - runs long, background it
     fll  - Android lint, app_v2 legacy flavor (:app_v2:lintLegacyDebug, NewApi against minSdk 23) - runs long, background it
     flw  - Android lint, wear (:wear:lintStandardDebug) - runs long, background it
-    fg   - Fast static gates batch (neuroslop+pm+listener+flavor+ticket-log; -IncludeDetekt opt-in)
-    fs   - Script regression suites (bare = full sweep, background it; -ChangedFiles "<paths>", -ListOnly)
+    ff   - S4488: THE between-release check. Runs the fast tier (checks of 5 s or less) over the files
+           you changed and nothing slower: .\a.ps1 ff -Files "a.kt,b.md". It judges and stops - no dev-log
+           row, no catalog sync. The closure with the row is post-change.ps1, fast tier by default in an agent shell.
+    fg   - Fast static gates batch (neuroslop+pm+listener+flavor+ticket-log; -IncludeDetekt opt-in).
+           Agent shell: the fast-tier members only. -Tier Release (or FMS_TIER=Release) runs the whole batch.    fs   - Script regression suites (bare = full sweep, background it; -ChangedFiles "<paths>", -ListOnly)
     mb   - Run standard macrobenchmark suite
     gbp  - Generate standard baseline profile
     cd   - Clean + Debug + Zip
@@ -126,6 +129,16 @@
     .\a.ps1 adb devices
     .\a.ps1 adb log -Tail 400 -Grep S0035
     .\a.ps1 adb-shot -DeviceId emulator-5554
+.NOTES
+    Exit codes: the target script's own exit code is returned unchanged. The launcher adds only these:
+    1  unknown command, a target script that does not exist, or a release-worktree refusal;
+    2  a flag on the command line contradicts the target's preset;
+    3  a queue-runner start refused by an active release freeze;
+    4  a queue-runner start refused because the declared concurrency bound is crossed;
+    6  S4488: a release-tier target (a build, the unit suite, lint, a compile check - anything
+       scripts/quality/gate-tiers.json records over 5 s) was asked for in an agent shell outside a release
+       run. Nothing ran. Fast check: .\a.ps1 ff -Files "<paths>". Release run or owner-named run:
+       FMS_TIER=Release in the environment.
 #>
 
 param(
@@ -367,6 +380,8 @@ $scripts = @{
     'flw'       = @{ Path = 'scripts\builders\check-lint.ps1'; Args = @{ Module = 'wear' } }
     # S3897: NewApi is judged against each flavor's minSdk, so only the legacy run (23) sees an API 24-25 call.
     'fll'       = @{ Path = 'scripts\builders\check-lint.ps1'; Args = @{ Module = 'app_v2'; Flavor = 'Legacy' } }
+    # S4488: the fast tier of one changed set. A thin wrapper over post-change.ps1 -Tier Fast -GatesOnly.
+    'ff'        = @{ Path = 'scripts\quality\run-fast-tier.ps1'; Args = @{} }
     'fg'        = @{ Path = 'scripts\quality\assert-fast-gates.ps1'; Args = @{} }  # S0826: batch fast static gates in one process
     # S2122: the repository's *.tests/Run-Tests.ps1 suites, by hand. Bare = the full sweep (measured
     # over 120 s, so background it); `-ChangedFiles "<paths>"` runs only the suites guarding those
@@ -543,19 +558,28 @@ if (-not $scripts.ContainsKey($Command)) {
     exit 1
 }
 
+# S4488: between releases an agent runs only checks of 5 s or less (canon TESTING_AND_QA section 2). A
+# build, the unit suite, lint, a compile check or any target gate-tiers.json records over the line is a
+# release-tier target: in an agent shell (CLAUDECODE=1) it is refused unless the run says it is a release
+# run or one the owner named - FMS_TIER=Release in the environment. The owner's own shell and CI resolve to
+# Release on their own and are never refused. A target with no row passes: only a recorded release row blocks.
+. (Join-Path $PSScriptRoot 'scripts\quality\lib\gate-tier.ps1')
+if ((Resolve-ActiveTier) -eq 'Fast') {
+    $tierRow = Get-GateTierRow -Kind targets -Name $Command
+    if ($null -ne $tierRow -and [string]$tierRow.tier -eq 'release') {
+        $measured = if ($null -ne $tierRow.medianSec) { "measured $($tierRow.medianSec) s" } else { 'no recorded time' }
+        Write-Host "a.ps1: '$Command' is a release-tier target ($measured; the line is 5 s) and does not run between releases." -ForegroundColor Yellow
+        Write-Host "  Fast check for what you changed:  .\a.ps1 ff -Files '<changed paths>'" -ForegroundColor Yellow
+        Write-Host "  A release run, or one the owner named:  FMS_TIER=Release pwsh -NoProfile -File ./a.ps1 $Command ..." -ForegroundColor Yellow
+        Write-Host "  Report it as: not built, not tested until the release." -ForegroundColor Yellow
+        exit 6
+    }
+}
+
 # Get script path
 $scriptEntry = $scripts[$Command]
 $scriptPath = Join-Path $ProjectRoot $scriptEntry.Path
 $scriptArgs = $scriptEntry.Args
-
-# S4190: every runner start first archives the agent-parked findings nobody triaged in 14 days, so the
-# expiry needs no scheduler of its own. Advisory - a failure here never stops the runner.
-if ($Command -in @('r0', 'r1', 'r2', 'r3')) {
-    & pwsh -NoProfile -File (Join-Path $ProjectRoot 'scripts\utils\archive-untriaged-drafts.ps1')
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "Warning: archive-untriaged-drafts.ps1 exit $LASTEXITCODE - the runner starts anyway." -ForegroundColor Yellow
-    }
-}
 
 # S2702: the runner takes its model policy only as -ModelPolicy, and agent-watchdog.ps1 was the one
 # caller reading runner.instances.<x>.modelPolicy - so `r3` started by hand ran 'tiered' while the

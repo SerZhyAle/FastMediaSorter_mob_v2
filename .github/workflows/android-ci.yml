@@ -2,17 +2,8 @@ name: Android CI Quality Gate
 
 on:
   push:
-    branches: [ main, 'DEBUG-v*' ]
-    paths:
-      - 'app_v2/**'
-      - 'wear/**'
-      - 'gradle/**'
-      - '*.kts'
-      - 'gradlew*'
-      - 'scripts/**'
-      - 'dev/**'
-      - '.github/workflows/android-ci.yml'
-  pull_request:
+    # S4488: the full build and every check run only before or during a release. A push to `main` IS the
+    # release run (scripts/githooks/pre-push); a DEBUG-v* push, a pull request and a clock trigger nothing.
     branches: [ main ]
     paths:
       - 'app_v2/**'

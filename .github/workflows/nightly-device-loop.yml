@@ -17,10 +17,10 @@ name: Nightly device loop
 # send the next reader looking for a heap problem that is not there.
 
 on:
-  schedule:
-    # 02:23 UTC daily. Off the hour and off the two weekly scans (03:17 and 04:41 UTC) so three
-    # scheduled runs never queue behind one another on the shared scheduler.
-    - cron: '23 2 * * *'
+  # S4488: an emulator boot plus a connected instrumented run is release-tier work. It fires on the release
+  # push to `main` and on manual dispatch, not on a nightly clock.
+  push:
+    branches: [ main ]
   workflow_dispatch:
 
 concurrency:

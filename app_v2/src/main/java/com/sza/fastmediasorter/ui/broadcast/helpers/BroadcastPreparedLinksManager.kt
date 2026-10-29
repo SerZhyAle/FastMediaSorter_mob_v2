@@ -11,21 +11,22 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.broadcast.BROADCAST_SOURCE_FILE
 import com.sza.fastmediasorter.broadcast.BroadcastMode
 import com.sza.fastmediasorter.broadcast.BroadcastState
+import com.sza.fastmediasorter.core.di.UnitSystemEntryPoint
 import com.sza.fastmediasorter.databinding.ActivityBroadcastControlBinding
 import com.sza.fastmediasorter.databinding.ItemPreparedBroadcastLinkBinding
 import com.sza.fastmediasorter.domain.model.ExchangeBroadcastPublishState
 import com.sza.fastmediasorter.domain.model.PreparedBroadcastLink
 import com.sza.fastmediasorter.domain.model.PreparedBroadcastStartOutcome
+import com.sza.fastmediasorter.domain.model.Quantity
 import com.sza.fastmediasorter.domain.usecase.broadcast.CheckPreparedBroadcastStartUseCase
 import com.sza.fastmediasorter.domain.usecase.broadcast.ManagePreparedBroadcastLinksUseCase
 import com.sza.fastmediasorter.domain.usecase.broadcast.ObserveExchangeBroadcastPublishStateUseCase
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.text.DateFormat
-import java.util.Date
 import javax.inject.Inject
 
 /**
@@ -112,13 +113,15 @@ class BroadcastPreparedLinksManager @Inject constructor(
         container.removeAllViews()
         binding.layoutPreparedLinks.visibility = if (links.isEmpty()) View.GONE else View.VISIBLE
         val inflater = LayoutInflater.from(activity)
-        val dateFormat = DateFormat.getDateInstance(DateFormat.MEDIUM)
+        val seam = EntryPointAccessors.fromApplication(activity.applicationContext, UnitSystemEntryPoint::class.java)
+        val formatter = seam.quantityFormatter()
+        val system = seam.unitSystemProvider().value
         links.forEach { link ->
             val row = ItemPreparedBroadcastLinkBinding.inflate(inflater, container, false)
             row.tvPreparedLinkSummary.text = activity.getString(
                 R.string.broadcast_prepared_row,
                 activity.getString(modeLabel(link.mode)),
-                dateFormat.format(Date(link.untilMs)),
+                formatter.format(Quantity.Date(link.untilMs), system),
             )
             row.btnPreparedLinkShare.setOnClickListener { shareDialog.show(activity, link) }
             row.btnPreparedLinkRevoke.setOnClickListener { confirmRevoke(activity, link) }

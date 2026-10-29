@@ -55,6 +55,10 @@ sealed interface TokenIssueResult {
  *
  * Token rotation: `GoogleAuthUtil` tokens expire at the GMS-default ~60 minutes; the cache
  * preemptively re-issues a token when the cached one is within 60 s of expiry.
+ *
+ * Consent refusals: a scope set GMS wanted a consent screen for is remembered for a while
+ * ([ConsentRefusalMemory]), so background pollers that cannot show the screen stop asking GMS the same
+ * question every cycle. [invalidate] and [forgetConsentRefusals] drop that memory. S4487.
  */
 @Singleton
 class GoogleTokenIssuer @Inject constructor(
@@ -63,6 +67,7 @@ class GoogleTokenIssuer @Inject constructor(
 ) {
     private val mutex = Mutex()
     private val cache = mutableMapOf<Set<GoogleScope>, GoogleAccessToken>()
+    private val consentRefusals = ConsentRefusalMemory()
 
     /**
      * Returns a fresh-enough access token for the [email] account covering [scopes].
@@ -77,6 +82,10 @@ class GoogleTokenIssuer @Inject constructor(
         val cached = cache[scopes]
         if (cached != null && cached.expiresAt.isAfter(Instant.now().plusSeconds(REFRESH_THRESHOLD_SECONDS))) {
             return@withLock TokenIssueResult.Success(cached)
+        }
+        if (consentRefusals.isRemembered(scopes)) {
+            Timber.d("S4487: consent refusal served from memory for scopes=$scopes")
+            return@withLock TokenIssueResult.ConsentRequired
         }
         val scopeObjects = scopes.map { Scope(it.value) }
         val authorizationRequest = AuthorizationRequest.builder()
@@ -103,6 +112,7 @@ class GoogleTokenIssuer @Inject constructor(
                     onSuccess = { token ->
                         if (token == null) {
                             Timber.i("Token issuance needs user consent for scopes=$scopes")
+                            consentRefusals.remember(scopes)
                             TokenIssueResult.ConsentRequired
                         } else {
                             cache[scopes] = token
@@ -132,12 +142,24 @@ class GoogleTokenIssuer @Inject constructor(
         return false
     }
 
-    /** Invalidates every cached token and revokes them locally via `GoogleAuthUtil.clearToken`. */
+    /**
+     * Invalidates every cached token and revokes them locally via `GoogleAuthUtil.clearToken`; the
+     * remembered consent refusals go too, since a sign-in or sign-out changes what Play services answers.
+     */
     suspend fun invalidate(): Unit = mutex.withLock {
         withContext(tokenDispatcher) {
             cache.values.forEach { runCatching { GoogleAuthUtil.clearToken(context, it.token) } }
         }
         cache.clear()
+        consentRefusals.forget()
+    }
+
+    /**
+     * Drops only the remembered consent refusals, leaving cached tokens alone: the user just granted a
+     * scope, so the next lookup must ask Play services instead of repeating the old refusal. S4487.
+     */
+    suspend fun forgetConsentRefusals(): Unit = mutex.withLock {
+        consentRefusals.forget()
     }
 
     /** Removes only the cached tokens whose [GoogleAccessToken.expiresAt] is already past. */

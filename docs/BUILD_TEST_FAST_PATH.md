@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.18 22:59</sub>
+<sub class="doc-stamp">26.10.29 01:58</sub>
 
 # Build & Test Fast Path
 
@@ -15,6 +15,31 @@ Pick the cheapest proof that matches the risk of the change.
 - Do not default to the full unit suite when one targeted test proves the change.
 - Escalate only when the previous proof level is not sufficient for the changed surface.
 
+## Between releases: the 5 s line (S4488)
+
+Owner order 2026-10-29, canon `rules/TESTING_AND_QA.md` section 2: the full build and every check over 5 seconds run only before or during a release, or when the owner names the run. Between releases a ticket is checked by inspection, the fast tier and a direct call of what changed, and reported as "not built, not tested until the release".
+
+- **Fast tier** - a check whose median is 5 s or less over at least 5 executed runs. **Release tier** - everything else, and any check with no recorded time until a release run measures it. The class of each check is `scripts/quality/gate-tiers.json`, generated from the gate journal (`temp/metrics/gate-executions.jsonl`, executed runs of the last 30 days, median of `elapsedMs`) by `scripts/quality/generate-gate-tiers.ps1`; re-run it at each release. The journal time includes a wait for a build lock, which only ever moves a check towards release.
+- **Which tier a run is in**, most specific first: the caller's `-Tier Fast|Release` (`post-change.ps1`, `assert-fast-gates.ps1`); `FMS_TIER`; an agent shell (`CLAUDECODE=1`) is Fast; anything else - the owner's shell, GitHub CI - is Release, as every runner behaved before. A release script exports `FMS_TIER=Release` itself.
+- **The fast command**: `.\a.ps1 ff -Files "<changed paths>"` (`scripts/quality/run-fast-tier.ps1`) - `post-change.ps1 -Tier Fast -GatesOnly -ScopeToFile`: every fast check that applies to the set, nothing written. The closure that writes the dev-log row is `post-change.ps1`, which is the fast tier by default in an agent shell. Its verdict names the release-tier checks it left for the release.
+- **`a.ps1` and release-tier targets**: in an agent shell a build, compile, test or lint target is refused with exit 6 unless `FMS_TIER=Release` is set; the owner's shell and CI are never refused.
+- **The release run** (nothing that ran before is gone): `/spec-prerelease` step 0.4 runs `scripts/quality/assert-release-scope-gates.ps1`, which exports `FMS_TIER=Release` and now includes `assert-release-tier-closure.ps1` - `post-change.ps1 -Tier Release -GatesOnly` over every file changed since the last `v*` tag; the builds (`a.ps1 nd`, `r`), `fu`, `fl`, `fll` and the device targets are named in `/spec-prerelease` and `/skill-release`. GitHub CI runs the whole of it on the push to `main` (`docs/BUILD_VS_RELEASE.md`).
+
+Measured 2026-10-29 on this host:
+
+| Check | Seconds | Tier | How measured |
+| --- | ---: | --- | --- |
+| `a.ps1 ff` over one Markdown file | 4.8-5.0 | fast | `Measure-Command`, four consecutive runs (4.97, 4.93, 4.79, 4.98 s), exit 0 |
+| `a.ps1 ff` over two PowerShell files | 12.8-13.2 | over the line | `Measure-Command`, two runs: the gates that apply to a script set start in two waves, so their times add up |
+| `a.ps1 ss` | 0.82 | fast | `Measure-Command`, one run |
+| `detekt-preflight` (closure step) | 3.15 | fast | gate-journal median |
+| `neuroslop-gate` (closure step) | 5.89 | release | gate-journal median, last 30 days |
+| `catalog-sync` (closure step) | 14.41 | release | gate-journal median |
+| `script-suite-regression` (closure step) | 22.49 | release | gate-journal median |
+| `a.ps1 fk` / `dq` / `fc` | 14.1 / 18.4 / 18.6 | release | this file, table below |
+| every `assert-fast-gates.ps1` member over 5 s, and the batch as a whole | 78 | release | gate-journal median |
+
+The full per-check list (89 closure steps, 109 batch members, the `a.ps1` targets) is `scripts/quality/gate-tiers.json`; the rows above are the ones a ticket meets most.
 ## Foreground or background: the 120 s threshold (S1338)
 
 Backgrounding is not free. The harness re-invokes the agent when a background job finishes, so

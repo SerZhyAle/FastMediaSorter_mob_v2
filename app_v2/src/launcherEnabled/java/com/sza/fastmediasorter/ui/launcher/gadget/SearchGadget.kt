@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.launcher.gadget
 
 import android.content.Context
+import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.inputmethod.EditorInfo
@@ -50,6 +51,10 @@ private class SearchGadgetView(
 
     private val binding = GadgetLauncherSearchBinding.inflate(LayoutInflater.from(context), this)
 
+    // S4476: the platform never ellipsizes the text of a field that has a key listener, so on a narrow tile
+    // it clips the hint through a glyph; the hint is cut to the room the field has instead.
+    private val fullHint: String = binding.gadgetSearchInput.hint?.toString().orEmpty()
+
     init {
         binding.gadgetSearchInput.setOnEditorActionListener { _, actionId, _ ->
             val isSearch = actionId == EditorInfo.IME_ACTION_SEARCH
@@ -57,6 +62,26 @@ private class SearchGadgetView(
                 submit()
             }
             isSearch
+        }
+    }
+
+    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        super.onLayout(changed, left, top, right, bottom)
+        // The field's own width is known only once the children are placed, and it moves with this view's.
+        if (changed) {
+            fitHint()
+        }
+    }
+
+    /** Writes only a changed hint, so the refit cannot feed its own layout pass. */
+    private fun fitHint() {
+        val input = binding.gadgetSearchInput
+        val room = input.width - input.compoundPaddingLeft - input.compoundPaddingRight
+        if (room > 0 && fullHint.isNotEmpty()) {
+            val fitted = TextUtils.ellipsize(fullHint, input.paint, room.toFloat(), TextUtils.TruncateAt.END).toString()
+            if (fitted != input.hint?.toString()) {
+                input.hint = fitted
+            }
         }
     }
 

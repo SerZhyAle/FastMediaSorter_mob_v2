@@ -16,18 +16,26 @@ import javax.inject.Inject
  *
  * Returns the published stamp to offer, or null for "do not offer". The caller keeps the stamp so that
  * closing the banner can store exactly the one it was shown for.
+ *
+ * S4461: [isUpdateAvailable] serves the automatic policy with the same rule, minus the closed offer. A
+ * closed banner belongs to the suggesting policy only; a user who chose automatic updating wants a newly
+ * published list whatever he once closed, and the archive is downloaded only when this answers true.
  */
 class ResolveStreamCatalogOfferUseCase @Inject constructor(
     private val publication: StreamCatalogPublicationSource,
     private val sessionStore: StreamsSessionStore,
 ) {
 
-    suspend operator fun invoke(): String? {
+    suspend operator fun invoke(): String? = resolve(honourDismissal = true)
+
+    suspend fun isUpdateAvailable(): Boolean = resolve(honourDismissal = false) != null
+
+    private suspend fun resolve(honourDismissal: Boolean): String? {
         val session = sessionStore.read()
         return decide(
             published = publication.published(),
             installed = session.catalogInstalledStamp,
-            dismissed = session.catalogDismissedStamp,
+            dismissed = session.catalogDismissedStamp.takeIf { honourDismissal },
             lastRefreshAt = session.lastCatalogRefreshAt,
         )
     }

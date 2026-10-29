@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.25 13:32</sub>
+<sub class="doc-stamp">26.10.28 22:55</sub>
 
 # Play publishing state
 
@@ -25,11 +25,18 @@ of those two rows reads as green.
 What an anonymous visitor actually receives. Produced by
 `pwsh -NoProfile -File scripts/release/read-play-public-serve.ps1 -Json`.
 
+**The listing page carries no version since 2026-10-27 (S4463).** The `Served version` cell reads
+`not on the page` while that holds, and the signal is the store's `Updated at (UTC)` stamp: it moves
+when the store publishes a new release, and `Updated on` is its date. A release has landed when
+`read-play-public-serve.ps1 -RequireUpdatedAfter <the Updated at value recorded below>` exits 0.
+Cross-read the `production` row of block 2 for the version that stamp belongs to. If the page serves a
+version again, the reader reads it with no change and the cell shows it.
+
 <!-- s2272:measured:public-serve:begin -->
 
-| Served version | Store `Updated on` | Detected by | Measured (UTC) |
-|----------------|--------------------|-------------|----------------|
-| `2.60.9260.042` | Sep 26, 2026 | data-callback key 141 | 2026-10-04 |
+| Served version | Store `Updated on` | Updated at (UTC) | Detected by | Measured (UTC) |
+|----------------|--------------------|------------------|-------------|----------------|
+| not on the page | Oct 21, 2026 | `2026-10-21T00:12:12Z` | none - the listing page carries no version | 2026-10-28 |
 
 Reader exit code: 0.
 
@@ -50,13 +57,13 @@ keeps reporting `completed`, so review state is invisible from here and from the
 
 | Track | versionName | versionCode | Status | Measured (UTC) |
 |-------|-------------|-------------|--------|----------------|
-| `production` | `2.61.0202.359` | `261020235` | completed | 2026-10-27 |
-| `beta` | - | - | no release | 2026-10-27 |
-| `alpha` | - | - | no release | 2026-10-27 |
-| `internal` | `2.60.6222.324` | `260622232` | completed | 2026-10-27 |
-| `wear:beta` | - | - | no release | 2026-10-27 |
-| `wear:internal` | - | - | no release | 2026-10-27 |
-| `wear:production` | `2.61.0210.141` | `261021018` | completed | 2026-10-27 |
+| `production` | `2.61.0202.359` | `261020235` | completed | 2026-10-28 |
+| `beta` | - | - | no release | 2026-10-28 |
+| `alpha` | - | - | no release | 2026-10-28 |
+| `internal` | `2.60.6222.324` | `260622232` | completed | 2026-10-28 |
+| `wear:beta` | - | - | no release | 2026-10-28 |
+| `wear:internal` | - | - | no release | 2026-10-28 |
+| `wear:production` | `2.61.0210.141` | `261021018` | completed | 2026-10-28 |
 
 Reader exit code: 0.
 
@@ -472,8 +479,10 @@ a clear run before a publish is undone by that publish; the clear must always co
 ### Step 3 - Submit the phone release from current code
 
 **Executor:** owner (Play Console).
-**Proof:** block 1 reports a served version above the one recorded there today, checked with
-`read-play-public-serve.ps1 -RequireVersionAbove <previous>` rather than by reading the Console.
+**Proof:** block 1 reports a store update stamp later than the one recorded there today (a served
+version above the recorded one, while the page carries a version), checked with
+`read-play-public-serve.ps1 -RequireUpdatedAfter <previous>` (`-RequireVersionAbove <previous>` for a
+version) rather than by reading the Console.
 
 An ordinary `standard` campaign, with no watch artifact in the batch.
 

@@ -167,7 +167,32 @@ function Get-StepElapsedMs([System.Diagnostics.Stopwatch]$Stopwatch) {
     return [int]$Stopwatch.Elapsed.TotalMilliseconds
 }
 
+# S4495: a gate whose verdict is chosen from its exit code runs BEFORE its wrapper, which then only
+# replays that code - so the wrapper's stopwatch journalled 0 ms for a child that ran a gradle test,
+# and generate-gate-tiers.ps1 classed it fast from those zeros. The caller hands the time recorded
+# here to the wrapper with Set-PooledElapsedMs inside the replay action.
+function Invoke-TimedGateChild([string[]]$Argv) {
+    $childWatch = [System.Diagnostics.Stopwatch]::StartNew()
+    $childOutput = & $pwsh @Argv 2>&1 | Out-String
+    $childExit = if ($LASTEXITCODE) { [int]$LASTEXITCODE } else { 0 }
+    $childWatch.Stop()
+    $script:TimedGateChildMs = [int]$childWatch.Elapsed.TotalMilliseconds
+    $global:LASTEXITCODE = $childExit
+    return $childOutput
+}
+
 function Invoke-Step([string]$Label, [scriptblock]$Action) {
+    # S4488: -GatesOnly judges and writes nothing; and catalog-sync, a 14 s rebuild, is a release-tier
+    # step - the index is a local artifact, rebuilt on demand by catalog_sync.ps1 and at the release.
+    if ($GatesOnly -and $Label -in @('catalog-sync', 'dev-log', 'doc-stamp')) {
+        Skip-Step $Label 'gates only - nothing is written'
+        return
+    }
+    if ($Label -eq 'catalog-sync' -and -not (Test-TierRuns -Kind gates -Name $Label -Tier $script:ActiveTier)) {
+        $script:TierSkipped += $Label
+        Skip-Step $Label (Get-TierSkipNote -Kind gates -Name $Label)
+        return
+    }
     $sw = [System.Diagnostics.Stopwatch]::StartNew()
     Reset-PooledElapsedMs
 
@@ -234,7 +259,17 @@ function Stop-ClosureOnQueuedBuild([int]$ExitCode, [string]$Label) {
     exit 2
 }
 
+# S4488: the one question every wrapper asks before it does any work. A check outside the active tier is
+# recorded as skipped with its measured reason and named in the verdict, never silently dropped.
+function Skip-StepOutsideTier([string]$Label) {
+    if (Test-TierRuns -Kind gates -Name $Label -Tier $script:ActiveTier) { return $false }
+    $script:TierSkipped += $Label
+    Skip-Step $Label (Get-TierSkipNote -Kind gates -Name $Label)
+    return $true
+}
+
 function Invoke-Gate([string]$Label, [scriptblock]$Action) {
+    if (Skip-StepOutsideTier $Label) { return }
     if ($script:ClosureReuseActive) {
         Skip-Step $Label "reused: run $($script:ClosureReuseRecord.RunId) passed this gate over the same bytes $($script:ClosureReuseRecord.AgeSec)s ago"
         return
@@ -351,11 +386,13 @@ function Write-SkippedSummary {
 # FATAL per-file deltas in S0848/S0850) is reported as a WARN under -ScopeToFile and the
 # facade keeps going instead of aborting the close. The operator still sees it.
 function Invoke-AdvisoryStep([string]$Label, [scriptblock]$Action, [string]$AdvisoryDetails) {
+    if (Skip-StepOutsideTier $Label) { return }
     if ($script:ClosureReuseActive) {
         Skip-Step $Label "reused: run $($script:ClosureReuseRecord.RunId) passed this gate over the same bytes $($script:ClosureReuseRecord.AgeSec)s ago"
         return
     }
     $sw = [System.Diagnostics.Stopwatch]::StartNew()
+    Reset-PooledElapsedMs
     try {
         $global:LASTEXITCODE = 0
         Invoke-CapturedAction $Action
@@ -367,20 +404,20 @@ function Invoke-AdvisoryStep([string]$Label, [scriptblock]$Action, [string]$Advi
             # passes its own wording, so the verdict line never misdescribes what was found.
             $details = if ($AdvisoryDetails) { $AdvisoryDetails } else { "advisory (project-wide ratchet; not attributed to your change - verify your files manually)" }
             Write-CapturedOutput
-            Write-StepResult -Label $Label -Status SKIP -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds) -Details $details -AlwaysShow
+            Write-StepResult -Label $Label -Status SKIP -ElapsedMs (Get-StepElapsedMs $sw) -Details $details -AlwaysShow
             $script:AdvisoryFindings += "$Label (exit $exitCode)"
         }
         elseif (Test-NotApplicableVerdict -Lines $script:CaptureLines) {
-            Add-NotApplicableStep -Label $Label -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds)
+            Add-NotApplicableStep -Label $Label -ElapsedMs (Get-StepElapsedMs $sw)
         }
         else {
-            Write-StepResult -Label $Label -Status PASS -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds)
+            Write-StepResult -Label $Label -Status PASS -ElapsedMs (Get-StepElapsedMs $sw)
         }
     }
     catch {
         $sw.Stop()
         Write-CapturedOutput
-        Write-StepResult -Label $Label -Status SKIP -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds) -Details "advisory (gate error: $($_.Exception.Message))" -AlwaysShow
+        Write-StepResult -Label $Label -Status SKIP -ElapsedMs (Get-StepElapsedMs $sw) -Details "advisory (gate error: $($_.Exception.Message))" -AlwaysShow
         $script:AdvisoryFindings += "$Label (gate error)"
     }
 }
@@ -397,6 +434,7 @@ function Invoke-AdvisoryStep([string]$Label, [scriptblock]$Action, [string]$Advi
 # across by hand, because Invoke-Gate's Reset-PooledElapsedMs would otherwise leave the wrapper's
 # own near-zero stopwatch in the telemetry that measure-gate-frequency.ps1 ranks gates by.
 function Invoke-FixedInputGate([string]$Label, [string[]]$Argv, [string]$GateScript) {
+    if (Skip-StepOutsideTier $Label) { return }
     # S3301: short-circuited here as well as in the two wrappers below, because this one runs its
     # child BEFORE it decides which wrapper reports the verdict - reaching Invoke-Gate too late to
     # save the work.

@@ -1,0 +1,6 @@
+10-27 14:17:29.811  1600  1600 I ActivityManager: Start proc 23731:com.sza.fastmediasorter.debug/u0a176 for next-top-activity {com.sza.fastmediasorter.debug/com.sza.fastmediasorter.ui.main.MainActivity}
+10-27 14:17:30.240 23731 23731 D MainActivity: onResume
+10-27 14:17:31.102 23731 24011 D EGL_emulation: app_time_stats: avg=16.12ms min=5.02ms max=23.55ms count=61
+10-27 14:17:31.318 23731 24015 E OpenGLRenderer: Unable to match the desired swap behavior.
+10-27 14:17:31.689 23731 24056 E chromium: [ERROR:simple_backend_impl.cc(749)] Simple Cache Backend: cache directory inaccessible right after creation; path: /data/user/0/com.sza.fastmediasorter.debug/cache/WebView/Default/HTTP Cache/Code Cache/js
+10-27 14:17:31.694 23731 24070 E chromium: [ERROR:disk_cache.cc(205)] Unable to create cache

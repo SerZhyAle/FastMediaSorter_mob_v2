@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.18 17:45</sub>
+<sub class="doc-stamp">26.10.29 05:03</sub>
 
 # Pointer - `STREAM-BANK`
 
 | | |
 | --- | --- |
 | **Id** | `STREAM-BANK` |
-| **Version** | 2.4, active. Owner: this product |
+| **Version** | 2.5, active. Owner: this product |
 | **Home** | `stream-catalog/README.md` in the shared contracts catalog |
 | **Role here** | producer (the publish script) and consumer (the phone and watch importers) |
 

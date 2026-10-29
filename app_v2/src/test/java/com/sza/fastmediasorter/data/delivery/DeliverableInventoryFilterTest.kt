@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamCatalogUseCase
 import com.sza.fastmediasorter.ui.player.helpers.TesseractModelManager
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -166,6 +167,22 @@ class DeliverableInventoryFilterTest {
             "atlas module must be dropped when streams are unavailable",
             withoutStreams.moduleSets().contains(DeliverableSet.CHANNEL_PREVIEW_ATLAS)
         )
+    }
+
+    @Test
+    fun `listing the extensions never stats a payload directory on the calling thread`() {
+        inventory(
+            ocr = true,
+            translation = true,
+            streams = true,
+            descriptors = mapOf(
+                DeliverableSet.AUDIO_VISUALIZATIONS to descriptorFor(DeliverableSet.AUDIO_VISUALIZATIONS),
+                DeliverableSet.OCR_ENGINES to descriptorFor(DeliverableSet.OCR_ENGINES),
+                DeliverableSet.FFMPEG_DTS to descriptorFor(DeliverableSet.FFMPEG_DTS)
+            )
+        ).getExtensions()
+
+        verify(exactly = 0) { repository.isInstalledBlocking(any()) }
     }
 
     @Test

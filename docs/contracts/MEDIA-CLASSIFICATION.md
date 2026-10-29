@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.18 17:46</sub>
+<sub class="doc-stamp">26.10.29 05:03</sub>
 
 # Pointer - `MEDIA-CLASSIFICATION`
 
 | | |
 | --- | --- |
 | **Id** | `MEDIA-CLASSIFICATION` |
-| **Version** | 0.12, draft. Owner: this product |
+| **Version** | 0.13, draft. Owner: this product |
 | **Home** | `media-classification/README.md` in the shared contracts catalog |
 | **Role here** | owner, producer and consumer (primary file and stream classifier) |
 

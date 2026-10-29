@@ -68,6 +68,9 @@ object ScheduledRunStatus {
     /** True for a status the schedule card marks with the warning badge until a run succeeds. */
     fun needsAttention(status: String?): Boolean =
         status != null && (status.startsWith(ERROR_PREFIX) || status.startsWith(SKIPPED_PREFIX))
+
+    /** True for a status that records a skipped run, which the card draws apart from a failure. */
+    fun isSkipped(status: String?): Boolean = status?.startsWith(SKIPPED_PREFIX) == true
 }
 
 /** Minimum honoured gap between scheduled runs - WorkManager-friendly floor shared by every caller. */

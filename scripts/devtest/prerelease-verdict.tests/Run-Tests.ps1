@@ -113,6 +113,25 @@ try {
     Assert-Equal -Label 'non-advisory failure exits 1' -Expected 1 -Actual $hard.Code
     Assert-Equal -Label 'non-advisory failure is a maestro failure, not advisory' `
         -Expected 'settings.yaml/' -Actual ("{0}/{1}" -f (@($hard.Json.breakdown.maestro.failures) -join ','), (@($hard.Json.breakdown.maestro.advisoryFailures) -join ','))
+
+    # Case 5 - S4465: the emulator's swap-behavior and WebView cache-creation lines. Benign only with the
+    # EGL_emulation marker in the same capture; the same lines without it keep the log dimension failing.
+    $appStart = '10-27 14:17:29.811  1600  1600 I ActivityManager: Start proc 23731:com.sza.fastmediasorter.debug/u0a176 for next-top-activity {com.sza.fastmediasorter.debug/com.sza.fastmediasorter.ui.main.MainActivity}'
+    $softwareMarker = '10-27 14:17:31.102 23731 24011 D EGL_emulation: app_time_stats: avg=16.12ms min=5.02ms max=23.55ms count=61'
+    $swapAndCache = @(
+        '10-27 14:17:31.318 23731 24015 E OpenGLRenderer: Unable to match the desired swap behavior.',
+        '10-27 14:17:31.689 23731 24056 E chromium: [ERROR:simple_backend_impl.cc(749)] Simple Cache Backend: cache directory inaccessible right after creation; path: /data/user/0/com.sza.fastmediasorter.debug/cache/WebView/Default/HTTP Cache/Code Cache/js',
+        '10-27 14:17:31.694 23731 24070 E chromium: [ERROR:disk_cache.cc(205)] Unable to create cache'
+    )
+
+    $swapEmulator = Invoke-Verdict -Flows @((New-Flow -Name 'app_launch.yaml')) -LogLines (@($appStart, $softwareMarker) + $swapAndCache) -Tag 's4465-emulator'
+    Assert-Equal -Label 'S4465: swap and cache lines on a software-rendered capture exit 0' -Expected 0 -Actual $swapEmulator.Code
+    Assert-Equal -Label 'S4465: log dimension passes on a software-rendered capture' -Expected 'True' -Actual $swapEmulator.Json.breakdown.log.pass
+    Assert-Equal -Label 'S4465: the capture is recorded as software-rendered' -Expected 'True' -Actual $swapEmulator.Json.breakdown.log.softwareRenderedCapture
+
+    $swapDevice = Invoke-Verdict -Flows @((New-Flow -Name 'app_launch.yaml')) -LogLines (@($appStart) + $swapAndCache) -Tag 's4465-device'
+    Assert-Equal -Label 'S4465: the same lines without the marker exit 1' -Expected 1 -Actual $swapDevice.Code
+    Assert-Equal -Label 'S4465: log dimension fails without the marker' -Expected 'False' -Actual $swapDevice.Json.breakdown.log.pass
 }
 finally {
     Remove-Item -LiteralPath $scratch -Recurse -Force -ErrorAction SilentlyContinue

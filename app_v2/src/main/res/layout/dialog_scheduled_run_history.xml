@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S4478: body of the run-history dialog opened from a schedule card. The label names the schedule,
+     the list holds one row per recorded run. The dialog scrolls the list itself, so there is no
+     landscape variant to keep in step. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="@dimen/token_spacing_16"
+    android:paddingTop="@dimen/token_spacing_8">
+
+    <TextView
+        android:id="@+id/tvScheduleLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="@dimen/token_spacing_8"
+        android:textAppearance="?attr/textAppearanceBody2"
+        android:textColor="?attr/colorOnSurface"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvRunHistoryEmpty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/scheduled_ops_history_empty"
+        android:textAppearance="?attr/textAppearanceBody2"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:visibility="gone" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvRunHistory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:scrollbars="vertical" />
+
+</LinearLayout>

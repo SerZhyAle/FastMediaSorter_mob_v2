@@ -2,9 +2,13 @@
 <!-- S1179: the compass gadget. Sized by the desktop grid like every gadget, so nothing here sets a
      fixed height. The heading is a TextView beside the needle, not the needle alone - strategic §3.2
      requires heading and altitude to be readable as words by a screen reader.
-     S4183: the 1:1 weight split and the heading's fixed text size are deliberate - the owner asked
-     for the tile divided evenly, because a content-driven size (autosize) recomputes the font on
-     every sensor tick, which read as digit jitter and displaced the needle. -->
+     S4183: the 1:1 weight split is deliberate - the owner asked for the tile divided evenly, so the
+     text can never push the needle around; the needle's half is fixed and no measurement moves it.
+     S4476: the heading's fixed 24sp could not hold "143°" in half of a two-column tile on a dense
+     grid and collapsed to "1..". It autosizes again, but in 2sp steps: the old jitter came from a
+     font that was recomputed to a new size on every tick, and a step only changes when the text
+     crosses a width boundary (a digit count or a cardinal word), while in a small tile the size sits
+     at the floor and does not move. -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -25,25 +29,30 @@
             android:contentDescription="@null"
             android:src="@drawable/ic_compass" />
 
-        <LinearLayout
+        <!-- S4476: keeps the heading whole and leaves out the altitude line when a short tile has no
+             room for it next to the heading. -->
+        <com.sza.fastmediasorter.ui.launcher.gadget.GadgetValueColumn
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:layout_weight="1">
 
             <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
                 android:id="@+id/gadgetCompassHeading"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
+                android:autoSizeMaxTextSize="24sp"
+                android:autoSizeMinTextSize="10sp"
+                android:autoSizeStepGranularity="2sp"
+                android:autoSizeTextType="uniform"
                 android:ellipsize="end"
                 android:gravity="center_vertical"
-                android:maxLines="1"
+                android:maxLines="2"
                 android:textColor="?attr/launcherDesktopText"
-                android:textSize="24sp"
                 android:textStyle="bold"
                 app:otv_outlineScale="@dimen/outline_text_stroke_scale"
                 app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
+                tools:ignore="UnusedAttribute"
                 tools:text="42° Northeast" />
 
             <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
@@ -70,7 +79,7 @@
                 app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
                 tools:visibility="visible" />
 
-        </LinearLayout>
+        </com.sza.fastmediasorter.ui.launcher.gadget.GadgetValueColumn>
 
     </LinearLayout>
 

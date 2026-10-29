@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import dagger.hilt.android.qualifiers.ApplicationContext
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -15,6 +16,17 @@ class LauncherStartWindowManager @Inject constructor(
 ) {
     fun isEnabled(): Boolean =
         contract.isAvailableInBuild && prefs().getBoolean(KEY_START_WINDOW_ENABLED, true)
+
+    /**
+     * Loads the preference file so a later [isEnabled] is a memory read. Call from a background
+     * thread: the first read of a SharedPreferences file is a disk read, and the cold-start redirect
+     * asks [isEnabled] on the main thread before the first frame (S4484).
+     */
+    fun preload() {
+        if (!contract.isAvailableInBuild) return
+        prefs().contains(KEY_START_WINDOW_ENABLED)
+        Timber.d("S4484: launcher start-window prefs preloaded on thread ${Thread.currentThread().name}")
+    }
 
     fun setEnabled(enabled: Boolean) {
         if (contract.isAvailableInBuild) prefs().edit().putBoolean(KEY_START_WINDOW_ENABLED, enabled).apply()

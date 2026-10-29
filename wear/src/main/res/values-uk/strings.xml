@@ -1161,4 +1161,6 @@
     <string name="wear_broadcast_server_failed">Помилка сервера - див. телефон</string>
     <string name="wear_broadcast_server_local_only">Лише в цій мережі</string>
     <string name="wear_scheduled_message_channel_name">Повідомлення за розкладом</string>
+    <string name="wear_audio_fetching">Завантаження треку..</string>
+    <string name="wear_stream_ended">Ця трансляція більше не в ефірі. Повторіть, коли вона знову почнеться.</string>
 </resources>

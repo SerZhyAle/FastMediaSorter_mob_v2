@@ -151,6 +151,15 @@ $guardedEmulatorGpuNoise    = 'addRelease: Did not find frame'
 $guardedEmulatorDecoderTag = '^HeifDecoderImpl$'
 $guardedEmulatorDecoder    = 'getSize: not supported'
 
+# S4465: the emulator's SwiftShader renderer cannot match a requested swap, so the app's GL thread logs
+# one E line per frame (137 on the 2026-10-27 phone sweep), and WebView's first-run HTTP cache creation
+# fails inside the app's browser process. Same marker as FrameEvents: EGL_emulation proves the capture
+# was software-rendered, and on a physical device either line can be a real defect.
+$guardedSwapBehaviorTag = '^OpenGLRenderer$'
+$guardedSwapBehavior    = 'Unable to match the desired swap behavior'
+$guardedWebViewCacheTag = '^chromium$'
+$guardedWebViewCache    = 'Simple Cache Backend: cache directory inaccessible right after creation|disk_cache\.cc\(205\)\] Unable to create cache'
+
 # S4013: the app's WebView browser process logs a renderer "crash" when ActivityManager reaps the
 # isolated renderer it no longer needs (seen right after PlayerActivity.onDestroy). Benign only when
 # the same capture holds that kill line for the same pid - a renderer that died on its own has none.
@@ -327,6 +336,10 @@ foreach ($raw in [System.IO.File]::ReadLines((Resolve-Path $LogFile))) {
                  $msg -match $guardedEmulatorGpuNoise) -or
                 ($softwareRenderedCapture -and $tag -match $guardedEmulatorDecoderTag -and
                  $msg -match $guardedEmulatorDecoder) -or
+                ($softwareRenderedCapture -and $tag -match $guardedSwapBehaviorTag -and
+                 $msg -match $guardedSwapBehavior) -or
+                ($softwareRenderedCapture -and $tag -match $guardedWebViewCacheTag -and
+                 $msg -match $guardedWebViewCache) -or
                 (Test-ReapedRendererLine $tag $msg)
 
     # Normalize the message head: drop volatile path/number tails so identical errors cluster.

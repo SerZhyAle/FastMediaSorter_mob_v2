@@ -1,15 +1,17 @@
 package com.sza.fastmediasorter.ui.streams.helpers
 
-import android.text.format.DateUtils
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.di.UnitSystemEntryPoint
 import com.sza.fastmediasorter.domain.model.BroadcastStartState
+import com.sza.fastmediasorter.domain.model.Quantity
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import timber.log.Timber
@@ -82,10 +84,13 @@ class StreamBroadcastWaitManager(
         return shown
     }
 
-    private fun waitMessage(untilMs: Long): String = activity.getString(
-        R.string.stream_broadcast_wait_message,
-        DateUtils.formatDateTime(activity, untilMs, DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME),
-    )
+    private fun waitMessage(untilMs: Long): String {
+        val seam = EntryPointAccessors.fromApplication(activity.applicationContext, UnitSystemEntryPoint::class.java)
+        return activity.getString(
+            R.string.stream_broadcast_wait_message,
+            seam.quantityFormatter().format(Quantity.DateTime(untilMs), seam.unitSystemProvider().value),
+        )
+    }
 
     private fun forget() {
         watching?.cancel()

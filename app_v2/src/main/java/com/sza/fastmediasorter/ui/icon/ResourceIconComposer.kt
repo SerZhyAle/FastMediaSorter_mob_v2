@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
+import com.sza.fastmediasorter.domain.model.isAllFilesPredefined
 
 /**
  * Composes the final [Drawable] shown in resource list/grid items.
@@ -26,6 +27,8 @@ import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
  * it never occludes the primary icon's recognisable silhouette.
  */
 object ResourceIconComposer {
+
+    private val PLACEHOLDER_ICON_ID = ResourceIconRegistry.firstIdFor(ResourceIconSet.OTHER)
 
     /**
      * Returns the composed drawable for [resource].
@@ -60,8 +63,31 @@ object ResourceIconComposer {
     // Private helpers
     // ---------------------------------------------------------------------------
 
+    /**
+     * S4477: the OTHER set's first icon doubles as the placeholder that Recent and the pinned All files
+     * resource were seeded with, so the two tiles drew the same circle. For those two resources an absent
+     * or placeholder id resolves to a dedicated glyph instead. Any other stored id is the user's pick and
+     * wins - a user who deliberately picked the placeholder for one of them cannot be told apart from the
+     * seed, which is the accepted cost of needing no migration.
+     */
+    @DrawableRes
+    internal fun predefinedGlyphFor(resource: MediaResource): Int? {
+        val storedId = resource.iconId
+        if (storedId != null && storedId != PLACEHOLDER_ICON_ID) return null
+        return when {
+            resource.path == LocalMediaScanner.VIRTUAL_PATH_RECENT -> R.drawable.ic_tile_recent
+            resource.isAllFilesPredefined -> R.drawable.ic_tile_all_files
+            else -> null
+        }
+    }
+
     @DrawableRes
     private fun resolveThemeDrawable(resource: MediaResource): Int {
+        predefinedGlyphFor(resource)?.let {
+            timber.log.Timber.d("S4477: predefined glyph res=$it path=${resource.path} stored=${resource.iconId}")
+            return it
+        }
+
         // S0034 custom icon - highest priority
         val customRes = ResourceIconRegistry.resolveDrawable(resource.iconId)
         if (customRes != null) return customRes

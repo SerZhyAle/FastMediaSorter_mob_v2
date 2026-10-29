@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.07 12:50</sub>
+<sub class="doc-stamp">26.10.29 05:03</sub>
 
 # Pointer - `CHECK-BASELINE`
 
 | | |
 | --- | --- |
 | **Id** | `CHECK-BASELINE` |
-| **Version** | 0.11, draft. Owner: this product |
+| **Version** | 0.12, draft. Owner: this product |
 | **Home** | `automated-checks/README.md` section 3, in the shared contracts catalog |
 | **Role here** | owner |
 

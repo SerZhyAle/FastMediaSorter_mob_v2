@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
 import com.sza.fastmediasorter.domain.model.ScheduledRunOutcome
+import com.sza.fastmediasorter.domain.model.ScheduledRunReason
 import com.sza.fastmediasorter.domain.mutation.MutationRecorder
 import com.sza.fastmediasorter.domain.path.PathNormalizer
 import com.sza.fastmediasorter.domain.usecase.transfer.FetchScheduledChangesViaDriveUseCase
@@ -105,6 +106,12 @@ class ExecuteScheduledOperationReadOnlyTest {
         assertEquals(ScheduledRunOutcome.SKIPPED, result.outcome)
         assertEquals(0, result.filesProcessed)
         assertTrue(result.skippedReason!!.startsWith("$role 'Locked' is read-only"))
+        val expected = if (role == "Source") {
+            ScheduledRunReason.SOURCE_READ_ONLY
+        } else {
+            ScheduledRunReason.TARGET_READ_ONLY
+        }
+        assertEquals(expected, result.reason)
         coVerify(exactly = 0) { fileOperationUseCase.execute(any()) }
     }
 

@@ -6,7 +6,8 @@
 
 .DESCRIPTION
     The state record has three blocks and two of them are machine-readable: what the store serves
-    (read-play-public-serve.ps1) and what each track holds (read-play-tracks.ps1). This script is the
+    (read-play-public-serve.ps1 - the served version while the listing page carries one, and always
+    the store's update stamp) and what each track holds (read-play-tracks.ps1). This script is the
     only writer of those two. It replaces exactly the regions between the `s2272:measured:*` marker
     comments and touches no byte outside them, so the surrounding prose, the recovery plan and the
     drift notes survive a refresh.
@@ -111,10 +112,24 @@ function Build-ServeBlock {
     param($Reader)
     $d = $Reader.Data
     $updated = if ($d.updatedOn) { $d.updatedOn } else { 'unknown' }
+    # ConvertFrom-Json turns an ISO timestamp string into a DateTime, and interpolating that prints it in
+    # the machine's culture; render it back in the reader's own format so the cell is culture-proof.
+    $updatedAt = 'unknown'
+    if ($d.updatedAtUtc) {
+        $stamp = if ($d.updatedAtUtc -is [datetime]) {
+            $d.updatedAtUtc.ToUniversalTime().ToString('yyyy-MM-dd\THH:mm:ss\Z', [System.Globalization.CultureInfo]::InvariantCulture)
+        } else {
+            [string] $d.updatedAtUtc
+        }
+        $updatedAt = "``$stamp``"
+    }
+    # The listing page stopped carrying a version on 2026-10-27 (S4463); the row says so instead of
+    # printing an empty code span that reads as a version.
+    $version = if ($d.servedVersion) { "``$($d.servedVersion)``" } else { 'not on the page' }
     $rows = @(
-        '| Served version | Store `Updated on` | Detected by | Measured (UTC) |'
-        '|----------------|--------------------|-------------|----------------|'
-        "| ``$($d.servedVersion)`` | $updated | $($d.detectedBy) | $($d.measuredUtc) |"
+        '| Served version | Store `Updated on` | Updated at (UTC) | Detected by | Measured (UTC) |'
+        '|----------------|--------------------|------------------|-------------|----------------|'
+        "| $version | $updated | $updatedAt | $($d.detectedBy) | $($d.measuredUtc) |"
         ''
         'Reader exit code: 0.'
     )

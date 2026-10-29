@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.18 17:45</sub>
+<sub class="doc-stamp">26.10.29 05:03</sub>
 
 # Pointer - `DIAGNOSTIC-REPORT`
 
 | | |
 | --- | --- |
 | **Id** | `DIAGNOSTIC-REPORT` |
-| **Version** | 0.14, draft. Owner: StreamsPlayer |
+| **Version** | 0.15, draft. Owner: StreamsPlayer |
 | **Home** | `diagnostic-report/README.md` in the shared contracts catalog |
 | **Role here** | producer and consumer (sanitized diagnostic logs and export bundle) |
 

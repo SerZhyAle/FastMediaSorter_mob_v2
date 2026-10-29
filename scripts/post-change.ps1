@@ -126,7 +126,16 @@ param(
     # it. Declared, not read from $args, because an undeclared switch is silently swallowed and the
     # run would proceed under the opposite of what the caller asked for (S2703).
     # FMS_POSTCHANGE_NO_REUSE=1 is the same refusal for a whole session.
-    [switch]$NoReuse
+    [switch]$NoReuse,
+    # S4488: which tier of checks this closure runs. Fast (the default in an agent shell) runs only the
+    # checks gate-tiers.json records at 5 s or less, plus the two mutating steps that are themselves fast;
+    # Release runs every check. A release flow passes Release (or exports FMS_TIER=Release); the owner's
+    # own shell and CI resolve to Release without being told (lib/gate-tier.ps1).
+    [ValidateSet('Fast', 'Release')]
+    [string]$Tier,
+    # S4488: judge and stop. No catalog sync, no dev-log row, no stamp - the release pre-flight's use of
+    # this facade, and the fast-tier command's (.ps1 ff).
+    [switch]$GatesOnly
 )
 
 $ErrorActionPreference = "Stop"
@@ -175,6 +184,13 @@ if ($szaMissingRequired.Count -gt 0) {
 # the one not reporting. Telemetry never changes a verdict (the writer swallows its own
 # errors), so a broken journal cannot fail a closure.
 . (Join-Path $root 'scripts/quality/lib/gate-telemetry.ps1')
+
+# S4488: the tier this closure runs (Fast = checks of 5 s or less; Release = everything). Resolved once,
+# before any wrapper or pooled start asks. Exported so a gate child that resolves a tier itself agrees.
+. (Join-Path $root 'scripts/quality/lib/gate-tier.ps1')
+$script:ActiveTier = Resolve-ActiveTier $Tier
+$env:FMS_TIER = $script:ActiveTier
+$script:TierSkipped = @()
 
 # S1338: one resolved set drives every downstream consumer, so a gate can never
 # silently judge a narrower slice than the verdict claims to cover. $File keeps
@@ -292,7 +308,7 @@ else {
 . (Join-Path $root 'scripts/quality/lib/post-change-closure-ledger.ps1')
 if ($NoReuse) { $env:FMS_POSTCHANGE_NO_REUSE = '1' }
 $closureFingerprint = Get-ClosureFingerprint -RepositoryRoot $root -Changed $changedFiles -Deleted $deletedFiles `
-    -ChangeType $resolvedChangeType -Module $Module -Scoped ([bool]$ScopeToFile)
+    -ChangeType $resolvedChangeType -Module $Module -Scoped ([bool]$ScopeToFile) -Tier $script:ActiveTier
 $closureReuse = Find-ReusableClosure -Target $Target -Fingerprint $closureFingerprint
 if ($closureReuse) { Enable-ClosureReuse $closureReuse }
 
@@ -740,7 +756,8 @@ $argvBaselineSplitSync = @('-NoProfile', '-File', (Join-Path $root "scripts/qual
 . (Join-Path $root 'scripts/quality/lib/post-change-code-lock-release.ps1')
 Exit-AcquiredCodeDomains
 . (Join-Path $root 'scripts/quality/lib/post-change-register-new-files.ps1')
-Register-UntrackedChangedFiles
+# S4488: -GatesOnly writes nothing, the git index included.
+if (-not $GatesOnly) { Register-UntrackedChangedFiles }
 
 if ($runsStringsAudit) { Start-PooledGate @argvStringsAudit }
 if ($runsStringFormatGate) { Start-PooledGate @argvNewLexemes; Start-PooledGate @argvStringFormat }
@@ -803,7 +820,7 @@ if ($runsTicketLogAudit) {
     # advisory. Deciding inside Invoke-AdvisoryStep is not an option: its catch block turns any
     # exception into a SKIP, so raising one for code 1 would downgrade this change's own forbidden
     # log id to an advisory - weakening the gate instead of scoping it.
-    $ticketLogOutput = & $pwsh @ticketLogArgs 2>&1 | Out-String
+    $ticketLogOutput = Invoke-TimedGateChild $ticketLogArgs; $ticketLogMs = $script:TimedGateChildMs
     $ticketLogExit = if ($LASTEXITCODE) { [int]$LASTEXITCODE } else { 0 }
     # S4269: the report is emitted from INSIDE the gate's action, not printed ahead of it. Invoke-Gate
     # and Invoke-AdvisoryStep capture only what the action emits, so a Write-Host here left the
@@ -814,7 +831,7 @@ if ($runsTicketLogAudit) {
     $ticketLogReport = $ticketLogOutput.TrimEnd()
 
     if ($ScopeToFile -and $ticketLogExit -eq 3) {
-        Invoke-AdvisoryStep "ticket-log-audit" { if ($ticketLogReport) { $ticketLogReport }; $global:LASTEXITCODE = 3 } `
+        Invoke-AdvisoryStep "ticket-log-audit" { Set-PooledElapsedMs $ticketLogMs; if ($ticketLogReport) { $ticketLogReport }; $global:LASTEXITCODE = 3 } `
             -AdvisoryDetails ("a ticket other than this change's sits in BlockNeedUserTest without its probe. " +
                 "Its author owns that probe - it belongs at the entry of their changed flow - so this closure is " +
                 "not charged for it. Run assert-no-ticket-logs.ps1 with no -ChangedFiles for the project-wide verdict.")
@@ -822,7 +839,7 @@ if ($runsTicketLogAudit) {
     else {
         # Code 1 (a forbidden log id in the changed set) and code 2 (the gate could not run) both
         # stay fatal, scoped or not.
-        Invoke-Gate "ticket-log-audit" { if ($ticketLogReport) { $ticketLogReport }; $global:LASTEXITCODE = $ticketLogExit }
+        Invoke-Gate "ticket-log-audit" { Set-PooledElapsedMs $ticketLogMs; if ($ticketLogReport) { $ticketLogReport }; $global:LASTEXITCODE = $ticketLogExit }
     }
 }
 else {
@@ -1368,12 +1385,13 @@ if ($runsSettingsDocGate) {
     # so this text must not name one artifact: the gate above already named the stage and the finding,
     # and a hint naming the render where the annotations diverged sends the reader to regenerate the
     # wrong file.
-    $settingsDocOutput = & $pwsh @settingsDocArgs 2>&1 | Out-String
+    $settingsDocOutput = Invoke-TimedGateChild $settingsDocArgs; $settingsDocMs = $script:TimedGateChildMs
     $settingsDocExit = if ($LASTEXITCODE) { [int]$LASTEXITCODE } else { 0 }
     if (-not [string]::IsNullOrWhiteSpace($settingsDocOutput)) { Write-Host $settingsDocOutput.TrimEnd() }
+    if ($settingsDocOutput -match 'manifest stage is release tier') { $script:TierSkipped += 'settings-doc-sync-gate (manifest stage)' }
 
     if ($ScopeToFile -and $settingsDocExit -eq 3) {
-        Invoke-AdvisoryStep "settings-doc-sync-gate" { $global:LASTEXITCODE = 3 } `
+        Invoke-AdvisoryStep "settings-doc-sync-gate" { Set-PooledElapsedMs $settingsDocMs; $global:LASTEXITCODE = 3 } `
             -AdvisoryDetails ("a stage found a divergence no file in this changed set can have caused - the " +
                 "gate named the stage and the finding above. It belongs to whichever ticket last moved that " +
                 "stage's inputs, and resolving it here would commit that ticket's work under this change. Run " +
@@ -1382,7 +1400,7 @@ if ($runsSettingsDocGate) {
     else {
         # Code 1 (drift this set can own) and code 2 (the gate could not look) stay fatal, scoped
         # or not.
-        Invoke-Gate "settings-doc-sync-gate" { $global:LASTEXITCODE = $settingsDocExit }
+        Invoke-Gate "settings-doc-sync-gate" { Set-PooledElapsedMs $settingsDocMs; $global:LASTEXITCODE = $settingsDocExit }
     }
 }
 else {
@@ -1899,7 +1917,7 @@ Invoke-Step "doc-stamp" {
     $global:LASTEXITCODE = 0
 }
 
-if ($Target -match '^S\d{4}$') {
+if ($Target -match '^S\d{4}$' -and -not $GatesOnly) {
     # Silent by contract: the ledger is read later through the recorder's Summary verb, and printing
     # it here would add to the agent context it measures. A recorder failure never changes the verdict.
     #
@@ -1932,6 +1950,17 @@ $totalSw.Stop()
 $elapsedMs = [int]$totalSw.Elapsed.TotalMilliseconds
 # S4056: CHECK-VERDICT 0.11 rule 5 - on every branch below the verdict line is the last stdout line;
 # the advisory list, the guidance and the protocol pointer print before it.
+# S4488: a Fast-tier PASS is a verdict about the fast checks only, and says so: the names of the
+# release-tier checks it did not run ride in the verdict line, the full list in the protocol file.
+$tierNote = ''
+if ($script:ActiveTier -eq 'Fast') {
+    $tierShown = @($script:TierSkipped | Select-Object -First 6)
+    $tierMore = if ($script:TierSkipped.Count -gt $tierShown.Count) { ", +$($script:TierSkipped.Count - $tierShown.Count) more" } else { '' }
+    $tierNote = if ($script:TierSkipped.Count -gt 0) {
+        "; fast tier - $($script:TierSkipped.Count) release-tier check(s) not run until the release: $($tierShown -join ', ')$tierMore"
+    } else { '; fast tier' }
+}
+if ($GatesOnly) { $tierNote += '; gates only' }
 if ($script:AdvisoryFindings.Count -gt 0) {
     Write-SkippedSummary
     foreach ($advisory in $script:AdvisoryFindings) {
@@ -1941,7 +1970,7 @@ if ($script:AdvisoryFindings.Count -gt 0) {
     Send-PostChangeChatVerdict -Verdict "PASS WITH ADVISORIES ($($script:AdvisoryFindings.Count)), $elapsedMs ms"
     Write-ProtocolPointer
     Write-Host ("post-change: PASS WITH ADVISORIES ($($script:AdvisoryFindings.Count)) " +
-        "($resolvedChangeType, $elapsedMs ms)") -ForegroundColor Yellow
+        "($resolvedChangeType, $elapsedMs ms$tierNote)") -ForegroundColor Yellow
 }
 elseif ($closureReuse) {
     # S3301: never the bare word PASS. This run judged nothing - it reports a verdict another run
@@ -1965,6 +1994,6 @@ else {
     Add-ClosureLedgerRecord -Target $Target -Fingerprint $closureFingerprint `
         -RunId (Get-GateTelemetryRunId) -ElapsedMs $elapsedMs -Protocol $script:ProtocolPath
     Write-Host ("post-change: PASS ($resolvedChangeType, $elapsedMs ms, $($script:PassedCount) passed, " +
-        "$($script:SkippedSteps.Count) skipped)") -ForegroundColor Green
+        "$($script:SkippedSteps.Count) skipped$tierNote)") -ForegroundColor Green
 }
 exit 0

@@ -5,10 +5,9 @@ name: Security scan
 # that arrived before the gate existed, or through a path the closure never saw.
 
 on:
-  schedule:
-    # Monday 03:17 UTC. Off the hour on purpose - the top of the hour is the busiest slot on the
-    # shared scheduler and a delayed weekly run is a run nobody reads.
-    - cron: '17 3 * * 1'
+  # S4488: the full-tree secret scan runs on the release push to `main` and on manual dispatch, not on a clock.
+  push:
+    branches: [ main ]
   workflow_dispatch:
 
 concurrency:

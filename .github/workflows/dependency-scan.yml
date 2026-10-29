@@ -26,10 +26,7 @@ on:
       - 'scripts/builders/build-sbom.ps1'
       - 'scripts/builders/build-sbom.tests/**'
       - 'scripts/quality/dependency-license-allowlist.json'
-  pull_request:
-    branches: [ main ]
-  schedule:
-    - cron: '41 4 * * 1'
+  # S4488: no pull_request and no weekly clock - the scan runs on the release push and on manual dispatch.
   workflow_dispatch:
 
 concurrency:

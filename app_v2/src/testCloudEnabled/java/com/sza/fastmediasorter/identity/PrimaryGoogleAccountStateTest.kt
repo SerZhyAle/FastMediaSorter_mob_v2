@@ -217,6 +217,7 @@ class PrimaryGoogleAccountStateTest {
         assertEquals(scopes + appData, saved.captured.grantedScopes)
         val bound = repo.state.value as PrimaryGoogleAccountState.Bound
         assertEquals(scopes + appData, bound.account.grantedScopes)
+        coVerify(exactly = 1) { issuer.forgetConsentRefusals() }
     }
 
     @Test
@@ -228,6 +229,7 @@ class PrimaryGoogleAccountStateTest {
         val result = repo.grantScopes(context, setOf(GoogleScope.DRIVE_APPDATA))
 
         assertEquals(IdentitySignInResult.Cancelled, result)
+        coVerify(exactly = 0) { issuer.forgetConsentRefusals() }
         coVerify(exactly = 0) { store.save(any()) }
         assertEquals(sampleAccount, (repo.state.value as PrimaryGoogleAccountState.Bound).account)
     }

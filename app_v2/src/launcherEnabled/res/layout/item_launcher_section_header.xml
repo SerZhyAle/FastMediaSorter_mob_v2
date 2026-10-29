@@ -28,7 +28,11 @@
     android:paddingStart="4dp"
     android:paddingEnd="4dp">
 
+    <!-- S4475: the binder resizes the root inset, this strip's padding, the chevron and the title's
+         autosize range from the cell size, so a title is shrunk before it is cut. The values here are
+         the nominal-cell ones. -->
     <LinearLayout
+        android:id="@+id/sectionStrip"
         android:layout_width="match_parent"
         android:layout_height="@dimen/launcher_section_strip_height"
         android:layout_gravity="center_vertical"

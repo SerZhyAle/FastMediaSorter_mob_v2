@@ -107,4 +107,24 @@
     <string name="scheduled_op_badge_skipped">Last run was skipped: a side could not be reached. It is tried again at the next slot.</string>
     <string name="scheduled_ops_notif_failed_title">Scheduled operation failed</string>
     <string name="scheduled_ops_notif_failed_text">%1$s: %2$s</string>
+    <string name="scheduled_op_history_details">Details</string>
+    <string name="scheduled_op_reason_source_unreachable">The source did not answer</string>
+    <string name="scheduled_op_reason_target_unreachable">The target did not answer</string>
+    <string name="scheduled_op_reason_source_read_only">The source is read-only</string>
+    <string name="scheduled_op_reason_target_read_only">The target is read-only</string>
+    <string name="scheduled_op_reason_source_missing">The source folder is missing</string>
+    <string name="scheduled_op_reason_target_unavailable">The target folder is missing or not writable</string>
+    <string name="scheduled_op_reason_watch_unavailable">The watch connection is off or not supported here</string>
+    <string name="scheduled_op_reason_watch_unreachable">The watch did not answer</string>
+    <string name="scheduled_op_reason_watch_refused">The watch could not show the message</string>
+    <string name="scheduled_op_reason_message_too_long">The message is too long for the watch</string>
+    <string name="scheduled_op_reason_pin_refused">The folder PIN was not accepted</string>
+    <string name="scheduled_op_reason_permission_required">Needs your permission or a new sign-in</string>
+    <string name="scheduled_op_reason_skipped_other">Could not start this time</string>
+    <string name="scheduled_op_reason_error_other">The run did not finish</string>
+    <string name="scheduled_op_last_run_retry">A skipped run is tried again at the next slot.</string>
+    <string name="scheduled_op_last_run_title">Last run</string>
+    <string name="scheduled_op_reason_source_deleted">The source was deleted, so this schedule is paused</string>
+    <string name="scheduled_op_reason_target_deleted">The target was deleted, so this schedule is paused</string>
+    <string name="scheduled_ops_log_failed">Something went wrong</string>
 </resources>

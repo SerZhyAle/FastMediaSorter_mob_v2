@@ -24,6 +24,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
 import com.sza.fastmediasorter.ui.icon.RecyclableIconTint
+import timber.log.Timber
 import kotlin.math.roundToInt
 
 /**
@@ -501,6 +502,11 @@ class LauncherCellViewBinder(
     /**
      * S1757: scales shortcut icon, monogram, mode badge, vertical padding, and label margin
      * proportionally to the desktop container's cell size so up to 2 lines of text fit in dense grid.
+     *
+     * S4475: the caption is scaled here too - its size, line count and horizontal paddings - from the
+     * same spec, because the line count is only true together with the icon size it was fitted to. The
+     * user's font scale is an input: the caption is in sp and the enlarged-font case is where two lines
+     * stopped fitting.
      */
     private fun applyShortcutLayoutScaling(
         binding: ItemLauncherCellShortcutBinding,
@@ -510,7 +516,10 @@ class LauncherCellViewBinder(
         if (density <= 0f) return
         val cellSizePx = container.currentCellSize()
         val cellSizeDp = if (cellSizePx > 0) cellSizePx / density else LauncherGridGeometry.BASE_CELL_DP
-        val spec = LauncherGridGeometry.shortcutLayoutSpec(cellSizeDp)
+        val spec = LauncherGridGeometry.shortcutLayoutSpec(
+            cellSizeDp,
+            binding.root.resources.configuration.fontScale,
+        )
 
         val iconPx = (spec.iconSizeDp * density).toInt()
         binding.cellIcon.layoutParams.width = iconPx
@@ -525,12 +534,8 @@ class LauncherCellViewBinder(
         binding.cellModeBadge.layoutParams.height = badgePx
 
         val padVertPx = (spec.contentPaddingVerticalDp * density).toInt()
-        binding.cellContentLayout.setPadding(
-            binding.cellContentLayout.paddingLeft,
-            padVertPx,
-            binding.cellContentLayout.paddingRight,
-            padVertPx,
-        )
+        val padHorPx = (spec.contentPaddingHorizontalDp * density).toInt()
+        binding.cellContentLayout.setPadding(padHorPx, padVertPx, padHorPx, padVertPx)
 
         val labelMarginTopPx = (spec.labelMarginTopDp * density).toInt()
         val labelParams = binding.cellLabel.layoutParams as? ViewGroup.MarginLayoutParams
@@ -538,6 +543,64 @@ class LauncherCellViewBinder(
             labelParams.topMargin = labelMarginTopPx
             binding.cellLabel.layoutParams = labelParams
         }
+        applyCaptionScaling(binding, spec, density)
+    }
+
+    /**
+     * S4475: written on every bind like the rest of the scaling - a pooled root must not keep the caption
+     * size, line count or plate paddings of the cell it drew before. The line count is what turns a cut
+     * into an ellipsis: `ellipsize=end` marks only the last allowed line, so a caption laid out on two
+     * lines but given room for one showed the first line bare and lost the line that would have ended
+     * in "..".
+     */
+    private fun applyCaptionScaling(
+        binding: ItemLauncherCellShortcutBinding,
+        spec: LauncherGridGeometry.ShortcutCellLayoutSpec,
+        density: Float,
+    ) {
+        val plateHorPx = (spec.labelPlatePaddingHorizontalDp * density).toInt()
+        val plateVertPx = (spec.labelPlatePaddingVerticalDp * density).toInt()
+        Timber.d("S4475: caption lines=${spec.labelMaxLines} text=${spec.labelTextSizeSp}sp icon=${spec.iconSizeDp}dp")
+        binding.cellLabel.setPadding(plateHorPx, plateVertPx, plateHorPx, plateVertPx)
+        binding.cellLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, spec.labelTextSizeSp)
+        binding.cellLabel.maxLines = spec.labelMaxLines
+    }
+
+    /**
+     * S4475: a section header in a dense grid. The strip is a fixed two cells wide, so what a longer title
+     * can be given is the width the chevron and the insets take - and then a smaller size, which the
+     * autosize range lets the title reach before its ellipsis shows. Written every bind, for the same
+     * pooled-root reason as the shortcut scaling above.
+     */
+    private fun applySectionHeaderScaling(
+        binding: ItemLauncherSectionHeaderBinding,
+        container: LauncherDesktopLayout,
+    ) {
+        val density = binding.root.resources.displayMetrics.density
+        if (density <= 0f) return
+        val cellSizePx = container.currentCellSize()
+        val cellSizeDp = if (cellSizePx > 0) cellSizePx / density else LauncherGridGeometry.BASE_CELL_DP
+        val spec = LauncherGridGeometry.sectionHeaderLayoutSpec(cellSizeDp)
+
+        val insetPx = (spec.rootInsetHorizontalDp * density).toInt()
+        binding.root.setPadding(insetPx, binding.root.paddingTop, insetPx, binding.root.paddingBottom)
+        val stripPx = (spec.stripPaddingHorizontalDp * density).toInt()
+        binding.sectionStrip.setPadding(
+            stripPx,
+            binding.sectionStrip.paddingTop,
+            stripPx,
+            binding.sectionStrip.paddingBottom,
+        )
+        val chevronPx = (spec.chevronSizeDp * density).toInt()
+        Timber.d("S4475: section chevron=${spec.chevronSizeDp}dp title min=${spec.titleMinTextSizeSp}sp")
+        binding.sectionChevron.layoutParams.width = chevronPx
+        binding.sectionChevron.layoutParams.height = chevronPx
+        binding.sectionTitle.setAutoSizeTextTypeUniformWithConfiguration(
+            spec.titleMinTextSizeSp.toInt(),
+            spec.titleMaxTextSizeSp.toInt(),
+            TITLE_AUTOSIZE_STEP_SP,
+            TypedValue.COMPLEX_UNIT_SP,
+        )
     }
 
     /**
@@ -583,6 +646,7 @@ class LauncherCellViewBinder(
         backdropAlpha: Float,
     ): android.view.View {
         val binding = ItemLauncherSectionHeaderBinding.bind(root)
+        applySectionHeaderScaling(binding, container)
         val title = item.visual?.label
             ?: container.context.getString(R.string.launcher_home_cell_unavailable)
         binding.sectionTitle.text = title
@@ -770,6 +834,9 @@ class LauncherCellViewBinder(
          */
         private const val EXPANDED_CHEVRON_ROTATION = 0f
         private const val COLLAPSED_CHEVRON_ROTATION = -90f
+
+        /** S4475: granularity of the section title's autosize range, one sp keeps the step list short. */
+        private const val TITLE_AUTOSIZE_STEP_SP = 1
 
         /** S1904: mirrors `AppSettings.launcherWidgetBackdropAlpha`, the value the desktop actually renders. */
         private const val DEFAULT_GADGET_BACKDROP_ALPHA = 0.85f

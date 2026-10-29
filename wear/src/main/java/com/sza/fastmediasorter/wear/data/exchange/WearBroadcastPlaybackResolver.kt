@@ -7,38 +7,99 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.IOException
+import java.io.InputStream
 import java.net.InetSocketAddress
 import java.net.Socket
+import java.net.URI
 import java.util.Base64
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/** Whether a LAN endpoint answers from where the watch is now; a watch on LTE or another Wi-Fi gets `false`. */
+/** Whether a LAN endpoint serves from where the watch is now; a watch on LTE or another Wi-Fi gets `false`. */
 interface WearLanEndpointProbe {
 
-    fun answers(host: String, port: Int): Boolean
+    fun answers(endpoint: WearBroadcastEndpoint.Lan): Boolean
 }
 
+/**
+ * A LAN endpoint answers when its first request is met with a status line below 400. A TCP connect alone proves
+ * nothing: a listening socket whose owner serves nothing completes the handshake just the same, and the player then
+ * waits out its read timeout instead of the resolver moving on to the relay. Only the status line is read and the
+ * socket is closed, so the probe never holds the producer's listener slot.
+ */
 @Singleton
-class SocketWearLanEndpointProbe @Inject constructor() : WearLanEndpointProbe {
+class SocketWearLanEndpointProbe internal constructor(
+    private val connectTimeoutMs: Int,
+    private val statusTimeoutMs: Int,
+) : WearLanEndpointProbe {
 
-    override fun answers(host: String, port: Int): Boolean = try {
-        Socket().use { it.connect(InetSocketAddress(host, port), PROBE_TIMEOUT_MS) }
-        true
+    @Inject
+    constructor() : this(CONNECT_TIMEOUT_MS, STATUS_TIMEOUT_MS)
+
+    override fun answers(endpoint: WearBroadcastEndpoint.Lan): Boolean = try {
+        Socket().use { socket ->
+            socket.connect(InetSocketAddress(endpoint.host, endpoint.port), connectTimeoutMs)
+            socket.soTimeout = statusTimeoutMs
+            socket.getOutputStream().apply {
+                write(firstRequest(endpoint).toByteArray(Charsets.US_ASCII))
+                flush()
+            }
+            isServing(statusLine(socket.getInputStream()))
+        }
     } catch (e: IOException) {
         Timber.v("SocketWearLanEndpointProbe: a LAN endpoint did not answer - %s", e.javaClass.simpleName)
         false
     }
 
+    private fun firstRequest(endpoint: WearBroadcastEndpoint.Lan): String {
+        val uri = runCatching { URI(endpoint.url) }.getOrNull()
+        return if (uri?.scheme.equals(SCHEME_RTSP, ignoreCase = true)) {
+            "DESCRIBE ${endpoint.url} RTSP/1.0\r\nCSeq: 1\r\nAccept: application/sdp\r\n\r\n"
+        } else {
+            val path = uri?.rawPath.orEmpty().ifEmpty { "/" } + uri?.rawQuery?.let { "?$it" }.orEmpty()
+            "GET $path HTTP/1.1\r\nHost: ${uri?.rawAuthority ?: endpoint.host}\r\nConnection: close\r\n\r\n"
+        }
+    }
+
+    // Bounded byte by byte: a peer that streams without a newline must not hold the resolver past its read timeout.
+    private fun statusLine(input: InputStream): String {
+        val line = StringBuilder()
+        while (line.length < MAX_STATUS_LINE) {
+            val next = input.read()
+            if (next < 0 || next == LINE_FEED) {
+                break
+            }
+            line.append(next.toChar())
+        }
+        return line.toString().trimEnd('\r')
+    }
+
+    // `HTTP/1.1 200 OK` and `RTSP/1.0 200 OK` alike: the second token is the status.
+    private fun isServing(line: String): Boolean {
+        val status = line.split(' ', limit = STATUS_PARTS).getOrNull(1)?.toIntOrNull()
+        val serving = status != null && status in 1 until FIRST_ERROR_STATUS
+        if (!serving) {
+            Timber.v("SocketWearLanEndpointProbe: a LAN endpoint accepted and sent no usable status (%s)", status)
+        }
+        return serving
+    }
+
     private companion object {
-        const val PROBE_TIMEOUT_MS = 1_500
+        const val CONNECT_TIMEOUT_MS = 1_500
+        const val STATUS_TIMEOUT_MS = 3_000
+        const val MAX_STATUS_LINE = 64
+        const val LINE_FEED = '\n'.code
+        const val STATUS_PARTS = 3
+        const val FIRST_ERROR_STATUS = 400
+        const val SCHEME_RTSP = "rtsp"
     }
 }
 
 /**
  * Turns one directory record into what a player opens (contract DEVICE-EXCHANGE 7.7 and 23 items CH and CI,
  * LIVE-BROADCAST item M). The endpoints are tried in the producer's order, LAN first and then the relay, and
- * every call starts at the top again because a reconnect must (7.7).
+ * every call starts at the top again because a reconnect must (7.7). A LAN endpoint is passed over unless it answers
+ * its first request, so a phone that accepts connections and serves nothing sends the watch on to the relay.
  *
  * A protected broadcast is answered only on the relay, with the Basic header the pinning proxy adds inside TLS:
  * the watch does not run Digest on the LAN endpoints and never plays one without the challenge, and the password
@@ -82,12 +143,19 @@ class WearBroadcastPlaybackResolver @Inject constructor(
         return playback ?: WearBroadcastPlayback.Unavailable(missing)
     }
 
-    private fun lan(record: WearDirectoryBroadcast, endpoint: WearBroadcastEndpoint.Lan, isProtected: Boolean) =
-        if (!isProtected && probe.answers(endpoint.host, endpoint.port)) {
+    private fun lan(
+        record: WearDirectoryBroadcast,
+        endpoint: WearBroadcastEndpoint.Lan,
+        isProtected: Boolean,
+    ): WearBroadcastPlayback? {
+        val serving = !isProtected && probe.answers(endpoint)
+        Timber.d("S4472: lan endpoint serving=$serving protected=$isProtected")
+        return if (serving) {
             playable(record, endpoint, endpoint.url)
         } else {
             null
         }
+    }
 
     private fun relay(record: WearDirectoryBroadcast, endpoint: WearBroadcastEndpoint.Relay, isProtected: Boolean) =
         if (isProtected && record.credentials == null) {

@@ -88,6 +88,11 @@
 
         </FrameLayout>
 
+        <!-- S4475: the binder rewrites this caption's size, line count and paddings from the cell size
+             and the font scale on every bind; the values here are the nominal-cell defaults. The font
+             padding is off because the fit counts lines times line height and nothing else - the extra
+             top and bottom a font's own padding adds would push the second line past the cell, where it
+             is clipped before the ellipsis that marks it can be drawn. -->
         <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
             android:id="@+id/cellLabel"
             android:layout_width="wrap_content"
@@ -97,6 +102,7 @@
             android:background="@drawable/bg_launcher_cell_label"
             android:ellipsize="end"
             android:gravity="center"
+            android:includeFontPadding="false"
             android:maxLines="2"
             android:paddingStart="@dimen/launcher_cell_label_plate_padding_horizontal"
             android:paddingTop="@dimen/launcher_cell_label_plate_padding_vertical"

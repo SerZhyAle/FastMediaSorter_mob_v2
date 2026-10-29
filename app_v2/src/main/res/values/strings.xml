@@ -4620,4 +4620,24 @@
     <string name="stream_broadcast_ended_message">\"%1$s\" is no longer on air. Reconnect when it starts again.</string>
     <string name="stream_broadcast_reconnect">Reconnect</string>
     <string name="stream_status_ended">Broadcast ended</string>
+    <string name="sort_short_manual">Manual</string>
+    <string name="sort_short_name_asc">A-Z</string>
+    <string name="sort_short_name_desc">Z-A</string>
+    <string name="sort_short_date_asc">Old ↑</string>
+    <string name="sort_short_date_desc">New ↓</string>
+    <string name="sort_short_size_asc">Size ↑</string>
+    <string name="sort_short_size_desc">Size ↓</string>
+    <string name="sort_short_type_asc">Type ↑</string>
+    <string name="sort_short_type_desc">Type ↓</string>
+    <string name="sort_short_artist_asc">Artist ↑</string>
+    <string name="sort_short_artist_desc">Artist ↓</string>
+    <string name="sort_short_title_asc">Title ↑</string>
+    <string name="sort_short_title_desc">Title ↓</string>
+    <string name="sort_short_duration_asc">Duration ↑</string>
+    <string name="sort_short_duration_desc">Duration ↓</string>
+    <string name="sort_short_date_taken_asc">DateTaken ↑</string>
+    <string name="sort_short_date_taken_desc">DateTaken ↓</string>
+    <string name="sort_short_random">Random</string>
+    <string name="browse_title_selected_count">%1$d selected</string>
+    <string name="browse_breadcrumb_root">Root</string>
 </resources>

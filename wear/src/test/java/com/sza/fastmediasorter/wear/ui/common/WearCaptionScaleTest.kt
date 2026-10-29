@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.wear.ui.common
 
 import androidx.compose.ui.unit.sp
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -62,6 +63,78 @@ class WearCaptionScaleTest {
             assertTrue("step function did not terminate", steps <= MAX_EXPECTED_STEPS)
         }
         assertTrue("expected at least one step below the ceiling", steps > 0)
+    }
+
+    /**
+     * S4468: Compose tears a word wider than its cell by characters and counts that against `maxLines`,
+     * so only the break position tells a tear from a wrap. These are the four captions the owner saw
+     * torn on the watch, with the break offsets read off the screenshots.
+     */
+    @Test
+    fun `a break through the middle of a word is a tear`() {
+        assertTrue(breaksMidWord("tone_test", listOf("tone_te".length)))
+        assertTrue(breaksMidWord("Тестовый звук ёж", listOf("Тестов".length, "Тестовый".length)))
+        assertTrue(breaksMidWord("193.178.50.43", listOf("193.178".length)))
+        assertTrue(breaksMidWord("SM-L310", listOf("SM-L31".length)))
+    }
+
+    @Test
+    fun `a break on the whitespace that wrapped the line is clean`() {
+        assertFalse(breaksMidWord("Тестовый звук ёж", listOf("Тестовый ".length, "Тестовый звук ".length)))
+    }
+
+    @Test
+    fun `a break behind a hyphen or a slash is clean`() {
+        assertFalse(breaksMidWord("my-file name", listOf("my-".length)))
+        assertFalse(breaksMidWord("music/rock", listOf("music/".length)))
+    }
+
+    @Test
+    fun `a caption on one line has no break to judge`() {
+        assertFalse(breaksMidWord("tone_test", emptyList()))
+    }
+
+    @Test
+    fun `an offset outside the text is not a tear`() {
+        assertFalse(breaksMidWord("abc", listOf(0, 3, 9)))
+    }
+
+    /**
+     * S4469: the grid's shared size is only right if a late or stale report cannot lift what another
+     * cell already lowered, so the property is asserted without a composition.
+     */
+    @Test
+    fun `a caption group starts at the ceiling`() {
+        assertEquals(WearCaptionScale.Ceiling.value, WearCaptionGroup().size.value, EXACT)
+    }
+
+    @Test
+    fun `a smaller report lowers the group size`() {
+        val group = WearCaptionGroup()
+        group.lowerTo(14f.sp)
+        assertEquals(14f, group.size.value, EXACT)
+    }
+
+    @Test
+    fun `a larger report leaves the group size alone`() {
+        val group = WearCaptionGroup()
+        group.lowerTo(13f.sp)
+        group.lowerTo(15f.sp)
+        assertEquals(13f, group.size.value, EXACT)
+    }
+
+    @Test
+    fun `two reports settle on the smaller one in either order`() {
+        val first = WearCaptionGroup().apply {
+            lowerTo(15f.sp)
+            lowerTo(13f.sp)
+        }
+        val second = WearCaptionGroup().apply {
+            lowerTo(13f.sp)
+            lowerTo(15f.sp)
+        }
+        assertEquals(13f, first.size.value, EXACT)
+        assertEquals(13f, second.size.value, EXACT)
     }
 
     private companion object {

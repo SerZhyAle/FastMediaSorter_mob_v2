@@ -117,7 +117,9 @@ class LauncherAllAppsFragment : DialogFragment() {
                 dismiss()
             },
             placeOnDesktop = { packageName ->
-                homeViewModel.placeAppOnDesktop(packageName, desktopColumns())
+                // S4492: the desktop's own count - its viewport is narrower than this window beside a side taskbar.
+                val columns = homeViewModel.desktopColumns.value.takeIf { it > 0 } ?: desktopColumns()
+                homeViewModel.placeAppOnDesktop(packageName, columns)
                 dismiss()
             },
             pinToTaskbar = { packageName -> homeViewModel.pinAppToTaskbar(packageName) },

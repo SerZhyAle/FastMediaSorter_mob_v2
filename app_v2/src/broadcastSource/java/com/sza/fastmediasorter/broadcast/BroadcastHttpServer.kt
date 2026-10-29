@@ -7,10 +7,17 @@ import com.sza.fastmediasorter.data.broadcast.auth.BroadcastDigest
 import fi.iki.elonen.NanoHTTPD
 import kotlinx.coroutines.flow.asStateFlow
 import timber.log.Timber
+import java.io.Closeable
 import java.io.FilterInputStream
+import java.io.IOException
 import java.io.InputStream
+import java.io.OutputStream
 import java.io.PipedInputStream
 import java.io.PipedOutputStream
+import java.net.InetAddress
+import java.net.Socket
+import java.net.SocketException
+import java.net.SocketTimeoutException
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
@@ -228,6 +235,52 @@ class BroadcastHttpServer(
     }
 
     private inner class InternalServer(port: Int) : NanoHTTPD("0.0.0.0", port) {
+
+        override fun createClientHandler(finalAccept: Socket, inputStream: InputStream): ClientHandler =
+            NoLookupClientHandler(finalAccept, inputStream)
+
+        /**
+         * The library's handler builds its session from the socket's address, whose host name NanoHTTPD 2.3.1
+         * resolves by a reverse DNS query for every non-loopback peer before reading the request. A LAN whose
+         * resolver does not answer that query stalled each listener past its timeout with no status line, while
+         * the loopback relay uploader was served at once (S4491). Presetting the numeric host skips the query.
+         */
+        private inner class NoLookupClientHandler(
+            private val socket: Socket,
+            private val input: InputStream,
+        ) : ClientHandler(input, socket) {
+
+            @Suppress("TooGenericExceptionCaught")
+            override fun run() {
+                Timber.d("S4491: lookup-free client handler for ${socket.inetAddress.hostAddress}")
+                var output: OutputStream? = null
+                try {
+                    output = socket.getOutputStream()
+                    val peer = socket.inetAddress.let { InetAddress.getByAddress(it.hostAddress, it.address) }
+                    val session = HTTPSession(tempFileManagerFactory.create(), input, output, peer)
+                    while (!socket.isClosed) session.execute()
+                } catch (e: SocketException) {
+                    Timber.v("BroadcastHttpServer: client connection closed - ${e.message}")
+                } catch (e: SocketTimeoutException) {
+                    Timber.v("BroadcastHttpServer: client idle timeout - ${e.message}")
+                } catch (e: Exception) {
+                    Timber.w(e, "BroadcastHttpServer: client handler failed")
+                } finally {
+                    closeQuietly(output)
+                    closeQuietly(input)
+                    closeQuietly(socket)
+                    asyncRunner.closed(this)
+                }
+            }
+
+            private fun closeQuietly(closeable: Closeable?) {
+                try {
+                    closeable?.close()
+                } catch (e: IOException) {
+                    Timber.v("BroadcastHttpServer: client stream already closed - ${e.message}")
+                }
+            }
+        }
 
         override fun serve(session: IHTTPSession): Response {
             if (ending || (session.uri != ENDPOINT && session.uri != "/live-audio")) {

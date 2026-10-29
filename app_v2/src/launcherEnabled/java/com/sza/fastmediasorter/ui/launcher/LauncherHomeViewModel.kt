@@ -24,6 +24,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactChannel
 import com.sza.fastmediasorter.domain.model.launcher.LauncherMessengerApp
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
+import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
 import com.sza.fastmediasorter.domain.model.launcher.LauncherWallpaper
 import com.sza.fastmediasorter.domain.repository.LauncherJournalRepository
 import com.sza.fastmediasorter.domain.repository.LauncherSectionVisibilityRepository
@@ -61,6 +62,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.io.File
 import javax.inject.Inject
 
@@ -110,6 +113,11 @@ class LauncherHomeViewModel @Inject constructor(
     // Rotation swaps which layout is observed. The collection itself is never torn down: the
     // orientation is an input to the stream, not a reason to restart it.
     private val _orientation = MutableStateFlow(LauncherOrientation.PORTRAIT)
+
+    // S4492: the column count the desktop last resolved from its own width; 0 until it has.
+    private val _desktopColumns = MutableStateFlow(0)
+    val desktopColumns: StateFlow<Int> = _desktopColumns.asStateFlow()
+    private val columnsWriteMutex = Mutex()
 
     /** S2330: guards [startShortcutSyncObservation] - see the note there on why a rotation must not restart it. */
     private var shortcutSyncObservationStarted = false
@@ -880,10 +888,31 @@ class LauncherHomeViewModel @Inject constructor(
         }
     }
 
-    /** Records the grid width the surface actually resolved, so seeding and edit mode agree with it. */
+    /**
+     * Records the grid width the surface actually resolved, so seeding and edit mode agree with it.
+     *
+     * S4492: a changed count also repacks every section of that orientation at the new width. Stored
+     * cells keep the columns of the grid they were placed on, and a narrower grid only clamps them at
+     * its right edge, stacking the overflow on the last column. Serialised so two quick resolves - a
+     * taskbar move right after a rotation - cannot both read the same previous count.
+     */
     fun persistColumns(orientation: LauncherOrientation, columns: Int) {
+        _desktopColumns.value = columns
         viewModelScope.launch {
-            desktopDependencies.desktopRepository.updateColumns(orientation, columns)
+            columnsWriteMutex.withLock {
+                val repository = desktopDependencies.desktopRepository
+                val state = repository.state()
+                val previous = when (orientation) {
+                    LauncherOrientation.PORTRAIT -> state.columnsPortrait
+                    LauncherOrientation.LANDSCAPE -> state.columnsLandscape
+                }
+                repository.updateColumns(orientation, columns)
+                if (previous > 0 && previous != columns) {
+                    Timber.d("S4492: reflow sections $orientation columns $previous -> $columns")
+                    LauncherSectionMembership.sectionsInOrder(repository.observeCells(orientation).first())
+                        .forEach { header -> repository.resortSection(orientation, header.id, columns) }
+                }
+            }
         }
     }
 

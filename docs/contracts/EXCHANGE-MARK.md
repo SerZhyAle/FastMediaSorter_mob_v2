@@ -1,9 +1,11 @@
+<sub class="doc-stamp">26.10.29 05:03</sub>
+
 # Pointer - `EXCHANGE-MARK`
 
 | | |
 | --- | --- |
 | **Id** | `EXCHANGE-MARK` |
-| **Version** | 0.3, active - 2026-10-19 (S4395: mark adopted across phone, watch, portal and documentation; proper name "Media Exchange Server"); 0.2 - 2026-10-19 (small 24dp vector and mono glyph, high-contrast, binary assets); 0.1 - 2026-10-19 (first version) |
+| **Version** | 0.4, active - 2026-10-29 (text only: rules 8, 10 and 14 clarified; the artwork stays at 0.3); 0.3 - 2026-10-19 (S4395: mark adopted across phone, watch, portal and documentation; proper name "Media Exchange Server"); 0.2 - 2026-10-19 (small 24dp vector and mono glyph, high-contrast, binary assets); 0.1 - 2026-10-19 (first version) |
 | **Home** | `exchange-mark/README.md` in the shared contracts catalog |
 | **Role here** | consumer; publisher of the portal "Media exchange between your devices" (`docs/media-exchange-portal/`); vendor of artwork (`android/ic_exchange_mark.xml`, `android/ic_exchange_mark_small.xml`, `android/ic_exchange_mono.xml`, PNG set) |
 

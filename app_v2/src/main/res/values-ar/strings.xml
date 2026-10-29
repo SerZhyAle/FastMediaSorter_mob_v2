@@ -4103,7 +4103,11 @@
     <string name="broadcast_prepared_share_title">مشاركة الرابط المسبق</string>
     <plurals name="broadcast_prepared_days">
         <item quantity="one">%d يوم</item>
-        <item quantity="other">%d أيام</item>
+        <item quantity="zero">%d يوم</item>
+        <item quantity="two">%d يومان</item>
+        <item quantity="few">%d أيام</item>
+        <item quantity="many">%d يومًا</item>
+        <item quantity="other">%d يوم</item>
     </plurals>
     <string name="stream_broadcast_ended_title">انتهى البث</string>
     <string name="stream_broadcast_ended_message">\"%1$s\" لم يعد على الهواء. أعد الاتصال عند بدئه مرة أخرى.</string>

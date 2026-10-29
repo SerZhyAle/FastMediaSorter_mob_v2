@@ -30,11 +30,12 @@
             tools:ignore="UseAppTint"
             tools:src="@drawable/ic_wifi" />
 
-        <LinearLayout
+        <!-- S4476: the column keeps the value whole and leaves out the caption and the fill bar when a
+             short tile has no room for them, instead of squeezing the value into the caption. -->
+        <com.sza.fastmediasorter.ui.launcher.gadget.GadgetValueColumn
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="2"
-            android:orientation="vertical">
+            android:layout_weight="2">
 
             <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
                 android:id="@+id/gadgetTechnicalValue"
@@ -79,7 +80,7 @@
                 tools:progress="60"
                 tools:visibility="visible" />
 
-        </LinearLayout>
+        </com.sza.fastmediasorter.ui.launcher.gadget.GadgetValueColumn>
 
     </LinearLayout>
 

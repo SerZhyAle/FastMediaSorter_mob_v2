@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.13 14:51</sub>
+<sub class="doc-stamp">26.10.29 04:34</sub>
 
 # FastMediaSorter v2: Architecture & Flow
 
@@ -101,6 +101,8 @@ A value is read together with the caption that names it, so the two must stay ad
 - **Never `android:gravity="end"` on a value**, and in `ConstraintLayout` never pin a value to the parent's end without also constraining its start to the caption.
 - **A shared label column is sized by the longest caption in the group, never by the container width**, and drops itself when it does not fit - see `SettingsValueRowGroup`. Proximity outranks a straight column of glyphs: when the two conflict, proximity wins.
 - **Only a visible, participating child sizes that column** (S2389). A child that is `GONE` at measure time is skipped, so a row hidden until it has something to show cannot switch the block's alignment off from behind the scenes. A sub-row that belongs to the row above it rather than to the block opts out with `app:layout_excludeFromLabelColumn="true"`, a child attribute of the group. Opt a sub-row out whenever its caption or its value is unrelated in length to its neighbours': the gesture-target rows carry a long caption and a long placeholder value beside four-character direction captions, and counting them collapses the column for the whole block the moment the first target is assigned. The attribute is explicit and never inferred - the same sub-row is indented in the launcher dialog and flush in the gesture-config dialog, so any rule read off the margin would catch one and miss the other.
+- **Rows in different containers share a column only through `app:svrg_spanDescendants="true"`** (S4486). The default group sizes its column from direct children; the spanning form collects every row below plain containers and takes each row's start offset off the column it receives, so the values still begin at one x. A group nested under a spanning one leaves the sizing to it. The broadcast screen uses it to line the mode row, which stays outside the card because the card is hidden while on air, up with the card's rows.
+- **An inline `SettingsInputRow` is compact**: no floating label unless the row has a hint, and 8dp above and below the text (`settings_inline_input_vertical_padding`), so a numeric field is not several times taller than the text-only rows beside it.
 
 Reference layouts: `view_settings_selection_row.xml`, `view_settings_toggle_row.xml`, `view_settings_dropdown_row.xml`.
 

@@ -26,10 +26,24 @@ class ScheduledOpWatchMessageFormManager(
     private var imageUri: String? = null
     private var imageName: String? = null
 
+    // S4481: an empty title is reported only after the user has left or edited the field, never on open.
+    private var titleTouched = false
+
     fun bind(onTitleChanged: () -> Unit) {
         b.btnWatchPickImage.setOnClickListener { onPickImage() }
         b.btnWatchClearImage.setOnClickListener { clearImage() }
-        b.etWatchTitle.doAfterTextChanged { onTitleChanged() }
+        b.etWatchTitle.doAfterTextChanged {
+            if (b.etWatchTitle.hasFocus()) titleTouched = true
+            onTitleChanged()
+        }
+        val previous = b.etWatchTitle.onFocusChangeListener
+        b.etWatchTitle.setOnFocusChangeListener { v, hasFocus ->
+            previous?.onFocusChange(v, hasFocus)
+            if (!hasFocus) {
+                titleTouched = true
+                onTitleChanged()
+            }
+        }
     }
 
     fun setVisible(visible: Boolean) {
@@ -45,11 +59,18 @@ class ScheduledOpWatchMessageFormManager(
 
     fun hasTitle(): Boolean = !b.etWatchTitle.text.isNullOrBlank()
 
-    /** Shows the "enter a title" error while the field is empty; true when the form can be saved. */
+    /** Save path: marks the title as touched, so an empty one is always reported; true when saveable. */
     fun validate(): Boolean {
+        titleTouched = true
+        return refreshValidation()
+    }
+
+    /** Keeps the "enter a title" error in step with the field, but only once it was touched. */
+    fun refreshValidation(): Boolean {
         val ok = hasTitle()
+        val showError = !ok && titleTouched
         b.tilWatchTitle.error =
-            if (ok) null else b.root.context.getString(R.string.scheduled_ops_error_watch_title_required)
+            if (showError) b.root.context.getString(R.string.scheduled_ops_error_watch_title_required) else null
         return ok
     }
 
@@ -75,10 +96,12 @@ class ScheduledOpWatchMessageFormManager(
     fun saveState(state: Bundle) {
         state.putString(STATE_IMAGE_URI, imageUri)
         state.putString(STATE_IMAGE_NAME, imageName)
+        state.putBoolean(STATE_TITLE_TOUCHED, titleTouched)
     }
 
     fun restoreState(state: Bundle) {
         setImage(state.getString(STATE_IMAGE_URI), state.getString(STATE_IMAGE_NAME))
+        titleTouched = state.getBoolean(STATE_TITLE_TOUCHED)
     }
 
     private fun nameFromUri(uri: String): String =
@@ -87,5 +110,6 @@ class ScheduledOpWatchMessageFormManager(
     private companion object {
         const val STATE_IMAGE_URI = "scheduled_op_watch_image_uri"
         const val STATE_IMAGE_NAME = "scheduled_op_watch_image_name"
+        const val STATE_TITLE_TOUCHED = "scheduled_op_watch_title_touched"
     }
 }

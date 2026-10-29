@@ -425,7 +425,9 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
     // Lazy for the same reason the overlay managers below are: it needs the inflated binding, and its
     // first read happens inside setupViews(), after BaseActivity has inflated it.
-    private val geometryManager: LauncherDesktopGeometryManager by lazy {
+    // S4492: held apart so onDestroy can release the manager's viewport listener without creating it.
+    // Declared before the property it backs: a delegate is read when that property is initialised.
+    private val geometryManagerDelegate: Lazy<LauncherDesktopGeometryManager> = lazy {
         LauncherDesktopGeometryManager(
             resources = resources,
             desktop = binding.launcherDesktop,
@@ -434,6 +436,7 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             viewModel = viewModel,
         )
     }
+    private val geometryManager: LauncherDesktopGeometryManager by geometryManagerDelegate
 
     /** Gadgets reach the desktop only through the one launch guard every other surface shares. */
     private val gadgetHost = object : LauncherGadgetHost {
@@ -1053,6 +1056,7 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // hierarchy reachable for as long as anything still references the manager.
         statusStripManager.unbind()
         if (::idleScreenOffManager.isInitialized) idleScreenOffManager.onDestroy()
+        if (geometryManagerDelegate.isInitialized()) geometryManager.release()
         super.onDestroy()
     }
 

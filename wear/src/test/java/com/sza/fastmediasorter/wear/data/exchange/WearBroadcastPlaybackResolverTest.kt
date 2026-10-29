@@ -14,10 +14,13 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.io.InputStream
 import java.net.InetAddress
 import java.net.ServerSocket
 import java.net.Socket
 import java.net.URI
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.concurrent.thread
 
 /** What a tap on a listed broadcast resolves to (contract DEVICE-EXCHANGE 7.7, items CH and CI; LIVE-BROADCAST M). */
@@ -41,7 +44,7 @@ class WearBroadcastPlaybackResolverTest {
     private val resolver = WearBroadcastPlaybackResolver(
         bridges,
         object : WearLanEndpointProbe {
-            override fun answers(host: String, port: Int): Boolean = lanAnswers
+            override fun answers(endpoint: WearBroadcastEndpoint.Lan): Boolean = lanAnswers
         },
     )
 
@@ -173,7 +176,7 @@ class WearBroadcastPlaybackResolverTest {
         val sealedResolver = WearBroadcastPlaybackResolver(
             sealedBridges,
             object : WearLanEndpointProbe {
-                override fun answers(host: String, port: Int): Boolean = false
+                override fun answers(endpoint: WearBroadcastEndpoint.Lan): Boolean = false
             },
         )
 
@@ -200,6 +203,147 @@ class WearBroadcastPlaybackResolverTest {
             sealedBridges.closeAll()
             upstream.close()
         }
+    }
+
+    @Test
+    fun `a LAN server answering 200 serves, and the probe asks it with a GET for its path`() {
+        withLanServer("HTTP/1.1 200 OK\r\nContent-Type: audio/aac\r\n\r\n") { port, request ->
+            assertTrue(socketProbe().answers(lanEndpoint(port)))
+            assertTrue(request().startsWith("GET /live-audio.aac HTTP/1.1\r\n"))
+        }
+    }
+
+    @Test
+    fun `a LAN server answering 404 does not serve`() {
+        withLanServer("HTTP/1.1 404 Not Found\r\n\r\n") { port, _ ->
+            assertFalse(socketProbe().answers(lanEndpoint(port)))
+        }
+    }
+
+    @Test
+    fun `a LAN server that accepts the connection and stays silent does not serve`() {
+        withLanServer(reply = null) { port, _ ->
+            assertFalse(socketProbe().answers(lanEndpoint(port)))
+        }
+    }
+
+    @Test
+    fun `a LAN peer streaming bytes with no line end does not serve`() {
+        withLanServer("x".repeat(PROBE_NOISE_LENGTH)) { port, _ ->
+            assertFalse(socketProbe().answers(lanEndpoint(port)))
+        }
+    }
+
+    @Test
+    fun `a LAN port nothing listens on does not serve`() {
+        val closed = ServerSocket(0, 1, InetAddress.getLoopbackAddress()).use { it.localPort }
+
+        val endpoint = WearBroadcastEndpoint.Lan("http://127.0.0.1:$closed/", "127.0.0.1", closed, "AUDIO_ONLY")
+
+        assertFalse(socketProbe().answers(endpoint))
+    }
+
+    @Test
+    fun `an RTSP LAN endpoint is asked with DESCRIBE and serves on its 200`() {
+        withLanServer("RTSP/1.0 200 OK\r\nCSeq: 1\r\n\r\n") { port, request ->
+            val endpoint = lanEndpoint(port, scheme = "rtsp", path = "/")
+
+            assertTrue(socketProbe().answers(endpoint))
+            assertTrue(request().startsWith("DESCRIBE ${endpoint.url} RTSP/1.0\r\n"))
+        }
+    }
+
+    @Test
+    fun `a LAN endpoint that accepts and stays silent sends the resolver on to the relay`() {
+        withLanServer(reply = null) { port, _ ->
+            val descriptor = """{"endpoints":[{"url":"${lanEndpoint(port).url}","transport":"HTTP"},""" +
+                """{"url":"https://ex.example:7443/v2/b/b1/stream","transport":"RELAY"}]}"""
+
+            val playable = realProbeResolver().resolveBlocking(record(descriptor, "AUDIO_ONLY")) as
+                WearBroadcastPlayback.Playable
+
+            assertTrue(playable.url.startsWith("http://127.0.0.1:"))
+            assertTrue(playable.url.endsWith("/v2/b/b1/stream"))
+        }
+    }
+
+    @Test
+    fun `a LAN endpoint that serves keeps its address when the real probe judges it`() {
+        withLanServer("HTTP/1.1 200 OK\r\n\r\n") { port, _ ->
+            val lan = lanEndpoint(port)
+            val descriptor = """{"endpoints":[{"url":"${lan.url}","transport":"HTTP"},""" +
+                """{"url":"https://ex.example:7443/v2/b/b1/stream","transport":"RELAY"}]}"""
+
+            val playable = realProbeResolver().resolveBlocking(record(descriptor, "AUDIO_ONLY")) as
+                WearBroadcastPlayback.Playable
+
+            assertEquals(lan.url, playable.url)
+        }
+    }
+
+    private fun socketProbe() = SocketWearLanEndpointProbe(PROBE_CONNECT_MS, PROBE_STATUS_MS)
+
+    private fun realProbeResolver() = WearBroadcastPlaybackResolver(bridges, socketProbe())
+
+    private fun WearBroadcastPlaybackResolver.resolveBlocking(record: WearDirectoryBroadcast) =
+        runBlocking { resolve(record) }
+
+    private fun lanEndpoint(port: Int, scheme: String = "http", path: String = "/live-audio.aac") =
+        WearBroadcastEndpoint.Lan(
+            url = "$scheme://127.0.0.1:$port$path",
+            host = "127.0.0.1",
+            port = port,
+            mode = "AUDIO_ONLY",
+        )
+
+    /**
+     * A loopback server for one connection: it reads the request head, then sends [reply], or nothing when null and
+     * keeps the connection open. [body] gets the port and a reader of the head the server received.
+     */
+    private fun <T> withLanServer(reply: String?, body: (port: Int, request: () -> String) -> T): T {
+        val server = ServerSocket(0, 1, InetAddress.getLoopbackAddress())
+        val peers = CopyOnWriteArrayList<Socket>()
+        val request = AtomicReference("")
+        thread(isDaemon = true) { serveOneLanPeer(server, peers, request, reply) }
+        return try {
+            body(server.localPort) { request.get() }
+        } finally {
+            peers.forEach { runCatching(it::close) }
+            server.close()
+        }
+    }
+
+    private fun serveOneLanPeer(
+        server: ServerSocket,
+        peers: MutableList<Socket>,
+        request: AtomicReference<String>,
+        reply: String?,
+    ) {
+        try {
+            val peer = server.accept()
+            peers += peer
+            request.set(readHead(peer.getInputStream()))
+            reply?.let { text ->
+                peer.getOutputStream().apply {
+                    write(text.toByteArray(Charsets.US_ASCII))
+                    flush()
+                }
+            }
+        } catch (expected: IOException) {
+            // The test closed the server while the thread was still accepting or writing.
+        }
+    }
+
+    private fun readHead(input: InputStream): String {
+        val head = StringBuilder()
+        while (!head.endsWith("\r\n\r\n")) {
+            val next = input.read()
+            if (next < 0) {
+                break
+            }
+            head.append(next.toChar())
+        }
+        return head.toString()
     }
 
     private fun relayVectors(): JsonObject {
@@ -265,6 +409,9 @@ class WearBroadcastPlaybackResolverTest {
         const val VECTORS = "device-exchange/e2e-v1.json"
         const val TIMEOUT_MS = 10_000
         const val HEAD_END_LENGTH = 4
+        const val PROBE_CONNECT_MS = 1_000
+        const val PROBE_STATUS_MS = 400
+        const val PROBE_NOISE_LENGTH = 512
         const val LAN_AND_RELAY = """{"endpoints":[""" +
             """{"url":"http://10.0.0.2:8080/","transport":"HTTP"},""" +
             """{"url":"https://ex.example:7443/v2/b/b1/stream","transport":"RELAY","certFingerprint":"SHA256:p"}]}"""

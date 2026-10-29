@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.domain.usecase.ResolveLocalFolderResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.UpdateScheduledOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.UpsertScheduledOperationUseCase
 import com.sza.fastmediasorter.testing.MainDispatcherRule
+import com.sza.fastmediasorter.testing.createMediaResource
 import com.sza.fastmediasorter.worker.WorkManagerScheduler
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -100,6 +101,7 @@ class ScheduledOperationsViewModelTest {
             checkLocalFolderWritableUseCase = checkLocalFolderWritable,
             getResourcesUseCase = getResources.also {
                 every { it() } returns flowOf(resourcesList)
+                every { it.allIncludingHidden() } returns flowOf(resourcesList)
             },
             cleanupHiddenResourceUseCase = cleanupHiddenResource,
         )
@@ -123,6 +125,19 @@ class ScheduledOperationsViewModelTest {
         advanceUntilIdle()
         assertEquals(listOf(sampleResource), emitted.last())
         job.cancel()
+    }
+
+    // A folder picked by path is a hidden resource: the card must name it, and only an id that no
+    // resource row carries may read as deleted.
+    @Test
+    fun resourceNameOfNamesAHiddenResourceAndLeavesAMissingIdUnnamed() = runTest {
+        val hidden = createMediaResource(id = 10L, name = "Picked folder").copy(isHidden = true)
+        val viewModel = viewModel(resourcesList = listOf(hidden))
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.resourceNames.collect() }
+        advanceUntilIdle()
+        assertEquals("Picked folder", viewModel.resourceNameOf(10L))
+        assertNull(viewModel.resourceNameOf(99L))
+        assertNull(viewModel.resourceNameOf(null))
     }
 
     // The relaxed repository's settings flow never emits - the slow cold start of the race.

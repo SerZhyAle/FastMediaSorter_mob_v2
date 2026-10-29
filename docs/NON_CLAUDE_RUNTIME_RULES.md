@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.13 14:43</sub>
+<sub class="doc-stamp">26.10.29 02:02</sub>
 
 # Rules you enforce yourself - every runtime that is not Claude Code
 
@@ -45,6 +45,7 @@ Before reading `temp/AGENT-CHAT`, take only the newest records and explicit matc
     - Add a document only when the task triggers it: `-m` -> `.claude/reference/mono-mode.md`; a user-visible string -> `docs/COMMUNICATION_POLICY.md` section 6; an undecided placement -> `.claude/commands/ui-clarify.md`.
 19. Check the bill at every stage boundary - strategic spec written, tactical plan written, each phase done: `pwsh -NoProfile -File scripts/quality/measure-codex-transcript.ps1 -Id <Sxxxx> -StageCheck`. Exit 3 means the context is over `codexContext.stageContextBudget`: write `scripts/utils/write-codex-handoff.ps1 -Id <Sxxxx> ..` with the facts, the changed paths and the next action, and end the session with one line to the owner - `handoff written - continue in a new chat: <the command you were running>`. The next session reads only the newest handoff, so the finished stage's reading is never paid for again. You cannot compact your own context; this is the only reset you have.
 20. Tick every plan step you finished in the same pass with ONE `plan-tick.ps1 -Steps a,b,c -State Done` call - a second `-State Done` on the same `-Id` and `-Phase` seconds after the first is bookkeeping that could have ridden along with it, and one `-Log` should cover what all of those steps proved (`observe-plan-tick-batching`).
+21. Set `FMS_TIER=Fast` in your shell and run only the fast tier between releases (CLAUDE.md Rule 37): check a change with `.\a.ps1 ff -Files "<paths>"` and a direct call of what changed, never a build, compile, test or lint target. Only Claude Code marks its shell as an agent's, so without the variable your `post-change.ps1` and `fg` default to the release tier and run everything.
 
 ## Before you say done
 

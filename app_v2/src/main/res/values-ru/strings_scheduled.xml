@@ -107,4 +107,24 @@
     <string name="scheduled_op_badge_skipped">Последний запуск пропущен: одна из сторон недоступна. Операция повторится в следующий срок.</string>
     <string name="scheduled_ops_notif_failed_title">Операция по расписанию не выполнена</string>
     <string name="scheduled_ops_notif_failed_text">%1$s: %2$s</string>
+    <string name="scheduled_op_history_details">Подробности</string>
+    <string name="scheduled_op_reason_source_unreachable">Источник не отвечает</string>
+    <string name="scheduled_op_reason_target_unreachable">Назначение не отвечает</string>
+    <string name="scheduled_op_reason_source_read_only">Источник только для чтения</string>
+    <string name="scheduled_op_reason_target_read_only">Назначение только для чтения</string>
+    <string name="scheduled_op_reason_source_missing">Папка-источник не найдена</string>
+    <string name="scheduled_op_reason_target_unavailable">Папка назначения не найдена или закрыта для записи</string>
+    <string name="scheduled_op_reason_watch_unavailable">Связь с часами выключена или не поддерживается</string>
+    <string name="scheduled_op_reason_watch_unreachable">Часы не отвечают</string>
+    <string name="scheduled_op_reason_watch_refused">Часы не смогли показать сообщение</string>
+    <string name="scheduled_op_reason_message_too_long">Сообщение слишком длинное для часов</string>
+    <string name="scheduled_op_reason_pin_refused">PIN-код папки не принят</string>
+    <string name="scheduled_op_reason_permission_required">Нужно ваше разрешение или повторный вход</string>
+    <string name="scheduled_op_reason_skipped_other">В этот раз запуск не состоялся</string>
+    <string name="scheduled_op_reason_error_other">Запуск не завершился</string>
+    <string name="scheduled_op_last_run_retry">Пропущенный запуск повторится в следующий срок.</string>
+    <string name="scheduled_op_last_run_title">Последний запуск</string>
+    <string name="scheduled_op_reason_source_deleted">Источник удалён, расписание приостановлено</string>
+    <string name="scheduled_op_reason_target_deleted">Назначение удалено, расписание приостановлено</string>
+    <string name="scheduled_ops_log_failed">Что-то пошло не так</string>
 </resources>

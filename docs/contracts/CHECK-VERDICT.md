@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.19 01:13</sub>
+<sub class="doc-stamp">26.10.29 05:03</sub>
 
 # Pointer - `CHECK-VERDICT`
 
 | | |
 | --- | --- |
 | **Id** | `CHECK-VERDICT` |
-| **Version** | 0.13, draft; wire carrier: process exit code (0/1/2/3, plus the reserved non-verdict 4) plus one verdict line. Owner: this product |
+| **Version** | 0.14, draft; wire carrier: process exit code (0/1/2/3, plus the reserved non-verdict 4) plus one verdict line. Owner: this product |
 | **Home** | `automated-checks/README.md` section 2, in the shared contracts catalog |
 | **Role here** | owner and reference implementation |
 

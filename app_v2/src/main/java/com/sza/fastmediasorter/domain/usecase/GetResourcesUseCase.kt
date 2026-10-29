@@ -17,6 +17,9 @@ class GetResourcesUseCase @Inject constructor(
         return repository.getAllResources().map { list -> list.filterNot { it.isHidden } }
     }
 
+    /** Every resource, hidden ad-hoc ones included, for a surface that only needs to name an id. */
+    fun allIncludingHidden(): Flow<List<MediaResource>> = repository.getAllResources()
+
     fun getByType(type: ResourceType): Flow<List<MediaResource>> {
         return repository.getResourcesByType(type)
     }

@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.data.wear.ScheduledWatchImageEncoder
 import com.sza.fastmediasorter.data.wear.ScheduledWatchReceiptRegistry
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
+import com.sza.fastmediasorter.domain.model.ScheduledRunReason
 import com.sza.fastmediasorter.domain.model.WearNode
 import com.sza.fastmediasorter.domain.model.WearScheduledMessageCodec
 import com.sza.fastmediasorter.domain.model.WearScheduledMessagePayload
@@ -43,8 +44,8 @@ class SendScheduledWatchMessageUseCase @Inject constructor(
         val unreachable = unreachableReason()
         val nodes = if (unreachable == null) dataLayer.getConnectedNodes() else emptyList()
         return when {
-            unreachable != null -> skipped(operation, unreachable)
-            nodes.isEmpty() -> skipped(operation, "Watch not reachable")
+            unreachable != null -> skipped(operation, unreachable, ScheduledRunReason.WATCH_UNAVAILABLE)
+            nodes.isEmpty() -> skipped(operation, "Watch not reachable", ScheduledRunReason.WATCH_UNREACHABLE)
             else -> deliver(operation, nodes)
         }
     }
@@ -60,7 +61,7 @@ class SendScheduledWatchMessageUseCase @Inject constructor(
         )
         val bytes = WearScheduledMessageCodec.encode(payload, gson)
             ?: WearScheduledMessageCodec.encode(payload.copy(imageJpegBase64 = null), gson)
-            ?: return skipped(operation, "Message is too long for the watch")
+            ?: return skipped(operation, "Message is too long for the watch", ScheduledRunReason.MESSAGE_TOO_LONG)
 
         val waiting = receipts.expect(messageId)
         return try {
@@ -76,7 +77,7 @@ class SendScheduledWatchMessageUseCase @Inject constructor(
             @Suppress("TooGenericExceptionCaught") e: Exception,
         ) {
             Timber.w(e, "Scheduled watch message %s could not be sent", messageId)
-            skipped(operation, "Watch not reachable")
+            skipped(operation, "Watch not reachable", ScheduledRunReason.WATCH_UNREACHABLE)
         } finally {
             receipts.forget(messageId)
         }
@@ -93,8 +94,9 @@ class SendScheduledWatchMessageUseCase @Inject constructor(
         receipt: WearScheduledMessageReceipt?,
         pictureLost: Boolean,
     ): ScheduledExecutionResult = when {
-        receipt == null -> skipped(operation, "Watch did not confirm")
-        !receipt.shown -> skipped(operation, refusalSentence(receipt.reason))
+        receipt == null -> skipped(operation, "Watch did not confirm", ScheduledRunReason.WATCH_UNREACHABLE)
+        !receipt.shown ->
+            skipped(operation, refusalSentence(receipt.reason), ScheduledRunReason.WATCH_REFUSED)
         pictureLost -> ScheduledExecutionResult(operation.id, 0, emptyList()).also {
             Timber.i("Scheduled watch message %d shown without its picture", operation.id)
         }
@@ -108,6 +110,6 @@ class SendScheduledWatchMessageUseCase @Inject constructor(
         else -> "Watch could not read the message"
     }
 
-    private fun skipped(operation: ScheduledOperation, reason: String) =
-        ScheduledExecutionResult(operation.id, 0, emptyList(), skippedReason = reason)
+    private fun skipped(operation: ScheduledOperation, text: String, reason: ScheduledRunReason) =
+        ScheduledExecutionResult(operation.id, 0, emptyList(), skippedReason = text, reason = reason)
 }

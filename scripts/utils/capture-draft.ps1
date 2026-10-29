@@ -69,23 +69,13 @@
     Approved is never appended to - a run may be implementing it - so a new one is created, under
     the first free name of -Slug, -Slug-2, -Slug-3.
 
-.PARAMETER Parked
-    S4190. The capture is an agent's auto-parked out-of-scope finding (CLAUDE.md 3.1), not a ticket the
-    owner asked for. After the insert the ticket moves to BlockQuestions with a status note carrying
-    'Parked finding, untriaged' and 'parked: yy-MM-dd', which keeps it out of the runner's automatic
-    ranking until /spec-sweep Phase D triages it; archive-untriaged-drafts.ps1 archives it after 14
-    days untriaged, except a finding about a crash, a release or security (S4268), which only triage
-    removes. Measured 2026-10-13: the runner attempted three fresh parked drafts within half an
-    hour of their capture, and 27% of September's tickets left no dev-log row.
-
 .PARAMETER RepoRoot
     Project root whose catalog receives the ticket. Defaults to this repository; the contract
     suite passes a fixture.
 
     Exit codes:
       0  ticket created or text appended, or -WhatIf finished its dedup report.
-      1  the catalog refused the insert, the spec file could not be written, or -Parked could not
-         move the new ticket to BlockQuestions.
+      1  the catalog refused the insert or the spec file could not be written.
       2  bad invocation - invalid slug, no text or both text forms, missing attachment or template.
       3  refused - the dedup query hit a ticket in a closed status; pass -AllowClosedDuplicate for a
          genuine regression.
@@ -107,7 +97,6 @@ param(
     [string]$Verify = '',
     [string]$Complexity = '',
     [switch]$AppendToOpen,
-    [switch]$Parked,
     [string]$RepoRoot = ''
 )
 
@@ -289,20 +278,5 @@ catch {
 $logOut = & $pwshExe -NoProfile -File (Join-Path $RepoRoot 'scripts/add_to_dev_log.ps1') $specRel $id "Capture Draft $id $Slug" 2>&1 | Out-String
 if ($LASTEXITCODE -ne 0) { Write-Host "capture-draft: dev-log row not written (exit $LASTEXITCODE): $($logOut.Trim())" }
 
-$statusShown = 'Draft'
-if ($Parked) {
-    $deadline = (Get-Date).AddDays(14).ToString('yy-MM-dd')
-    $note = "Parked finding, untriaged (S4190): /spec-sweep Phase D promotes it with a **Triage:** line or archives it; " +
-        "archived automatically after $deadline if still untriaged, except a crash, release or security finding (S4268). " +
-        "parked: $((Get-Date).ToString('yy-MM-dd'))"
-    $parkOut = & $pwshExe -NoProfile -File (Join-Path $RepoRoot 'scripts/spec_catalog/update.ps1') `
-        -Id $id -Status BlockQuestions -StatusNote $note 2>&1 | Out-String
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "capture-draft: $id was captured as Draft but could not be parked (exit $LASTEXITCODE): $($parkOut.Trim())"
-        exit 1
-    }
-    $statusShown = 'BlockQuestions (parked, untriaged)'
-}
-
-Write-Host "$id $Slug - $statusShown. Captured: $($Text.Length) chars + $($attachments.Count) attachment(s)."
+Write-Host "$id $Slug - Draft. Captured: $($Text.Length) chars + $($attachments.Count) attachment(s)."
 exit 0

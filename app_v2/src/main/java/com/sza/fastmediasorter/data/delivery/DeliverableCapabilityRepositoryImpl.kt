@@ -24,7 +24,8 @@ class DeliverableCapabilityRepositoryImpl @Inject constructor(
 
     override fun stateOf(set: DeliverableSet): Flow<DeliverableCapability> =
         markerStore.installedFlagFlow(set).map {
-            if (isInstalledBlocking(set)) {
+            // The collector may be the main thread (the atlas prompt), and the payload check is a stat.
+            if (isInstalled(set)) {
                 DeliverableCapability.INSTALLED
             } else {
                 DeliverableCapability.NOT_INSTALLED
@@ -51,7 +52,7 @@ class DeliverableCapabilityRepositoryImpl @Inject constructor(
 
     override suspend fun isStale(set: DeliverableSet, expectedStamp: String): Boolean {
         if (bundled.contains(set)) return false
-        if (!markerStore.isPayloadPresent(set)) return false
+        if (!withContext(Dispatchers.IO) { markerStore.isPayloadPresent(set) }) return false
         return markerStore.installedStamp(set) != expectedStamp
     }
 

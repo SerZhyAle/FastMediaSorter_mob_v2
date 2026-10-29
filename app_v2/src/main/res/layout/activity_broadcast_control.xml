@@ -69,37 +69,48 @@
             android:background="@android:color/black"
             android:layout_marginBottom="@dimen/margin_normal" />
 
-        <!-- MODE & CAMERA SELECTION: S4336 the owner moved both choices to a list - one dropdown row
-             each, the option list lives in code (mode) or in the lens enumeration (camera). -->
-        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-            android:id="@+id/rowBroadcastMode"
+        <!-- S4486: one value column for the entry rows and the card. The mode and lens rows stay outside the
+             card because the card is hidden while on air and the two stay usable for a live switch; the spanning
+             group is what lets their values start at the x the card's rows use. -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsValueRowGroup
+            android:id="@+id/groupBroadcastEntry"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/margin_small"
-            app:sdr_title="@string/broadcast_entry_mode_label"
-            app:sdr_valueAsText="true" />
+            app:svrg_spanDescendants="true">
 
-        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-            android:id="@+id/rowLensSelection"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/margin_small"
-            android:visibility="gone"
-            app:sdr_title="@string/broadcast_entry_lens_label"
-            app:sdr_valueAsText="true" />
+            <!-- MODE & CAMERA SELECTION: S4336 the owner moved both choices to a list - one dropdown row
+                 each, the option list lives in code (mode) or in the lens enumeration (camera). -->
+            <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                android:id="@+id/rowBroadcastMode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                app:sdr_title="@string/broadcast_entry_mode_label"
+                app:sdr_valueAsText="true" />
 
-        <!-- BROADCAST SETTINGS CARD -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardBroadcastSettings"
-            style="?attr/materialCardViewOutlinedStyle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/margin_normal">
+            <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                android:id="@+id/rowLensSelection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                android:visibility="gone"
+                app:sdr_title="@string/broadcast_entry_lens_label"
+                app:sdr_valueAsText="true" />
 
-            <include
-                android:id="@+id/layoutBroadcastSettings"
-                layout="@layout/fragment_settings_broadcast" />
-        </com.google.android.material.card.MaterialCardView>
+            <!-- BROADCAST SETTINGS CARD -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardBroadcastSettings"
+                style="?attr/materialCardViewOutlinedStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_normal">
+
+                <include
+                    android:id="@+id/layoutBroadcastSettings"
+                    layout="@layout/fragment_settings_broadcast" />
+            </com.google.android.material.card.MaterialCardView>
+
+        </com.sza.fastmediasorter.ui.common.widget.SettingsValueRowGroup>
 
         <!-- START BROADCAST ACTION (IDLE STATE) -->
         <com.google.android.material.button.MaterialButton

@@ -123,6 +123,9 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'lib/gate-telemetry.ps1')
 . (Join-Path $PSScriptRoot 'lib/verdict-word.ps1')
+# S4488: a release-scope run is a release run - every child below, post-change.ps1 and the fast batch included,
+# resolves to the Release tier even when an agent shell launched this script.
+$env:FMS_TIER = 'Release'
 # S4413: each gate's duration also lands in the open release campaign's journal, because the gate
 # journal keeps only an aggregate a campaign report cannot be read from. The library only measures,
 # so its absence or a load failure leaves every verdict exactly as before.
@@ -417,6 +420,12 @@ $gates = [ordered]@{
     # changed file names, and a link reaches a reader only when a release or the site is published.
     # Left out of $gateInputGroups on purpose: its verdict moves without any file here changing.
     'assert-watchface-listing-live.ps1' = @()
+    # S4488. The per-ticket closure battery at the release tier, once, over every file the release carries.
+    # Between releases post-change.ps1 runs only checks of 5 s or less, so the slower per-ticket gates
+    # (detekt, script-suite regression, string audits, contract gates) are judged here instead of once per
+    # ticket. Last by cost: it is the slowest member. Left out of $gateInputGroups on purpose - its subject
+    # is the whole release diff, which no one fingerprint group names.
+    'assert-release-tier-closure.ps1' = @()
 }
 
 # S3010. Which fingerprint input groups each gate reads, for -OnlyGroups. Deliberately PARTIAL: a

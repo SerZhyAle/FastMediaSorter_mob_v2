@@ -1,7 +1,9 @@
 name: Maestro E2E Tests
 
 on:
-  pull_request:
+  # S4488: the emulator E2E is a release-tier run. It fires on the release push to `main` and on manual
+  # dispatch, never on a pull request.
+  push:
     branches: [ main ]
     paths:
       - 'app_v2/**'

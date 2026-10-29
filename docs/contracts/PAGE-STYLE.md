@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.22 02:15</sub>
+<sub class="doc-stamp">26.10.29 05:03</sub>
 
 # Pointer - `PAGE-STYLE`
 
 | | |
 | --- | --- |
 | **Id** | `PAGE-STYLE` |
-| **Version** | 3.4, active. Owner: the sza.od.ua hub |
+| **Version** | 3.5, active. Owner: the sza.od.ua hub |
 | **Home** | `product-web-pages/PAGE-STYLE.md` in the shared contracts catalog |
 | **Role here** | consumer - the product site's landing and sideload pages, and the documentation portal (per-language documentation pages, section 6) |
 

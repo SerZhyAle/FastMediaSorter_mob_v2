@@ -388,15 +388,18 @@ fun wearSideBandInset(controlHeight: Dp): Dp {
  *
  * @param edgeOffset distance from the nearer of the top and bottom edges of the display to the edge of
  * the element being placed.
+ * @param clearInOriginal answer the chord in the ORIGINAL view too. Only for a control whose clipping
+ * the owner ruled a defect (S4470); every other caller keeps the view's uniform inset. Pass the same
+ * value to [wearBandEdgeOffset] for the same band, or the two stop being inverses.
  */
 @Composable
-fun wearChordInset(edgeOffset: Dp): Dp {
+fun wearChordInset(edgeOffset: Dp, clearInOriginal: Boolean = false): Dp {
     val configuration = LocalConfiguration.current
     // S2773: before this function existed, every one of its callers paid the module's uniform inset -
     // the streams toolbar, the audio player's title and command row, the calculator keypad. The
     // original view answers that, which restores each of them without any of them being edited. The
     // square screen joins that branch because the uniform inset IS SQUARE_INSET there.
-    val original = LocalWearGeometryMode.current == WearGeometryMode.ORIGINAL
+    val original = LocalWearGeometryMode.current == WearGeometryMode.ORIGINAL && !clearInOriginal
     if (!configuration.isScreenRound || original) {
         return uniformRoundInset()
     }
@@ -420,15 +423,17 @@ fun wearChordInset(edgeOffset: Dp): Dp {
  * returns the padding that leaves exactly [bandWidth] between its two sides.
  *
  * @param bandWidth width the element cannot give up.
+ * @param clearInOriginal lower the band to the chord in the ORIGINAL view too; see [wearChordInset],
+ * which has to receive the same value.
  */
 @Composable
-fun wearBandEdgeOffset(bandWidth: Dp): Dp {
+fun wearBandEdgeOffset(bandWidth: Dp, clearInOriginal: Boolean = false): Dp {
     val configuration = LocalConfiguration.current
     // S2773: before this function existed no band was lowered at all - each sat within the module's
     // uniform inset and lost whatever the arc took. The original view answers that same uniform inset,
     // so a band returns to where it stood and is clipped rather than moved. The square screen joins
     // that branch because the uniform inset IS SQUARE_INSET there.
-    val original = LocalWearGeometryMode.current == WearGeometryMode.ORIGINAL
+    val original = LocalWearGeometryMode.current == WearGeometryMode.ORIGINAL && !clearInOriginal
     if (!configuration.isScreenRound || original) {
         return uniformRoundInset()
     }

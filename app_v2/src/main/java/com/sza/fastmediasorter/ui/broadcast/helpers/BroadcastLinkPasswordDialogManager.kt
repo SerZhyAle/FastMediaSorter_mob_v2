@@ -35,7 +35,6 @@ class BroadcastLinkPasswordDialogManager @Inject constructor(
     fun show(activity: AppCompatActivity, isLive: Boolean, onDone: (messageRes: Int) -> Unit) {
         activity.lifecycleScope.launch {
             val mode = setLinkPassword.currentMode()
-            Timber.d("S4405: link password dialog opened mode=$mode live=$isLive")
             open(activity, isLive, mode, onDone)
         }
     }
@@ -46,6 +45,7 @@ class BroadcastLinkPasswordDialogManager @Inject constructor(
         mode: BroadcastLinkPasswordMode,
         onDone: (Int) -> Unit,
     ) {
+        Timber.d("S4405: link password dialog opened mode=$mode live=$isLive")
         val view = DialogBroadcastLinkPasswordBinding.inflate(LayoutInflater.from(activity))
         val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.broadcast_link_password_title)

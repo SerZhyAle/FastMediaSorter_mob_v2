@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.wear.ui.player.audio
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -65,6 +67,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
@@ -78,6 +81,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackMode
 import com.sza.fastmediasorter.wear.domain.model.displayName
 import com.sza.fastmediasorter.wear.domain.playback.WearStationInfo
+import com.sza.fastmediasorter.wear.domain.playback.WearStreamFailure
 import com.sza.fastmediasorter.wear.ui.common.AnimationIntent
 import com.sza.fastmediasorter.wear.ui.common.ContentTypeCatalog
 import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
@@ -86,6 +90,8 @@ import com.sza.fastmediasorter.wear.ui.common.WaveParticleBackground
 import com.sza.fastmediasorter.wear.ui.common.WearAction
 import com.sza.fastmediasorter.wear.ui.common.WearDimOverlay
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
+import com.sza.fastmediasorter.wear.ui.common.WearStateKind
 import com.sza.fastmediasorter.wear.ui.common.backdropTuning
 import com.sza.fastmediasorter.wear.ui.common.rememberWearClockStyle
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
@@ -100,6 +106,7 @@ import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandButton
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandGrid
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerDialogVisibilities
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerDialogsHost
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerLoadingRing
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerOverflowMenu
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerProgressRing
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerSeekActions
@@ -199,24 +206,12 @@ fun AudioPlayerScreen(
     val isCasting = castState.isCasting
     // Hoisted out of the content so the scaffold drives its scroll indicator from the same state.
     val listState = rememberWearListState(initialCenterItemIndex = WEAR_LIST_NO_ANCHOR)
+    val failureScrollState = rememberScrollState()
+    val streamFailure = uiState.streamFailure
 
     AudioPlayerLifecycleEffects(viewModel)
 
-    // S3120: this player draws the file operations as entries of its own menu, so the file-action
-    // dialog never opens here and the flag only ever reads false. It is still passed to the shared
-    // host, which owns the rename, delete and receiver dialogs the entries do open.
-    var showActions by remember { mutableStateOf(false) }
-    var showDeleteConfirm by remember { mutableStateOf(false) }
-    var showReceivers by remember { mutableStateOf(false) }
-
-    val dialogVisibilities = PlayerDialogVisibilities(
-        showActions = showActions,
-        showDeleteConfirm = showDeleteConfirm,
-        showReceivers = showReceivers,
-        onActionsVisibilityChange = { showActions = it },
-        onDeleteVisibilityChange = { showDeleteConfirm = it },
-        onReceiversVisibilityChange = { showReceivers = it }
-    )
+    val dialogVisibilities = rememberAudioDialogVisibilities()
     val fileActions = rememberPlayerFileActionEntries(
         operations = viewModel.fileOperations,
         visibilities = dialogVisibilities,
@@ -242,7 +237,11 @@ fun AudioPlayerScreen(
         // Both the clock and the scroll indicator are drawn by the scaffold above the content, so an
         // overlay alone cannot hide them - they have to be withheld, or the dark screen keeps two lit
         // elements on it.
-        positionIndicator = if (uiState.isDimmed) null else { { PositionIndicator(listState) } },
+        positionIndicator = playerPositionIndicator(
+            isDimmed = uiState.isDimmed,
+            failureScroll = failureScrollState.takeIf { streamFailure != null },
+            listState = listState
+        ),
         showTimeText = !uiState.isDimmed,
         contentPadding = PaddingValues(0.dp)
     ) {
@@ -251,6 +250,12 @@ fun AudioPlayerScreen(
             isPlaying = uiState.isPlaying && !uiState.isDimmed
         )
         when {
+            streamFailure != null -> StreamFailureBlock(
+                failure = streamFailure,
+                onRetry = viewModel::retryPlayback,
+                onBack = onBack,
+                scrollState = failureScrollState
+            )
             uiState.error != null -> {
                 ErrorContent(message = uiState.error!!)
             }
@@ -285,6 +290,66 @@ fun AudioPlayerScreen(
     )
 
     PlayerCastMessage(viewModel.castManager)
+}
+
+/**
+ * S3120: this player draws the file operations as entries of its own menu, so the file-action
+ * dialog never opens here and the flag only ever reads false. It is still passed to the shared
+ * host, which owns the rename, delete and receiver dialogs the entries do open.
+ *
+ * Lifted out of [AudioPlayerScreen] under S4473, which put the body past the length ceiling again.
+ */
+@Composable
+private fun rememberAudioDialogVisibilities(): PlayerDialogVisibilities {
+    var showActions by remember { mutableStateOf(false) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+    var showReceivers by remember { mutableStateOf(false) }
+
+    return PlayerDialogVisibilities(
+        showActions = showActions,
+        showDeleteConfirm = showDeleteConfirm,
+        showReceivers = showReceivers,
+        onActionsVisibilityChange = { showActions = it },
+        onDeleteVisibilityChange = { showDeleteConfirm = it },
+        onReceiversVisibilityChange = { showReceivers = it }
+    )
+}
+
+/**
+ * S4473: a failed source says so in the module's shared failure text and a stopped producer says it is gone;
+ * both offer Retry and Back instead of leaving a paused-looking player behind. The block scrolls on its own
+ * state (S2754), which is why [PositionIndicator] has to follow it while it shows.
+ */
+@Composable
+private fun StreamFailureBlock(
+    failure: WearStreamFailure,
+    onRetry: () -> Unit,
+    onBack: () -> Unit,
+    scrollState: ScrollState
+) {
+    val ended = failure == WearStreamFailure.ENDED
+    WearStateBlock(
+        kind = if (ended) WearStateKind.UNAVAILABLE else WearStateKind.ERROR,
+        message = if (ended) stringResource(R.string.wear_stream_ended) else null,
+        onBack = onBack,
+        onRetry = onRetry,
+        scrollState = scrollState
+    )
+}
+
+/**
+ * The scroll indicator the scaffold draws, or none. Both the clock and the indicator are drawn by the
+ * scaffold above the content, so a dimmed screen has to withhold them or the dark sheet keeps a lit element;
+ * [failureScroll] is the failure block's own state, present only while that block replaces the player.
+ */
+private fun playerPositionIndicator(
+    isDimmed: Boolean,
+    failureScroll: ScrollState?,
+    listState: ScalingLazyListState
+): (@Composable () -> Unit)? = when {
+    isDimmed -> null
+    failureScroll != null -> { { PositionIndicator(failureScroll) } }
+    else -> { { PositionIndicator(listState) } }
 }
 
 @Composable
@@ -889,7 +954,14 @@ private fun PlaybackControls(
     val nextDesc = stringResource(R.string.wear_next_file)
     val seekBackwardDesc = stringResource(R.string.wear_seek_backward)
     val seekForwardDesc = stringResource(R.string.wear_seek_forward)
-    val playPauseDesc = stringResource(if (isPlaying) R.string.pause else R.string.play)
+    // S4471: while the copy is still being fetched the button announces that, not a play it cannot do.
+    val playPauseDesc = stringResource(
+        when {
+            uiState.isFetchingFile -> R.string.wear_audio_fetching
+            isPlaying -> R.string.pause
+            else -> R.string.play
+        }
+    )
     val jumpToLiveDesc = stringResource(R.string.wear_jump_to_live)
     val ringed = wearIsCompactScreen()
     // S2803: the ORIGINAL view restores the row of four, the composition S1701's owner ruling drew -
@@ -923,6 +995,7 @@ private fun PlaybackControls(
 
         PlayPauseCommand(
             isPlaying = isPlaying,
+            isFetching = uiState.isFetchingFile,
             contentDescription = playPauseDesc,
             size = targetSize,
             progress = progress.takeIf { ringed && !restored },
@@ -961,6 +1034,7 @@ private fun PlaybackControls(
 @Composable
 private fun PlayPauseCommand(
     isPlaying: Boolean,
+    isFetching: Boolean,
     contentDescription: String,
     size: Dp,
     progress: Float?,
@@ -976,10 +1050,10 @@ private fun PlayPauseCommand(
             iconTint = colorResource(ContentTypeCatalog.tintFor(WearContentType.MUSIC))
         )
     }
-    if (progress == null) {
-        button()
-    } else {
-        PlayerProgressRing(progress = progress, content = button)
+    when {
+        isFetching -> PlayerLoadingRing(content = button)
+        progress == null -> button()
+        else -> PlayerProgressRing(progress = progress, content = button)
     }
 }
 

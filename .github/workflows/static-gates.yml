@@ -11,8 +11,7 @@ name: Static Gates
 
 on:
   push:
-    branches: [ main, 'DEBUG-v*' ]
-  pull_request:
+    # S4488: release run only - a push to `main`. A DEBUG-v* push and a pull request trigger nothing.
     branches: [ main ]
   workflow_dispatch:
 

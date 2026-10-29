@@ -47,3 +47,26 @@ fun PlayerProgressRing(
         content()
     }
 }
+
+/**
+ * S4471: the ring for a command whose file is still being fetched - indeterminate, because the download
+ * reports no progress. Same box and same silence for the screen reader as [PlayerProgressRing]; the
+ * wrapped button carries the announcement.
+ */
+@Composable
+fun PlayerLoadingRing(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+    ) {
+        CircularProgressIndicator(
+            modifier = Modifier
+                .matchParentSize()
+                .clearAndSetSemantics { }
+        )
+        content()
+    }
+}

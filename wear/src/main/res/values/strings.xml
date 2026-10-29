@@ -1159,4 +1159,6 @@
     <string name="wear_broadcast_server_failed">Server error - see phone</string>
     <string name="wear_broadcast_server_local_only">This network only</string>
     <string name="wear_scheduled_message_channel_name">Scheduled messages</string>
+    <string name="wear_audio_fetching">Loading the track..</string>
+    <string name="wear_stream_ended">This stream is no longer on air. Retry when it starts again.</string>
 </resources>

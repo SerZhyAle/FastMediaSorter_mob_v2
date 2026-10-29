@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.ui.settings.fragments.BroadcastSettingsOptions
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -39,6 +40,7 @@ class BroadcastSettingsPanelManager @Inject constructor(
     private var pendingWrite: Job? = null
 
     fun bind(activity: AppCompatActivity, panel: FragmentSettingsBroadcastBinding) {
+        Timber.d("S4486: broadcast settings panel bound - values share one column, port box compact")
         panel.rowBitRate.setEntries(BroadcastSettingsOptions.bitRateLabels(activity))
         panel.rowAudioFormat.setEntries(BroadcastSettingsOptions.audioFormatLabels(activity))
         panel.rowMicGain.setEntries(BroadcastSettingsOptions.micGainLabels())

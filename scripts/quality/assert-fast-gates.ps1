@@ -100,6 +100,9 @@
       -ThrottleLimit  Concurrent children; 0 (default) derives it from the core count.
       -ShowPasses     Print every child's output and the summary blocks on a clean run too.
                       FMS_POSTCHANGE_VERBOSE=1 does the same.
+      -Tier           S4488: Fast runs only the gates scripts/quality/gate-tiers.json records at 5 s
+                      or less; Release runs the whole batch. Unset: Fast in an agent shell
+                      (CLAUDECODE=1), Release for the owner's shell and CI; FMS_TIER overrides.
 
     Output shape (S3151):
       A clean run prints one line, "assert-fast-gates: PASS (..; <n> passed, <m> skipped).".
@@ -176,13 +179,21 @@ param(
     [switch]$FailOnSkipped,
     [ValidateRange(0, 64)]
     [int]$ThrottleLimit = 0,
-    [switch]$ShowPasses
+    [switch]$ShowPasses,
+    # S4488: Fast runs only the gates gate-tiers.json records at 5 s or less; Release runs the whole
+    # batch. Unset resolves per lib/gate-tier.ps1: Fast in an agent shell, Release for the owner's
+    # shell and CI, so the batch GitHub runs on a push to main is unchanged.
+    [ValidateSet('Fast', 'Release')]
+    [string]$Tier
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'lib/gate-telemetry.ps1')
 . (Join-Path $PSScriptRoot 'lib/verdict-word.ps1')
+. (Join-Path $PSScriptRoot 'lib/gate-tier.ps1')
+$activeTier = Resolve-ActiveTier $Tier
+$tierSkipped = [System.Collections.Generic.List[string]]::new()
 
 # S2453: the batch's own wall clock, which is what `docs/BUILD_TEST_FAST_PATH.md` claims for
 # `a.ps1 fg` and what the caller waits on. Started before any gate so the record covers the
@@ -605,6 +616,11 @@ $index = 0
 $work = [System.Collections.Generic.List[object]]::new()
 $missing = [System.Collections.Generic.List[object]]::new()
 foreach ($entry in $gates.GetEnumerator()) {
+    # S4488: a gate outside the active tier is left out of the batch, named in the verdict below.
+    if (-not (Test-TierRuns -Kind scripts -Name $entry.Key -Tier $activeTier)) {
+        $tierSkipped.Add($entry.Key)
+        continue
+    }
     $judgesSet = $split -and ($entry.Key -in $changedFilesAware)
     $scope = if (-not $split) { $null } elseif ($judgesSet) { 'set' } else { 'tree' }
     $path = Join-Path $PSScriptRoot $entry.Key
@@ -876,7 +892,8 @@ if ($results.Count -eq 0 -and $skippedRows.Count -eq 0 -and $notApplicableRows.C
 }
 if ($notApplicableRows.Count -gt 0) { $counts += ", $($notApplicableRows.Count) not applicable" }
 $verdictDetail = if ($split) { "every gate judging your set is green; $counts" } else { "all fast gates green; $counts" }
-$notRunNote = if ($skippedRows.Count -gt 0 -and $showSummary) { " $($skippedRows.Count) gate(s) NOT RUN - see the block above." } else { '' }
+# S4488: the verdict says which tier it judged. A Fast pass names the batch members it left to the release.
+if ($activeTier -eq 'Fast') { $verdictDetail += "; fast tier - $($tierSkipped.Count) release-tier gate(s) not run until the release" }$notRunNote = if ($skippedRows.Count -gt 0 -and $showSummary) { " $($skippedRows.Count) gate(s) NOT RUN - see the block above." } else { '' }
 Write-Host "assert-fast-gates: PASS ($verdictDetail).$notRunNote" -ForegroundColor Green
 if ($showSummary) { Write-Host "protocol: $protocolPath" -ForegroundColor DarkGray }
 exit 0

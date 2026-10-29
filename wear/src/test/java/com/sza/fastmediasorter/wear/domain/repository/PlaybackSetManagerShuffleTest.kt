@@ -91,6 +91,47 @@ class PlaybackSetManagerShuffleTest {
     }
 
     @Test
+    fun `ordered peek names the successor without moving and wraps around`() {
+        manager.publish(files, startIndex = 1)
+
+        assertEquals("track3.mp3", manager.peekNext()?.name)
+        assertEquals(1, manager.currentSet.value?.index)
+
+        manager.publish(files, startIndex = files.lastIndex)
+        assertEquals("track1.mp3", manager.peekNext()?.name)
+    }
+
+    @Test
+    fun `shuffled peek is the file the following next plays`() {
+        manager.publish(files, startIndex = 0)
+        manager.shuffleEnabled = true
+
+        repeat(SAMPLE_RUNS) {
+            val peeked = manager.peekNext()
+            assertEquals(peeked?.id, manager.peekNext()?.id)
+            assertEquals(peeked?.id, manager.next()?.id)
+        }
+    }
+
+    @Test
+    fun `a shuffled peek is dropped when the position moves elsewhere`() {
+        manager.publish(files, startIndex = 0)
+        manager.shuffleEnabled = true
+        manager.peekNext()
+
+        manager.moveTo(files[3].id)
+        val peeked = manager.peekNext()
+
+        assertNotEquals("peek repeated the playing file", files[3].id, peeked?.id)
+        assertEquals(peeked?.id, manager.next()?.id)
+    }
+
+    @Test
+    fun `peeking without a published set answers nothing`() {
+        assertEquals(null, manager.peekNext())
+    }
+
+    @Test
     fun `removing the current middle file selects its following neighbour`() {
         manager.publish(files, startIndex = 2)
 

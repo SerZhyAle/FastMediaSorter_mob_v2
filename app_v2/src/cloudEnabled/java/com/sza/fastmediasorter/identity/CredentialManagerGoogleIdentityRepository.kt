@@ -210,6 +210,8 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
             ScopeAuthorization.Cancelled -> IdentitySignInResult.Cancelled
             is ScopeAuthorization.Failed -> IdentitySignInResult.Failed(IdentityFailureReason.UnknownError, auth.cause)
             is ScopeAuthorization.Granted -> {
+                // A consent refusal remembered before this grant would keep answering "needs consent".
+                tokenIssuer.forgetConsentRefusals()
                 val updated = current.copy(grantedScopes = current.grantedScopes + auth.scopes)
                 if (store.save(updated)) {
                     publishTransferableEnvelope(updated)

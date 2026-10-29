@@ -25,11 +25,12 @@
             tools:ignore="UseAppTint"
             tools:src="@drawable/ic_weather_partly_cloudy" />
 
-        <LinearLayout
+        <!-- S4476: the column keeps the temperature whole and leaves out the detail lines a short tile
+             has no room for, instead of squeezing the temperature to nothing under them. -->
+        <com.sza.fastmediasorter.ui.launcher.gadget.GadgetValueColumn
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="2"
-            android:orientation="vertical">
+            android:layout_weight="2">
 
             <!-- S1587: shown only while the card carries no reading. A first-run phone has no place
                  chosen yet, so the card would otherwise be an unlabelled instruction. -->
@@ -102,7 +103,7 @@
                 tools:text="Weather is unavailable right now"
                 tools:visibility="visible" />
 
-        </LinearLayout>
+        </com.sza.fastmediasorter.ui.launcher.gadget.GadgetValueColumn>
 
     </LinearLayout>
 
