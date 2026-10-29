@@ -36,5 +36,14 @@
       "docs",
       "scripts"
     ]
+  },
+  "verdictGroups": {
+    "$comment": "S4498: the groups a sweep VERDICT judges - the source tree its walk ran against. assert-sweep-verdicts.ps1 calls a verdict stale only when one of these groups changed after the verdict was written. The other groups of the scope (docs, scripts, ...) are covered by the gates the procedure re-runs on a moved compare, so a change there leaves the verdict standing.",
+    "phone": [
+      "phone-src"
+    ],
+    "wear": [
+      "wear-src"
+    ]
   }
 }

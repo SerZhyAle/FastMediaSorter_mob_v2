@@ -147,9 +147,11 @@ class BroadcastHttpServer(
 
     private fun createClientStream(): InputStream {
         val client = ClientSink(CLIENT_QUEUE_FRAMES, BUFFER_SIZE_BYTES)
+        // Counted before the listener becomes visible: a caller that saw the listener and ran [end] at once would
+        // otherwise read zero open responses and close the port ahead of this body's terminating chunk.
+        openResponses.incrementAndGet()
         clients.add(client)
         _listenerCount.value = clients.size
-        openResponses.incrementAndGet()
         return CountedBody(client.input)
     }
 

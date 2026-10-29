@@ -9,6 +9,11 @@
 
   Checkpoints:
     cold-start          - `am start -W` TotalTime (ms) for MainActivity after force-stop.
+                          The dex state is normalised to `verify` first (`cmd package compile -m
+                          verify -f`, skipped when already there) and read back from
+                          `dumpsys package dexopt` into `dexState`. A fresh install runs from the APK
+                          until the background dexopt job compiles it, and that window measured 2-3x
+                          slower (S0484); a launch that did not reach `verify` is advisory, not judged.
                           S4496: another emulator online beside the measured one marks the
                           record contended=true and pass=false - a shared host CPU times the host,
                           not the app, so the number neither passes nor counts as a regression.
@@ -165,6 +170,19 @@ function Get-PlayRamBucketGb {
     return @{ bucket = $nearest; totalGb = [Math]::Round($totalGb, 2) }
 }
 
+# S4497: the dex state a package is running in, from its block of `dumpsys package dexopt`. Returns
+# 'unknown' when the block or its status is absent - a cold start taken in an unread state is not
+# judged, the same rule the Play limits follow, because the number cannot be attributed to a state.
+function Get-DexoptStatus {
+    param([string]$Adb, [string[]]$Target, [string]$Package)
+    $inBlock = $false
+    foreach ($line in @(& $Adb @Target shell dumpsys package dexopt 2>&1 | ForEach-Object { "$_" })) {
+        if ($line -match '^\s*\[([^\]]+)\]\s*$') { $inBlock = ($Matches[1] -eq $Package); continue }
+        if ($inBlock -and $line -match 'status=([\w-]+)') { return $Matches[1] }
+    }
+    return 'unknown'
+}
+
 $adb = Get-Adb
 if (-not $adb) { if ($Json) { '{"error":"adb not found"}' } else { Write-Host 'adb not found' }; exit 1 }
 $adbTarget = @(); if ($DeviceId) { $adbTarget = @('-s', $DeviceId) }
@@ -175,6 +193,8 @@ $detail       = ''
 $insufficient = $false
 # S4496: set by cold-start when another emulator shared the host during the launch.
 $contended    = $false
+# S4497: the dex state the cold-start launch ran in; null for every other checkpoint.
+$dexState     = $null
 # Set by a checkpoint that measured something other than the quantity it was asked for. Such a
 # record is reported but never gated on: the number is not wrong, it is a different number.
 $advisoryRequested = $false
@@ -195,6 +215,16 @@ switch ($Checkpoint) {
         if (-not $selfSerial -and $contendingEmulators.Count -gt 0) {
             $contendingEmulators = @($contendingEmulators | Select-Object -Skip 1)
         }
+        # S4497: a cold start is comparable only at one dex state. A fresh install runs from the APK
+        # until the background dexopt job compiles it, and that window measured 4631-5744 ms against
+        # 1981-2632 ms once compiled (S0484). bg-dexopt-job only schedules the pass, so the timing of
+        # the measurement would still depend on when it ran; `compile` is the foreground call.
+        $dexState = Get-DexoptStatus -Adb $adb -Target $adbTarget -Package $DebugPackage
+        $dexBefore = $dexState
+        if ($dexState -ne 'verify') {
+            & $adb @adbTarget shell cmd package compile -m verify -f $DebugPackage *> $null
+            $dexState = Get-DexoptStatus -Adb $adb -Target $adbTarget -Package $DebugPackage
+        }
         & $adb @adbTarget shell am force-stop $DebugPackage *> $null
         $out = & $adb @adbTarget shell am start -W -n "$DebugPackage/$CodePackage.ui.main.MainActivity" 2>&1
         $m = [regex]::Match("$out", 'TotalTime:\s*(\d+)')
@@ -203,6 +233,11 @@ switch ($Checkpoint) {
         if ($contendingEmulators.Count -gt 0) {
             $contended = $true
             $detail = "$detail (CONTENDED: $($contendingEmulators -join ', ') also online - stop them and re-measure alone)"
+        }
+        $detail = "$detail | dex state $dexBefore -> $dexState"
+        if ($dexState -ne 'verify') {
+            $advisoryRequested = $true
+            $detail = "$detail - not verify, not judged"
         }
     }
     { $_ -in @('list-scroll', 'streams-list-scroll', 'streams-grid-scroll', 'streams-search') } {
@@ -413,6 +448,7 @@ $record = [ordered]@{
     contended    = [bool]$contended
     processState = $processState
     ramBucketGb  = $ramBucketGb
+    dexState     = $dexState
     detail       = $detail
 }
 if ($Json) { $record | ConvertTo-Json -Compress }

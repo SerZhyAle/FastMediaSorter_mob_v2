@@ -186,6 +186,68 @@ try {
         if ($code -ne 3) { return "expected exit 3 for the phone scope, got $code" }
         return $null
     }
+
+    # S4498: `since` is the time a group's current hash was first recorded. The previous record is
+    # backdated by hand so the cases need no sleep to tell "kept" from "restamped".
+    function Set-RecordBackdated {
+        param([string] $Path, [switch] $DropSince)
+        $record = Get-Content -LiteralPath $Path -Raw -Encoding UTF8 | ConvertFrom-Json
+        $record.recordedAt = '2026-01-01T00:00:00'
+        foreach ($group in $record.groups.PSObject.Properties) {
+            if ($DropSince) { $group.Value.PSObject.Properties.Remove('since') }
+            else { $group.Value.since = '2026-01-01T00:00:00' }
+        }
+        Set-Content -LiteralPath $Path -Value ($record | ConvertTo-Json -Depth 6) -Encoding UTF8
+    }
+
+    function Get-SinceOf {
+        param([string] $Path, [string] $Group)
+        $record = Get-Content -LiteralPath $Path -Raw -Encoding UTF8 | ConvertFrom-Json
+        $value = $record.groups.$Group.since
+        if ($value -is [datetime]) { return $value.ToString('s') }
+        return [string]$value
+    }
+
+    Assert-Case 'E12 a re-record keeps since for an unchanged group and restamps a moved one' {
+        [void](Invoke-Fingerprint @('-Verb', 'Record'))
+        Set-RecordBackdated -Path $recordPath
+        Set-Content -LiteralPath (Join-Path $root 'docs\one.md') -Value 'one moved again' -Encoding UTF8
+        $code = Invoke-Fingerprint @('-Verb', 'Record')
+        if ($code -ne 0) { return "expected exit 0, got $code" }
+        $kept = Get-SinceOf -Path $recordPath -Group 'wear-src'
+        if ($kept -ne '2026-01-01T00:00:00') { return "wear-src did not move, its since should be kept, got '$kept'" }
+        $kept = Get-SinceOf -Path $recordPath -Group 'phone-src'
+        if ($kept -ne '2026-01-01T00:00:00') { return "phone-src did not move, its since should be kept, got '$kept'" }
+        $restamped = Get-SinceOf -Path $recordPath -Group 'docs'
+        if ($restamped -eq '2026-01-01T00:00:00') { return 'docs moved, its since should carry the new recordedAt' }
+        $record = Get-Content -LiteralPath $recordPath -Raw -Encoding UTF8 | ConvertFrom-Json
+        $recordedAt = if ($record.recordedAt -is [datetime]) { $record.recordedAt.ToString('s') } else { [string]$record.recordedAt }
+        if ($restamped -ne $recordedAt) { return "docs since '$restamped' should equal recordedAt '$recordedAt'" }
+        return $null
+    }
+
+    Assert-Case 'E13 a record written before S4498 hands its recordedAt on as since' {
+        [void](Invoke-Fingerprint @('-Verb', 'Record'))
+        Set-RecordBackdated -Path $recordPath -DropSince
+        $code = Invoke-Fingerprint @('-Verb', 'Record')
+        if ($code -ne 0) { return "expected exit 0, got $code" }
+        $carried = Get-SinceOf -Path $recordPath -Group 'wear-src'
+        if ($carried -ne '2026-01-01T00:00:00') { return "an unchanged group should inherit the old recordedAt, got '$carried'" }
+        return $null
+    }
+
+    Assert-Case 'E14 a first record stamps every group with its own recordedAt' {
+        Remove-Item -LiteralPath $recordPath -Force -ErrorAction SilentlyContinue
+        $code = Invoke-Fingerprint @('-Verb', 'Record')
+        if ($code -ne 0) { return "expected exit 0, got $code" }
+        $record = Get-Content -LiteralPath $recordPath -Raw -Encoding UTF8 | ConvertFrom-Json
+        $recordedAt = if ($record.recordedAt -is [datetime]) { $record.recordedAt.ToString('s') } else { [string]$record.recordedAt }
+        foreach ($group in $record.groups.PSObject.Properties) {
+            $since = Get-SinceOf -Path $recordPath -Group $group.Name
+            if ($since -ne $recordedAt) { return "group '$($group.Name)' since '$since' should equal recordedAt '$recordedAt'" }
+        }
+        return $null
+    }
 }
 finally {
     if ($null -eq $previousRoot) { Remove-Item Env:\FMS_REPO_ROOT -ErrorAction SilentlyContinue }

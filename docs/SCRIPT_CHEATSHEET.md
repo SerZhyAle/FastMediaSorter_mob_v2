@@ -7818,7 +7818,7 @@ scripts/release/assert-fgs-types-vs-previous.ps1
     -RegistryPath         [String]
     -Build                [SwitchParameter]
     -Help                 [SwitchParameter]
-  Exit: 0 - pass: every foreground-service type is in the baseline or registered for standard; the
+  Exit: 0 - pass: every foreground-service type is in the baseline; the type set is printed.; 1 - fail: a type is new in the standard store build - strip it from standard before the
 ```
 
 ### assert-play-review-batches.ps1
@@ -7848,7 +7848,7 @@ scripts/release/assert-sweep-verdicts.ps1
     -NoWear               [SwitchParameter]
     -NoWearReason         [String]
     -RepoRoot             [String]
-  Exit: 0 - every verdict exists, passed, is not blocked and is not older than its fingerprint; 1 - a verdict FAILED, is BLOCKED, or is stale (older than its scope's fingerprint record); 2 - a verdict file or a fingerprint record is missing or unreadable, or the arguments are
+  Exit: 0 - every verdict exists, passed, is not blocked and is not older than the groups it judged; 1 - a verdict FAILED, is BLOCKED, or is stale (a group it judged changed after it was written); 2 - a verdict file, a fingerprint record or the verdictGroups map is missing or unreadable, or
 ```
 
 ### build-release-spectrum.ps1
@@ -7922,6 +7922,19 @@ scripts/release/cluster-registry.ps1
     -State                  [String]  {open|fixed-unpublished|fixed-published}
     -FixVersionCode         [String]
   Exit: 0 the verb succeeded (Lookup: the cluster is registered).; 1 Lookup: the cluster is not registered. Register: the cluster is already registered.; 2 the call could not be served - a missing argument, an unknown cluster on Set, an unwritable registry.
+```
+
+### confirm-fgs-snapshot.ps1
+Promote a release's pending foreground-service type snapshot to the confirmed baseline once Google Play production carries that versionCode (S4499).
+
+```
+scripts/release/confirm-fgs-snapshot.ps1
+  Promote a release's pending foreground-service type snapshot to the confirmed baseline once Google Play production carries that versionCode (S4499).
+  Params:
+    -VersionCode         [Int64]
+    -ArchiveRoot         [String]
+    -Help                [SwitchParameter]
+  Exit: 0 - the snapshot is confirmed: promoted now, or fgs-types.json already existed.; 1 - there is no snapshot of that versionCode, pending or confirmed: nothing to confirm.; 2 - could not verify: the archive root is unreachable, or the pending file is unreadable,
 ```
 
 ### extract-release-notes.ps1
@@ -8227,11 +8240,11 @@ scripts/release/assert-fgs-types-vs-previous.tests/Run-Tests.ps1
 ## scripts\release\assert-sweep-verdicts.tests
 
 ### Run-Tests.ps1
-S4249 contract suite for scripts/release/assert-sweep-verdicts.ps1 - the release-point read of the phone and watch sweep verdicts.
+S4249 contract suite for scripts/release/assert-sweep-verdicts.ps1 - the release-point read of the phone and watch sweep verdicts. S4498 cases pin what "current" means for a verdict.
 
 ```
 scripts/release/assert-sweep-verdicts.tests/Run-Tests.ps1
-  S4249 contract suite for scripts/release/assert-sweep-verdicts.ps1 - the release-point read of the phone and watch sweep verdicts.
+  S4249 contract suite for scripts/release/assert-sweep-verdicts.ps1 - the release-point read of the phone and watch sweep verdicts. S4498 cases pin what "current" means for a verdict.
   (no param block)
   Exit: 0 - every case passed.; 1 - at least one case failed.
 ```
@@ -8258,6 +8271,18 @@ scripts/release/compose-play-screenshots.tests/Run-Tests.ps1
   Run-Tests.ps1 (S2573) - regression suite for the caption geometry of the Play screenshot composer.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 the suite could not run (the subject is missing, the project virtual environment is absent,
+```
+
+## scripts\release\confirm-fgs-snapshot.tests
+
+### Run-Tests.ps1
+Contract tests for scripts/release/confirm-fgs-snapshot.ps1 and the pending snapshot that scripts/release/retain-deobfuscation.ps1 writes (S4499).
+
+```
+scripts/release/confirm-fgs-snapshot.tests/Run-Tests.ps1
+  Contract tests for scripts/release/confirm-fgs-snapshot.ps1 and the pending snapshot that scripts/release/retain-deobfuscation.ps1 writes (S4499).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
 ```
 
 ## scripts\release\gen-fastlane-changelog.tests

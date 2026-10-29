@@ -13,8 +13,11 @@
     The subject is the MERGED standard-release manifest: every android:foregroundServiceType token
     of a service the merge kept (a tools:node="remove" service does not count). The baseline is
     the previous release's type set, read from the newest fgs-types.json that
-    retain-deobfuscation.ps1 writes beside each retained release; with no snapshot yet, the
-    baseline is the registry's foregroundServiceType rows whose flavors include standard.
+    retain-deobfuscation.ps1 writes beside each retained release and
+    confirm-fgs-snapshot.ps1 confirms once Play production carries it (S4499); with no snapshot
+    yet, the baseline is the registry's foregroundServiceType rows whose flavors include standard.
+    A fgs-types.pending.json - a bundle built but not (yet) accepted by Play - is never a baseline;
+    the verdict lists the versionCodes it ignored.
 
     A type is a finding when it is not in the baseline. Against a snapshot a registry row does not
     excuse it: the standard store build never gains a foreground-service type, and a capability that
@@ -27,7 +30,7 @@
     app_v2/build/intermediates/merged_manifests/standardRelease/ of this tree.
 
 .PARAMETER Snapshot
-    A previous release's fgs-types.json. Default: the newest one under -ArchiveRoot.
+    A previous release's fgs-types.json. Default: the newest confirmed one under -ArchiveRoot.
 
 .PARAMETER ArchiveRoot
     The deobfuscation archive root that holds <versionCode>/fgs-types.json. Default: the resolved
@@ -177,6 +180,17 @@ if (-not $Snapshot) {
         if ($newest) { $Snapshot = Join-Path $newest.FullName 'fgs-types.json' }
     }
 }
+$pendingCodes = @()
+if (-not $PSBoundParameters.ContainsKey('Snapshot') -and $ArchiveRoot -and (Test-Path -LiteralPath $ArchiveRoot -PathType Container)) {
+    # A pending snapshot is a bundle built but not (yet) carried by Play production: never a baseline
+    # (S4499), named here so a refused release's types are not silently forgotten.
+    $pendingCodes = @(Get-ChildItem -LiteralPath $ArchiveRoot -Directory -ErrorAction SilentlyContinue |
+        Where-Object {
+            $_.Name -match '^\d+$' -and
+            (Test-Path -LiteralPath (Join-Path $_.FullName 'fgs-types.pending.json') -PathType Leaf) -and
+            -not (Test-Path -LiteralPath (Join-Path $_.FullName 'fgs-types.json') -PathType Leaf)
+        } | Sort-Object { [long]$_.Name } | ForEach-Object { $_.Name })
+}
 $baseline = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
 $baselineName = ''
 if ($Snapshot) {
@@ -208,6 +222,9 @@ foreach ($type in $types) {
 $typeList = if ($types.Count -gt 0) { @($types) -join ', ' } else { '(none)' }
 Write-Host "fgs-types: manifest $Manifest"
 Write-Host "fgs-types: baseline $baselineName"
+if ($pendingCodes.Count -gt 0) {
+    Write-Host "fgs-types: ignored unconfirmed snapshot(s) of versionCode $($pendingCodes -join ', ') - Play production does not carry them yet (confirm-fgs-snapshot.ps1)"
+}
 Write-Host "fgs-types: standard release types: $typeList"
 if ($newTypes.Count -gt 0) {
     foreach ($type in $newTypes) {

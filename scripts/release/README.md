@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.28 22:55</sub>
+<sub class="doc-stamp">26.10.29 22:55</sub>
 
 # scripts/release - Operator Handbook
 
@@ -10,10 +10,11 @@ Scripts that publish FastMediaSorter to GitHub Releases so that **GitHub Store**
 
 | Script | Purpose |
 |--------|---------|
-| `assert-sweep-verdicts.ps1` | Release-point read of the phone and watch pre-release verdicts - each must exist, pass and be newer than its scope's fingerprint (S4249). |
+| `assert-sweep-verdicts.ps1` | Release-point read of the phone and watch pre-release verdicts - each must exist, pass and be newer than the source group it judged (S4249, S4498). |
 | `release-campaign.ps1` | Open, mark, report and close a release campaign - the record and phase journal under `temp/metrics/` that every gate and sweep step writes its duration to (S4413). |
 | `run-ci-parity.ps1` | `/skill-release` Step 6b: runs locally the checks GitHub CI runs (whole-tree static gates, lint of both modules, lint-detector tests, both unit suites), every step even after a red, before the first push. |
-| `assert-fgs-types-vs-previous.ps1` | Release assessment check: the merged standard-release manifest's foreground-service types against the previous release's `fgs-types.json` snapshot, or the registry's standard rows until one exists (S4413). |
+| `assert-fgs-types-vs-previous.ps1` | Release assessment check: the merged standard-release manifest's foreground-service types against the newest confirmed `fgs-types.json` snapshot, or the registry's standard rows until one exists; unconfirmed `fgs-types.pending.json` files are never a baseline (S4413, S4499). |
+| `confirm-fgs-snapshot.ps1` | Promote a release's `fgs-types.pending.json` to `fgs-types.json` once Play production carries its versionCode. `publish-play-release.ps1` calls it after a completed, not held production commit; run it by hand after held changes were sent (S4499). |
 | `apply-github-store-metadata.ps1` | Apply repo `description`, `topics`, `homepage` from `PLAN/S0214_github-store-publication/DECISIONS.md` to GitHub via REST. Idempotent. |
 | `publish-github-release.ps1` | Publish a stable release: discover prebuilt APKs, stage them with deterministic names, create a GitHub Release tag from `main`, attach release notes from `docs/WHATS_NEW.md`, upload both APKs as assets. |
 | `publish-play-release.ps1` | Publish the standard AAB to Google Play Console: attach the bundle if its versionCode is already in the library else upload it, fetch generated Fastlane changelogs for that versionCode, update specified track (internal/alpha/beta/production) as draft/completed, and commit edit. |
