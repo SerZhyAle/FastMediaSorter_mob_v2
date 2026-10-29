@@ -149,7 +149,9 @@ $guardedEmulatorGpuNoise    = 'addRelease: Did not find frame'
 # probes local thumbnails, logged from the app's own decode thread. Same guard as FrameEvents: on a
 # physical device a HEIF decode failure can be real.
 $guardedEmulatorDecoderTag = '^HeifDecoderImpl$'
-$guardedEmulatorDecoder    = 'getSize: not supported'
+# S0484 sweep 2026-10-29: the same decoder also logs 'decode: videoFrame is a nullptr' (24 lines) for
+# the HEIC corpus files on a software-rendered API 35 image.
+$guardedEmulatorDecoder    = 'getSize: not supported|decode: videoFrame is a nullptr'
 
 # S4465: the emulator's SwiftShader renderer cannot match a requested swap, so the app's GL thread logs
 # one E line per frame (137 on the 2026-10-27 phone sweep), and WebView's first-run HTTP cache creation

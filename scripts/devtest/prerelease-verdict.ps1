@@ -128,7 +128,7 @@ $guardedThumbnailFallbacks = @(
 $softwareRenderMarker = 'EGL_emulation'
 # S4465: the swap-behavior and WebView cache-creation lines of the 2026-10-27 sweep join the same
 # marker-guarded set. Message-only, as the entries above: search-log matches the body and not the tag.
-$guardedEmulatorGpuFallbacks = 'addRelease: Did not find frame|getSize: not supported' +
+$guardedEmulatorGpuFallbacks = 'addRelease: Did not find frame|getSize: not supported|decode: videoFrame is a nullptr' +
     '|Unable to match the desired swap behavior' +
     '|Simple Cache Backend: cache directory inaccessible right after creation' +
     '|disk_cache\.cc\(205\)\] Unable to create cache'
@@ -217,7 +217,12 @@ if ($MetricsFile -and (Test-Path $MetricsFile)) {
         # Advisory checkpoints (e.g. list-scroll on an emulator, where gfxinfo janky% is
         # structurally inflated by software rendering) are reported but never gate the verdict.
         if ($r.advisory) { $perfAdvisory += "$($r.checkpoint)=$($r.measured)/$($r.limit)"; continue }
-        if (-not $r.pass) { $perfPass = $false; $perfFailures += "$($r.checkpoint)=$($r.measured)/$($r.limit)" }
+        if (-not $r.pass) {
+            $perfPass = $false
+            # S4496: a contended cold start is a measurement to repeat alone, not a regression.
+            $label = if ($r.PSObject.Properties['contended'] -and $r.contended) { ' (contended - re-measure alone)' } else { '' }
+            $perfFailures += "$($r.checkpoint)=$($r.measured)/$($r.limit)$label"
+        }
     }
 }
 $perfBreakdown = [ordered]@{ pass = [bool]$perfPass; failures = $perfFailures; advisory = $perfAdvisory }

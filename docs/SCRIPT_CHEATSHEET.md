@@ -10449,6 +10449,7 @@ scripts/utils/run-spec-queue.ps1
     -KeepSkipCache             [SwitchParameter]
     -RepoRoot                  [String] = ''
     -AgentJson                 [String] = ''
+    -ExitOnLimit               [SwitchParameter]
     -Help                      [SwitchParameter]
   Exit: 2 = invalid invocation - the Claude CLI or the preflight script could not be found or
 ```

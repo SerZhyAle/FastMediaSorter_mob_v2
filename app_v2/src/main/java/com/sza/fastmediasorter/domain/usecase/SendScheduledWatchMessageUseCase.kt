@@ -40,7 +40,6 @@ class SendScheduledWatchMessageUseCase @Inject constructor(
 ) {
 
     suspend operator fun invoke(operation: ScheduledOperation): ScheduledExecutionResult {
-        Timber.d("S4248: scheduled watch message run, op=%d", operation.id)
         val unreachable = unreachableReason()
         val nodes = if (unreachable == null) dataLayer.getConnectedNodes() else emptyList()
         return when {
@@ -67,7 +66,6 @@ class SendScheduledWatchMessageUseCase @Inject constructor(
         return try {
             nodes.forEach { dataLayer.sendMessage(it.id, WearDataLayerPaths.SCHEDULED_MESSAGE, bytes) }
             val receipt = withTimeoutOrNull(RECEIPT_TIMEOUT_MS) { waiting.await() }
-            Timber.d("S4458: watch receipt on phone shown=%s reason=%s", receipt?.shown, receipt?.reason)
             outcomeOf(operation, receipt, pictureLost = operation.watchImageUri != null && imageBytes == null)
         } catch (e: CancellationException) {
             throw e

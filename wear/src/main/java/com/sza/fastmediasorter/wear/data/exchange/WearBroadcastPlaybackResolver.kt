@@ -149,7 +149,6 @@ class WearBroadcastPlaybackResolver @Inject constructor(
         isProtected: Boolean,
     ): WearBroadcastPlayback? {
         val serving = !isProtected && probe.answers(endpoint)
-        Timber.d("S4472: lan endpoint serving=$serving protected=$isProtected")
         return if (serving) {
             playable(record, endpoint, endpoint.url)
         } else {

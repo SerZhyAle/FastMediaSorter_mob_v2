@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.29 12:08</sub>
+<sub class="doc-stamp">26.10.29 15:37</sub>
 
 # Development Changelog
 
@@ -37324,3 +37324,9 @@ Format: | datetime | file | target | description |
 | 2026-10-29 05:43:14 | `PLAN/S4495_settings-doc-sync-gate-runs-gradle-in-fast-tier.md` | `S4495` | Trivial path done; status -> Verified [branch: DEBUG-v047] |
 | 2026-10-29 11:36:34 | `scripts/quality/assert-release-tier-closure.ps1` | `S0484` | Pre-release sweep fixes: release-scope gate findings (IO dispatcher, M2 tokens, dimen, icon contract, coverage manifest), 23+6 detekt findings over the release diff, 40 new strings fanned out to 10 locales, and two tooling fixes - assert-release-tier-closure chunks the release set and detekt-scoped passes java args via an @argfile, both past the Windows command-line ceiling; post-change suite harnesses load the tier library [set of 69: scripts/quality/detekt-scoped.ps1, scripts/post-change.tests/Run-Tests.ps1, scripts/quality/locale-identical-allowlist.json, docs/coverage-manifest.jsonl, docs/icons/icon-contract-map.json, app_v2/src/weargms/java/com/sza/fastmediasorter/service/PhoneWearListenerService.kt, +62 more] [branch: DEBUG-v047] |
 | 2026-10-29 12:08:10 | `app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/LauncherHomeActivity.kt` | `launcher desktop gestures` | Limit desktop gestures to the desktop area outside gadgets [branch: DEBUG-v047] |
+| 2026-10-29 12:44:53 | `PLAN/S4496_bugfix-cold-start-regression-emulator.md` | `S4496` | Capture Draft S4496 bugfix-cold-start-regression-emulator [branch: DEBUG-v047] |
+| 2026-10-29 13:09:10 | `scripts/quality/assert-release-scope-gates.ps1` | `S0484` | Pre-release sweep tooling: assert-release-scope-gates splits a comma -OnlyGroups list (the form step 4 writes), log audit and verdict treat the emulator HEIF 'videoFrame is a nullptr' line as guarded noise, statistics_open scroll timeout covers the expanded checklist sections [set of 4: scripts/devtest/prerelease-log-audit.ps1, scripts/devtest/prerelease-verdict.ps1, maestro/features/statistics/statistics_open.yaml] [branch: DEBUG-v047] |
+| 2026-10-29 14:27:46 | `scripts/devtest/prerelease-measure.ps1` | `S4496` | S4496: cold-start perf checkpoint fails closed as contended when another emulator shares the host; verdict labels it re-measure alone [set of 3: scripts/devtest/prerelease-verdict.ps1, .claude/reference/spec-prerelease.md] [branch: DEBUG-v047] |
+| 2026-10-29 14:52:48 | `PLAN/S4497_bugfix-cold-start-measure-dex-state.md` | `S4497` | Capture Draft S4497 bugfix-cold-start-measure-dex-state [branch: DEBUG-v047] |
+| 2026-10-29 15:37:30 | `scripts/devtest/prerelease-wear-half.ps1` | `release-47` | prerelease-wear-half: purge each shape's previous walk.json, wear_session.log and verdict.json before the lanes run, so a walk that stops early leaves the verdict at could-not-verify instead of a fresh PASS over the previous run's walk [branch: DEBUG-v047] |
+| 2026-10-29 16:38:25 | `PLAN/S4498_bugfix-sweep-verdict-stale-after-fingerprint-rerecord.md` | `S4498` | Capture Draft S4498 bugfix-sweep-verdict-stale-after-fingerprint-rerecord [branch: DEBUG-v047] |

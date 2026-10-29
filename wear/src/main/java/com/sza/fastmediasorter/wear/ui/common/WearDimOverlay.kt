@@ -53,7 +53,6 @@ import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSwallow
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import kotlin.random.Random
 
 /** How long the acknowledgement ring takes to spread out and fade - slow on purpose (S3370 doubled it). */
@@ -198,7 +197,6 @@ internal fun WearDimOverlay(onExit: () -> Unit) {
                     onTap = { point ->
                         tapMark = point
                         tapClock = formatTapClock(clockFormatter, unitSystem)
-                        Timber.d("S4443: tap clock restarted at y=${point.y}")
                         val azimuth = heading?.takeIf { it.isTrustworthy }?.azimuthDegrees
                             ?: (Random.nextFloat() * FULL_CIRCLE_DEGREES)
                         sparkNorthAzimuthDegrees = (FULL_CIRCLE_DEGREES - azimuth) % FULL_CIRCLE_DEGREES

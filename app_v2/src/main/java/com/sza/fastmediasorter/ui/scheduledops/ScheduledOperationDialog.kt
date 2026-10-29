@@ -677,7 +677,6 @@ class ScheduledOperationDialog(
     private fun trySaveWatchMessage() {
         if (!watchForm.validate()) return
         val fields = watchForm.read()
-        Timber.d("S4248: watch message schedule saved, hasImage=%s", fields.imageUri != null)
         val startHour = b.etStartHour.text.toString().toIntOrNull()?.coerceIn(0, 23) ?: 0
         val startMinute = b.etStartMinute.text.toString().toIntOrNull()?.coerceIn(0, 59) ?: 0
         val (intervalHours, intervalMinutes) = readIntervalWithFloor()

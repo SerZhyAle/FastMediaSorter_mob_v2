@@ -458,6 +458,9 @@ $gateInputGroups = @{
 # `-OnlyGroups wear-src,docs,scripts` reached this script as ONE string, because `pwsh -File` does
 # not split a comma list into an array, and 13 of 16 gates were skipped in silence - including all
 # three that were failing at the time. Refuse instead, and name both the bad value and the real set.
+# The comma form is split first, because it is the form /spec-prerelease step 4 itself writes
+# (`-OnlyGroups <moved groups>` through `pwsh -File`); the refusal below still catches a misspelt name.
+$OnlyGroups = @($OnlyGroups | ForEach-Object { ([string]$_) -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
 if ($OnlyGroups.Count -gt 0) {
     $groupsFile = Join-Path $PSScriptRoot 'release-scope-fingerprint.groups.json'
     if (Test-Path -LiteralPath $groupsFile) {

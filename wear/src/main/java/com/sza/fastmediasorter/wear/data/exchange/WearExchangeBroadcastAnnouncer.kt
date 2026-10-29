@@ -86,7 +86,6 @@ class WearExchangeBroadcastAnnouncer @Inject constructor(
                 is Answer -> answer(input.event)
             }
             mutablePublishState.value = publishStateOf(latest, current)
-            Timber.d("S4419: watch exchange publish state ${mutablePublishState.value}")
         }
     }
 

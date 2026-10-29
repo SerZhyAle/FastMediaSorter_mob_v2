@@ -117,7 +117,6 @@ class ExchangeBroadcastAnnouncer @Inject constructor(
                     val relayed = accepted != null && accepted == current?.broadcastId
                     ExchangeBroadcastPublishStates.of(live is BroadcastState.Live, entries, entry, wire, relayed)
                 }.collect {
-                    Timber.d("S4419: phone exchange publish state ${it::class.simpleName}")
                     mutablePublishState.value = it
                 }
             }

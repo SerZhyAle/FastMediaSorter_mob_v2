@@ -291,7 +291,6 @@ class AudioPlayerViewModel @Inject constructor(
          * under it. Pausing is what releases the display hold, which follows `playWhenReady`.
          */
         private fun showStreamFailure(failure: WearStreamFailure) {
-            Timber.d("S4473: stream failure shown: $failure")
             exoPlayer.pause()
             streamPlaybackSession.stop()
             _uiState.update { it.withStreamFailure(failure) }
@@ -729,7 +728,6 @@ class AudioPlayerViewModel @Inject constructor(
      */
     private suspend fun fetchAudioFile(selected: SelectedMedia): Result<File> {
         val prefetched = audioPrefetch.take(selected)?.await()?.takeIf { it.isSuccess }
-        Timber.d("S4471: prefetch hit=${prefetched != null} for ${selected.file.name}")
         return prefetched ?: downloadNetworkFile(selected, DownloadNetworkFileUseCase.Kind.AUDIO)
     }
 
@@ -739,7 +737,6 @@ class AudioPlayerViewModel @Inject constructor(
      */
     private fun prefetchNextTrack(current: SelectedMedia) {
         val next = nextPrefetchSelection(current)
-        Timber.d("S4471: prefetch next=${next?.file?.name}")
         next?.let(audioPrefetch::prefetch)
     }
 
@@ -773,7 +770,6 @@ class AudioPlayerViewModel @Inject constructor(
      */
     fun retryPlayback() {
         if (_uiState.value.streamFailure == null) return
-        Timber.d("S4473: retry playback after ${_uiState.value.streamFailure}")
         _uiState.update { it.withRetryStarted() }
         exoPlayer.stop()
         exoPlayer.clearMediaItems()

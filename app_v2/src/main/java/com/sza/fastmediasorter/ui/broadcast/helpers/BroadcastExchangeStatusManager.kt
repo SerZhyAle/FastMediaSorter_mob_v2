@@ -11,7 +11,6 @@ import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import com.sza.fastmediasorter.ui.exchange.MyDevicesActivity
 import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeMessageText
 import com.sza.fastmediasorter.util.showBoundTo
-import timber.log.Timber
 
 /**
  * Renders the exchange server line of the broadcast screen (contract DEVICE-EXCHANGE item DU). The state is in the
@@ -21,7 +20,6 @@ import timber.log.Timber
 class BroadcastExchangeStatusManager {
 
     fun render(activity: AppCompatActivity, view: TextView, state: ExchangeBroadcastPublishState) {
-        Timber.d("S4419: broadcast screen exchange line renders ${state::class.simpleName}")
         val action: (() -> Unit)? = when (state) {
             ExchangeBroadcastPublishState.Idle -> null
             is ExchangeBroadcastPublishState.Announcing -> {

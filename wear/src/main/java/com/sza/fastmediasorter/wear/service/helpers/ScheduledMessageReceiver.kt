@@ -41,7 +41,6 @@ class ScheduledMessageReceiver @Inject constructor(
 ) {
 
     suspend fun onMessage(sourceNodeId: String, data: ByteArray) {
-        Timber.d("S4248: scheduled message received on watch, bytes=%d", data.size)
         answer(sourceNodeId, receive(data))
     }
 
@@ -113,7 +112,6 @@ class ScheduledMessageReceiver @Inject constructor(
 
     private fun refusal(messageId: String, reason: String): WearScheduledMessageReceipt {
         Timber.w("Scheduled message: not shown - %s", reason)
-        Timber.d("S4458: refusal receipt answered with id=%s reason=%s", messageId, reason)
         return WearScheduledMessageReceipt(messageId, shown = false, reason = reason)
     }
 }
