@@ -1,0 +1,7 @@
+• Broadcast before it starts - link, QR code and file ready ahead of time.
+• Broadcasts publish themselves - they reach the exchange server without extra steps.
+• Broadcast password your way - automatic, none or your own, in one dialog.
+• Ended or lost? - viewers see whether a broadcast ended or the connection dropped.
+• Landscape live picture - the broadcast picture turns like the player and fills the screen.
+• Casts through every exchange server - and a broadcast that cannot open says why.
+..
