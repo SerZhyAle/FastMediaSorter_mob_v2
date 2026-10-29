@@ -748,6 +748,11 @@
 -keepclassmembernames enum com.sza.fastmediasorter.domain.model.ScheduledRunOutcome {
     <fields>;
 }
+# ScheduledRunReason.name is the reason column of the same scheduled-run journal line and is restored
+# by ScheduledRunReason.fromName, so a rename silently drops the skip reason of every stored run.
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.ScheduledRunReason {
+    <fields>;
+}
 # S4451: E2eOpenFailure.name is the reason text of the joint run's failed-<reason> outcome
 # (ExchangeSealedContentOpener.outcomeOf / failureOutcome), kept in memory to log a change once and
 # written to the log by ExchangeBroadcastDiagnostics. Nothing persists it; the rule keeps the log

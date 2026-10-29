@@ -1,14 +1,20 @@
 package com.sza.fastmediasorter.ui.player
 
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
+import com.sza.fastmediasorter.di.PlayerStreamPlaybackEntryPoint
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.usecase.streams.ResolveBroadcastPlaybackUseCase.Playback
+import com.sza.fastmediasorter.domain.usecase.streams.ResolvePlayerStreamUseCase
 import com.sza.fastmediasorter.ui.player.helpers.playSftpVideo
 import com.sza.fastmediasorter.ui.player.helpers.playStreamVideo
+import dagger.hilt.android.EntryPointAccessors
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -89,15 +95,25 @@ class VideoPlayerManagerLoadCancellationTest {
             manager.releasePlayer()
         }
         if (::manager.isInitialized) manager.managerScope.cancel()
+        unmockkStatic(EntryPointAccessors::class)
         Dispatchers.resetMain()
     }
 
     @Test
     fun `stream setup survives release and a subsequent suspension`() = runTest {
+        val path = "rtsp://example.invalid/live"
+        // Endpoint resolution reaches the real Hilt graph and Room, whose query suspends on a thread
+        // runCurrent() does not drive; a plain row resolves to itself without suspending.
+        val resolver = mockk<ResolvePlayerStreamUseCase>()
+        coEvery { resolver(path) } returns Playback.Playable(path)
+        mockkStatic(EntryPointAccessors::class)
+        every {
+            EntryPointAccessors.fromApplication(any(), PlayerStreamPlaybackEntryPoint::class.java)
+        } returns mockk { every { resolvePlayerStreamUseCase() } returns resolver }
         every { manager.streamProtocolSupport.createRtspMediaSource(any(), any()) } returns null
         var resumed = false
         val load = manager.managerScope.launch {
-            manager.playStreamVideo("rtsp://example.invalid/live")
+            manager.playStreamVideo(path)
             yield()
             resumed = true
         }

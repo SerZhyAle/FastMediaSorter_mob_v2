@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.29 15:37</sub>
+<sub class="doc-stamp">26.10.29 17:08</sub>
 
 # Development Changelog
 
@@ -37331,3 +37331,5 @@ Format: | datetime | file | target | description |
 | 2026-10-29 15:37:30 | `scripts/devtest/prerelease-wear-half.ps1` | `release-47` | prerelease-wear-half: purge each shape's previous walk.json, wear_session.log and verdict.json before the lanes run, so a walk that stops early leaves the verdict at could-not-verify instead of a fresh PASS over the previous run's walk [branch: DEBUG-v047] |
 | 2026-10-29 16:38:25 | `PLAN/S4498_bugfix-sweep-verdict-stale-after-fingerprint-rerecord.md` | `S4498` | Capture Draft S4498 bugfix-sweep-verdict-stale-after-fingerprint-rerecord [branch: DEBUG-v047] |
 | 2026-10-29 16:42:36 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes and showcase update for v2.61.0291.639 - plateau merge from DEBUG-v047 [branch: DEBUG-v047] |
+| 2026-10-29 17:08:56 | `app_v2/proguard-rules.pro` | `release-47` | Fix ci-parity: keep ScheduledRunReason names under R8, isolate stream-setup test from Hilt/Room resolution, TextViewCompat auto-size in launcher header [set of 3: app_v2/src/test/java/com/sza/fastmediasorter/ui/player/VideoPlayerManagerLoadCancellationTest.kt, app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/grid/LauncherCellViewBinder.kt] [branch: DEBUG-v047] |
+| 2026-10-29 17:09:22 | `scripts/quality/assert-release-tier-closure.ps1` | `release-47` | CI parity fixes before the 47 push: tier-closure verdict lines, ScheduledRunReason keep rule, VideoPlayerManagerLoadCancellationTest stubs stream resolution, LauncherCellViewBinder uses TextViewCompat autosize [branch: DEBUG-v047] |

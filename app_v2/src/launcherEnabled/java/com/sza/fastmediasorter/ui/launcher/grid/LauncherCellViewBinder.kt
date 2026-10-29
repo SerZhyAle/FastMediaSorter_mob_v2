@@ -13,6 +13,7 @@ import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.core.view.isVisible
+import androidx.core.widget.TextViewCompat
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
@@ -595,7 +596,8 @@ class LauncherCellViewBinder(
         Timber.d("S4475: section chevron=${spec.chevronSizeDp}dp title min=${spec.titleMinTextSizeSp}sp")
         binding.sectionChevron.layoutParams.width = chevronPx
         binding.sectionChevron.layoutParams.height = chevronPx
-        binding.sectionTitle.setAutoSizeTextTypeUniformWithConfiguration(
+        TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(
+            binding.sectionTitle,
             spec.titleMinTextSizeSp.toInt(),
             spec.titleMaxTextSizeSp.toInt(),
             TITLE_AUTOSIZE_STEP_SP,

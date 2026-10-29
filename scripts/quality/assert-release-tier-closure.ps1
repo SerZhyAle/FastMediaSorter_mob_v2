@@ -101,6 +101,13 @@ for ($i = 0; $i -lt $chunks.Count; $i++) {
 }
 Write-Host "assert-release-tier-closure: chunk exits $($codes -join ',')"
 # A defect found in any chunk is a definite FAIL; an unverifiable chunk without one leaves the release unjudged.
-if ($codes -contains 1) { exit 1 }
-if (@($codes | Where-Object { $_ -ne 0 }).Count -gt 0) { exit 2 }
+if ($codes -contains 1) {
+    Write-Host "assert-release-tier-closure: FAIL - a chunk found a defect (chunk exits $($codes -join ','))"
+    exit 1
+}
+if (@($codes | Where-Object { $_ -ne 0 }).Count -gt 0) {
+    Write-Host "assert-release-tier-closure: COULD NOT VERIFY - a chunk could not be judged (chunk exits $($codes -join ','))"
+    exit 2
+}
+Write-Host 'assert-release-tier-closure: PASS'
 exit 0
