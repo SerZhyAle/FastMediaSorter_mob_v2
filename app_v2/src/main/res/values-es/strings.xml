@@ -4092,4 +4092,21 @@
     <string name="stream_broadcast_ended_message">\"%1$s\" ya no está en el aire. Vuelve a conectarte cuando empiece de nuevo.</string>
     <string name="stream_broadcast_reconnect">Reconectar</string>
     <string name="stream_status_ended">Emisión finalizada</string>
+    <string name="sort_short_date_asc">Antiguos ↑</string>
+    <string name="sort_short_date_desc">Nuevos ↓</string>
+    <string name="sort_short_size_asc">Tamaño ↑</string>
+    <string name="sort_short_size_desc">Tamaño ↓</string>
+    <string name="sort_short_type_asc">Tipo ↑</string>
+    <string name="sort_short_type_desc">Tipo ↓</string>
+    <string name="sort_short_artist_asc">Artista ↑</string>
+    <string name="sort_short_artist_desc">Artista ↓</string>
+    <string name="sort_short_title_asc">Título ↑</string>
+    <string name="sort_short_title_desc">Título ↓</string>
+    <string name="sort_short_duration_asc">Duración ↑</string>
+    <string name="sort_short_duration_desc">Duración ↓</string>
+    <string name="sort_short_date_taken_asc">Fecha de captura ↑</string>
+    <string name="sort_short_date_taken_desc">Fecha de captura ↓</string>
+    <string name="sort_short_random">Aleatorio</string>
+    <string name="browse_title_selected_count">%1$d seleccionados</string>
+    <string name="browse_breadcrumb_root">Raíz</string>
 </resources>

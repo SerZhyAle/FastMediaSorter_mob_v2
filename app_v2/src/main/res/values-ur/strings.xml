@@ -4092,4 +4092,22 @@
     <string name="stream_broadcast_ended_message">\"%1$s\" اب نشر نہیں ہو رہا۔ دوبارہ شروع ہونے پر دوبارہ جڑیں۔</string>
     <string name="stream_broadcast_reconnect">دوبارہ جڑیں</string>
     <string name="stream_status_ended">نشریہ ختم</string>
+    <string name="sort_short_manual">دستی</string>
+    <string name="sort_short_date_asc">پرانے ↑</string>
+    <string name="sort_short_date_desc">نئے ↓</string>
+    <string name="sort_short_size_asc">سائز ↑</string>
+    <string name="sort_short_size_desc">سائز ↓</string>
+    <string name="sort_short_type_asc">قسم ↑</string>
+    <string name="sort_short_type_desc">قسم ↓</string>
+    <string name="sort_short_artist_asc">فنکار ↑</string>
+    <string name="sort_short_artist_desc">فنکار ↓</string>
+    <string name="sort_short_title_asc">عنوان ↑</string>
+    <string name="sort_short_title_desc">عنوان ↓</string>
+    <string name="sort_short_duration_asc">دورانیہ ↑</string>
+    <string name="sort_short_duration_desc">دورانیہ ↓</string>
+    <string name="sort_short_date_taken_asc">تصویر کی تاریخ ↑</string>
+    <string name="sort_short_date_taken_desc">تصویر کی تاریخ ↓</string>
+    <string name="sort_short_random">بے ترتیب</string>
+    <string name="browse_title_selected_count">%1$d منتخب</string>
+    <string name="browse_breadcrumb_root">روٹ</string>
 </resources>

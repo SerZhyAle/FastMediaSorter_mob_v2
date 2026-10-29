@@ -5,7 +5,6 @@ import androidx.core.os.ConfigurationCompat
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.Option
 import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
 import com.sza.fastmediasorter.ui.player.helpers.TranslationLanguageCatalog
-import timber.log.Timber
 import java.text.Collator
 import java.util.Locale
 

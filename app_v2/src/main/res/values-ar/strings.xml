@@ -4113,4 +4113,22 @@
     <string name="stream_broadcast_ended_message">\"%1$s\" لم يعد على الهواء. أعد الاتصال عند بدئه مرة أخرى.</string>
     <string name="stream_broadcast_reconnect">إعادة الاتصال</string>
     <string name="stream_status_ended">انتهى البث</string>
+    <string name="sort_short_manual">يدوي</string>
+    <string name="sort_short_date_asc">الأقدم ↑</string>
+    <string name="sort_short_date_desc">الأحدث ↓</string>
+    <string name="sort_short_size_asc">الحجم ↑</string>
+    <string name="sort_short_size_desc">الحجم ↓</string>
+    <string name="sort_short_type_asc">النوع ↑</string>
+    <string name="sort_short_type_desc">النوع ↓</string>
+    <string name="sort_short_artist_asc">الفنان ↑</string>
+    <string name="sort_short_artist_desc">الفنان ↓</string>
+    <string name="sort_short_title_asc">العنوان ↑</string>
+    <string name="sort_short_title_desc">العنوان ↓</string>
+    <string name="sort_short_duration_asc">المدة ↑</string>
+    <string name="sort_short_duration_desc">المدة ↓</string>
+    <string name="sort_short_date_taken_asc">تاريخ الالتقاط ↑</string>
+    <string name="sort_short_date_taken_desc">تاريخ الالتقاط ↓</string>
+    <string name="sort_short_random">عشوائي</string>
+    <string name="browse_title_selected_count">تم تحديد %1$d</string>
+    <string name="browse_breadcrumb_root">الجذر</string>
 </resources>

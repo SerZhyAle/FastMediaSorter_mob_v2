@@ -70,16 +70,17 @@
                 android:textAppearance="?attr/textAppearanceBody2" />
 
             <!-- S4479: a button, not a glyph - a tap or a long press explains the last run. 48dp is the
-                 touch floor; the 14dp padding leaves a 20dp mark like the op-type icon beside it. -->
+                 touch floor; the 14dp padding leaves a 20dp mark like the op-type icon beside it.
+                 No static glyph: ScheduledOperationsAdapter sets the glyph and its name together per run
+                 state (info for a skip, error for a failure), so the pair can never disagree. -->
             <ImageButton
                 android:id="@+id/btnRunStatus"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="@dimen/token_touch_target_min"
+                android:layout_height="@dimen/token_touch_target_min"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/scheduled_op_badge_error"
                 android:padding="14dp"
                 android:scaleType="fitCenter"
-                android:src="@drawable/ic_info"
                 android:visibility="gone" />
 
         </LinearLayout>

@@ -105,4 +105,24 @@
     <string name="scheduled_op_badge_error">آخری رن ناکام رہا۔ تفصیلات کے لیے تاریخچہ کھولیں۔</string>
     <string name="scheduled_op_badge_skipped">آخری رن چھوڑ دیا گیا: ایک فریق تک رسائی نہیں ہو سکی۔ اگلے وقت پر دوبارہ کوشش کی جاتی ہے۔</string>
     <string name="scheduled_ops_notif_failed_title">شیڈول کیا ہوا آپریشن ناکام ہو گیا</string>
+    <string name="scheduled_op_history_details">تفصیلات</string>
+    <string name="scheduled_op_reason_source_unreachable">ماخذ نے جواب نہیں دیا</string>
+    <string name="scheduled_op_reason_target_unreachable">منزل نے جواب نہیں دیا</string>
+    <string name="scheduled_op_reason_source_read_only">ماخذ صرف پڑھنے کے لیے ہے</string>
+    <string name="scheduled_op_reason_target_read_only">منزل صرف پڑھنے کے لیے ہے</string>
+    <string name="scheduled_op_reason_source_missing">ماخذ فولڈر موجود نہیں</string>
+    <string name="scheduled_op_reason_target_unavailable">منزل فولڈر موجود نہیں یا اس میں لکھا نہیں جا سکتا</string>
+    <string name="scheduled_op_reason_watch_unavailable">گھڑی کا کنکشن بند ہے یا یہاں تعاون یافتہ نہیں</string>
+    <string name="scheduled_op_reason_watch_unreachable">گھڑی نے جواب نہیں دیا</string>
+    <string name="scheduled_op_reason_watch_refused">گھڑی پیغام نہیں دکھا سکی</string>
+    <string name="scheduled_op_reason_message_too_long">پیغام گھڑی کے لیے بہت لمبا ہے</string>
+    <string name="scheduled_op_reason_pin_refused">فولڈر PIN قبول نہیں ہوا</string>
+    <string name="scheduled_op_reason_permission_required">آپ کی اجازت یا نئے سائن اِن کی ضرورت ہے</string>
+    <string name="scheduled_op_reason_skipped_other">اس بار شروع نہیں ہو سکا</string>
+    <string name="scheduled_op_reason_error_other">رن مکمل نہیں ہوا</string>
+    <string name="scheduled_op_last_run_retry">چھوٹا ہوا رن اگلے وقت پر دوبارہ چلایا جاتا ہے۔</string>
+    <string name="scheduled_op_last_run_title">آخری رن</string>
+    <string name="scheduled_op_reason_source_deleted">ماخذ حذف ہو گیا، اس لیے یہ شیڈول موقوف ہے</string>
+    <string name="scheduled_op_reason_target_deleted">منزل حذف ہو گئی، اس لیے یہ شیڈول موقوف ہے</string>
+    <string name="scheduled_ops_log_failed">کچھ غلط ہو گیا</string>
 </resources>

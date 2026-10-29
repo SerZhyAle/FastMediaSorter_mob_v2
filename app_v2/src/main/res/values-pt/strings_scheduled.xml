@@ -105,4 +105,24 @@
     <string name="scheduled_op_badge_error">A última execução falhou. Abra o Histórico para ver os detalhes.</string>
     <string name="scheduled_op_badge_skipped">A última execução foi ignorada: um dos lados não pôde ser alcançado. Será tentada novamente no próximo horário.</string>
     <string name="scheduled_ops_notif_failed_title">Falha na operação agendada</string>
+    <string name="scheduled_op_history_details">Detalhes</string>
+    <string name="scheduled_op_reason_source_unreachable">A origem não respondeu</string>
+    <string name="scheduled_op_reason_target_unreachable">O destino não respondeu</string>
+    <string name="scheduled_op_reason_source_read_only">A origem é somente leitura</string>
+    <string name="scheduled_op_reason_target_read_only">O destino é somente leitura</string>
+    <string name="scheduled_op_reason_source_missing">A pasta de origem não existe</string>
+    <string name="scheduled_op_reason_target_unavailable">A pasta de destino não existe ou não permite gravação</string>
+    <string name="scheduled_op_reason_watch_unavailable">A conexão com o relógio está desativada ou não é compatível aqui</string>
+    <string name="scheduled_op_reason_watch_unreachable">O relógio não respondeu</string>
+    <string name="scheduled_op_reason_watch_refused">O relógio não conseguiu mostrar a mensagem</string>
+    <string name="scheduled_op_reason_message_too_long">A mensagem é longa demais para o relógio</string>
+    <string name="scheduled_op_reason_pin_refused">O PIN da pasta não foi aceito</string>
+    <string name="scheduled_op_reason_permission_required">Requer sua permissão ou um novo login</string>
+    <string name="scheduled_op_reason_skipped_other">Não foi possível iniciar desta vez</string>
+    <string name="scheduled_op_reason_error_other">A execução não terminou</string>
+    <string name="scheduled_op_last_run_retry">Uma execução pulada é repetida no próximo horário.</string>
+    <string name="scheduled_op_last_run_title">Última execução</string>
+    <string name="scheduled_op_reason_source_deleted">A origem foi excluída, por isso este agendamento está pausado</string>
+    <string name="scheduled_op_reason_target_deleted">O destino foi excluído, por isso este agendamento está pausado</string>
+    <string name="scheduled_ops_log_failed">Algo deu errado</string>
 </resources>

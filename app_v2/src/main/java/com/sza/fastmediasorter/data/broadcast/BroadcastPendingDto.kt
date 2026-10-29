@@ -13,9 +13,12 @@ data class BroadcastPendingDto(
 ) {
 
     /** Epoch millis of [until], or null when the value is not an RFC 3339 instant. */
-    fun untilMs(): Long? = if (until.isNullOrBlank()) null else try {
-        Instant.parse(until.trim()).toEpochMilli()
-    } catch (_: DateTimeParseException) {
-        null
+    fun untilMs(): Long? {
+        if (until.isNullOrBlank()) return null
+        return try {
+            Instant.parse(until.trim()).toEpochMilli()
+        } catch (_: DateTimeParseException) {
+            null
+        }
     }
 }

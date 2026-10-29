@@ -4087,4 +4087,22 @@
     <string name="stream_broadcast_ended_message">\"%1$s\" अब लाइव नहीं है। दोबारा शुरू होने पर फिर से कनेक्ट करें।</string>
     <string name="stream_broadcast_reconnect">फिर से कनेक्ट करें</string>
     <string name="stream_status_ended">प्रसारण समाप्त</string>
+    <string name="sort_short_manual">मैन्युअल</string>
+    <string name="sort_short_date_asc">पुराने ↑</string>
+    <string name="sort_short_date_desc">नए ↓</string>
+    <string name="sort_short_size_asc">आकार ↑</string>
+    <string name="sort_short_size_desc">आकार ↓</string>
+    <string name="sort_short_type_asc">प्रकार ↑</string>
+    <string name="sort_short_type_desc">प्रकार ↓</string>
+    <string name="sort_short_artist_asc">कलाकार ↑</string>
+    <string name="sort_short_artist_desc">कलाकार ↓</string>
+    <string name="sort_short_title_asc">शीर्षक ↑</string>
+    <string name="sort_short_title_desc">शीर्षक ↓</string>
+    <string name="sort_short_duration_asc">अवधि ↑</string>
+    <string name="sort_short_duration_desc">अवधि ↓</string>
+    <string name="sort_short_date_taken_asc">खींचने की तारीख ↑</string>
+    <string name="sort_short_date_taken_desc">खींचने की तारीख ↓</string>
+    <string name="sort_short_random">यादृच्छिक</string>
+    <string name="browse_title_selected_count">%1$d चुने गए</string>
+    <string name="browse_breadcrumb_root">रूट</string>
 </resources>

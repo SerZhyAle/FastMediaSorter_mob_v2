@@ -18,13 +18,12 @@ import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.core.util.warnUnlessCancellation
 import com.sza.fastmediasorter.data.wear.OpenOnPhoneNotifier
+import com.sza.fastmediasorter.data.wear.ScheduledWatchReceiptRegistry
 import com.sza.fastmediasorter.data.wear.WearIncomingFileRegistry
 import com.sza.fastmediasorter.data.wear.WearSendToNotifier
-import com.sza.fastmediasorter.data.wear.ScheduledWatchReceiptRegistry
 import com.sza.fastmediasorter.domain.model.WearEventEnvelope
 import com.sza.fastmediasorter.domain.model.WearEventEnvelopeCodec
 import com.sza.fastmediasorter.domain.model.WearExchangeHandoverCodec
-import com.sza.fastmediasorter.domain.model.WearScheduledMessageCodec
 import com.sza.fastmediasorter.domain.model.WearFavoritesDeltaPayload
 import com.sza.fastmediasorter.domain.model.WearFileReceiveAck
 import com.sza.fastmediasorter.domain.model.WearFileTransferAck
@@ -39,6 +38,7 @@ import com.sza.fastmediasorter.domain.model.WearPhoneResourceRequest
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceRequestKind
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceResponseStatus
 import com.sza.fastmediasorter.domain.model.WearPlaybackStatePayload
+import com.sza.fastmediasorter.domain.model.WearScheduledMessageCodec
 import com.sza.fastmediasorter.domain.model.WearSettingsDivergence
 import com.sza.fastmediasorter.domain.model.WearSettingsFieldIssue
 import com.sza.fastmediasorter.domain.model.WearSettingsPayloadDecoder
@@ -843,9 +843,6 @@ class PhoneWearListenerService : WearableListenerService() {
         return encodePage(page.copy(items = page.items?.map { it.withoutThumbnail() }))
     }
 
-    private fun WearPhoneResourceItem.withoutThumbnail(): WearPhoneResourceItem =
-        if (thumbnailBase64 == null) this else copy(thumbnailBase64 = null)
-
     private fun handleSyncRequest() {
         Timber.i("Watch requested sync - sending resources")
         applicationScope.launch {
@@ -874,3 +871,6 @@ class PhoneWearListenerService : WearableListenerService() {
         private const val MAX_DATA_ITEM_BYTES = 100 * 1024
     }
 }
+
+private fun WearPhoneResourceItem.withoutThumbnail(): WearPhoneResourceItem =
+    if (thumbnailBase64 == null) this else copy(thumbnailBase64 = null)

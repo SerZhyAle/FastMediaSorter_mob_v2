@@ -14,7 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingBottom="@dimen/token_spacing_8"
-        android:textAppearance="?attr/textAppearanceBody2"
+        android:textAppearance="@style/TextAppearance.FastMediaSorter.Dialog.Body"
         android:textColor="?attr/colorOnSurface"
         android:textStyle="bold" />
 
@@ -23,7 +23,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/scheduled_ops_history_empty"
-        android:textAppearance="?attr/textAppearanceBody2"
+        android:textAppearance="@style/TextAppearance.FastMediaSorter.Dialog.Body"
         android:textColor="?attr/colorOnSurfaceVariant"
         android:visibility="gone" />
 

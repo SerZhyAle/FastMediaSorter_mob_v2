@@ -96,7 +96,9 @@ class SendScheduledWatchMessageUseCaseTest {
 
     @Test
     fun `a refused receipt is a skip carrying the watch's reason`() = runTest {
-        answerWith { WearScheduledMessageReceipt(it, false, WearScheduledMessageReceiptReasons.NO_NOTIFICATION_PERMISSION) }
+        answerWith {
+            WearScheduledMessageReceipt(it, false, WearScheduledMessageReceiptReasons.NO_NOTIFICATION_PERMISSION)
+        }
 
         val result = useCase(operation)
 

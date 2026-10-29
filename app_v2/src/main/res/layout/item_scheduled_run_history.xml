@@ -11,7 +11,7 @@
         android:id="@+id/tvRunHeadline"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textAppearance="?attr/textAppearanceBody2"
+        android:textAppearance="@style/TextAppearance.FastMediaSorter.Item.Subtitle"
         android:textColor="?attr/colorOnSurface" />
 
     <com.google.android.material.button.MaterialButton

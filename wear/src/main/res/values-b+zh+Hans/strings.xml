@@ -1104,4 +1104,6 @@
     <string name="wear_broadcast_server_failed">服务器错误 - 请查看手机</string>
     <string name="wear_broadcast_server_local_only">仅限此网络</string>
     <string name="wear_scheduled_message_channel_name">定时消息</string>
+    <string name="wear_audio_fetching">正在加载曲目..</string>
+    <string name="wear_stream_ended">此直播已停播。请在重新开播时重试。</string>
 </resources>

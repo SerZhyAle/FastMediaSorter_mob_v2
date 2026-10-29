@@ -8,11 +8,11 @@ import com.sza.fastmediasorter.domain.model.transfer.CrossDevicePacketExpiry
 import com.sza.fastmediasorter.domain.model.transfer.CrossDevicePacketFile
 import com.sza.fastmediasorter.domain.model.transfer.CrossDevicePacketManifest
 import com.sza.fastmediasorter.domain.model.transfer.CrossDeviceQueueSnapshot
+import com.sza.fastmediasorter.domain.model.transfer.DriveConsentRequired
 import com.sza.fastmediasorter.domain.model.transfer.DriveDailyLimit
 import com.sza.fastmediasorter.domain.model.transfer.DrivePacketNames
 import com.sza.fastmediasorter.domain.model.transfer.DriveQueueFull
 import com.sza.fastmediasorter.domain.model.transfer.DriveQuota
-import com.sza.fastmediasorter.domain.model.transfer.DriveConsentRequired
 import com.sza.fastmediasorter.domain.model.transfer.DriveSignInRequired
 import com.sza.fastmediasorter.domain.model.transfer.DriveTemporarilyUnavailable
 import com.sza.fastmediasorter.domain.model.transfer.DriveTransferFailure

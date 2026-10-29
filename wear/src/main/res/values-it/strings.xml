@@ -1098,4 +1098,6 @@
     <string name="wear_broadcast_server_failed">Errore del server - vedi il telefono</string>
     <string name="wear_broadcast_server_local_only">Solo questa rete</string>
     <string name="wear_scheduled_message_channel_name">Messaggi programmati</string>
+    <string name="wear_audio_fetching">Caricamento del brano..</string>
+    <string name="wear_stream_ended">Questo stream non è più in onda. Riprova quando ripartirà.</string>
 </resources>

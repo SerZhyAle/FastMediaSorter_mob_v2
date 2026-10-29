@@ -9,11 +9,11 @@ import com.sza.fastmediasorter.data.remote.exchange.ExchangeClipboardGetResult
 import com.sza.fastmediasorter.data.remote.exchange.ExchangeClipboardState
 import com.sza.fastmediasorter.data.repository.ExchangeClipboardRepository
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
-import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import com.sza.fastmediasorter.domain.model.ExchangeClipboardEntryFailure
 import com.sza.fastmediasorter.domain.model.ExchangeClipboardEntryFailure.Cause
 import com.sza.fastmediasorter.domain.model.ExchangeClipboardGetOutcome
 import com.sza.fastmediasorter.domain.model.ExchangeClipboardValue
+import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope

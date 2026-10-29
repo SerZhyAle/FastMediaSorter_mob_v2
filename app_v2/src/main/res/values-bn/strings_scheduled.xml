@@ -105,4 +105,24 @@
     <string name="scheduled_op_badge_error">সর্বশেষ চালানো ব্যর্থ হয়েছে। বিস্তারিত জানতে ইতিহাস খুলুন।</string>
     <string name="scheduled_op_badge_skipped">সর্বশেষ চালানো এড়ানো হয়েছে: একটি প্রান্তে পৌঁছানো যায়নি। পরবর্তী নির্ধারিত সময়ে আবার চেষ্টা করা হবে।</string>
     <string name="scheduled_ops_notif_failed_title">নির্ধারিত অপারেশন ব্যর্থ হয়েছে</string>
+    <string name="scheduled_op_history_details">বিস্তারিত</string>
+    <string name="scheduled_op_reason_source_unreachable">উৎস সাড়া দেয়নি</string>
+    <string name="scheduled_op_reason_target_unreachable">গন্তব্য সাড়া দেয়নি</string>
+    <string name="scheduled_op_reason_source_read_only">উৎসটি শুধু-পড়ার জন্য</string>
+    <string name="scheduled_op_reason_target_read_only">গন্তব্যটি শুধু-পড়ার জন্য</string>
+    <string name="scheduled_op_reason_source_missing">উৎস ফোল্ডারটি নেই</string>
+    <string name="scheduled_op_reason_target_unavailable">গন্তব্য ফোল্ডারটি নেই বা তাতে লেখা যায় না</string>
+    <string name="scheduled_op_reason_watch_unavailable">ঘড়ির সংযোগ বন্ধ বা এখানে সমর্থিত নয়</string>
+    <string name="scheduled_op_reason_watch_unreachable">ঘড়ি সাড়া দেয়নি</string>
+    <string name="scheduled_op_reason_watch_refused">ঘড়ি বার্তাটি দেখাতে পারেনি</string>
+    <string name="scheduled_op_reason_message_too_long">বার্তাটি ঘড়ির জন্য খুব দীর্ঘ</string>
+    <string name="scheduled_op_reason_pin_refused">ফোল্ডারের PIN গৃহীত হয়নি</string>
+    <string name="scheduled_op_reason_permission_required">আপনার অনুমতি বা নতুন সাইন-ইন প্রয়োজন</string>
+    <string name="scheduled_op_reason_skipped_other">এবার শুরু করা যায়নি</string>
+    <string name="scheduled_op_reason_error_other">চালানোটি শেষ হয়নি</string>
+    <string name="scheduled_op_last_run_retry">বাদ পড়া চালানো পরের সময়ে আবার চেষ্টা করা হয়।</string>
+    <string name="scheduled_op_last_run_title">সর্বশেষ চালানো</string>
+    <string name="scheduled_op_reason_source_deleted">উৎস মুছে ফেলা হয়েছে, তাই এই সময়সূচি বিরতিতে আছে</string>
+    <string name="scheduled_op_reason_target_deleted">গন্তব্য মুছে ফেলা হয়েছে, তাই এই সময়সূচি বিরতিতে আছে</string>
+    <string name="scheduled_ops_log_failed">কিছু ভুল হয়েছে</string>
 </resources>

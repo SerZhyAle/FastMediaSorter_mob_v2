@@ -104,4 +104,24 @@
     <string name="scheduled_op_badge_error">فشل آخر تشغيل. افتح «السجل» للتفاصيل.</string>
     <string name="scheduled_op_badge_skipped">تم تخطي آخر تشغيل: تعذّر الوصول إلى أحد الطرفين. ستُعاد المحاولة في الموعد التالي.</string>
     <string name="scheduled_ops_notif_failed_title">فشلت العملية المجدولة</string>
+    <string name="scheduled_op_history_details">التفاصيل</string>
+    <string name="scheduled_op_reason_source_unreachable">لم يستجب المصدر</string>
+    <string name="scheduled_op_reason_target_unreachable">لم تستجب الوجهة</string>
+    <string name="scheduled_op_reason_source_read_only">المصدر للقراءة فقط</string>
+    <string name="scheduled_op_reason_target_read_only">الوجهة للقراءة فقط</string>
+    <string name="scheduled_op_reason_source_missing">مجلد المصدر غير موجود</string>
+    <string name="scheduled_op_reason_target_unavailable">مجلد الوجهة غير موجود أو غير قابل للكتابة</string>
+    <string name="scheduled_op_reason_watch_unavailable">اتصال الساعة متوقف أو غير مدعوم هنا</string>
+    <string name="scheduled_op_reason_watch_unreachable">لم تستجب الساعة</string>
+    <string name="scheduled_op_reason_watch_refused">تعذّر على الساعة عرض الرسالة</string>
+    <string name="scheduled_op_reason_message_too_long">الرسالة طويلة جدًا بالنسبة للساعة</string>
+    <string name="scheduled_op_reason_pin_refused">لم يُقبل رمز PIN للمجلد</string>
+    <string name="scheduled_op_reason_permission_required">يلزم إذنك أو تسجيل دخول جديد</string>
+    <string name="scheduled_op_reason_skipped_other">تعذّر البدء هذه المرة</string>
+    <string name="scheduled_op_reason_error_other">لم يكتمل التشغيل</string>
+    <string name="scheduled_op_last_run_retry">يُعاد التشغيل الذي تم تخطيه في الموعد التالي.</string>
+    <string name="scheduled_op_last_run_title">آخر تشغيل</string>
+    <string name="scheduled_op_reason_source_deleted">حُذف المصدر، لذا هذا الجدول متوقف مؤقتًا</string>
+    <string name="scheduled_op_reason_target_deleted">حُذفت الوجهة، لذا هذا الجدول متوقف مؤقتًا</string>
+    <string name="scheduled_ops_log_failed">حدث خطأ ما</string>
 </resources>

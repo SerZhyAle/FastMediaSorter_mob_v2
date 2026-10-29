@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.29 05:42</sub>
+<sub class="doc-stamp">26.10.29 12:08</sub>
 
 # Development Changelog
 
@@ -37322,3 +37322,5 @@ Format: | datetime | file | target | description |
 | 2026-10-29 05:37:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseUtilityManager.kt` | `S4494` | S4494: browse title strip reads the selection suffix and the breadcrumb root from string resources (en/ru/uk); the unreachable English buildFilterDescription is removed [set of 4: app_v2/src/main/res/values/strings.xml, app_v2/src/main/res/values-ru/strings.xml, app_v2/src/main/res/values-uk/strings.xml] [branch: DEBUG-v047] |
 | 2026-10-29 05:42:32 | `scripts/quality/assert-settings-doc-sync.ps1` | `S4495` | S4495: settings-doc-sync gate skips its gradle manifest stage in the fast tier and names it as a RELEASE item; precomputed gates journal their child's real run time [set of 3: scripts/quality/lib/post-change-step-runners.ps1, scripts/post-change.ps1] [branch: DEBUG-v047] |
 | 2026-10-29 05:43:14 | `PLAN/S4495_settings-doc-sync-gate-runs-gradle-in-fast-tier.md` | `S4495` | Trivial path done; status -> Verified [branch: DEBUG-v047] |
+| 2026-10-29 11:36:34 | `scripts/quality/assert-release-tier-closure.ps1` | `S0484` | Pre-release sweep fixes: release-scope gate findings (IO dispatcher, M2 tokens, dimen, icon contract, coverage manifest), 23+6 detekt findings over the release diff, 40 new strings fanned out to 10 locales, and two tooling fixes - assert-release-tier-closure chunks the release set and detekt-scoped passes java args via an @argfile, both past the Windows command-line ceiling; post-change suite harnesses load the tier library [set of 69: scripts/quality/detekt-scoped.ps1, scripts/post-change.tests/Run-Tests.ps1, scripts/quality/locale-identical-allowlist.json, docs/coverage-manifest.jsonl, docs/icons/icon-contract-map.json, app_v2/src/weargms/java/com/sza/fastmediasorter/service/PhoneWearListenerService.kt, +62 more] [branch: DEBUG-v047] |
+| 2026-10-29 12:08:10 | `app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/LauncherHomeActivity.kt` | `launcher desktop gestures` | Limit desktop gestures to the desktop area outside gadgets [branch: DEBUG-v047] |

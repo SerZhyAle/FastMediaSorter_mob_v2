@@ -4089,4 +4089,22 @@
     <string name="stream_broadcast_ended_message">\"%1$s\" non è più in onda. Riconnettiti quando ricomincia.</string>
     <string name="stream_broadcast_reconnect">Riconnetti</string>
     <string name="stream_status_ended">Trasmissione terminata</string>
+    <string name="sort_short_manual">Manuale</string>
+    <string name="sort_short_date_asc">Vecchi ↑</string>
+    <string name="sort_short_date_desc">Nuovi ↓</string>
+    <string name="sort_short_size_asc">Dimensione ↑</string>
+    <string name="sort_short_size_desc">Dimensione ↓</string>
+    <string name="sort_short_type_asc">Tipo ↑</string>
+    <string name="sort_short_type_desc">Tipo ↓</string>
+    <string name="sort_short_artist_asc">Artista ↑</string>
+    <string name="sort_short_artist_desc">Artista ↓</string>
+    <string name="sort_short_title_asc">Titolo ↑</string>
+    <string name="sort_short_title_desc">Titolo ↓</string>
+    <string name="sort_short_duration_asc">Durata ↑</string>
+    <string name="sort_short_duration_desc">Durata ↓</string>
+    <string name="sort_short_date_taken_asc">Data di scatto ↑</string>
+    <string name="sort_short_date_taken_desc">Data di scatto ↓</string>
+    <string name="sort_short_random">Casuale</string>
+    <string name="browse_title_selected_count">%1$d selezionati</string>
+    <string name="browse_breadcrumb_root">Radice</string>
 </resources>

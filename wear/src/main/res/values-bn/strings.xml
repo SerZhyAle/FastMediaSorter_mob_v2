@@ -1104,4 +1104,6 @@
     <string name="wear_broadcast_server_failed">সার্ভার ত্রুটি - ফোন দেখুন</string>
     <string name="wear_broadcast_server_local_only">শুধু এই নেটওয়ার্ক</string>
     <string name="wear_scheduled_message_channel_name">নির্ধারিত বার্তা</string>
+    <string name="wear_audio_fetching">ট্র্যাক লোড হচ্ছে..</string>
+    <string name="wear_stream_ended">এই স্ট্রিমটি আর সম্প্রচারে নেই। আবার শুরু হলে পুনরায় চেষ্টা করুন।</string>
 </resources>

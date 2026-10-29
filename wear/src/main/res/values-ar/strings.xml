@@ -1108,4 +1108,6 @@
     <string name="wear_broadcast_server_failed">خطأ في الخادم - راجع الهاتف</string>
     <string name="wear_broadcast_server_local_only">هذه الشبكة فقط</string>
     <string name="wear_scheduled_message_channel_name">الرسائل المجدولة</string>
+    <string name="wear_audio_fetching">جارٍ تحميل المقطع..</string>
+    <string name="wear_stream_ended">لم يعد هذا البث على الهواء. أعد المحاولة عندما يبدأ من جديد.</string>
 </resources>

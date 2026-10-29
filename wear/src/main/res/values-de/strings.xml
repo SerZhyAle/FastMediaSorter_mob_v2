@@ -1097,4 +1097,6 @@
     <string name="wear_broadcast_server_failed">Serverfehler - siehe Telefon</string>
     <string name="wear_broadcast_server_local_only">Nur dieses Netzwerk</string>
     <string name="wear_scheduled_message_channel_name">Geplante Nachrichten</string>
+    <string name="wear_audio_fetching">Titel wird geladen..</string>
+    <string name="wear_stream_ended">Dieser Stream ist nicht mehr auf Sendung. Versuche es erneut, wenn er wieder startet.</string>
 </resources>

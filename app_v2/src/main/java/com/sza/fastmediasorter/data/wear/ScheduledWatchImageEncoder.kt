@@ -58,15 +58,25 @@ class ScheduledWatchImageEncoder @Inject constructor(
     }
 
     private fun decodeScaled(uri: Uri): Bitmap? {
+        val sample = sampleSizeFor(uri) ?: return null
+        val decoded = context.contentResolver.openInputStream(uri)?.use {
+            BitmapFactory.decodeStream(it, null, BitmapFactory.Options().apply { inSampleSize = sample })
+        }
+        return decoded?.let(::scaledToEdge)
+    }
+
+    /** The power-of-two sample size that keeps the long edge at or above the target, or null when unreadable. */
+    private fun sampleSizeFor(uri: Uri): Int? {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
         val longEdge = max(bounds.outWidth, bounds.outHeight)
         if (longEdge <= 0) return null
         var sample = 1
         while (longEdge / (sample * 2) >= WearDataLayerPaths.BACKGROUND_IMAGE_EDGE_PX) sample *= 2
-        val decoded = context.contentResolver.openInputStream(uri)?.use {
-            BitmapFactory.decodeStream(it, null, BitmapFactory.Options().apply { inSampleSize = sample })
-        } ?: return null
+        return sample
+    }
+
+    private fun scaledToEdge(decoded: Bitmap): Bitmap {
         val scale = WearDataLayerPaths.BACKGROUND_IMAGE_EDGE_PX.toFloat() / max(decoded.width, decoded.height)
         if (scale >= 1f) return decoded
         val scaled = Bitmap.createScaledBitmap(

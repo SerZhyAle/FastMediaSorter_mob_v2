@@ -105,4 +105,24 @@
     <string name="scheduled_op_badge_error">L\'ultima esecuzione non è riuscita. Apri la Cronologia per i dettagli.</string>
     <string name="scheduled_op_badge_skipped">L\'ultima esecuzione è stata saltata: un lato non era raggiungibile. Verrà ritentata alla prossima pianificazione.</string>
     <string name="scheduled_ops_notif_failed_title">Operazione pianificata non riuscita</string>
+    <string name="scheduled_op_history_details">Dettagli</string>
+    <string name="scheduled_op_reason_source_unreachable">L\'origine non ha risposto</string>
+    <string name="scheduled_op_reason_target_unreachable">La destinazione non ha risposto</string>
+    <string name="scheduled_op_reason_source_read_only">L\'origine è di sola lettura</string>
+    <string name="scheduled_op_reason_target_read_only">La destinazione è di sola lettura</string>
+    <string name="scheduled_op_reason_source_missing">La cartella di origine non esiste</string>
+    <string name="scheduled_op_reason_target_unavailable">La cartella di destinazione non esiste o non è scrivibile</string>
+    <string name="scheduled_op_reason_watch_unavailable">La connessione all\'orologio è disattivata o non supportata qui</string>
+    <string name="scheduled_op_reason_watch_unreachable">L\'orologio non ha risposto</string>
+    <string name="scheduled_op_reason_watch_refused">L\'orologio non ha potuto mostrare il messaggio</string>
+    <string name="scheduled_op_reason_message_too_long">Il messaggio è troppo lungo per l\'orologio</string>
+    <string name="scheduled_op_reason_pin_refused">Il PIN della cartella non è stato accettato</string>
+    <string name="scheduled_op_reason_permission_required">Serve la tua autorizzazione o un nuovo accesso</string>
+    <string name="scheduled_op_reason_skipped_other">Impossibile avviare questa volta</string>
+    <string name="scheduled_op_reason_error_other">L\'esecuzione non è terminata</string>
+    <string name="scheduled_op_last_run_retry">Un\'esecuzione saltata viene ritentata alla fascia successiva.</string>
+    <string name="scheduled_op_last_run_title">Ultima esecuzione</string>
+    <string name="scheduled_op_reason_source_deleted">L\'origine è stata eliminata, quindi questa pianificazione è in pausa</string>
+    <string name="scheduled_op_reason_target_deleted">La destinazione è stata eliminata, quindi questa pianificazione è in pausa</string>
+    <string name="scheduled_ops_log_failed">Qualcosa è andato storto</string>
 </resources>

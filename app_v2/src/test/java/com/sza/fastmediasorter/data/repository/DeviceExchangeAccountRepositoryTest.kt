@@ -4,7 +4,6 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.emptyPreferences
 import com.sza.fastmediasorter.data.local.db.ResourceDao
-import com.sza.fastmediasorter.data.local.db.ResourceEntity
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeAccountClient
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeEnvelope
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeTokenStore
@@ -21,7 +20,6 @@ import com.sza.fastmediasorter.domain.model.DeviceExchangeRemoval
 import com.sza.fastmediasorter.domain.model.DeviceExchangeWelcome
 import com.sza.fastmediasorter.domain.model.ExchangeBinding
 import com.sza.fastmediasorter.domain.model.ExchangeEndpoint
-import com.sza.fastmediasorter.domain.model.ResourceType
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -359,15 +357,6 @@ class DeviceExchangeAccountRepositoryTest {
         assertEquals(PIN, text.fingerprint)
         assertNull(text.loginHint)
     }
-
-    private fun bound(account: String, resourceId: String) = ResourceEntity(
-        id = 1L,
-        name = "R",
-        path = "sftp://192.168.1.5:2222/Private",
-        type = ResourceType.SFTP,
-        exchangeAccount = account,
-        exchangeResourceId = resourceId,
-    )
 
     private suspend fun held(endpoint: ExchangeEndpoint, deviceId: String = DEVICE) =
         DeviceExchangeAccountEntry(endpoint.host, endpoint.port, LOGIN, deviceId, null).also { store.put(it) }

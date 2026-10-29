@@ -145,8 +145,9 @@ class BroadcastTunnelIdentities @Inject constructor() {
 
     private fun identityOf(alias: String): BroadcastTunnelIdentity? {
         val store = keyStore()
-        val leaf = store.getCertificate(alias) as? X509Certificate ?: return null
-        val key = store.getKey(alias, null) as? PrivateKey ?: return null
+        val leaf = store.getCertificate(alias) as? X509Certificate
+        val key = store.getKey(alias, null) as? PrivateKey
+        if (leaf == null || key == null) return null
         val keyManager = SingleKeyManager(alias, key, leaf)
         val context = SSLContext.getInstance(TLS).apply { init(arrayOf(keyManager), null, null) }
         return BroadcastTunnelIdentity(context, BroadcastTunnelTls.pinOf(leaf))

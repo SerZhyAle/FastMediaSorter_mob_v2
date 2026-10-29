@@ -1104,4 +1104,6 @@
     <string name="wear_broadcast_server_failed">سرور میں خرابی - فون دیکھیں</string>
     <string name="wear_broadcast_server_local_only">صرف یہ نیٹ ورک</string>
     <string name="wear_scheduled_message_channel_name">طے شدہ پیغامات</string>
+    <string name="wear_audio_fetching">ٹریک لوڈ ہو رہا ہے..</string>
+    <string name="wear_stream_ended">یہ اسٹریم اب نشر نہیں ہو رہی۔ دوبارہ شروع ہونے پر پھر کوشش کریں۔</string>
 </resources>

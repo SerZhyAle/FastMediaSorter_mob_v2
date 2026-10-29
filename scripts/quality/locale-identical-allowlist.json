@@ -1632,6 +1632,12 @@
   },
   "scheduled_op_filter_images",
   "scheduled_op_filter_video",
+  {
+    "key": "scheduled_op_history_details",
+    "locales": [
+      "de"
+    ]
+  },
   "scheduled_ops_col_condition",
   "scheduled_ops_col_source",
   "scheduled_ops_col_target",
@@ -1744,6 +1750,25 @@
   "sort_mode_name_desc",
   "sort_mode_type_asc",
   "sort_mode_type_desc",
+  {
+    "key": "sort_short_manual",
+    "locales": [
+      "es",
+      "pt"
+    ]
+  },
+  {
+    "key": "sort_short_type_asc",
+    "locales": [
+      "fr"
+    ]
+  },
+  {
+    "key": "sort_short_type_desc",
+    "locales": [
+      "fr"
+    ]
+  },
   "source_path",
   "statistics_category_capture",
   "statistics_category_sources",

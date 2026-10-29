@@ -1100,4 +1100,6 @@
     <string name="wear_broadcast_server_failed">Erreur du serveur - voir le téléphone</string>
     <string name="wear_broadcast_server_local_only">Ce réseau uniquement</string>
     <string name="wear_scheduled_message_channel_name">Messages programmés</string>
+    <string name="wear_audio_fetching">Chargement de la piste..</string>
+    <string name="wear_stream_ended">Ce flux n\'est plus à l\'antenne. Réessayez quand il reprendra.</string>
 </resources>

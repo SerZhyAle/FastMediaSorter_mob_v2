@@ -280,7 +280,11 @@ class DeviceExchangeClipboardClient @Inject constructor(
         val context = currentCoroutineContext()
         try {
             val clearCount = target.outputStream().use { out ->
-                E2eSegmentStream.open(input, DigestOutputStream(out, clearDigest), E2eSegmentStream.valueKey(read.key)) {
+                E2eSegmentStream.open(
+                    input,
+                    DigestOutputStream(out, clearDigest),
+                    E2eSegmentStream.valueKey(read.key),
+                ) {
                     context.ensureActive()
                 }
             }

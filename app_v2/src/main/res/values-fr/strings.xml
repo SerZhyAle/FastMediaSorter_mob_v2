@@ -4088,4 +4088,20 @@
     <string name="stream_broadcast_ended_message">\"%1$s\" n’est plus en direct. Reconnectez-vous quand elle reprendra.</string>
     <string name="stream_broadcast_reconnect">Reconnecter</string>
     <string name="stream_status_ended">Diffusion terminée</string>
+    <string name="sort_short_manual">Manuel</string>
+    <string name="sort_short_date_asc">Ancien ↑</string>
+    <string name="sort_short_date_desc">Récent ↓</string>
+    <string name="sort_short_size_asc">Taille ↑</string>
+    <string name="sort_short_size_desc">Taille ↓</string>
+    <string name="sort_short_artist_asc">Artiste ↑</string>
+    <string name="sort_short_artist_desc">Artiste ↓</string>
+    <string name="sort_short_title_asc">Titre ↑</string>
+    <string name="sort_short_title_desc">Titre ↓</string>
+    <string name="sort_short_duration_asc">Durée ↑</string>
+    <string name="sort_short_duration_desc">Durée ↓</string>
+    <string name="sort_short_date_taken_asc">Date de prise ↑</string>
+    <string name="sort_short_date_taken_desc">Date de prise ↓</string>
+    <string name="sort_short_random">Aléatoire</string>
+    <string name="browse_title_selected_count">%1$d sélectionné(s)</string>
+    <string name="browse_breadcrumb_root">Racine</string>
 </resources>

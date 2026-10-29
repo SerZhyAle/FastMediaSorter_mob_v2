@@ -104,4 +104,24 @@
     <string name="scheduled_op_badge_error">पिछला रन विफल रहा। विवरण के लिए इतिहास खोलें।</string>
     <string name="scheduled_op_badge_skipped">पिछला रन छोड़ा गया: एक पक्ष तक पहुँचा नहीं जा सका। अगले स्लॉट में फिर कोशिश की जाएगी।</string>
     <string name="scheduled_ops_notif_failed_title">निर्धारित ऑपरेशन विफल रहा</string>
+    <string name="scheduled_op_history_details">विवरण</string>
+    <string name="scheduled_op_reason_source_unreachable">स्रोत ने जवाब नहीं दिया</string>
+    <string name="scheduled_op_reason_target_unreachable">लक्ष्य ने जवाब नहीं दिया</string>
+    <string name="scheduled_op_reason_source_read_only">स्रोत केवल-पढ़ने योग्य है</string>
+    <string name="scheduled_op_reason_target_read_only">लक्ष्य केवल-पढ़ने योग्य है</string>
+    <string name="scheduled_op_reason_source_missing">स्रोत फ़ोल्डर मौजूद नहीं है</string>
+    <string name="scheduled_op_reason_target_unavailable">लक्ष्य फ़ोल्डर मौजूद नहीं है या उसमें लिखा नहीं जा सकता</string>
+    <string name="scheduled_op_reason_watch_unavailable">घड़ी का कनेक्शन बंद है या यहाँ समर्थित नहीं है</string>
+    <string name="scheduled_op_reason_watch_unreachable">घड़ी ने जवाब नहीं दिया</string>
+    <string name="scheduled_op_reason_watch_refused">घड़ी संदेश नहीं दिखा सकी</string>
+    <string name="scheduled_op_reason_message_too_long">संदेश घड़ी के लिए बहुत लंबा है</string>
+    <string name="scheduled_op_reason_pin_refused">फ़ोल्डर PIN स्वीकार नहीं हुआ</string>
+    <string name="scheduled_op_reason_permission_required">आपकी अनुमति या नए साइन-इन की ज़रूरत है</string>
+    <string name="scheduled_op_reason_skipped_other">इस बार शुरू नहीं हो सका</string>
+    <string name="scheduled_op_reason_error_other">रन पूरा नहीं हुआ</string>
+    <string name="scheduled_op_last_run_retry">छूटा हुआ रन अगले समय पर फिर से चलाया जाता है।</string>
+    <string name="scheduled_op_last_run_title">पिछला रन</string>
+    <string name="scheduled_op_reason_source_deleted">स्रोत हटा दिया गया, इसलिए यह शेड्यूल रुका हुआ है</string>
+    <string name="scheduled_op_reason_target_deleted">लक्ष्य हटा दिया गया, इसलिए यह शेड्यूल रुका हुआ है</string>
+    <string name="scheduled_ops_log_failed">कुछ गलत हो गया</string>
 </resources>

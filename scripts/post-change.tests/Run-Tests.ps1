@@ -63,8 +63,10 @@ if ($facade -match 'Write-Host\s+\$ticketLogOutput') {
     throw 'ticket-log-audit prints its report with Write-Host outside the gate action; the protocol file loses the finding lines.'
 }
 foreach ($ticketLogRoute in @(
-    'Invoke-Gate "ticket-log-audit" \{ if \(\$ticketLogReport\)',
-    'Invoke-AdvisoryStep "ticket-log-audit" \{ if \(\$ticketLogReport\)'
+    # Other statements may precede the emit inside the action (S4249 pools the elapsed time first);
+    # what must hold is that the report is emitted inside the action block at all.
+    'Invoke-Gate "ticket-log-audit" \{[^}\r\n]*?if \(\$ticketLogReport\)',
+    'Invoke-AdvisoryStep "ticket-log-audit" \{[^}\r\n]*?if \(\$ticketLogReport\)'
 )) {
     if ($facade -notmatch $ticketLogRoute) {
         throw "ticket-log-audit does not emit its report inside the gate action: missing /$ticketLogRoute/."
@@ -626,7 +628,9 @@ if ($facadeFile -notmatch 'post-change-closure-ledger\.ps1') {
 
 $runnersSource = Get-Content -LiteralPath (Join-Path $repoRoot 'scripts/quality/lib/post-change-step-runners.ps1') -Raw
 foreach ($wrapper in @('Invoke-Gate', 'Invoke-AdvisoryStep', 'Invoke-FixedInputGate')) {
-    if ($runnersSource -notmatch "(?s)function $wrapper\([^)]*\)\s*\{[^}]*ClosureReuseActive") {
+    # The tier skip (`{ return }`) comes first since S4488, so the reuse check is looked for among the
+    # wrapper's opening lines rather than before the first closing brace.
+    if ($runnersSource -notmatch "(?s)function $wrapper\([^)]*\)\s*\{(?:(?!\nfunction ).){0,600}?ClosureReuseActive") {
         throw "$wrapper does not short-circuit on an active reuse, so the batch still runs."
     }
 }
@@ -710,6 +714,10 @@ param([int] `$First, [int] `$Second)
 `$resolvedChangeType = 'Script'
 function Write-GateTelemetryRecord { param(`$Runner, `$Gate, `$Status, `$ExitCode, `$ElapsedMs) }
 . (Join-Path `$root 'scripts/quality/lib/post-change-step-runners.ps1')
+# The runners consult the tier library since S4488; at the Release tier every harness gate runs, so the
+# barrier is what is judged here, not the tier.
+. (Join-Path `$root 'scripts/quality/lib/gate-tier.ps1')
+`$script:ActiveTier = 'Release'
 function Send-PostChangeChatVerdict { param(`$Verdict) }
 `$script:ProtocolPath = Join-Path '$barrierDir' ('protocol-' + `$PID + '.log')
 Invoke-Gate 'gate-x' { `$global:LASTEXITCODE = `$First }
@@ -743,6 +751,10 @@ $naHarness = Join-Path $barrierDir 'na-harness.ps1'
 `$resolvedChangeType = 'Script'
 function Write-GateTelemetryRecord { param(`$Runner, `$Gate, `$Status, `$ExitCode, `$ElapsedMs) }
 . (Join-Path `$root 'scripts/quality/lib/post-change-step-runners.ps1')
+# The runners consult the tier library since S4488; at the Release tier every harness gate runs, so the
+# barrier is what is judged here, not the tier.
+. (Join-Path `$root 'scripts/quality/lib/gate-tier.ps1')
+`$script:ActiveTier = 'Release'
 function Send-PostChangeChatVerdict { param(`$Verdict) }
 `$script:ProtocolPath = Join-Path '$barrierDir' ('protocol-' + `$PID + '.log')
 Invoke-Gate 'gate-na' { Write-Host 'gate-na: NOT APPLICABLE (-Module app_v2)'; `$global:LASTEXITCODE = 0 }

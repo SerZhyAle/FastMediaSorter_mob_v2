@@ -20,7 +20,7 @@ import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
 import com.sza.fastmediasorter.ui.wear.companion.helpers.WatchFaceNudgeManager
 import com.sza.fastmediasorter.util.launchBoundToHost
 import com.sza.fastmediasorter.util.showBoundToHost
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -40,6 +40,7 @@ class MainWatchInstallOfferManager(
     private val findOffer: FindWatchInstallOfferUseCase,
     private val openWatchApp: OpenWatchAppOnWatchUseCase,
     private val openWatchFace: OpenWatchFaceOnWatchUseCase,
+    private val ioDispatcher: CoroutineDispatcher,
 ) {
 
     // The shared preference file is not in memory on a cold start: the first access loads it from disk
@@ -53,7 +54,7 @@ class MainWatchInstallOfferManager(
 
     fun offerIfNeeded() {
         activity.lifecycleScope.launch {
-            val alreadyShown = withContext(Dispatchers.IO) { prefs.getBoolean(KEY_OFFER_SHOWN, false) }
+            val alreadyShown = withContext(ioDispatcher) { prefs.getBoolean(KEY_OFFER_SHOWN, false) }
             Timber.d("S4484: watch offer flag read off the main thread, alreadyShown=$alreadyShown")
             if (alreadyShown) return@launch
             val offer = findOffer() ?: return@launch

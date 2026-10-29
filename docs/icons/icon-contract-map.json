@@ -37,6 +37,8 @@
     "ic_stream_status_failed": "status.error",
     "ic_tile_play": "media.play",
     "ic_tile_pause": "media.pause",
+    "ic_tile_recent": "source.recent",
+    "ic_tile_all_files": "source.local",
     "ic_virtual_docs": "content.document",
     "ic_virtual_music": "content.audio",
     "ic_virtual_video": "content.video",

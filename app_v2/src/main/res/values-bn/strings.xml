@@ -4090,4 +4090,22 @@
     <string name="stream_broadcast_ended_message">\"%1$s\" আর সম্প্রচারে নেই। আবার শুরু হলে পুনরায় সংযুক্ত হন।</string>
     <string name="stream_broadcast_reconnect">পুনরায় সংযুক্ত হন</string>
     <string name="stream_status_ended">সম্প্রচার শেষ</string>
+    <string name="sort_short_manual">ম্যানুয়াল</string>
+    <string name="sort_short_date_asc">পুরোনো ↑</string>
+    <string name="sort_short_date_desc">নতুন ↓</string>
+    <string name="sort_short_size_asc">আকার ↑</string>
+    <string name="sort_short_size_desc">আকার ↓</string>
+    <string name="sort_short_type_asc">ধরন ↑</string>
+    <string name="sort_short_type_desc">ধরন ↓</string>
+    <string name="sort_short_artist_asc">শিল্পী ↑</string>
+    <string name="sort_short_artist_desc">শিল্পী ↓</string>
+    <string name="sort_short_title_asc">শিরোনাম ↑</string>
+    <string name="sort_short_title_desc">শিরোনাম ↓</string>
+    <string name="sort_short_duration_asc">দৈর্ঘ্য ↑</string>
+    <string name="sort_short_duration_desc">দৈর্ঘ্য ↓</string>
+    <string name="sort_short_date_taken_asc">তোলার তারিখ ↑</string>
+    <string name="sort_short_date_taken_desc">তোলার তারিখ ↓</string>
+    <string name="sort_short_random">এলোমেলো</string>
+    <string name="browse_title_selected_count">%1$dটি নির্বাচিত</string>
+    <string name="browse_breadcrumb_root">রুট</string>
 </resources>

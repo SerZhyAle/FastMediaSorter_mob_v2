@@ -4088,4 +4088,22 @@
     <string name="stream_broadcast_ended_message">\"%1$s\"已不在直播。再次开始时请重新连接。</string>
     <string name="stream_broadcast_reconnect">重新连接</string>
     <string name="stream_status_ended">广播已结束</string>
+    <string name="sort_short_manual">手动</string>
+    <string name="sort_short_date_asc">旧 ↑</string>
+    <string name="sort_short_date_desc">新 ↓</string>
+    <string name="sort_short_size_asc">大小 ↑</string>
+    <string name="sort_short_size_desc">大小 ↓</string>
+    <string name="sort_short_type_asc">类型 ↑</string>
+    <string name="sort_short_type_desc">类型 ↓</string>
+    <string name="sort_short_artist_asc">艺术家 ↑</string>
+    <string name="sort_short_artist_desc">艺术家 ↓</string>
+    <string name="sort_short_title_asc">标题 ↑</string>
+    <string name="sort_short_title_desc">标题 ↓</string>
+    <string name="sort_short_duration_asc">时长 ↑</string>
+    <string name="sort_short_duration_desc">时长 ↓</string>
+    <string name="sort_short_date_taken_asc">拍摄日期 ↑</string>
+    <string name="sort_short_date_taken_desc">拍摄日期 ↓</string>
+    <string name="sort_short_random">随机</string>
+    <string name="browse_title_selected_count">已选择 %1$d 项</string>
+    <string name="browse_breadcrumb_root">根目录</string>
 </resources>

@@ -21,7 +21,6 @@ import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
 import com.sza.fastmediasorter.ui.dialog.DestinationPickerDialog
 import com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog
 import com.sza.fastmediasorter.ui.systeminfo.SystemInfoActivity
-import com.sza.fastmediasorter.ui.systeminfo.helpers.SystemInfoDialogManager
 import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -36,7 +35,6 @@ class GeneralSettingsLogHelper(
     private val binding: FragmentSettingsGeneralBinding,
     private val fragment: Fragment,
     private val saveLogsLauncher: ActivityResultLauncher<String>,
-    private val systemInfoDialogManager: SystemInfoDialogManager,
     private val getDestinationsUseCase: GetDestinationsUseCase,
     private val saveTextFileToResourceUseCase: SaveTextFileToResourceUseCase,
 ) {

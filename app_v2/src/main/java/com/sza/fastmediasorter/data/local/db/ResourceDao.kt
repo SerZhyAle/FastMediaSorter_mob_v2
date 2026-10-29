@@ -203,7 +203,8 @@ abstract class ResourceDao {
     abstract suspend fun getByExchangeAccount(account: String): List<ResourceEntity>
 
     @Query(
-        "SELECT exchange_resource_id FROM resources WHERE exchange_account = :account AND exchange_resource_id IS NOT NULL"
+        "SELECT exchange_resource_id FROM resources " +
+            "WHERE exchange_account = :account AND exchange_resource_id IS NOT NULL"
     )
     abstract suspend fun getExchangeResourceIds(account: String): List<String>
 

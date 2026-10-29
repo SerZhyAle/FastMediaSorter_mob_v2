@@ -105,4 +105,23 @@
     <string name="scheduled_op_badge_error">Der letzte Lauf ist fehlgeschlagen. Öffne den Verlauf für Details.</string>
     <string name="scheduled_op_badge_skipped">Der letzte Lauf wurde übersprungen: Eine Seite war nicht erreichbar. Beim nächsten Termin wird es erneut versucht.</string>
     <string name="scheduled_ops_notif_failed_title">Geplanter Vorgang fehlgeschlagen</string>
+    <string name="scheduled_op_reason_source_unreachable">Die Quelle hat nicht geantwortet</string>
+    <string name="scheduled_op_reason_target_unreachable">Das Ziel hat nicht geantwortet</string>
+    <string name="scheduled_op_reason_source_read_only">Die Quelle ist schreibgeschützt</string>
+    <string name="scheduled_op_reason_target_read_only">Das Ziel ist schreibgeschützt</string>
+    <string name="scheduled_op_reason_source_missing">Der Quellordner fehlt</string>
+    <string name="scheduled_op_reason_target_unavailable">Der Zielordner fehlt oder ist nicht beschreibbar</string>
+    <string name="scheduled_op_reason_watch_unavailable">Die Uhrverbindung ist aus oder wird hier nicht unterstützt</string>
+    <string name="scheduled_op_reason_watch_unreachable">Die Uhr hat nicht geantwortet</string>
+    <string name="scheduled_op_reason_watch_refused">Die Uhr konnte die Nachricht nicht anzeigen</string>
+    <string name="scheduled_op_reason_message_too_long">Die Nachricht ist zu lang für die Uhr</string>
+    <string name="scheduled_op_reason_pin_refused">Die Ordner-PIN wurde nicht akzeptiert</string>
+    <string name="scheduled_op_reason_permission_required">Erfordert deine Erlaubnis oder eine neue Anmeldung</string>
+    <string name="scheduled_op_reason_skipped_other">Konnte diesmal nicht starten</string>
+    <string name="scheduled_op_reason_error_other">Der Lauf wurde nicht abgeschlossen</string>
+    <string name="scheduled_op_last_run_retry">Ein übersprungener Lauf wird zum nächsten Termin wiederholt.</string>
+    <string name="scheduled_op_last_run_title">Letzter Lauf</string>
+    <string name="scheduled_op_reason_source_deleted">Die Quelle wurde gelöscht, daher ist dieser Zeitplan pausiert</string>
+    <string name="scheduled_op_reason_target_deleted">Das Ziel wurde gelöscht, daher ist dieser Zeitplan pausiert</string>
+    <string name="scheduled_ops_log_failed">Etwas ist schiefgelaufen</string>
 </resources>

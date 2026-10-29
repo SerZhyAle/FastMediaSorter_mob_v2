@@ -4075,4 +4075,22 @@
     <string name="stream_broadcast_ended_message">\"%1$s\" ist nicht mehr auf Sendung. Verbinde dich neu, sobald es wieder startet.</string>
     <string name="stream_broadcast_reconnect">Neu verbinden</string>
     <string name="stream_status_ended">Übertragung beendet</string>
+    <string name="sort_short_manual">Manuell</string>
+    <string name="sort_short_date_asc">Alt ↑</string>
+    <string name="sort_short_date_desc">Neu ↓</string>
+    <string name="sort_short_size_asc">Größe ↑</string>
+    <string name="sort_short_size_desc">Größe ↓</string>
+    <string name="sort_short_type_asc">Typ ↑</string>
+    <string name="sort_short_type_desc">Typ ↓</string>
+    <string name="sort_short_artist_asc">Interpret ↑</string>
+    <string name="sort_short_artist_desc">Interpret ↓</string>
+    <string name="sort_short_title_asc">Titel ↑</string>
+    <string name="sort_short_title_desc">Titel ↓</string>
+    <string name="sort_short_duration_asc">Dauer ↑</string>
+    <string name="sort_short_duration_desc">Dauer ↓</string>
+    <string name="sort_short_date_taken_asc">Aufnahmedatum ↑</string>
+    <string name="sort_short_date_taken_desc">Aufnahmedatum ↓</string>
+    <string name="sort_short_random">Zufällig</string>
+    <string name="browse_title_selected_count">%1$d ausgewählt</string>
+    <string name="browse_breadcrumb_root">Stammordner</string>
 </resources>

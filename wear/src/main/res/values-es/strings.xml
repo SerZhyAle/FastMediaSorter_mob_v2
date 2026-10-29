@@ -1102,4 +1102,6 @@
     <string name="wear_broadcast_server_failed">Error del servidor - ver el teléfono</string>
     <string name="wear_broadcast_server_local_only">Solo esta red</string>
     <string name="wear_scheduled_message_channel_name">Mensajes programados</string>
+    <string name="wear_audio_fetching">Cargando la pista..</string>
+    <string name="wear_stream_ended">Esta emisión ya no está en el aire. Vuelve a intentarlo cuando empiece de nuevo.</string>
 </resources>

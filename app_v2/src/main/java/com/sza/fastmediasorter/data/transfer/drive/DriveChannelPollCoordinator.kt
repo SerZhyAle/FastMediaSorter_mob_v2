@@ -5,8 +5,8 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.util.JitteredBackoff
 import com.sza.fastmediasorter.domain.model.transfer.CrossDeviceQueueSnapshot
-import com.sza.fastmediasorter.domain.model.transfer.DriveDailyLimit
 import com.sza.fastmediasorter.domain.model.transfer.DriveConsentRequired
+import com.sza.fastmediasorter.domain.model.transfer.DriveDailyLimit
 import com.sza.fastmediasorter.domain.model.transfer.DriveSignInRequired
 import com.sza.fastmediasorter.domain.transfer.DriveChannelSettings
 import com.sza.fastmediasorter.domain.transfer.DrivePollState
