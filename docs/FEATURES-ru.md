@@ -7,7 +7,7 @@ permalink: /docs/FEATURES-ru.html
 
 # FastMediaSorter v2 - Полный список возможностей
 
-*Последнее обновление: 2026-10-20*
+*Последнее обновление: 2026-10-29*
 
 Этот документ - кураторская витрина ключевых пользовательских возможностей. Полный технический инвентарь всех реализованных возможностей находится в `docs/ALL_FEATURES.jsonl`.
 
@@ -81,6 +81,7 @@ FastMediaSorter - полноценная оболочка Android-устройс
 - **Трансляция сама гасит акустическую обратную связь** `[Standard / Legacy / noLegal]`: Если эфир слушают вслух в той же комнате, где идёт трансляция, приложение теперь само отслеживает свой звук, снижает чувствительность микрофона, пока петля не исчезнет, и возвращает её, когда в комнате снова тихо - экран трансляции показывает, что защита сработала, а не что звук просто просел. <!-- af: broadcast.acoustic-feedback-guard -->
 - **Трансляция не только с камеры** `[Standard / Legacy / noLegal]`: транслируйте экран телефона или готовый файл, а в тёмной комнате включите фонарик или яркую рамку. <!-- af: broadcast.phone-screen-broadcast, broadcast.ready-file-broadcast, broadcast.broadcast-torch-and-bright-frame -->
 - **Защищённые трансляции** `[Standard / Legacy / noLegal]`: поставьте на трансляцию пароль через сервер обмена или выдайте к ней гостевой доступ. <!-- af: broadcast.password-protected-broadcast-through-the-exchange-server, broadcast.guest-grant -->
+- **Ссылка на трансляцию до её начала** `[Standard / Legacy / VR / noLegal]`: подготовьте ссылку, QR-код и файл трансляции заранее и раздайте их до выхода в эфир. <!-- af: broadcast.link-before-start -->
 
 ## 4. Запуск программ
 - **Все установленные приложения на одном экране** `[Standard / noLegal]`: Полноэкранный список всего установленного, доступный прямо с рабочего стола. <!-- af: launcher.all-apps-screen -->
@@ -126,6 +127,7 @@ FastMediaSorter - полноценная оболочка Android-устройс
 - **Давление, высота и трип на часах** `[Wear OS]`: Раздел «Турист» на часах теперь показывает давление с трендом, высоту по барометру рядом с высотой по GPS, набор высоты и спуск, время в пути, время в движении, среднюю скорость и темп, каденс, точность GPS с оценкой словом, курс, магнитное склонение, уровень, освещённость и магнитное поле с предупреждением о помехах. Трип учитывает только надёжные точки GPS, не склеивает разрывы сигнала и переживает перезапуск приложения. <!-- af: wear-os.barometer-trip-navigation-and-environment-readings-in-the -->
 - **Циферблат FastMediaSorter** `[Wear OS]`: Отдельное приложение-циферблат с крупным временем, датой, живыми волнами, полосой заряда и кнопками для выбранных данных; телефон и приложение на часах открывают его страницу в Google Play. <!-- af: wear.watch-face-store-links, wear.face-slots-from-phone -->
 - **Часы на вашем сервере обмена** `[Wear OS]`: открывайте папки сервера по собственной сети часов, смотрите трансляции аккаунта, в том числе защищённые, пользуйтесь общим буфером обмена и отправляйте файлы на сетевые ресурсы. <!-- af: wear-os.exchange-server-folders-on-the-watch-over-its, wear-os.watch-plays-the-account-s-broadcast-list-through, wear-os.protected-broadcast-handed-to-the-watch-with-a-pass, wear-os.clipboard-on-the-exchange-server-from-the-watch, wear-os.send-to-network-resources-from-the-watch -->
+- **Сообщение на часах по расписанию** `[Standard / noLegal]`: операция по расписанию показывает на сопряжённых часах выбранный заголовок, текст и картинку в назначенное время. <!-- af: wear.scheduled-message-to-watch -->
 
 ## 7. Мониторинг устройства
 - **Видно, куда подключается приложение** `[Standard / noLegal]`: Монитор сети перечисляет собственные соединения приложения, поэтому зависшая передача или поток отслеживаются, а не угадываются. <!-- af: networking.network-monitor -->
@@ -161,6 +163,7 @@ FastMediaSorter - полноценная оболочка Android-устройс
 - **Единое резервное копирование и восстановление** `[Standard / VR]`: Сохраняйте источники, избранное, расписания, пароли и входы в локальный файл или Google Drive, а потом восстанавливайте всю конфигурацию целиком. <!-- af: sources-storage.unified-settings-backup-including-sources, settings-navigation.settings-backup-and-restore-via-google-drive -->
 - **У расписания операций теперь свой экран** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Повторяющиеся задачи копирования, переноса и очистки теперь живут на полноценном отдельном экране с историей запусков, а не на карточке внутри настроек - экран открывается из меню программ, панели быстрого доступа, виджета, рабочего стола лаунчера и ярлыков приложения. <!-- af: file-operations.scheduled-operations-standalone-screen-history -->
 - **Расписание работает над ресурсами обмена** `[Standard / Photos / Legacy / VR / noLegal]`: Расписание операций с файлами работает без человека над ресурсом другого устройства через сервер обмена, а с появлением пути - через Google Drive. <!-- af: file-operations.scheduled-operations-over-exchange-and-drive -->
+- **Расписание объясняет себя** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: история запусков, уведомления о сбое и отметка на карточке простыми словами говорят, что сделал последний запуск, а задание само встаёт на паузу, если его папку удалили. <!-- af: file-operations.scheduled-run-history-plain-reasons, file-operations.scheduled-operation-pauses-when-its-resource-is-deleted -->
 - **Резервная копия хранит на 124 настройки больше** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: восстановление возвращает жесты скриншота и показания лаунчера, которые копия раньше теряла. <!-- af: general.backup-carries-the-rest-of-the-settings -->
 - **Свой сервер обмена** `[Standard / Photos / Legacy / VR / noLegal]`: зарегистрируйте аккаунт на сервере обмена, смените пароль или удалите его прямо с телефона; всё, что идёт через сервер, запечатано сквозным шифрованием между вашими устройствами, а вместе с ним работает общий буфер обмена. <!-- af: network-cloud.exchange-account-registration-password-change-and-deletion, network-cloud.end-to-end-sealing-through-the-exchange-server, network-cloud.clipboard-on-the-exchange-server -->
 - **Одна папка, каким бы путём до неё ни добрались** `[Standard / Photos / Legacy / VR / noLegal]`: папка другого устройства - это один ресурс, через локальную сеть, проброс порта или туннель обмена, и побеждает самый быстрый путь. <!-- af: network-cloud.one-resource-record-across-channels-and-outward-folder -->

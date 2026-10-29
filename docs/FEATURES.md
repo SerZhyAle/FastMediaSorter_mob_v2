@@ -7,7 +7,7 @@ permalink: /docs/FEATURES.html
 
 # FastMediaSorter v2 - Complete Feature List
 
-*Last updated: 2026-10-20*
+*Last updated: 2026-10-29*
 
 This document is the curated showcase of standout user-facing features. The complete developer inventory of every implemented capability lives in `docs/ALL_FEATURES.jsonl`.
 
@@ -81,6 +81,7 @@ FastMediaSorter is a complete shell for an Android device. The showcase follows 
 - **Broadcast stops an acoustic feedback loop on its own** `[Standard / Legacy / noLegal]`: When a listener plays the broadcast out loud in the same room as the broadcasting phone, the app now measures its own input, walks the microphone gain down until the loop dies, and gives it back once the room is quiet again - the broadcast screen shows the guard is active instead of the sound just dropping. <!-- af: broadcast.acoustic-feedback-guard -->
 - **Broadcast more than the camera** `[Standard / Legacy / noLegal]`: Broadcast the phone screen or a ready file, and light a dark room with the flashlight or a bright frame. <!-- af: broadcast.phone-screen-broadcast, broadcast.ready-file-broadcast, broadcast.broadcast-torch-and-bright-frame -->
 - **Protected broadcasts** `[Standard / Legacy / noLegal]`: Put a password on a broadcast through the exchange server, or grant a guest access to it. <!-- af: broadcast.password-protected-broadcast-through-the-exchange-server, broadcast.guest-grant -->
+- **Broadcast link before the start** `[Standard / Legacy / VR / noLegal]`: Prepare the link, QR code and file of a broadcast in advance and hand them out before it goes live. <!-- af: broadcast.link-before-start -->
 
 ## 4. App launching
 - **Every installed app on one screen** `[Standard / noLegal]`: A full-screen list of everything installed, reachable from the desktop without a drawer hunt. <!-- af: launcher.all-apps-screen -->
@@ -126,6 +127,7 @@ FastMediaSorter is a complete shell for an Android device. The showcase follows 
 - **Pressure, altitude and trip readings on the watch** `[Wear OS]`: The Tourist section on the watch now shows pressure with its trend, barometric altitude beside GPS altitude, ascent and descent, time on trip, moving time, average speed and pace, cadence, GPS accuracy with a plain word, course, magnetic declination, a level gauge, light, and magnetic field with an interference warning. The trip counts only trusted GPS fixes, does not bridge gaps in the signal, and survives an app restart. <!-- af: wear-os.barometer-trip-navigation-and-environment-readings-in-the -->
 - **The FastMediaSorter watch face** `[Wear OS]`: A separate watch face app with large time, the date, living waves, a battery bar and buttons for the data you pick; the phone and the watch app open its Google Play page. <!-- af: wear.watch-face-store-links, wear.face-slots-from-phone -->
 - **The watch on your exchange server** `[Wear OS]`: Open the server's folders over the watch's own network, play the account's broadcasts, protected ones included, use the shared clipboard and send files to network resources. <!-- af: wear-os.exchange-server-folders-on-the-watch-over-its, wear-os.watch-plays-the-account-s-broadcast-list-through, wear-os.protected-broadcast-handed-to-the-watch-with-a-pass, wear-os.clipboard-on-the-exchange-server-from-the-watch, wear-os.send-to-network-resources-from-the-watch -->
+- **Scheduled message on the watch** `[Standard / noLegal]`: A scheduled operation shows a chosen title, text and picture on the paired watch at the set time. <!-- af: wear.scheduled-message-to-watch -->
 
 ## 7. Device monitoring
 - **See what the app connects to** `[Standard / noLegal]`: A network monitor lists the app's own connections, so a stalled transfer or stream is traceable instead of guesswork. <!-- af: networking.network-monitor -->
@@ -161,6 +163,7 @@ FastMediaSorter is a complete shell for an Android device. The showcase follows 
 - **Unified settings backup and restore** `[Standard / VR]`: Back up sources, favorites, schedules, passwords, and sign-ins to a local file or Google Drive, then restore the whole setup after reinstalling or moving devices. <!-- af: sources-storage.unified-settings-backup-including-sources, settings-navigation.settings-backup-and-restore-via-google-drive -->
 - **Scheduled operations get their own screen** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Recurring copy, move and cleanup jobs now live on a full standalone screen with a run history, not a card buried in Settings - reachable from the programs menu, the quick-access panel, a widget, the launcher desktop and app-icon shortcuts alike. <!-- af: file-operations.scheduled-operations-standalone-screen-history -->
 - **Scheduled operations run over exchange resources** `[Standard / Photos / Legacy / VR / noLegal]`: Scheduled file operations run unattended over another device's resource reached through the exchange server, and over the Google Drive path once it lands. <!-- af: file-operations.scheduled-operations-over-exchange-and-drive -->
+- **Scheduled operations explain themselves** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Run history, failure notices and the status mark on each card say in plain words what the last run did, and a job pauses itself when its folder is deleted. <!-- af: file-operations.scheduled-run-history-plain-reasons, file-operations.scheduled-operation-pauses-when-its-resource-is-deleted -->
 - **Backup carries 124 more settings** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: A restore brings back the screenshot gestures and launcher readouts a backup used to drop. <!-- af: general.backup-carries-the-rest-of-the-settings -->
 - **Your own exchange server** `[Standard / Photos / Legacy / VR / noLegal]`: Register an account on the exchange server, change its password or delete it from the phone; everything sent through the server is sealed end to end between your devices, and a shared clipboard travels with it. <!-- af: network-cloud.exchange-account-registration-password-change-and-deletion, network-cloud.end-to-end-sealing-through-the-exchange-server, network-cloud.clipboard-on-the-exchange-server -->
 - **One folder, whichever way it is reached** `[Standard / Photos / Legacy / VR / noLegal]`: Another device's folder is one resource whether the LAN, a port forward or the exchange tunnel reaches it, and the fastest path wins. <!-- af: network-cloud.one-resource-record-across-channels-and-outward-folder -->

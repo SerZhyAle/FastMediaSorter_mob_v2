@@ -4,11 +4,51 @@ title: "Що нового у FastMediaSorter v2"
 permalink: /docs/WHATS_NEW-uk.html
 ---
 
-<sub class="doc-stamp">26.10.20 23:59</sub>
+<sub class="doc-stamp">26.10.29 16:39</sub>
 
 # Що нового у FastMediaSorter v2
 
-**Поточний реліз: 2.61.0202.359** (жовтень 2026)
+**Поточний реліз: 2.61.0291.639** (жовтень 2026)
+
+> Зміни з версії 2.61.0202.359
+
+---
+
+## Що нового
+
+- **Трансляція до її початку** - посилання, QR-код і файл готові заздалегідь. <!-- af: broadcast.link-before-start -->
+- **Трансляції публікуються самі** - потрапляють на сервер обміну без зайвих кроків. <!-- af: broadcast.exchange-auto-publish -->
+- **Пароль трансляції на ваш вибір** - автоматичний, без пароля або власний, в одному діалозі. <!-- af: broadcast.password-protected-broadcast-through-the-exchange-server, broadcast.link-password-dialog-shows-the-live-protection -->
+- **Завершилася чи обірвалася?** - глядачі бачать, чи трансляцію завершено, чи зник зв'язок. <!-- af: broadcast.deliberate-broadcast-end-viewers-can-tell-from-a, streams.tell-a-deliberately-ended-broadcast-from-a-lost -->
+- **Жива картинка в альбомній орієнтації** - трансляція повертається як плеєр і заповнює екран. <!-- af: broadcast.landscape-fullscreen-live-picture -->
+- **Приймання через усі сервери обміну** - а трансляція, яку не відкрити, пояснює причину. <!-- af: streams.casts-arrive-through-every-exchange-server, streams.unopenable-account-broadcast-shown-with-its-reason -->
+- **Повідомлення на годинник за розкладом** - текст або картинка на сполученому годиннику. <!-- af: wear.scheduled-message-to-watch -->
+- **Операції за розкладом пояснюють себе** - історія запусків, сповіщення й позначки простими словами. <!-- af: file-operations.scheduled-run-history-plain-reasons, file-operations.scheduled-failure-notification-and-run-log-in-plain, file-operations.scheduled-operation-status-mark-explains-the-last-run -->
+- **Звук на годиннику без пауз** - наступний мережевий трек завантажується заздалегідь. <!-- af: wear-os.audio-next-track-prefetch -->
+- **Одна згода Google** - одразу на Drive і теку застосунку. <!-- af: cloud.google-sign-in-app-folder-consent -->
+- **Зрозуміліші налаштування** - значки функцій у заголовках екранів, загальні налаштування перегруповано. <!-- af: settings-navigation.feature-icon-in-screen-titles, settings-navigation.general-tab-regrouped-around-the-resource-list-wording -->
+- **Розумне оновлення списку каналів** - пропонується й завантажується лише за нового списку. <!-- af: streams.catalog-refresh-suggestion-banner, streams.automatic-catalog-refresh-only-for-a-new-list -->
+- **Темний екран годинника** - дотик показує час на повній яскравості, осторонь від пальця. <!-- af: wear-os.dark-screen-tap-clock-and-brightness -->
+- **Фонова синхронізація у версії з Play** - роздача тек і передавання знову працюють у фоні. <!-- af: permissions.background-data-sync-service-in-the-play-build -->
+
+## Що виправлено
+
+- Трансляція з телефона відповідає слухачам у локальній мережі без затримки.
+- У Стрімах «назад» і «вперед» правильно відкривають трансляції.
+- Операція за розкладом стає на паузу, якщо її теку видалено.
+- Форма операції за розкладом не показує помилок під час відкриття.
+- Кнопки прокручування більше не закривають меню рядка.
+- Підписи лаунчера читабельні на щільному робочому столі.
+- Текст гаджетів лаунчера більше не обрізається.
+- Заголовок списку файлів показує перекладене сортування й зрозумілий шлях.
+- Годинник повідомляє про збій або завершення потоку.
+- Годинник пропускає мовчазну адресу в локальній мережі.
+- Підписи сітки на годиннику не наїжджають на значки.
+- Кнопки панелі Стрімів на годиннику вміщуються в круглий екран.
+
+---
+
+## Попередній реліз: 2.61.0202.359 (жовтень 2026)
 
 > Зміни з версії 2.61.0141.503
 

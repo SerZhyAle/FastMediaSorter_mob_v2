@@ -4,11 +4,51 @@ title: "What's New in FastMediaSorter v2"
 permalink: /docs/WHATS_NEW.html
 ---
 
-<sub class="doc-stamp">26.10.20 23:59</sub>
+<sub class="doc-stamp">26.10.29 16:39</sub>
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.61.0202.359** (October 2026)
+**Current release: 2.61.0291.639** (October 2026)
+
+> Changes since version 2.61.0202.359
+
+---
+
+## What's New
+
+- **Broadcast before it starts** - link, QR code and file ready ahead of time. <!-- af: broadcast.link-before-start -->
+- **Broadcasts publish themselves** - they reach the exchange server without extra steps. <!-- af: broadcast.exchange-auto-publish -->
+- **Broadcast password your way** - automatic, none or your own, in one dialog. <!-- af: broadcast.password-protected-broadcast-through-the-exchange-server, broadcast.link-password-dialog-shows-the-live-protection -->
+- **Ended or lost?** - viewers see whether a broadcast ended or the connection dropped. <!-- af: broadcast.deliberate-broadcast-end-viewers-can-tell-from-a, streams.tell-a-deliberately-ended-broadcast-from-a-lost -->
+- **Landscape live picture** - the broadcast picture turns like the player and fills the screen. <!-- af: broadcast.landscape-fullscreen-live-picture -->
+- **Casts through every exchange server** - and a broadcast that cannot open says why. <!-- af: streams.casts-arrive-through-every-exchange-server, streams.unopenable-account-broadcast-shown-with-its-reason -->
+- **Scheduled message to the watch** - a text or picture on the paired watch. <!-- af: wear.scheduled-message-to-watch -->
+- **Scheduled operations explain themselves** - run history, notices and status marks in plain words. <!-- af: file-operations.scheduled-run-history-plain-reasons, file-operations.scheduled-failure-notification-and-run-log-in-plain, file-operations.scheduled-operation-status-mark-explains-the-last-run -->
+- **Watch audio without gaps** - the next network track is fetched ahead. <!-- af: wear-os.audio-next-track-prefetch -->
+- **One Google consent** - covers Drive and the app folder. <!-- af: cloud.google-sign-in-app-folder-consent -->
+- **Clearer settings** - feature icons in screen titles, General tab regrouped. <!-- af: settings-navigation.feature-icon-in-screen-titles, settings-navigation.general-tab-regrouped-around-the-resource-list-wording -->
+- **Smarter channel list updates** - offered and downloaded only when a newer list exists. <!-- af: streams.catalog-refresh-suggestion-banner, streams.automatic-catalog-refresh-only-for-a-new-list -->
+- **Watch dark screen** - a tap shows the time at full brightness, clear of the finger. <!-- af: wear-os.dark-screen-tap-clock-and-brightness -->
+- **Background sync in the Play build** - folder sharing and transfers run in the background again. <!-- af: permissions.background-data-sync-service-in-the-play-build -->
+
+## What's Fixed
+
+- Phone broadcasts answer local-network listeners without a delay.
+- Streams previous and next open broadcasts correctly.
+- A scheduled operation pauses when its folder is deleted.
+- The scheduled operation form shows no errors on opening.
+- Scroll buttons no longer cover a row's menu.
+- Launcher captions stay readable on a dense desktop.
+- Launcher gadget text is no longer clipped.
+- The file list header shows translated sorting and readable paths.
+- The watch reports a failed or ended stream.
+- The watch skips a silent local-network address.
+- Watch grid labels no longer overlap their icons.
+- Watch Streams toolbar buttons fit the round screen.
+
+---
+
+## Previous Release: 2.61.0202.359 (October 2026)
 
 > Changes since version 2.61.0141.503
 

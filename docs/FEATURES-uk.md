@@ -7,7 +7,7 @@ permalink: /docs/FEATURES-uk.html
 
 # FastMediaSorter v2 - Повний список можливостей
 
-*Останнє оновлення: 2026-10-20*
+*Останнє оновлення: 2026-10-29*
 
 Цей документ - кураторська вітрина ключових користувацьких можливостей. Повний технічний інвентар усіх реалізованих можливостей міститься у `docs/ALL_FEATURES.jsonl`.
 
@@ -81,6 +81,7 @@ FastMediaSorter - повноцінна оболонка Android-пристрою
 - **Трансляція сама гасить акустичний зворотний зв'язок** `[Standard / Legacy / noLegal]`: Якщо ефір слухають вголос у тій самій кімнаті, де йде трансляція, застосунок тепер сам відстежує власний звук, знижує чутливість мікрофона, доки петля не зникне, і повертає її, коли в кімнаті знову тихо - екран трансляції показує, що захист спрацював, а не що звук просто просів. <!-- af: broadcast.acoustic-feedback-guard -->
 - **Трансляція не лише з камери** `[Standard / Legacy / noLegal]`: транслюйте екран телефона або готовий файл, а в темній кімнаті ввімкніть ліхтарик або яскраву рамку. <!-- af: broadcast.phone-screen-broadcast, broadcast.ready-file-broadcast, broadcast.broadcast-torch-and-bright-frame -->
 - **Захищені трансляції** `[Standard / Legacy / noLegal]`: поставте на трансляцію пароль через сервер обміну або надайте до неї гостьовий доступ. <!-- af: broadcast.password-protected-broadcast-through-the-exchange-server, broadcast.guest-grant -->
+- **Посилання на трансляцію до її початку** `[Standard / Legacy / VR / noLegal]`: підготуйте посилання, QR-код і файл трансляції заздалегідь і роздайте їх до виходу в ефір. <!-- af: broadcast.link-before-start -->
 
 ## 4. Запуск програм
 - **Усі встановлені застосунки на одному екрані** `[Standard / noLegal]`: Повноекранний список усього встановленого, доступний просто з робочого столу. <!-- af: launcher.all-apps-screen -->
@@ -126,6 +127,7 @@ FastMediaSorter - повноцінна оболонка Android-пристрою
 - **Тиск, висота і трип на годиннику** `[Wear OS]`: Розділ «Турист» на годиннику тепер показує тиск із трендом, висоту за барометром поряд із висотою за GPS, набір висоти та спуск, час у дорозі, час у русі, середню швидкість і темп, каденс, точність GPS з оцінкою словом, курс, магнітне схилення, рівень, освітленість і магнітне поле з попередженням про перешкоди. Трип враховує лише надійні точки GPS, не зшиває розриви сигналу і переживає перезапуск застосунку. <!-- af: wear-os.barometer-trip-navigation-and-environment-readings-in-the -->
 - **Циферблат FastMediaSorter** `[Wear OS]`: Окремий застосунок-циферблат із великим часом, датою, живими хвилями, смугою заряду та кнопками для вибраних даних; телефон і застосунок на годиннику відкривають його сторінку в Google Play. <!-- af: wear.watch-face-store-links, wear.face-slots-from-phone -->
 - **Годинник на вашому сервері обміну** `[Wear OS]`: відкривайте папки сервера через власну мережу годинника, дивіться трансляції облікового запису, зокрема захищені, користуйтеся спільним буфером обміну та надсилайте файли на мережеві ресурси. <!-- af: wear-os.exchange-server-folders-on-the-watch-over-its, wear-os.watch-plays-the-account-s-broadcast-list-through, wear-os.protected-broadcast-handed-to-the-watch-with-a-pass, wear-os.clipboard-on-the-exchange-server-from-the-watch, wear-os.send-to-network-resources-from-the-watch -->
+- **Повідомлення на годиннику за розкладом** `[Standard / noLegal]`: операція за розкладом показує на сполученому годиннику вибраний заголовок, текст і картинку в призначений час. <!-- af: wear.scheduled-message-to-watch -->
 
 ## 7. Моніторинг пристрою
 - **Видно, куди підключається застосунок** `[Standard / noLegal]`: Монітор мережі перелічує власні з'єднання застосунку, тож зависла передача чи потік відстежуються, а не вгадуються. <!-- af: networking.network-monitor -->
@@ -161,6 +163,7 @@ FastMediaSorter - повноцінна оболонка Android-пристрою
 - **Єдине резервне копіювання і відновлення** `[Standard / VR]`: Зберігайте джерела, обране, розклади, паролі та входи у локальний файл або Google Drive, а потім відновлюйте всю конфігурацію цілком. <!-- af: sources-storage.unified-settings-backup-including-sources, settings-navigation.settings-backup-and-restore-via-google-drive -->
 - **У розкладу операцій тепер свій екран** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Повторювані завдання копіювання, перенесення та очищення тепер живуть на повноцінному окремому екрані з історією запусків, а не на картці всередині налаштувань - екран відкривається з меню програм, панелі швидкого доступу, віджета, робочого стола лаунчера і ярликів застосунку. <!-- af: file-operations.scheduled-operations-standalone-screen-history -->
 - **Розклад працює над ресурсами обміну** `[Standard / Photos / Legacy / VR / noLegal]`: Розклад операцій із файлами працює без людини над ресурсом іншого пристрою через сервер обміну, а з появою шляху - через Google Drive. <!-- af: file-operations.scheduled-operations-over-exchange-and-drive -->
+- **Розклад пояснює себе** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: історія запусків, сповіщення про збій і позначка на картці простими словами кажуть, що зробив останній запуск, а завдання саме стає на паузу, якщо його теку видалено. <!-- af: file-operations.scheduled-run-history-plain-reasons, file-operations.scheduled-operation-pauses-when-its-resource-is-deleted -->
 - **Резервна копія зберігає на 124 налаштування більше** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: відновлення повертає жести знімка екрана та показання лаунчера, які копія раніше втрачала. <!-- af: general.backup-carries-the-rest-of-the-settings -->
 - **Власний сервер обміну** `[Standard / Photos / Legacy / VR / noLegal]`: зареєструйте обліковий запис на сервері обміну, змініть пароль або видаліть його просто з телефона; усе, що йде через сервер, запечатане наскрізним шифруванням між вашими пристроями, а разом із ним працює спільний буфер обміну. <!-- af: network-cloud.exchange-account-registration-password-change-and-deletion, network-cloud.end-to-end-sealing-through-the-exchange-server, network-cloud.clipboard-on-the-exchange-server -->
 - **Одна папка, хоч би яким шляхом до неї дісталися** `[Standard / Photos / Legacy / VR / noLegal]`: папка іншого пристрою - це один ресурс, через локальну мережу, проброс порту або тунель обміну, і перемагає найшвидший шлях. <!-- af: network-cloud.one-resource-record-across-channels-and-outward-folder -->

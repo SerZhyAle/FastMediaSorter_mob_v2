@@ -37330,3 +37330,4 @@ Format: | datetime | file | target | description |
 | 2026-10-29 14:52:48 | `PLAN/S4497_bugfix-cold-start-measure-dex-state.md` | `S4497` | Capture Draft S4497 bugfix-cold-start-measure-dex-state [branch: DEBUG-v047] |
 | 2026-10-29 15:37:30 | `scripts/devtest/prerelease-wear-half.ps1` | `release-47` | prerelease-wear-half: purge each shape's previous walk.json, wear_session.log and verdict.json before the lanes run, so a walk that stops early leaves the verdict at could-not-verify instead of a fresh PASS over the previous run's walk [branch: DEBUG-v047] |
 | 2026-10-29 16:38:25 | `PLAN/S4498_bugfix-sweep-verdict-stale-after-fingerprint-rerecord.md` | `S4498` | Capture Draft S4498 bugfix-sweep-verdict-stale-after-fingerprint-rerecord [branch: DEBUG-v047] |
+| 2026-10-29 16:42:36 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes and showcase update for v2.61.0291.639 - plateau merge from DEBUG-v047 [branch: DEBUG-v047] |
