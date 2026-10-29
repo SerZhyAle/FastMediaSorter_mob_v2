@@ -4,11 +4,11 @@ title: "Що нового у FastMediaSorter v2"
 permalink: /docs/WHATS_NEW-uk.html
 ---
 
-<sub class="doc-stamp">26.10.29 16:39</sub>
+<sub class="doc-stamp">26.10.29 21:45</sub>
 
 # Що нового у FastMediaSorter v2
 
-**Поточний реліз: 2.61.0291.639** (жовтень 2026)
+**Поточний реліз: 2.61.0292.144** (жовтень 2026)
 
 > Зміни з версії 2.61.0202.359
 

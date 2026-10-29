@@ -39,12 +39,13 @@ function New-Fixture {
 }
 
 function New-ManifestText {
-    param([string[]] $ServiceTypes, [string] $RemovedType)
+    param([string[]] $ServiceTypes, [string] $RemovedType, [string] $VersionCode)
     $services = foreach ($t in $ServiceTypes) { "    <service android:name=`"svc.$($t -replace '\|', '_')`" android:foregroundServiceType=`"$t`" />" }
     if ($RemovedType) { $services += "    <service android:name=`"svc.removed`" android:foregroundServiceType=`"$RemovedType`" tools:node=`"remove`" />" }
+    $codeAttr = if ($VersionCode) { " android:versionCode=`"$VersionCode`"" } else { '' }
     return @"
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools" package="x">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools" package="x"$codeAttr>
   <application>
 $($services -join "`n")
   </application>
@@ -98,7 +99,7 @@ try {
         $m = New-Fixture 'c2/AndroidManifest.xml' (New-ManifestText @('dataSync', 'camera'))
         $r = Invoke-Check @('-Manifest', $m, '-ArchiveRoot', $archive, '-RegistryPath', $registry)
         if ($r.Code -ne 1) { return "expected 1, got $($r.Code): $($r.Out)" }
-        if ($r.Out -notmatch "'camera'.*Play Console") { return "the refusal does not name camera and Play Console: $($r.Out)" }
+        if ($r.Out -notmatch "'camera'.*strip it from standard") { return "the refusal does not name camera and the strip: $($r.Out)" }
     }
 
     Assert-Case 'C3 type in the newest snapshot exits 0 (older snapshot and empty folder ignored)' {
@@ -109,11 +110,18 @@ try {
         if ($r.Out -notmatch 'dataSync, mediaPlayback') { return "the type set is not printed: $($r.Out)" }
     }
 
-    Assert-Case 'C4 new against the snapshot but registered for standard exits 0 with a note' {
+    Assert-Case 'C4 new against the snapshot but registered for standard still exits 1' {
         $m = New-Fixture 'c4/AndroidManifest.xml' (New-ManifestText @('dataSync', 'microphone'))
         $r = Invoke-Check @('-Manifest', $m, '-ArchiveRoot', $archive, '-RegistryPath', $registry)
-        if ($r.Code -ne 0) { return "expected 0, got $($r.Code): $($r.Out)" }
-        if ($r.Out -notmatch "note: 'microphone'") { return "no note for the registered new type: $($r.Out)" }
+        if ($r.Code -ne 1) { return "expected 1, got $($r.Code): $($r.Out)" }
+        if ($r.Out -notmatch "'microphone'") { return "the refusal does not name the registered new type: $($r.Out)" }
+    }
+
+    Assert-Case 'C4b the judged build''s own snapshot is not its baseline' {
+        $m = New-Fixture 'c4b/AndroidManifest.xml' (New-ManifestText @('dataSync|mediaPlayback') '' '261000200')
+        $r = Invoke-Check @('-Manifest', $m, '-ArchiveRoot', $archive, '-RegistryPath', $registry)
+        if ($r.Code -ne 1) { return "expected 1, got $($r.Code): $($r.Out)" }
+        if ($r.Out -notmatch 'versionCode 260900100') { return "the older snapshot was not the baseline: $($r.Out)" }
     }
 
     Assert-Case 'C5 no snapshot, registry fallback, registered types exit 0' {

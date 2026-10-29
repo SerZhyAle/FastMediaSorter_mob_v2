@@ -16,9 +16,9 @@
     retain-deobfuscation.ps1 writes beside each retained release; with no snapshot yet, the
     baseline is the registry's foregroundServiceType rows whose flavors include standard.
 
-    A type is a finding when it is neither in the baseline nor registered for standard in
-    docs/manifest-risk-registry.jsonl. A type that is new against the snapshot but registered for
-    standard passes with a note - the registry row is the claim that its Play declaration exists.
+    A type is a finding when it is not in the baseline. Against a snapshot a registry row does not
+    excuse it: the standard store build never gains a foreground-service type, and a capability that
+    needs one stays in noLegal (release 47 was refused with HTTP 403 over a registered dataSync).
 
     Without -Build the script never runs gradle and judges whatever merged manifest is on disk.
 
@@ -51,10 +51,9 @@
 
 .NOTES
     Exit codes (CLAUDE.md Rule 7):
-      0 - pass: every foreground-service type is in the baseline or registered for standard; the
-          type set is printed.
-      1 - fail: a type is new and unregistered for standard - it must be registered and declared
-          in Play Console before the campaign continues.
+      0 - pass: every foreground-service type is in the baseline; the type set is printed.
+      1 - fail: a type is new in the standard store build - strip it from standard before the
+          campaign continues.
       2 - could not verify: the merged manifest is absent or not well-formed XML, the snapshot or
           the registry cannot be read, or the -Build gradle task failed.
       4 - -Build only: the Build.Phone domain is queued (Enter-BuildLockOrExit exits on its own).
@@ -165,9 +164,15 @@ if (-not $Snapshot) {
         . (Join-Path $PSScriptRoot '../utils/project-paths.ps1')
         $ArchiveRoot = Get-ArtifactSink -Kind Deobfuscation -Quiet
     }
+    # retain-deobfuscation.ps1 writes the judged build's own snapshot before the Play commit, so a
+    # snapshot at or above the manifest's versionCode is this build (or a later one), never "the previous
+    # release": taking it as the baseline turned release 47's refused dataSync into its own excuse.
+    $judgedCode = [long]::MaxValue
+    $codeAttr = $doc.DocumentElement.GetAttribute('versionCode', 'http://schemas.android.com/apk/res/android')
+    if ($codeAttr -match '^\d+$') { $judgedCode = [long]$codeAttr }
     if ($ArchiveRoot -and (Test-Path -LiteralPath $ArchiveRoot -PathType Container)) {
         $newest = Get-ChildItem -LiteralPath $ArchiveRoot -Directory -ErrorAction SilentlyContinue |
-            Where-Object { $_.Name -match '^\d+$' -and (Test-Path -LiteralPath (Join-Path $_.FullName 'fgs-types.json') -PathType Leaf) } |
+            Where-Object { $_.Name -match '^\d+$' -and [long]$_.Name -lt $judgedCode -and (Test-Path -LiteralPath (Join-Path $_.FullName 'fgs-types.json') -PathType Leaf) } |
             Sort-Object { [long]$_.Name } -Descending | Select-Object -First 1
         if ($newest) { $Snapshot = Join-Path $newest.FullName 'fgs-types.json' }
     }
@@ -193,25 +198,22 @@ else {
 }
 
 # --- Verdict --------------------------------------------------------------------------------
-$unregistered = [System.Collections.Generic.List[string]]::new()
-$newButRegistered = [System.Collections.Generic.List[string]]::new()
+# A registry row is no excuse against a snapshot: release 47 carried dataSync, registered for standard
+# with a Console declaration on record, and Play still refused the commit with HTTP 403.
+$newTypes = [System.Collections.Generic.List[string]]::new()
 foreach ($type in $types) {
-    if ($baseline.Contains($type)) { continue }
-    if ($registered.Contains($type)) { $newButRegistered.Add($type) } else { $unregistered.Add($type) }
+    if (-not $baseline.Contains($type)) { $newTypes.Add($type) }
 }
 
 $typeList = if ($types.Count -gt 0) { @($types) -join ', ' } else { '(none)' }
 Write-Host "fgs-types: manifest $Manifest"
 Write-Host "fgs-types: baseline $baselineName"
 Write-Host "fgs-types: standard release types: $typeList"
-foreach ($type in $newButRegistered) {
-    Write-Host "  note: '$type' is new against the previous release but registered for standard - confirm its Play Console declaration" -ForegroundColor Yellow
-}
-if ($unregistered.Count -gt 0) {
-    foreach ($type in $unregistered) {
-        Write-Host "  foregroundServiceType '$type' is new and not registered for standard: register it in docs/manifest-risk-registry.jsonl and declare it in Play Console before the campaign continues" -ForegroundColor Red
+if ($newTypes.Count -gt 0) {
+    foreach ($type in $newTypes) {
+        Write-Host "  foregroundServiceType '$type' is new in the standard store build: strip it from standard (its capability stays in noLegal) before the campaign continues" -ForegroundColor Red
     }
-    Write-Host "assert-fgs-types-vs-previous: FAIL ($($unregistered.Count) new unregistered type(s): $($unregistered -join ', '))" -ForegroundColor Red
+    Write-Host "assert-fgs-types-vs-previous: FAIL ($($newTypes.Count) new type(s): $($newTypes -join ', '))" -ForegroundColor Red
     exit 1
 }
 Write-Host "assert-fgs-types-vs-previous: PASS ($($types.Count) type(s): $typeList)" -ForegroundColor Green

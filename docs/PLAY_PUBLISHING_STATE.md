@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.28 22:55</sub>
+<sub class="doc-stamp">26.10.29 21:42</sub>
 
 # Play publishing state
 
@@ -227,13 +227,14 @@ The pre-release gate reads this block, so keep the three field lines above in th
 
 ### dataSync foreground service declaration (S4271)
 
-**State:** filed
-**Date:** 2026-10-15
+**State:** rejected
+**Date:** 2026-10-29
 **Video:** recorded
 
-The owner reported on 2026-10-15 that the demonstration video is recorded and the `dataSync`
-declaration is saved in Play Console. The `standard` store build carries `dataSync` while
-`fms.dataSyncFgsStandard=on`, the default since 2026-10-25 (S4271 phase 02). The text that was
+The Play commit of release 47 (versionCode 261029163) was refused with HTTP 403 because the
+`standard` bundle carried `dataSync`. Since 2026-10-29 `fms.dataSyncFgsStandard=off`: the store build
+strips the type, and the standard store build never gains a foreground-service type the previous Play
+release did not ship - a capability that needs one stays in `noLegal`. The text that was
 submitted, the video steps and the rollback are in `store_assets/PLAY_FGS_DECLARATIONS.md`. Allowed
 states are the same as for the Contacts declaration above; the owner updates this block after
 reading each Play verdict.
