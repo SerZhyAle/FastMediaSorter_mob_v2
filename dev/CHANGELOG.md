@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.30 11:59</sub>
+<sub class="doc-stamp">26.10.30 12:21</sub>
 
 # Development Changelog
 
@@ -37351,3 +37351,4 @@ Format: | datetime | file | target | description |
 | 2026-10-30 11:40:57 | `app_v2/src/main/java/com/sza/fastmediasorter/data/delivery/DeliveredNativeLibraryLoader.kt` | `S4502` | targetSdk 37 (Android 17): delivered .so made read-only before load, SFTP server/broadcast/router gated on the local network grant, dead large-screen opt-out removed, pins and readiness checks updated, Local Network Play declaration text and upload-order rule [set of 23: app_v2/src/test/java/com/sza/fastmediasorter/data/delivery/DeliveredNativeLibraryLoaderTest.kt, app_v2/src/main/java/com/sza/fastmediasorter/domain/model/SftpServerConfig.kt, app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/server/SftpServerController.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/SftpServerSettingsPanelManager.kt, app_v2/src/main/res/values/strings.xml, app_v2/src/main/res/values-ru/strings.xml, +16 more] [branch: DEBUG-v048] |
 | 2026-10-30 11:41:21 | `PLAN/S4504_launcher-map-gadgets-coarse-location.md` | `S4504` | Capture Draft S4504 launcher-map-gadgets-coarse-location [branch: DEBUG-v048] |
 | 2026-10-30 11:59:26 | `.github/workflows/maestro-tests.yml` | `Maestro CI clean install` | Maestro E2E on a clean CI emulator: complete_welcome fragment (Russian UI + Welcome + HOME role decline) runs first, prepared-device tagged flows (local_browse, file_operations) excluded from CI, timeout 45 min [set of 4: maestro/_shared/complete_welcome.yaml, maestro/smoke/local_browse.yaml, maestro/critical/file_operations.yaml] [branch: DEBUG-v048] |
+| 2026-10-30 12:21:58 | `.github/workflows/maestro-tests.yml` | `Maestro CI exclude stream flow` | stream_playback tagged real-hardware and excluded from the CI Maestro run: software-GPU H.264 decode killed the emulator mid-run [set of 2: maestro/smoke/stream_playback.yaml] [branch: DEBUG-v048] |

@@ -100,13 +100,14 @@ jobs:
             echo "Completing first-run setup (Russian UI, Welcome)..."
             maestro test maestro/_shared/complete_welcome.yaml || exit 1
 
-            # prepared-device flows need the seeded media corpus and storage grants of the test phone; the
-            # pre-release sweep runs them there. Everything else runs here on the clean install.
+            # prepared-device flows need the seeded media corpus and storage grants of the test phone, real-hardware
+            # flows need a hardware video decoder; the pre-release sweep runs both kinds on a device. Everything
+            # else runs here on the clean install.
             echo "Running smoke tests..."
-            maestro test --exclude-tags=prepared-device maestro/smoke/ || exit 1
+            maestro test --exclude-tags=prepared-device,real-hardware maestro/smoke/ || exit 1
 
             echo "Running critical path tests..."
-            maestro test --exclude-tags=prepared-device maestro/critical/ || exit 1
+            maestro test --exclude-tags=prepared-device,real-hardware maestro/critical/ || exit 1
 
       - name: Upload test results
         if: always()
