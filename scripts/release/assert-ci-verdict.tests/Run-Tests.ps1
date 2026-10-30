@@ -83,6 +83,9 @@ try {
     $emptyList = Invoke-Verdict @() @('-AppearSeconds', '0')
     Assert-Case 'no runs at all with a required workflow gives 2' ($emptyList.Code -eq 2) "exit $($emptyList.Code): $($emptyList.Text)"
 
+    $listed = Invoke-Verdict @((New-Run $gate 'completed' 'success'), (New-Run 'Static Gates' 'completed' 'success' -Id 2)) @('-Required', "$gate,Static Gates")
+    Assert-Case 'a comma list in -Required is split, as pwsh -File passes it' ($listed.Code -eq 0) "exit $($listed.Code): $($listed.Text)"
+
     $override = Invoke-Verdict @((New-Run 'Static Gates' 'completed' 'success')) @('-Required', 'Static Gates')
     Assert-Case '-Required replaces the default required set' ($override.Code -eq 0) "exit $($override.Code): $($override.Text)"
 

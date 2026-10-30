@@ -80,6 +80,10 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# `pwsh -File` hands a comma list over as one string, so a release can write -Required 'A','B' or 'A,B'.
+$Required = @($Required | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+$Accept = @($Accept | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+
 function Stop-Unverified([string] $Message) {
     Write-Host "assert-ci-verdict: COULD NOT VERIFY - $Message"
     exit 2
@@ -103,7 +107,7 @@ $gh = $null
 if (-not $RunsJsonPath) {
     $found = Get-Command gh -ErrorAction SilentlyContinue
     if ($found) { $gh = $found.Source }
-    elseif (Test-Path -LiteralPath 'C:\Program Files\GitHub CLI\gh.exe') { $gh = 'C:\Program Files\GitHub CLI\gh.exe' }
+    elseif (Test-Path -LiteralPath (Join-Path $env:ProgramFiles 'GitHub CLI\gh.exe')) { $gh = Join-Path $env:ProgramFiles 'GitHub CLI\gh.exe' }
     else { Stop-Unverified 'gh (GitHub CLI) is not on PATH and not in its default install folder' }
 }
 

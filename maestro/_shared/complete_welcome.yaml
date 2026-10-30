@@ -18,13 +18,14 @@ appId: com.sza.fastmediasorter.debug
 - tapOn:
     id: "com.sza.fastmediasorter.debug:id/editLanguageSearch"
 - inputText: "Russian"
-# The id keeps the tap off the search field itself, whose own text is "Russian" as well.
+# The search leaves one row, so the row's id is enough; a text selector would also match the search field.
 - tapOn:
-    id: "com.sza.fastmediasorter.debug:id/tvLanguageName"
-    text: "Russian.*"
+    id: "com.sza.fastmediasorter.debug:id/languageItemRoot"
+# The language button shows the chosen language, so it is the proof that Russian is applied.
 - extendedWaitUntil:
     visible:
-      text: "Добро пожаловать.*"
+      id: "com.sza.fastmediasorter.debug:id/btnWelcomeLanguage"
+      text: "Русский"
     timeout: 10000
 # `times` bounds the loop when Finish never shows; the Welcome has fewer than ten pages.
 - repeat:
