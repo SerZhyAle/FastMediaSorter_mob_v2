@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.30 12:55</sub>
+<sub class="doc-stamp">26.10.30 13:04</sub>
 
 # Development Changelog
 
@@ -37353,3 +37353,5 @@ Format: | datetime | file | target | description |
 | 2026-10-30 11:59:26 | `.github/workflows/maestro-tests.yml` | `Maestro CI clean install` | Maestro E2E on a clean CI emulator: complete_welcome fragment (Russian UI + Welcome + HOME role decline) runs first, prepared-device tagged flows (local_browse, file_operations) excluded from CI, timeout 45 min [set of 4: maestro/_shared/complete_welcome.yaml, maestro/smoke/local_browse.yaml, maestro/critical/file_operations.yaml] [branch: DEBUG-v048] |
 | 2026-10-30 12:21:58 | `.github/workflows/maestro-tests.yml` | `Maestro CI exclude stream flow` | stream_playback tagged real-hardware and excluded from the CI Maestro run: software-GPU H.264 decode killed the emulator mid-run [set of 2: maestro/smoke/stream_playback.yaml] [branch: DEBUG-v048] |
 | 2026-10-30 12:55:02 | `maestro/_shared/complete_welcome.yaml` | `CI static gates fix` | complete_welcome without regex selectors (oracle gate), assert-ci-verdict without a literal drive path and with comma-list handling for pwsh -File [set of 3: scripts/release/assert-ci-verdict.ps1, scripts/release/assert-ci-verdict.tests/Run-Tests.ps1] [branch: DEBUG-v048] |
+| 2026-10-30 13:04:15 | `maestro/WRITING_TESTS.md` | `Maestro CI tags doc` | WRITING_TESTS: flows on the CI emulator - complete_welcome, prepared-device and real-hardware tags [branch: DEBUG-v048] |
+| 2026-10-30 13:04:38 | `maestro/WRITING_TESTS.md` | `Maestro CI docs` | Maestro docs: CI emulator is a clean install, complete_welcome fragment, prepared-device and real-hardware tags [set of 2: maestro/TROUBLESHOOTING.md] [branch: DEBUG-v048] |
