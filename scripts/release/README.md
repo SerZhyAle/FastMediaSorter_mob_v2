@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.29 22:55</sub>
+<sub class="doc-stamp">26.10.30 11:11</sub>
 
 # scripts/release - Operator Handbook
 
@@ -13,6 +13,7 @@ Scripts that publish FastMediaSorter to GitHub Releases so that **GitHub Store**
 | `assert-sweep-verdicts.ps1` | Release-point read of the phone and watch pre-release verdicts - each must exist, pass and be newer than the source group it judged (S4249, S4498). |
 | `release-campaign.ps1` | Open, mark, report and close a release campaign - the record and phase journal under `temp/metrics/` that every gate and sweep step writes its duration to (S4413). |
 | `run-ci-parity.ps1` | `/skill-release` Step 6b: runs locally the checks GitHub CI runs (whole-tree static gates, lint of both modules, lint-detector tests, both unit suites), every step even after a red, before the first push. |
+| `assert-ci-verdict.ps1` | `/skill-release` Step 12: GitHub CI's verdict on the commit the release pushed - every workflow run green and the Quality Gate present, or the release stops before the first store publication. |
 | `assert-fgs-types-vs-previous.ps1` | Release assessment check: the merged standard-release manifest's foreground-service types against the newest confirmed `fgs-types.json` snapshot, or the registry's standard rows until one exists; unconfirmed `fgs-types.pending.json` files are never a baseline (S4413, S4499). |
 | `confirm-fgs-snapshot.ps1` | Promote a release's `fgs-types.pending.json` to `fgs-types.json` once Play production carries its versionCode. `publish-play-release.ps1` calls it after a completed, not held production commit; run it by hand after held changes were sent (S4499). |
 | `apply-github-store-metadata.ps1` | Apply repo `description`, `topics`, `homepage` from `PLAN/S0214_github-store-publication/DECISIONS.md` to GitHub via REST. Idempotent. |

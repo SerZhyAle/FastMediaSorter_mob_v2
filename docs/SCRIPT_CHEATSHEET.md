@@ -7805,6 +7805,25 @@ scripts/release/apply-github-store-metadata.ps1
     -Repo           [String] = "FastMediaSorter_mob_v2"
 ```
 
+### assert-ci-verdict.ps1
+Read GitHub Actions' verdict for the commit a release pushed, and refuse the release on a red or a missing one.
+
+```
+scripts/release/assert-ci-verdict.ps1
+  Read GitHub Actions' verdict for the commit a release pushed, and refuse the release on a red or a missing one.
+  Params:
+    -Sha                   [String] = 'origin/main'
+    -Required              [String[]] = @('Android CI Quality Gate')
+    -Accept                [String[]] = @()
+    -AcceptReason          [String] = ''
+    -WaitSeconds           [Int32] = 0  {range 0..3600}
+    -PollSeconds           [Int32] = 30  {range 1..600}
+    -AppearSeconds         [Int32] = 120  {range 0..3600}
+    -RunsJsonPath          [String]
+    -RepoRoot              [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+  Exit: 0 - every run for the commit is green and every required workflow has a run; 1 - at least one run is red (failure, cancelled, timed out, ..) and not accepted; 2 - could not verify: gh missing or unauthenticated, the commit does not resolve, an unreadable
+```
+
 ### assert-fgs-types-vs-previous.ps1
 Refuse a foreground-service type in the standard release that the previous release did not ship and the registry does not allow for standard (S4413).
 
@@ -8223,6 +8242,18 @@ scripts/release/watch-play-vitals.ps1
     -LogDir                [String]
     -Package               [String] = 'com.sza.fastmediasorter'
   Exit: 0 - read, judged and recorded (whatever the verdict colour); tickets filed where a band was red; 1 - -Check found at least one block out of date; nothing was written; 2 - could not verify: the read failed, the verdict refused, a document or its marker pair is
+```
+
+## scripts\release\assert-ci-verdict.tests
+
+### Run-Tests.ps1
+Contract suite for assert-ci-verdict.ps1: green, red, pending, missing, superseded, accepted.
+
+```
+scripts/release/assert-ci-verdict.tests/Run-Tests.ps1
+  Contract suite for assert-ci-verdict.ps1: green, red, pending, missing, superseded, accepted.
+  (no param block)
+  Exit: 0 - every assertion passed; 1 - an assertion failed; 2 - the script under test is missing
 ```
 
 ## scripts\release\assert-fgs-types-vs-previous.tests

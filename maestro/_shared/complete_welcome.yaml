@@ -1,0 +1,55 @@
+appId: com.sza.fastmediasorter.debug
+---
+# First-run setup for a CLEAN install (CI emulator): pick the Russian UI, then page through the Welcome
+# screen to its Finish button, which lands on MainActivity.
+#
+# Why this exists: MainActivity opens WelcomeActivity until `welcome_completed` is stored, so on a fresh
+# install every other flow fails at its first `tabResourceTypes` check. The suite's flows also assert
+# Russian texts, and the CI emulator boots in English, so the language is chosen here, through the app's
+# own picker, the way a user does it. A prepared device (the test phone) has both done already: do not run
+# this fragment there, it is the one that completes the Welcome.
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "com.sza.fastmediasorter.debug:id/btnWelcomeLanguage"
+    timeout: 30000
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnWelcomeLanguage"
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/editLanguageSearch"
+- inputText: "Russian"
+# The id keeps the tap off the search field itself, whose own text is "Russian" as well.
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/tvLanguageName"
+    text: "Russian.*"
+- extendedWaitUntil:
+    visible:
+      text: "Добро пожаловать.*"
+    timeout: 10000
+# `times` bounds the loop when Finish never shows; the Welcome has fewer than ten pages.
+- repeat:
+    times: 10
+    while:
+      notVisible:
+        id: "com.sza.fastmediasorter.debug:id/btnFinish"
+    commands:
+      - tapOn:
+          id: "com.sza.fastmediasorter.debug:id/btnNext"
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnFinish"
+# Finish asks the system for the HOME role; the dialog belongs to permissioncontroller, so it is in the
+# system language (English here). The suite never needs the role: decline it.
+- extendedWaitUntil:
+    visible:
+      text: "Set as default"
+    timeout: 8000
+    optional: true
+- runFlow:
+    when:
+      visible:
+        text: "Set as default"
+    commands:
+      - tapOn:
+          text: "Cancel"
+# The first launch after the Welcome opens Settings, not the main screen: go_home backs out of it.
+- runFlow: go_home.yaml
