@@ -125,4 +125,17 @@
     <string name="scheduled_op_reason_source_deleted">উৎস মুছে ফেলা হয়েছে, তাই এই সময়সূচি বিরতিতে আছে</string>
     <string name="scheduled_op_reason_target_deleted">গন্তব্য মুছে ফেলা হয়েছে, তাই এই সময়সূচি বিরতিতে আছে</string>
     <string name="scheduled_ops_log_failed">কিছু ভুল হয়েছে</string>
+    <string name="scheduled_ops_notif_stalled_title">নির্ধারিত অপারেশন চলছে না</string>
+    <string name="scheduled_ops_notif_stalled_text">%1$s - %2$s থেকে বাদ দেওয়া হচ্ছে। %3$s</string>
+    <string name="scheduled_ops_op_fill">খালি জায়গা ভরুন</string>
+    <string name="scheduled_ops_fill_confirm_title">ভরা নির্ধারণ করবেন?</string>
+    <string name="scheduled_ops_fill_confirm_message">প্রতিটি রান %2$s-এ ফোল্ডার %1$s-এ অস্থায়ী ফাইল লেখে যতক্ষণ না %3$s খালি থাকে, তারপর সেগুলো মুছে দেয়। আপনার নিজের ফাইল যেমন আছে তেমনই থাকে।</string>
+    <string name="scheduled_ops_fill_not_usable">ভরার জন্য অভ্যন্তরীণ স্টোরেজ বা মেমরি কার্ডে এমন একটি ফোল্ডার দরকার যেখানে এখন লেখা যায়। স্থানীয় ফোল্ডার দিয়ে সেটি বেছে নিন।</string>
+    <string name="scheduled_op_reason_fill_busy">ভরা ইতিমধ্যে চলছিল</string>
+    <string name="scheduled_op_reason_fill_not_local">ফোল্ডারটি এই ফোনের কোনো সংযুক্ত স্টোরেজ ডিভাইসে নেই</string>
+    <string name="scheduled_op_reason_fill_storage_unavailable">স্টোরেজ সংযুক্ত ছিল না বা লেখার যোগ্য ছিল না</string>
+    <string name="scheduled_op_reason_fill_measurement_unavailable">খালি জায়গা মাপা যায়নি</string>
+    <string name="scheduled_op_reason_fill_no_free_space">সিস্টেমের জন্য রাখা অংশের বাইরে কোনো খালি জায়গা নেই</string>
+    <string name="scheduled_op_reason_fill_write_failed">একটি ত্রুটিতে লেখা থেমে গেছে; অস্থায়ী ফাইলগুলো মুছে ফেলা হয়েছে</string>
+    <string name="scheduled_op_reason_fill_cleanup_pending">অস্থায়ী ফাইল রয়ে গেছে। স্টোরেজ সংযুক্ত করুন, স্টোরেজ ফিলার খুলুন এবং অবশিষ্ট ফাইল মুছুন-এ ট্যাপ করুন</string>
 </resources>

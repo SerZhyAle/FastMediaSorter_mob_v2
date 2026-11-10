@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.share.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
+import com.sza.fastmediasorter.domain.usecase.CheckSignedInCookiesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.net.HttpCookie
@@ -11,7 +12,10 @@ import javax.inject.Inject
 @HiltViewModel
 class WebViewAuthViewModel @Inject constructor(
     private val repository: AuthSessionRepository,
+    private val checkSignedInCookies: CheckSignedInCookiesUseCase,
 ) : ViewModel() {
+
+    fun hasSignedInCookies(host: String, cookies: List<HttpCookie>): Boolean = checkSignedInCookies(host, cookies)
 
     fun saveSession(
         host: String,

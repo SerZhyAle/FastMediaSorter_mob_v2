@@ -800,6 +800,12 @@
       "zh-Hans"
     ]
   },
+  {
+    "key": "launcher_app_category_video",
+    "locales": [
+      "it"
+    ]
+  },
   "launcher_contact_cell_unnamed",
   {
     "key": "launcher_desktop_swipe_down_title",
@@ -1866,6 +1872,15 @@
   "streams_rubric_test",
   "streams_rubric_webcam",
   "streams_title",
+  {
+    "key": "sysinfo_battery_duration",
+    "locales": [
+      "es",
+      "fr",
+      "it",
+      "pt"
+    ]
+  },
   "sysinfo_field_abis",
   "sysinfo_field_android_version",
   "sysinfo_field_app_version",
@@ -1981,6 +1996,7 @@
   },
   "tourist_unit_hpa",
   "tourist_unit_inhg",
+  "tourist_unit_mbar",
   {
     "key": "tourist_unit_min_per_km",
     "locales": [

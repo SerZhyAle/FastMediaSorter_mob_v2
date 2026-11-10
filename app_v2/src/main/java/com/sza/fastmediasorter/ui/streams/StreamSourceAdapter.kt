@@ -24,6 +24,7 @@ import com.sza.fastmediasorter.databinding.ItemStreamSourceBinding
 import com.sza.fastmediasorter.domain.usecase.exchange.ObserveLiveBroadcastSourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase
 import com.sza.fastmediasorter.ui.browse.InlinePlaybackAnimator
+import com.sza.fastmediasorter.ui.common.recycler.notifyChangedRuns
 import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
 import com.sza.fastmediasorter.ui.streams.helpers.StreamBroadcastEndpointManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamTopicRubricCatalog
@@ -93,11 +94,9 @@ class StreamSourceAdapter(
             if (field == value) return
             val previous = field
             field = value
-            currentList.forEachIndexed { index, item ->
-                if (previous[item.id] != value[item.id]) {
-                    notifyItemChanged(index, StreamAdapterPayloads.STATUS)
-                }
-            }
+            // The first emission after a catalog load can flip every row at once; one op per row
+            // made RecyclerView's pre-layout walk quadratic on the main thread (S4538).
+            notifyChangedRuns(StreamAdapterPayloads.STATUS) { item -> previous[item.id] != value[item.id] }
         }
 
     /** Marks (or clears) the row currently playing inline audio, repainting only the affected rows. */

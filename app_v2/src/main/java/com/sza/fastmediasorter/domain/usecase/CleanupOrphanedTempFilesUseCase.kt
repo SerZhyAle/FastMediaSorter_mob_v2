@@ -1,10 +1,11 @@
 package com.sza.fastmediasorter.domain.usecase
 
-import com.sza.fastmediasorter.data.network.SmbFileOperationHandler
 import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
 import com.sza.fastmediasorter.data.cloud.CloudPathParser
+import com.sza.fastmediasorter.data.network.SmbFileOperationHandler
 import com.sza.fastmediasorter.data.transfer.TempFileNamingStrategy
 import com.sza.fastmediasorter.util.VirtualPathUtils
+import com.sza.fastmediasorter.utils.SafHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -48,15 +49,24 @@ class CleanupOrphanedTempFilesUseCase @Inject constructor(
             return@withContext Result.success(0)
         }
 
+        // S4540: document-tree (content://) folders are written by SafOperationStrategy, which sits outside
+        // AtomicFileOperationStrategy, so no *.temp_copy is ever created there; and no strategy behind
+        // SmbFileOperationHandler accepts a content URI, so listing it only produced a W-level stack trace.
+        if (SafHelper.isContentUri(directoryPath)) {
+            Timber.d("S4540: temp cleanup skipped for a document-tree folder")
+            Timber.d("CleanupOrphanedTempFilesUseCase: Skipping document-tree path: $directoryPath")
+            return@withContext Result.success(0)
+        }
+
         Timber.d("CleanupOrphanedTempFilesUseCase: Starting cleanup in: $directoryPath")
-        
+
         try {
             // Determine handler based on path protocol
             val handler = when {
                 directoryPath.startsWith("gdrive:", ignoreCase = true) -> cloudFileOperationHandler
                 directoryPath.startsWith("dropbox:", ignoreCase = true) -> cloudFileOperationHandler
                 directoryPath.startsWith("onedrive:", ignoreCase = true) -> cloudFileOperationHandler
-                else -> smbFileOperationHandler // Handles SMB, SFTP, FTP, Local
+                else -> smbFileOperationHandler // Handles SMB, SFTP, FTP and filesystem paths
             }
             
             Timber.d("CleanupOrphanedTempFilesUseCase: Using ${handler.javaClass.simpleName}")

@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.data.remote.exchange
 
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
+import com.sza.fastmediasorter.domain.model.ExchangeSettingsGetResult
+import com.sza.fastmediasorter.domain.model.ExchangeSettingsSaveResult
 import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 import java.io.IOException
@@ -10,28 +12,6 @@ import java.util.Locale
 import java.util.TimeZone
 import javax.inject.Inject
 import javax.inject.Singleton
-
-/**
- * Result of saving standard application settings to the exchange server.
- */
-sealed interface ExchangeSettingsSaveResult {
-    data class Success(val version: Int?, val updatedAt: String?) : ExchangeSettingsSaveResult
-    data class Refused(val reason: String, val message: String?) : ExchangeSettingsSaveResult
-    data class Error(val cause: Throwable) : ExchangeSettingsSaveResult
-}
-
-/**
- * Result of retrieving standard application settings from the exchange server.
- */
-sealed interface ExchangeSettingsGetResult {
-    data class Success(
-        val formatVersion: Int,
-        val settingsPayload: String,
-        val updatedAt: String?
-    ) : ExchangeSettingsGetResult
-    data class Refused(val reason: String, val message: String?) : ExchangeSettingsGetResult
-    data class Error(val cause: Throwable) : ExchangeSettingsGetResult
-}
 
 /**
  * Client for standard settings exchange with Media Exchange Server.
@@ -65,7 +45,7 @@ class DeviceExchangeSettingsClient @Inject constructor(
                 }
                 DeviceExchangeEnvelope.TYPE_REFUSED -> {
                     val reason = answer.string(DeviceExchangeEnvelope.KEY_REASON) ?: "unknown"
-                    val message = answer.string(DeviceExchangeEnvelope.KEY_MESSAGE)
+                    val message = answer.string(ExchangeSettingsEnvelopes.KEY_MESSAGE)
                     ExchangeSettingsSaveResult.Refused(reason, message)
                 }
                 else -> {
@@ -113,7 +93,7 @@ class DeviceExchangeSettingsClient @Inject constructor(
                 }
                 DeviceExchangeEnvelope.TYPE_REFUSED -> {
                     val reason = answer.string(DeviceExchangeEnvelope.KEY_REASON) ?: "unknown"
-                    val message = answer.string(DeviceExchangeEnvelope.KEY_MESSAGE)
+                    val message = answer.string(ExchangeSettingsEnvelopes.KEY_MESSAGE)
                     ExchangeSettingsGetResult.Refused(reason, message)
                 }
                 else -> {

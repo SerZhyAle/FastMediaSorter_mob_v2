@@ -9,14 +9,14 @@ import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.network.exceptions.BrowseFriendlyErrorResolver
 import com.sza.fastmediasorter.data.network.exceptions.LocalNetworkPermissionDeniedException
-import com.sza.fastmediasorter.data.remote.sftp.anywhere.CompanionRecoveryChannel
-import com.sza.fastmediasorter.data.remote.sftp.anywhere.CompanionRecoveryChannels
 import com.sza.fastmediasorter.data.repository.CachedFileListRepository
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.CompanionRecoveryChannel
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.usecase.GetDeadCompanionRecoveryChannelsUseCase
 import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseEvent
 import com.sza.fastmediasorter.ui.browse.BrowseState
@@ -60,7 +60,7 @@ class BrowseLoadingAuxManager(
     private val getSettings: suspend () -> AppSettings,
     private val resourceId: Long,
     private val onHandleError: (Throwable) -> Unit,
-    private val companionRecoveryChannels: CompanionRecoveryChannels
+    private val getDeadCompanionRecoveryChannels: GetDeadCompanionRecoveryChannelsUseCase
 ) {
     // ── Mutable jobs (owned here, cancel via cancelAll / cancelPlayerWarmup) ──
 
@@ -213,7 +213,7 @@ class BrowseLoadingAuxManager(
      * find the PC's new address - the generic text alone once kept an owner waiting a month for a reconnect.
      */
     private fun companionGuidance(resource: MediaResource, accessNote: String?): String {
-        val dead = companionRecoveryChannels.deadChannels(resource)
+        val dead = getDeadCompanionRecoveryChannels(resource)
         val lines = listOf(accessNote ?: context.getString(R.string.error_companion_unreachable)) +
             dead.map { channel ->
                 when (channel) {

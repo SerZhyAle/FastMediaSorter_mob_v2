@@ -10,7 +10,6 @@ import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.data.local.preferences.BrowseManualOrderPrefs
 import com.sza.fastmediasorter.data.local.preferences.BrowseStateDataStore
 import com.sza.fastmediasorter.data.network.SmbClient
-import com.sza.fastmediasorter.data.remote.sftp.anywhere.CompanionRecoveryChannels
 import com.sza.fastmediasorter.data.repository.CachedFileListRepository
 import com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler
 import com.sza.fastmediasorter.domain.mutation.MutationJournal
@@ -30,6 +29,7 @@ import com.sza.fastmediasorter.domain.usecase.DeleteDirectoriesUseCase
 import com.sza.fastmediasorter.domain.usecase.ExtractArchiveUseCase
 import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
+import com.sza.fastmediasorter.domain.usecase.GetDeadCompanionRecoveryChannelsUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.domain.usecase.GetMediaFilesUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
@@ -60,7 +60,7 @@ class BrowseRemoteAccessDependencies @Inject constructor(
     val dropboxClient: Lazy<DropboxClient>,
     val oneDriveClient: Lazy<OneDriveRestClient>,
     val remoteSourceGate: RemoteSourceAvailabilityGate,
-    val companionRecoveryChannels: CompanionRecoveryChannels,
+    val getDeadCompanionRecoveryChannelsUseCase: GetDeadCompanionRecoveryChannelsUseCase,
 )
 
 /** Destructive cleanup operations - size-based delete, trash and orphaned-temp-file cleanup. */

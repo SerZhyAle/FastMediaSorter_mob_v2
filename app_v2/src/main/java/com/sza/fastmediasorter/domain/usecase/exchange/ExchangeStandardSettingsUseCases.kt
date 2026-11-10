@@ -1,10 +1,10 @@
 package com.sza.fastmediasorter.domain.usecase.exchange
 
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeSettingsClient
-import com.sza.fastmediasorter.data.remote.exchange.ExchangeSettingsGetResult
-import com.sza.fastmediasorter.data.remote.exchange.ExchangeSettingsSaveResult
 import com.sza.fastmediasorter.domain.exchange.StandardSettingsSerializer
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
+import com.sza.fastmediasorter.domain.model.ExchangeSettingsGetResult
+import com.sza.fastmediasorter.domain.model.ExchangeSettingsSaveResult
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject

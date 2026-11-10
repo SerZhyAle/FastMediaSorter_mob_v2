@@ -31,7 +31,8 @@ internal data class FillerJournalEntry(
 class FillerSessionJournal @Inject constructor(
     @param:ApplicationContext context: Context,
 ) : FillerJournal {
-    private val file = AtomicFile(File(context.noBackupFilesDir, JOURNAL_FILE))
+    // noBackupFilesDir checks the directory on disk; resolving it lazily keeps that read inside read/change on IO.
+    private val file by lazy { AtomicFile(File(context.noBackupFilesDir, JOURNAL_FILE)) }
     private val mutex = Mutex()
 
     override suspend fun pendingSessions(): List<FillerSession> = read { entries -> entries.map { it.session } }

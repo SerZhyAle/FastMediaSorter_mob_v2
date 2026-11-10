@@ -179,4 +179,13 @@
     <string name="welcome_role_streams_detail">Internetradio, TV- und Videokanäle aus einem fertigen Katalog</string>
     <string name="welcome_role_wear">Uhren-App</string>
     <string name="welcome_role_wear_detail">Die Uhr-App und ein Zifferblatt - Medien direkt am Handgelenk durchsuchen und abspielen</string>
+    <string name="sysinfo_field_battery_current">Akkustrom</string>
+    <string name="sysinfo_field_battery_power">Akkuleistung</string>
+    <string name="sysinfo_field_battery_saver">Energiesparmodus</string>
+    <string name="sysinfo_field_battery_capacity_estimate">Geschätzte Kapazität</string>
+    <string name="sysinfo_field_battery_charge_time">Zeit bis zur vollen Ladung</string>
+    <string name="sysinfo_field_battery_discharge_time">Geschätzte Restlaufzeit</string>
+    <string name="sysinfo_battery_unavailable">Nicht verfügbar</string>
+    <string name="sysinfo_battery_saver_off">Aus</string>
+    <string name="sysinfo_battery_duration">%1$d Std. %2$d Min.</string>
 </resources>

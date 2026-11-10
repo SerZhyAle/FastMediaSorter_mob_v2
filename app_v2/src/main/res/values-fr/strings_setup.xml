@@ -179,4 +179,12 @@
     <string name="welcome_role_streams_detail">Radio internet, chaînes TV et vidéo depuis un catalogue prêt à l\'emploi</string>
     <string name="welcome_role_wear">Appli montre</string>
     <string name="welcome_role_wear_detail">L’appli de la montre et un cadran - parcourez et lisez vos médias directement au poignet</string>
+    <string name="sysinfo_field_battery_current">Courant de la batterie</string>
+    <string name="sysinfo_field_battery_power">Puissance de la batterie</string>
+    <string name="sysinfo_field_battery_saver">Économiseur de batterie</string>
+    <string name="sysinfo_field_battery_capacity_estimate">Capacité estimée</string>
+    <string name="sysinfo_field_battery_charge_time">Temps jusqu\'à la charge complète</string>
+    <string name="sysinfo_field_battery_discharge_time">Autonomie restante estimée</string>
+    <string name="sysinfo_battery_unavailable">Indisponible</string>
+    <string name="sysinfo_battery_saver_off">Désactivé</string>
 </resources>

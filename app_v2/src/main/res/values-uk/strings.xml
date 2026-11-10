@@ -4593,7 +4593,6 @@
     <string name="launcher_app_category_move_up">Вище</string>
     <string name="launcher_app_category_move_down">Нижче</string>
     <string name="launcher_app_category_reorder_done">Готово</string>
-    <string name="launcher_app_category_reorder_hint">Утримуйте заголовок категорії, щоб змінити порядок</string>
     <string name="launcher_app_category_game">Ігри</string>
     <string name="launcher_app_category_audio">Музика та аудіо</string>
     <string name="launcher_app_category_video">Відео</string>

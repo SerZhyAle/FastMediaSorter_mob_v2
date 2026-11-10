@@ -4,7 +4,6 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.content.pm.ServiceInfo
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.hilt.work.HiltWorker
@@ -52,7 +51,8 @@ class DeliverableDownloadWorker @AssistedInject constructor(
 
         ensureNotificationChannel()
         try {
-            setForeground(createForegroundInfo(set, context.getString(R.string.delivery_state_downloading), 0))
+            val downloading = context.getString(R.string.delivery_state_downloading)
+            setDataSyncForegroundIfAllowed(createForegroundInfo(set, downloading, 0))
         } catch (e: Exception) {
             Timber.w(e, "DeliverableDownloadWorker: setForeground failed (non-fatal)")
         }
@@ -114,11 +114,7 @@ class DeliverableDownloadWorker @AssistedInject constructor(
     private fun createForegroundInfo(set: DeliverableSet, contentText: String, percent: Int): ForegroundInfo {
         val notification = buildNotification(set, contentText, percent)
         val notifId = notificationId(set)
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            ForegroundInfo(notifId, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-        } else {
-            ForegroundInfo(notifId, notification)
-        }
+        return DataSyncForeground.workerForegroundInfo(applicationContext, notifId, notification)
     }
 
     private fun updateNotification(set: DeliverableSet, contentText: String, percent: Int) {

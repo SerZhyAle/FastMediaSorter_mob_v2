@@ -15,8 +15,6 @@ import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityMyDevicesBinding
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
-import com.sza.fastmediasorter.domain.usecase.exchange.ApplyStandardSettingsUseCase
-import com.sza.fastmediasorter.domain.usecase.exchange.SaveStandardSettingsUseCase
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
 import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeAccountDialogManager
@@ -38,10 +36,6 @@ class MyDevicesActivity : BaseActivity<ActivityMyDevicesBinding>() {
 
     @Inject lateinit var mediaCapabilities: MediaCapabilities
 
-    @Inject lateinit var saveStandardSettings: SaveStandardSettingsUseCase
-
-    @Inject lateinit var applyStandardSettings: ApplyStandardSettingsUseCase
-
     @Suppress("unused")
     private val multimodalInputSurface: UiSurface = UiSurface.SETTINGS
 
@@ -60,7 +54,7 @@ class MyDevicesActivity : BaseActivity<ActivityMyDevicesBinding>() {
     private val accountDialogs: ExchangeAccountDialogManager by lazy { ExchangeAccountDialogManager(this, viewModel) }
     private val failureDialogs: ExchangeFailureDialogManager by lazy { ExchangeFailureDialogManager(this) }
     private val standardSettingsDialogs: ExchangeStandardSettingsDialogManager by lazy {
-        ExchangeStandardSettingsDialogManager(this, saveStandardSettings, applyStandardSettings, lifecycleScope)
+        ExchangeStandardSettingsDialogManager(this, viewModel, lifecycleScope)
     }
     private val adapter: ExchangeServerCardAdapter by lazy {
         ExchangeServerCardAdapter(

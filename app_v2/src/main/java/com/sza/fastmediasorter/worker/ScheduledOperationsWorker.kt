@@ -6,11 +6,9 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ServiceInfo
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
-import android.text.format.DateUtils
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.hilt.work.HiltWorker
@@ -18,10 +16,12 @@ import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.format.QuantityFormatter
 import com.sza.fastmediasorter.core.notification.NotificationIcons
 import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.core.util.StoragePermissionRule
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.domain.model.Quantity
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.model.ScheduledRunOutcome
@@ -32,6 +32,7 @@ import com.sza.fastmediasorter.domain.model.afterRun
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.domain.repository.ScheduledRunJournalRepository
+import com.sza.fastmediasorter.domain.unit.UnitSystemProvider
 import com.sza.fastmediasorter.domain.usecase.ExecuteScheduledOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.ScheduledExecutionResult
 import com.sza.fastmediasorter.ui.scheduledops.ScheduledOperationsActivity
@@ -47,7 +48,9 @@ class ScheduledOperationsWorker @AssistedInject constructor(
     private val executeScheduledOperationUseCase: ExecuteScheduledOperationUseCase,
     private val scheduledOperationRepository: ScheduledOperationRepository,
     private val runJournal: ScheduledRunJournalRepository,
-    private val resourceRepository: ResourceRepository
+    private val resourceRepository: ResourceRepository,
+    private val quantityFormatter: QuantityFormatter,
+    private val unitSystem: UnitSystemProvider,
 ) : CoroutineWorker(context, workerParams) {
 
     companion object {
@@ -148,7 +151,7 @@ class ScheduledOperationsWorker @AssistedInject constructor(
      * journal keeps, so a run that later dies mid-way is explainable from the screen.
      */
     private suspend fun enterForeground(): String? = try {
-        setForeground(createForegroundInfo())
+        setDataSyncForegroundIfAllowed(createForegroundInfo())
         null
     } catch (e: Exception) {
         Timber.w(e, "ScheduledOperationsWorker: setForeground failed (non-fatal)")
@@ -254,11 +257,7 @@ class ScheduledOperationsWorker @AssistedInject constructor(
 
     private suspend fun notifyStalled(operation: ScheduledOperation, result: ScheduledExecutionResult, since: Long) {
         createNotificationChannel()
-        val sinceText = DateUtils.formatDateTime(
-            context,
-            since,
-            DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME or DateUtils.FORMAT_ABBREV_MONTH
-        )
+        val sinceText = quantityFormatter.format(Quantity.DateTime(since), unitSystem.value)
         val text = context.getString(
             R.string.scheduled_ops_notif_stalled_text,
             scheduleLabel(operation),
@@ -342,11 +341,7 @@ class ScheduledOperationsWorker @AssistedInject constructor(
     private fun createForegroundInfo(): ForegroundInfo {
         createNotificationChannel()
         val notification = buildNotification()
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            ForegroundInfo(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-        } else {
-            ForegroundInfo(NOTIFICATION_ID, notification)
-        }
+        return DataSyncForeground.workerForegroundInfo(applicationContext, NOTIFICATION_ID, notification)
     }
 
     private fun buildNotification(): Notification {

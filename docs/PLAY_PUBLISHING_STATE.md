@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.30 11:36</sub>
+<sub class="doc-stamp">26.11.10 17:21</sub>
 
 # Play publishing state
 
@@ -300,39 +300,89 @@ the only writer of this block and the only script that reads that API.
 
 <!-- s2272:measured:vitals:begin -->
 
-**Verdict:** `insufficient-data` - measured 2026-10-29 (UTC), window 2026-09-21..2026-10-18 America/Los_Angeles, source api. Rates as the API returns them, read as fraction (S2917 research 6).
+**Verdict:** `insufficient-data` - measured 2026-11-10 (UTC), window 2026-10-12..2026-11-08 America/Los_Angeles, source api. Rates as the API returns them, read as fraction (S2917 research 6).
 
 | Finding | Scope | Value | Band | Colour | Distinct users |
 |---------|-------|-------|------|--------|----------------|
-| `userPerceivedCrashRate28dUserWeighted` | all devices | - | 0.0109 | insufficient-data | - |
-| `userPerceivedAnrRate28dUserWeighted` | all devices | - | 0.0047 | insufficient-data | - |
+| `userPerceivedCrashRate28dUserWeighted` | all devices | 0 | 0.0109 | insufficient-data | 10 |
+| `userPerceivedAnrRate28dUserWeighted` | all devices | 0 | 0.0047 | insufficient-data | 10 |
 | `anonRssAndSwapMemoryUsageP90` | 0 RAM bucket x app state row(s) | - | PlayMemory (not compared) | unit-unconfirmed | - |
 | `bitmapMemoryUsageP90` | 0 RAM bucket x app state row(s) | - | PlayMemory (not compared) | unit-unconfirmed | - |
 
 Google anomalies in the window: none.
 
-Top error issues by distinct users (3):
-- `CRASH` com.sza.fastmediasorter.core.ui.BaseActivity.getBinding at `java.lang.IllegalStateException` - 1 users, 1 reports, last versionCode 261004154 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/81ac31a3e59c8e3b2089ff2fe8ded6af/details)
-  - `Exception java.lang.IllegalStateException: Binding is only valid between onCreate and onDestroy`
-  - `at com.sza.fastmediasorter.core.ui.BaseActivity.getBinding (BaseActivity.kt:77)`
-  - `at com.sza.fastmediasorter.ui.player.PlayerActivity.getActivityBinding$app_v2 (PlayerActivity.java:110)`
-  - `at com.sza.fastmediasorter.ui.player.PlayerManagerInitializer.initUiCoordinators$lambda$44 (PlayerManagerInitializer.java:1029)`
-  - `at com.sza.fastmediasorter.ui.player.helpers.FilenameOverlayAutoHideManager.animateHide (FilenameOverlayAutoHideManager.java:276)`
-  - `at com.sza.fastmediasorter.ui.player.helpers.FilenameOverlayAutoHideManager.hideRunnable$lambda$1 (FilenameOverlayAutoHideManager.java:55)`
-  - `at android.os.Handler.handleCallback (Handler.java:958)`
-  - `at android.os.Handler.dispatchMessage (Handler.java:99)`
-  - `at android.os.Looper.loopOnce (Looper.java:205)`
-- `CRASH` com.sza.fastmediasorter.FastMediaSorterApp.getFirstFrameSignal at `java.lang.NullPointerException` - 1 users, 1 reports, last versionCode 260601015 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/88a52ab68a18ad68933502e788e41c1d/details)
-  - `Exception java.lang.NullPointerException: Attempt to invoke virtual method 'java.lang.Class java.lang.Object.getClass()' on a null object reference`
-  - `at kotlin.UnsafeLazyImpl.getValue (Lazy.kt:100)`
-  - `at com.sza.fastmediasorter.FastMediaSorterApp.getFirstFrameSignal (FastMediaSorterApp.java:135)`
-  - `at com.sza.fastmediasorter.FastMediaSorterApp.access$getFirstFrameSignal (FastMediaSorterApp.java:44)`
-  - `at com.sza.fastmediasorter.FastMediaSorterApp$onCreate$2.invokeSuspend (FastMediaSorterApp.kt:218)`
-  - `at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith (ContinuationImpl.kt:34)`
-  - `at kotlinx.coroutines.DispatchedTask.run (DispatchedTask.kt:108)`
-  - `at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run (LimitedDispatcher.kt:115)`
-  - `at kotlinx.coroutines.scheduling.TaskImpl.run (Tasks.kt:103)`
-- `CRASH` com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearSettingsMirrorStore$Companion$STAMP_MAP_TYPE$1.<init> at `java.lang.RuntimeException` - 1 users, 2 reports, last versionCode 260902195 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/daf4cfa06fbe2ac60ec520ebecc05e00/details)
+Top error issues by distinct users (9):
+- `CRASH` Unknown Source - v9k.c at `java.lang.IllegalArgumentException` - 4 users, 101 reports, last versionCode 261020235 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/9ffdb283b34782c07a5413220051334c/details)
+  - `Exception java.lang.RuntimeException:`
+  - `at android.app.ActivityThread.handleServiceArgs (ActivityThread.java:4720)`
+  - `at android.app.ActivityThread.-$$Nest$mhandleServiceArgs (ActivityThread.java)`
+  - `at android.app.ActivityThread$H.handleMessage (ActivityThread.java:2192)`
+  - `at android.os.Handler.dispatchMessage (Handler.java:106)`
+  - `at android.os.Looper.loopOnce (Looper.java:201)`
+  - `at android.os.Looper.loop (Looper.java:288)`
+  - `at android.app.ActivityThread.main (ActivityThread.java:8010)`
+  - `at java.lang.reflect.Method.invoke`
+- `APPLICATION_NOT_RESPONDING` [libhwui.so] android::uirenderer::ThreadBase::waitForWork at `Input dispatching timed out (No focused window)` - 1 users, 1 reports, last versionCode 261004154 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/15d37ad4d3fde22b5b29289813073bae/details)
+  - `"main" tid=1 Native`
+  - `#00  pc 0x000000000005da70  /apex/com.android.runtime/lib/bionic/libc.so (syscall+28)`
+  - `#01  pc 0x00000000000634cf  /apex/com.android.runtime/lib/bionic/libc.so (__futex_wait_ex+94)`
+  - `#02  pc 0x00000000000ac64d  /apex/com.android.runtime/lib/bionic/libc.so (pthread_cond_wait+32)`
+  - `#03  pc 0x000000000003d369  /system/lib/libc++.so (std::__1::condition_variable::wait+8)`
+  - `#04  pc 0x000000000003f13d  /system/lib/libc++.so (std::__1::__assoc_sub_state::copy+52)`
+  - `#05  pc 0x000000000003f315  /system/lib/libc++.so (std::__1::future<void>::get+10)`
+  - `#06  pc 0x000000000011a407  /system/lib/libhwui.so (android::uirenderer::renderthread::RenderProxy::setStopped+254)`
+  - `at android.graphics.HardwareRenderer.nSetStopped (Native method)`
+- `APPLICATION_NOT_RESPONDING` java.util.ArrayList.get at `Input dispatching timed out` - 1 users, 1 reports, last versionCode 261029214 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/261fa3053a3de847012a114b34686684/details)
+  - `"main" tid=1 Runnable`
+  - `at java.util.ArrayList.get (ArrayList.java:434)`
+  - `at androidx.recyclerview.widget.AdapterHelper.findPositionOffset (AdapterHelper.java:474)`
+  - `at androidx.recyclerview.widget.AdapterHelper.canFindInPreLayout (AdapterHelper.java:422)`
+  - `at androidx.recyclerview.widget.AdapterHelper.applyUpdate (AdapterHelper.java:194)`
+  - `at androidx.recyclerview.widget.AdapterHelper.preProcess (AdapterHelper.java:105)`
+  - `at androidx.recyclerview.widget.RecyclerView.processAdapterUpdatesAndSetAnimationFlags (RecyclerView.java:4278)`
+  - `at androidx.recyclerview.widget.RecyclerView.dispatchLayoutStep1 (RecyclerView.java:4545)`
+  - `at androidx.recyclerview.widget.RecyclerView.dispatchLayout (RecyclerView.java:4346)`
+- `CRASH` com.sza.fastmediasorter.ui.settings.helpers.LocalFolderDestinationPickerManager.wrapOnSelected$lambda$1 at `android.content.ActivityNotFoundException` - 1 users, 1 reports, last versionCode 261004154 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/6f7cd10aceb6c606e13d1622bf2ad203/details)
+  - `Exception android.content.ActivityNotFoundException: No Activity found to handle Intent { act=android.intent.action.OPEN_DOCUMENT_TREE }`
+  - `at android.app.Instrumentation.checkStartActivityResult (Instrumentation.java:2058)`
+  - `at android.app.Instrumentation.execStartActivity (Instrumentation.java:1716)`
+  - `at android.app.Activity.startActivityForResult (Activity.java:5207)`
+  - `at androidx.activity.ComponentActivity.startActivityForResult (ComponentActivity.kt:675)`
+  - `at androidx.core.app.ActivityCompat.startActivityForResult (ActivityCompat.java:243)`
+  - `at androidx.activity.ComponentActivity$activityResultRegistry$1.onLaunch (ComponentActivity.kt:223)`
+  - `at androidx.activity.result.ActivityResultRegistry$register$2.launch (ActivityResultRegistry.kt:130)`
+  - `at androidx.fragment.app.Fragment$10.launch (Fragment.java:3632)`
+- `CRASH` android.os.Parcel.createExceptionOrNull at `java.lang.IllegalArgumentException` - 1 users, 1 reports, last versionCode 261020235 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/80bc1efd6a749a1926821f75f2e881d0/details)
+  - `Exception java.lang.RuntimeException:`
+  - `at android.app.ActivityThread.handleServiceArgs (ActivityThread.java:4720)`
+  - `at android.app.ActivityThread.-$$Nest$mhandleServiceArgs (ActivityThread.java)`
+  - `at android.app.ActivityThread$H.handleMessage (ActivityThread.java:2192)`
+  - `at android.os.Handler.dispatchMessage (Handler.java:106)`
+  - `at android.os.Looper.loopOnce (Looper.java:201)`
+  - `at android.os.Looper.loop (Looper.java:288)`
+  - `at android.app.ActivityThread.main (ActivityThread.java:8010)`
+  - `at java.lang.reflect.Method.invoke`
+- `CRASH` com.android.server.am.ActiveServices.setServiceForegroundInnerLocked at `android.os.RemoteException` - 1 users, 31 reports, last versionCode 261020235 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/b617f727a74914b7d454d84e7ba86fcd/details)
+  - `Exception java.lang.RuntimeException:`
+  - `at android.app.ActivityThread.handleServiceArgs (ActivityThread.java:4945)`
+  - `at android.app.ActivityThread.-$$Nest$mhandleServiceArgs (ActivityThread.java)`
+  - `at android.app.ActivityThread$H.handleMessage (ActivityThread.java:2316)`
+  - `at android.os.Handler.dispatchMessage (Handler.java:106)`
+  - `at android.os.Looper.loopOnce (Looper.java:211)`
+  - `at android.os.Looper.loop (Looper.java:300)`
+  - `at android.app.ActivityThread.main (ActivityThread.java:8348)`
+  - `at java.lang.reflect.Method.invoke`
+- `CRASH` com.android.server.am.ActiveServices.setServiceForegroundInnerLocked at `android.os.RemoteException` - 1 users, 13 reports, last versionCode 261020235 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/c833ca20a5b60832aa73b7f3b1773204/details)
+  - `Exception java.lang.RuntimeException:`
+  - `at android.app.ActivityThread.handleServiceArgs (ActivityThread.java:4720)`
+  - `at android.app.ActivityThread.-$$Nest$mhandleServiceArgs (ActivityThread.java)`
+  - `at android.app.ActivityThread$H.handleMessage (ActivityThread.java:2192)`
+  - `at android.os.Handler.dispatchMessage (Handler.java:106)`
+  - `at android.os.Looper.loopOnce (Looper.java:201)`
+  - `at android.os.Looper.loop (Looper.java:288)`
+  - `at android.app.ActivityThread.main (ActivityThread.java:8010)`
+  - `at java.lang.reflect.Method.invoke`
+- `CRASH` com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearSettingsMirrorStore$Companion$STAMP_MAP_TYPE$1.<init> at `java.lang.RuntimeException` - 1 users, 1 reports, last versionCode 260902195 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/daf4cfa06fbe2ac60ec520ebecc05e00/details)
   - `Exception java.lang.ExceptionInInitializerError:`
   - `at com.sza.fastmediasorter.DaggerFastMediaSorterApp_HiltComponents_SingletonC$ViewModelCImpl.sharedPreferencesWearSettingsMirrorStore (DaggerFastMediaSorterApp_HiltComponents_SingletonC.java:4104)`
   - `at com.sza.fastmediasorter.DaggerFastMediaSorterApp_HiltComponents_SingletonC$ViewModelCImpl$SwitchingProvider.get (DaggerFastMediaSorterApp_HiltComponents_SingletonC.java:4384)`
@@ -342,6 +392,16 @@ Top error issues by distinct users (3):
   - `at androidx.lifecycle.ViewModelProvider.get (ViewModelProvider.kt:184)`
   - `at androidx.lifecycle.ViewModelProvider.get (ViewModelProvider.kt:150)`
   - `at androidx.lifecycle.ViewModelLazy.getValue (ViewModelLazy.kt:53)`
+- `APPLICATION_NOT_RESPONDING` com.sza.fastmediasorter.databinding.ActivityMainBinding.inflate at `Input dispatching timed out (No focused window)` - 1 users, 1 reports, last versionCode 261020235 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/f1df801772d8e45cfa6044690ae76918/details)
+  - `"main" tid=1 Runnable`
+  - `at java.nio.ByteBuffer.get (ByteBuffer.java:602)`
+  - `at android.icu.impl.ICUBinary.getBytes (ICUBinary.java:672)`
+  - `at android.icu.util.CodePointTrie.fromBinary (CodePointTrie.java:248)`
+  - `at android.icu.impl.RBBIDataWrapper.get (RBBIDataWrapper.java:373)`
+  - `at android.icu.text.RuleBasedBreakIterator.getInstanceFromCompiledRules (RuleBasedBreakIterator.java:132)`
+  - `at android.icu.text.RuleBasedBreakIterator.getInstanceFromCompiledRules (RuleBasedBreakIterator.java:108)`
+  - `at android.icu.text.BreakIteratorFactory.createBreakInstance (BreakIteratorFactory.java:165)`
+  - `at android.icu.text.BreakIteratorFactory.createBreakIterator (BreakIteratorFactory.java:73)`
 
 <!-- s2272:measured:vitals:end -->
 

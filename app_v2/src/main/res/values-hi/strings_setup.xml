@@ -179,4 +179,13 @@
     <string name="welcome_role_streams_detail">तैयार कैटलॉग से इंटरनेट रेडियो, टीवी और वीडियो चैनल</string>
     <string name="welcome_role_wear">घड़ी ऐप</string>
     <string name="welcome_role_wear_detail">वॉच ऐप और वॉच फ़ेस - सीधे अपनी कलाई पर ब्राउज़ करें और चलाएँ</string>
+    <string name="sysinfo_field_battery_current">बैटरी करंट</string>
+    <string name="sysinfo_field_battery_power">बैटरी पावर</string>
+    <string name="sysinfo_field_battery_saver">बैटरी सेवर</string>
+    <string name="sysinfo_field_battery_capacity_estimate">अनुमानित क्षमता</string>
+    <string name="sysinfo_field_battery_charge_time">पूरा चार्ज होने में समय</string>
+    <string name="sysinfo_field_battery_discharge_time">अनुमानित शेष समय</string>
+    <string name="sysinfo_battery_unavailable">उपलब्ध नहीं</string>
+    <string name="sysinfo_battery_saver_off">बंद</string>
+    <string name="sysinfo_battery_duration">%1$d घं %2$d मि</string>
 </resources>

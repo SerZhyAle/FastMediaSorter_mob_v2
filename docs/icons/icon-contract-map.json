@@ -19,6 +19,9 @@
   "glyphs": {
     "ic_page_previous": "media.previous",
     "ic_page_next": "media.next",
+    "ic_next_circle_red": "media.next",
+    "ic_next_circle_red_pressed": "media.next",
+    "ic_next_circle_selector": "media.next",
     "ic_copy_full_report": "action.copy",
     "ic_paste": "action.paste",
     "ic_draw_overlay": "feature.drawing",

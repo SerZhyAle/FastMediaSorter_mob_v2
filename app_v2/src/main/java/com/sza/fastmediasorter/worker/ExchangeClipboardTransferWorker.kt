@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.worker
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.content.pm.ServiceInfo
 import android.net.Uri
 import android.os.Build
 import android.provider.OpenableColumns
@@ -272,7 +271,7 @@ class ExchangeClipboardTransferWorker @AssistedInject constructor(
 
     private suspend fun promoteToForeground() {
         try {
-            setForeground(foregroundInfo(done = null, total = null))
+            setDataSyncForegroundIfAllowed(foregroundInfo(done = null, total = null))
         } catch (e: CancellationException) {
             throw e
         } catch (e: IllegalStateException) {
@@ -301,11 +300,7 @@ class ExchangeClipboardTransferWorker @AssistedInject constructor(
             builder.setProgress(0, 0, true)
         }
         done?.let { builder.setContentText(Formatter.formatShortFileSize(context, it)) }
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            ForegroundInfo(PROGRESS_ID, builder.build(), ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-        } else {
-            ForegroundInfo(PROGRESS_ID, builder.build())
-        }
+        return DataSyncForeground.workerForegroundInfo(applicationContext, PROGRESS_ID, builder.build())
     }
 
     private fun notifyResult(report: Report) {

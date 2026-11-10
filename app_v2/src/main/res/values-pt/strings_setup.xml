@@ -179,4 +179,12 @@
     <string name="welcome_role_streams_detail">Rádio na internet, canais de TV e vídeo a partir de um catálogo pronto a usar</string>
     <string name="welcome_role_wear">App do relógio</string>
     <string name="welcome_role_wear_detail">O app do relógio e um mostrador - navegue e reproduza direto no pulso</string>
+    <string name="sysinfo_field_battery_current">Corrente da bateria</string>
+    <string name="sysinfo_field_battery_power">Potência da bateria</string>
+    <string name="sysinfo_field_battery_saver">Economia de bateria</string>
+    <string name="sysinfo_field_battery_capacity_estimate">Capacidade estimada</string>
+    <string name="sysinfo_field_battery_charge_time">Tempo até a carga completa</string>
+    <string name="sysinfo_field_battery_discharge_time">Tempo restante estimado</string>
+    <string name="sysinfo_battery_unavailable">Indisponível</string>
+    <string name="sysinfo_battery_saver_off">Desativado</string>
 </resources>

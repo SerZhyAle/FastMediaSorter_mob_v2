@@ -654,10 +654,11 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
             threadPolicy.penaltyLog()
         }
 
-        StrictMode.setThreadPolicy(threadPolicy.build())
+        val builtThreadPolicy = threadPolicy.build()
+        StrictMode.setThreadPolicy(builtThreadPolicy)
         // Below API 28 no listener exists to deliver the canary, so it would always read as silent.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            canary.arm(this)
+            canary.arm(this, builtThreadPolicy)
         }
 
             StrictMode.setVmPolicy(

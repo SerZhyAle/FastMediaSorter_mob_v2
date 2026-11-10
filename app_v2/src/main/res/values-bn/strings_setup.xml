@@ -179,4 +179,13 @@
     <string name="welcome_role_streams_detail">তৈরি ক্যাটালগ থেকে ইন্টারনেট রেডিও, টিভি আর ভিডিও চ্যানেল</string>
     <string name="welcome_role_wear">ঘড়ির অ্যাপ</string>
     <string name="welcome_role_wear_detail">ওয়াচ অ্যাপ এবং একটি ওয়াচ ফেস - সরাসরি কব্জিতে ব্রাউজ করুন ও চালান</string>
+    <string name="sysinfo_field_battery_current">ব্যাটারি কারেন্ট</string>
+    <string name="sysinfo_field_battery_power">ব্যাটারি পাওয়ার</string>
+    <string name="sysinfo_field_battery_saver">ব্যাটারি সেভার</string>
+    <string name="sysinfo_field_battery_capacity_estimate">আনুমানিক ক্ষমতা</string>
+    <string name="sysinfo_field_battery_charge_time">পুরো চার্জ হওয়ার সময়</string>
+    <string name="sysinfo_field_battery_discharge_time">আনুমানিক অবশিষ্ট সময়</string>
+    <string name="sysinfo_battery_unavailable">উপলব্ধ নয়</string>
+    <string name="sysinfo_battery_saver_off">বন্ধ</string>
+    <string name="sysinfo_battery_duration">%1$d ঘ %2$d মি</string>
 </resources>

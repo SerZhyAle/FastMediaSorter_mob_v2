@@ -32,16 +32,34 @@ class StrictModeReportingCanary : Application.ActivityLifecycleCallbacks {
 
     @Volatile private var lastAlive: Boolean? = null
 
-    // Main thread only: both are touched from the lifecycle callbacks and from arm().
-    private var lastPolicy: String? = null
+    // Main thread only: touched from the lifecycle callbacks, the idle handler and arm().
+    private var armedPolicy: StrictMode.ThreadPolicy? = null
+    private var armedPolicyText: String? = null
     private var lastProbeMs = NEVER_PROBED
+    private var lastIdleCheckMs = NEVER_CHECKED
 
-    /** Call on the main thread, after the policy is set. */
-    fun arm(application: Application) {
-        val policy = StrictMode.getThreadPolicy().toString()
-        lastPolicy = policy
-        Timber.i("StrictMode reporting: armed, policy=$policy")
+    /**
+     * Call on the main thread with the policy just set.
+     *
+     * A same-process Binder call through a Play Services stub (the Cast framework's Dynamite module,
+     * measured on API 35) leaves the caller's mask on the main thread with StrictMode's gather bit
+     * (bit 31) added, and from then on every violation is collected for a Binder reply that never
+     * comes. So the canary restores [policy] whenever the main thread's policy no longer matches it.
+     */
+    fun arm(application: Application, policy: StrictMode.ThreadPolicy) {
+        armedPolicy = policy
+        val text = StrictMode.getThreadPolicy().toString()
+        armedPolicyText = text
+        Timber.i("StrictMode reporting: armed, policy=$text")
         application.registerActivityLifecycleCallbacks(this)
+        Looper.myQueue().addIdleHandler {
+            val nowMs = SystemClock.uptimeMillis()
+            if (isIdleCheckDue(nowMs, lastIdleCheckMs)) {
+                lastIdleCheckMs = nowMs
+                restorePolicyIfReplaced("main thread idle")
+            }
+            true
+        }
     }
 
     /**
@@ -58,7 +76,7 @@ class StrictModeReportingCanary : Application.ActivityLifecycleCallbacks {
     }
 
     override fun onActivityResumed(activity: Activity) {
-        reportPolicyChange(activity.javaClass.simpleName)
+        restorePolicyIfReplaced(activity.javaClass.simpleName)
         val nowMs = SystemClock.uptimeMillis()
         if (isProbeDue(nowMs, lastProbeMs)) {
             lastProbeMs = nowMs
@@ -66,17 +84,17 @@ class StrictModeReportingCanary : Application.ActivityLifecycleCallbacks {
         }
     }
 
-    private fun reportPolicyChange(activityName: String) {
+    private fun restorePolicyIfReplaced(where: String) {
+        val restored = armedPolicy ?: return
         val policy = StrictMode.getThreadPolicy().toString()
-        if (policy != lastPolicy) {
-            Timber.w("StrictMode reporting: policy changed before $activityName, $lastPolicy -> $policy")
-            lastPolicy = policy
-        }
+        if (policy == armedPolicyText) return
+        StrictMode.setThreadPolicy(restored)
+        Timber.d("S4518: debug thread policy re-applied before $where")
+        Timber.w("StrictMode reporting: policy changed before $where, $armedPolicyText -> $policy, re-applied")
     }
 
     private fun probe(context: Context, nowMs: Long) {
         if (!pendingSinceMs.compareAndSet(NOT_PENDING, nowMs)) return
-        Timber.d("S4518: canary read sent")
         readDisk(context)
         mainHandler.postDelayed(
             {
@@ -118,14 +136,22 @@ class StrictModeReportingCanary : Application.ActivityLifecycleCallbacks {
     internal companion object {
         private const val NOT_PENDING = 0L
         private const val NEVER_PROBED = 0L
+        private const val NEVER_CHECKED = 0L
         private const val CANARY_FILE_NAME = ".strictmode-canary"
         private val DELIVERY_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(5)
         private val PROBE_INTERVAL_MS = TimeUnit.MINUTES.toMillis(1)
+
+        // The idle handler runs between every burst of main-thread messages; reading the policy
+        // allocates, so the check is throttled rather than run on every idle.
+        private val IDLE_CHECK_INTERVAL_MS = TimeUnit.SECONDS.toMillis(1)
 
         fun isCanaryViolation(violation: Throwable): Boolean =
             violation.stackTrace.any { frame -> frame.className == StrictModeReportingCanary::class.java.name }
 
         fun isProbeDue(nowMs: Long, lastProbeMs: Long): Boolean =
             lastProbeMs == NEVER_PROBED || nowMs - lastProbeMs >= PROBE_INTERVAL_MS
+
+        fun isIdleCheckDue(nowMs: Long, lastCheckMs: Long): Boolean =
+            lastCheckMs == NEVER_CHECKED || nowMs - lastCheckMs >= IDLE_CHECK_INTERVAL_MS
     }
 }

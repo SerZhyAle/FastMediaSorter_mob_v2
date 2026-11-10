@@ -124,4 +124,17 @@
     <string name="scheduled_op_reason_source_deleted">Die Quelle wurde gelöscht, daher ist dieser Zeitplan pausiert</string>
     <string name="scheduled_op_reason_target_deleted">Das Ziel wurde gelöscht, daher ist dieser Zeitplan pausiert</string>
     <string name="scheduled_ops_log_failed">Etwas ist schiefgelaufen</string>
+    <string name="scheduled_ops_notif_stalled_title">Geplanter Vorgang wird nicht ausgeführt</string>
+    <string name="scheduled_ops_notif_stalled_text">%1$s - übersprungen seit %2$s. %3$s</string>
+    <string name="scheduled_ops_op_fill">Freien Speicher füllen</string>
+    <string name="scheduled_ops_fill_confirm_title">Füllen planen?</string>
+    <string name="scheduled_ops_fill_confirm_message">Jeder Lauf schreibt temporäre Dateien in den Ordner %1$s auf %2$s, bis %3$s frei bleiben, und löscht sie dann. Deine eigenen Dateien bleiben unverändert.</string>
+    <string name="scheduled_ops_fill_not_usable">Zum Füllen wird ein Ordner im internen Speicher oder auf einer Speicherkarte benötigt, der jetzt beschreibbar ist. Wähle ihn mit Lokaler Ordner.</string>
+    <string name="scheduled_op_reason_fill_busy">Das Füllen lief bereits</string>
+    <string name="scheduled_op_reason_fill_not_local">Der Ordner befindet sich auf keinem verbundenen Speichergerät dieses Telefons</string>
+    <string name="scheduled_op_reason_fill_storage_unavailable">Der Speicher war nicht verbunden oder nicht beschreibbar</string>
+    <string name="scheduled_op_reason_fill_measurement_unavailable">Der freie Speicher konnte nicht gemessen werden</string>
+    <string name="scheduled_op_reason_fill_no_free_space">Kein freier Speicher über dem für das System freigehaltenen Teil</string>
+    <string name="scheduled_op_reason_fill_write_failed">Das Schreiben wurde mit einem Fehler gestoppt; die temporären Dateien wurden gelöscht</string>
+    <string name="scheduled_op_reason_fill_cleanup_pending">Temporäre Dateien sind übrig. Verbinde den Speicher, öffne Speicherfüller und tippe auf Restliche Dateien löschen</string>
 </resources>

@@ -4608,7 +4608,6 @@
     <string name="launcher_app_category_move_up">Выше</string>
     <string name="launcher_app_category_move_down">Ниже</string>
     <string name="launcher_app_category_reorder_done">Готово</string>
-    <string name="launcher_app_category_reorder_hint">Удерживайте заголовок категории, чтобы изменить порядок</string>
     <string name="launcher_app_category_game">Игры</string>
     <string name="launcher_app_category_audio">Музыка и аудио</string>
     <string name="launcher_app_category_video">Видео</string>

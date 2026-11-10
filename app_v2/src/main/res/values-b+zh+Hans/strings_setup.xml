@@ -179,4 +179,13 @@
     <string name="welcome_role_streams_detail">来自现成目录的网络电台、电视和视频频道</string>
     <string name="welcome_role_wear">手表应用</string>
     <string name="welcome_role_wear_detail">手表应用和表盘 - 直接在手腕上浏览和播放</string>
+    <string name="sysinfo_field_battery_current">电池电流</string>
+    <string name="sysinfo_field_battery_power">电池功率</string>
+    <string name="sysinfo_field_battery_saver">省电模式</string>
+    <string name="sysinfo_field_battery_capacity_estimate">估计容量</string>
+    <string name="sysinfo_field_battery_charge_time">充满所需时间</string>
+    <string name="sysinfo_field_battery_discharge_time">预计剩余时间</string>
+    <string name="sysinfo_battery_unavailable">不可用</string>
+    <string name="sysinfo_battery_saver_off">关闭</string>
+    <string name="sysinfo_battery_duration">%1$d 小时 %2$d 分钟</string>
 </resources>

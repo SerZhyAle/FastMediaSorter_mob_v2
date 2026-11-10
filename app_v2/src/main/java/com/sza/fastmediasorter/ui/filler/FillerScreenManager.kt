@@ -7,6 +7,7 @@ import androidx.core.view.isVisible
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityFillerBinding
+import com.sza.fastmediasorter.util.showBoundToHost
 
 /** Draws [FillerUiState] into the screen and owns the start confirmation; holds no operation state. */
 class FillerScreenManager(
@@ -49,7 +50,7 @@ class FillerScreenManager(
             )
             .setPositiveButton(R.string.filler_confirm_positive) { _, _ -> onConfirmed() }
             .setNegativeButton(R.string.cancel, null)
-            .show()
+            .showBoundToHost(context)
     }
 
     private fun renderRun(state: FillerUiState) {

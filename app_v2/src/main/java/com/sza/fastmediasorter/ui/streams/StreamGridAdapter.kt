@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.databinding.ItemStreamGridCellBinding
 import com.sza.fastmediasorter.domain.usecase.exchange.ObserveLiveBroadcastSourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase
+import com.sza.fastmediasorter.ui.common.recycler.notifyChangedRuns
 import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -103,11 +104,8 @@ class StreamGridAdapter(
             if (field == value) return
             val previous = field
             field = value
-            currentList.forEachIndexed { index, item ->
-                if (previous[item.id] != value[item.id]) {
-                    notifyItemChanged(index, StreamAdapterPayloads.STATUS)
-                }
-            }
+            // Range runs instead of one op per tile - see StreamSourceAdapter.playOutcomes (S4538).
+            notifyChangedRuns(StreamAdapterPayloads.STATUS) { item -> previous[item.id] != value[item.id] }
         }
 
     /**

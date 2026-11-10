@@ -29,8 +29,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="48dp"
-            android:paddingVertical="12dp">
+            android:paddingHorizontal="@dimen/filler_content_padding_horizontal_land"
+            android:paddingVertical="@dimen/token_spacing_12">
 
             <TextView
                 android:id="@+id/txtFillerIntro"
@@ -43,7 +43,7 @@
                 android:id="@+id/txtFillerLocation"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="@dimen/token_spacing_16"
                 android:textAppearance="?attr/textAppearanceTitleMedium" />
 
             <Button
@@ -51,7 +51,7 @@
                 style="@style/Widget.FastMediaSorter.Button.Outlined"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="@dimen/token_spacing_8"
                 android:nextFocusDown="@id/btnFillerStart"
                 android:text="@string/filler_choose_folder" />
 
@@ -59,14 +59,14 @@
                 android:id="@+id/txtFillerFreeSpace"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="@dimen/token_spacing_16"
                 android:textAppearance="?attr/textAppearanceBodyLarge" />
 
             <TextView
                 android:id="@+id/txtFillerReserve"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="@dimen/token_spacing_4"
                 android:textAppearance="?attr/textAppearanceBodyMedium" />
 
             <Button
@@ -74,7 +74,7 @@
                 style="@style/Widget.FastMediaSorter.Button.Filled"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="@dimen/token_spacing_16"
                 android:nextFocusUp="@id/btnFillerChooseFolder"
                 android:text="@string/filler_start" />
 
@@ -82,7 +82,7 @@
                 android:id="@+id/fillerRunGroup"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="@dimen/token_spacing_16"
                 android:orientation="vertical"
                 android:visibility="gone">
 
@@ -96,7 +96,7 @@
                     android:id="@+id/txtFillerProgress"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="@dimen/token_spacing_8"
                     android:accessibilityLiveRegion="polite"
                     android:textAppearance="?attr/textAppearanceBodyLarge" />
 
@@ -105,7 +105,7 @@
                     style="@style/Widget.FastMediaSorter.Button.Destructive"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="@dimen/token_spacing_8"
                     android:text="@string/filler_cancel" />
             </LinearLayout>
 
@@ -113,7 +113,7 @@
                 android:id="@+id/fillerCleanupGroup"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="@dimen/token_spacing_16"
                 android:orientation="vertical"
                 android:visibility="gone">
 
@@ -128,7 +128,7 @@
                     style="@style/Widget.FastMediaSorter.Button.Tonal"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="@dimen/token_spacing_8"
                     android:text="@string/filler_retry_cleanup" />
             </LinearLayout>
 
@@ -136,7 +136,7 @@
                 android:id="@+id/txtFillerResult"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="@dimen/token_spacing_16"
                 android:accessibilityLiveRegion="polite"
                 android:textAppearance="?attr/textAppearanceBodyLarge"
                 android:visibility="gone" />

@@ -11,6 +11,7 @@ import com.google.android.material.textfield.TextInputLayout
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.launcher.AppCategory
 import com.sza.fastmediasorter.domain.model.launcher.AppCategoryCatalog
+import com.sza.fastmediasorter.util.showBoundToHost
 
 /**
  * S4530: "Set category.." - a multi-choice list of every category, empty ones included, plus
@@ -59,7 +60,7 @@ class LauncherAppCategoryDialogManager(
                 val kept = categories.filterIndexed { index, _ -> checked[index] }.mapTo(HashSet()) { it.id }
                 showNameInput(packageName, appLabel, catalog, kept)
             }
-            .show()
+            .showBoundToHost(context)
     }
 
     private fun showNameInput(
@@ -96,7 +97,7 @@ class LauncherAppCategoryDialogManager(
                 }
             }
             .setNegativeButton(R.string.cancel) { _, _ -> showChooser(packageName, appLabel, catalog, checkedIds) }
-            .show()
+            .showBoundToHost(context)
         input.requestFocus()
     }
 

@@ -93,6 +93,7 @@ class PlayerMediaLoaderManager(
     private val viewModel = activity.viewModel
     private val textViewerManagerProvider: () -> TextViewerManager = { activity.textViewerManager }
     private val lifecycleScope = activity.lifecycleScope
+    private val ioDispatcher = activity.ioDispatcher
 
     // S0704: The handler is only for audio-readiness feedback; the spinner has another owner.
     private val loadingIndicatorHandler = activity.loadingIndicatorHandler
@@ -234,7 +235,7 @@ class PlayerMediaLoaderManager(
         imageDisplayJob?.cancel()
         imageDisplayJob = lifecycleScope.launch {
             Timber.d("S4507: image stereo detection off-main path=$path")
-            val detected = withContext(Dispatchers.IO) {
+            val detected = withContext(ioDispatcher) {
                 stereoDetector.detectForImage(path = path, width = width, height = height, config = config)
             }
             // The player may have moved to another file while the scan ran, and only some of the paths

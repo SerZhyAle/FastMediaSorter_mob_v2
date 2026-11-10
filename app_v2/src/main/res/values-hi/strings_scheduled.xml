@@ -124,4 +124,17 @@
     <string name="scheduled_op_reason_source_deleted">स्रोत हटा दिया गया, इसलिए यह शेड्यूल रुका हुआ है</string>
     <string name="scheduled_op_reason_target_deleted">लक्ष्य हटा दिया गया, इसलिए यह शेड्यूल रुका हुआ है</string>
     <string name="scheduled_ops_log_failed">कुछ गलत हो गया</string>
+    <string name="scheduled_ops_notif_stalled_title">शेड्यूल किया गया ऑपरेशन नहीं चल रहा है</string>
+    <string name="scheduled_ops_notif_stalled_text">%1$s - %2$s से छोड़ा गया। %3$s</string>
+    <string name="scheduled_ops_op_fill">खाली जगह भरें</string>
+    <string name="scheduled_ops_fill_confirm_title">भरना शेड्यूल करें?</string>
+    <string name="scheduled_ops_fill_confirm_message">हर बार चलने पर %2$s पर फ़ोल्डर %1$s में अस्थायी फ़ाइलें तब तक लिखी जाती हैं जब तक %3$s खाली न रह जाए, फिर उन्हें हटा दिया जाता है। आपकी अपनी फ़ाइलें जैसी हैं वैसी ही रहती हैं।</string>
+    <string name="scheduled_ops_fill_not_usable">भरने के लिए आंतरिक स्टोरेज या मेमोरी कार्ड पर ऐसा फ़ोल्डर चाहिए जिसमें अभी लिखा जा सके। इसे स्थानीय फ़ोल्डर से चुनें।</string>
+    <string name="scheduled_op_reason_fill_busy">भरना पहले से चल रहा था</string>
+    <string name="scheduled_op_reason_fill_not_local">फ़ोल्डर इस फ़ोन के किसी कनेक्ट किए गए स्टोरेज डिवाइस पर नहीं है</string>
+    <string name="scheduled_op_reason_fill_storage_unavailable">स्टोरेज कनेक्ट नहीं था या उसमें लिखा नहीं जा सकता था</string>
+    <string name="scheduled_op_reason_fill_measurement_unavailable">खाली जगह मापी नहीं जा सकी</string>
+    <string name="scheduled_op_reason_fill_no_free_space">सिस्टम के लिए रखे गए हिस्से के ऊपर कोई खाली जगह नहीं</string>
+    <string name="scheduled_op_reason_fill_write_failed">लिखना एक त्रुटि के साथ रुक गया; अस्थायी फ़ाइलें हटा दी गईं</string>
+    <string name="scheduled_op_reason_fill_cleanup_pending">अस्थायी फ़ाइलें बची हैं। स्टोरेज कनेक्ट करें, स्टोरेज फ़िलर खोलें और शेष फ़ाइलें हटाएँ पर टैप करें</string>
 </resources>

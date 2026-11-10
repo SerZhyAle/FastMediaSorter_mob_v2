@@ -5,7 +5,6 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ServiceInfo
 import android.net.Uri
 import android.os.Build
 import android.os.SystemClock
@@ -123,7 +122,7 @@ class LinkDownloadWorker @AssistedInject constructor(
                 } else {
                     try {
                         val probing = context.getString(R.string.link_download_notif_text_probing)
-                        setForeground(buildForegroundInfo(probing))
+                        setDataSyncForegroundIfAllowed(buildForegroundInfo(probing))
                     } catch (e: Exception) {
                         e.warnUnlessCancellation("LinkDownloadWorker: setForeground failed (non-fatal)")
                     }
@@ -488,11 +487,7 @@ class LinkDownloadWorker @AssistedInject constructor(
             .setProgress(0, 0, true)
             .addAction(buildCancelAction())
             .build()
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            ForegroundInfo(NOTIF_ID_PROGRESS, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-        } else {
-            ForegroundInfo(NOTIF_ID_PROGRESS, notification)
-        }
+        return DataSyncForeground.workerForegroundInfo(applicationContext, NOTIF_ID_PROGRESS, notification)
     }
 
     /**

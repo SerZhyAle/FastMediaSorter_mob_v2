@@ -7,13 +7,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.data.remote.exchange.ExchangeSettingsGetResult
-import com.sza.fastmediasorter.data.remote.exchange.ExchangeSettingsSaveResult
 import com.sza.fastmediasorter.databinding.DialogExchangeStandardSettingsBinding
 import com.sza.fastmediasorter.domain.exchange.StandardSettingsSerializer
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
-import com.sza.fastmediasorter.domain.usecase.exchange.ApplyStandardSettingsUseCase
-import com.sza.fastmediasorter.domain.usecase.exchange.SaveStandardSettingsUseCase
+import com.sza.fastmediasorter.domain.model.ExchangeSettingsGetResult
+import com.sza.fastmediasorter.domain.model.ExchangeSettingsSaveResult
+import com.sza.fastmediasorter.ui.exchange.MyDevicesViewModel
 import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -24,8 +23,7 @@ import timber.log.Timber
  */
 class ExchangeStandardSettingsDialogManager(
     private val activity: AppCompatActivity,
-    private val saveUseCase: SaveStandardSettingsUseCase,
-    private val applyUseCase: ApplyStandardSettingsUseCase,
+    private val viewModel: MyDevicesViewModel,
     private val scope: CoroutineScope
 ) {
 
@@ -82,7 +80,7 @@ class ExchangeStandardSettingsDialogManager(
         setBusy(view, dialog, true)
         scope.launch {
             Timber.d("S4536: save standard groups=$groups")
-            val result = saveUseCase(entry, groups)
+            val result = viewModel.saveStandardSettings(entry, groups)
             setBusy(view, dialog, false)
             when (result) {
                 is ExchangeSettingsSaveResult.Success -> {
@@ -114,7 +112,7 @@ class ExchangeStandardSettingsDialogManager(
         setBusy(view, dialog, true)
         scope.launch {
             Timber.d("S4536: read standard groups=$groups")
-            val result = applyUseCase(entry, groups)
+            val result = viewModel.readStandardSettings(entry, groups)
             setBusy(view, dialog, false)
             when (result) {
                 is ExchangeSettingsGetResult.Success -> {

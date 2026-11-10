@@ -4669,7 +4669,6 @@
     <string name="launcher_app_category_move_up">Move up</string>
     <string name="launcher_app_category_move_down">Move down</string>
     <string name="launcher_app_category_reorder_done">Done</string>
-    <string name="launcher_app_category_reorder_hint">Hold a category header to change the order</string>
     <string name="launcher_app_category_game">Games</string>
     <string name="launcher_app_category_audio">Music and audio</string>
     <string name="launcher_app_category_video">Video</string>

@@ -20,6 +20,9 @@ object ExchangeSettingsEnvelopes {
     const val KEY_VERSION = "version"
     const val KEY_UPDATED_AT = "updatedAt"
 
+    /** Optional text on a settings `refused`; the dialog falls back to the reason when it is absent. */
+    const val KEY_MESSAGE = "message"
+
     const val APP_ID_FMS_A = "fms_a"
     const val CURRENT_FORMAT_VERSION = 1
 

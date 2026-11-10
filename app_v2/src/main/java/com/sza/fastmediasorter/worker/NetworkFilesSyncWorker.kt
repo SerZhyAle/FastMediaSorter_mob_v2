@@ -4,14 +4,12 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.content.pm.ServiceInfo
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 import com.sza.fastmediasorter.core.notification.NotificationIcons
@@ -45,7 +43,7 @@ class NetworkFilesSyncWorker @AssistedInject constructor(
     override suspend fun doWork(): Result {
         Timber.d("NetworkFilesSyncWorker: Starting background sync (local + network)")
         try {
-            setForeground(createForegroundInfo())
+            setDataSyncForegroundIfAllowed(createForegroundInfo())
         } catch (e: Exception) {
             Timber.w(e, "NetworkFilesSyncWorker: setForeground failed (non-fatal)")
         }
@@ -153,13 +151,7 @@ class NetworkFilesSyncWorker @AssistedInject constructor(
     private fun createForegroundInfo(): ForegroundInfo {
         createNotificationChannel()
         val notification = buildNotification()
-        // FOREGROUND_SERVICE_DATA_SYNC permission is only declared in debug builds.
-        // In release we use a plain ForegroundInfo without a service type.
-        return if (BuildConfig.ENABLE_SCHEDULED_OPERATIONS && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            ForegroundInfo(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-        } else {
-            ForegroundInfo(NOTIFICATION_ID, notification)
-        }
+        return DataSyncForeground.workerForegroundInfo(applicationContext, NOTIFICATION_ID, notification)
     }
 
     private fun buildNotification(): Notification {
