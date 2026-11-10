@@ -37,6 +37,8 @@ steps:
     title: Open every app on the device
     text: |
       Tap the **All apps** icon button next to Start, or swipe up on empty desktop space while the desktop sits at the top of its scroll. The list opens from a cache the launcher keeps current on its own - through every install, update and removal - so it is ready even right after a restart.
+
+      You can also assign **All apps** to an edge gesture or select it when editing the quick-launch panel. After opening FastMediaSorter, long-press its app icon to find the **All apps** shortcut and drag it to your home screen if your launcher supports shortcuts. These entries work without making FastMediaSorter your default home app.
     image_bookmark:
       shot_id: launcher.all-apps-entry-point
       device_profile: phone
@@ -86,6 +88,19 @@ steps:
       caption: "One of four swipes, each with its own action."
       title: "Screenshot: All apps swipe actions"
       desc: Launcher settings, All apps swipe action picker open, action list visible.
+  - number: 6
+    id: category-groups
+    title: Keep your apps in category groups
+    text: |
+      **All apps** opens on **By category**: every app sits in a group such as Games, Social or Productivity, each with its own header. Tap a header to fold or unfold the group. Pick any other order in the sort menu and All apps opens on that order next time; pick **By category** to return to the groups.
+
+      The groups start from the type each app declares about itself, both on the first start and for every app you install later. Apps that declare nothing are in **Unknown**, which is always the last group.
+
+      Long press an app and choose **Set category..** to tick every group it belongs to - one app can be in several, for example Slack in Work and in Messengers. **New category..** in the same window names a new group and ticks it at once. A group with no apps is hidden from the list but stays in that window, ready to be chosen.
+
+      To change the order of the groups, long press a group header: it is highlighted, and **Move up** and **Move down** move it one place at a time; **Done** ends the mode. The groups start in alphabetical order, and **Unknown** stays last.
+
+      Your groups, the apps in them, their order and the chosen sort order stay in place after an update and travel with the settings backup.
 outcome: |
   The Start panel is exactly as tall as your pinned row needs, All apps opens instantly and finds anything by name, install date, use or category, a long press reaches an app's own shortcuts, and all four swipes do what you chose instead of nothing.
 tips:
@@ -110,6 +125,6 @@ next_recipes:
     description: The starter layout the Start menu and All apps sit alongside.
 ---
 
-<sub class="doc-stamp">26.10.07 03:43</sub>
+<sub class="doc-stamp">26.11.10 14:03</sub>
 
 Start is the short list, [All apps](term:all-apps) is the long one. This page covers sizing the Start panel, opening the full app list, searching and sorting it, an app's own shortcuts from a long press, and the four swipes that move through the list without a single tap.

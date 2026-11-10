@@ -193,6 +193,7 @@ class SftpConnectionPoolTest {
         with(SftpConnectionPool.Companion) {
             assertNotEquals(plain.sessionKey(), music.sessionKey())
             assertNotEquals(music.sessionKey(), photos.sessionKey())
+            assertNotEquals(music.sessionKey(), music.copy(rootProof = SftpRootProof("Music", "9999")).sessionKey())
             assertEquals(music.sessionKey(), music.copy().sessionKey())
         }
     }

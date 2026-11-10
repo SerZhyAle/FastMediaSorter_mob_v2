@@ -10,6 +10,8 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -75,5 +77,28 @@ class YtDlpExtractionStrategyTest {
     @Test
     fun id_isYtdlp() {
         assertEquals("ytdlp", strategy.id)
+    }
+
+    @Test
+    fun refusedInstagramSession_parseFailureOnInstagramHosts_isRefused() {
+        assertTrue(YtDlpExtractionStrategy.isRefusedInstagramSession("www.instagram.com", PARSE_FAILURE))
+        assertTrue(YtDlpExtractionStrategy.isRefusedInstagramSession("instagram.com", PARSE_FAILURE))
+    }
+
+    @Test
+    fun refusedInstagramSession_lookalikeOrOtherHost_isNotRefused() {
+        assertFalse(YtDlpExtractionStrategy.isRefusedInstagramSession("www.tiktok.com", PARSE_FAILURE))
+        assertFalse(YtDlpExtractionStrategy.isRefusedInstagramSession("notinstagram.com", PARSE_FAILURE))
+    }
+
+    @Test
+    fun refusedInstagramSession_otherOrMissingError_isNotRefused() {
+        val otherError = "DownloadError: ERROR: [Instagram] abc: HTTP Error 404"
+        assertFalse(YtDlpExtractionStrategy.isRefusedInstagramSession("www.instagram.com", otherError))
+        assertFalse(YtDlpExtractionStrategy.isRefusedInstagramSession("www.instagram.com", null))
+    }
+
+    private companion object {
+        const val PARSE_FAILURE = "DownloadError: ERROR: [Instagram] abc: Failed to parse JSON (caused by ..)"
     }
 }

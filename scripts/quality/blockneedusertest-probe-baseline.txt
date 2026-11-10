@@ -16,6 +16,8 @@
 #
 # NOT a place to park a ticket that genuinely should carry a probe. If the ticket changed Kotlin,
 # add the probe instead.
+S4531  Watch-face resource only (watchface/src/main/res/raw/watchface.xml); no Kotlin flow touched, so no Timber probe can exist. Verification is visual: the rendered face shows the frame around the watch battery bar at 100% and at partial charge, the heavier charging contour, and no bar in ambient.
+S4535  Public website accessibility, routing and subject indexes only; no Kotlin flow touched, so no Timber probe can exist. Verification is visual and interactive check of task paths, scenario headings and client-side index filter in a browser.
 #S4371  Registry exception device passes for code already in the tree (S3414, S3434, S4124, S4129); no Kotlin touched by this ticket, so no Timber probe can exist. Verification is on-device observation on 120 Hz phone, Galaxy Watch, live RTSP listener, and Google Drive account.
 S4352  Resources and documentation only (dimens.xml, themes.xml, settings-scope-exclusions.json); no Kotlin flow touched, so no Timber probe can exist. Verification is visual check of button corner radii, touch targets, and group headers in emulator/device.
 S4299  Manifest-only singleTask launch mode for BroadcastControlActivity; no Kotlin touched. Android task reuse happens before onCreate, so dumpsys activity identity and reopening the picker after Quick Settings re-entry prove the fix.

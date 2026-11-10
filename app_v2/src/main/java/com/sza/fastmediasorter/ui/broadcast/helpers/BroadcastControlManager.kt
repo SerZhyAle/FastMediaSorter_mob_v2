@@ -24,6 +24,7 @@ import com.sza.fastmediasorter.broadcast.BroadcastSourceController
 import com.sza.fastmediasorter.broadcast.BroadcastState
 import com.sza.fastmediasorter.broadcast.ListBroadcastCameraLensesUseCase
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
+import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.databinding.ActivityBroadcastControlBinding
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SendStreamToWatchUseCase
@@ -275,6 +276,12 @@ class BroadcastControlManager @Inject constructor(
             val message = binding.root.context.getString(R.string.broadcast_control_mode_switching)
             Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
         } else {
+            // LAN viewers need the local network grant on Android 17; the internet link works without
+            // it, so the session starts either way and the system dialog only adds the LAN path.
+            if (!PermissionHelper.hasLocalNetworkPermission(activity)) {
+                Timber.d("S4502: broadcast start requests the local network permission")
+                PermissionHelper.requestLocalNetworkPermission(activity)
+            }
             controller.start(selectedMode, selectedLensId)
         }
     }

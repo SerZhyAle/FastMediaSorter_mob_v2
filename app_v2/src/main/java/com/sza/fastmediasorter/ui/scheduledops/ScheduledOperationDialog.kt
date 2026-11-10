@@ -45,6 +45,7 @@ class ScheduledOperationDialog(
     private val mediaCapabilities: MediaCapabilities,
     private val onPickLocalFolder: (SchedOpPickSide) -> Unit,
     private val onPickWatchImage: () -> Unit = {},
+    // S4522: a FILL_FREE_SPACE draft is checked and confirmed by the host, which closes this dialog itself.
     private val onSave: (ScheduledOperationDraft) -> Unit
 ) : Dialog(context) {
 
@@ -79,7 +80,8 @@ class ScheduledOperationDialog(
     private val offeredOperations: List<ScheduledOpType> by lazy {
         val offersWatch = mediaCapabilities.supportsWearCompanion ||
             existing?.operationType == ScheduledOpType.WATCH_MESSAGE
-        if (offersWatch) OPERATION_ORDER + ScheduledOpType.WATCH_MESSAGE else OPERATION_ORDER
+        val fileOperations = OPERATION_ORDER + ScheduledOpType.FILL_FREE_SPACE
+        if (offersWatch) fileOperations + ScheduledOpType.WATCH_MESSAGE else fileOperations
     }
 
     // S2795: a Dialog is built by hand, not by Hilt, so it reaches the format seam the way the
@@ -115,7 +117,13 @@ class ScheduledOperationDialog(
         setupIntervalPicker()
         setupSaveButtonState()
         b.btnCancel.setOnClickListener { dismiss() }
-        b.btnSave.setOnClickListener { if (isWatchMessageSelected()) trySaveWatchMessage() else trySave() }
+        b.btnSave.setOnClickListener {
+            when (resolveOperationType(b.actvOperation.text.toString())) {
+                ScheduledOpType.WATCH_MESSAGE -> trySaveWatchMessage()
+                ScheduledOpType.FILL_FREE_SPACE -> trySaveFill()
+                else -> trySave()
+            }
+        }
     }
 
     private fun setupDropdowns() {
@@ -174,19 +182,20 @@ class ScheduledOperationDialog(
     // ARCHIVE keeps the target but hides overwrite: every run writes a fresh, auto-deduplicated ZIP name,
     // so the switch would have nothing to act on.
     // S4248: a watch message reads no resource, so source, target and the file conditions all step aside.
+    // S4522: a fill keeps only the source - the storage it fills - and lists no files.
     private fun applyOperationVisibility(type: ScheduledOpType) {
         val isWatch = type == ScheduledOpType.WATCH_MESSAGE
-        val fileVisibility = if (isWatch) View.GONE else View.VISIBLE
-        b.tvSourceLabel.visibility = fileVisibility
-        b.tilSource.visibility = fileVisibility
-        b.cardConditions.visibility = fileVisibility
+        val sourceVisibility = if (isWatch) View.GONE else View.VISIBLE
+        b.tvSourceLabel.visibility = sourceVisibility
+        b.tilSource.visibility = sourceVisibility
+        b.cardConditions.visibility = if (type.usesFileFilters) View.VISIBLE else View.GONE
         if (isWatch) b.tvReadOnlySourceHint.visibility = View.GONE
         watchForm.setVisible(isWatch)
-        val targetVisibility = if (type == ScheduledOpType.DELETE || isWatch) View.GONE else View.VISIBLE
+        val targetVisibility = if (type.usesTarget) View.VISIBLE else View.GONE
         b.tvTargetLabel.visibility = targetVisibility
         b.tilTarget.visibility = targetVisibility
         b.containerOverwrite.visibility =
-            if (type == ScheduledOpType.DELETE || type == ScheduledOpType.ARCHIVE) View.GONE else View.VISIBLE
+            if (type == ScheduledOpType.COPY || type == ScheduledOpType.MOVE) View.VISIBLE else View.GONE
     }
 
     private fun isWatchMessageSelected(): Boolean =
@@ -199,6 +208,7 @@ class ScheduledOperationDialog(
             ScheduledOpType.DELETE -> R.string.scheduled_ops_op_delete
             ScheduledOpType.ARCHIVE -> R.string.scheduled_ops_op_archive
             ScheduledOpType.WATCH_MESSAGE -> R.string.scheduled_ops_op_watch_message
+            ScheduledOpType.FILL_FREE_SPACE -> R.string.scheduled_ops_op_fill
         }
     )
 
@@ -297,8 +307,8 @@ class ScheduledOperationDialog(
         }
         watchForm.clearValidation()
         val sourceEmpty = b.actvSource.text.isNullOrBlank()
-        val isDelete = resolveOperationType(b.actvOperation.text.toString()) == ScheduledOpType.DELETE
-        val targetEmpty = !isDelete && b.actvTarget.text.isNullOrBlank()
+        val usesTarget = resolveOperationType(b.actvOperation.text.toString()).usesTarget
+        val targetEmpty = usesTarget && b.actvTarget.text.isNullOrBlank()
 
         b.tilSource.error =
             if (sourceEmpty && sourceTouched) context.getString(R.string.scheduled_ops_error_source_required) else null
@@ -701,6 +711,51 @@ class ScheduledOperationDialog(
         )
         onSave(ScheduledOperationDraft(operation = op))
         dismiss()
+    }
+
+    /**
+     * S4522: a fill keeps only the source and the slot. The host checks the storage and asks for
+     * confirmation before it saves, so this dialog stays open until the host closes it.
+     */
+    private fun trySaveFill() {
+        val stagedSource = stagedSourceFolderPath
+        val pickedSource = if (stagedSource == null) {
+            resolvePicked(resources, selectedSourceId, b.actvSource.text.toString())
+        } else {
+            null
+        }
+        if (stagedSource == null && pickedSource == null) {
+            Toast.makeText(context, R.string.scheduled_ops_error_source_required, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val startHour = b.etStartHour.text.toString().toIntOrNull()?.coerceIn(0, 23) ?: 0
+        val startMinute = b.etStartMinute.text.toString().toIntOrNull()?.coerceIn(0, 59) ?: 0
+        val (intervalHours, intervalMinutes) = readIntervalWithFloor()
+        val op = ScheduledOperation(
+            id = existing?.id ?: 0L,
+            isEnabled = existing?.isEnabled ?: true,
+            sourceResourceId = pickedSource?.id ?: existing?.sourceResourceId ?: 0L,
+            operationType = ScheduledOpType.FILL_FREE_SPACE,
+            targetResourceId = null,
+            fileTypeMask = FileTypeFlags.DEFAULT,
+            timeFilter = TimeFilter.ALL,
+            startTimeHour = startHour,
+            startTimeMinute = startMinute,
+            intervalHours = intervalHours,
+            intervalMinutes = intervalMinutes,
+            silentMode = b.switchSilentMode.isChecked,
+            lastRunAt = existing?.lastRunAt,
+            lastRunStatus = existing?.lastRunStatus,
+            workerId = existing?.workerId,
+            lastSuccessAt = existing?.lastSuccessAt
+        )
+        val draft = ScheduledOperationDraft(
+            operation = op,
+            sourceFolderPath = stagedSource,
+            sourceFolderName = stagedSourceFolderName,
+            sourceFolderReadOnly = stagedSourceReadOnly,
+        )
+        onSave(draft)
     }
 
     /** S4248: a picture chosen through the host's document picker. */

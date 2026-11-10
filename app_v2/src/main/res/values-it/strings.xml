@@ -450,7 +450,6 @@
     <string name="error_connection_access">Impossibile connettersi a \"%1$s\" - accesso negato.\n\nControlla le autorizzazioni della condivisione.</string>
     <string name="error_connection_share_not_found">Impossibile connettersi a \"%1$s\" - condivisione non trovata.\n\nVerifica il nome della condivisione sul server.</string>
     <string name="error_network_timeout">Connessione scaduta. Controlla la rete e riprova.</string>
-    <string name="error_companion_connect_guidance">Impossibile raggiungere la cartella condivisa. Sulla stessa rete Wi-Fi del PC si connette automaticamente; da un\'altra rete il PC deve consentire l\'accesso - configura il port forwarding sul router oppure l\'accesso a internet nell\'app companion.</string>
     <string name="error_network_access_denied">Accesso negato. Controlla le credenziali.</string>
     <string name="error_network_not_found">File o risorsa non trovati.</string>
     <string name="error_network_connection_lost">Nessuna connessione.</string>

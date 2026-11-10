@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
+import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.networkmonitor.NetworkMonitorContract
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -28,6 +29,7 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val mediaCapabilities: MediaCapabilities,
     private val networkMonitorContract: NetworkMonitorContract,
+    private val launcherModeContract: LauncherModeContract,
     private val screenVideoRecordingControllers: Set<@JvmSuppressWildcards ScreenVideoRecordingController>,
 ) {
 
@@ -80,6 +82,8 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
     @Suppress("CyclomaticComplexMethod") // S2997: one when-branch per route; complexity tracks route count
     fun resolveOrNull(routeKey: String, settings: AppSettings): Availability? =
         when (routeKey) {
+            InternalRouteCatalog.KEY_ALL_APPS ->
+                Availability(availableInBuild = launcherModeContract.isAvailableInBuild, enabledAtRuntime = true)
             // S1103: the quick-access panel exists in every launcher build and has no runtime toggle.
             InternalRouteCatalog.KEY_APP_LAUNCH_PANEL ->
                 Availability(availableInBuild = true, enabledAtRuntime = true)
@@ -212,6 +216,8 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
             InternalRouteCatalog.KEY_SOS ->
                 Availability(availableInBuild = true, enabledAtRuntime = settings.enableSos)
             // S2211: black screen needs no special capability - always available in build and runtime.
+            // S4521: the filler needs only a folder the user picks on the screen itself.
+            InternalRouteCatalog.KEY_FILLER,
             InternalRouteCatalog.KEY_BLACK_SCREEN ->
                 Availability(availableInBuild = true, enabledAtRuntime = true)
             else -> null

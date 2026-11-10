@@ -6,6 +6,8 @@ data class KnownAuthResource(
     val loginUrl: String,
     val previewOnlyMeansLogin: Boolean = false,
     val supportsEmbeddedJson: Boolean = false,
+    /** Cookies whose deletion by the server mid-download means the signed-in session was revoked (S4509). */
+    val sessionCookieNames: Set<String> = emptySet(),
 )
 
 object KnownAuthResources {
@@ -20,6 +22,7 @@ object KnownAuthResources {
             // `<script type="application/json" data-sjs>` payloads - the same `image_versions2`
             // schema used by Threads. Enables the embedded-JSON harvester on this host.
             supportsEmbeddedJson = true,
+            sessionCookieNames = setOf("sessionid"),
         ),
         KnownAuthResource(
             displayName = "Threads",

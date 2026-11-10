@@ -8,10 +8,12 @@ import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -72,6 +74,47 @@ class StructuredMediaSniffer @Inject constructor(
             LinkDownloadTrace.verbose("ig-api-sniffer failed: ${t::class.simpleName}")
             return emptyList()
         }
+    }
+
+    /**
+     * Parses Instagram's GraphQL post answer (`data.xdt_shortcode_media`). One candidate per slide,
+     * the video when a slide has one, otherwise the image: `display_url` of a video is its poster.
+     */
+    fun sniffInstagramGraphqlResponse(json: String, baseUri: String): List<HtmlMediaCandidate> {
+        val media = try {
+            JSONObject(json).optJSONObject("data")?.let { data ->
+                data.optJSONObject("xdt_shortcode_media") ?: data.optJSONObject("shortcode_media")
+            }
+        } catch (e: JSONException) {
+            Timber.w(e, "ig-graphql-sniffer could not parse the answer")
+            null
+        }
+        val out = mutableListOf<HtmlMediaCandidate>()
+        val edges = media?.optJSONObject("edge_sidecar_to_children")?.optJSONArray("edges")
+        if (edges == null) {
+            collectGraphqlMedia(media, baseUri, out)
+        } else {
+            for (index in 0 until edges.length()) {
+                collectGraphqlMedia(edges.optJSONObject(index)?.optJSONObject("node"), baseUri, out)
+            }
+        }
+        val unique = out.distinctBy { extractMetaAssetKey(it.url) }
+        LinkDownloadTrace.verbose(
+            "ig-graphql-sniffer harvested ${unique.size} unique assets" +
+                " baseUri=${LinkDownloadTrace.truncateUrl(baseUri)}",
+        )
+        return unique
+    }
+
+    private fun collectGraphqlMedia(
+        node: JSONObject?,
+        baseUri: String,
+        out: MutableList<HtmlMediaCandidate>,
+    ) {
+        if (node == null) return
+        val url = node.optString("video_url").takeIf { it.isNotBlank() && it != JSON_NULL_TEXT }
+            ?: node.optString("display_url")
+        addCandidate(out, HtmlMediaCandidate.Source.EMBEDDED_JSON, url, baseUri)
     }
 
     fun sniffEmbeddedJson(rawHtml: String, baseUri: String): List<HtmlMediaCandidate> {
@@ -389,5 +432,8 @@ class StructuredMediaSniffer @Inject constructor(
 
     private companion object {
         val SUPPORTED_TYPES = setOf("VideoObject", "MediaObject", "ImageObject")
+
+        // org.json renders an explicit JSON null as this text through optString.
+        const val JSON_NULL_TEXT = "null"
     }
 }

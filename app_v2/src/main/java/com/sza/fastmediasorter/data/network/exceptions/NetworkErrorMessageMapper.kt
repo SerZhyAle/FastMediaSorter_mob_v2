@@ -97,7 +97,7 @@ object NetworkErrorMessageMapper {
                         smbConnectivityMessage(context, resourcePath, contextAnalyzer)
                     }
                     // Companion notes are export-time snapshots, so use current failure diagnostics instead.
-                    companionResource -> context.getString(R.string.error_companion_connect_guidance)
+                    companionResource -> context.getString(R.string.error_companion_unreachable)
                     else -> null
                 }
                 contextual ?: context.getString(toMessageRes(exception))

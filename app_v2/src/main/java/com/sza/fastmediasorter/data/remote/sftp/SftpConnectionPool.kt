@@ -102,12 +102,13 @@ class SftpConnectionPool(
     // the same host:port:user are pooled separately and never share a host-key verification policy.
     // DEVICE-EXCHANGE 17 item AH: a proven connection sees one root only, so the root joins the key and a
     // session proven for one root is never shared with the password login or with another root of the server.
+    // Include the proof itself so changing a PIN cannot reuse a session authenticated with the old PIN.
     internal data class ConnectionKey(
         val host: String,
         val port: Int,
         val username: String,
         val expectedFingerprint: String? = null,
-        val proofRoot: String? = null
+        val proof: SftpRootProof? = null
     )
 
     /** Unified pool - one entry per (host, port, user) for both PLAYBACK and FILE_OPS. */
@@ -904,7 +905,7 @@ class SftpConnectionPool(
 
     companion object {
         internal fun SftpClient.SftpConnectionInfo.sessionKey() =
-            ConnectionKey(host, port, username, expectedFingerprint, rootProof?.root)
+            ConnectionKey(host, port, username, expectedFingerprint, rootProof)
 
         private const val CONNECTION_TIMEOUT = 10_000
         internal const val STREAM_CHANNEL_CONNECT_TIMEOUT_MS = CONNECTION_TIMEOUT

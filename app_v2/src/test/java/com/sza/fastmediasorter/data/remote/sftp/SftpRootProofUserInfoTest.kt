@@ -39,5 +39,14 @@ class SftpRootProofUserInfoTest {
 
         assertEquals(listOf("Music", "shared", "4711"), answers?.toList())
         assertNull(info.promptKeyboardInteractive("host", "", "", arrayOf("Password:"), booleanArrayOf(false)))
+        assertNull(
+            info.promptKeyboardInteractive(
+                "host",
+                "",
+                "",
+                arrayOf("One", "Two", "Three"),
+                booleanArrayOf(false, false, false),
+            )
+        )
     }
 }

@@ -220,6 +220,7 @@ class MainProgramsMenuCoordinator(
     private fun clipboardIntentFor(itemId: Int): Intent? = when (itemId) {
         MENU_ITEM_CLIPBOARD_SEND -> ExchangeClipboardActivity.createIntent(activity, send = true)
         MENU_ITEM_CLIPBOARD_GET -> ExchangeClipboardActivity.createIntent(activity, send = false)
+        MENU_ITEM_FILLER -> AppLaunchPanelRouteIntents.filler(activity)
         else -> null
     }
 
@@ -313,6 +314,9 @@ class MainProgramsMenuCoordinator(
         const val MENU_ITEM_CLIPBOARD_SEND = 33
         const val MENU_ITEM_CLIPBOARD_GET = 34
 
+        // S4521: 35 is the next free id; manager-less, so its launch sits beside the clipboard rows.
+        const val MENU_ITEM_FILLER = 35
+
         /**
          * The menu item id each sub-program's tap is dispatched on - the one thing ADR-1 keeps out of
          * the registry that this file still has to own.
@@ -349,6 +353,7 @@ class MainProgramsMenuCoordinator(
             InternalRouteCatalog.KEY_SCHEDULED_TASKS to MENU_ITEM_SCHEDULED_TASKS,
             InternalRouteCatalog.KEY_CLIPBOARD_SEND to MENU_ITEM_CLIPBOARD_SEND,
             InternalRouteCatalog.KEY_CLIPBOARD_GET to MENU_ITEM_CLIPBOARD_GET,
+            InternalRouteCatalog.KEY_FILLER to MENU_ITEM_FILLER,
         )
 
         /** The route keys the menu can draw - read by SubProgramCatalogCompletenessTest. */

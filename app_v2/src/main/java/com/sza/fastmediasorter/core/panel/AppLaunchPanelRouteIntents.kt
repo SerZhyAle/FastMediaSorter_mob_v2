@@ -4,6 +4,7 @@ import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
 import com.sza.fastmediasorter.core.game.GameLaunchIntents
+import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.ui.applaunchpanel.AppLaunchPanelActivity
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.calculator.CalculatorActivity
@@ -40,6 +41,11 @@ import com.sza.fastmediasorter.widget.ScreenRecordingLaunchActivity
  */
 @Suppress("TooManyFunctions") // S2997: one builder per route; grows with each sub-program
 object AppLaunchPanelRouteIntents {
+
+    fun allApps(context: Context): Intent =
+        Intent(LauncherModeContract.ACTION_OPEN_ALL_APPS)
+            .setClassName(context, LauncherModeContract.WINDOW_ACTIVITY)
+            .withPanelFlags()
 
     // S1103: a launcher cell that opens the quick-access panel overlay itself.
     fun appLaunchPanel(context: Context): Intent =
@@ -182,6 +188,9 @@ object AppLaunchPanelRouteIntents {
     // trampoline is reused, because the program had no entry point before this ticket.
     fun sos(context: Context): Intent =
         SosActivity.createIntent(context).withPanelFlags()
+
+    fun filler(context: Context): Intent =
+        com.sza.fastmediasorter.ui.filler.FillerActivity.createIntent(context).withPanelFlags()
 
     // S2211: black screen as an autonomous sub-program.
     fun blackScreen(context: Context): Intent =

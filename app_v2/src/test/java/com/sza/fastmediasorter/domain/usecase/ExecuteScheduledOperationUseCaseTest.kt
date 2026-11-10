@@ -87,6 +87,7 @@ class ExecuteScheduledOperationUseCaseTest {
             cleanup,
             driveLeg,
             mockk(relaxed = true),
+            mockk(relaxed = true),
         )
         coEvery { driveLeg.producerFor(any()) } returns null
     }

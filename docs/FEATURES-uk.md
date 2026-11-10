@@ -3,7 +3,7 @@ layout: doc
 title: "FastMediaSorter v2 - Повний список можливостей"
 permalink: /docs/FEATURES-uk.html
 ---
-<sub class="doc-stamp">26.10.15 19:27</sub>
+<sub class="doc-stamp">26.11.10 04:08</sub>
 
 # FastMediaSorter v2 - Повний список можливостей
 

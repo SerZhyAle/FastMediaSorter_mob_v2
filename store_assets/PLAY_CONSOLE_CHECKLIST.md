@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.25 13:32</sub>
+<sub class="doc-stamp">26.10.30 11:35</sub>
 
 # Play Console Operator Checklist - S0135
 
@@ -172,7 +172,7 @@ Source of truth: `store_assets/PLAY_CONTACTS_DECLARATION.md`. Console path:
 `Policy and programs -> App content -> Contacts Permission`, as named in Google's April 2026 policy
 email. Like C3 and C4 this form has no Play Developer API endpoint, so the text is pasted by hand - edit
 the file first, never compose the text in the console. Enforcement starts 2027-01-27 for targetSdk 37
-and higher; the app is on targetSdk 36 today.
+and higher; the app targets 37 since S4502, so file this before the first upload of that build.
 
 - [ ] Open the form and paste the `Use case (paste)` block verbatim from `PLAY_CONTACTS_DECLARATION.md`;
       if the field limit is shorter than the block, trim the file first and record the limit there
@@ -220,6 +220,37 @@ Source of truth: `store_assets/PLAY_FGS_DECLARATIONS.md`. Pasted by hand, one vi
 - [x] `dataSync` declared with the owner's video (S4271, saved 2026-10-15); `fms.dataSyncFgsStandard=on` is the
       default from 2026-10-25
 - [ ] The declaration state and its date written into `docs/PLAY_PUBLISHING_STATE.md`
+
+## C8. Policy declarations of 2026-10-29 (S4501)
+
+Two console actions follow from Google's announcement; nothing else in it needs a console step for this
+app (the verdict per item is in `PLAN/S4501_google-play-policy-oct-2026.md`). No Play Developer API
+endpoint exists for either, so edit the source file first and never compose a text in the console.
+
+Location permissions declaration. Source of truth: `store_assets/PLAY_PERMISSIONS_DECLARATION.md`, section
+`ACCESS_FINE_LOCATION declaration (S4501)`. Google lists it under 2027-01-27; the app targets 37 since S4502,
+so file it before the first upload of that build.
+
+Local Network declaration. Source of truth: `store_assets/PLAY_LOCAL_NETWORK_DECLARATION.md`. Google lists it
+under 2027-08-25 for apps targeting 37; file it with the other two before the first upload targeting 37.
+
+- [ ] Open the declaration form (`goo.gle/play-permission-decl-form`) and paste Field 1 and Field 2 verbatim;
+      if a field limit is shorter than the text, trim the file first and write the limit on its heading
+- [ ] Attach the evidence video only if the form asks for one; record it on the emulator or the test phone,
+      never on the owner's personal phone
+- [ ] The Data safety location rows still match C4 (location not collected); a changed answer moves the
+      source file of C4 in the same edit
+- [ ] Write the state and the date into `docs/PLAY_PUBLISHING_STATE.md`, marker
+      `s4501:transcribed:location-declaration`
+
+Trader status, account level. Google's help page gives 2027-02-01 for existing accounts and the announcement
+names November 2026, so the date that applies is the one on the console banner.
+
+- [ ] Declare trader or non-trader in `Manage account -> Account details -> About you`; the choice and its
+      legal reading are the owner's - the app carries no ads and no payments, which is one signal Google
+      names toward non-trader and not a determination
+- [ ] Write the state, the choice and the date into `docs/PLAY_PUBLISHING_STATE.md`, marker
+      `s4501:transcribed:trader-status`
 
 ## D. App Category
 

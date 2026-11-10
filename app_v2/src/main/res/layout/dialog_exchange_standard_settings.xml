@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/dialog_padding_large">
+
+        <TextView
+            android:id="@+id/textStandardSettingsPrompt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/exchange_standard_settings_summary"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:layout_marginBottom="@dimen/margin_normal" />
+
+        <TextView
+            android:id="@+id/textStandardSettingsGroupsLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/exchange_standard_settings_groups_header"
+            android:textAppearance="?attr/textAppearanceTitleSmall"
+            android:layout_marginBottom="@dimen/margin_small" />
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/cbGroupGeneral"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="@string/exchange_standard_settings_group_general"
+            android:focusable="true"
+            android:clickable="true" />
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/cbGroupAppearance"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="@string/exchange_standard_settings_group_appearance"
+            android:focusable="true"
+            android:clickable="true" />
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/cbGroupPlayback"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="@string/exchange_standard_settings_group_playback"
+            android:focusable="true"
+            android:clickable="true" />
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/cbGroupShortcuts"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="@string/exchange_standard_settings_group_shortcuts"
+            android:focusable="true"
+            android:clickable="true" />
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/cbGroupBehavior"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="@string/exchange_standard_settings_group_behavior"
+            android:focusable="true"
+            android:clickable="true" />
+
+        <TextView
+            android:id="@+id/textStandardSettingsStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:visibility="gone"
+            android:layout_marginTop="@dimen/margin_small" />
+
+        <ProgressBar
+            android:id="@+id/progressStandardSettings"
+            style="?android:attr/progressBarStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="@dimen/margin_small"
+            android:visibility="gone" />
+
+    </LinearLayout>
+</ScrollView>

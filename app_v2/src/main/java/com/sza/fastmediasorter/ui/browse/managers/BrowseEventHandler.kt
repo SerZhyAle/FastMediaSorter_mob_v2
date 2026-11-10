@@ -236,13 +236,16 @@ class BrowseEventHandler(
     }
 
     private fun showLocalNetworkPermissionRationale() {
+        Timber.i("BrowseEventHandler: local-network rationale dialog shown")
         MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.permissions_required_title)
             .setMessage(activity.permissionRationale(PermissionHelper.LOCAL_NETWORK_PERMISSION))
             .setPositiveButton(R.string.local_network_permission_open_settings) { _, _ ->
                 if (PermissionHelper.isLocalNetworkRuntimePermissionExpected()) {
+                    Timber.i("BrowseEventHandler: local-network rationale accepted, requesting the grant")
                     PermissionHelper.requestLocalNetworkPermission(activity)
                 } else {
+                    Timber.i("BrowseEventHandler: local-network rationale accepted, routing to settings")
                     PermissionHelper.routeToLocalNetworkSettings(activity)
                 }
             }

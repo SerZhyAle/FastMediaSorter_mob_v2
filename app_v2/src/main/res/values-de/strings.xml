@@ -449,7 +449,6 @@
     <string name="error_connection_access">Keine Verbindung zu „%1$s“ möglich - Zugriff verweigert.\n\nFreigabeberechtigungen prüfen.</string>
     <string name="error_connection_share_not_found">Keine Verbindung zu „%1$s“ möglich - Freigabe nicht gefunden.\n\nFreigabenamen auf dem Server prüfen.</string>
     <string name="error_network_timeout">Zeitüberschreitung der Verbindung. Netzwerk prüfen und erneut versuchen.</string>
-    <string name="error_companion_connect_guidance">Der freigegebene Ordner konnte nicht erreicht werden. Im selben WLAN wie der PC verbindet er sich von selbst; aus einem anderen Netzwerk muss der PC den Zugriff erlauben - richte am Router eine Portweiterleitung ein oder aktiviere den Internetzugriff in der Begleit-App.</string>
     <string name="error_network_access_denied">Zugriff verweigert. Anmeldedaten prüfen.</string>
     <string name="error_network_not_found">Datei oder Ressource nicht gefunden.</string>
     <string name="error_network_connection_lost">Keine Verbindung.</string>

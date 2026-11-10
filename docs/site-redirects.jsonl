@@ -52,3 +52,4 @@
 {"from_path":"docs/wear/ICON_LEGEND_UK.html","to_path":"docs/wear/ICON_LEGEND-uk.html","reason":"Locale suffix unified to the hyphen form (SITE-STRUCTURE rule 8)","ticket":"S4101","date":"2026-10-06"}
 {"from_path":"docs/WHATS_NEW_RU.html","to_path":"docs/WHATS_NEW-ru.html","reason":"Locale suffix unified to the hyphen form (SITE-STRUCTURE rule 8)","ticket":"S4101","date":"2026-10-06"}
 {"from_path":"docs/WHATS_NEW_UK.html","to_path":"docs/WHATS_NEW-uk.html","reason":"Locale suffix unified to the hyphen form (SITE-STRUCTURE rule 8)","ticket":"S4101","date":"2026-10-06"}
+{"from_path":"docs/index.html","to_path":"documentation/index.html","reason":"Legacy documentation address forwarded to current documentation portal","ticket":"S4535","date":"2026-11-10"}

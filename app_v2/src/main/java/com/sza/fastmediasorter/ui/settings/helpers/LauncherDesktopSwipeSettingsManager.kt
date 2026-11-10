@@ -6,13 +6,16 @@ import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogLauncherSettingsBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeAction
 import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeDirection
+import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.usecase.panel.QueryLaunchableAppsUseCase
 import com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 /** Owns the desktop-swipe row family while the dialog remains its lifecycle host. */
 class LauncherDesktopSwipeSettingsManager(
@@ -55,9 +58,19 @@ class LauncherDesktopSwipeSettingsManager(
     }
 
     fun render(settings: AppSettings) {
+        Timber.d("S4526: render desktop swipe rows")
         LauncherDesktopSwipeDirection.entries.forEach { direction ->
+            val action = direction.actionOf(settings)
+            val horizontal = direction == LauncherDesktopSwipeDirection.LEFT ||
+                direction == LauncherDesktopSwipeDirection.RIGHT
+            val unassigned = action is LauncherDesktopSwipeAction.EdgeGestureAction &&
+                action.action == ScreenshotGestureAction.DO_NOT_USE
             actionRow(direction).setValue(
-                picker.labelFor(host.requireContext(), direction.actionOf(settings))
+                if (horizontal && unassigned) {
+                    host.getString(R.string.launcher_desktop_swipe_action_switch_screens)
+                } else {
+                    picker.labelFor(host.requireContext(), action)
+                }
             )
             renderTargetRow(settings, direction)
         }

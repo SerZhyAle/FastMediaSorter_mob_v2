@@ -53,11 +53,15 @@ internal class AddResourceCompanionCoordinator(
 
     private fun emitOutcome(result: Result<CompanionImportResult>) {
         result.onSuccess { r ->
+            Timber.i("Companion import outcome: added=%d updated=%d", r.addedNames.size, r.updatedNames.size)
+            Timber.d("S4517: companion import outcome added=${r.addedNames.size} updated=${r.updatedNames.size}")
             bridge.emit(AddResourceEvent.ShowMessage(buildSummary(r)))
             // S1423: a companion config import restores many resources at once and is not the
             // single-resource creation act this ticket pins for, so it names no subject to pin.
             bridge.emit(AddResourceEvent.ResourcesAdded(emptyList()))
         }.onFailure { e ->
+            // The reason only: an exception message here can name the host.
+            Timber.i("Companion import outcome: refused, %s", (e as? CompanionConfigException)?.reason ?: "error")
             val pending = (e as? CompanionConfigException)
                 ?.takeIf { it.reason == CompanionConfigException.Reason.PASSWORD_REQUIRED }
                 ?.config

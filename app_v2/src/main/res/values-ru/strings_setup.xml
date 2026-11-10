@@ -181,4 +181,14 @@
     <string name="welcome_role_streams_detail">Интернет-радио, ТВ и видеоканалы из готового каталога</string>
     <string name="welcome_role_wear">Приложение для часов</string>
     <string name="welcome_role_wear_detail">Приложение для часов и циферблат - просмотр и воспроизведение прямо на запястье</string>
+    <string name="sysinfo_field_battery_current">Ток батареи</string>
+    <string name="sysinfo_field_battery_power">Мощность батареи</string>
+    <string name="sysinfo_field_battery_saver">Энергосбережение</string>
+    <string name="sysinfo_field_battery_capacity_estimate">Расчётная ёмкость</string>
+    <string name="sysinfo_field_battery_charge_time">До полной зарядки</string>
+    <string name="sysinfo_field_battery_discharge_time">Примерное время работы</string>
+    <string name="sysinfo_battery_unavailable">Недоступно</string>
+    <string name="sysinfo_battery_saver_on">Включено</string>
+    <string name="sysinfo_battery_saver_off">Выключено</string>
+    <string name="sysinfo_battery_duration">%1$d ч %2$d мин</string>
 </resources>

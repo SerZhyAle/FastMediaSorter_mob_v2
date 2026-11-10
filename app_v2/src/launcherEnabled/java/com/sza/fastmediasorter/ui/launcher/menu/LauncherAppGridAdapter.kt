@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.launcher.menu
 
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -25,6 +26,8 @@ class LauncherAppGridAdapter(
     // an ordinary un-long-pressable one.
     private val onAppLongClick: (View, AppItem) -> Boolean = { _, _ -> false },
     private val onGroupToggle: (String) -> Unit,
+    // S4530: a long press on a category header opens the reorder mode; false leaves the press unhandled.
+    private val onGroupLongClick: (String) -> Boolean = { false },
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     /**
@@ -88,7 +91,7 @@ class LauncherAppGridAdapter(
     }
 
     override fun getItemViewType(position: Int): Int = when (val item = items[position]) {
-        is DisplayItem.Header -> if (item.group.isPreview) {
+        is DisplayItem.Header -> if (item.group.isPreview || item.group.isCategory) {
             VIEW_TYPE_PREVIEW_HEADER
         } else {
             VIEW_TYPE_GROUP_TILE
@@ -173,11 +176,29 @@ class LauncherAppGridAdapter(
             binding.groupTitle.text = group.title
             binding.groupCount.text = if (group.isPreview) "" else group.apps.size.toString()
             binding.groupIndicator.rotation = if (group.isExpanded) EXPANDED_ROTATION else 0f
-            binding.root.contentDescription = group.title.ifBlank {
-                binding.root.context.getString(R.string.launcher_menu_all_apps)
+            binding.root.contentDescription = if (group.isCategory) {
+                "${group.title}, ${group.apps.size}"
+            } else {
+                group.title.ifBlank { binding.root.context.getString(R.string.launcher_menu_all_apps) }
+            }
+            binding.root.isActivated = group.isReorderTarget
+            if (group.isReorderTarget) {
+                binding.root.setBackgroundColor(
+                    MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorSecondaryContainer)
+                )
+            } else {
+                binding.root.setBackgroundResource(selectableBackgroundOf(binding.root))
             }
             binding.root.setOnClickListener { onGroupToggle(group.key) }
+            binding.root.setOnLongClickListener { onGroupLongClick(group.key) }
         }
+    }
+
+    /** Restores the ripple a reorder highlight replaced; a recycled header must not keep the highlight. */
+    private fun selectableBackgroundOf(view: View): Int {
+        val value = TypedValue()
+        view.context.theme.resolveAttribute(android.R.attr.selectableItemBackground, value, true)
+        return value.resourceId
     }
 
     inner class GroupTileViewHolder(

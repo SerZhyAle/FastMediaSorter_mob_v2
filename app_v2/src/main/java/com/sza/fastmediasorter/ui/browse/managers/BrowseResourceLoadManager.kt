@@ -90,6 +90,7 @@ class BrowseResourceLoadManager(
     private val sortFiles: (List<MediaFile>, SortMode, Boolean) -> List<MediaFile>
 ) {
     private var currentScanJob: Job? = null
+    private var tempCleanupJob: Job? = null
     private val resolvedGoogleDriveClient by lazy(LazyThreadSafetyMode.NONE) { googleDriveClient.get() }
     private val resolvedDropboxClient by lazy(LazyThreadSafetyMode.NONE) { dropboxClient.get() }
     private val resolvedOneDriveClient by lazy(LazyThreadSafetyMode.NONE) { oneDriveClient.get() }
@@ -321,15 +322,7 @@ class BrowseResourceLoadManager(
             setLoading(true)
             shouldStopScanRef.set(false)
 
-            // Cleanup orphaned temp files (non-blocking)
-            try {
-                cleanupOrphanedTempFilesUseCase(resource.path).fold(
-                    onSuccess = { n -> if (n > 0) Timber.i("BrowseResourceLoadManager: cleaned $n orphaned temp file(s)") },
-                    onFailure = { e -> Timber.w(e, "BrowseResourceLoadManager: temp cleanup failed (non-critical)") }
-                )
-            } catch (e: Exception) {
-                Timber.w(e, "BrowseResourceLoadManager: temp cleanup exception (non-critical)")
-            }
+            launchTempCleanup(resource)
 
             // Network scans can sit on large remote trees before the first visible batch arrives.
             // Expose STOP immediately there; keep the delayed button for local/cloud scans.
@@ -389,10 +382,46 @@ class BrowseResourceLoadManager(
         loadFilesJob?.cancel()
         currentScanJob?.cancel()
         currentScanJob = null
+        tempCleanupJob?.cancel()
+        tempCleanupJob = null
         shouldStopScanRef.set(true)
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
+
+    /**
+     * The cleanup runs beside the scan, never in front of it: on a dead network host its listing waits
+     * out a full connect timeout, and the loading state and the STOP button must not queue behind that.
+     * A scan that listed an orphan before it was deleted shows it as media (`normalizeName` strips
+     * `.temp_copy`), so a cleanup that removed something restarts the scan once; the second cleanup
+     * finds nothing, which ends the chain.
+     */
+    private fun launchTempCleanup(resource: MediaResource) {
+        Timber.d("S4516: temp cleanup detached from scan - '${resource.name}'")
+        tempCleanupJob?.cancel()
+        tempCleanupJob = scope.launch(ioDispatcher + exceptionHandler) {
+            val removed = try {
+                cleanupOrphanedTempFilesUseCase(resource.path).fold(
+                    onSuccess = { n ->
+                        if (n > 0) Timber.i("BrowseResourceLoadManager: cleaned $n orphaned temp file(s)")
+                        n
+                    },
+                    onFailure = { e ->
+                        Timber.w(e, "BrowseResourceLoadManager: temp cleanup failed (non-critical)")
+                        0
+                    }
+                )
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.w(e, "BrowseResourceLoadManager: temp cleanup exception (non-critical)")
+                0
+            }
+            if (removed > 0 && !shouldStopScanRef.get() && stateFlow.value.resource?.id == resource.id) {
+                loadMediaFiles()
+            }
+        }
+    }
 
     /**
      * An empty list means one of two different things, and the empty state used to assert the wrong

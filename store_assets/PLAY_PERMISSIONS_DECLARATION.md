@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.01 17:23</sub>
+<sub class="doc-stamp">26.10.30 10:58</sub>
 
 # Play Console - All files access declaration (S1989)
 
@@ -163,6 +163,73 @@ declaration). Text to paste for the watch, under `Photo and video permissions`:
 
 Not declared for the watch: health and body sensors, activity recognition and the full-screen intent -
 none of them is in the store build (`wear/config/store-boundary-policy.json`, version 2).
+
+---
+
+## ACCESS_FINE_LOCATION declaration (S4501)
+
+Source of truth for the **location permissions declaration** that Google's announcement of 2026-10-29
+asks of every app using `ACCESS_FINE_LOCATION`. Console form: the declaration form linked from the
+policy page (`goo.gle/play-permission-decl-form`). State and date: `docs/PLAY_PUBLISHING_STATE.md`,
+block `s4501:transcribed:location-declaration`. Walk-through: `PLAY_CONSOLE_CHECKLIST.md` section C7.
+
+**Deadline and scope.** Google's preview lists the `ACCESS_FINE_LOCATION` declaration under
+2027-01-27. Its text puts the API 37 condition on the location-button rule only and says nothing either
+way about the declaration, so this file is written to be pasted before the target level moves (S4502)
+rather than after.
+
+### Facts measured in the tree, 2026-10-30
+
+- Foreground only. `ACCESS_BACKGROUND_LOCATION` is declared in no manifest of either module, and no
+  foreground service of type `location` exists in `app_v2` or `wear`.
+- The phone declares fine and coarse in `app_v2/src/main/AndroidManifest.xml`, so every flavor carries
+  them. The watch store build declares the same pair for the network monitor's satellite section.
+- Consumers that need a precise, continuous stream while their screen is open:
+  - Speed, altitude, bearing and trip-distance tiles of the launcher desktop (`standard`, `noLegal`):
+    `MotionReadingSource` requests GPS and network updates every 500 ms and removes them when its
+    collector leaves.
+  - Satellite section of the network monitor (`standard`, `noLegal`): `GnssStatusDataSource` registers a
+    GNSS status callback, which the platform grants only with `ACCESS_FINE_LOCATION`, and refuses to
+    start without it.
+  - Camera geotag (every flavor, opt-in, off by default): `CameraLocationProvider` keeps GPS updates
+    warm every 2 s while the camera is open, so the shutter never waits for a fix; the coordinate is
+    written into the photo's own metadata.
+- Consumers that do **not** justify precise location, so the text below does not lean on them:
+  - Map and Google Maps Live gadgets read the last known fix, and either permission serves them
+    (`PlatformDeviceLocationSource` accepts fine or coarse).
+  - The Wi-Fi section of the network monitor needs the grant only because the platform hides SSID and
+    BSSID without it; it reads no coordinate.
+
+### Field 1 - why the app needs precise location (limit unknown; 418 characters)
+
+```text
+Precise location is the feature of three tools, each active only while its screen is open. The speed, altitude and trip-distance gadgets read GPS fixes every 500 ms. The network monitor shows GNSS satellite status, which Android exposes only with precise location. The camera can stamp photos with GPS coordinates (optional, off by default). No background access, no foreground service, nothing is sent off the device.
+```
+
+### Field 2 - why coarse location or the location button is not enough (limit unknown; 325 characters)
+
+```text
+Coarse location cannot supply speed, altitude, bearing or satellite status; those exist only in GPS fixes. The location button returns one fix per tap, while the gadgets and the satellite view update continuously and the camera keeps a fix warm so the shutter never waits for one. One tap per photo would break rapid capture.
+```
+
+If the form's own limit is shorter, trim here first and write the limit on the heading line.
+
+### What a reviewer can challenge
+
+- The camera geotag is the weakest consumer: a single fix per shot is possible in principle. The
+  argument above is latency at the shutter, not impossibility; do not upgrade it to a claim that the
+  button cannot work.
+- Data safety must keep saying what `PLAY_DATA_SAFETY_LOCATION.md` says: location is processed on the
+  device and not collected. A change to any consumer above moves both files together.
+- The store description and the in-app rationale must keep naming speed, altitude, satellites and photo
+  coordinates, because Play reads the declaration against what the app tells the user (S2013).
+
+### Evidence video
+
+The form may ask for one. Show, in order: the speed tile receiving a fix on the launcher desktop; the
+satellite section of the network monitor listing constellations; the camera with geotag switched on and
+a photo's coordinates in its details. Use the free-hand emulator or the test phone (`docs/DEVICE_FLEET.md`),
+never the owner's personal phone.
 
 ---
 

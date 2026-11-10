@@ -144,7 +144,8 @@ fun WearBackAffordance(
 @Composable
 fun WearScreenOffAffordance(
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    @StringRes labelRes: Int = R.string.wear_screen_off
 ) {
     Box(
         contentAlignment = Alignment.CenterEnd,
@@ -154,7 +155,7 @@ fun WearScreenOffAffordance(
                 onClick()
             })
     ) {
-        VectorGlyph(icon = wearScreenOffIcon(), labelRes = R.string.wear_screen_off)
+        VectorGlyph(icon = wearScreenOffIcon(), labelRes = labelRes)
     }
 }
 

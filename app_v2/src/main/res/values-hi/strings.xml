@@ -449,7 +449,6 @@
     <string name="error_connection_access">\"%1$s\" से कनेक्ट नहीं हो सका - एक्सेस अस्वीकृत.\n\nशेयर की अनुमतियां जांचें.</string>
     <string name="error_connection_share_not_found">\"%1$s\" से कनेक्ट नहीं हो सका - शेयर नहीं मिला.\n\nसर्वर पर शेयर का नाम जांचें.</string>
     <string name="error_network_timeout">कनेक्शन का समय समाप्त हो गया. अपना नेटवर्क जांचें और फिर से कोशिश करें.</string>
-    <string name="error_companion_connect_guidance">शेयर किए गए फ़ोल्डर तक नहीं पहुंचा जा सका. PC जैसे ही Wi-Fi पर होने से यह अपने आप कनेक्ट हो जाता है; किसी दूसरे नेटवर्क से PC को एक्सेस देना होगा - राउटर पर पोर्ट फ़ॉरवर्डिंग सेट करें या कम्पैनियन ऐप में इंटरनेट एक्सेस चालू करें.</string>
     <string name="error_network_access_denied">एक्सेस अस्वीकृत. अपनी क्रेडेंशियल जांचें.</string>
     <string name="error_network_not_found">फ़ाइल या संसाधन नहीं मिला.</string>
     <string name="error_network_connection_lost">कोई कनेक्शन नहीं.</string>

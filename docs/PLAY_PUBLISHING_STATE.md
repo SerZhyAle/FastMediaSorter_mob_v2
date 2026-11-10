@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.29 21:42</sub>
+<sub class="doc-stamp">26.10.30 11:36</sub>
 
 # Play publishing state
 
@@ -238,6 +238,48 @@ release did not ship - a capability that needs one stays in `noLegal`. The text 
 submitted, the video steps and the rollback are in `store_assets/PLAY_FGS_DECLARATIONS.md`. Allowed
 states are the same as for the Contacts declaration above; the owner updates this block after
 reading each Play verdict.
+
+### Location permissions declaration (S4501)
+
+<!-- s4501:transcribed:location-declaration -->
+
+**State:** not filed
+**Date:** -
+**Deadline:** 2027-01-27 (Google's announcement of 2026-10-29)
+
+Allowed states are the same as for the Contacts declaration above. The text to paste, the evidence by
+consumer and the points a reviewer can challenge are in `store_assets/PLAY_PERMISSIONS_DECLARATION.md`,
+section `ACCESS_FINE_LOCATION declaration (S4501)`; the walk-through is `store_assets/PLAY_CONSOLE_CHECKLIST.md`
+section C8. Google's text does not say whether the declaration waits for targetSdk 37, so the text is ready
+ahead of the bump (S4502).
+
+### Local Network declaration (S4502)
+
+<!-- s4502:transcribed:local-network-declaration -->
+
+**State:** not filed
+**Date:** -
+**Deadline:** 2027-08-25 (Google's announcement of 2026-10-29)
+
+Allowed states are the same as for the Contacts declaration above. The text to paste is in
+`store_assets/PLAY_LOCAL_NETWORK_DECLARATION.md`.
+
+**Upload order (S4502).** `app_v2/build.gradle.kts` targets 37 since S4502. The first upload of a build
+targeting 37 follows the filing of all three declarations above - Contacts, Location and Local Network.
+Until then the release stays off Play tracks, or is rebuilt with `targetSdk = 36`.
+
+### Developer account - trader status (S4501)
+
+<!-- s4501:transcribed:trader-status -->
+
+**State:** not recorded
+**Date:** -
+**Declared as:** -
+**Deadline:** the console banner decides (help page: 2027-02-01; announcement: November 2026)
+
+Allowed states: `not recorded`, `declared trader`, `declared non-trader`. This is an account-level
+declaration under EEA and UK law, not an app-level form; the owner writes the state, the choice and the
+date here right after declaring. Walk-through: `store_assets/PLAY_CONSOLE_CHECKLIST.md` section C8.
 
 ---
 

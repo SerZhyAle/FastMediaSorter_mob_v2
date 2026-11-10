@@ -20,11 +20,13 @@ import com.sza.fastmediasorter.core.apps.InstalledAppsChangeWatcher
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.cache.TranslationCacheManager
 import com.sza.fastmediasorter.core.debug.DebugToolsBridge
+import com.sza.fastmediasorter.core.debug.StrictModeReportingCanary
 import com.sza.fastmediasorter.core.debug.StrictModeViolationFilter
 import com.sza.fastmediasorter.core.debug.StrictModeViolationReport
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.init.AppStartupInitializer
 import com.sza.fastmediasorter.core.init.FirstFrameSignal
+import com.sza.fastmediasorter.core.init.StartupWindowTimer
 import com.sza.fastmediasorter.core.logging.LoggingHelper
 import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
 import com.sza.fastmediasorter.core.memory.MemoryProbe
@@ -282,7 +284,10 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
     private var gestureOverlayRestoreScheduled = false
 
     override fun onCreate() {
+        // Every ContentProvider has run by now; super.onCreate() below is Hilt's field injection.
+        StartupWindowTimer.markOnCreateEnter()
         super.onCreate()
+        StartupWindowTimer.markInjected()
 
         // S0213 Pillar B: install OOM-safe media3 logger BEFORE any media3 component is touched.
         // Timber was planted earlier in attachBaseContext via LoggingHelper.initialize(), so the
@@ -631,6 +636,7 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
             .detectDiskReads()
             .detectDiskWrites()
             .detectNetwork()
+        val canary = StrictModeReportingCanary()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             // S2670: report violations through Timber so the platform's own (Samsung's Toast/Knox
@@ -638,7 +644,7 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
             // bury this app's. The listener runs on its own thread, which carries no policy, so
             // logging a violation cannot trigger another one.
             threadPolicy.penaltyListener(Executors.newSingleThreadExecutor()) { violation ->
-                if (!StrictModeViolationFilter.isPlatformNoise(violation)) {
+                if (!canary.consume(violation) && !StrictModeViolationFilter.isPlatformNoise(violation)) {
                     logStrictModeViolation(violation)
                 }
             }
@@ -649,6 +655,10 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
         }
 
         StrictMode.setThreadPolicy(threadPolicy.build())
+        // Below API 28 no listener exists to deliver the canary, so it would always read as silent.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            canary.arm(this)
+        }
 
             StrictMode.setVmPolicy(
                 StrictMode.VmPolicy.Builder()
@@ -707,6 +717,7 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
     }
 
     override fun attachBaseContext(base: Context) {
+        StartupWindowTimer.markAttachStart()
         // StrictMode is not yet configured here, but wrap in helper for consistency
         val contextWithLocale = com.sza.fastmediasorter.core.debug.StrictModeHelper.allowDiskReads {
             LocaleHelper.applyLocale(base)
@@ -723,6 +734,8 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
                 Timber.tag("FastMediaSorterApp").e(e, "Early logging init failed")
             }
         }
+        // After the logging init, so the stall sampler it starts has a file sink to write to.
+        StartupWindowTimer.markAttachEnd()
     }
     
     /**

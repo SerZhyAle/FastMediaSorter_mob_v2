@@ -230,6 +230,16 @@ object SubProgramCatalog {
             ),
         ),
         SubProgramEntry(
+            routeKey = InternalRouteCatalog.KEY_FILLER,
+            order = 95,
+            surfaces = setOf(
+                SubProgramSurface.PROGRAMS_MENU,
+                SubProgramSurface.QUICK_ACCESS_PANEL,
+                SubProgramSurface.LAUNCHER_SHORTCUT,
+                SubProgramSurface.OS_APP_SHORTCUT,
+            ),
+        ),
+        SubProgramEntry(
             routeKey = InternalRouteCatalog.KEY_FRONT_FLASHLIGHT,
             order = 100,
             surfaces = setOf(

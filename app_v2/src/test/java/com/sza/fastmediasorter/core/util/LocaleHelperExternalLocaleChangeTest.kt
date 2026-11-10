@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.core.util
 import android.app.LocaleManager
 import android.content.Context
 import android.os.LocaleList
+import android.os.SystemClock
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -43,6 +44,60 @@ class LocaleHelperExternalLocaleChangeTest {
         assertEquals(LANGUAGE_UK, LocaleHelper.getLanguage(context))
     }
 
+    // S4512: the per-emission memo must coalesce the collectors of ONE snapshot and nothing else, or it
+    // would undo the S3092 guarantee above for the settings flow.
+    @Test
+    fun `getLanguageForSnapshot shares one read between callers of the same snapshot`() {
+        val context = RuntimeEnvironment.getApplication()
+        val snapshot = Any()
+
+        setApplicationLocale(context, LANGUAGE_RU)
+        assertEquals(LANGUAGE_RU, LocaleHelper.getLanguageForSnapshot(snapshot, context))
+
+        setApplicationLocale(context, LANGUAGE_UK)
+
+        assertEquals(LANGUAGE_RU, LocaleHelper.getLanguageForSnapshot(snapshot, context))
+    }
+
+    @Test
+    fun `getLanguageForSnapshot reads again for a new snapshot`() {
+        val context = RuntimeEnvironment.getApplication()
+
+        setApplicationLocale(context, LANGUAGE_RU)
+        assertEquals(LANGUAGE_RU, LocaleHelper.getLanguageForSnapshot(Any(), context))
+
+        setApplicationLocale(context, LANGUAGE_UK)
+
+        assertEquals(LANGUAGE_UK, LocaleHelper.getLanguageForSnapshot(Any(), context))
+    }
+
+    @Test
+    fun `getLanguageForSnapshot reads again once the memo has expired`() {
+        val context = RuntimeEnvironment.getApplication()
+        val snapshot = Any()
+
+        setApplicationLocale(context, LANGUAGE_RU)
+        assertEquals(LANGUAGE_RU, LocaleHelper.getLanguageForSnapshot(snapshot, context))
+
+        setApplicationLocale(context, LANGUAGE_UK)
+        SystemClock.sleep(MEMO_EXPIRY_MS)
+
+        assertEquals(LANGUAGE_UK, LocaleHelper.getLanguageForSnapshot(snapshot, context))
+    }
+
+    @Test
+    fun `getLanguageForSnapshot reads again after a language save`() {
+        val context = RuntimeEnvironment.getApplication()
+        val snapshot = Any()
+
+        setApplicationLocale(context, LANGUAGE_RU)
+        assertEquals(LANGUAGE_RU, LocaleHelper.getLanguageForSnapshot(snapshot, context))
+
+        LocaleHelper.saveLanguage(context, LANGUAGE_UK)
+
+        assertEquals(LANGUAGE_UK, LocaleHelper.getLanguageForSnapshot(snapshot, context))
+    }
+
     private fun setApplicationLocale(context: Context, languageTag: String) {
         context.getSystemService(LocaleManager::class.java).applicationLocales =
             LocaleList.forLanguageTags(languageTag)
@@ -51,5 +106,8 @@ class LocaleHelperExternalLocaleChangeTest {
     private companion object {
         const val LANGUAGE_RU = "ru"
         const val LANGUAGE_UK = "uk"
+
+        // Past the memo's TTL with margin; SystemClock.sleep only advances Robolectric's clock.
+        const val MEMO_EXPIRY_MS = 5_000L
     }
 }

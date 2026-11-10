@@ -1,8 +1,5 @@
 package com.sza.fastmediasorter.data.link.nolegal
 
-import com.sza.fastmediasorter.data.link.cookie.EncryptedCookieStore
-import io.mockk.every
-import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -20,11 +17,10 @@ import java.net.HttpCookie
 import java.util.concurrent.TimeUnit
 
 /**
- * S0174 Phase 03: Unit tests for [CookieFileWriter] Netscape serialisation, eTLD+1 matching,
- * and file lifecycle (write + delete).
+ * S0174 Phase 03: Unit tests for [CookieFileWriter] Netscape serialisation and file lifecycle
+ * (write + delete). S4511: the writer serialises exactly the cookie list it is given.
  *
- * Uses mockk for [EncryptedCookieStore] to avoid AndroidKeyStore dependency, and Robolectric
- * for a real [Context.filesDir] path.
+ * Robolectric supplies a real [Context.filesDir] path.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
@@ -33,32 +29,56 @@ class CookieFileWriterTest {
     @get:Rule
     val tempFolder = TemporaryFolder()
 
-    private lateinit var store: EncryptedCookieStore
     private lateinit var writer: CookieFileWriter
 
     @Before
     fun setUp() {
-        store = mockk()
         val context = RuntimeEnvironment.getApplication()
-        writer = CookieFileWriter(context, store)
+        writer = CookieFileWriter(context)
     }
 
     @Test
-    fun writeCookieFile_noMatchingCookies_returnsNull() {
-        // Different eTLD+1: store has "facebook.com", target is "instagram.com"
-        val entry = EncryptedCookieStore.AccountEntry(
-            accountId = "acc1",
-            displayName = "Facebook",
-            savedAt = null,
-            lastUsedAt = null,
-            cookieCount = 1,
-            type = EncryptedCookieStore.TYPE_ACTIVE,
-        )
-        every { store.listAllAccounts() } returns listOf("www.facebook.com" to entry)
-
-        val result = writer.writeCookieFile("www.instagram.com")
+    fun writeCookieFile_emptyCookieList_returnsNull() {
+        val result = writer.writeCookieFile("www.instagram.com", emptyList())
 
         assertNull(result)
+    }
+
+    @Test
+    fun writeCookieFile_oneSessionList_writesOnlyThoseCookies() {
+        // S4511: the file carries the picked account's single cookie, never another account's set.
+        val picked = HttpCookie("csrftoken", "picked-token").apply {
+            domain = ".instagram.com"
+            path = "/"
+        }
+
+        val file = writer.writeCookieFile("www.instagram.com", listOf(picked))
+
+        assertNotNull(file)
+        val cookieLines = file!!.readLines().filter { it.isNotBlank() && !it.startsWith("#") }
+        assertEquals(1, cookieLines.size)
+        assertTrue(cookieLines.single().contains("csrftoken"))
+        assertFalse(file.readText().contains("sessionid"))
+        file.delete()
+    }
+
+    @Test
+    fun writeCookieFile_sameNameOnTwoPaths_keepsBothLines() {
+        val root = HttpCookie("rur", "a").apply {
+            domain = ".instagram.com"
+            path = "/"
+        }
+        val nested = HttpCookie("rur", "b").apply {
+            domain = ".instagram.com"
+            path = "/api"
+        }
+
+        val file = writer.writeCookieFile("www.instagram.com", listOf(root, nested))
+
+        assertNotNull(file)
+        val cookieLines = file!!.readLines().filter { it.isNotBlank() && !it.startsWith("#") }
+        assertEquals(2, cookieLines.size)
+        file.delete()
     }
 
     @Test
@@ -69,18 +89,8 @@ class CookieFileWriterTest {
             secure = true
             maxAge = 3600L
         }
-        val entry = EncryptedCookieStore.AccountEntry(
-            accountId = "acc1",
-            displayName = "Instagram",
-            savedAt = null,
-            lastUsedAt = null,
-            cookieCount = 1,
-            type = EncryptedCookieStore.TYPE_ACTIVE,
-        )
-        every { store.listAllAccounts() } returns listOf("www.instagram.com" to entry)
-        every { store.loadForAccount("www.instagram.com", "acc1") } returns listOf(cookie)
 
-        val file = writer.writeCookieFile("www.instagram.com")
+        val file = writer.writeCookieFile("www.instagram.com", listOf(cookie))
 
         assertNotNull(file)
         assertTrue(file!!.exists())

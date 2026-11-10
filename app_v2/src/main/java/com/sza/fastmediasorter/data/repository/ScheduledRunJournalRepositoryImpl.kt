@@ -58,12 +58,36 @@ class ScheduledRunJournalRepositoryImpl(
         }
     }
 
+    override suspend fun isStallReported(operationId: Long): Boolean = lock.withLock {
+        withContext(Dispatchers.IO) { stallMarkerOf(operationId).exists() }
+    }
+
+    override suspend fun setStallReported(operationId: Long, reported: Boolean) {
+        lock.withLock {
+            withContext(Dispatchers.IO) {
+                val marker = stallMarkerOf(operationId)
+                try {
+                    if (reported) {
+                        directory.mkdirs()
+                        marker.createNewFile()
+                    } else if (marker.exists() && !marker.delete()) {
+                        Timber.w("ScheduledRunJournal: could not clear the stall mark of op=$operationId")
+                    }
+                } catch (e: IOException) {
+                    // A lost mark costs one repeated notification at worst; the run itself is unaffected.
+                    Timber.w(e, "ScheduledRunJournal: could not write the stall mark of op=$operationId")
+                }
+            }
+        }
+    }
+
     override suspend fun clear(operationId: Long) {
         lock.withLock {
             withContext(Dispatchers.IO) {
-                val file = fileOf(operationId)
-                if (file.exists() && !file.delete()) {
-                    Timber.w("ScheduledRunJournal: could not delete journal of op=$operationId")
+                listOf(fileOf(operationId), stallMarkerOf(operationId)).forEach { file ->
+                    if (file.exists() && !file.delete()) {
+                        Timber.w("ScheduledRunJournal: could not delete ${file.name} of op=$operationId")
+                    }
                 }
             }
         }
@@ -80,6 +104,8 @@ class ScheduledRunJournalRepositoryImpl(
     }
 
     private fun fileOf(operationId: Long) = File(directory, "$operationId.tsv")
+
+    private fun stallMarkerOf(operationId: Long) = File(directory, "$operationId.stalled")
 
     private fun readLines(operationId: Long): List<String> {
         val file = fileOf(operationId)

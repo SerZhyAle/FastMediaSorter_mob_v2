@@ -10,6 +10,7 @@ import android.os.SystemClock
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
+import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.domain.model.HostPort
 import com.sza.fastmediasorter.utils.SshFingerprintNormalizer
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -100,7 +101,7 @@ class CompanionMdnsDiscovery @Inject constructor(
     @Synchronized
     private fun startDiscovery() {
         val manager = nsdManager ?: return
-        if (discoveryListener != null) return
+        if (discoveryListener != null || !hasLocalNetworkGrant()) return
         val listener = buildDiscoveryListener(manager)
         discoveryListener = listener
         runCatching { multicastLock?.acquire() }
@@ -114,6 +115,19 @@ class CompanionMdnsDiscovery @Inject constructor(
             Timber.w(e, "mDNS discovery blocked by local-network permission")
             abortStart()
         }
+    }
+
+    /**
+     * API 37 raises the system device picker for a discovery started without ACCESS_LOCAL_NETWORK
+     * instead of throwing, so the [SecurityException] branch of [startDiscovery] never fires and the
+     * picker would pop up over whatever screen is foreground. Skipping is safe: connections fall back
+     * to the config addresses (S1006), and the next foreground retries once the grant exists.
+     */
+    private fun hasLocalNetworkGrant(): Boolean {
+        val granted = PermissionHelper.hasLocalNetworkPermission(context)
+        Timber.d("S4510: mDNS discovery grant check, granted=$granted")
+        if (!granted) Timber.i("mDNS discovery skipped: ACCESS_LOCAL_NETWORK not granted")
+        return granted
     }
 
     /**

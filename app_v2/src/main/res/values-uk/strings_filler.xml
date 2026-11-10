@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="filler_title">Заповнення накопичувача</string>
+    <string name="filler_intro">Заповнює вільне місце накопичувача тимчасовими файлами, потім видаляє їх. Ваші файли залишаються як є.</string>
+    <string name="filler_choose_folder">Вибрати теку</string>
+    <string name="filler_no_folder">Теку не вибрано. Виберіть теку у вбудованій пам\'яті або на картці пам\'яті.</string>
+    <string name="filler_location">Тека %1$s на носії %2$s</string>
+    <string name="filler_free_space">Вільно: %1$s</string>
+    <string name="filler_free_space_unknown">Вільно: не виміряно</string>
+    <string name="filler_reserve">Залишається вільним для системи: %1$s</string>
+    <string name="filler_start">Почати заповнення</string>
+    <string name="filler_cancel">Зупинити й видалити файли</string>
+    <string name="filler_progress">Записано %1$s з %2$s</string>
+    <string name="filler_confirm_title">Заповнити вільне місце?</string>
+    <string name="filler_confirm_message">У теку %2$s на носії %3$s буде записано близько %1$s тимчасових файлів, вільними залишаться %4$s. Файли видаляються, коли заповнення завершиться або буде зупинено.</string>
+    <string name="filler_confirm_positive">Заповнити</string>
+    <string name="filler_retry_cleanup">Видалити залишені файли</string>
+    <string name="filler_pending_cleanup">Тимчасові файли минулого запуску ще лежать на носії %1$s. Під\'єднайте його й натисніть «Видалити залишені файли», перш ніж заповнювати знову.</string>
+    <string name="filler_result_done">Готово: записано й знову видалено %1$s.</string>
+    <string name="filler_result_cancelled">Заповнення зупинено. Тимчасові файли видалено.</string>
+    <string name="filler_result_failed">Запис зупинено: накопичувач повідомив про помилку. Тимчасові файли видалено.</string>
+    <string name="filler_result_cleanup_incomplete">Частину тимчасових файлів поки не вдалося видалити. Під\'єднайте накопичувач і натисніть «Видалити залишені файли».</string>
+    <string name="filler_result_cleanup_done">Залишені тимчасові файли видалено.</string>
+    <string name="filler_result_not_local">Ця тека не на накопичувачі цього телефона. Виберіть теку у вбудованій пам\'яті або на картці пам\'яті.</string>
+    <string name="filler_result_no_access">Запис у цю теку зараз недоступний. Перевірте, що накопичувач під\'єднано, і виберіть теку знову.</string>
+    <string name="filler_result_measurement_unavailable">Не вдалося виміряти вільне місце. Перевірте, що накопичувач під\'єднано, і виберіть теку знову.</string>
+    <string name="filler_result_insufficient_space">Понад місце, що залишається системі, вільного місця немає. Звільніть місце або виберіть інший накопичувач.</string>
+    <string name="filler_result_busy">Заповнення вже триває.</string>
+</resources>

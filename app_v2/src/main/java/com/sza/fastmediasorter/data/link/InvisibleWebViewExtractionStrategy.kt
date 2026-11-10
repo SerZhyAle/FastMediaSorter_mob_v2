@@ -64,6 +64,10 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
 
     override val id: String = "dynamic"
 
+    // Owned by the singleton for the life of the process: a debug dump is fire-and-forget and must not be
+    // cancelled with the render that produced it.
+    private val debugDumpScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     override suspend fun probe(url: String): ProbeResult = withContext(Dispatchers.IO) {
         val httpUrl = url.toHttpUrlOrNull() ?: return@withContext ProbeResult.NotApplicable
         try {
@@ -679,17 +683,33 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
         dumpDecodedPageHtml(decodeEvaluatedHtml(html), pageUrl)
     }
 
+    // S4507: both callers run on the main thread, so the directory lookup, the write and the pruning
+    // are handed to IO and this returns at once; `finish` never waits on a debug file.
     private fun dumpDecodedPageHtml(decodedHtml: String?, pageUrl: String?) {
         if (decodedHtml.isNullOrBlank()) return
-        val host = pageUrl?.toHttpUrlOrNull()?.host ?: "unknown"
-        val ts = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-        val file = File(appContext.getExternalFilesDir(null), "link_debug_${host}_$ts.html")
-        runCatching {
-            val limited = if (decodedHtml.length > 512 * 1024) decodedHtml.substring(0, 512 * 1024) else decodedHtml
-            file.writeText(limited, Charsets.UTF_8)
-        }.onFailure {
-            Timber.w("InvisibleWebViewExtractionStrategy: page-html-dump failed - %s", it.message)
+        debugDumpScope.launch {
+            val host = pageUrl?.toHttpUrlOrNull()?.host ?: "unknown"
+            val ts = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+            val dir = appContext.getExternalFilesDir(null)
+            val file = File(dir, "${DEBUG_DUMP_PREFIX}${host}_$ts.html")
+            runCatching {
+                val limited = decodedHtml.take(MAX_DEBUG_DUMP_CHARS)
+                file.writeText(limited, Charsets.UTF_8)
+                pruneDebugDumps(dir)
+                Timber.d("S4507: link debug page dump written off-main host=$host")
+            }.onFailure {
+                Timber.w("InvisibleWebViewExtractionStrategy: page-html-dump failed - %s", it.message)
+            }
         }
+    }
+
+    // Nothing else removes these files, and every Threads or Instagram link adds one.
+    private fun pruneDebugDumps(dir: File?) {
+        val dumps = dir?.listFiles { _, name -> name.startsWith(DEBUG_DUMP_PREFIX) && name.endsWith(".html") }
+            ?: return
+        dumps.sortedByDescending { it.lastModified() }
+            .drop(MAX_DEBUG_DUMP_FILES)
+            .forEach { it.delete() }
     }
 
     private fun decodeEvaluatedHtml(rawHtml: String?): String? {
@@ -711,6 +731,9 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
         const val MAX_PROBED_CANDIDATES = 12
         const val MAX_BATCH_ITEMS = 12
         const val MIN_BATCH_BYTES = 1_048_576L
+        const val DEBUG_DUMP_PREFIX = "link_debug_"
+        const val MAX_DEBUG_DUMP_CHARS = 512 * 1024
+        const val MAX_DEBUG_DUMP_FILES = 20
 
         val IMAGE_EXTENSIONS = setOf("jpg", "jpeg", "png", "gif", "webp", "bmp", "avif", "jxl")
         val SEGMENT_EXTENSIONS = setOf("m4s", "ts", "cmf", "cmfa", "cmfv", "mp4a", "part")

@@ -25,6 +25,7 @@ object AccountIdentityExtractor {
     private const val COOKIE_DS_USER_ID = "ds_user_id"
     private const val COOKIE_C_USER = "c_user"
     private const val COOKIE_TWID = "twid"
+    private const val COOKIE_SESSION_ID = "sessionid"
 
     private const val TWID_PREFIX = "u="
 
@@ -38,6 +39,28 @@ object AccountIdentityExtractor {
             COOKIE_TWID -> raw.removePrefix(TWID_PREFIX).takeIf { it.isNotBlank() }
             else -> raw
         }
+    }
+
+    /**
+     * S4505: true when [cookies] hold the credential only a signed-in session of [host] carries.
+     * The login page itself already sets csrf/visitor cookies, so a bare cookie count cannot tell a
+     * finished login from an unfinished one. A host with no known credential cookie passes on any
+     * non-empty set, because an unknown provider cannot be told apart from a signed-in one.
+     */
+    fun hasSignedInCookies(host: String, cookies: List<HttpCookie>): Boolean {
+        if (host.isBlank()) return false
+        val required = signedInCookieNameForHost(host.lowercase())
+        return if (required == null) {
+            cookies.isNotEmpty()
+        } else {
+            cookies.any { it.name.lowercase() == required && it.value.isNotBlank() }
+        }
+    }
+
+    private fun signedInCookieNameForHost(normalizedHost: String): String? = when {
+        matchesPlatform(normalizedHost, PLATFORM_INSTAGRAM) -> COOKIE_SESSION_ID
+        matchesPlatform(normalizedHost, PLATFORM_THREADS) -> COOKIE_SESSION_ID
+        else -> cookieNameForHost(normalizedHost)
     }
 
     private fun cookieNameForHost(normalizedHost: String): String? = when {

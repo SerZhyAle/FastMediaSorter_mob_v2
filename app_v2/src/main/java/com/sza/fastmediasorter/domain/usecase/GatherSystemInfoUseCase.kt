@@ -23,6 +23,7 @@ import android.view.WindowManager
 import androidx.annotation.StringRes
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.systeminfo.BatteryDetailsCollector
 import com.sza.fastmediasorter.core.systeminfo.ExtendedDiagnosticsContributor
 import com.sza.fastmediasorter.core.systeminfo.ExtendedDiagnosticsSection
 import com.sza.fastmediasorter.core.systeminfo.SystemInfoAccessClassifier
@@ -41,6 +42,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 /**
@@ -55,6 +57,7 @@ class GatherSystemInfoUseCase @Inject constructor(
     @ApplicationContext private val context: Context,
     private val extendedDiagnosticsContributors: Set<@JvmSuppressWildcards ExtendedDiagnosticsContributor>,
     private val cameraDiagnostics: GatherCameraDiagnosticsUseCase,
+    private val batteryDetails: BatteryDetailsCollector,
 ) {
 
     /**
@@ -254,13 +257,40 @@ class GatherSystemInfoUseCase @Inject constructor(
 
     private fun batteryFields(): List<Pair<String, String>> = safeList {
         val intent = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
-            ?: return@safeList listOf(label(R.string.sysinfo_field_battery_level) to UNKNOWN)
+            ?: return@safeList listOf(
+                label(R.string.sysinfo_field_battery_level) to UNKNOWN,
+                label(R.string.sysinfo_field_battery_current) to label(R.string.sysinfo_battery_unavailable),
+                label(R.string.sysinfo_field_battery_power) to label(R.string.sysinfo_battery_unavailable),
+                label(R.string.sysinfo_field_battery_saver) to label(R.string.sysinfo_battery_unavailable),
+                label(R.string.sysinfo_field_battery_capacity_estimate) to label(R.string.sysinfo_battery_unavailable),
+                label(R.string.sysinfo_field_battery_charge_time) to label(R.string.sysinfo_battery_unavailable),
+                label(R.string.sysinfo_field_battery_discharge_time) to label(R.string.sysinfo_battery_unavailable),
+            )
         val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
         val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
         val pct = if (level >= 0 && scale > 0) "${level * 100 / scale}%" else UNKNOWN
         val temp = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, Int.MIN_VALUE)
         val tempStr = if (temp != Int.MIN_VALUE) String.format(Locale.US, "%.1f °C", temp / 10.0) else UNKNOWN
         val voltage = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1)
+        val details = runCatching { batteryDetails.read() }.getOrNull()
+        val unavailable = label(R.string.sysinfo_battery_unavailable)
+        fun formatBatteryDuration(millis: Long?): String {
+            if (millis == null || millis <= 0L) return unavailable
+            val minutes = TimeUnit.MILLISECONDS.toMinutes(millis)
+            val hours = TimeUnit.MINUTES.toHours(minutes)
+            val remainingMinutes = minutes - TimeUnit.HOURS.toMinutes(hours)
+            return "~${context.getString(R.string.sysinfo_battery_duration, hours, remainingMinutes)}"
+        }
+        val current = details?.currentMicroamps?.let {
+            String.format(Locale.getDefault(), "%.1f mA", it / MICROAMPS_PER_MILLIAMP)
+        } ?: unavailable
+        val power = details?.powerWatts?.let { String.format(Locale.getDefault(), "%.2f W", it) } ?: unavailable
+        val capacity = details?.estimatedCapacityMilliampHours?.let { "~$it mAh" } ?: unavailable
+        val saver = when (details?.powerSaveMode) {
+            true -> label(R.string.sysinfo_battery_saver_on)
+            false -> label(R.string.sysinfo_battery_saver_off)
+            null -> unavailable
+        }
         listOf(
             label(R.string.sysinfo_field_battery_level) to pct,
             label(R.string.sysinfo_field_battery_status) to batteryStatus(intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)),
@@ -269,6 +299,12 @@ class GatherSystemInfoUseCase @Inject constructor(
             label(R.string.sysinfo_field_battery_temperature) to tempStr,
             label(R.string.sysinfo_field_battery_voltage) to (if (voltage >= 0) "$voltage mV" else UNKNOWN),
             label(R.string.sysinfo_field_battery_technology) to sanitize(intent.getStringExtra(BatteryManager.EXTRA_TECHNOLOGY)),
+            label(R.string.sysinfo_field_battery_current) to current,
+            label(R.string.sysinfo_field_battery_power) to power,
+            label(R.string.sysinfo_field_battery_saver) to saver,
+            label(R.string.sysinfo_field_battery_capacity_estimate) to capacity,
+            label(R.string.sysinfo_field_battery_charge_time) to formatBatteryDuration(details?.chargeTimeMillis),
+            label(R.string.sysinfo_field_battery_discharge_time) to formatBatteryDuration(details?.dischargeTimeMillis),
         )
     } ?: listOf(label(R.string.sysinfo_field_battery_level) to UNKNOWN)
 
@@ -458,5 +494,6 @@ class GatherSystemInfoUseCase @Inject constructor(
 
     private companion object {
         const val UNKNOWN = "unknown"
+        const val MICROAMPS_PER_MILLIAMP = 1_000.0
     }
 }

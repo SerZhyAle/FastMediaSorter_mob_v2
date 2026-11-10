@@ -196,7 +196,7 @@ object BackupMapper {
             type = backup.targetResourceType
         )
 
-        if (src == null || (opType != ScheduledOpType.DELETE && dst == null)) return null
+        if (src == null || (opType.usesTarget && dst == null)) return null
 
         return ScheduledOperation(
             id = 0,

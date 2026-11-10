@@ -3,7 +3,9 @@ package com.sza.fastmediasorter.domain.usecase
 import android.content.Context
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.systeminfo.BatteryDetailsCollector
 import com.sza.fastmediasorter.data.capture.CameraHardwareDataSource
+import com.sza.fastmediasorter.data.repository.DischargeRateBatteryRuntimeEstimator
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -21,6 +23,7 @@ class GatherSystemInfoUseCaseTest {
         context,
         emptySet(),
         GatherCameraDiagnosticsUseCase(context, CameraHardwareDataSource(context)),
+        BatteryDetailsCollector(context, DischargeRateBatteryRuntimeEstimator()),
     )
 
     @Test

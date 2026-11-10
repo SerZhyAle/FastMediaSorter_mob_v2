@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.data.local.preferences.BrowseManualOrderPrefs
 import com.sza.fastmediasorter.data.local.preferences.BrowseStateDataStore
 import com.sza.fastmediasorter.data.network.SmbClient
+import com.sza.fastmediasorter.data.remote.sftp.anywhere.CompanionRecoveryChannels
 import com.sza.fastmediasorter.data.repository.CachedFileListRepository
 import com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler
 import com.sza.fastmediasorter.domain.mutation.MutationJournal
@@ -48,7 +49,10 @@ import javax.inject.Inject
 // satisfy (same precedent as ui/launcher/LauncherHomeDependencies.kt). One holder per BrowseViewModel
 // dependency group, so a dependency added later joins its group instead of the ViewModel constructor.
 
-/** Cloud/remote access - cloud clients, SMB operations and the remote-source availability gate. */
+/**
+ * Cloud/remote access - cloud clients, SMB operations, the remote-source availability gate and the
+ * companion recovery channels a connection error names.
+ */
 class BrowseRemoteAccessDependencies @Inject constructor(
     val smbClient: Lazy<SmbClient>,
     val smbOperationsUseCase: SmbOperationsUseCase,
@@ -56,6 +60,7 @@ class BrowseRemoteAccessDependencies @Inject constructor(
     val dropboxClient: Lazy<DropboxClient>,
     val oneDriveClient: Lazy<OneDriveRestClient>,
     val remoteSourceGate: RemoteSourceAvailabilityGate,
+    val companionRecoveryChannels: CompanionRecoveryChannels,
 )
 
 /** Destructive cleanup operations - size-based delete, trash and orphaned-temp-file cleanup. */

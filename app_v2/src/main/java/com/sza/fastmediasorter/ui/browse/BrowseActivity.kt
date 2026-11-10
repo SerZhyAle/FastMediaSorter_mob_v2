@@ -29,6 +29,7 @@ import com.sza.fastmediasorter.core.memory.MemoryScenario
 import com.sza.fastmediasorter.core.storage.RestrictedTreeTargetPolicy
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.core.util.AnimationPolicy
+import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
@@ -640,8 +641,12 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == com.sza.fastmediasorter.core.util.PermissionHelper.REQUEST_CODE_LOCAL_NETWORK) {
-            com.sza.fastmediasorter.core.util.PermissionHelper.onLocalNetworkPermissionResult(this, grantResults)
+        if (requestCode == PermissionHelper.REQUEST_CODE_LOCAL_NETWORK) {
+            val granted = PermissionHelper.onLocalNetworkPermissionResult(this, grantResults)
+            if (granted) {
+                Timber.d("S4514: local-network grant arrived, reloading the folder")
+                viewModel.reloadFiles()
+            }
         }
     }
 

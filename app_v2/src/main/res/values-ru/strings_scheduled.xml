@@ -127,4 +127,17 @@
     <string name="scheduled_op_reason_source_deleted">Источник удалён, расписание приостановлено</string>
     <string name="scheduled_op_reason_target_deleted">Назначение удалено, расписание приостановлено</string>
     <string name="scheduled_ops_log_failed">Что-то пошло не так</string>
+    <string name="scheduled_ops_notif_stalled_title">Задание по расписанию не выполняется</string>
+    <string name="scheduled_ops_notif_stalled_text">%1$s - пропускается с %2$s. %3$s</string>
+    <string name="scheduled_ops_op_fill">Заполнить свободное место</string>
+    <string name="scheduled_ops_fill_confirm_title">Запланировать заполнение?</string>
+    <string name="scheduled_ops_fill_confirm_message">При каждом запуске в папку %1$s на %2$s записываются временные файлы, пока свободным не останется %3$s, затем они удаляются. Ваши файлы остаются как есть.</string>
+    <string name="scheduled_ops_fill_not_usable">Для заполнения нужна папка во встроенной памяти или на карте памяти, доступная для записи. Выберите её через «Локальная папка».</string>
+    <string name="scheduled_op_reason_fill_busy">Заполнение уже выполнялось</string>
+    <string name="scheduled_op_reason_fill_not_local">Папка не на подключённом накопителе этого телефона</string>
+    <string name="scheduled_op_reason_fill_storage_unavailable">Накопитель не подключён или недоступен для записи</string>
+    <string name="scheduled_op_reason_fill_measurement_unavailable">Не удалось измерить свободное место</string>
+    <string name="scheduled_op_reason_fill_no_free_space">Нет свободного места сверх запаса для системы</string>
+    <string name="scheduled_op_reason_fill_write_failed">Запись прервалась с ошибкой, временные файлы удалены</string>
+    <string name="scheduled_op_reason_fill_cleanup_pending">Временные файлы остались. Подключите накопитель, откройте «Заполнение накопителя» и нажмите «Удалить оставшиеся файлы»</string>
 </resources>

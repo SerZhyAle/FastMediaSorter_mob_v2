@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.core.di
 
+import com.sza.fastmediasorter.data.repository.AppCategoryRepositoryImpl
 import com.sza.fastmediasorter.data.repository.InstalledAppsRepositoryImpl
+import com.sza.fastmediasorter.domain.repository.AppCategoryRepository
 import com.sza.fastmediasorter.domain.repository.InstalledAppsRepository
 import dagger.Binds
 import dagger.Module
@@ -23,4 +25,10 @@ abstract class InstalledAppsModule {
     abstract fun bindInstalledAppsRepository(
         impl: InstalledAppsRepositoryImpl
     ): InstalledAppsRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAppCategoryRepository(
+        impl: AppCategoryRepositoryImpl
+    ): AppCategoryRepository
 }

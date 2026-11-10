@@ -257,9 +257,9 @@ data class BackupSettings(
     val launcherWallpaperMode: String = "BRANDED",
     val launcherWallpaperImagePath: String = "",
     val launcherWallpaperCameraId: String = "",
-    // S2736: matches the model default, so a backup written before the field existed restores the
+    // S4530: matches the model default, so a backup written before the field existed restores the
     // current default rather than the one it replaced.
-    val allAppsSortOrder: String = "LAUNCH_FREQUENCY",
+    val allAppsSortOrder: String = "CATEGORY",
     val allAppsSortDescending: Boolean = false,
     // S2384: a backup written before this field existed restores to the current default, not to Off.
     val launcherScreenBlackoutTimeoutSeconds: Int = AppSettings.DEFAULT_LAUNCHER_SCREEN_TIMEOUT_SECONDS,

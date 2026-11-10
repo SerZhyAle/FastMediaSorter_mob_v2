@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.core.launcher.LauncherScreenClass
 import com.sza.fastmediasorter.core.launcher.LauncherStarterSets
 import com.sza.fastmediasorter.core.launcher.LauncherStarterSets.StarterResources
 import com.sza.fastmediasorter.data.model.DeviceProfileType
+import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.networkmonitor.NetworkMonitorContract
@@ -40,6 +41,7 @@ class SubProgramCatalogCompletenessTest {
         settingsRepository = mockk<SettingsRepository>(relaxed = true),
         mediaCapabilities = mockk<MediaCapabilities>(relaxed = true),
         networkMonitorContract = mockk<NetworkMonitorContract>(relaxed = true),
+        launcherModeContract = mockk<LauncherModeContract>(relaxed = true),
         screenVideoRecordingControllers = emptySet(),
     )
 

@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.domain.delivery.BundledDeliverableSets
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.delivery.DeliverableSetContributor
+import com.sza.fastmediasorter.domain.delivery.PayloadFile
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dalvik.system.BaseDexClassLoader
 import kotlinx.coroutines.CancellationException
@@ -105,6 +106,8 @@ class DeliveredNativeLibraryLoader @Inject constructor(
             return
         }
 
+        makePayloadReadOnly(set, setDir, soFiles)
+
         // Splice the delivered directory into the classloader's native library search path so the
         // engines' own `System.loadLibrary(name)` calls resolve from filesDir.
         injectNativeLibraryDirectory(setDir)
@@ -154,6 +157,25 @@ class DeliveredNativeLibraryLoader @Inject constructor(
 
         loadedSets.add(set)
         Timber.i("DeliveredNativeLibraryLoader: attached native set %s from %s", set, setDir.absolutePath)
+    }
+
+    /**
+     * Android 17 refuses `System.load()` of a writable file for apps targeting API 37, and the refusal
+     * surfaces as the same `UnsatisfiedLinkError` this loader degrades to "incompatible" - so a writable
+     * payload would vanish silently. Runs on every load, which also converts sets installed before the
+     * rule existed without a re-download; a file that stays writable is treated as corrupt so the set is
+     * delivered again.
+     */
+    private fun makePayloadReadOnly(set: DeliverableSet, setDir: File, soFiles: List<PayloadFile>) {
+        Timber.d("S4502: making %d payload file(s) of set %s read-only", soFiles.size, set)
+        for (payloadFile in soFiles) {
+            val file = File(setDir, payloadFile.fileName)
+            file.setReadOnly()
+            if (file.canWrite()) {
+                invalidateCorruptSet(set)
+                throw DeliveredPayloadCorruptException(set, "${payloadFile.fileName} cannot be made read-only")
+            }
+        }
     }
 
     /**

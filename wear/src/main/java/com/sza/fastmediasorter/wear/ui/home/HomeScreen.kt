@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.wear.ui.home
 
 import android.graphics.Bitmap
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,6 +31,7 @@ import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.PositionIndicator
+import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.HomeSection
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionId
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
@@ -43,6 +45,7 @@ import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_UNTITLED_ANCHOR
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordance
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordanceRole
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
+import com.sza.fastmediasorter.wear.ui.common.WearScreenOffAffordance
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberCloseAppAction
 import com.sza.fastmediasorter.wear.ui.common.rememberMinimizeAppAction
@@ -178,9 +181,24 @@ fun HomeScreen(
                 .align(Alignment.CenterStart)
                 .padding(start = wearBackAffordanceInset())
         )
+        HomeSleepAffordance(minimizeApp)
         // S4011: last, so the full-screen alert is hit-tested before the affordance under it.
         HomePhoneInstallPrompts(viewModel)
     }
+}
+
+@Composable
+private fun BoxScope.HomeSleepAffordance(minimizeApp: () -> Unit) {
+    WearScreenOffAffordance(
+        onClick = {
+            Timber.d("S4532: Home sleep sends the app to the background")
+            minimizeApp()
+        },
+        modifier = Modifier
+            .align(Alignment.CenterEnd)
+            .padding(end = wearBackAffordanceInset()),
+        labelRes = R.string.wear_minimize_to_background
+    )
 }
 
 /**

@@ -4,6 +4,7 @@ import android.content.Context
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
+import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.networkmonitor.NetworkMonitorContract
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -27,6 +28,7 @@ class ResolvePanelRouteAvailabilityUseCaseTest {
     private fun useCaseFor(
         settings: AppSettings,
         wearBridge: Boolean = false,
+        launcherAvailable: Boolean = false,
     ): ResolvePanelRouteAvailabilityUseCase =
         ResolvePanelRouteAvailabilityUseCase(
             context = mockk<Context>(relaxed = true),
@@ -38,8 +40,21 @@ class ResolvePanelRouteAvailabilityUseCaseTest {
                 every { supportsWearCompanion } returns wearBridge
             },
             networkMonitorContract = mockk<NetworkMonitorContract>(relaxed = true),
+            launcherModeContract = mockk<LauncherModeContract> {
+                every { isAvailableInBuild } returns launcherAvailable
+            },
             screenVideoRecordingControllers = emptySet(),
         )
+
+    @Test
+    fun `all apps is offered only when the launcher is available`() = runBlocking {
+        val enabled = useCaseFor(AppSettings(), launcherAvailable = true)
+            .invoke(InternalRouteCatalog.KEY_ALL_APPS)
+        val disabled = useCaseFor(AppSettings(), launcherAvailable = false)
+            .invoke(InternalRouteCatalog.KEY_ALL_APPS)
+        assertTrue(enabled.isLaunchable)
+        assertFalse(disabled.availableInBuild)
+    }
 
     @Test
     fun `calculator is launchable only while its own toggle is on`() = runBlocking {

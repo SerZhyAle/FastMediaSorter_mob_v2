@@ -20,6 +20,20 @@
     "A complete shell for your Android device.",
     "Home screen, media, streams, apps, watch and files - all in one place.",
     "Fast Media Sorter &amp; Organizer takes over the home screen and becomes the place everything starts from: device shell, media player, live streams, app launching, a replacement for stock apps, a companion on the watch, device monitoring and a full file manager for local storage, SMB/NAS, SFTP/FTP and cloud drives.",
+    "Choose Your Path",
+    "Pick what you want to do first: organize files on your phone, set up a TV or tablet launcher, or connect to remote storage.",
+    "Media Sorting",
+    "Phone &amp; Tablet",
+    "Batch sort photos and videos, clean up duplicates, and organize storage with fast touch gestures.",
+    "<a href=\"documentation/getting-started/quick-tour.html\" class=\"task-card-link\">Quick tour guide</a>",
+    "Device Shell &amp; Launcher",
+    "Android TV &amp; Tablet",
+    "Set up a customized desktop, Start menu, taskbar, live gadgets, and D-pad remote navigation.",
+    "<a href=\"documentation/launcher/desktop-grid-and-icons.html\" class=\"task-card-link\">Desktop setup guide</a>",
+    "Remote &amp; Network Storage",
+    "NAS, SMB &amp; Cloud",
+    "Stream and manage files directly across Samba shares, SFTP/FTP servers, and cloud drives.",
+    "<a href=\"documentation/network/smb-samba-shares.html\" class=\"task-card-link\">SMB shares guide</a>",
     "Usage Scenarios",
     "Each block starts with a quick answer and opens into practical detail when you need the setup path.",
     "Home Screen Replacement (Launcher)",
@@ -182,7 +196,7 @@
     "<a href=\"documentation/storage/file-copy-move-delete.html\" class=\"card-footer\" target=\"_blank\">Open recipe</a>",
     "Get started",
     "Switching the home screen is reversible: leave launcher mode whenever you want and the previous home screen comes back. Files do not change until you choose Copy or Move.",
-    "<a class=\"btn btn-primary\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter\" target=\"_blank\" rel=\"noopener\">Google Play</a> <a class=\"btn btn-ghost\" href=\"https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest\" target=\"_blank\" rel=\"noopener\">GitHub Releases</a> <a class=\"btn btn-ghost\" href=\"https://apt.izzysoft.de/fdroid/index/apk/com.sza.fastmediasorter\" target=\"_blank\" rel=\"noopener\">IzzyOnDroid</a>",
+    "<a class=\"btn btn-primary\" href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter\" target=\"_blank\" rel=\"noopener\">Google Play</a> <a class=\"btn btn-ghost\" href=\"https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest\" target=\"_blank\" rel=\"noopener\">GitHub Releases</a> <a class=\"btn btn-ghost\" href=\"#download\">Direct APK</a>",
     "<a href=\"#download\">See APK editions and the watch face</a>",
     "Editions: <a href=\"#download\">Lite</a> · <a href=\"#download\">Photos</a> · <a href=\"#download\">Legacy</a> · <a href=\"nolegal.html\">noLegal</a> · <a href=\"documentation/vr/spatial-cinema-playback.html\">VR</a> · <a href=\"docs/wear/\">Wear OS</a> · <a href=\"https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface\" target=\"_blank\" rel=\"noopener\">Watch Face</a>",
     "Install a suitable edition and open the app.",
@@ -386,6 +400,8 @@
     "Description.."
   ],
   "js": [
+    "Switch to light theme",
+    "Switch to dark theme",
     "Shell & launching",
     "Media & streams",
     "Tools & monitoring",
@@ -426,8 +442,6 @@
     "Standard / VR",
     "Empty feature inventory",
     "<div style=\"grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 3rem 0;\">Failed to load feature inventory. Please refresh the page.</div>",
-    "Retry",
-    "Switch to light theme",
-    "Switch to dark theme"
+    "Retry"
   ]
 }

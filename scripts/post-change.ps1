@@ -1164,6 +1164,7 @@ $argvActivityLocaleWrapper = @('-NoProfile', '-File', (Join-Path $root "scripts/
 if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvActivityLocaleWrapper += @('-ChangedFiles', ($changedFiles -join ',')) }
 $argvQuantityFormatSeam = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-quantity-format-seam.ps1"), '-Gate')
 if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvQuantityFormatSeam += @('-ChangedFiles', ($changedFiles -join ',')) }
+$argvAllFeatures = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-allfeatures-sync.ps1"), '-Gate')
 # Argument vectors of the doc/config/wear-wire gate family live in this lib - extracted to hold
 # the facade under the Rule 2 ceiling. Dot-sourcing lands every vector in this scope; $root,
 # $ScopeToFile and $changedFiles are set by the time this runs.

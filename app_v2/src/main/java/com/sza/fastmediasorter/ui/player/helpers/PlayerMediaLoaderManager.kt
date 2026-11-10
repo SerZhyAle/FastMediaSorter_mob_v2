@@ -215,6 +215,10 @@ class PlayerMediaLoaderManager(
 
     private val stereoDetector = com.sza.fastmediasorter.ui.player.StereoDetector()
 
+    // S4507: the Photo Sphere scan reads the file, so detection runs on IO and the image shows after it.
+    // At most one is pending: a newer image, a video or a text cancels it.
+    private var imageDisplayJob: Job? = null
+
     /** Delegates to ImageLoadingManager; runs still-image stereo detection first so 3D/spherical images get correct crop/XR layer and the 3D tab reflects the mode. */
     fun displayImage(path: String) {
         Timber.d("PlayerMediaLoaderManager.displayImage: path=$path")
@@ -222,14 +226,27 @@ class PlayerMediaLoaderManager(
         val currentFile = viewModel.state.value.currentFile
         viewModel.resetStereoModeForNewFile(path)
 
-        val detected = stereoDetector.detectForImage(
-            path = path,
-            width = currentFile?.width,
-            height = currentFile?.height,
-            config = activity.currentSettings?.let(StereoDetectionConfig::from)
-                ?: StereoDetectionConfig.ALL_ENABLED,
-        )
+        val width = currentFile?.width
+        val height = currentFile?.height
+        val config = activity.currentSettings?.let(StereoDetectionConfig::from)
+            ?: StereoDetectionConfig.ALL_ENABLED
 
+        imageDisplayJob?.cancel()
+        imageDisplayJob = lifecycleScope.launch {
+            Timber.d("S4507: image stereo detection off-main path=$path")
+            val detected = withContext(Dispatchers.IO) {
+                stereoDetector.detectForImage(path = path, width = width, height = height, config = config)
+            }
+            // The player may have moved to another file while the scan ran, and only some of the paths
+            // that leave an image cancel this job: a PDF or an EPUB goes through other managers.
+            val nowCurrent = viewModel.state.value.currentFile
+            if (nowCurrent == null || nowCurrent.path == path) {
+                showDetectedImage(path, detected)
+            }
+        }
+    }
+
+    private fun showDetectedImage(path: String, detected: com.sza.fastmediasorter.domain.model.StereoMode) {
         // Propagate to ViewModel so the 3D tab reflects the current mode and the vr-flavor OpenXR
         // renderer (DiagnosticXrRuntime) picks it up via the stereoMode flow.
         if (detected != com.sza.fastmediasorter.domain.model.StereoMode.UNKNOWN &&
@@ -253,6 +270,7 @@ class PlayerMediaLoaderManager(
 
     /** Display text file (delegates to TextViewerManager) */
     fun displayText(mediaFile: MediaFile) {
+        imageDisplayJob?.cancel()
         val resource = viewModel.state.value.resource
         Timber.d("PlayerMediaLoaderManager.displayText: file=${mediaFile.name}")
         imageLoadingManager.hideAnimatedBadge()
@@ -262,6 +280,7 @@ class PlayerMediaLoaderManager(
 
     /** Play video or audio file with comprehensive media type routing */
     fun playVideo(path: String) {
+        imageDisplayJob?.cancel()
         if (decoderFailureTracker.isInCooldown(path)) {
             val remainingSec = (decoderFailureTracker.cooldownRemainingMs(path) / 1000L).toInt()
             handleCooldownReentry(path, remainingSec)

@@ -71,6 +71,7 @@ import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarPlacementManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTrayManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherWallpaperManager
+import com.sza.fastmediasorter.ui.launcher.helpers.resolveDesktopSwipeAction
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayCallbacks
 import com.sza.fastmediasorter.ui.main.helpers.ResourceVrCinemaLaunchManager
 import com.sza.fastmediasorter.ui.player.helpers.BlackScreenOverlayManager
@@ -86,6 +87,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.lang.ref.WeakReference
 import javax.inject.Inject
 
@@ -273,6 +275,8 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     private val screenLockManager by lazy {
         LauncherScreenLockManager(gestureAccessibilityActions, ::showBlackScreen)
     }
+
+    internal fun lockScreen(): Boolean = screenLockManager.turnScreenOff()
 
     // S1560: one overlay per Activity, built on the first black-screen tap - a fresh manager per tap
     // would leak the previous overlay view on the decor view instead of reusing its hide path.
@@ -574,6 +578,7 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             onNextScreen = { pagingManager.next() },
             onPreviousScreen = { pagingManager.previous() },
             onBlackScreen = ::showBlackScreen,
+            onLockScreen = { screenLockManager.turnScreenOff() },
         )
         val desktopBounds = android.graphics.Rect()
         desktopGestureManager = LauncherAllAppsGestureManager(
@@ -603,10 +608,6 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                         LauncherAllAppsGestureManager.DesktopSwipeDirection.RIGHT ->
                             settings.launcherDesktopSwipeRightAction to settings.launcherDesktopSwipeRightPayload
                     }
-                    val isLeftRight = direction == LauncherAllAppsGestureManager.DesktopSwipeDirection.LEFT ||
-                        direction == LauncherAllAppsGestureManager.DesktopSwipeDirection.RIGHT
-                    val isUnassigned = action is LauncherDesktopSwipeAction.EdgeGestureAction &&
-                        action.action == ScreenshotGestureAction.DO_NOT_USE
                     val routedAction = if (startedOnRightHalf && isNotificationShadeDownSwipe(direction, action)) {
                         LauncherDesktopSwipeAction.EdgeGestureAction(
                             ScreenshotGestureAction.OPEN_QUICK_SETTINGS,
@@ -614,16 +615,14 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                     } else {
                         action
                     }
-                    val isLeft = direction == LauncherAllAppsGestureManager.DesktopSwipeDirection.LEFT
-                    val screenCount = settings.launcherScreenCount
-                    // The pre-S2301 default: an unassigned horizontal swipe still pages, so a desktop
-                    // nobody configured keeps the behaviour it shipped with. Every assigned action,
-                    // paging included, goes through the handler.
-                    if (isLeftRight && isUnassigned && screenCount > SINGLE_SCREEN) {
-                        if (isLeft) pagingManager.next() else pagingManager.previous()
-                    } else {
-                        swipeActionHandler.handle(routedAction, payload)
-                    }
+                    val resolvedAction = resolveDesktopSwipeAction(
+                        direction,
+                        pagingManager.activeScreenIndex,
+                        settings.launcherScreenCount,
+                        routedAction,
+                    )
+                    Timber.d("S4526: swipe $direction -> $resolvedAction")
+                    swipeActionHandler.handle(resolvedAction, payload)
                 }
             },
             onDoubleTap = {
@@ -1181,6 +1180,5 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
     companion object {
         // S2301: a desktop of one screen has nothing to page to.
-        private const val SINGLE_SCREEN = 1
     }
 }

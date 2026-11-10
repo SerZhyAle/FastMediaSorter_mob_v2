@@ -305,9 +305,15 @@ $catalogJs = [System.Collections.Generic.List[string]]::new()
 $seenText = [System.Collections.Generic.Dictionary[string, int]]::new([System.StringComparer]::Ordinal)
 $seenJs = [System.Collections.Generic.Dictionary[string, int]]::new([System.StringComparer]::Ordinal)
 $sourceRendered = Set-Regions $source $enLang 'Languages'
+$explorerSource = [System.IO.File]::ReadAllText((Join-Path $Root 'assets/feature-explorer-en.js'), $utf8) -replace "`r`n", "`n"
+$explorerWrapped = "<script>`n$explorerSource`n</script>"
 $null = Convert-Page $sourceRendered `
     { param($k) if (-not $seenText.ContainsKey($k)) { $seenText[$k] = 1; $catalogText.Add($k) }; $null } `
     { param($k) if ($k -match '\p{L}' -and -not $seenText.ContainsKey($k)) { $seenText[$k] = 1; $catalogText.Add($k) }; $null } `
+    { param($v, $before) if ((Test-JsCandidate $before $v) -and -not $seenJs.ContainsKey($v)) { $seenJs[$v] = 1; $catalogJs.Add($v) }; $null }
+$null = Convert-Page $explorerWrapped `
+    { param($k) $null } `
+    { param($k) $null } `
     { param($v, $before) if ((Test-JsCandidate $before $v) -and -not $seenJs.ContainsKey($v)) { $seenJs[$v] = 1; $catalogJs.Add($v) }; $null }
 
 if ($Extract) {
@@ -364,6 +370,15 @@ foreach ($lang in $present) {
         { param($k) if ($text.ContainsKey($k)) { $text[$k] } else { $null } } `
         { param($k) if ($text.ContainsKey($k)) { $text[$k] } else { $null } } `
         { param($v, $before) if ($js.ContainsKey($v)) { $js[$v] } else { $null } }
+
+    $localizedExplorer = Convert-Page $explorerWrapped `
+        { param($k) $null } `
+        { param($k) $null } `
+        { param($v, $before) if ($js.ContainsKey($v)) { $js[$v] } else { $null } }
+    $localizedExplorer = $localizedExplorer.Substring(9, $localizedExplorer.Length - 19)
+    $explorerFile = "assets/feature-explorer-$($lang.slug).js"
+    $expected[$explorerFile] = $localizedExplorer
+    $html = $html.Replace('assets/feature-explorer-en.js', $explorerFile)
 
     $url = Get-PageUrl $lang
     $html = $html.Replace('<html lang="en">', "<html lang=`"$($lang.code)`" dir=`"$($lang.dir)`">")

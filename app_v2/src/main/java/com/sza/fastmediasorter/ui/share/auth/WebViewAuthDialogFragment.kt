@@ -26,6 +26,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.log.LinkDownloadTrace
+import com.sza.fastmediasorter.data.link.auth.AccountIdentityExtractor
 import com.sza.fastmediasorter.data.link.auth.AccountNameHintExtractor
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
@@ -252,7 +253,10 @@ class WebViewAuthDialogFragment : DialogFragment() {
             return
         }
         val cookies = currentCookies()
-        if (cookies.isEmpty()) {
+        Timber.d("S4505: save pressed host=$targetHost cookieNames=${cookies.map { it.name }}")
+        // The Enter key reaches this path without going through the Save button, so the sign-in
+        // check is repeated here instead of trusting the button's enabled state.
+        if (!AccountIdentityExtractor.hasSignedInCookies(targetHost, cookies)) {
             refreshSaveButtonState()
             view?.let {
                 Snackbar.make(it, R.string.s0140_webview_auth_sign_in_first, Snackbar.LENGTH_LONG).show()
@@ -330,8 +334,7 @@ class WebViewAuthDialogFragment : DialogFragment() {
     }
 
     private fun refreshSaveButtonState() {
-        val cookieCount = currentCookies().size
-        saveButton?.isEnabled = cookieCount > 0
+        saveButton?.isEnabled = AccountIdentityExtractor.hasSignedInCookies(targetHost, currentCookies())
     }
 
     private fun currentCookies(): List<HttpCookie> {

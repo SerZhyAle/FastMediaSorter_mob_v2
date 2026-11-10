@@ -122,8 +122,8 @@ data class LauncherSettings(
     val wallpaperParticleDensity: Float = AppSettings.DEFAULT_LAUNCHER_WALLPAPER_PARTICLE_DENSITY,
     // S1401: the all-apps screen's chosen order, stored as an [InstalledAppSortOrder] name rather than
     // an ordinal so reordering the enum later cannot silently repoint a saved preference.
-    // S2736: the owner's default, so the list opens on what he actually launches.
-    val allAppsSortOrder: String = InstalledAppSortOrder.LAUNCH_FREQUENCY.name,
+    // S4530: category groups are the default; a stored order, S2736's included, is never rewritten.
+    val allAppsSortOrder: String = InstalledAppSortOrder.CATEGORY.name,
     val allAppsSortDescending: Boolean = false,
     // S1741/S2384: idle seconds before the launcher turns the screen off (0 = Off, on by default).
     val screenBlackoutTimeoutSeconds: Int = AppSettings.DEFAULT_LAUNCHER_SCREEN_TIMEOUT_SECONDS,

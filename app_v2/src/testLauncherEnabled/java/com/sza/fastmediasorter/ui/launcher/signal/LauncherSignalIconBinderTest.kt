@@ -9,6 +9,7 @@ import android.view.ContextThemeWrapper
 import android.widget.ImageView
 import com.sza.fastmediasorter.R
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
@@ -81,6 +82,36 @@ class LauncherSignalIconBinderTest {
             RuntimeEnvironment.getApplication(),
             LauncherSignalIcon.Application(MISSING_PACKAGE, R.drawable.ic_apps, applicationInfo = info),
         )
+
+        assertTrue(resolved is LauncherSignalIconBinder.Resolved.FromDrawable)
+    }
+
+    /**
+     * S4507: without an install directory an uninstall and a reinstall under one name cannot be told apart,
+     * so such an icon is never held in the warm cache.
+     */
+    @Test
+    fun `warm refuses an application info that names no install directory`() {
+        val info = ApplicationInfo().apply { packageName = MISSING_PACKAGE }
+
+        val cached = LauncherSignalIconBinder.warm(
+            RuntimeEnvironment.getApplication(),
+            LauncherSignalIcon.Application(MISSING_PACKAGE, R.drawable.ic_apps, applicationInfo = info),
+        )
+
+        assertFalse(cached)
+    }
+
+    @Test
+    fun `an icon resolved after a warm-up still draws a drawable`() {
+        val info = ApplicationInfo().apply {
+            packageName = MISSING_PACKAGE
+            sourceDir = "/data/app/s4507/base.apk"
+        }
+        val icon = LauncherSignalIcon.Application(MISSING_PACKAGE, R.drawable.ic_apps, applicationInfo = info)
+
+        LauncherSignalIconBinder.warm(RuntimeEnvironment.getApplication(), icon)
+        val resolved = LauncherSignalIconBinder.resolve(RuntimeEnvironment.getApplication(), icon)
 
         assertTrue(resolved is LauncherSignalIconBinder.Resolved.FromDrawable)
     }

@@ -207,7 +207,6 @@
     <!-- B2: Generic network error messages for NetworkErrorMessageMapper -->
     <string name="error_network_timeout">Соединение истекло. Проверьте сеть и повторите попытку.</string>
     <!-- S1014: shown when a companion/SFTP shared folder cannot be reached on any address. -->
-    <string name="error_companion_connect_guidance">Не удалось подключиться к общей папке. В той же сети Wi-Fi, что и ПК, она подключается сама; из другой сети ПК должен быть доступен - настройте проброс порта на роутере или доступ из интернета в приложении-компаньоне.</string>
     <string name="error_network_access_denied">Доступ запрещён. Проверьте учётные данные.</string>
     <string name="error_network_not_found">Файл или ресурс не найден.</string>
     <string name="error_network_connection_lost">Соединения нет.</string>
@@ -4579,4 +4578,45 @@
     <string name="sort_short_random">Случайно</string>
     <string name="browse_title_selected_count">выбрано: %1$d</string>
     <string name="browse_breadcrumb_root">Корень</string>
+    <string name="settings_sftp_server_failure_local_network">Серверу нужен доступ к устройствам в локальной сети - разрешите его и включите сервер снова</string>
+    <string name="error_companion_unreachable">Не удалось подключиться к общей папке на ПК по сохранённому адресу. Проверьте, что приложение-компаньон на ПК запущено и открывает доступ к этой папке. Из другой сети ПК должен быть доступен - настройте проброс порта на роутере или доступ из интернета в приложении-компаньоне.</string>
+    <string name="error_companion_channel_local_network">Если адрес ПК изменился, приложение не найдёт его в этой сети Wi-Fi: доступ к устройствам локальной сети не разрешён. Разрешите его в разрешениях приложения.</string>
+    <string name="error_companion_channel_drive">Текущий адрес ПК не удаётся получить через Google Диск: доступ приложения к Google Диску нужно выдать заново. Войдите в Google Диск в настройках.</string>
+    <string name="error_companion_share_missing">Сервер ответил, но этой общей папки на нём нет. Если её открывает приложение-компаньон на ПК, проверьте, что оно запущено и по-прежнему открывает доступ к этой папке. Если папку переименовали, отсканируйте код компаньона заново в разделе добавления ресурса, чтобы добавить её.</string>
+    <string name="launcher_desktop_swipe_action_switch_screens">Переключение экранов</string>
+    <string name="exchange_standard_settings_title">Обмен эталонными настройками</string>
+    <string name="exchange_standard_settings_summary">Синхронизация профиля настроек с сервером обмена</string>
+    <string name="exchange_standard_settings_save_btn">Сохранить как STANDARD</string>
+    <string name="exchange_standard_settings_read_btn">Загрузить STANDARD</string>
+    <string name="exchange_standard_settings_groups_header">Группы настроек для обмена</string>
+    <string name="exchange_standard_settings_group_general">Общие настройки</string>
+    <string name="exchange_standard_settings_group_appearance">Внешний вид и оформление</string>
+    <string name="exchange_standard_settings_group_playback">Параметры воспроизведения</string>
+    <string name="exchange_standard_settings_group_shortcuts">Горячие клавиши и управление</string>
+    <string name="exchange_standard_settings_group_behavior">Поведение приложения и функции</string>
+    <string name="exchange_standard_settings_save_success">Эталонные настройки сохранены на сервере обмена</string>
+    <string name="exchange_standard_settings_read_success">Эталонные настройки применены с сервера обмена</string>
+    <string name="tourist_unit_mbar">мбар</string>
+    <string name="tourist_detail_magnetic_pressure">%1$s • %2$s %3$s</string>
+    <string name="launcher_app_action_set_category">Выбрать категорию..</string>
+    <string name="launcher_app_category_dialog_title">Категории для %1$s</string>
+    <string name="launcher_app_category_new">Новая категория..</string>
+    <string name="launcher_app_category_new_hint">Название категории</string>
+    <string name="launcher_app_category_unknown">Неизвестные</string>
+    <string name="launcher_app_category_save_failed">Не удалось сохранить категории. Попробуйте ещё раз.</string>
+    <string name="launcher_app_category_reorder_title">Перемещение: %1$s</string>
+    <string name="launcher_app_category_move_up">Выше</string>
+    <string name="launcher_app_category_move_down">Ниже</string>
+    <string name="launcher_app_category_reorder_done">Готово</string>
+    <string name="launcher_app_category_reorder_hint">Удерживайте заголовок категории, чтобы изменить порядок</string>
+    <string name="launcher_app_category_game">Игры</string>
+    <string name="launcher_app_category_audio">Музыка и аудио</string>
+    <string name="launcher_app_category_video">Видео</string>
+    <string name="launcher_app_category_image">Фото и изображения</string>
+    <string name="launcher_app_category_social">Общение</string>
+    <string name="launcher_app_category_news">Новости</string>
+    <string name="launcher_app_category_maps">Карты и поездки</string>
+    <string name="launcher_app_category_productivity">Работа и продуктивность</string>
+    <string name="launcher_app_category_accessibility">Специальные возможности</string>
+    <string name="exchange_devices_menu_standard_settings">Эталонные настройки</string>
 </resources>

@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.core.coordinator.RemoteSourceDisableCoordinator
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.playback.RadioStreamBufferConfig
 import com.sza.fastmediasorter.core.util.CacheStatusHelper
+import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.input.DefaultsMapLoader
 import com.sza.fastmediasorter.data.input.InputBindingRepository
@@ -229,6 +230,15 @@ class AppStartupInitializer @Inject constructor(
                     false
                 }
                 Timber.i("%-40s = %s", "MANAGE_MEDIA", canManage)
+            }
+
+            // Below API 37 the permission does not exist and the grant is implicit, so no row.
+            if (PermissionHelper.isLocalNetworkRuntimePermissionExpected()) {
+                Timber.i(
+                    "%-40s = %s",
+                    "ACCESS_LOCAL_NETWORK",
+                    PermissionHelper.hasLocalNetworkPermission(context)
+                )
             }
 
             // Normal permissions

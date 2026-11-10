@@ -175,6 +175,16 @@ class TouristTileValueFormatter(
         string(R.string.tourist_unit_microtesla),
     )
 
+    /**
+     * S4525: raw barometer readout for the magnetic-field panel - mbar equals hPa one-to-one, and the
+     * owner asked for mbar on that panel specifically, so there is no imperial switch here, as with
+     * [microtesla]; the Pressure tile keeps its own ADR-4 scale.
+     */
+    fun millibars(hectopascals: Float?): TileValue = TileValue(
+        hectopascals?.let { decimal(it.toDouble(), NO_DECIMALS) } ?: NO_VALUE,
+        string(R.string.tourist_unit_mbar),
+    )
+
     fun cadence(stepsPerMinute: Int?): TileValue =
         TileValue(stepsPerMinute?.toString() ?: NO_VALUE, string(R.string.tourist_unit_steps_per_minute))
 

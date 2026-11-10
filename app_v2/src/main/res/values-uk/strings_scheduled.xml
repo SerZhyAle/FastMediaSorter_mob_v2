@@ -127,4 +127,17 @@
     <string name="scheduled_op_reason_source_deleted">Джерело видалено, розклад призупинено</string>
     <string name="scheduled_op_reason_target_deleted">Призначення видалено, розклад призупинено</string>
     <string name="scheduled_ops_log_failed">Щось пішло не так</string>
+    <string name="scheduled_ops_notif_stalled_title">Завдання за розкладом не виконується</string>
+    <string name="scheduled_ops_notif_stalled_text">%1$s - пропускається з %2$s. %3$s</string>
+    <string name="scheduled_ops_op_fill">Заповнити вільне місце</string>
+    <string name="scheduled_ops_fill_confirm_title">Запланувати заповнення?</string>
+    <string name="scheduled_ops_fill_confirm_message">Під час кожного запуску в теку %1$s на %2$s записуються тимчасові файли, доки вільним не залишиться %3$s, потім вони видаляються. Ваші файли залишаються як є.</string>
+    <string name="scheduled_ops_fill_not_usable">Для заповнення потрібна тека у вбудованій пам\'яті або на картці пам\'яті, доступна для запису. Виберіть її через «Локальна папка».</string>
+    <string name="scheduled_op_reason_fill_busy">Заповнення вже виконувалося</string>
+    <string name="scheduled_op_reason_fill_not_local">Тека не на підключеному накопичувачі цього телефона</string>
+    <string name="scheduled_op_reason_fill_storage_unavailable">Накопичувач не підключено або він недоступний для запису</string>
+    <string name="scheduled_op_reason_fill_measurement_unavailable">Не вдалося виміряти вільне місце</string>
+    <string name="scheduled_op_reason_fill_no_free_space">Немає вільного місця понад запас для системи</string>
+    <string name="scheduled_op_reason_fill_write_failed">Запис перервався з помилкою, тимчасові файли видалено</string>
+    <string name="scheduled_op_reason_fill_cleanup_pending">Тимчасові файли залишилися. Підключіть накопичувач, відкрийте «Заповнення накопичувача» й натисніть «Видалити залишені файли»</string>
 </resources>

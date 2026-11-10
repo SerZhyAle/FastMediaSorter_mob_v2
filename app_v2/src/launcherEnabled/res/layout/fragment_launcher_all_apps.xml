@@ -76,6 +76,66 @@
 
     </LinearLayout>
 
+    <!-- S4530: shown only while a category is being moved; the moved group is highlighted in the grid. -->
+    <LinearLayout
+        android:id="@+id/allAppsReorderBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingTop="@dimen/margin_small"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/allAppsReorderTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:accessibilityLiveRegion="polite"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="?attr/colorOnSurface"
+            tools:text="Moving Games" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/allAppsReorderUp"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:nextFocusRight="@id/allAppsReorderDown"
+            android:nextFocusDown="@id/allAppsGrid"
+            android:text="@string/launcher_app_category_move_up" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/allAppsReorderDown"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:nextFocusLeft="@id/allAppsReorderUp"
+            android:nextFocusRight="@id/allAppsReorderDone"
+            android:nextFocusDown="@id/allAppsGrid"
+            android:text="@string/launcher_app_category_move_down" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/allAppsReorderDone"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:nextFocusLeft="@id/allAppsReorderDown"
+            android:nextFocusDown="@id/allAppsGrid"
+            android:text="@string/launcher_app_category_reorder_done" />
+
+    </LinearLayout>
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"

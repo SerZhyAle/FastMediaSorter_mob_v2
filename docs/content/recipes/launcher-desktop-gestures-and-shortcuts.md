@@ -68,7 +68,7 @@ steps:
     id: all-apps-and-paging
     title: Reach All apps or turn the page with a gesture
     text: |
-      Assign **All apps** to a gesture slot the same way as any other action, and it brings the running desktop forward with the list already open, instead of starting a second copy. The desktop's own four swipes - set up in the **Gestures** group of the launcher settings - can do the same, plus **Next screen** and **Previous screen** for paging between desktop screens, and in edit mode you can tap a shortcut and send it straight to another screen. Both are covered in full in [Arranging the desktop](page:launcher.desktop-folders-and-pages).
+      Assign **All apps** to a gesture slot the same way as any other action, and it brings the running desktop forward with the list already open, instead of starting a second copy. The desktop's own four swipes - set up in the **Gestures** group of the launcher settings - can do the same, plus **Next screen** and **Previous screen** for paging between desktop screens - left and right turn the page first and run their own action only on the last or the first screen - and in edit mode you can tap a shortcut and send it straight to another screen. Both are covered in full in [Arranging the desktop](page:launcher.desktop-folders-and-pages).
   - number: 7
     id: clock-gestures
     title: Swipe the clock to change how it looks
@@ -111,6 +111,6 @@ next_recipes:
     description: The Start button, recent and pinned apps and the status tray.
 ---
 
-<sub class="doc-stamp">26.10.07 01:10</sub>
+<sub class="doc-stamp">26.11.10 13:31</sub>
 
 An [edge gesture](term:edge-gesture) works from inside any app, and the [launcher](term:launcher) [desktop](term:desktop) adds its own swipes and taps on top. This page covers setting up both, plus the small gestures on the Clock gadget and the double tap that locks the screen.

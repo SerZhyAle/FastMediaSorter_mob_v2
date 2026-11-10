@@ -5,6 +5,7 @@ import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
 import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.util.InputStreamExt.readAtMost
+import com.sza.fastmediasorter.core.util.PermissionHelper
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
@@ -71,6 +72,9 @@ class RouterWanAddressDataSource @Inject constructor(
 ) {
 
     suspend fun resolve(): RouterWanAddress = withContext(ioDispatcher) {
+        // NAT-PMP and SSDP are LAN traffic; on Android 17 without the grant the sockets are refused, and the
+        // router address is an optional extra, so it is simply absent rather than an error.
+        if (!PermissionHelper.hasLocalNetworkPermission(context)) return@withContext RouterWanAddress.Unanswered
         val natPmp = defaultGateway()?.let { queryNatPmp(it) }
         val upnp = if (natPmp == null) queryUpnp() else null
         when {

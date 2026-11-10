@@ -5,6 +5,7 @@ import androidx.annotation.StringRes
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.remote.sftp.SftpFailureCategory
 import com.sza.fastmediasorter.data.remote.sftp.SftpOperationFailure
+import java.net.ConnectException
 
 /**
  * Resolves a Browse-screen scan/load [Throwable] to a user-facing, resource-backed message.
@@ -36,6 +37,29 @@ object BrowseFriendlyErrorResolver {
     fun peerUnreachableMessage(context: Context, throwable: Throwable): String? =
         (NetworkErrorClassifier.classifySilently(throwable) as? NetworkPeerUnreachableException)
             ?.let { context.getString(NetworkErrorMessageMapper.toMessageRes(it)) }
+
+    /**
+     * True when the connection itself failed - refused, no route to the host or a timeout - so no server
+     * answered. A refused or unroutable connect carries its cause only in the text on some platforms
+     * ("EHOSTUNREACH (No route to host)"), which neither the timeout nor the "Connection" marker matches.
+     */
+    fun isConnectivityFailure(throwable: Throwable): Boolean {
+        val msg = throwable.message.orEmpty()
+        return throwable is ConnectException ||
+            msg.contains("timeout", ignoreCase = true) ||
+            msg.contains("timed out", ignoreCase = true) ||
+            msg.contains("unreachable", ignoreCase = true) ||
+            msg.contains("Connection", ignoreCase = true) ||
+            msg.contains("EHOSTUNREACH", ignoreCase = true) ||
+            msg.contains("No route to host", ignoreCase = true)
+    }
+
+    /**
+     * True when an SFTP server answered that the path does not exist: the connection works, so connectivity
+     * advice would be wrong. Read from the protocol status, because the server's own text is localized.
+     */
+    fun isServerNotFound(throwable: Throwable): Boolean =
+        SftpOperationFailure.fromThrowable(throwable).category == SftpFailureCategory.NOT_FOUND
 
     @StringRes
     fun resolveRes(throwable: Throwable): Int {

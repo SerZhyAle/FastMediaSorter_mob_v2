@@ -27,6 +27,15 @@ enum class ScheduledRunReason {
 
     /** The target resource row is gone; paused for the same reason as [SOURCE_DELETED]. */
     TARGET_DELETED,
+
+    // S4522: storage filler outcomes of a FILL_FREE_SPACE run.
+    FILL_BUSY,
+    FILL_NOT_LOCAL,
+    FILL_STORAGE_UNAVAILABLE,
+    FILL_MEASUREMENT_UNAVAILABLE,
+    FILL_NO_FREE_SPACE,
+    FILL_WRITE_FAILED,
+    FILL_CLEANUP_PENDING,
     ;
 
     companion object {

@@ -25,8 +25,14 @@
     snapshot that still fails records HEAD plus a `fallback-to-HEAD` marker and says "fallback to
     HEAD" on its own line - at record time and again in every judging run. A missing, unreadable
     or pruned snapshot is NOT a refusal either: the run falls back to HEAD and says so.
-    Limitation: untracked files are not recorded, so a sibling's brand-new file still reads as new
-    to this ticket.
+    S4520: the snapshot also records untracked, non-ignored files (`git add -A --ignore-errors` on
+    the same private index). "New" means absent from the snapshot, so a file that already existed
+    untracked when the baseline was taken is an edit, not a creation, and a file the ticket creates
+    afterwards is still new. Before this, `git cat-file -e <snapshot>:<path>` failed for every
+    untracked file and a Trivial ticket editing one was escalated for creating nothing. A path
+    untracked in the real index cannot be diffed against the snapshot directly (git reports it as
+    deleted), so its added lines are read through a private index that holds it intent-to-add. A
+    snapshot recorded before S4520, or the HEAD fallback, still reads an untracked file as new.
 
     S3515: a path the document registry (docs/DOCUMENT_REGISTRY.jsonl under -RepoRoot) marks
     `generated` is not judged at all - neither counted toward maxFiles nor tested as new. A
@@ -116,34 +122,64 @@ function Get-BaselinePath([string]$Ticket) {
 }
 $HeadFallbackMarker = 'fallback-to-HEAD'
 
-# S3872: `git stash create` refused a work tree whose index stat was stale ("not uptodate. Cannot
-# merge") and the old code then recorded HEAD silently. A private copy of the index is refreshed and
-# staged instead: the real index and the work tree are never written, and a failure is reported.
-function New-WorkTreeSnapshot([string]$Parent) {
+# Runs $Body with GIT_INDEX_FILE pointing at a private copy of the real index, so nothing the body
+# stages reaches the real index or the work tree. Returns @{ Ok; Reason; Value }; Value is what the
+# body returned.
+function Invoke-WithPrivateIndex([scriptblock]$Body) {
     $indexPath = "$(& git -C $RepoRoot rev-parse --git-path index 2> $null)".Trim()
-    if (-not $indexPath) { return @{ Sha = ''; Reason = 'git rev-parse --git-path index failed' } }
+    if (-not $indexPath) { return @{ Ok = $false; Reason = 'git rev-parse --git-path index failed'; Value = $null } }
     if (-not [System.IO.Path]::IsPathRooted($indexPath)) { $indexPath = Join-Path $RepoRoot $indexPath }
-    if (-not (Test-Path -LiteralPath $indexPath)) { return @{ Sha = ''; Reason = "no index at $indexPath" } }
+    if (-not (Test-Path -LiteralPath $indexPath)) { return @{ Ok = $false; Reason = "no index at $indexPath"; Value = $null } }
     $tempIndex = Join-Path ([System.IO.Path]::GetTempPath()) "trivial-scope-index-$PID-$([guid]::NewGuid().ToString('N'))"
     $previousIndex = $env:GIT_INDEX_FILE
     try {
         Copy-Item -LiteralPath $indexPath -Destination $tempIndex -Force
         $env:GIT_INDEX_FILE = $tempIndex
-        # `add -u` stages tracked edits and deletions only, matching what `stash create` recorded.
-        $addOut = & git -C $RepoRoot add -u 2>&1 | Out-String
-        if ($LASTEXITCODE -ne 0) { return @{ Sha = ''; Reason = "git add -u on a private index: $($addOut.Trim())" } }
-        $tree = "$(& git -C $RepoRoot write-tree 2> $null)".Trim()
-        if (-not $tree) { return @{ Sha = ''; Reason = 'git write-tree on a private index failed' } }
-        $sha = "$(& git -C $RepoRoot -c user.name=trivial-scope -c user.email=trivial-scope@localhost commit-tree $tree -p $Parent -m "trivial-scope baseline $Id" 2> $null)".Trim()
-        if (-not $sha) { return @{ Sha = ''; Reason = 'git commit-tree failed' } }
-        return @{ Sha = $sha; Reason = '' }
+        return @{ Ok = $true; Reason = ''; Value = (& $Body) }
     }
-    catch { return @{ Sha = ''; Reason = $_.Exception.Message } }
+    catch { return @{ Ok = $false; Reason = $_.Exception.Message; Value = $null } }
     finally {
         if ($null -eq $previousIndex) { Remove-Item Env:GIT_INDEX_FILE -ErrorAction SilentlyContinue }
         else { $env:GIT_INDEX_FILE = $previousIndex }
         Remove-Item -LiteralPath $tempIndex -Force -ErrorAction SilentlyContinue
     }
+}
+
+# S3872: `git stash create` refused a work tree whose index stat was stale ("not uptodate. Cannot
+# merge") and the old code then recorded HEAD silently. A private copy of the index is refreshed and
+# staged instead: the real index and the work tree are never written, and a failure is reported.
+# S4520: untracked files are staged too, so "absent from the snapshot" means "created after it".
+function New-WorkTreeSnapshot([string]$Parent) {
+    $built = Invoke-WithPrivateIndex {
+        $addOut = & git -C $RepoRoot add -u 2>&1 | Out-String
+        if ($LASTEXITCODE -ne 0) { return @{ Sha = ''; Reason = "git add -u on a private index: $($addOut.Trim())"; Note = '' } }
+        # --ignore-errors keeps one unreadable file from discarding the whole snapshot; the exit code
+        # then only decides whether the untracked half is complete, and the gap is reported.
+        $untrackedOut = & git -C $RepoRoot add -A --ignore-errors 2>&1 | Out-String
+        $note = ''
+        if ($LASTEXITCODE -ne 0) { $note = "some untracked files were not recorded: $($untrackedOut.Trim())" }
+        $tree = "$(& git -C $RepoRoot write-tree 2> $null)".Trim()
+        if (-not $tree) { return @{ Sha = ''; Reason = 'git write-tree on a private index failed'; Note = '' } }
+        $sha = "$(& git -C $RepoRoot -c user.name=trivial-scope -c user.email=trivial-scope@localhost commit-tree $tree -p $Parent -m "trivial-scope baseline $Id" 2> $null)".Trim()
+        if (-not $sha) { return @{ Sha = ''; Reason = 'git commit-tree failed'; Note = '' } }
+        return @{ Sha = $sha; Reason = ''; Note = $note }
+    }
+    if (-not $built.Ok) { return @{ Sha = ''; Reason = $built.Reason; Note = '' } }
+    return $built.Value
+}
+
+# `git diff <base> -- <path>` reports a path that is untracked in the real index as deleted, so an
+# untracked path is diffed through a private index that holds it intent-to-add.
+function Get-DiffLinesAgainstBase([string]$Base, [string]$Path) {
+    & git -C $RepoRoot ls-files --error-unmatch -- $Path *> $null
+    if ($LASTEXITCODE -eq 0) { return @(& git -C $RepoRoot diff -U0 $Base -- $Path) }
+    $diffed = Invoke-WithPrivateIndex {
+        & git -C $RepoRoot add -N -- $Path *> $null
+        return @(& git -C $RepoRoot diff -U0 $Base -- $Path)
+    }
+    if (-not $diffed.Ok) { Stop-Escalate "$Path is untracked and its diff against the baseline could not be read ($($diffed.Reason))" }
+    if ($null -eq $diffed.Value) { return @() }
+    return @($diffed.Value)
 }
 
 if ($RecordBaseline) {
@@ -156,6 +192,7 @@ if ($RecordBaseline) {
     if ($snapshot.Sha) {
         Set-Content -LiteralPath $basePath -Value $snapshot.Sha -Encoding ascii
         Write-Host "trivial-scope: ${label}baseline $($snapshot.Sha)"
+        if ($snapshot.Note) { Write-Host "trivial-scope: ${label}note - $($snapshot.Note)" }
         Write-Host "assert-trivial-scope: PASS (${label}baseline recorded)"
         exit 0
     }
@@ -256,7 +293,7 @@ foreach ($path in $judgedChanged) {
     }
     if ([System.IO.Path]::GetExtension($path) -notin $extensions) { continue }
     # -U0 leaves only the changed lines; the '+++' / '---' file headers are not added/removed lines.
-    $diffLines = @(& git -C $RepoRoot diff -U0 $base -- $path)
+    $diffLines = @(Get-DiffLinesAgainstBase $base $path)
     $added = @($diffLines | Where-Object { $_ -match '^\+(?!\+\+)' } | ForEach-Object { $_.Substring(1) })
     $removedLines = @($diffLines | Where-Object { $_ -match '^\-(?!\-\-)' } | ForEach-Object { $_.Substring(1) })
 

@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.ResourceTypeIconMap
 import com.sza.fastmediasorter.data.local.db.ResourceDao
 import com.sza.fastmediasorter.data.local.db.ResourceEntity
+import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.usecase.launcher.QueryRecentLauncherCommandsUseCase
 import com.sza.fastmediasorter.ui.main.MainActivity
@@ -37,6 +38,7 @@ class AppShortcutsManager @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val resourceDao: ResourceDao,
     private val queryRecentCommands: QueryRecentLauncherCommandsUseCase,
+    private val launcherModeContract: LauncherModeContract,
     @param:ApplicationScope private val appScope: CoroutineScope,
 ) {
     private val publishMutex = Mutex()
@@ -58,7 +60,12 @@ class AppShortcutsManager @Inject constructor(
         // The journal only records launcher-mode launches; resources opened from the main list still earn the
         // places the journal leaves empty, so a user who never enters launcher mode keeps today's shortcuts.
         val fromRecentResources = resourceDao.getRecentResourcesSync(slots).map { resourceCandidate(it) }
-        val ranked = DynamicShortcutBudget.rankWithinBudget(fromJournal, fromRecentResources, slots) { it.id }
+        val allApps = if (launcherModeContract.isAvailableInBuild) {
+            listOfNotNull(featureCandidate(InternalRouteCatalog.KEY_ALL_APPS))
+        } else {
+            emptyList()
+        }
+        val ranked = DynamicShortcutBudget.rankWithinBudget(allApps + fromJournal, fromRecentResources, slots) { it.id }
         val shortcuts = ranked.mapIndexed { rank, candidate -> candidate.toShortcut(rank) }
         try {
             ShortcutManagerCompat.setDynamicShortcuts(context, shortcuts)

@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.core.network
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import com.sza.fastmediasorter.core.util.PermissionHelper
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import java.net.URI
@@ -18,11 +19,12 @@ import javax.inject.Singleton
  * - Detect if the active connection is Wi-Fi (or ethernet)
  * - Detect if the active connection is cellular (3G/4G/5G)
  * - Detect if a host IP is a private (LAN-only) address
+ * - Detect if the ACCESS_LOCAL_NETWORK grant is held and if a host literal is local network
  * - Extract host from a resource path URI
  */
 @Singleton
 class NetworkContextAnalyzer @Inject constructor(
-    @ApplicationContext context: Context
+    @ApplicationContext private val context: Context
 ) {
 
     private val connectivityManager =
@@ -88,6 +90,25 @@ class NetworkContextAnalyzer @Inject constructor(
     }
 
     /**
+     * Returns true when the runtime ACCESS_LOCAL_NETWORK grant is held, or when the platform does not
+     * ask for it (below API 37).
+     */
+    fun hasLocalNetworkPermission(): Boolean = PermissionHelper.hasLocalNetworkPermission(context)
+
+    /**
+     * Returns true only for a host literal the platform counts as local network: RFC 1918 IPv4,
+     * IPv4 link-local (169.254.0.0/16) or an mDNS `.local` name.
+     *
+     * A public address, a DNS name or an IPv6 literal answers false on purpose: a gate built on this
+     * must never refuse a host that may be reachable without the grant, for instance the WAN
+     * candidate of a multi-address resource.
+     */
+    fun isLocalNetworkHost(host: String): Boolean {
+        val bare = host.trim().lowercase()
+        return bare.endsWith(MDNS_SUFFIX) || LINK_LOCAL_IPV4.matches(bare) || isPrivateIpAddress(bare)
+    }
+
+    /**
      * Extracts the host from a resource path URI (e.g., "smb://192.168.1.10/share" → "192.168.1.10").
      * Returns the original path on parse failure.
      */
@@ -98,5 +119,10 @@ class NetworkContextAnalyzer @Inject constructor(
             Timber.v("NetworkContextAnalyzer: failed to parse URI host from: $resourcePath")
             resourcePath
         }
+    }
+
+    private companion object {
+        const val MDNS_SUFFIX = ".local"
+        val LINK_LOCAL_IPV4 = Regex("""169\.254\.\d{1,3}\.\d{1,3}(:\d+)?""")
     }
 }

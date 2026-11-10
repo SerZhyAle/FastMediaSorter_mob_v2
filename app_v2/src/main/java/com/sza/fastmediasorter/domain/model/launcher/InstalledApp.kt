@@ -33,12 +33,12 @@ enum class InstalledAppSortOrder {
     /** Counted from the launcher's own journal, so it stays empty until the user launches from here. */
     LAUNCH_FREQUENCY,
 
-    /** Declared by the publisher and often left unset; unset apps group together rather than scatter. */
+    /** S4530: category groups - the publisher's category seeds them, the user's own choice overrides it. */
     CATEGORY;
 
     companion object {
-        /** Tolerant read: an unknown or missing stored name falls back to the default order. */
+        /** Tolerant read: an unknown or missing stored name falls back to the default order (S4530). */
         fun fromNameOrDefault(name: String?): InstalledAppSortOrder =
-            entries.firstOrNull { it.name == name } ?: LAUNCH_FREQUENCY
+            entries.firstOrNull { it.name == name } ?: CATEGORY
     }
 }

@@ -82,6 +82,7 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
     private val cleanupOrphanedTempFilesUseCase: CleanupOrphanedTempFilesUseCase,
     private val fetchScheduledChangesViaDrive: FetchScheduledChangesViaDriveUseCase,
     private val sendScheduledWatchMessage: SendScheduledWatchMessageUseCase,
+    private val runScheduledFill: RunScheduledFillUseCase,
 ) {
     // One stable line for a refused protected-folder PIN: the journal, the notification body and the
     // status string all quote it, so a raw exception message never reaches the user (S4232).
@@ -128,7 +129,7 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
             return ScheduledExecutionResult(operationId, 0, listOf(msg), reason = ScheduledRunReason.SOURCE_DELETED)
         }
 
-        val targetResource: MediaResource? = if (operation.operationType != ScheduledOpType.DELETE) {
+        val targetResource: MediaResource? = if (operation.operationType.usesTarget) {
             val t = resourceRepository.getResourceById(operation.targetResourceId!!)
             if (t == null) {
                 val msg = "Target resource not found (id=${operation.targetResourceId}) - schedule paused"
@@ -152,6 +153,10 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
         val readOnlySide = readOnlyWriteSide(operation.operationType, sourceResource, targetResource)
         if (readOnlySide != null) {
             return skipped(operationId, readOnlySide, ts, opName, srcLabel, dstLabel)
+        }
+
+        if (operation.operationType == ScheduledOpType.FILL_FREE_SPACE) {
+            return fill(operationId, sourceResource).also { logOp(ts, opName, srcLabel, dstLabel, it.statusString) }
         }
 
         if (operation.operationType == ScheduledOpType.ARCHIVE) {
@@ -348,8 +353,8 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
                         addError = { errors.add(it) }
                     )
                 }
-                // Returned before any resource was read; listed only to keep this branch exhaustive.
-                ScheduledOpType.WATCH_MESSAGE -> Unit
+                // Both returned before any file was listed; listed only to keep this branch exhaustive.
+                ScheduledOpType.WATCH_MESSAGE, ScheduledOpType.FILL_FREE_SPACE -> Unit
             }
 
             // Summary line
@@ -380,6 +385,21 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
             logOp(ts, opName, srcLabel, dstLabel, "ERROR: $msg")
             ScheduledExecutionResult(operationId, 0, listOf(msg))
         }
+    }
+
+    /** S4522: the filler cleans up before an exception leaves it, so a failure here is only reported. */
+    private suspend fun fill(operationId: Long, source: MediaResource): ScheduledExecutionResult = try {
+        runScheduledFill(operationId, source)
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        Timber.e(e, "ScheduledOp[$operationId] fill failed")
+        ScheduledExecutionResult(
+            operationId,
+            0,
+            listOf(e.message ?: "Fill failed"),
+            reason = ScheduledRunReason.FILL_WRITE_FAILED
+        )
     }
 
     /**
@@ -583,8 +603,9 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
         source: MediaResource,
         target: MediaResource?
     ): SkipCause? {
-        val changesSource = type == ScheduledOpType.MOVE || type == ScheduledOpType.DELETE
-        val changesTarget = type != ScheduledOpType.DELETE
+        val changesSource = type == ScheduledOpType.MOVE || type == ScheduledOpType.DELETE ||
+            type == ScheduledOpType.FILL_FREE_SPACE
+        val changesTarget = type.usesTarget
         return when {
             changesSource && source.isReadOnly -> SkipCause(
                 ScheduledRunReason.SOURCE_READ_ONLY,
@@ -721,7 +742,8 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
     ) {
         when (operationType) {
             // ARCHIVE keeps every source and only adds one new ZIP, so like COPY there is nothing to reconcile.
-            ScheduledOpType.COPY, ScheduledOpType.ARCHIVE, ScheduledOpType.WATCH_MESSAGE -> return
+            ScheduledOpType.COPY, ScheduledOpType.ARCHIVE, ScheduledOpType.WATCH_MESSAGE,
+            ScheduledOpType.FILL_FREE_SPACE -> return
             ScheduledOpType.DELETE -> mutationRecorder.recordDelete(source.id, file.path, source.type)
             ScheduledOpType.MOVE -> {
                 if (target == null) return

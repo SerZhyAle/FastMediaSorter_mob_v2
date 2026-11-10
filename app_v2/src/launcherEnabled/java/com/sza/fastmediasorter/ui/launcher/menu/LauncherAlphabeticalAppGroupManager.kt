@@ -10,6 +10,9 @@ data class LauncherAppGroupSection(
     val isExpanded: Boolean,
     val isPreview: Boolean = false,
     val isSingleApp: Boolean = false,
+    // S4530: a category group is drawn as a full-width header, not as a one-letter tile.
+    val isCategory: Boolean = false,
+    val isReorderTarget: Boolean = false,
 )
 
 /** Keeps the launcher-specific alphabetical presentation beside the All Apps screen. */

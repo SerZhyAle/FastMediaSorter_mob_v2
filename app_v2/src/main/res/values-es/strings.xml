@@ -450,7 +450,6 @@
     <string name="error_connection_access">No se puede conectar a \"%1$s\" - acceso denegado.\n\nComprueba los permisos del recurso compartido.</string>
     <string name="error_connection_share_not_found">No se puede conectar a \"%1$s\" - recurso compartido no encontrado.\n\nVerifica el nombre del recurso compartido en el servidor.</string>
     <string name="error_network_timeout">Se agotó el tiempo de conexión. Comprueba tu red e inténtalo de nuevo.</string>
-    <string name="error_companion_connect_guidance">No se pudo conectar con la carpeta compartida. En la misma red Wi-Fi que el PC se conecta automáticamente; desde otra red, el PC debe permitir el acceso - configura la redirección de puertos en el router o el acceso a internet en la app complementaria.</string>
     <string name="error_network_access_denied">Acceso denegado. Comprueba tus credenciales.</string>
     <string name="error_network_not_found">No se encontró el archivo o el recurso.</string>
     <string name="error_network_connection_lost">Sin conexión.</string>

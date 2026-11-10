@@ -7,6 +7,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
+import timber.log.Timber
 
 /**
  * S1179: which sensor gadget needs which runtime permission, and the single place that asks.
@@ -28,7 +29,7 @@ class LauncherSensorPermissionManager(private val activity: FragmentActivity) {
     private var pendingPlacement: (() -> Unit)? = null
 
     private val request = activity.registerForActivityResult(
-        ActivityResultContracts.RequestPermission(),
+        ActivityResultContracts.RequestMultiplePermissions(),
     ) {
         val pending = pendingPlacement
         pendingPlacement = null
@@ -48,13 +49,29 @@ class LauncherSensorPermissionManager(private val activity: FragmentActivity) {
      */
     fun placeAfterAsking(gadgetKey: String, place: () -> Unit) {
         val permission = PERMISSIONS[gadgetKey]?.takeIf { isRequestable(it) }
+        Timber.d("S4504: placeAfterAsking gadget=%s permission=%s", gadgetKey, permission)
         if (permission == null || isGranted(permission)) {
             place()
             return
         }
         pendingPlacement = place
-        request.launch(permission)
+        val permissions = requestSet(permission)
+        Timber.d("S4508: launching request permissions=%s", permissions.joinToString())
+        request.launch(permissions)
     }
+
+    /**
+     * Fine location is asked as the fine and coarse pair: from API 31 the platform ignores a fine-only
+     * request and shows no dialog at all, and the pair is also what lets the user answer "approximate".
+     * That answer leaves the compass and speed tiles in their no-permission state, because they read
+     * the fine grant only - the answer decides what the tile shows, never whether it appears.
+     */
+    private fun requestSet(permission: String): Array<String> =
+        if (permission == Manifest.permission.ACCESS_FINE_LOCATION) {
+            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+        } else {
+            arrayOf(permission)
+        }
 
     private fun isGranted(permission: String): Boolean =
         ContextCompat.checkSelfPermission(activity, permission) == PackageManager.PERMISSION_GRANTED
@@ -80,11 +97,14 @@ class LauncherSensorPermissionManager(private val activity: FragmentActivity) {
             LauncherGadgetRegistry.KEY_STEPS to Manifest.permission.ACTIVITY_RECOGNITION,
             // S1175: the map tile asks here and nowhere else - strategic §3.2 forbids requesting
             // location at startup, and a refusal still places the cell in its no-permission state.
-            LauncherGadgetRegistry.KEY_MAP to Manifest.permission.ACCESS_FINE_LOCATION,
+            // S4504: coarse, not fine - the only reader is PlatformDeviceLocationSource, a last-known
+            // read whose hasPermission() accepts either grant, so a precise request would widen the
+            // fine-location use the Play declaration (S4501) has to justify for no gain.
+            LauncherGadgetRegistry.KEY_MAP to Manifest.permission.ACCESS_COARSE_LOCATION,
             // S2292: the live frame asks for its own grant instead of riding one another gadget
             // obtained - a desktop carrying only this tile otherwise read location with no dialog
             // the user ever saw. Same permission and same placement moment as KEY_MAP above.
-            LauncherGadgetRegistry.KEY_GOOGLE_MAPS_LIVE to Manifest.permission.ACCESS_FINE_LOCATION,
+            LauncherGadgetRegistry.KEY_GOOGLE_MAPS_LIVE to Manifest.permission.ACCESS_COARSE_LOCATION,
         )
     }
 }

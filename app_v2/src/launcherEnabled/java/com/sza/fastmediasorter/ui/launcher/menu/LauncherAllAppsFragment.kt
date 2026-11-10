@@ -12,6 +12,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
+import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
@@ -27,11 +28,13 @@ import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
 import com.sza.fastmediasorter.core.screencapture.ScreenshotGestureActionDispatcher
 import com.sza.fastmediasorter.databinding.FragmentLauncherAllAppsBinding
 import com.sza.fastmediasorter.domain.model.LauncherAllAppsSwipeDirection
+import com.sza.fastmediasorter.domain.model.launcher.AppCategoryCatalog
 import com.sza.fastmediasorter.domain.model.launcher.InstalledApp
 import com.sza.fastmediasorter.domain.model.launcher.InstalledAppSortOrder
 import com.sza.fastmediasorter.domain.model.launcher.LauncherAllAppsPreviewGeometry
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
+import com.sza.fastmediasorter.ui.launcher.LauncherHomeActivity
 import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAllAppsGestureManager
@@ -82,8 +85,16 @@ class LauncherAllAppsFragment : DialogFragment() {
 
     private val groupManager = LauncherAlphabeticalAppGroupManager()
 
+    private val categoryManager = LauncherCategoryAppGroupManager()
+    private val categoryLabels by lazy { AppCategoryLabelResolver(resources) }
+
     private var latestApps: List<InstalledApp> = emptyList()
+    private var latestCatalog: AppCategoryCatalog = AppCategoryCatalog.EMPTY
     private val expandedGroupKeys = mutableSetOf<String>()
+
+    /** S4530: category groups start open, so this set remembers the closed ones instead. */
+    private val collapsedCategoryKeys = mutableSetOf<String>()
+    private var currentSections: List<LauncherAppGroupSection> = emptyList()
 
     /** S2736: resolved from the laid-out grid; the floor is what the block occupied before it was measured. */
     private var previewRows = LauncherAllAppsPreviewGeometry.MIN_PREVIEW_ROWS
@@ -101,7 +112,25 @@ class LauncherAllAppsFragment : DialogFragment() {
             true
         },
         onGroupToggle = ::toggleGroup,
+        onGroupLongClick = ::enterCategoryReorder,
     )
+
+    private val reorderManager = LauncherCategoryReorderManager(
+        onModeChanged = ::renderGroups,
+        onMove = { categoryId, offset ->
+            viewModel.moveCategory(categoryId, categoryManager.displayedCategoryIds(currentSections), offset)
+        },
+    )
+
+    // Built on first use and closed in onDestroyView, so no chooser outlives the view it was opened from.
+    private val categoryDialog by lazy {
+        LauncherAppCategoryDialogManager(
+            context = requireContext(),
+            labels = categoryLabels,
+            onSave = viewModel::setAppCategories,
+            onCreate = viewModel::createCategory,
+        )
+    }
 
     // Built lazily on the first long press: most visits never open the menu at all. The scope is the
     // fragment's, not the view's: a `by lazy` built before a rotation would otherwise keep the dead
@@ -125,7 +154,12 @@ class LauncherAllAppsFragment : DialogFragment() {
             pinToTaskbar = { packageName -> homeViewModel.pinAppToTaskbar(packageName) },
             appInfoIntent = { packageName -> homeViewModel.appInfoIntent(packageName) },
             uninstallIntent = { packageName -> homeViewModel.uninstallIntent(packageName) },
-        )
+        ).apply {
+            setCategories = { packageName ->
+                val label = latestApps.firstOrNull { it.packageName == packageName }?.label ?: packageName
+                categoryDialog.show(packageName, label, latestCatalog)
+            }
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -165,7 +199,20 @@ class LauncherAllAppsFragment : DialogFragment() {
             renderGroups()
             applyEmptyState(apps.isEmpty())
         }
+        collectOnLifecycle(viewModel.catalog) { catalog ->
+            latestCatalog = catalog
+            renderGroups()
+        }
+        collectOnLifecycle(viewModel.order) { renderGroups() }
+        collectOnLifecycle(viewModel.categorySaveFailed) {
+            Toast.makeText(requireContext(), R.string.launcher_app_category_save_failed, Toast.LENGTH_SHORT).show()
+        }
+        binding.allAppsReorderUp.setOnClickListener { reorderManager.moveUp() }
+        binding.allAppsReorderDown.setOnClickListener { reorderManager.moveDown() }
+        binding.allAppsReorderDone.setOnClickListener { reorderManager.exit() }
     }
+
+    private fun enterCategoryReorder(key: String): Boolean = isCategoryMode() && reorderManager.enter(key)
 
     override fun onStart() {
         super.onStart()
@@ -178,6 +225,7 @@ class LauncherAllAppsFragment : DialogFragment() {
         super.onDestroyView()
         // The popup anchors inside this screen and must not outlive it.
         actionMenuManager.dismiss()
+        categoryDialog.dismiss()
         requireContext().unregisterReceiver(systemDialogsReceiver)
         swipeTouchListener?.let { binding.allAppsGrid.removeOnItemTouchListener(it) }
         swipeTouchListener = null
@@ -214,6 +262,11 @@ class LauncherAllAppsFragment : DialogFragment() {
             screenshotLaunchers = menuScreenshotLaunchers,
             onBackToDesktop = ::dismiss,
             onExpandAllApps = ::expandFullAppList,
+            onLockScreen = {
+                val host = activity as? LauncherHomeActivity
+                dismissAllowingStateLoss()
+                host?.lockScreen()
+            },
         )
         val gestureManager = LauncherAllAppsGestureManager(
             container = binding.allAppsGrid,
@@ -264,11 +317,29 @@ class LauncherAllAppsFragment : DialogFragment() {
         val layoutManager = binding.allAppsGrid.layoutManager as GridLayoutManager
         layoutManager.spanCount = spanCount
         layoutManager.spanSizeLookup = appsAdapter.getSpanSizeLookup(spanCount)
-        val groups = groupManager.groupApps(latestApps, spanCount, expandedGroupKeys, previewRows)
-        letterGroupCount = groups.count { !it.isPreview }
+        // The reorder mode belongs to the category view; switching the order away ends it.
+        if (!isCategoryMode() && reorderManager.isActive) reorderManager.exit()
+        val groups = if (isCategoryMode()) {
+            categoryManager.groupApps(
+                apps = latestApps,
+                catalog = latestCatalog,
+                collapsedKeys = collapsedCategoryKeys,
+                reorderTargetKey = reorderManager.targetKey,
+                labelOf = categoryLabels::labelOf,
+                unknownLabel = categoryLabels.unknownLabel(),
+            )
+        } else {
+            groupManager.groupApps(latestApps, spanCount, expandedGroupKeys, previewRows)
+        }
+        letterGroupCount = groups.count { !it.isPreview && !it.isCategory }
         singleAppGroupCount = groups.count { it.isSingleApp }
+        currentSections = groups
         appsAdapter.submitGroups(groups)
+        val targetTitle = groups.firstOrNull { it.isReorderTarget }?.title
+        reorderManager.bind(binding.allAppsReorderBar, binding.allAppsReorderTitle, targetTitle)
     }
+
+    private fun isCategoryMode(): Boolean = viewModel.order.value == InstalledAppSortOrder.CATEGORY
 
     /**
      * S2736: the preview block takes the height the letter tiles leave free, and that height is only
@@ -283,7 +354,8 @@ class LauncherAllAppsFragment : DialogFragment() {
     }
 
     private fun recalculatePreviewRows() {
-        val grid = _binding?.allAppsGrid ?: return
+        // Category mode draws no preview block, so there is no row count to resolve.
+        val grid = _binding?.allAppsGrid?.takeUnless { isCategoryMode() } ?: return
         val heights = appsAdapter.measureRowHeights(grid)
         val resolved = LauncherAllAppsPreviewGeometry.previewRows(
             viewportPx = grid.height - grid.paddingTop - grid.paddingBottom,
@@ -302,7 +374,8 @@ class LauncherAllAppsFragment : DialogFragment() {
     }
 
     private fun toggleGroup(key: String) {
-        if (!expandedGroupKeys.add(key)) expandedGroupKeys.remove(key)
+        val keys = if (LauncherCategoryAppGroupManager.isCategoryKey(key)) collapsedCategoryKeys else expandedGroupKeys
+        if (!keys.add(key)) keys.remove(key)
         renderGroups()
     }
 

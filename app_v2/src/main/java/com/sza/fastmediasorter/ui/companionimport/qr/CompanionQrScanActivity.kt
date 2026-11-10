@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.ActivityCompanionQrScanBinding
 import com.sza.fastmediasorter.domain.model.PermissionTask
 import com.sza.fastmediasorter.ui.common.permissions.permissionRationaleShort
+import timber.log.Timber
 
 /**
  * S0988: camera QR scan for the companion `.fmscfg` import. Decodes a QR into the raw payload string
@@ -66,6 +67,8 @@ class CompanionQrScanActivity : AppCompatActivity() {
         runOnUiThread {
             if (finishedWithResult) return@runOnUiThread
             finishedWithResult = true
+            // The length only: a companion code carries the server password.
+            Timber.i("QR scan: code read, %d chars", payload.length)
             setResult(RESULT_OK, Intent().putExtra(EXTRA_PAYLOAD, payload))
             finish()
         }
@@ -80,6 +83,7 @@ class CompanionQrScanActivity : AppCompatActivity() {
     }
 
     private fun denyAndFinish() {
+        Timber.i("QR scan: camera permission denied")
         val message = permissionRationaleShort(Manifest.permission.CAMERA, PermissionTask.QR_PAIRING)
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
         setResult(RESULT_CANCELED)
@@ -87,6 +91,11 @@ class CompanionQrScanActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        // The cancel button and system back both end here; a rotation is not the end of a scan.
+        if (isFinishing && !finishedWithResult) {
+            Timber.i("QR scan: closed without a code")
+            Timber.d("S4517: QR scan closed without a code")
+        }
         session.unbind()
         super.onDestroy()
     }
