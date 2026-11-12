@@ -8,7 +8,47 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.61.0292.144** (October 2026)
+**Current release: 2.61.1121.543** (November 2026)
+
+> Changes since version 2.61.0292.144
+
+---
+
+## What's New
+
+- **All apps in groups** - collapsible category groups; set an app's categories from its long-press menu. <!-- af: launcher.all-apps-category-groups -->
+- **All apps from anywhere** - from a gesture, the quick-launch panel or an app shortcut, even when another launcher is home. <!-- af: launcher.all-apps-from-quick-launch-and-app-shortcuts -->
+- **Swipes turn the screen first** - an assigned edge action runs only on the last or first launcher screen. <!-- af: launcher.desktop-swipes-page-before-the-edge-action -->
+- **Map gadget asks less** - current-position map gadgets request approximate location only. <!-- af: launcher.current-position-map-gadget -->
+- **Battery details** - current, net power, saver state, full-charge capacity and time to full in System info. <!-- af: diagnostics.battery-details-in-system-info -->
+- **Storage filler** - fill the free space of a chosen folder with temporary files and delete them afterwards. <!-- af: general.storage-filler -->
+- **Scheduled free-space fill** - run the storage filler on a schedule, with every outcome in the history. <!-- af: file-operations.scheduled-fill-free-space -->
+- **Settings exchange** - save settings to a Media Exchange Server and read them back on another device. <!-- af: network-cloud.standard-settings-exchange -->
+- **Stalled schedule alert** - one notification names the schedule, the date its runs began to be skipped and the reason. <!-- af: scheduled-operations.stalled-schedule-notification -->
+- **File a ticket** - send a task with a voice note, screenshots and logs to your ticket inbox on Google Drive, from Settings - General - App data. <!-- af: network-cloud.phone-ticket-inbox -->
+- **More in System info** - extended hardware, camera, memory, network, display and CPU benchmark metrics, plus Sensors and Media & Audio sections. <!-- af: diagnostics.extended-system-info-metrics -->
+- **Switched-off programs stay off** - a program turned off in settings opens from no shortcut, desktop cell or recents entry, and leaves the recents strip. <!-- af: settings-navigation.switched-off-programs-stay-closed-at-every-entry, launcher.recents-strip-hides-switched-off-programs -->
+- **More Tourist tiles** - barometer, trip, navigation and extended weather. <!-- af: programs-tools.tourist-extra-sensor-tiles -->
+- **Watch face battery frame** - a thin frame keeps the full battery bar visible at any charge. <!-- af: wear-os.watch-face-battery-bar-frame -->
+
+## What's Fixed
+
+- Stream language filters read three-letter language codes (rus, deu, zho..) as the language they name. <!-- af: streams.three-letter-language-codes-in-the-closed-language -->
+- Companion errors name which way of finding the PC's address is down. <!-- af: network.companion-dead-recovery-channels -->
+- A missing companion shared folder is reported as missing, not as a generic error. <!-- af: network-cloud.companion-shared-folder-missing-error -->
+- TikTok links find your saved account and save the video.
+- Threads videos play instead of showing a black screen.
+- Signed-in Instagram posts save instead of sign-in loops and bare previews.
+- The web sign-in saves an account only after you are signed in.
+- PDFs the system cannot render show a placeholder thumbnail.
+- No more surprise local network picker on Android 17.
+- Local network folders ask for access at once, with no long wait.
+- Local folder choice no longer crashes on devices without a picker.
+- Fewer freezes and crashes.
+
+---
+
+## Previous Release: 2.61.0292.144 (October 2026)
 
 > Changes since version 2.61.0202.359
 
