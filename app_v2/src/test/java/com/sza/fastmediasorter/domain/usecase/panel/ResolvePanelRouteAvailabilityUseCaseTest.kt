@@ -4,11 +4,16 @@ import android.content.Context
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
+import com.sza.fastmediasorter.domain.filler.FillerPendingCleanup
+import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.programs.ProgramsSettings
 import com.sza.fastmediasorter.domain.networkmonitor.NetworkMonitorContract
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -27,6 +32,8 @@ class ResolvePanelRouteAvailabilityUseCaseTest {
     private fun useCaseFor(
         settings: AppSettings,
         wearBridge: Boolean = false,
+        launcherAvailable: Boolean = false,
+        pendingCleanup: Boolean = false,
     ): ResolvePanelRouteAvailabilityUseCase =
         ResolvePanelRouteAvailabilityUseCase(
             context = mockk<Context>(relaxed = true),
@@ -38,23 +45,65 @@ class ResolvePanelRouteAvailabilityUseCaseTest {
                 every { supportsWearCompanion } returns wearBridge
             },
             networkMonitorContract = mockk<NetworkMonitorContract>(relaxed = true),
+            launcherModeContract = mockk<LauncherModeContract> {
+                every { isAvailableInBuild } returns launcherAvailable
+            },
             screenVideoRecordingControllers = emptySet(),
+            fillerPendingCleanup = object : FillerPendingCleanup {
+                override val hasPending: StateFlow<Boolean> = MutableStateFlow(pendingCleanup)
+            },
         )
 
     @Test
+    fun `filler is launchable with the default settings`() = runBlocking {
+        assertTrue(useCaseFor(AppSettings()).invoke(InternalRouteCatalog.KEY_FILLER).isLaunchable)
+    }
+
+    @Test
+    fun `switched-off filler with no leftovers is not launchable but stays in the build`() = runBlocking {
+        val availability = useCaseFor(AppSettings(programs = ProgramsSettings(enableFiller = false)))
+            .invoke(InternalRouteCatalog.KEY_FILLER)
+        assertFalse(availability.isLaunchable)
+        assertTrue(availability.availableInBuild)
+    }
+
+    @Test
+    fun `switched-off filler stays launchable while leftovers await cleanup`() = runBlocking {
+        val availability =
+            useCaseFor(AppSettings(programs = ProgramsSettings(enableFiller = false)), pendingCleanup = true)
+                .invoke(InternalRouteCatalog.KEY_FILLER)
+        assertTrue(availability.isLaunchable)
+    }
+
+    @Test
+    fun `filler route names a settings intent for a switched-off tile`() {
+        assertNotNull(InternalRouteCatalog.byKey(InternalRouteCatalog.KEY_FILLER)?.settingsIntent)
+    }
+
+    @Test
+    fun `all apps is offered only when the launcher is available`() = runBlocking {
+        val enabled = useCaseFor(AppSettings(), launcherAvailable = true)
+            .invoke(InternalRouteCatalog.KEY_ALL_APPS)
+        val disabled = useCaseFor(AppSettings(), launcherAvailable = false)
+            .invoke(InternalRouteCatalog.KEY_ALL_APPS)
+        assertTrue(enabled.isLaunchable)
+        assertFalse(disabled.availableInBuild)
+    }
+
+    @Test
     fun `calculator is launchable only while its own toggle is on`() = runBlocking {
-        val enabled = useCaseFor(AppSettings(enableCalculator = true))
+        val enabled = useCaseFor(AppSettings(programs = ProgramsSettings(enableCalculator = true)))
             .invoke(InternalRouteCatalog.KEY_CALCULATOR)
         assertTrue("an enabled calculator launches", enabled.isLaunchable)
 
-        val disabled = useCaseFor(AppSettings(enableCalculator = false))
+        val disabled = useCaseFor(AppSettings(programs = ProgramsSettings(enableCalculator = false)))
             .invoke(InternalRouteCatalog.KEY_CALCULATOR)
         assertFalse("a disabled calculator must not launch", disabled.isLaunchable)
     }
 
     @Test
     fun `a disabled calculator stays compiled in rather than vanishing`() = runBlocking {
-        val disabled = useCaseFor(AppSettings(enableCalculator = false))
+        val disabled = useCaseFor(AppSettings(programs = ProgramsSettings(enableCalculator = false)))
             .invoke(InternalRouteCatalog.KEY_CALCULATOR)
         // The picker hides what is absent from the build and only flags what the user switched off,
         // so collapsing "off" into "not built" would remove the route from the picker entirely.
@@ -63,20 +112,22 @@ class ResolvePanelRouteAvailabilityUseCaseTest {
 
     @Test
     fun `the wear companion needs both the watch bridge and its own switch`() = runBlocking {
-        val both = useCaseFor(AppSettings(enableWearCompanion = true), wearBridge = true)
+        val both = useCaseFor(AppSettings(programs = ProgramsSettings(enableWearCompanion = true)), wearBridge = true)
             .invoke(InternalRouteCatalog.KEY_WEAR_COMPANION)
         assertTrue("bridge plus switch launches", both.isLaunchable)
 
-        val switchOff = useCaseFor(AppSettings(enableWearCompanion = false), wearBridge = true)
-            .invoke(InternalRouteCatalog.KEY_WEAR_COMPANION)
+        val switchOff =
+            useCaseFor(AppSettings(programs = ProgramsSettings(enableWearCompanion = false)), wearBridge = true)
+                .invoke(InternalRouteCatalog.KEY_WEAR_COMPANION)
         assertFalse("a switched-off companion must not launch", switchOff.isLaunchable)
         assertTrue("the build still carries it, so the picker may offer it", switchOff.availableInBuild)
     }
 
     @Test
     fun `a build without the watch bridge does not carry the companion at all`() = runBlocking {
-        val noBridge = useCaseFor(AppSettings(enableWearCompanion = true), wearBridge = false)
-            .invoke(InternalRouteCatalog.KEY_WEAR_COMPANION)
+        val noBridge =
+            useCaseFor(AppSettings(programs = ProgramsSettings(enableWearCompanion = true)), wearBridge = false)
+                .invoke(InternalRouteCatalog.KEY_WEAR_COMPANION)
         // A stored switch survives a move to lite, photos or vr, so reading it alone would offer a tile
         // that nothing in the build can open.
         assertFalse("no bridge means the route is absent from the build", noBridge.availableInBuild)

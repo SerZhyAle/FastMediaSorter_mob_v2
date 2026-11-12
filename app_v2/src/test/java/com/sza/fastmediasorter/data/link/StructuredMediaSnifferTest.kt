@@ -226,6 +226,62 @@ class StructuredMediaSnifferTest {
         assertTrue(out.all { it.source == HtmlMediaCandidate.Source.EMBEDDED_JSON })
     }
 
+    @Test
+    fun `sniffInstagramGraphqlResponse single image returns display url`() {
+        val sniffer = StructuredMediaSniffer(fakeHttpClient("{}"))
+        val json = """
+            { "data": { "xdt_shortcode_media": { "display_url": "https://cdninstagram.com/full.jpg" } } }
+        """.trimIndent()
+
+        val out = sniffer.sniffInstagramGraphqlResponse(json, "https://www.instagram.com/p/ABC/")
+
+        assertEquals(listOf("https://cdninstagram.com/full.jpg"), out.map { it.url })
+        assertEquals(HtmlMediaCandidate.Source.EMBEDDED_JSON, out[0].source)
+    }
+
+    @Test
+    fun `sniffInstagramGraphqlResponse sidecar returns one candidate per slide with video over poster`() {
+        val sniffer = StructuredMediaSniffer(fakeHttpClient("{}"))
+        val json = """
+            {
+              "data": {
+                "xdt_shortcode_media": {
+                  "display_url": "https://cdninstagram.com/cover.jpg",
+                  "edge_sidecar_to_children": {
+                    "edges": [
+                      { "node": { "display_url": "https://cdninstagram.com/slide-1.jpg" } },
+                      {
+                        "node": {
+                          "display_url": "https://cdninstagram.com/poster.jpg",
+                          "video_url": "https://cdninstagram.com/slide-2.mp4"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+        """.trimIndent()
+
+        val out = sniffer.sniffInstagramGraphqlResponse(json, "https://www.instagram.com/p/ABC/")
+
+        assertEquals(
+            listOf("https://cdninstagram.com/slide-1.jpg", "https://cdninstagram.com/slide-2.mp4"),
+            out.map { it.url },
+        )
+    }
+
+    @Test
+    fun `sniffInstagramGraphqlResponse without media or with broken json returns empty`() {
+        val sniffer = StructuredMediaSniffer(fakeHttpClient("{}"))
+        val baseUri = "https://www.instagram.com/p/ABC/"
+
+        val noMedia = """{"data":{"xdt_shortcode_media":null}}"""
+
+        assertTrue(sniffer.sniffInstagramGraphqlResponse(noMedia, baseUri).isEmpty())
+        assertTrue(sniffer.sniffInstagramGraphqlResponse("{broken", baseUri).isEmpty())
+    }
+
     // --- S0223: sniffInstagramApiResponse tests ---
 
     @Test

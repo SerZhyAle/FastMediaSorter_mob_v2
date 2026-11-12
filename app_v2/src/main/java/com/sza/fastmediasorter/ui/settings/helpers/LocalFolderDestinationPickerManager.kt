@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.settings.helpers
 
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -46,9 +47,18 @@ class LocalFolderDestinationPickerManager(
         previousResourceId: Long?,
     ): (MediaResource?) -> Unit = { selected ->
         if (selected != null && isSentinelSelection(selected)) {
+            Timber.d("S4539: local folder sentinel selected, launching folder picker")
             pendingReceiver = receiver
             pendingPreviousId = previousResourceId
-            folderPickerLauncher.launch(null)
+            try {
+                folderPickerLauncher.launch(null)
+            } catch (e: ActivityNotFoundException) {
+                // No document provider on the device: the callback never fires, so the pending pair must not survive.
+                pendingReceiver = null
+                pendingPreviousId = null
+                Timber.w(e, "No activity handles OPEN_DOCUMENT_TREE")
+                Toast.makeText(fragment.requireContext(), R.string.no_app_to_open, Toast.LENGTH_LONG).show()
+            }
         } else {
             completeSelection(receiver, previousResourceId, selected)
         }

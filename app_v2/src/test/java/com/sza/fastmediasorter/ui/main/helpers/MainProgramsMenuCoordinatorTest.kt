@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.SubProgramCatalog
 import com.sza.fastmediasorter.core.panel.SubProgramSurface
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.programs.ProgramsSettings
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -98,7 +99,7 @@ class MainProgramsMenuCoordinatorTest {
 
         // The cross-wiring this suite exists to catch, stated on one concrete pair rather than only as
         // a loop invariant: a stale id table sent the tap to the neighbouring branch (S1733, S2881).
-        val bothOn = AppSettings(enableCalculator = true, enableStopwatch = true)
+        val bothOn = AppSettings(programs = ProgramsSettings(enableCalculator = true, enableStopwatch = true))
         val calculatorRemoved = MainProgramsMenuCoordinator
             .removeTargetFor(MainProgramsMenuCoordinator.menuItemIdFor(InternalRouteCatalog.KEY_CALCULATOR)!!)!!
             .disable(bothOn)

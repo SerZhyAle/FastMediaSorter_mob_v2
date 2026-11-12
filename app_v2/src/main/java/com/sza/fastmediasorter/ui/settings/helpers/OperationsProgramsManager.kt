@@ -2,9 +2,16 @@ package com.sza.fastmediasorter.ui.settings.helpers
 
 import androidx.core.view.isVisible
 import androidx.lifecycle.findViewTreeLifecycleOwner
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsDestinationsBinding
+import com.sza.fastmediasorter.domain.filler.FillerPendingCleanup
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.utils.collectOnLifecycle
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
 import timber.log.Timber
 
 /**
@@ -26,6 +33,10 @@ import timber.log.Timber
  * first. That request and the device's flash-unit answer come from a collaborator built here from the
  * binding, deliberately not passed in - the host is exactly at detekt's `LargeClass` ceiling and one
  * more constructor argument on it is one too many.
+ *
+ * S4542 added Filler, one more plain one-boolean row. Its subtitle is the one dynamic part of the group:
+ * while the journal still lists files of an interrupted run, the caption says why a switched-off program
+ * stays in the list.
  */
 class OperationsProgramsManager(
     private val binding: FragmentSettingsDestinationsBinding,
@@ -42,26 +53,35 @@ class OperationsProgramsManager(
             binding.root.findViewTreeLifecycleOwner(),
         ) { viewModel }
 
+    // S4542: read through an entry point because SettingsViewModel sits at detekt's LongParameterList
+    // ceiling, and the caption is the only consumer of the journal's leftover state on this screen.
+    private val fillerPendingCleanup: FillerPendingCleanup by lazy {
+        EntryPointAccessors.fromApplication(
+            binding.root.context.applicationContext,
+            FillerPendingCleanupEntryPoint::class.java,
+        ).fillerPendingCleanup()
+    }
+
     fun setup() {
         binding.rowEnableCalculator.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
-            viewModel.updateSettings { it.copy(enableCalculator = isChecked) }
+            viewModel.updateSettings { it.withPrograms { copy(enableCalculator = isChecked) } }
         }
         binding.rowEnableStopwatch.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
-            viewModel.updateSettings { it.copy(enableStopwatch = isChecked) }
+            viewModel.updateSettings { it.withPrograms { copy(enableStopwatch = isChecked) } }
         }
         binding.rowEnableNetworkMonitor.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
-            viewModel.updateSettings { it.copy(enableNetworkMonitor = isChecked) }
+            viewModel.updateSettings { it.withPrograms { copy(enableNetworkMonitor = isChecked) } }
         }
         binding.rowEnableSystemInfo.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
-            viewModel.updateSettings { it.copy(enableSystemInfo = isChecked) }
+            viewModel.updateSettings { it.withPrograms { copy(enableSystemInfo = isChecked) } }
         }
         binding.rowEnableTourist.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
-            viewModel.updateSettings { it.copy(enableTourist = isChecked) }
+            viewModel.updateSettings { it.withPrograms { copy(enableTourist = isChecked) } }
         }
         binding.rowEmbeddedGame.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
@@ -70,17 +90,17 @@ class OperationsProgramsManager(
         binding.rowFrontFlashlight.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
             Timber.d("front flashlight toggle -> $isChecked")
-            viewModel.updateSettings { it.copy(frontFlashlightEnabled = isChecked) }
+            viewModel.updateSettings { it.withPrograms { copy(frontFlashlightEnabled = isChecked) } }
         }
         binding.rowWaterFlashlight.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
             Timber.d("water flashlight toggle -> $isChecked")
-            viewModel.updateSettings { it.copy(waterFlashlightEnabled = isChecked) }
+            viewModel.updateSettings { it.withPrograms { copy(waterFlashlightEnabled = isChecked) } }
         }
         binding.rowEnableSos.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
             Timber.d("sos program toggle -> $isChecked")
-            viewModel.updateSettings { it.copy(enableSos = isChecked) }
+            viewModel.updateSettings { it.withPrograms { copy(enableSos = isChecked) } }
         }
         binding.rowFlashlightShortcut.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
@@ -91,13 +111,27 @@ class OperationsProgramsManager(
                 return@setOnCheckedChangeListener
             }
             viewModel.updateSettings {
-                it.copy(flashlightShortcutNotificationEnabled = isChecked)
+                it.withPrograms { copy(flashlightShortcutNotificationEnabled = isChecked) }
             }
         }
         binding.rowMirror.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
             Timber.d("mirror toggle -> $isChecked")
-            viewModel.updateSettings { it.copy(mirrorEnabled = isChecked) }
+            viewModel.updateSettings { it.withPrograms { copy(mirrorEnabled = isChecked) } }
+        }
+        binding.rowEnableFiller.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
+            Timber.d("S4542: filler toggle -> $isChecked")
+            viewModel.updateSettings { it.withPrograms { copy(enableFiller = isChecked) } }
+        }
+        binding.root.findViewTreeLifecycleOwner()?.collectOnLifecycle(fillerPendingCleanup.hasPending) { pending ->
+            val caption = if (pending) {
+                R.string.filler_settings_toggle_subtitle_pending
+            } else {
+                R.string.filler_settings_toggle_subtitle
+            }
+            Timber.d("S4542: filler cleanup pending -> $pending")
+            binding.rowEnableFiller.setSubtitle(caption)
         }
     }
 
@@ -145,5 +179,15 @@ class OperationsProgramsManager(
         if (binding.rowMirror.isChecked != settings.mirrorEnabled) {
             binding.rowMirror.setCheckedSilently(settings.mirrorEnabled)
         }
+        // No visibility line: Filler is compiled into every flavor (S4542).
+        if (binding.rowEnableFiller.isChecked != settings.enableFiller) {
+            binding.rowEnableFiller.setCheckedSilently(settings.enableFiller)
+        }
+    }
+
+    @EntryPoint
+    @InstallIn(SingletonComponent::class)
+    interface FillerPendingCleanupEntryPoint {
+        fun fillerPendingCleanup(): FillerPendingCleanup
     }
 }

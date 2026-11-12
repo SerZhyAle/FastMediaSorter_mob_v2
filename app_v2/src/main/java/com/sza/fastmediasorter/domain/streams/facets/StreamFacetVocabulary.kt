@@ -21,6 +21,18 @@ object StreamFacetVocabulary {
         parseSpaced(StreamFacetTables.ISO_639_3_EXTENSION_TABLE)
     }
 
+    /**
+     * Three-letter code to its canonical name: ISO 639-2 in its bibliographic and terminological forms, resolved
+     * through [languageNamesByCode], plus the named ISO 639-3 extension codes. A collective or special code
+     * (`mul`, `und`) is absent on purpose, so it reads as a word that names no language.
+     */
+    val languageNamesByThreeLetterCode: Map<String, String> by lazy {
+        val fromIso6392 = parseSpaced(StreamFacetTables.ISO_639_2_TABLE).mapNotNull { (code3, code2) ->
+            languageNamesByCode[code2]?.let { name -> code3 to name }
+        }
+        fromIso6392.toMap() + extensionNamesByCode
+    }
+
     /** Every canonical language name: the two-letter set plus the named three-letter extension. */
     val canonicalLanguages: Set<String> by lazy {
         (languageNamesByCode.values + extensionNamesByCode.values).toSet()

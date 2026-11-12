@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.15 12:24</sub>
+<sub class="doc-stamp">26.10.30 13:04</sub>
 
 # Maestro Testing - Troubleshooting Guide
 
@@ -286,6 +286,11 @@ adb start-server
 ### 9. Tests fail in CI/CD but pass locally
 
 **Possible Causes & Solutions**:
+
+#### 0. The CI emulator is a clean install
+
+- Every flow fails at its first `tabResourceTypes` check: the app is still on the Welcome screen. `_shared/complete_welcome.yaml` finishes it; the CI workflow runs it first.
+- A flow that needs the seeded media corpus or the test phone's grants carries a tag the CI run excludes: see `WRITING_TESTS.md` "Flows on the CI emulator".
 
 #### A. Different Android API level
 

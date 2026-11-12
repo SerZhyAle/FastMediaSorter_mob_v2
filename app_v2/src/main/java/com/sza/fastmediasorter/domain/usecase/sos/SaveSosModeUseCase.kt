@@ -16,6 +16,6 @@ class SaveSosModeUseCase @Inject constructor(
 ) {
 
     suspend operator fun invoke(mode: SosMode) {
-        settingsRepository.updateSettings { it.copy(sosMode = mode) }
+        settingsRepository.updateSettings { it.withPrograms { copy(sosMode = mode) } }
     }
 }

@@ -1086,4 +1086,6 @@
     <dimen name="resource_table_divider_width">1dp</dimen>
     <dimen name="resource_table_chip_padding_horizontal">6dp</dimen>
     <dimen name="resource_table_chip_padding_vertical">2dp</dimen>
+    <!-- S4521: the filler column is inset from the wide landscape edges so its lines stay readable. -->
+    <dimen name="filler_content_padding_horizontal_land">48dp</dimen>
 </resources>

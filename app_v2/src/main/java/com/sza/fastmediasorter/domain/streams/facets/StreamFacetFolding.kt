@@ -10,11 +10,16 @@ import java.util.Locale
  * Language: names of existing languages, one per language, in first-seen order; a non-blank cell with no
  * recognized language reads `english`; a blank cell stays blank. Country: an assigned ISO 3166-1 alpha-2
  * code or blank. Neither returns text it did not recognize, which is what let junk reach every picker.
+ *
+ * A two- or three-letter code used as a name (ISO 639-2 bibliographic or terminological, or a named ISO 639-3
+ * extension code) folds to the language it names, never to a code (item P.3). The vocabulary stays closed: a
+ * collective code such as `mul` names no language and reads like any unrecognized word.
  */
 object StreamFacetFolding {
 
     private const val FALLBACK_LANGUAGE = "english"
     private const val TWO_LETTER_CODE_LENGTH = 2
+    private const val THREE_LETTER_CODE_LENGTH = 3
     private const val MAX_PHRASE_WORDS = 3
 
     private val letterOrDigit = Regex("[\\p{L}\\p{N}]")
@@ -42,15 +47,17 @@ object StreamFacetFolding {
         return code?.takeIf { it in assigned }.orEmpty()
     }
 
-    /** A whole piece first (alias, name or two-letter code), then its words, longest phrase first. */
+    /** A whole piece first (alias, name, two- or three-letter code), then its words, longest phrase first. */
     private fun resolvePiece(piece: String): List<String> {
         val key = StreamFacetVocabulary.foldKey(piece).replace(edgeNoise, "")
         val lookup = StreamFacetVocabulary.languageLookup
         val byCode = StreamFacetVocabulary.languageNamesByCode
+        val byCode3 = StreamFacetVocabulary.languageNamesByThreeLetterCode
         return when {
             key.isEmpty() -> emptyList()
             lookup.containsKey(key) -> lookup.getValue(key).split(',')
             key.length == TWO_LETTER_CODE_LENGTH && byCode.containsKey(key) -> listOf(byCode.getValue(key))
+            key.length == THREE_LETTER_CODE_LENGTH && byCode3.containsKey(key) -> listOf(byCode3.getValue(key))
             else -> resolveWords(key.split(wordDelimiters).filter(String::isNotEmpty))
         }
     }

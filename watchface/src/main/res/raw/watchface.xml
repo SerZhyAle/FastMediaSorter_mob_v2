@@ -410,6 +410,10 @@
              S4039: while [BATTERY_CHARGING_STATUS] is true the fill is green #FF4CAF50 at any percent
              and the discharging thresholds sit in a nested Condition under the Default branch, so
              the verdict never depends on branch order (a Condition takes the first true Compare).
+             S4531: a permanent 1 px frame (70% white) outlines the whole 90x10 track, drawn before
+             the fill so the fill covers it on the filled part; at 100% the fill would otherwise hide
+             the track and the bar would show no full-scale extent. It stays inside the 90x10 bounds
+             and is lighter than the 2 px opaque charging contour below, which keeps the charging cue.
              The 90x10 track fits the 480x480 clip circle (farthest corner 238.3 px against the
              240 px radius) and mirrors the reference bar's translucent dark track. Hidden in
              ambient like every other secondary element: the always-on budget already holds the
@@ -421,6 +425,11 @@
             <PartDraw x="0" y="0" width="90" height="10">
                 <Rectangle x="0" y="0" width="90" height="10">
                     <Fill color="#66000000" />
+                </Rectangle>
+            </PartDraw>
+            <PartDraw x="0" y="0" width="90" height="10">
+                <Rectangle x="0.5" y="0.5" width="89" height="9">
+                    <Stroke color="#B3FFFFFF" thickness="1" />
                 </Rectangle>
             </PartDraw>
             <Group name="watch_battery_fill" x="0" y="0" width="90" height="10" pivotX="0">

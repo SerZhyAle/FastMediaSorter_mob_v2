@@ -124,4 +124,17 @@
     <string name="scheduled_op_reason_source_deleted">来源已被删除，此计划已暂停</string>
     <string name="scheduled_op_reason_target_deleted">目标已被删除，此计划已暂停</string>
     <string name="scheduled_ops_log_failed">出了点问题</string>
+    <string name="scheduled_ops_notif_stalled_title">计划操作未运行</string>
+    <string name="scheduled_ops_notif_stalled_text">%1$s - 自 %2$s 起已跳过。%3$s</string>
+    <string name="scheduled_ops_op_fill">填充可用空间</string>
+    <string name="scheduled_ops_fill_confirm_title">计划填充？</string>
+    <string name="scheduled_ops_fill_confirm_message">每次运行都会在 %2$s 上的文件夹 %1$s 中写入临时文件，直到剩余 %3$s 可用空间，然后将其删除。您自己的文件保持不变。</string>
+    <string name="scheduled_ops_fill_not_usable">填充需要内部存储或存储卡上当前可写入的文件夹。请通过“本地文件夹”选择。</string>
+    <string name="scheduled_op_reason_fill_busy">填充已在运行</string>
+    <string name="scheduled_op_reason_fill_not_local">该文件夹不在本手机已连接的存储设备上</string>
+    <string name="scheduled_op_reason_fill_storage_unavailable">存储未连接或不可写入</string>
+    <string name="scheduled_op_reason_fill_measurement_unavailable">无法测量可用空间</string>
+    <string name="scheduled_op_reason_fill_no_free_space">除系统保留部分外没有可用空间</string>
+    <string name="scheduled_op_reason_fill_write_failed">写入因错误而停止；临时文件已删除</string>
+    <string name="scheduled_op_reason_fill_cleanup_pending">仍有临时文件。请连接存储，打开“存储空间填充”并点按“删除剩余文件”</string>
 </resources>

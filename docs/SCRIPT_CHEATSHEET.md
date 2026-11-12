@@ -929,6 +929,17 @@ scripts/builders/check-standard-fast.ps1
   Exit: 120 s foreground timeout, which would have killed it with no verdict at all. The place
 ```
 
+### check-unattended-compile.ps1
+The compile-only command an unattended queue pass runs once: `commands.compileCheck` in .sza-profile.json (S4541).
+
+```
+scripts/builders/check-unattended-compile.ps1
+  The compile-only command an unattended queue pass runs once: `commands.compileCheck` in .sza-profile.json (S4541).
+  Params:
+    -DryRun         [SwitchParameter]
+  Exit: 0 every module compiled, or -DryRun listed the commands.; 1 a module has a compile error; the modules after it were not run.; 2 a module could not be checked to a verdict (check-standard-fast.ps1's own exit 2).
+```
+
 ### clean-gradle-caches.ps1
 Gradle caches clean script (project-level)
 
@@ -7805,6 +7816,25 @@ scripts/release/apply-github-store-metadata.ps1
     -Repo           [String] = "FastMediaSorter_mob_v2"
 ```
 
+### assert-ci-verdict.ps1
+Read GitHub Actions' verdict for the commit a release pushed, and refuse the release on a red or a missing one.
+
+```
+scripts/release/assert-ci-verdict.ps1
+  Read GitHub Actions' verdict for the commit a release pushed, and refuse the release on a red or a missing one.
+  Params:
+    -Sha                   [String] = 'origin/main'
+    -Required              [String[]] = @('Android CI Quality Gate')
+    -Accept                [String[]] = @()
+    -AcceptReason          [String] = ''
+    -WaitSeconds           [Int32] = 0  {range 0..3600}
+    -PollSeconds           [Int32] = 30  {range 1..600}
+    -AppearSeconds         [Int32] = 120  {range 0..3600}
+    -RunsJsonPath          [String]
+    -RepoRoot              [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+  Exit: 0 - every run for the commit is green and every required workflow has a run; 1 - at least one run is red (failure, cancelled, timed out, ..) and not accepted; 2 - could not verify: gh missing or unauthenticated, the commit does not resolve, an unreadable
+```
+
 ### assert-fgs-types-vs-previous.ps1
 Refuse a foreground-service type in the standard release that the previous release did not ship and the registry does not allow for standard (S4413).
 
@@ -7818,7 +7848,7 @@ scripts/release/assert-fgs-types-vs-previous.ps1
     -RegistryPath         [String]
     -Build                [SwitchParameter]
     -Help                 [SwitchParameter]
-  Exit: 0 - pass: every foreground-service type is in the baseline or registered for standard; the
+  Exit: 0 - pass: every foreground-service type is in the baseline; the type set is printed.; 1 - fail: a type is new in the standard store build - strip it from standard before the
 ```
 
 ### assert-play-review-batches.ps1
@@ -7848,7 +7878,7 @@ scripts/release/assert-sweep-verdicts.ps1
     -NoWear               [SwitchParameter]
     -NoWearReason         [String]
     -RepoRoot             [String]
-  Exit: 0 - every verdict exists, passed, is not blocked and is not older than its fingerprint; 1 - a verdict FAILED, is BLOCKED, or is stale (older than its scope's fingerprint record); 2 - a verdict file or a fingerprint record is missing or unreadable, or the arguments are
+  Exit: 0 - every verdict exists, passed, is not blocked and is not older than the groups it judged; 1 - a verdict FAILED, is BLOCKED, or is stale (a group it judged changed after it was written); 2 - a verdict file, a fingerprint record or the verdictGroups map is missing or unreadable, or
 ```
 
 ### build-release-spectrum.ps1
@@ -7922,6 +7952,19 @@ scripts/release/cluster-registry.ps1
     -State                  [String]  {open|fixed-unpublished|fixed-published}
     -FixVersionCode         [String]
   Exit: 0 the verb succeeded (Lookup: the cluster is registered).; 1 Lookup: the cluster is not registered. Register: the cluster is already registered.; 2 the call could not be served - a missing argument, an unknown cluster on Set, an unwritable registry.
+```
+
+### confirm-fgs-snapshot.ps1
+Promote a release's pending foreground-service type snapshot to the confirmed baseline once Google Play production carries that versionCode (S4499).
+
+```
+scripts/release/confirm-fgs-snapshot.ps1
+  Promote a release's pending foreground-service type snapshot to the confirmed baseline once Google Play production carries that versionCode (S4499).
+  Params:
+    -VersionCode         [Int64]
+    -ArchiveRoot         [String]
+    -Help                [SwitchParameter]
+  Exit: 0 - the snapshot is confirmed: promoted now, or fgs-types.json already existed.; 1 - there is no snapshot of that versionCode, pending or confirmed: nothing to confirm.; 2 - could not verify: the archive root is unreachable, or the pending file is unreadable,
 ```
 
 ### extract-release-notes.ps1
@@ -8212,6 +8255,18 @@ scripts/release/watch-play-vitals.ps1
   Exit: 0 - read, judged and recorded (whatever the verdict colour); tickets filed where a band was red; 1 - -Check found at least one block out of date; nothing was written; 2 - could not verify: the read failed, the verdict refused, a document or its marker pair is
 ```
 
+## scripts\release\assert-ci-verdict.tests
+
+### Run-Tests.ps1
+Contract suite for assert-ci-verdict.ps1: green, red, pending, missing, superseded, accepted.
+
+```
+scripts/release/assert-ci-verdict.tests/Run-Tests.ps1
+  Contract suite for assert-ci-verdict.ps1: green, red, pending, missing, superseded, accepted.
+  (no param block)
+  Exit: 0 - every assertion passed; 1 - an assertion failed; 2 - the script under test is missing
+```
+
 ## scripts\release\assert-fgs-types-vs-previous.tests
 
 ### Run-Tests.ps1
@@ -8227,11 +8282,11 @@ scripts/release/assert-fgs-types-vs-previous.tests/Run-Tests.ps1
 ## scripts\release\assert-sweep-verdicts.tests
 
 ### Run-Tests.ps1
-S4249 contract suite for scripts/release/assert-sweep-verdicts.ps1 - the release-point read of the phone and watch sweep verdicts.
+S4249 contract suite for scripts/release/assert-sweep-verdicts.ps1 - the release-point read of the phone and watch sweep verdicts. S4498 cases pin what "current" means for a verdict.
 
 ```
 scripts/release/assert-sweep-verdicts.tests/Run-Tests.ps1
-  S4249 contract suite for scripts/release/assert-sweep-verdicts.ps1 - the release-point read of the phone and watch sweep verdicts.
+  S4249 contract suite for scripts/release/assert-sweep-verdicts.ps1 - the release-point read of the phone and watch sweep verdicts. S4498 cases pin what "current" means for a verdict.
   (no param block)
   Exit: 0 - every case passed.; 1 - at least one case failed.
 ```
@@ -8258,6 +8313,18 @@ scripts/release/compose-play-screenshots.tests/Run-Tests.ps1
   Run-Tests.ps1 (S2573) - regression suite for the caption geometry of the Play screenshot composer.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 the suite could not run (the subject is missing, the project virtual environment is absent,
+```
+
+## scripts\release\confirm-fgs-snapshot.tests
+
+### Run-Tests.ps1
+Contract tests for scripts/release/confirm-fgs-snapshot.ps1 and the pending snapshot that scripts/release/retain-deobfuscation.ps1 writes (S4499).
+
+```
+scripts/release/confirm-fgs-snapshot.tests/Run-Tests.ps1
+  Contract tests for scripts/release/confirm-fgs-snapshot.ps1 and the pending snapshot that scripts/release/retain-deobfuscation.ps1 writes (S4499).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
 ```
 
 ## scripts\release\gen-fastlane-changelog.tests
@@ -8535,7 +8602,6 @@ scripts/spec_catalog/check-block-note.ps1
     -NewStatus     (req)  [String]
     -StatusNote           [String]
     -NoteSupplied         [SwitchParameter]
-  Exit: 1 = no reason, or no directional blocker - the transition must not proceed.; 2 = bad invocation (malformed id, or an id no record carries), or the spec file
 ```
 
 ### check-capability-recorded.ps1
@@ -8616,6 +8682,7 @@ scripts/spec_catalog/close-and-log.ps1
     -FeatArea                [String] = ''
     -FeatName                [String] = ''
     -FeatFlavors             [String] = ''
+    -FeatGate                [String] = ''
     -CatalogModule           [String] = ''
     -StatusNote              [String] = ''
     -FeatNoLegal             [SwitchParameter]
@@ -8914,7 +8981,7 @@ scripts/spec_catalog/spec-next-preflight.ps1
     -ClaimAs                   [String] = ''
     -Reason                    [String] = 'spec-next-preflight'
     -AdditionalExclude         [String[]] = @()
-  Exit: 2 - usage error only.
+  Exit: 2 - usage error only: a dash-led token that is not a declared option (S4397), or -ClaimAs
 ```
 
 ### spec-next-session.ps1
@@ -9316,6 +9383,33 @@ scripts/streams/collect-stream-candidates.ps1
     -LiveTvCategories                 [String[]] = @(
         'news', 'documentary', 'movies', 'sports', 'kids', 'music', 'science', 'general'
     )
+```
+
+### export-facet-tables.ps1
+Export the stream facet tables and vectors into the shared contracts catalog (STREAM-BANK item P.1, P.2).
+
+```
+scripts/streams/export-facet-tables.ps1
+  Export the stream facet tables and vectors into the shared contracts catalog (STREAM-BANK item P.1, P.2).
+  Params:
+    -CatalogRoot         [String] = $env:FMS_CONTRACTS_ROOT
+    -RepoRoot            [String]
+  Exit: 0 every file was written.; 1 the tables are inconsistent (an alias points outside the vocabulary, a line is malformed); nothing
+```
+
+### update-iso6392-table.ps1
+Regenerate the ISO 639-2 table of the stream facet fold from the registration authority's code list.
+
+```
+scripts/streams/update-iso6392-table.ps1
+  Regenerate the ISO 639-2 table of the stream facet fold from the registration authority's code list.
+  Params:
+    -SourceFile           [String]
+    -Url                  [String] = 'https://www.loc.gov/standards/iso639-2/ISO-639-2_utf-8.txt'
+    -RepoRoot             [String]
+    -RetiredCodes         [String[]] = @('bh')
+    -Check                [SwitchParameter]
+  Exit: 0 both table files hold what the list produces (written, or unchanged; with -Check, unchanged).; 1 the list is inconsistent with the vocabulary (a vocabulary code absent from it, a duplicate or
 ```
 
 ## scripts\streams.tests
@@ -10413,14 +10507,14 @@ scripts/utils/run-maestro-stress.ps1
     -SkipBuild         [SwitchParameter]
 ```
 
-### run-mono-queue.ps1
-`.\a.ps1 r0` - the release queue for the one MONO agent (S3158): a fresh process per ticket, each running `/spec-all -m <id>`.
+### run-pq-queue.ps1
+`.\a.ps1 r0` - start one portfolio worker for THIS repository: `pq start -Repo <key>` (S4541).
 
 ```
-scripts/utils/run-mono-queue.ps1
-  `.\a.ps1 r0` - the release queue for the one MONO agent (S3158): a fresh process per ticket, each running `/spec-all -m <id>`.
+scripts/utils/run-pq-queue.ps1
+  `.\a.ps1 r0` - start one portfolio worker for THIS repository: `pq start -Repo <key>` (S4541).
   (no param block)
-  Exit: 2 the MONO start could not clear a store (mono-mode.ps1's own code), or the runner forwarder
+  Exit: 0 pq's own exit 0, or -DryRun resolved both facts.; 2 this repository is not in the portfolio registry, the registry could not be read, or no pq.ps1
 ```
 
 ### run-spec-queue.ps1
@@ -10430,27 +10524,30 @@ Drive the release queue one ticket at a time, each in its own fresh Claude Code 
 scripts/utils/run-spec-queue.ps1
   Drive the release queue one ticket at a time, each in its own fresh Claude Code process.
   Params:
-    -Ids                       [String] = ''
-    -MaxTickets                [Int32] = 0
-    -TimeoutMinutes            [Int32] = 90
-    -ModelPolicy               [String] = 'tiered'  {tiered|shape|fixed|default}
-    -Model                     [String] = 'opus'
-    -StrongModel               [String] = 'opus'
-    -CheapModel                [String] = 'sonnet'
-    -Instance                  [String] = 'a'
-    -StartDelaySeconds         [Int32] = 0
-    -ClaimGraceSeconds         [Int32] = 180
-    -PromptTemplate            [String] = ''
-    -PermissionMode            [String] = 'bypassPermissions'  {acceptEdits|auto|bypassPermissions|manual|dontAsk|plan}
-    -Quiet                     [SwitchParameter]
-    -DryRun                    [SwitchParameter]
-    -Stop                      [SwitchParameter]
-    -Kill                      [SwitchParameter]
-    -KeepSkipCache             [SwitchParameter]
-    -RepoRoot                  [String] = ''
-    -AgentJson                 [String] = ''
-    -ExitOnLimit               [SwitchParameter]
-    -Help                      [SwitchParameter]
+    -Ids                        [String] = ''
+    -MaxTickets                 [Int32] = 0
+    -TimeoutMinutes             [Double] = 90
+    -StatusGraceMinutes         [Double] = 5.0
+    -MaxTimeoutMinutes          [Int32] = 150
+    -ModelPolicy                [String] = 'tiered'  {tiered|shape|fixed|default}
+    -Model                      [String] = 'opus'
+    -StrongModel                [String] = 'opus'
+    -CheapModel                 [String] = 'sonnet'
+    -DefaultModel               [String] = 'sonnet'
+    -Instance                   [String] = 'a'
+    -StartDelaySeconds          [Int32] = 0
+    -ClaimGraceSeconds          [Int32] = 180
+    -PromptTemplate             [String] = ''
+    -PermissionMode             [String] = 'bypassPermissions'  {acceptEdits|auto|bypassPermissions|manual|dontAsk|plan}
+    -Quiet                      [SwitchParameter]
+    -DryRun                     [SwitchParameter]
+    -Stop                       [SwitchParameter]
+    -Kill                       [SwitchParameter]
+    -KeepSkipCache              [SwitchParameter]
+    -RepoRoot                   [String] = ''
+    -AgentJson                  [String] = ''
+    -ExitOnLimit                [SwitchParameter]
+    -Help                       [SwitchParameter]
   Exit: 2 = invalid invocation - the Claude CLI or the preflight script could not be found or
 ```
 
@@ -11037,6 +11134,18 @@ Contract tests for scripts/utils/release-freeze.ps1 - the release-sweep tree fre
 ```
 scripts/utils/release-freeze.tests/Run-Tests.ps1
   Contract tests for scripts/utils/release-freeze.ps1 - the release-sweep tree freeze (S3010).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
+```
+
+## scripts\utils\run-pq-queue.tests
+
+### Run-Tests.ps1
+Contract tests for scripts/utils/run-pq-queue.ps1 - the launcher behind `.\a.ps1 r0` (S4541).
+
+```
+scripts/utils/run-pq-queue.tests/Run-Tests.ps1
+  Contract tests for scripts/utils/run-pq-queue.ps1 - the launcher behind `.\a.ps1 r0` (S4541).
   (no param block)
   Exit: 0 - every case passed.; 1 - at least one case failed.
 ```

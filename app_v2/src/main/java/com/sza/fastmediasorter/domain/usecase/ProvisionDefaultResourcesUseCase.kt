@@ -77,6 +77,7 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
                 supportedMediaTypes = settings.getGloballyEnabledMediaTypes(),
                 profile = ResourceProfile.NONE,
                 displayOrder = displayOrder,
+                sortMode = SortMode.DATE_DESC,
                 allFiles = true
             )
             provisionedCount++

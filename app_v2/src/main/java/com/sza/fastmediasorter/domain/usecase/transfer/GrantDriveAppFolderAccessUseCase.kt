@@ -4,7 +4,6 @@ import android.content.Context
 import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
 import com.sza.fastmediasorter.domain.identity.GoogleScope
 import com.sza.fastmediasorter.domain.identity.IdentitySignInResult
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -18,7 +17,6 @@ class GrantDriveAppFolderAccessUseCase @Inject constructor(
 
     /** @param activityContext an Activity context - the consent screen is launched from it. */
     suspend operator fun invoke(activityContext: Context): Boolean {
-        Timber.d("S4427: Allow action requests the app folder grant")
         val result = identityRepository.grantScopes(activityContext, setOf(GoogleScope.DRIVE_APPDATA))
         return result is IdentitySignInResult.Success
     }

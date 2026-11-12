@@ -6,7 +6,6 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ServiceInfo
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
@@ -17,19 +16,23 @@ import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.format.QuantityFormatter
 import com.sza.fastmediasorter.core.notification.NotificationIcons
 import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.core.util.StoragePermissionRule
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.domain.model.Quantity
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.model.ScheduledRunOutcome
 import com.sza.fastmediasorter.domain.model.ScheduledRunReason
 import com.sza.fastmediasorter.domain.model.ScheduledRunRecord
+import com.sza.fastmediasorter.domain.model.ScheduledSkipStreak
 import com.sza.fastmediasorter.domain.model.afterRun
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.domain.repository.ScheduledRunJournalRepository
+import com.sza.fastmediasorter.domain.unit.UnitSystemProvider
 import com.sza.fastmediasorter.domain.usecase.ExecuteScheduledOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.ScheduledExecutionResult
 import com.sza.fastmediasorter.ui.scheduledops.ScheduledOperationsActivity
@@ -45,7 +48,9 @@ class ScheduledOperationsWorker @AssistedInject constructor(
     private val executeScheduledOperationUseCase: ExecuteScheduledOperationUseCase,
     private val scheduledOperationRepository: ScheduledOperationRepository,
     private val runJournal: ScheduledRunJournalRepository,
-    private val resourceRepository: ResourceRepository
+    private val resourceRepository: ResourceRepository,
+    private val quantityFormatter: QuantityFormatter,
+    private val unitSystem: UnitSystemProvider,
 ) : CoroutineWorker(context, workerParams) {
 
     companion object {
@@ -117,7 +122,6 @@ class ScheduledOperationsWorker @AssistedInject constructor(
                 )
                 if (execResult.pausesSchedule) {
                     Timber.w("ScheduledOperationsWorker: op=$operationId paused - ${execResult.reason}")
-                    Timber.d("S4480: schedule op=$operationId paused after its resource was deleted")
                 }
                 reportRun(operation, execResult, journalRecord(execResult, startedAt, finishedAt, foregroundNote))
             }
@@ -128,7 +132,10 @@ class ScheduledOperationsWorker @AssistedInject constructor(
                 notifyPermissionRequired()
             }
 
-            Timber.i("ScheduledOperationsWorker: op=$operationId done - ${execResult.filesProcessed} files, errors=${execResult.errors.size}")
+            Timber.i(
+                "ScheduledOperationsWorker: op=$operationId done - ${execResult.filesProcessed} files, " +
+                    "errors=${execResult.errors.size}, outcome=${execResult.outcome}"
+            )
             com.sza.fastmediasorter.widget.ScheduledTasksWidgetRefresher.refresh(context)
             // Always success on purpose: the owner rejected retries, the next slot is the retry, and the
             // reschedule observer only continues the chain from a SUCCEEDED state.
@@ -144,7 +151,7 @@ class ScheduledOperationsWorker @AssistedInject constructor(
      * journal keeps, so a run that later dies mid-way is explainable from the screen.
      */
     private suspend fun enterForeground(): String? = try {
-        setForeground(createForegroundInfo())
+        setDataSyncForegroundIfAllowed(createForegroundInfo())
         null
     } catch (e: Exception) {
         Timber.w(e, "ScheduledOperationsWorker: setForeground failed (non-fatal)")
@@ -164,6 +171,7 @@ class ScheduledOperationsWorker @AssistedInject constructor(
         try {
             runJournal.append(operation.id, record)
             notifyRunFailed(operation, result)
+            reportStall(operation, result)
         } catch (e: Exception) {
             e.rethrowIfCancellation()
             Timber.w(e, "ScheduledOperationsWorker: could not report run of op=${operation.id}")
@@ -200,7 +208,6 @@ class ScheduledOperationsWorker @AssistedInject constructor(
             !operation.silentMode &&
             NotificationManagerCompat.from(context).areNotificationsEnabled()
         if (!wanted) return
-        Timber.d("S4493: failure notification worded from the reason code")
         createNotificationChannel()
         val label = scheduleLabel(operation)
         // S4493: the English run message stays in the journal; the notification says it in the interface language.
@@ -211,6 +218,54 @@ class ScheduledOperationsWorker @AssistedInject constructor(
         )
         val notification = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
             .setContentTitle(context.getString(R.string.scheduled_ops_notif_failed_title))
+            .setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+            .setSmallIcon(NotificationIcons.STATUS_BAR)
+            .setAutoCancel(true)
+            .setContentIntent(buildScreenIntent())
+            .build()
+        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        nm.notify(
+            NotificationIds.slotIn(NotificationIds.SCHEDULED_OPERATION_FAILURES, operation.id.toInt()),
+            notification
+        )
+    }
+
+    /**
+     * S4513: a single skip stays silent (S4211), but a streak of them is a schedule that does nothing - a
+     * month of skipped moves once passed as clean runs. Told once per streak; any run that is not a skip
+     * ends the streak and re-arms the report.
+     */
+    private suspend fun reportStall(operation: ScheduledOperation, result: ScheduledExecutionResult) {
+        if (result.outcome != ScheduledRunOutcome.SKIPPED) {
+            runJournal.setStallReported(operation.id, false)
+            return
+        }
+        val since = if (runJournal.isStallReported(operation.id)) null else stalledSince(operation.id)
+        if (since == null) return
+        Timber.i("ScheduledOperationsWorker: op=${operation.id} stalled - skipped since $since")
+        runJournal.setStallReported(operation.id, true)
+        val wanted = !operation.silentMode && NotificationManagerCompat.from(context).areNotificationsEnabled()
+        if (wanted) notifyStalled(operation, result, since)
+    }
+
+    /** Start of the current skip streak when it has become a stall, otherwise null. */
+    private suspend fun stalledSince(operationId: Long): Long? {
+        val journal = runJournal.read(operationId)
+        return ScheduledSkipStreak.since(journal)?.takeIf { ScheduledSkipStreak.isStalled(journal) }
+    }
+
+    private suspend fun notifyStalled(operation: ScheduledOperation, result: ScheduledExecutionResult, since: Long) {
+        createNotificationChannel()
+        val sinceText = quantityFormatter.format(Quantity.DateTime(since), unitSystem.value)
+        val text = context.getString(
+            R.string.scheduled_ops_notif_stalled_text,
+            scheduleLabel(operation),
+            sinceText,
+            context.getString(ScheduledRunReasonText.of(result.reason, result.outcome))
+        )
+        val notification = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
+            .setContentTitle(context.getString(R.string.scheduled_ops_notif_stalled_title))
             .setContentText(text)
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))
             .setSmallIcon(NotificationIcons.STATUS_BAR)
@@ -286,11 +341,7 @@ class ScheduledOperationsWorker @AssistedInject constructor(
     private fun createForegroundInfo(): ForegroundInfo {
         createNotificationChannel()
         val notification = buildNotification()
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            ForegroundInfo(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-        } else {
-            ForegroundInfo(NOTIFICATION_ID, notification)
-        }
+        return DataSyncForeground.workerForegroundInfo(applicationContext, NOTIFICATION_ID, notification)
     }
 
     private fun buildNotification(): Notification {

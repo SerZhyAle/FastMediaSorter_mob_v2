@@ -63,6 +63,7 @@ class ScheduledOperationsAdapter(
                 ScheduledOpType.DELETE -> R.drawable.ic_delete
                 ScheduledOpType.ARCHIVE -> R.drawable.ic_archive
                 ScheduledOpType.WATCH_MESSAGE -> R.drawable.ic_watch
+                ScheduledOpType.FILL_FREE_SPACE -> R.drawable.ic_storage
             }
             b.ivOpTypeIcon.setImageResource(iconRes)
 
@@ -71,7 +72,7 @@ class ScheduledOperationsAdapter(
             b.tvSourceName.text = (if (isWatch) op.watchTitle else resourceNameProvider(op.sourceResourceId))
                 ?: ctx.getString(R.string.scheduled_op_unknown_resource)
 
-            val hasTarget = op.operationType != ScheduledOpType.DELETE && !isWatch
+            val hasTarget = op.operationType.usesTarget
             b.tvArrow.isVisible = hasTarget
             b.tvTargetName.isVisible = hasTarget
             if (hasTarget) {
@@ -87,8 +88,8 @@ class ScheduledOperationsAdapter(
             val intervalStr = buildIntervalString(ctx, op.intervalHours, op.intervalMinutes)
             b.tvScheduleInfo.text = ctx.getString(R.string.scheduled_op_schedule_summary, "$hh:$mm", intervalStr)
 
-            // Filters; a watch message reads no files, so it carries none.
-            b.tvFilters.isVisible = !isWatch
+            // Filters; a watch message and a fill read no files, so they carry none.
+            b.tvFilters.isVisible = op.operationType.usesFileFilters
             val typeLabel = buildFileTypeMaskLabel(ctx, op.fileTypeMask)
             val timeLabel = when (op.timeFilter) {
                 TimeFilter.ALL -> ""

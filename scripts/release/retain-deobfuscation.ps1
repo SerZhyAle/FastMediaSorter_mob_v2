@@ -16,17 +16,21 @@
     Archive layout:
         <ArchiveRoot>\<versionCode>\<variant>-deobfuscation.zip
         <ArchiveRoot>\<versionCode>\manifest.json
-        <ArchiveRoot>\<versionCode>\fgs-types.json      (standard only)
+        <ArchiveRoot>\<versionCode>\fgs-types.pending.json   (standard only)
 
     The payload zip holds mapping.txt at its root and symbols/<abi>/<lib>.so.dbg
     beneath it, whichever source produced them.
 
-    fgs-types.json (S4413) records the foreground-service types of the merged
-    standard-release manifest of the tree that built the bundle: versionCode,
-    variant and the sorted types. assert-fgs-types-vs-previous.ps1 reads the newest
-    one as the previous release's baseline. A missing or unreadable merged manifest
-    only warns - the comparison then falls back to the registry - and never fails
-    the retention.
+    fgs-types.pending.json (S4413, S4499) records the foreground-service types of the
+    merged standard-release manifest of the tree that built the bundle: versionCode,
+    variant and the sorted types. It is written at build time, before Google Play has
+    accepted the bundle, so it is never a baseline: assert-fgs-types-vs-previous.ps1
+    reads only fgs-types.json, which confirm-fgs-snapshot.ps1 creates from the pending
+    file once Play production carries the versionCode (publish-play-release.ps1 calls it
+    after a production commit). A bundle Play refuses therefore leaves only a pending
+    file behind. When fgs-types.json already exists for the versionCode nothing is
+    written. A missing or unreadable merged manifest only warns - the comparison then
+    falls back to the registry - and never fails the retention.
 
     Exit codes:
       0 - payload stored, or already present with an identical mapping.
@@ -64,7 +68,7 @@
     and survives a machine reinstall.
 
 .PARAMETER MergedManifest
-    The merged standard-release manifest that fgs-types.json is read from. Default:
+    The merged standard-release manifest that fgs-types.pending.json is read from. Default:
     under the build directory the -Bundle (or -Mapping) path sits in, i.e.
     <module>\build\intermediates\merged_manifests\standardRelease\, so a bundle built
     in the release worktree is described by that worktree's manifest.
@@ -212,11 +216,16 @@ function Get-StoredRecord {
     return @($manifest.variants | Where-Object { $_.variant -eq $Variant }) | Select-Object -First 1
 }
 
-# S4413: the previous release's foreground-service type set, the baseline the next
-# campaign's assess-step check compares against. A failure here warns only: the
-# payload is the retention's job, and the check falls back to the registry.
+# S4413: the foreground-service type set of the bundle just built. S4499: written as a pending
+# snapshot, because the baseline of the next campaign's assess-step check must be a release Play
+# accepted, and this runs before the Play commit. A failure here warns only: the payload is the
+# retention's job, and the check falls back to the registry.
 function Write-FgsTypeSnapshot {
     if ($Variant -ne 'standard') { return }
+    if (Test-Path -LiteralPath (Join-Path $releaseDir 'fgs-types.json') -PathType Leaf) {
+        Write-Host "FGS types:    fgs-types.json already confirmed for versionCode $VersionCode, nothing written." -ForegroundColor Green
+        return
+    }
     $manifestFile = $MergedManifest
     if (-not $manifestFile) {
         # Walk up from the source to its build directory: the bundle (or mapping) and the
@@ -239,7 +248,7 @@ function Write-FgsTypeSnapshot {
         }
     }
     if (-not $manifestFile -or -not (Test-Path -LiteralPath $manifestFile -PathType Leaf)) {
-        Write-Warning "retain-deobfuscation: merged standard-release manifest not found, fgs-types.json not written (the FGS check falls back to the registry)."
+        Write-Warning "retain-deobfuscation: merged standard-release manifest not found, fgs-types.pending.json not written (the FGS check falls back to the registry)."
         return
     }
     try {
@@ -254,12 +263,12 @@ function Write-FgsTypeSnapshot {
             }
         }
         $snapshot = [ordered]@{ versionCode = $VersionCode; variant = $Variant; types = @($types) }
-        $snapshotPath = Join-Path $releaseDir 'fgs-types.json'
+        $snapshotPath = Join-Path $releaseDir 'fgs-types.pending.json'
         [System.IO.File]::WriteAllText($snapshotPath, ($snapshot | ConvertTo-Json -Depth 3))
-        Write-Host "FGS types:    $(@($types) -join ', ') -> $snapshotPath" -ForegroundColor Green
+        Write-Host "FGS types:    $(@($types) -join ', ') -> $snapshotPath (pending until Play production carries it)" -ForegroundColor Green
     }
     catch {
-        Write-Warning "retain-deobfuscation: fgs-types.json not written from $manifestFile ($($_.Exception.Message)); the FGS check falls back to the registry."
+        Write-Warning "retain-deobfuscation: fgs-types.pending.json not written from $manifestFile ($($_.Exception.Message)); the FGS check falls back to the registry."
     }
 }
 

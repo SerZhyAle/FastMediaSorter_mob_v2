@@ -313,6 +313,7 @@
                     android:id="@+id/headerBehaviour"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:csh_icon="@drawable/ic_behavior"
                     app:csh_showHelp="false"
                     app:csh_title="@string/settings_category_behaviour" />
 
@@ -982,6 +983,15 @@
                         app:str_icon="@drawable/ic_mirror"
                         app:str_title="@string/mirror_settings_row_title"
                         app:str_subtitle="@string/mirror_settings_row_summary" />
+
+                    <!-- S4542: last row, because Filler belongs to no family of neighbours. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowEnableFiller"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:str_icon="@drawable/ic_storage"
+                        app:str_title="@string/filler_title"
+                        app:str_subtitle="@string/filler_settings_toggle_subtitle" />
 
                 </LinearLayout>
             </LinearLayout>

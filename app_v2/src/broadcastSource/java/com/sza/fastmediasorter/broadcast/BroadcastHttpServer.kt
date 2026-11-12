@@ -125,7 +125,6 @@ class BroadcastHttpServer(
      * past [timeoutMs]; [stop] closes it with the rest.
      */
     fun end(timeoutMs: Long) {
-        Timber.d("S4442: http audio clean end")
         ending = true
         clients.forEach { it.close() }
         clients.clear()
@@ -148,9 +147,11 @@ class BroadcastHttpServer(
 
     private fun createClientStream(): InputStream {
         val client = ClientSink(CLIENT_QUEUE_FRAMES, BUFFER_SIZE_BYTES)
+        // Counted before the listener becomes visible: a caller that saw the listener and ran [end] at once would
+        // otherwise read zero open responses and close the port ahead of this body's terminating chunk.
+        openResponses.incrementAndGet()
         clients.add(client)
         _listenerCount.value = clients.size
-        openResponses.incrementAndGet()
         return CountedBody(client.input)
     }
 
@@ -252,7 +253,6 @@ class BroadcastHttpServer(
 
             @Suppress("TooGenericExceptionCaught")
             override fun run() {
-                Timber.d("S4491: lookup-free client handler for ${socket.inetAddress.hostAddress}")
                 var output: OutputStream? = null
                 try {
                     output = socket.getOutputStream()

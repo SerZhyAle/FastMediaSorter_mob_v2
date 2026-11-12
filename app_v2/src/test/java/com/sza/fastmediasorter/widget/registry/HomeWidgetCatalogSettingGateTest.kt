@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.widget.registry
 
 import android.content.Context
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.programs.ProgramsSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import io.mockk.mockk
 import org.junit.Assert.assertFalse
@@ -46,7 +47,7 @@ class HomeWidgetCatalogSettingGateTest {
         )
         assertTrue(
             "the calculator widget must be offered once the user turns the calculator on",
-            gate(AppSettings(enableCalculator = true)),
+            gate(AppSettings(programs = ProgramsSettings(enableCalculator = true))),
         )
     }
 
@@ -59,7 +60,7 @@ class HomeWidgetCatalogSettingGateTest {
         )
         assertTrue(
             "the stopwatch widget must be offered once the user turns the stopwatch on",
-            gate(AppSettings(enableStopwatch = true)),
+            gate(AppSettings(programs = ProgramsSettings(enableStopwatch = true))),
         )
     }
 
@@ -69,11 +70,11 @@ class HomeWidgetCatalogSettingGateTest {
         // the neighbour's question - a mistake both tests above would pass unchanged.
         assertFalse(
             "the calculator widget must not appear because the stopwatch was turned on",
-            gateOf(CALCULATOR_KEY)(AppSettings(enableStopwatch = true)),
+            gateOf(CALCULATOR_KEY)(AppSettings(programs = ProgramsSettings(enableStopwatch = true))),
         )
         assertFalse(
             "the stopwatch widget must not appear because the calculator was turned on",
-            gateOf(STOPWATCH_KEY)(AppSettings(enableCalculator = true)),
+            gateOf(STOPWATCH_KEY)(AppSettings(programs = ProgramsSettings(enableCalculator = true))),
         )
     }
 

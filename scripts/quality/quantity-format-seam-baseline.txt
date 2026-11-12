@@ -49,6 +49,7 @@ app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ExtractExifMetadataU
 app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbMediaScanner.kt | INTERNAL | parses a server listing
 app_v2/src/main/java/com/sza/fastmediasorter/data/link/InvisibleWebViewExtractionStrategy.kt | INTERNAL | parses a page value
 app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/anywhere/SftpRendezvousCodec.kt | INTERNAL | rendezvous wire field: UTC ISO 8601 stamp pinned by the shared contract, read back by the peer
+app_v2/src/main/java/com/sza/fastmediasorter/data/remote/exchange/DeviceExchangeSettingsClient.kt | INTERNAL | settings-save envelope wire field: UTC ISO 8601 timestamp read by the exchange server, never shown
 wear/src/main/java/com/sza/fastmediasorter/wear/data/db/VoiceNoteIndexRebuilder.kt | INTERNAL | parses a note file name
 wear/src/main/java/com/sza/fastmediasorter/wear/data/recorder/VoiceNoteFileFactory.kt | INTERNAL | note file name
 wear/src/main/java/com/sza/fastmediasorter/wear/data/recorder/VoiceNotePublisher.kt | INTERNAL | note file name

@@ -116,6 +116,7 @@ class SftpClient @Inject constructor(
     ): Result<T> {
         lifecycleBootstrapper.get().ensureInitialized()
         reachabilityGate.requireAnyNetwork("SFTP")
+        reachabilityGate.requireLocalNetworkPermission("SFTP", callerInfo.host)
         // The pinned info flows on into the idle-disconnect arm so invalidation hits the same pool key. The
         // path decides whether the operation lies under a protected root and so needs its own proven session.
         val info = proofRegistry.withProof(pinRegistry.withPin(callerInfo), remotePath)
@@ -150,6 +151,7 @@ class SftpClient @Inject constructor(
     ): SftpConnectionPool.ExoPlayerConnection {
         lifecycleBootstrapper.get().ensureInitialized()
         reachabilityGate.requireAnyNetwork("SFTP")
+        reachabilityGate.requireLocalNetworkPermission("SFTP", connectionInfo.host)
         val pinned = proofRegistry.withProofBlocking(pinRegistry.withPinBlocking(connectionInfo), remotePath)
         val transportKey = rememberTransportKey(pinned)
         idleDisconnectPolicy.touch(transportKey)
@@ -196,6 +198,27 @@ class SftpClient @Inject constructor(
         remotePath: String = "/",
         recursive: Boolean = true,
         includeDirectories: Boolean = false
+    ): Result<List<SftpFileListing>> {
+        val first = listFilesOnce(connectionInfo, remotePath, recursive, includeDirectories)
+        val error = first.exceptionOrNull() as? SftpException
+        val proof = if (error?.id == ChannelSftp.SSH_FX_NO_SUCH_FILE) {
+            proofRegistry.localCandidate(connectionInfo, remotePath)
+        } else {
+            null
+        }
+        return if (proof != null && verifyRootProof(connectionInfo, proof.root, proof.pin).isSuccess) {
+            proofRegistry.rememberLocal(connectionInfo, proof)
+            listFilesOnce(connectionInfo, remotePath, recursive, includeDirectories)
+        } else {
+            first
+        }
+    }
+
+    internal suspend fun listFilesOnce(
+        connectionInfo: SftpConnectionInfo,
+        remotePath: String,
+        recursive: Boolean,
+        includeDirectories: Boolean,
     ): Result<List<SftpFileListing>> = withConnection(connectionInfo, remotePath) { channel ->
         // S0219: SftpException/IOException now propagate so SftpConnectionPool runs the
         // dead-transport retry (S0147). CancellationException re-throw is preserved
@@ -697,7 +720,8 @@ class SftpClient @Inject constructor(
         password: String,
         expectedFingerprint: String? = null
     ): Result<String?> =
-        SftpConnectionTester.testConnection(host, port, username, password, expectedFingerprint)
+        reachabilityGate.localNetworkRefusal("SFTP", host)?.let { Result.failure<String?>(it) }
+            ?: SftpConnectionTester.testConnection(host, port, username, password, expectedFingerprint)
 
     /**
      * Opens a session of its own that proves [root] with [pin] and stats the root: the check an attach runs
@@ -707,7 +731,9 @@ class SftpClient @Inject constructor(
      */
     suspend fun verifyRootProof(connectionInfo: SftpConnectionInfo, root: String, pin: String): Result<Unit> {
         val proofInfo = connectionInfo.copy(rootProof = SftpRootProof(root, pin))
-        return exists(proofInfo, "/$root").map { }
+        return exists(proofInfo, "/$root").mapCatching { exists ->
+            if (!exists) throw java.io.FileNotFoundException("Protected SFTP root is unavailable")
+        }
     }
 
     suspend fun testConnectionWithPrivateKey(
@@ -717,14 +743,15 @@ class SftpClient @Inject constructor(
         privateKey: String,
         passphrase: String? = null,
         expectedFingerprint: String? = null
-    ): Result<String?> = SftpConnectionTester.testConnectionWithPrivateKey(
-        host,
-        port,
-        username,
-        privateKey,
-        passphrase,
-        expectedFingerprint
-    )
+    ): Result<String?> = reachabilityGate.localNetworkRefusal("SFTP", host)?.let { Result.failure<String?>(it) }
+        ?: SftpConnectionTester.testConnectionWithPrivateKey(
+            host,
+            port,
+            username,
+            privateKey,
+            passphrase,
+            expectedFingerprint
+        )
 
     private fun ensureDirectoryExists(channel: ChannelSftp, remotePath: String) =
         SftpConnectionTester.ensureDirectoryExists(channel, remotePath)

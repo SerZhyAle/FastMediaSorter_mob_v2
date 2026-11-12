@@ -8,7 +8,6 @@ import com.sza.fastmediasorter.broadcast.BroadcastMode
 import com.sza.fastmediasorter.domain.usecase.broadcast.CheckPreparedBroadcastStartUseCase
 import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -23,7 +22,6 @@ class BroadcastPreparedStartGuard @Inject constructor(
     fun confirm(activity: AppCompatActivity, mode: BroadcastMode?, proceed: () -> Unit) {
         activity.lifecycleScope.launch {
             val verdict = checkStart(mode)
-            Timber.d("S4247: start guard mode=$mode verdict=$verdict")
             when (verdict) {
                 CheckPreparedBroadcastStartUseCase.Verdict.Matches,
                 CheckPreparedBroadcastStartUseCase.Verdict.NothingPrepared -> proceed()

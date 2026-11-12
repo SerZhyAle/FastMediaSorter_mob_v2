@@ -1,10 +1,12 @@
 package com.sza.fastmediasorter.util
 
+import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
+import android.content.pm.ServiceInfo
 import android.os.Build
 
 /**
@@ -36,6 +38,13 @@ fun PackageManager.queryIntentActivitiesCompat(intent: Intent, flags: Int = 0): 
         queryIntentActivities(intent, PackageManager.ResolveInfoFlags.of(flags.toLong()))
     } else {
         queryIntentActivities(intent, flags)
+    }
+
+fun PackageManager.getServiceInfoCompat(component: ComponentName, flags: Int = 0): ServiceInfo =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        getServiceInfo(component, PackageManager.ComponentInfoFlags.of(flags.toLong()))
+    } else {
+        getServiceInfo(component, flags)
     }
 
 fun PackageManager.resolveActivityCompat(intent: Intent, flags: Int = 0): ResolveInfo? =

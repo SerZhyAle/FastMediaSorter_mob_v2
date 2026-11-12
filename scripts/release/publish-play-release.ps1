@@ -7,6 +7,11 @@
     Wired as part of the automated Google Play Console publishing pipeline.
     Calls publish-play-release.py in the project virtual environment.
 
+    After a committed, not held production release with status completed of the default package, the
+    script runs confirm-fgs-snapshot.ps1 for the committed versionCode (S4499): only then does that
+    release's foreground-service type snapshot become the baseline of assert-fgs-types-vs-previous.ps1.
+    A confirmation failure only warns and prints the by-hand command; it never changes the exit code.
+
 .PARAMETER Track
     Target track in Google Play. Default: production.
     Supported: internal, alpha, beta, production.
@@ -59,7 +64,8 @@
       0 - the bundle is on the track and the edit was committed.
       1 - the release is at fault: the AAB is missing, an argument contradicts the artifact, a
           non-default -Package has no notes file, or Play rejected the payload. The Foreground-service-permissions 403 on commit lands here
-          on purpose - it names an owner action and must stay visible as a finding.
+          on purpose - it is a build defect (the standard bundle gained a foreground-service type), fixed in the build
+          by stripping the type, and must stay visible as a finding.
       2 - could not verify: the virtual environment is absent, or a sustained transient failure
           (5xx, rate limit, network). The release is NOT implicated - re-run later.
 
@@ -104,7 +110,14 @@ if (-not [string]::IsNullOrWhiteSpace($NotesFile)) { $extraArgs += @('--notes-fi
 if ($WhatIfPreference) { $extraArgs += '--dry-run' }
 
 Write-Host "Invoking Google Play Console uploader (Track: $Track, Status: $Status)..." -ForegroundColor Cyan
-& $venvPython $pyScript $Track $Status @extraArgs
+$committed = $null
+& $venvPython $pyScript $Track $Status @extraArgs | ForEach-Object {
+    $line = [string]$_
+    Write-Host $line
+    if ($line -match '^PLAY-COMMITTED versionCode=(\d+) package=(\S+) track=(\S+) status=(\S+) held=([01])\s*$') {
+        $committed = [pscustomobject]@{ VersionCode = [long]$Matches[1]; Held = ($Matches[5] -eq '1') }
+    }
+}
 $pyExit = $LASTEXITCODE
 
 # The child already distinguishes "the release is at fault" from "could not verify"; this only has
@@ -125,4 +138,14 @@ if ($WhatIfPreference) {
     exit 0
 }
 Write-Host "Google Play Console publication completed." -ForegroundColor Green
+
+# Play carries the versionCode on production only after a commit that is not held; before that the
+# bundle's snapshot is just a build-time record and must not become anyone's baseline (S4499).
+if ($committed -and -not $committed.Held -and $Track -eq 'production' -and $Status -eq 'completed' -and [string]::IsNullOrWhiteSpace($Package)) {
+    $confirmScript = Join-Path $PSScriptRoot 'confirm-fgs-snapshot.ps1'
+    & $confirmScript -VersionCode $committed.VersionCode
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warning "The FGS snapshot of versionCode $($committed.VersionCode) is not confirmed (confirm exit $LASTEXITCODE); the publication itself succeeded. Re-run: pwsh -NoProfile -File scripts/release/confirm-fgs-snapshot.ps1 -VersionCode $($committed.VersionCode)"
+    }
+}
 exit 0

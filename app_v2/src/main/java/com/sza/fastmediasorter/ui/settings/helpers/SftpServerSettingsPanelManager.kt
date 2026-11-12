@@ -15,6 +15,7 @@ import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
+import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.model.SftpServerAuthMode
 import com.sza.fastmediasorter.domain.model.SftpServerConfig
@@ -163,6 +164,9 @@ class SftpServerSettingsPanelManager(
             Timber.w("SftpServerSettingsPanelManager: switch read %s against %s; following the server", checked, state)
             binding.rowSftpServerEnabled.setCheckedSilently(start)
         }
+        if (start && !PermissionHelper.hasLocalNetworkPermission(context)) {
+            PermissionHelper.requestLocalNetworkPermission(fragment.requireActivity())
+        }
         launchInView { manageSftpServer.setEnabled(start) }
         if (start) SftpServerService.start(context) else SftpServerService.stop(context)
     }
@@ -196,6 +200,8 @@ class SftpServerSettingsPanelManager(
         SftpServerFailure.NO_SHARED_FOLDERS -> context.getString(R.string.settings_sftp_server_failure_no_folders)
         SftpServerFailure.NO_CREDENTIAL -> context.getString(R.string.settings_sftp_server_failure_no_credential)
         SftpServerFailure.PORT_IN_USE -> context.getString(R.string.settings_sftp_server_failure_port, port)
+        SftpServerFailure.LOCAL_NETWORK_DENIED ->
+            context.getString(R.string.settings_sftp_server_failure_local_network)
         SftpServerFailure.START_FAILED -> context.getString(R.string.settings_sftp_server_failure_generic)
     }
 

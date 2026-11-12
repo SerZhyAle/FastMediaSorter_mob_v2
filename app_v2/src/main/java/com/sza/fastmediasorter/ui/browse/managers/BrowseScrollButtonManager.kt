@@ -68,7 +68,6 @@ class BrowseScrollButtonManager(
     private fun applyListGutter(reserve: Boolean) {
         val target = if (reserve) stripGutterPx() else 0
         if (recyclerView.paddingEnd != target) {
-            Timber.d("S4482: list end gutter ${recyclerView.paddingEnd} -> $target px for the scroll strips")
             recyclerView.updatePaddingRelative(end = target)
         }
     }

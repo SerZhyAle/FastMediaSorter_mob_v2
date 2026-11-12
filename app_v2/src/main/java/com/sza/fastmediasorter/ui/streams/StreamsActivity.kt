@@ -1340,7 +1340,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private fun finishOrNavigateUp() {
         // S4474: a task the trampoline opened for a launcher or shortcut tap has the caller's screen
         // underneath, so opening Main here would put the app's menu between the user and that screen.
-        Timber.d("S4474: streams exit taskRoot=$isTaskRoot")
         if (isTaskRoot && !intent.getBooleanExtra(EXTRA_RETURN_TO_CALLER, false)) {
             startActivity(
                 Intent(this, com.sza.fastmediasorter.ui.main.MainActivity::class.java)

@@ -125,4 +125,17 @@
     <string name="scheduled_op_reason_source_deleted">ماخذ حذف ہو گیا، اس لیے یہ شیڈول موقوف ہے</string>
     <string name="scheduled_op_reason_target_deleted">منزل حذف ہو گئی، اس لیے یہ شیڈول موقوف ہے</string>
     <string name="scheduled_ops_log_failed">کچھ غلط ہو گیا</string>
+    <string name="scheduled_ops_notif_stalled_title">شیڈول شدہ عمل نہیں چل رہا</string>
+    <string name="scheduled_ops_notif_stalled_text">%1$s - %2$s سے چھوڑا جا رہا ہے۔ %3$s</string>
+    <string name="scheduled_ops_op_fill">خالی جگہ بھریں</string>
+    <string name="scheduled_ops_fill_confirm_title">بھرنا شیڈول کریں؟</string>
+    <string name="scheduled_ops_fill_confirm_message">ہر رن %2$s پر فولڈر %1$s میں عارضی فائلیں اس وقت تک لکھتا ہے جب تک %3$s خالی نہ رہ جائے، پھر انہیں حذف کر دیتا ہے۔ آپ کی اپنی فائلیں جیسی ہیں ویسی ہی رہتی ہیں۔</string>
+    <string name="scheduled_ops_fill_not_usable">بھرنے کے لیے اندرونی اسٹوریج یا میموری کارڈ پر ایسا فولڈر درکار ہے جس میں ابھی لکھا جا سکے۔ اسے مقامی فولڈر سے منتخب کریں۔</string>
+    <string name="scheduled_op_reason_fill_busy">بھرنا پہلے سے جاری تھا</string>
+    <string name="scheduled_op_reason_fill_not_local">فولڈر اس فون کے کسی منسلک اسٹوریج ڈیوائس پر نہیں ہے</string>
+    <string name="scheduled_op_reason_fill_storage_unavailable">اسٹوریج منسلک نہیں تھا یا اس میں لکھا نہیں جا سکتا تھا</string>
+    <string name="scheduled_op_reason_fill_measurement_unavailable">خالی جگہ ناپی نہیں جا سکی</string>
+    <string name="scheduled_op_reason_fill_no_free_space">سسٹم کے لیے رکھے گئے حصے سے اوپر کوئی خالی جگہ نہیں</string>
+    <string name="scheduled_op_reason_fill_write_failed">لکھنا ایک خرابی کے ساتھ رک گیا؛ عارضی فائلیں حذف کر دی گئیں</string>
+    <string name="scheduled_op_reason_fill_cleanup_pending">عارضی فائلیں باقی ہیں۔ اسٹوریج منسلک کریں، اسٹوریج فلر کھولیں اور باقی فائلیں حذف کریں پر ٹیپ کریں</string>
 </resources>

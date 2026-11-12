@@ -18,7 +18,6 @@ import com.sza.fastmediasorter.widget.RandomPhotoFrameWidgetRefresher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -187,7 +186,6 @@ private class RandomPhotoFrameGadgetView(
      * the desktop. The use case also owns the failure log.
      */
     private fun open(intent: Intent) {
-        Timber.d("S4428: photo frame gadget starts its target through the shared task policy")
         executeCommand.startTarget(intent)
     }
 }

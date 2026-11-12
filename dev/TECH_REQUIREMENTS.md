@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.25 16:55</sub>
+<sub class="doc-stamp">26.10.30 11:35</sub>
 
 # FastMediaSorter v2 - Technical Requirements & Stack Reference
 
@@ -16,8 +16,8 @@
 | Java target          | 17                             | `jvmTarget = "17"`                              |
 | Android Gradle Plugin| 9.2.1                          | AGP, pinned in root `build.gradle.kts`          |
 | Gradle               | 9.4.1                          | Wrapper in `gradle/wrapper/` (AGP 9.x)          |
-| compileSdk           | 37                             | Android 17 (S2884; targetSdk stays 36)          |
-| targetSdk            | 36                             | Required for Play Store compliance (S1149)      |
+| compileSdk           | 37                             | Android 17 (S2884)                              |
+| targetSdk            | 37                             | Play compliance (S4502); wear 36, vr 34         |
 | minSdk (standard)    | 26                             | Android 8.0 (Oreo)                              |
 | minSdk (legacy)      | 23                             | Android 6.0 (Marshmallow) - covers API 23-25    |
 | minSdk (wear)        | 28                             | Wear OS 2.0+                                    |

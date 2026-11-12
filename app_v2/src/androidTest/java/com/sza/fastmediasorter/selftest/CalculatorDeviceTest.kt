@@ -42,7 +42,7 @@ class CalculatorDeviceTest {
             lateinit var settings: SettingsRepository
             scenario.onActivity { settings = settingsRepositoryOf(it) }
             val wasEnabled = runBlocking { settings.getSettings().first().enableCalculator }
-            runBlocking { settings.updateSettings { it.copy(enableCalculator = true) } }
+            runBlocking { settings.updateSettings { it.withPrograms { copy(enableCalculator = true) } } }
             try {
                 assertTrue("keypad not shown after enabling the calculator", awaitKeypad(scenario))
                 listOf(
@@ -57,7 +57,7 @@ class CalculatorDeviceTest {
                 scenario.onActivity { display = it.findViewById<TextView>(R.id.calculatorDisplay).text.toString() }
                 assertTrue("display after 7 + 5 = reads '$display'", display.filter(Char::isDigit) == "12")
             } finally {
-                runBlocking { settings.updateSettings { it.copy(enableCalculator = wasEnabled) } }
+                runBlocking { settings.updateSettings { it.withPrograms { copy(enableCalculator = wasEnabled) } } }
             }
         }
     }

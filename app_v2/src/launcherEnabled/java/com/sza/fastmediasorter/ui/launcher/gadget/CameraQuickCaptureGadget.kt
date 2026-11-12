@@ -11,7 +11,6 @@ import com.sza.fastmediasorter.databinding.GadgetHomeWidgetBinding
 import com.sza.fastmediasorter.domain.usecase.launcher.ExecuteLauncherCommandUseCase
 import com.sza.fastmediasorter.widget.CameraQuickCaptureActivity
 import com.sza.fastmediasorter.widget.CameraQuickCaptureWidgetProvider
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -105,7 +104,6 @@ private class CameraQuickCaptureGadgetView(
         }
         // The shared launcher task policy, not a bare NEW_TASK: the configuration screen shares the app
         // affinity, so alone that flag would make Back unwind into whatever app screen was open last.
-        Timber.d("S4428: quick capture gadget starts its target through the shared task policy")
         executeCommand.startTarget(intent)
     }
 

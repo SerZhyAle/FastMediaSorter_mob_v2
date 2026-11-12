@@ -70,7 +70,6 @@ internal suspend fun VideoPlayerManager.playStreamVideo(requestedPath: String, p
     releasePlayer(cancelPendingLoad = false)
 
     val path = resolveStreamPath(requestedPath) ?: return
-    Timber.d("S4447: selected stream endpoint resolved")
 
     // S0936: a fresh playback session starts with a full watchdog-recovery window, and a stale
     // "reconnecting" flag must not leak a RECONNECTING label into the new stream's first buffering.

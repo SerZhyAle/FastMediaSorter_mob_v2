@@ -182,7 +182,9 @@ function Get-GradlePins {
 
     # --- Class-2 SDK pins ----------------------------------------------------
     $pins['compile-sdk']  = Get-SharedModulePin -AppText $appText -WearText $wearText -Pattern $script:RxCompileSdk -PinHint 'compile-sdk'
-    $pins['target-sdk']   = Get-SharedModulePin -AppText $appText -WearText $wearText -Pattern $script:RxTargetSdk -PinHint 'target-sdk'
+    # S4502: the phone moved to targetSdk 37 while the watch stays on 36 (Play asks 35 of Wear OS), so the
+    # pin is the phone's defaultConfig value; the first match precedes the vr flavor's override.
+    $pins['target-sdk']   = Find-FirstCapture -Text $appText -Pattern $script:RxTargetSdk
     $pins['ndk-version']  = Find-FirstCapture -Text $appText -Pattern $script:RxNdkVersion
     $pins['jvm-target']   = Find-FirstCapture -Text $appText -Pattern $script:RxJvmTarget
     $pins['source-compat']= Find-FirstCapture -Text $appText -Pattern $script:RxSourceCompat

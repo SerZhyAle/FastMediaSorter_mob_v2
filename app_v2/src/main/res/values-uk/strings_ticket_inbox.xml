@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ticket_inbox_row_title">Створити тікет</string>
+    <string name="ticket_inbox_row_subtitle">Надіслати задачу з голосовою заміткою, скриншотами й логами до вхідних тікетів SZA на вашому Google Диску</string>
+    <string name="ticket_inbox_text_hint">Що потрібно зробити</string>
+    <string name="ticket_inbox_project_label">Проєкт</string>
+    <string name="ticket_inbox_project_none">Без проєкту - розібрати на ПК</string>
+    <string name="ticket_inbox_projects_unavailable">Списку проєктів на Диску поки немає, тож тікет піде без проєкту</string>
+    <string name="ticket_inbox_record_voice">Записати голосову замітку</string>
+    <string name="ticket_inbox_stop_voice">Зупинити запис</string>
+    <string name="ticket_inbox_recording">Іде запис..</string>
+    <string name="ticket_inbox_voice_failed">Запис не вдалося зберегти</string>
+    <string name="ticket_inbox_attach">Прикріпити файли</string>
+    <string name="ticket_inbox_remove_attachment">Прибрати %1$s</string>
+    <string name="ticket_inbox_send">Надіслати</string>
+    <string name="ticket_inbox_refresh">Перевірити статус</string>
+    <string name="ticket_inbox_outbox_title">Тікети з цього телефона</string>
+    <string name="ticket_inbox_outbox_empty">Тікетів поки немає</string>
+    <string name="ticket_inbox_state_queued">У черзі - піде, щойно з\'явиться мережа</string>
+    <string name="ticket_inbox_state_waiting">Чекає надсилання на Диск: %1$s</string>
+    <string name="ticket_inbox_state_sent">На Диску - чекає на ПК</string>
+    <string name="ticket_inbox_state_processed">оброблено: %1$s</string>
+    <string name="ticket_inbox_state_failed">ПК відхилив: %1$s</string>
+    <string name="ticket_inbox_empty_draft">Спочатку напишіть текст або прикріпіть файл</string>
+    <string name="ticket_inbox_queued_notice">Тікет поставлено в чергу на надсилання</string>
+    <string name="ticket_inbox_stage_failed">Тікет не вдалося зберегти: %1$s</string>
+    <string name="ticket_inbox_discard">Прибрати зі списку</string>
+</resources>

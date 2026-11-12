@@ -79,6 +79,7 @@ class FtpClient @Inject constructor(
     ): FtpExoPlayerPool.ExoPlayerFtpConnection {
         lifecycleBootstrapper.get().ensureInitialized()
         reachabilityGate.requireAnyNetwork("FTP")
+        reachabilityGate.requireLocalNetworkPermission("FTP", connectionInfo.host)
         val transportKey = transportKey(connectionInfo.host, connectionInfo.port, connectionInfo.username)
         trackedTransportKeys.add(transportKey)
         idleDisconnectPolicy.touch(transportKey)
@@ -105,6 +106,7 @@ class FtpClient @Inject constructor(
         try {
             lifecycleBootstrapper.get().ensureInitialized()
             reachabilityGate.requireAnyNetwork("FTP")
+            reachabilityGate.requireLocalNetworkPermission("FTP", host)
             disconnect()
             val client = FTPClient()
             pending = client
@@ -285,7 +287,9 @@ class FtpClient @Inject constructor(
         port: Int = 21,
         username: String,
         password: String
-    ): Result<Boolean> = FtpStandaloneOperations.testConnection(host, port, username, password)
+    ): Result<Boolean> = viaNewConnection(host) {
+        FtpStandaloneOperations.testConnection(host, port, username, password)
+    }
 
     suspend fun uploadFileWithNewConnection(
         host: String,
@@ -296,16 +300,18 @@ class FtpClient @Inject constructor(
         inputStream: InputStream,
         fileSize: Long = 0L,
         progressCallback: ByteProgressCallback? = null
-    ): Result<Unit> = FtpStandaloneOperations.uploadFile(
-        host,
-        port,
-        username,
-        password,
-        remotePath,
-        inputStream,
-        fileSize,
-        progressCallback
-    )
+    ): Result<Unit> = viaNewConnection(host) {
+        FtpStandaloneOperations.uploadFile(
+            host,
+            port,
+            username,
+            password,
+            remotePath,
+            inputStream,
+            fileSize,
+            progressCallback
+        )
+    }
 
     suspend fun deleteFileWithNewConnection(
         host: String,
@@ -313,7 +319,9 @@ class FtpClient @Inject constructor(
         username: String,
         password: String,
         remotePath: String
-    ): Result<Unit> = FtpStandaloneOperations.deleteFile(host, port, username, password, remotePath)
+    ): Result<Unit> = viaNewConnection(host) {
+        FtpStandaloneOperations.deleteFile(host, port, username, password, remotePath)
+    }
 
     suspend fun renameFileWithNewConnection(
         host: String,
@@ -322,7 +330,9 @@ class FtpClient @Inject constructor(
         password: String,
         oldPath: String,
         newName: String
-    ): Result<Unit> = FtpStandaloneOperations.renameFile(host, port, username, password, oldPath, newName)
+    ): Result<Unit> = viaNewConnection(host) {
+        FtpStandaloneOperations.renameFile(host, port, username, password, oldPath, newName)
+    }
 
     suspend fun createDirectoryWithNewConnection(
         host: String,
@@ -330,7 +340,9 @@ class FtpClient @Inject constructor(
         username: String,
         password: String,
         remotePath: String
-    ): Result<Unit> = FtpStandaloneOperations.createDirectory(host, port, username, password, remotePath)
+    ): Result<Unit> = viaNewConnection(host) {
+        FtpStandaloneOperations.createDirectory(host, port, username, password, remotePath)
+    }
 
     suspend fun existsWithNewConnection(
         host: String,
@@ -338,7 +350,9 @@ class FtpClient @Inject constructor(
         username: String,
         password: String,
         remotePath: String
-    ): Result<Boolean> = FtpStandaloneOperations.exists(host, port, username, password, remotePath)
+    ): Result<Boolean> = viaNewConnection(host) {
+        FtpStandaloneOperations.exists(host, port, username, password, remotePath)
+    }
 
     suspend fun readFileBytesWithNewConnection(
         host: String,
@@ -347,14 +361,16 @@ class FtpClient @Inject constructor(
         password: String,
         remotePath: String,
         maxBytes: Long = Long.MAX_VALUE
-    ): Result<ByteArray> = FtpStandaloneOperations.readFileBytes(
-        host,
-        port,
-        username,
-        password,
-        remotePath,
-        maxBytes
-    )
+    ): Result<ByteArray> = viaNewConnection(host) {
+        FtpStandaloneOperations.readFileBytes(
+            host,
+            port,
+            username,
+            password,
+            remotePath,
+            maxBytes
+        )
+    }
 
     suspend fun downloadFileWithNewConnection(
         host: String,
@@ -365,16 +381,18 @@ class FtpClient @Inject constructor(
         outputStream: OutputStream,
         fileSize: Long = 0L,
         progressCallback: ByteProgressCallback? = null
-    ): Result<Unit> = FtpStandaloneOperations.downloadFile(
-        host,
-        port,
-        username,
-        password,
-        remotePath,
-        outputStream,
-        fileSize,
-        progressCallback
-    )
+    ): Result<Unit> = viaNewConnection(host) {
+        FtpStandaloneOperations.downloadFile(
+            host,
+            port,
+            username,
+            password,
+            remotePath,
+            outputStream,
+            fileSize,
+            progressCallback
+        )
+    }
 
     suspend fun openInputStream(
         host: String,
@@ -382,7 +400,16 @@ class FtpClient @Inject constructor(
         username: String,
         password: String,
         remotePath: String
-    ): Result<InputStream> = FtpStandaloneOperations.openInputStream(host, port, username, password, remotePath)
+    ): Result<InputStream> = viaNewConnection(host) {
+        FtpStandaloneOperations.openInputStream(host, port, username, password, remotePath)
+    }
+
+    /**
+     * Runs a standalone operation unless [host] is refused for a missing local-network grant. A
+     * standalone operation opens its own socket, so it never meets the gate inside [connect].
+     */
+    private suspend fun <T> viaNewConnection(host: String, operation: suspend () -> Result<T>): Result<T> =
+        reachabilityGate.localNetworkRefusal("FTP", host)?.let { Result.failure<T>(it) } ?: operation()
 
     // endregion
 

@@ -70,6 +70,7 @@ class ExecuteScheduledOperationReadOnlyTest {
             mockk(relaxed = true),
             mockk<FetchScheduledChangesViaDriveUseCase>(),
             mockk(relaxed = true),
+            mockk(relaxed = true),
         )
     }
 

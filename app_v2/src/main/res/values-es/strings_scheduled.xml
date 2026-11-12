@@ -125,4 +125,17 @@
     <string name="scheduled_op_reason_source_deleted">Se eliminó el origen, así que esta programación está en pausa</string>
     <string name="scheduled_op_reason_target_deleted">Se eliminó el destino, así que esta programación está en pausa</string>
     <string name="scheduled_ops_log_failed">Algo salió mal</string>
+    <string name="scheduled_ops_notif_stalled_title">La operación programada no se está ejecutando</string>
+    <string name="scheduled_ops_notif_stalled_text">%1$s - omitida desde %2$s. %3$s</string>
+    <string name="scheduled_ops_op_fill">Llenar espacio libre</string>
+    <string name="scheduled_ops_fill_confirm_title">¿Programar el relleno?</string>
+    <string name="scheduled_ops_fill_confirm_message">Cada ejecución escribe archivos temporales en la carpeta %1$s de %2$s hasta que quedan libres %3$s y luego los elimina. Tus propios archivos se quedan como están.</string>
+    <string name="scheduled_ops_fill_not_usable">El relleno necesita una carpeta en el almacenamiento interno o en una tarjeta de memoria en la que se pueda escribir ahora. Elígela con Carpeta local.</string>
+    <string name="scheduled_op_reason_fill_busy">El relleno ya estaba en curso</string>
+    <string name="scheduled_op_reason_fill_not_local">La carpeta no está en ningún dispositivo de almacenamiento conectado de este teléfono</string>
+    <string name="scheduled_op_reason_fill_storage_unavailable">El almacenamiento no estaba conectado o no admitía escritura</string>
+    <string name="scheduled_op_reason_fill_measurement_unavailable">No se pudo medir el espacio libre</string>
+    <string name="scheduled_op_reason_fill_no_free_space">No hay espacio libre por encima de la parte reservada para el sistema</string>
+    <string name="scheduled_op_reason_fill_write_failed">La escritura se detuvo con un error; los archivos temporales se eliminaron</string>
+    <string name="scheduled_op_reason_fill_cleanup_pending">Quedan archivos temporales. Conecta el almacenamiento, abre Relleno de almacenamiento y toca Eliminar archivos restantes</string>
 </resources>

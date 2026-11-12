@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ticket_inbox_row_title">File a ticket</string>
+    <string name="ticket_inbox_row_subtitle">Send a task with a voice note, screenshots and logs to the SZA ticket inbox on your Google Drive</string>
+    <string name="ticket_inbox_text_hint">What needs to be done</string>
+    <string name="ticket_inbox_project_label">Project</string>
+    <string name="ticket_inbox_project_none">No project - sort it on the PC</string>
+    <string name="ticket_inbox_projects_unavailable">The project list is not on Drive yet, so the ticket goes without a project</string>
+    <string name="ticket_inbox_record_voice">Record a voice note</string>
+    <string name="ticket_inbox_stop_voice">Stop recording</string>
+    <string name="ticket_inbox_recording">Recording..</string>
+    <string name="ticket_inbox_voice_failed">The recording could not be saved</string>
+    <string name="ticket_inbox_attach">Attach files</string>
+    <string name="ticket_inbox_remove_attachment">Remove %1$s</string>
+    <string name="ticket_inbox_send">Send</string>
+    <string name="ticket_inbox_refresh">Check status</string>
+    <string name="ticket_inbox_outbox_title">Tickets from this phone</string>
+    <string name="ticket_inbox_outbox_empty">No tickets yet</string>
+    <string name="ticket_inbox_state_queued">Queued - goes out as soon as the network is back</string>
+    <string name="ticket_inbox_state_waiting">Waiting to be sent to Drive: %1$s</string>
+    <string name="ticket_inbox_state_sent">On Drive - waiting for the PC</string>
+    <string name="ticket_inbox_state_processed">processed: %1$s</string>
+    <string name="ticket_inbox_state_failed">Refused by the PC: %1$s</string>
+    <string name="ticket_inbox_empty_draft">Write the text or attach something first</string>
+    <string name="ticket_inbox_queued_notice">Ticket queued for sending</string>
+    <string name="ticket_inbox_stage_failed">The ticket could not be saved: %1$s</string>
+    <string name="ticket_inbox_discard">Remove from the list</string>
+</resources>

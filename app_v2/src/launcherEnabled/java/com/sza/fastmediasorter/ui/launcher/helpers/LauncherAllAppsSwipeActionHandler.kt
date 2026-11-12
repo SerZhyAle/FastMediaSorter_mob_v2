@@ -4,6 +4,8 @@ import android.app.Activity
 import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
 import com.sza.fastmediasorter.core.screencapture.ScreenshotGestureActionDispatcher
 import com.sza.fastmediasorter.domain.model.LauncherAllAppsSwipeAction
+import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
+import timber.log.Timber
 
 /**
  * S2304: routes actions configured for directional swipes on the launcher All apps panel.
@@ -17,6 +19,7 @@ class LauncherAllAppsSwipeActionHandler(
     private val screenshotLaunchers: Set<@JvmSuppressWildcards MenuScreenshotLauncher>,
     private val onBackToDesktop: () -> Unit,
     private val onExpandAllApps: () -> Unit,
+    private val onLockScreen: () -> Unit,
 ) {
 
     suspend fun handle(action: LauncherAllAppsSwipeAction, payload: String) {
@@ -24,8 +27,13 @@ class LauncherAllAppsSwipeActionHandler(
             LauncherAllAppsSwipeAction.BackToDesktop -> onBackToDesktop()
             LauncherAllAppsSwipeAction.ExpandAllApps -> onExpandAllApps()
             is LauncherAllAppsSwipeAction.EdgeGestureAction -> {
-                val handled = actionDispatcher.handlePreCaptureAction(activity, action.action, payload)
-                if (!handled) screenshotLaunchers.firstOrNull()?.launch(activity, action.action)
+                if (action.action == ScreenshotGestureAction.LOCK_SCREEN) {
+                    Timber.d("S4527: all-apps swipe lock action triggered")
+                    onLockScreen()
+                } else {
+                    val handled = actionDispatcher.handlePreCaptureAction(activity, action.action, payload)
+                    if (!handled) screenshotLaunchers.firstOrNull()?.launch(activity, action.action)
+                }
             }
         }
     }

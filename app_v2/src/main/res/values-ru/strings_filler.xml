@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="filler_title">Заполнение накопителя</string>
+    <string name="filler_intro">Заполняет свободное место накопителя временными файлами, затем удаляет их. Ваши файлы остаются как есть.</string>
+    <string name="filler_choose_folder">Выбрать папку</string>
+    <string name="filler_no_folder">Папка не выбрана. Выберите папку во встроенной памяти или на карте памяти.</string>
+    <string name="filler_location">Папка %1$s на носителе %2$s</string>
+    <string name="filler_free_space">Свободно: %1$s</string>
+    <string name="filler_free_space_unknown">Свободно: не измерено</string>
+    <string name="filler_reserve">Остаётся свободным для системы: %1$s</string>
+    <string name="filler_start">Начать заполнение</string>
+    <string name="filler_cancel">Остановить и удалить файлы</string>
+    <string name="filler_progress">Записано %1$s из %2$s</string>
+    <string name="filler_confirm_title">Заполнить свободное место?</string>
+    <string name="filler_confirm_message">В папку %2$s на носителе %3$s будет записано около %1$s временных файлов, свободными останутся %4$s. Файлы удаляются, когда заполнение завершится или будет остановлено.</string>
+    <string name="filler_confirm_positive">Заполнить</string>
+    <string name="filler_retry_cleanup">Удалить оставшиеся файлы</string>
+    <string name="filler_pending_cleanup">Временные файлы прошлого запуска ещё лежат на носителе %1$s. Подключите его и нажмите «Удалить оставшиеся файлы», прежде чем заполнять снова.</string>
+    <string name="filler_result_done">Готово: записано и снова удалено %1$s.</string>
+    <string name="filler_result_cancelled">Заполнение остановлено. Временные файлы удалены.</string>
+    <string name="filler_result_failed">Запись остановлена: накопитель сообщил об ошибке. Временные файлы удалены.</string>
+    <string name="filler_result_cleanup_incomplete">Часть временных файлов пока не удалось удалить. Подключите накопитель и нажмите «Удалить оставшиеся файлы».</string>
+    <string name="filler_result_cleanup_done">Оставшиеся временные файлы удалены.</string>
+    <string name="filler_result_not_local">Эта папка не на накопителе этого телефона. Выберите папку во встроенной памяти или на карте памяти.</string>
+    <string name="filler_result_no_access">Запись в эту папку сейчас недоступна. Проверьте, что накопитель подключён, и выберите папку снова.</string>
+    <string name="filler_result_measurement_unavailable">Не удалось измерить свободное место. Проверьте, что накопитель подключён, и выберите папку снова.</string>
+    <string name="filler_result_insufficient_space">Сверх места, оставляемого системе, свободного места нет. Освободите место или выберите другой накопитель.</string>
+    <string name="filler_result_busy">Заполнение уже идёт.</string>
+    <string name="filler_settings_toggle_subtitle">Заполняет свободное место накопителя временными файлами и затем удаляет их</string>
+    <string name="filler_settings_toggle_subtitle_pending">Временные файлы прошлого запуска ещё лежат на накопителе. Программа остаётся в списке, пока вы не удалите их в ней.</string>
+</resources>

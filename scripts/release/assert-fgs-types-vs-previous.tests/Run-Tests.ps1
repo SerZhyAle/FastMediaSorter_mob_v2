@@ -66,6 +66,9 @@ $archive = Join-Path $root 'archive'
 New-Fixture 'archive/260900100/fgs-types.json' '{"versionCode":260900100,"variant":"standard","types":["dataSync"]}' | Out-Null
 New-Fixture 'archive/261000200/fgs-types.json' '{"versionCode":261000200,"variant":"standard","types":["dataSync","mediaPlayback"]}' | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $archive '261100300') -Force | Out-Null
+# A bundle built but not carried by Play production (S4499): newer than every confirmed snapshot,
+# and carrying the type that made Play refuse it.
+New-Fixture 'archive/261050400/fgs-types.pending.json' '{"versionCode":261050400,"variant":"standard","types":["camera","dataSync","mediaPlayback"]}' | Out-Null
 
 function Invoke-Check {
     param([string[]] $CheckArgs)
@@ -122,6 +125,15 @@ try {
         $r = Invoke-Check @('-Manifest', $m, '-ArchiveRoot', $archive, '-RegistryPath', $registry)
         if ($r.Code -ne 1) { return "expected 1, got $($r.Code): $($r.Out)" }
         if ($r.Out -notmatch 'versionCode 260900100') { return "the older snapshot was not the baseline: $($r.Out)" }
+    }
+
+    Assert-Case 'C4c a newer pending snapshot is never the baseline and is named as ignored' {
+        $m = New-Fixture 'c4c/AndroidManifest.xml' (New-ManifestText @('camera|dataSync|mediaPlayback'))
+        $r = Invoke-Check @('-Manifest', $m, '-ArchiveRoot', $archive, '-RegistryPath', $registry)
+        if ($r.Code -ne 1) { return "expected 1, got $($r.Code): $($r.Out)" }
+        if ($r.Out -notmatch "'camera'") { return "the refused type passed against the pending snapshot: $($r.Out)" }
+        if ($r.Out -notmatch 'baseline snapshot of versionCode 261000200') { return "the confirmed snapshot was not the baseline: $($r.Out)" }
+        if ($r.Out -notmatch 'ignored unconfirmed snapshot\(s\) of versionCode 261050400') { return "the pending snapshot is not named as ignored: $($r.Out)" }
     }
 
     Assert-Case 'C5 no snapshot, registry fallback, registered types exit 0' {

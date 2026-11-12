@@ -26,6 +26,9 @@ data class RecentLauncherCommand(
  *
  * S2242: deduplicates commands already pinned to the taskbar via [LauncherPinsRepository] so a pinned
  * shortcut does not appear twice in the recent strip / Start panel.
+ *
+ * A program command whose route is switched off or absent from the build is dropped from the strip,
+ * the same as in [osAppShortcuts].
  */
 class QueryRecentLauncherCommandsUseCase @Inject constructor(
     private val journal: LauncherJournalRepository,
@@ -80,7 +83,16 @@ class QueryRecentLauncherCommandsUseCase @Inject constructor(
             if (command.packageName == context.packageName) return null
             if (context.packageManager.getLaunchIntentForPackage(command.packageName) == null) return null
         }
+        if (!isRouteLaunchable(command)) return null
         val visual = resolveVisual(command) ?: return null
         return RecentLauncherCommand(command, visual)
+    }
+
+    // Same reason as [isOpenableFromShortcut], plus the section variant: a switched-off program's recents
+    // icon would open its settings, so it earns no slot until the user turns the program back on.
+    private suspend fun isRouteLaunchable(command: LauncherCellCommand): Boolean = when (command) {
+        is LauncherCellCommand.Feature -> resolveRouteAvailability(command.routeKey).isLaunchable
+        is LauncherCellCommand.FeatureSection -> resolveRouteAvailability(command.routeKey).isLaunchable
+        else -> true
     }
 }

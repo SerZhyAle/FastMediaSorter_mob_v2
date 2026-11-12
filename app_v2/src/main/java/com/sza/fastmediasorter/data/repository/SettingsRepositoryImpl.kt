@@ -331,7 +331,9 @@ class SettingsRepositoryImpl @Inject constructor(
                 // neither reads nor writes it. The stored copy that used to live here diverged from the
                 // real locale whenever its write was lost, and re-pinned itself on every later settings
                 // write, so the only user-reachable cure was clearing app data.
-                val language = LocaleHelper.getLanguage(context)
+                // S4512: this runs once per live collector for the same snapshot; the snapshot is the
+                // memo key so those runs share one LocaleManager read.
+                val language = LocaleHelper.getLanguageForSnapshot(preferences, context)
                 val colorTheme = ColorThemePrefs.normalizeValue(preferences[KEY_COLOR_THEME])
 
                 // Cache size for Glide (GlideAppModule reads from SharedPreferences during init)

@@ -224,7 +224,7 @@ function Get-AndroidStringFormatAnalysis([AllowEmptyString()][string]$Value) {
     }
 
     $argumentTokens = @($tokens | Where-Object { $_.ConsumesArgument })
-    $signature = @($argumentTokens | ForEach-Object { '{0}:{1}' -f $_.ArgIndex, $_.Kind })
+    $signature = @($argumentTokens | Sort-Object ArgIndex | ForEach-Object { '{0}:{1}' -f $_.ArgIndex, $_.Kind } | Select-Object -Unique)
     $argIndexes = @($argumentTokens | ForEach-Object { $_.ArgIndex } | Sort-Object -Unique)
     if ($argIndexes.Count -gt 0) {
         $maxIndex = ($argIndexes | Measure-Object -Maximum).Maximum

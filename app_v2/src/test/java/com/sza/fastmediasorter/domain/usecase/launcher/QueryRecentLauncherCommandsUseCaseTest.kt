@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.repository.LauncherJournalRepository
 import com.sza.fastmediasorter.domain.repository.LauncherPinsRepository
 import com.sza.fastmediasorter.domain.usecase.panel.ResolvePanelRouteAvailabilityUseCase
+import com.sza.fastmediasorter.domain.usecase.panel.ResolvePanelRouteAvailabilityUseCase.Availability
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -54,6 +55,8 @@ class QueryRecentLauncherCommandsUseCaseTest {
                 iconRes = 0,
             )
         }
+        coEvery { resolveRouteAvailability(any()) } returns
+            Availability(availableInBuild = true, enabledAtRuntime = true)
     }
 
     @Test
@@ -142,6 +145,46 @@ class QueryRecentLauncherCommandsUseCaseTest {
         val result = useCase(limit = LauncherJournalRepository.MAX_RECENT_PROGRAMS).first()
 
         assertEquals(SEVENTY, result.size)
+    }
+
+    @Test
+    fun `a switched-off program is dropped and does not use a slot`() = runBlocking {
+        every { journal.recentCommands(any()) } returns flowOf(listOf(commandA, commandB, commandC))
+        every { pins.observePins() } returns flowOf(emptyList())
+        every { statsDao.observeAll() } returns flowOf(emptyList())
+        coEvery { resolveRouteAvailability("route_a") } returns
+            Availability(availableInBuild = true, enabledAtRuntime = false)
+
+        val result = useCase(limit = 2).first()
+
+        assertEquals(listOf(commandB, commandC), result.map { it.command })
+    }
+
+    @Test
+    fun `a program absent from the build is dropped`() = runBlocking {
+        every { journal.recentCommands(any()) } returns flowOf(listOf(commandA, commandB))
+        every { pins.observePins() } returns flowOf(emptyList())
+        every { statsDao.observeAll() } returns flowOf(emptyList())
+        coEvery { resolveRouteAvailability("route_b") } returns
+            Availability(availableInBuild = false, enabledAtRuntime = true)
+
+        val result = useCase(limit = 10).first()
+
+        assertEquals(listOf(commandA), result.map { it.command })
+    }
+
+    @Test
+    fun `a program section of a switched-off program is dropped`() = runBlocking {
+        val section = LauncherCellCommand.FeatureSection(routeKey = "route_a", sectionKey = "wifi")
+        every { journal.recentCommands(any()) } returns flowOf(listOf(section, commandB))
+        every { pins.observePins() } returns flowOf(emptyList())
+        every { statsDao.observeAll() } returns flowOf(emptyList())
+        coEvery { resolveRouteAvailability("route_a") } returns
+            Availability(availableInBuild = true, enabledAtRuntime = false)
+
+        val result = useCase(limit = 10).first()
+
+        assertEquals(listOf(commandB), result.map { it.command })
     }
 
     private companion object {

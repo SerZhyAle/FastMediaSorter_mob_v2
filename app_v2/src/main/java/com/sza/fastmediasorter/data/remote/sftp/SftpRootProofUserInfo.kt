@@ -32,7 +32,11 @@ internal class SftpRootProofUserInfo(
         instruction: String?,
         prompt: Array<String>?,
         echo: BooleanArray?,
-    ): Array<String>? = answers(proof, password, prompt?.size ?: 0, echo)
+    ): Array<String>? {
+        val names = prompt?.map { it.trim().trimEnd(':').trim().lowercase() }
+        if (names != listOf("resource", "password", "pin")) return null
+        return answers(proof, password, prompt?.size ?: 0, echo)
+    }
 
     companion object {
         private const val FIELDS = 3

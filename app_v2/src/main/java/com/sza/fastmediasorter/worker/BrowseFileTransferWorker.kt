@@ -7,7 +7,6 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ServiceInfo
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.hilt.work.HiltWorker
@@ -18,6 +17,7 @@ import androidx.work.WorkerParameters
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.notification.NotificationIcons
 import com.sza.fastmediasorter.core.notification.NotificationIds
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.transfer.CloudFileHandle
 import com.sza.fastmediasorter.data.transfer.DirectoryOperationRefusal
 import com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler
@@ -208,14 +208,17 @@ class BrowseFileTransferWorker @AssistedInject constructor(
                             totalOperationBytes = latestTotalOperationBytes,
                         )
                         runCatching {
-                            setForeground(
+                            setDataSyncForegroundIfAllowed(
                                 buildForegroundInfo(
                                     request,
                                     buildProgressText(snapshot),
                                     snapshot.percentOrNull(),
                                 ),
                             )
-                        }.onFailure { Timber.w(it, "BrowseFileTransferWorker: setForeground failed") }
+                        }.onFailure {
+                            it.rethrowIfCancellation()
+                            Timber.w(it, "BrowseFileTransferWorker: setForeground failed")
+                        }
                         runCatching {
                             setProgressAsync(BrowseFileTransferProgressCodec.encodeProgress(id.toString(), snapshot))
                         }
@@ -575,11 +578,7 @@ class BrowseFileTransferWorker @AssistedInject constructor(
         progressPercent: Int?,
     ): ForegroundInfo {
         val notification = buildProgressNotification(request, contentText, progressPercent)
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            ForegroundInfo(NOTIF_ID_PROGRESS, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-        } else {
-            ForegroundInfo(NOTIF_ID_PROGRESS, notification)
-        }
+        return DataSyncForeground.workerForegroundInfo(applicationContext, NOTIF_ID_PROGRESS, notification)
     }
 
     private fun buildProgressNotification(

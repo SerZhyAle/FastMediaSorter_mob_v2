@@ -10,6 +10,9 @@ data class LauncherAppGroupSection(
     val isExpanded: Boolean,
     val isPreview: Boolean = false,
     val isSingleApp: Boolean = false,
+    // Category groups retain their own tile and reorder behavior.
+    val isCategory: Boolean = false,
+    val isReorderTarget: Boolean = false,
 )
 
 /** Keeps the launcher-specific alphabetical presentation beside the All Apps screen. */

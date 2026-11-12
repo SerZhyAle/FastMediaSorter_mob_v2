@@ -124,4 +124,17 @@
     <string name="scheduled_op_reason_source_deleted">حُذف المصدر، لذا هذا الجدول متوقف مؤقتًا</string>
     <string name="scheduled_op_reason_target_deleted">حُذفت الوجهة، لذا هذا الجدول متوقف مؤقتًا</string>
     <string name="scheduled_ops_log_failed">حدث خطأ ما</string>
+    <string name="scheduled_ops_notif_stalled_title">العملية المجدولة لا تعمل</string>
+    <string name="scheduled_ops_notif_stalled_text">%1$s - تم تخطيها منذ %2$s. %3$s</string>
+    <string name="scheduled_ops_op_fill">ملء المساحة الفارغة</string>
+    <string name="scheduled_ops_fill_confirm_title">جدولة الملء؟</string>
+    <string name="scheduled_ops_fill_confirm_message">يكتب كل تشغيل ملفات مؤقتة في المجلد %1$s على %2$s حتى تبقى %3$s فارغة، ثم يحذفها. تبقى ملفاتك كما هي.</string>
+    <string name="scheduled_ops_fill_not_usable">يحتاج الملء إلى مجلد في وحدة التخزين الداخلية أو على بطاقة ذاكرة تمكن الكتابة فيه الآن. اختره باستخدام مجلد محلي.</string>
+    <string name="scheduled_op_reason_fill_busy">كان الملء قيد التشغيل بالفعل</string>
+    <string name="scheduled_op_reason_fill_not_local">المجلد ليس على أي جهاز تخزين موصول في هذا الهاتف</string>
+    <string name="scheduled_op_reason_fill_storage_unavailable">لم تكن وحدة التخزين موصولة أو قابلة للكتابة</string>
+    <string name="scheduled_op_reason_fill_measurement_unavailable">تعذر قياس المساحة الفارغة</string>
+    <string name="scheduled_op_reason_fill_no_free_space">لا توجد مساحة فارغة فوق الجزء المحجوز للنظام</string>
+    <string name="scheduled_op_reason_fill_write_failed">توقفت الكتابة بسبب خطأ؛ حُذفت الملفات المؤقتة</string>
+    <string name="scheduled_op_reason_fill_cleanup_pending">لا تزال هناك ملفات مؤقتة. وصّل وحدة التخزين، وافتح ملء مساحة التخزين واضغط على حذف الملفات المتبقية</string>
 </resources>

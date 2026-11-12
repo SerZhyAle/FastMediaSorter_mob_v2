@@ -22,6 +22,7 @@ permalink: /docs/ICON_LEGEND-ru.html
 | <img src="icons/svg/ic_resource_smb.svg" alt="ic_resource_smb" width="24" height="24"> | Сетевой ресурс SMB |
 | <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Сопряжённые часы Wear OS |
 | <img src="icons/svg/ic_accessibility.svg" alt="ic_accessibility" width="24" height="24"> | Специальные возможности |
+| <img src="icons/svg/ic_apps.svg" alt="ic_apps" width="24" height="24"> | Все программы |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | О приложении |
 | <img src="icons/svg/ic_quick_launch.svg" alt="ic_quick_launch" width="24" height="24"> | Панель быстрого доступа |
 | <img src="icons/svg/ic_screen_rotation.svg" alt="ic_screen_rotation" width="24" height="24"> | Автоповорот |
@@ -61,6 +62,7 @@ permalink: /docs/ICON_LEGEND-ru.html
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Начать видеозапись |
 | <img src="icons/svg/ic_stopwatch.svg" alt="ic_stopwatch" width="24" height="24"> | Секундомер |
 | <img src="icons/svg/ic_storage.svg" alt="ic_storage" width="24" height="24"> | Хранилище |
+| <img src="icons/svg/ic_storage.svg" alt="ic_storage" width="24" height="24"> | Заполнение накопителя |
 | <img src="icons/svg/ic_stream.svg" alt="ic_stream" width="24" height="24"> | Трансляции |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Сведения о системе |
 | <img src="icons/svg/ic_edit.svg" alt="ic_edit" width="24" height="24"> | Сделать фото и редактировать |
@@ -86,6 +88,7 @@ permalink: /docs/ICON_LEGEND-ru.html
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Аудио, обложки и фоновые визуализации |
 | <img src="icons/svg/ic_contact.svg" alt="ic_contact" width="24" height="24"> | Авторизация и аккаунты |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Фоновое воспроизведение аудио |
+| <img src="icons/svg/ic_behavior.svg" alt="ic_behavior" width="24" height="24"> | Поведение и правила программы |
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Вещание |
 | <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Фотографирование |
 | <img src="icons/svg/ic_app_logo.svg" alt="ic_app_logo" width="24" height="24"> | Назначения быстрой сортировки |
@@ -120,6 +123,7 @@ permalink: /docs/ICON_LEGEND-ru.html
 | <img src="icons/svg/ic_game_kryvavitsa.svg" alt="ic_game_kryvavitsa" width="24" height="24"> | Мини-игра |
 | <img src="icons/svg/ic_calculator.svg" alt="ic_calculator" width="24" height="24"> | Калькулятор |
 | <img src="icons/svg/ic_resource_favorites.svg" alt="ic_resource_favorites" width="24" height="24"> | Включить избранное |
+| <img src="icons/svg/ic_storage.svg" alt="ic_storage" width="24" height="24"> | Заполнение накопителя |
 | <img src="icons/svg/ic_network_monitor.svg" alt="ic_network_monitor" width="24" height="24"> | Сетевой монитор |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Разрешить распознавание текста |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Фоновое воспроизведение |

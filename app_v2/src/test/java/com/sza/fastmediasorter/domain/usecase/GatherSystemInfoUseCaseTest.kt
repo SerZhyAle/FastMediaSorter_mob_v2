@@ -3,7 +3,12 @@ package com.sza.fastmediasorter.domain.usecase
 import android.content.Context
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.systeminfo.BatteryDetailsCollector
+import com.sza.fastmediasorter.core.systeminfo.MediaAudioDiagnosticsCollector
+import com.sza.fastmediasorter.core.systeminfo.PlatformDetailsCollector
+import com.sza.fastmediasorter.core.systeminfo.SensorsDiagnosticsCollector
 import com.sza.fastmediasorter.data.capture.CameraHardwareDataSource
+import com.sza.fastmediasorter.data.repository.DischargeRateBatteryRuntimeEstimator
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -21,6 +26,10 @@ class GatherSystemInfoUseCaseTest {
         context,
         emptySet(),
         GatherCameraDiagnosticsUseCase(context, CameraHardwareDataSource(context)),
+        BatteryDetailsCollector(context, DischargeRateBatteryRuntimeEstimator()),
+        PlatformDetailsCollector(context),
+        SensorsDiagnosticsCollector(context),
+        MediaAudioDiagnosticsCollector(context),
     )
 
     @Test
@@ -39,6 +48,8 @@ class GatherSystemInfoUseCaseTest {
             R.string.sysinfo_section_user,
             R.string.sysinfo_section_os,
             R.string.sysinfo_section_app,
+            R.string.sysinfo_section_sensors,
+            R.string.sysinfo_section_media_audio,
             R.string.sysinfo_section_memory,
             R.string.sysinfo_section_storage,
             R.string.sysinfo_section_display,

@@ -202,7 +202,6 @@
     <!-- B2: Generic network error messages for NetworkErrorMessageMapper -->
     <string name="error_network_timeout">З\'єднання вичерпано. Перевірте мережу та повторіть спробу.</string>
     <!-- S1014: shown when a companion/SFTP shared folder cannot be reached on any address. -->
-    <string name="error_companion_connect_guidance">Не вдалося підключитися до спільної папки. У тій самій мережі Wi-Fi, що й ПК, вона підключається сама; з іншої мережі ПК має бути доступним - налаштуйте проброс порту на роутері чи доступ з інтернету в застосунку-компаньйоні.</string>
     <string name="error_network_access_denied">Доступ заборонено. Перевірте облікові дані.</string>
     <string name="error_network_not_found">Файл або ресурс не знайдено.</string>
     <string name="error_network_connection_lost">З\'єднання відсутнє.</string>
@@ -4564,4 +4563,45 @@
     <string name="sort_short_random">Випадково</string>
     <string name="browse_title_selected_count">вибрано: %1$d</string>
     <string name="browse_breadcrumb_root">Корінь</string>
+    <string name="settings_sftp_server_failure_local_network">Серверу потрібен доступ до пристроїв у локальній мережі - дозвольте його й увімкніть сервер знову</string>
+    <string name="error_companion_unreachable">Не вдалося підключитися до спільної папки на ПК за збереженою адресою. Перевірте, що застосунок-компаньйон на ПК запущено і він відкриває доступ до цієї папки. З іншої мережі ПК має бути доступним - налаштуйте проброс порту на роутері чи доступ з інтернету в застосунку-компаньйоні.</string>
+    <string name="error_companion_channel_local_network">Якщо адреса ПК змінилася, застосунок не знайде її в цій мережі Wi-Fi: доступ до пристроїв локальної мережі не дозволено. Дозвольте його в дозволах застосунку.</string>
+    <string name="error_companion_channel_drive">Поточну адресу ПК не вдається отримати через Google Диск: доступ застосунку до Google Диска треба надати знову. Увійдіть у Google Диск у налаштуваннях.</string>
+    <string name="error_companion_share_missing">Сервер відповів, але цієї спільної папки на ньому немає. Якщо її відкриває застосунок-компаньйон на ПК, перевірте, що він запущений і досі відкриває доступ до цієї папки. Якщо папку перейменовано, відскануйте код компаньйона знову в розділі додавання ресурсу, щоб додати її.</string>
+    <string name="launcher_desktop_swipe_action_switch_screens">Перемикання екранів</string>
+    <string name="exchange_standard_settings_title">Обмін еталонними налаштуваннями</string>
+    <string name="exchange_standard_settings_summary">Синхронізація профілю налаштувань із сервером обміну</string>
+    <string name="exchange_standard_settings_save_btn">Зберегти як STANDARD</string>
+    <string name="exchange_standard_settings_read_btn">Завантажити STANDARD</string>
+    <string name="exchange_standard_settings_groups_header">Групи налаштувань для обміну</string>
+    <string name="exchange_standard_settings_group_general">Загальні налаштування</string>
+    <string name="exchange_standard_settings_group_appearance">Зовнішній вигляд і оформлення</string>
+    <string name="exchange_standard_settings_group_playback">Параметри відтворення</string>
+    <string name="exchange_standard_settings_group_shortcuts">Гарячі клавіші та керування</string>
+    <string name="exchange_standard_settings_group_behavior">Поведінка програми та функції</string>
+    <string name="exchange_standard_settings_save_success">Еталонні налаштування збережено на сервері обміну</string>
+    <string name="exchange_standard_settings_read_success">Еталонні налаштування застосовано із сервера обміну</string>
+    <string name="tourist_unit_mbar">мбар</string>
+    <string name="tourist_detail_magnetic_pressure">%1$s • %2$s %3$s</string>
+    <string name="launcher_app_action_set_category">Вибрати категорію..</string>
+    <string name="launcher_app_category_dialog_title">Категорії для %1$s</string>
+    <string name="launcher_app_category_new">Нова категорія..</string>
+    <string name="launcher_app_category_new_hint">Назва категорії</string>
+    <string name="launcher_app_category_unknown">Інше</string>
+    <string name="launcher_app_category_save_failed">Не вдалося зберегти категорії. Спробуйте ще раз.</string>
+    <string name="launcher_app_category_reorder_title">Переміщення: %1$s</string>
+    <string name="launcher_app_category_move_up">Вище</string>
+    <string name="launcher_app_category_move_down">Нижче</string>
+    <string name="launcher_app_category_reorder_done">Готово</string>
+    <string name="launcher_app_category_game">Ігри</string>
+    <string name="launcher_app_category_audio">Музика та аудіо</string>
+    <string name="launcher_app_category_video">Відео</string>
+    <string name="launcher_app_category_image">Фото та зображення</string>
+    <string name="launcher_app_category_social">Спілкування</string>
+    <string name="launcher_app_category_news">Новини</string>
+    <string name="launcher_app_category_maps">Карти та подорожі</string>
+    <string name="launcher_app_category_productivity">Робота та продуктивність</string>
+    <string name="launcher_app_category_accessibility">Спеціальні можливості</string>
+    <string name="exchange_devices_menu_standard_settings">Еталонні налаштування</string>
+    <string name="program_guard_disabled_toast">Програму «%1$s» вимкнено. Увімкніть її в налаштуваннях.</string>
 </resources>

@@ -1,4 +1,9 @@
 appId: com.sza.fastmediasorter.debug
+# real-hardware: plays an HLS stream through the hardware decoder. On the CI emulator (software GPU) the
+# H.264 decode lost the GPU context and the emulator died mid-run, taking the next flow down with it.
+# .github/workflows/maestro-tests.yml excludes this tag; the pre-release sweep plays it on a real device.
+tags:
+  - real-hardware
 env:
   STREAM_URL: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
   STREAM_TITLE: "Maestro HLS playback"

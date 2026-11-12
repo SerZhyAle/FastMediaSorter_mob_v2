@@ -266,6 +266,7 @@ class SmbConnectionManager @Inject constructor(
             // Wi-Fi gate: synchronous fast-fail when no Wi-Fi/ethernet transport is active.
             // Throws NetworkConnectionLostException - no socket attempt is made.
             reachabilityGate.requireWifi("SMB")
+            reachabilityGate.requireLocalNetworkPermission("SMB", connectionInfo.server)
             val key = ConnectionKey(
                 server = connectionInfo.server,
                 port = connectionInfo.port,

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S4554: one row of the ticket composer - an attachment or an outbox packet - with its remove action. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:minHeight="@dimen/touch_target_min_height"
+    android:orientation="horizontal">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvTicketRowTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="middle"
+            android:singleLine="true" />
+
+        <TextView
+            android:id="@+id/tvTicketRowSubtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.FastMediaSorter.HelperText" />
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/btnTicketRowRemove"
+        android:layout_width="@dimen/touch_target_min_height"
+        android:layout_height="@dimen/touch_target_min_height"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:focusable="true"
+        android:contentDescription="@string/ticket_inbox_discard"
+        android:src="@drawable/ic_remove_circle_outline" />
+</LinearLayout>

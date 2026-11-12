@@ -7,7 +7,6 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.utils.UserActionLogger
-import timber.log.Timber
 
 /**
  * Manages sort mode popup menu and sort mode display names for BrowseActivity.
@@ -78,7 +77,6 @@ class BrowseSortMenuManager(
     }
 
     fun getSortModeShortName(mode: SortMode): String {
-        Timber.d("S4483: sort button label for ${mode.name}")
         return when (mode) {
             SortMode.MANUAL -> context.getString(R.string.sort_short_manual)
             SortMode.NAME_ASC -> context.getString(R.string.sort_short_name_asc)

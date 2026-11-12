@@ -801,6 +801,16 @@
       "titleUk": "Операції шифрування FileDO"
     },
     {
+      "key": "rowEnableFiller",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Storage filler",
+      "titleRu": "Заполнение накопителя",
+      "titleUk": "Заповнення накопичувача"
+    },
+    {
       "key": "rowEnableMoving",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -2259,6 +2269,16 @@
       "titleEn": "Wi-Fi only preload",
       "titleRu": "Только по Wi-Fi",
       "titleUk": "Лише через Wi-Fi"
+    },
+    {
+      "key": "rowTicketInbox",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "SELECTION_ROW",
+      "titleEn": "File a ticket",
+      "titleRu": "Создать тикет",
+      "titleUk": "Створити тікет"
     },
     {
       "key": "rowUnitSystem",

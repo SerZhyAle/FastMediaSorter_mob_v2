@@ -260,7 +260,8 @@ class BrowseViewModel @Inject constructor(
         setLoading = { isLoading -> setLoading(isLoading) },
         getSettings = { getSettings() },
         resourceId = resourceId,
-        onHandleError = { e -> handleError(e) }
+        onHandleError = { e -> handleError(e) },
+        getDeadCompanionRecoveryChannels = remoteAccess.getDeadCompanionRecoveryChannelsUseCase
     )
 
     // --- Inline Audio Player (delegated to BrowseInlineAudioManager) ---

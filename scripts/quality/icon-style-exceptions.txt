@@ -74,3 +74,8 @@ dimen:item_icon_size_medium@values-sw600dp | size | the grid-item slot also show
 dimen:item_icon_size_medium@values-sw720dp | size | the grid-item slot also shows file thumbnails; on a tablet it follows the cell
 dimen:item_network_icon_size@values-sw600dp | size | the network host row's tablet scale, kept with the row height it was tuned for
 layout:activity_camera_capture.xml:44dp | size | the capture button's shutter face (see ic_shutter_*), sized as the control, not a glyph
+
+ic_next_circle_red | paint | owner-requested prominent red next-file control with a white navigation glyph
+ic_next_circle_red | tint | owner-requested fixed red and white next-file control for quick recognition
+ic_next_circle_red_pressed | paint | owner-requested next-file control uses inverted colours when pressed or focused
+ic_next_circle_red_pressed | tint | owner-requested fixed inverse colours preserve next-file feedback

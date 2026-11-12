@@ -362,6 +362,7 @@
 
         <!-- S2211: autonomous Black Screen application surface -->
         <activity android:name=".ui.blackscreen.BlackScreenActivity" android:exported="false" android:label="@string/launcher_action_black_screen" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+        <activity android:name=".ui.filler.FillerActivity" android:exported="false" android:label="@string/filler_title" android:parentActivityName=".ui.main.MainActivity" />
 
         <!-- S1924: the mirror sub-program. Declared with the route in Phase 02 so the registered
              destination resolves; Phase 03 fills the screen behind it. -->
@@ -391,13 +392,7 @@
 
         <activity android:name=".ui.cameraocr.CameraOcrTranslateActivity" android:exported="false" android:label="@string/setting_camera_ocr_translation_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" android:theme="@style/Theme.FastMediaSorter" />
         <!-- S0754: portrait-locked host; overlay controls rotate by sensor while the layout stays fixed. -->
-        <activity android:name=".ui.cameracapture.CameraCaptureActivity" android:exported="false" android:configChanges="keyboardHidden" android:screenOrientation="portrait" android:theme="@style/Theme.FastMediaSorter">
-            <!-- S0934: opt out of the API-36 large-screen behavior that ignores orientation/resizability on
-                 sw>=600dp. The portrait lock is intentional (S0754/S0924) and the overlay-rotation UX
-                 (S0844) assumes a portrait-shaped window; this keeps the compat (letterboxed) behavior so
-                 buttons stay put. Inert until targetSdk 36; removed by the framework at targetSdk 37. -->
-            <property android:name="android.window.PROPERTY_COMPAT_ALLOW_RESTRICTED_RESIZABILITY" android:value="true" />
-        </activity>
+        <activity android:name=".ui.cameracapture.CameraCaptureActivity" android:exported="false" android:configChanges="keyboardHidden" android:screenOrientation="portrait" android:theme="@style/Theme.FastMediaSorter" />
 
         <activity android:name=".ui.keybinding.KeybindingRemapActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.settings.SettingsActivity" />
 

@@ -22,6 +22,7 @@ permalink: /docs/ICON_LEGEND-uk.html
 | <img src="icons/svg/ic_resource_smb.svg" alt="ic_resource_smb" width="24" height="24"> | Мережевий ресурс SMB |
 | <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Спарений годинник Wear OS |
 | <img src="icons/svg/ic_accessibility.svg" alt="ic_accessibility" width="24" height="24"> | Спеціальні можливості |
+| <img src="icons/svg/ic_apps.svg" alt="ic_apps" width="24" height="24"> | Усі програми |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Про застосунок |
 | <img src="icons/svg/ic_quick_launch.svg" alt="ic_quick_launch" width="24" height="24"> | Панель швидкого доступу |
 | <img src="icons/svg/ic_screen_rotation.svg" alt="ic_screen_rotation" width="24" height="24"> | Автообертання |
@@ -61,6 +62,7 @@ permalink: /docs/ICON_LEGEND-uk.html
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Почати відеозапис |
 | <img src="icons/svg/ic_stopwatch.svg" alt="ic_stopwatch" width="24" height="24"> | Секундомір |
 | <img src="icons/svg/ic_storage.svg" alt="ic_storage" width="24" height="24"> | Сховище |
+| <img src="icons/svg/ic_storage.svg" alt="ic_storage" width="24" height="24"> | Заповнення накопичувача |
 | <img src="icons/svg/ic_stream.svg" alt="ic_stream" width="24" height="24"> | Трансляції |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Відомості про систему |
 | <img src="icons/svg/ic_edit.svg" alt="ic_edit" width="24" height="24"> | Зробити фото і редагувати |
@@ -86,6 +88,7 @@ permalink: /docs/ICON_LEGEND-uk.html
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Аудіо, обкладинки й фонові візуалізації |
 | <img src="icons/svg/ic_contact.svg" alt="ic_contact" width="24" height="24"> | Авторизація й акаунти |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Фонове відтворення аудіо |
+| <img src="icons/svg/ic_behavior.svg" alt="ic_behavior" width="24" height="24"> | Поведінка й правила програми |
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Мовлення |
 | <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Фотографування |
 | <img src="icons/svg/ic_app_logo.svg" alt="ic_app_logo" width="24" height="24"> | Призначення швидкого сортування |
@@ -120,6 +123,7 @@ permalink: /docs/ICON_LEGEND-uk.html
 | <img src="icons/svg/ic_game_kryvavitsa.svg" alt="ic_game_kryvavitsa" width="24" height="24"> | Мінігра |
 | <img src="icons/svg/ic_calculator.svg" alt="ic_calculator" width="24" height="24"> | Калькулятор |
 | <img src="icons/svg/ic_resource_favorites.svg" alt="ic_resource_favorites" width="24" height="24"> | Увімкнути обране |
+| <img src="icons/svg/ic_storage.svg" alt="ic_storage" width="24" height="24"> | Заповнення накопичувача |
 | <img src="icons/svg/ic_network_monitor.svg" alt="ic_network_monitor" width="24" height="24"> | Мережевий монітор |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Дозволити розпізнавання тексту |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Фонове відтворення |

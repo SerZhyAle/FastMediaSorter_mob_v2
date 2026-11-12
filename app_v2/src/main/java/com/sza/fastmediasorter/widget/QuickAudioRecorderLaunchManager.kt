@@ -26,6 +26,8 @@ class QuickAudioRecorderLaunchManager(
     private val activity: Activity,
     private val requestPermission: () -> Unit,
     private val finish: () -> Unit,
+    // S4544: the start branch waits for the program's off-switch; the stop branch never does.
+    private val admitStart: (() -> Unit) -> Unit = { it() },
 ) {
 
     fun handleToggle() {
@@ -34,11 +36,13 @@ class QuickAudioRecorderLaunchManager(
             finish()
             return
         }
-        if (hasRecordAudioPermission()) {
-            QuickAudioRecorderService.start(activity)
-            finish()
-        } else {
-            requestPermission()
+        admitStart {
+            if (hasRecordAudioPermission()) {
+                QuickAudioRecorderService.start(activity)
+                finish()
+            } else {
+                requestPermission()
+            }
         }
     }
 

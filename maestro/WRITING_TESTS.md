@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.15 12:08</sub>
+<sub class="doc-stamp">26.10.30 13:04</sub>
 
 # Writing Maestro Tests - Developer Guide
 
@@ -678,6 +678,18 @@ appId: com.sza.fastmediasorter.debug
 - assertNotVisible:
     text: "Отправить отчёт о сбое?"
 ```
+
+## Flows on the CI emulator
+
+`.github/workflows/maestro-tests.yml` runs the suites on a clean install: `_shared/complete_welcome.yaml` first (Russian UI, Welcome finished, HOME role declined), then `smoke/` and `critical/` with `--exclude-tags=prepared-device,real-hardware`.
+
+- `prepared-device` - the flow needs the seeded test corpus (`scripts/utils/setup_test_media.ps1`) or the test phone's storage grants.
+- `real-hardware` - the flow needs a hardware video decoder; the CI emulator's software GPU lost its context while decoding and killed the emulator.
+- Tags go in the flow header, before the `---`: `tags:` followed by `- prepared-device`.
+- A flow with neither tag must pass on a clean install. Check it on a fresh emulator: `pm clear` the app, run `complete_welcome.yaml`, then `maestro test --exclude-tags=prepared-device,real-hardware maestro/smoke/`.
+- `maestro/run-tests.ps1` and the pre-release sweep apply no tag filter, so tagged flows still run on the test device.
+
+---
 
 ## Next Steps
 

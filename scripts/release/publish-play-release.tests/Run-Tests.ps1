@@ -11,7 +11,8 @@
 # What is asserted, because a suite that only ever goes green proves nothing:
 #   * a 5xx and a rate limit are transient; a 400 and a 403 are NOT - and the 403 case is load-bearing
 #     rather than symmetric, because Play's Foreground-service-permissions gate answers 403 and the
-#     release flow has to keep reading it as "the owner must declare this", not as "try again later",
+#     release flow has to keep reading it as "the standard bundle gained a type: fix the build" (S4499),
+#     not as "try again later",
 #   * a socket-level failure is transient and a plain ValueError is not,
 #   * an exception carrying no `resp` answers False instead of raising a second exception from inside
 #     the handler that is describing the first,
@@ -88,7 +89,7 @@ cases = [
     ('http500', http(500)),
     ('http429', http(429)),
     ('http400', http(400)),
-    # The Foreground-service-permissions gate answers 403. It names an owner action, so it must
+    # The Foreground-service-permissions gate answers 403. It is a build defect, so it must
     # stay a finding rather than become "could not verify".
     ('http403', http(403)),
     ('sockettimeout', socket.timeout()),
@@ -133,7 +134,7 @@ foreach ($transient in @('http503', 'http500', 'http429', 'sockettimeout', 'conn
         "expected: True | actual: $(if ($observed.ContainsKey($transient)) { $observed[$transient] } else { '<case absent>' })"
 }
 
-# The release's fault, an owner action, or not an API failure at all -> stays a finding.
+# The release's fault, a build defect, or not an API failure at all -> stays a finding.
 foreach ($defect in @('http400', 'http403', 'valueerror', 'noresp')) {
     Assert-That "$defect is NOT transient" `
         ($observed.ContainsKey($defect) -and $observed[$defect] -eq 'False') `
@@ -320,6 +321,23 @@ Assert-That 'another package without a notes file exits 1 before any API call' `
 Assert-That 'the package literal is declared once in the uploader' `
     ([regex]::Matches((Get-Content -LiteralPath $pyScript -Raw), [regex]::Escape("'com.sza.fastmediasorter'")).Count -eq 1) `
     'a second copy of the literal is a second place the package can drift from the argument'
+
+# --- Cases 28-31: the committed-bundle record and the FGS snapshot confirmation (S4499) ----------
+Assert-That 'a committed edit prints the PLAY-COMMITTED record the wrapper reads' `
+    ($packageOut -match '(?m)^PLAY-COMMITTED versionCode=5 package=com\.sza\.fastmediasorter track=internal status=completed held=0\s*$') `
+    "expected: a PLAY-COMMITTED line for versionCode 5 with held=0 | actual output tail: $(($packageOut -split "`r?`n" | Select-Object -Last 8) -join ' | ')"
+
+Assert-That 'the record is printed for another package too, naming that package' `
+    ($packageOut -match '(?m)^PLAY-COMMITTED versionCode=5 package=probe\.other\.app track=internal status=completed held=0\s*$') `
+    'the wrapper must be able to tell a face release from the phone release by the record'
+
+Assert-That 'the wrapper confirms the FGS snapshot only for a completed, not held, default-package production commit' `
+    (($ps1Code -match 'confirm-fgs-snapshot\.ps1') -and ($ps1Code -match '-not \$committed\.Held') -and ($ps1Code -match "\`$Track -eq 'production'") -and ($ps1Code -match "\`$Status -eq 'completed'") -and ($ps1Code -match 'IsNullOrWhiteSpace\(\$Package\)')) `
+    'a snapshot confirmed on any other commit makes a bundle Play does not serve the next baseline - the defect this guard removes'
+
+Assert-That 'a confirmation failure never changes the publication exit code' `
+    ($ps1Code -notmatch '(?s)confirm-fgs-snapshot\.ps1.{0,400}exit [12]\b') `
+    'the publication succeeded; a failed confirmation is a warning with the by-hand command'
 
 Write-Host "publish-play-release.tests: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
 if ($script:fail -gt 0) { exit 1 }

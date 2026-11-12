@@ -180,6 +180,16 @@ Assert-Equal $true ($swapCacheTags -contains 'OpenGLRenderer') 'S4465: OpenGLRen
 Assert-Equal $true ($swapCacheTags -contains 'chromium') 'S4465: WebView cache lines stay actionable without the marker'
 Assert-Equal 1 $swapCacheDevice.exitCode 'S4465: the same lines from a device still exit 1'
 
+# Case 11 - S0484 sweep 2026-11-10: the API 35 WebView logs the asset probe without the cr_ prefix, and
+# MediaMetadataRetriever's NULL-frame line is benign only on a thread that HeifDecoderImpl already used.
+$heifRetriever = Invoke-Audit 'logcat_emulator_heif_retriever_sample.txt'
+Assert-Equal 0 $heifRetriever.actionableCount 'asset probe without cr_ and the HEIF-thread retriever line are not actionable'
+Assert-Equal 0 $heifRetriever.exitCode 'an emulator run whose only red lines are those exits 0'
+
+$otherThread = Invoke-Audit 'logcat_emulator_retriever_other_thread_sample.txt'
+Assert-Equal $true ((Get-ActionableTags $otherThread) -contains 'MediaMetadataRetrieverJNI') 'a retriever NULL frame on a thread with no HEIF line stays actionable'
+Assert-Equal 1 $otherThread.exitCode 'an unpaired retriever NULL frame still exits 1'
+
 Write-Host ''
 Write-Host "prerelease-log-audit.tests: $(if ($script:failed -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:passed + $script:failed) skipped=0)"
 if ($script:failed -gt 0) { exit 1 }

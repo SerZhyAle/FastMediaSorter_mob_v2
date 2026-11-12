@@ -26,7 +26,6 @@ import com.sza.fastmediasorter.ui.exchange.ExchangeAdminAccountDevices
 import com.sza.fastmediasorter.ui.exchange.ExchangeAdminPasswordChanged
 import com.sza.fastmediasorter.ui.exchange.ExchangeServerAdminViewModel
 import com.sza.fastmediasorter.util.showBoundTo
-import timber.log.Timber
 
 /**
  * Every dialog of the administration screen: the row overflow menus, the account forms (add, password, kind,
@@ -213,7 +212,6 @@ class ExchangeServerAdminDialogManager(
 
     /** The session ended under the screen: every dialog of this manager loses its point and closes. */
     fun dismissTransient() {
-        Timber.d("S4437: dismissTransient entered")
         accountDialog?.dismiss()
         limitsDialog?.dismiss()
         devicesDialog?.dismiss()
@@ -284,7 +282,6 @@ class ExchangeServerAdminDialogManager(
             }
             .showBoundTo(activity) ?: return null
         accountDialog = dialog
-        Timber.d("S4437: account form tracked for dismissTransient")
         return AccountForm(dialog, binding)
     }
 
@@ -301,7 +298,6 @@ class ExchangeServerAdminDialogManager(
             .setOnDismissListener { closed -> if (limitsDialog === closed) limitsDialog = null }
             .showBoundTo(activity) ?: return null
         limitsDialog = dialog
-        Timber.d("S4437: limits form tracked for dismissTransient")
         return LimitsHolder(dialog, binding)
     }
 

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ticket_inbox_row_title">Создать тикет</string>
+    <string name="ticket_inbox_row_subtitle">Отправить задачу с голосовой заметкой, скриншотами и логами во входящие тикеты SZA на вашем Google Диске</string>
+    <string name="ticket_inbox_text_hint">Что нужно сделать</string>
+    <string name="ticket_inbox_project_label">Проект</string>
+    <string name="ticket_inbox_project_none">Без проекта - разобрать на ПК</string>
+    <string name="ticket_inbox_projects_unavailable">Списка проектов на Диске пока нет, поэтому тикет уйдёт без проекта</string>
+    <string name="ticket_inbox_record_voice">Записать голосовую заметку</string>
+    <string name="ticket_inbox_stop_voice">Остановить запись</string>
+    <string name="ticket_inbox_recording">Идёт запись..</string>
+    <string name="ticket_inbox_voice_failed">Запись не удалось сохранить</string>
+    <string name="ticket_inbox_attach">Прикрепить файлы</string>
+    <string name="ticket_inbox_remove_attachment">Убрать %1$s</string>
+    <string name="ticket_inbox_send">Отправить</string>
+    <string name="ticket_inbox_refresh">Проверить статус</string>
+    <string name="ticket_inbox_outbox_title">Тикеты с этого телефона</string>
+    <string name="ticket_inbox_outbox_empty">Тикетов пока нет</string>
+    <string name="ticket_inbox_state_queued">В очереди - уйдёт, как только появится сеть</string>
+    <string name="ticket_inbox_state_waiting">Ждёт отправки на Диск: %1$s</string>
+    <string name="ticket_inbox_state_sent">На Диске - ждёт ПК</string>
+    <string name="ticket_inbox_state_processed">обработан: %1$s</string>
+    <string name="ticket_inbox_state_failed">ПК отклонил: %1$s</string>
+    <string name="ticket_inbox_empty_draft">Сначала напишите текст или прикрепите файл</string>
+    <string name="ticket_inbox_queued_notice">Тикет поставлен в очередь на отправку</string>
+    <string name="ticket_inbox_stage_failed">Тикет не удалось сохранить: %1$s</string>
+    <string name="ticket_inbox_discard">Убрать из списка</string>
+</resources>

@@ -127,6 +127,7 @@ internal object BackupSettingsGroupMapper {
         dimClockOverlayEnabled = settings.dimClockOverlayEnabled,
         flashlightShortcutNotificationEnabled = settings.flashlightShortcutNotificationEnabled,
         enableSos = settings.enableSos,
+        enableFiller = settings.enableFiller,
         sosMode = settings.sosMode.name
     )
 
@@ -344,29 +345,32 @@ internal object BackupSettingsGroupMapper {
     private fun AppSettings.applyPrograms(backup: BackupSettings.Programs?): AppSettings {
         if (backup == null) return this
         return copy(
-            enableCalculator = backup.enableCalculator,
-            enableStopwatch = backup.enableStopwatch,
             stopwatchParticipantCount = backup.stopwatchParticipantCount,
             stopwatchMusicEnabled = backup.stopwatchMusicEnabled,
             stopwatchMusicUri = backup.stopwatchMusicUri ?: stopwatchMusicUri,
             stopwatchVolumeKeysControl = backup.stopwatchVolumeKeysControl,
-            enableNetworkMonitor = backup.enableNetworkMonitor,
-            recordGnssTrack = backup.recordGnssTrack,
-            enableSystemInfo = backup.enableSystemInfo,
-            enableTourist = backup.enableTourist,
-            enableWearCompanion = backup.enableWearCompanion,
-            mirrorEnabled = backup.mirrorEnabled,
-            mirrorZoomRatio = backup.mirrorZoomRatio,
-            mirrorHorizontallyFlipped = backup.mirrorHorizontallyFlipped,
-            mirrorBacklightOn = backup.mirrorBacklightOn,
-            showProgramsPanelInMainWindow = backup.showProgramsPanelInMainWindow,
             programsPanelCollapsed = backup.programsPanelCollapsed,
             showBlackScreenButton = backup.showBlackScreenButton,
             dimClockOverlayEnabled = backup.dimClockOverlayEnabled,
-            flashlightShortcutNotificationEnabled = backup.flashlightShortcutNotificationEnabled
-                ?: flashlightShortcutNotificationEnabled,
-            enableSos = backup.enableSos ?: enableSos,
-            sosMode = backup.sosMode.toEnumOr(sosMode)
+            programs = programs.copy(
+                enableCalculator = backup.enableCalculator,
+                enableStopwatch = backup.enableStopwatch,
+                enableNetworkMonitor = backup.enableNetworkMonitor,
+                recordGnssTrack = backup.recordGnssTrack,
+                enableSystemInfo = backup.enableSystemInfo,
+                enableTourist = backup.enableTourist,
+                enableWearCompanion = backup.enableWearCompanion,
+                mirrorEnabled = backup.mirrorEnabled,
+                mirrorZoomRatio = backup.mirrorZoomRatio,
+                mirrorHorizontallyFlipped = backup.mirrorHorizontallyFlipped,
+                mirrorBacklightOn = backup.mirrorBacklightOn,
+                showProgramsPanelInMainWindow = backup.showProgramsPanelInMainWindow,
+                flashlightShortcutNotificationEnabled = backup.flashlightShortcutNotificationEnabled
+                    ?: flashlightShortcutNotificationEnabled,
+                enableSos = backup.enableSos ?: enableSos,
+                enableFiller = backup.enableFiller ?: enableFiller,
+                sosMode = backup.sosMode.toEnumOr(sosMode)
+            )
         )
     }
 
@@ -463,9 +467,10 @@ internal object BackupSettingsGroupMapper {
             isPrimaryMediaPlayer = backup.isPrimaryMediaPlayer,
             enabledShareTargets = backup.enabledShareTargets ?: enabledShareTargets,
             disabledShareTargets = backup.disabledShareTargets ?: disabledShareTargets,
-            scheduledOperationsPaused = backup.scheduledOperationsPaused,
-            suppressWearMediaTakeover = backup.suppressWearMediaTakeover ?: suppressWearMediaTakeover
-        )
+            scheduledOperationsPaused = backup.scheduledOperationsPaused
+        ).withPrograms {
+            copy(suppressWearMediaTakeover = backup.suppressWearMediaTakeover ?: suppressWearMediaTakeover)
+        }
     }
 }
 

@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.link.nolegal
 
 import android.content.Context
+import com.chaquo.python.PyException
 import com.chaquo.python.PyObject
 import com.chaquo.python.Python
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
@@ -112,7 +113,9 @@ class YtDlpExtractionStrategy @Inject constructor(
         }
 
         val targetHost = url.toHttpUrlOrNull()?.host ?: ""
-        val cookieFile = cookieWriter.writeCookieFile(targetHost)
+        val cookieFile = cookieWriter.writeCookieFile(targetHost, sessionContext.cookiesFor(targetHost).orEmpty())
+        // Written on the ytdlp-worker thread, read after Future.get(), which orders the two.
+        var activeCookieFile = cookieFile
         // S0182: replay the User-Agent captured during WebView login on every cookie-bound
         // request. Falls back to a mobile UA (matches our actual Android device) instead
         // of the legacy desktop UA so the fingerprint matches what Meta first observed.
@@ -148,8 +151,7 @@ class YtDlpExtractionStrategy @Inject constructor(
                     // sees identical login+API fingerprint.
                     opts.callAttr("__setitem__", "user_agent", sessionUa)
                     cookieFile?.let { opts.callAttr("__setitem__", "cookiefile", it.absolutePath) }
-                    val ydl = ytdlp.callAttr("YoutubeDL", opts)
-                    val info = ydl.callAttr("extract_info", url, false)
+                    val info = extractInfo(ytdlp, opts, url, cookieFile != null) { activeCookieFile = null }
 
                     if (info == null) {
                         return@runCatching OpenResult.NotFound("ytdlp_extract_failed")
@@ -469,7 +471,7 @@ class YtDlpExtractionStrategy @Inject constructor(
                         )
                         downloadViaPython(
                             url,
-                            cookieFile,
+                            activeCookieFile,
                             result.safeTitle,
                             result.ext,
                             sessionUa,
@@ -497,7 +499,7 @@ class YtDlpExtractionStrategy @Inject constructor(
                                 )
                                 downloadViaPython(
                                     url,
-                                    cookieFile,
+                                    activeCookieFile,
                                     result.safeTitle,
                                     result.ext,
                                     sessionUa,
@@ -514,7 +516,7 @@ class YtDlpExtractionStrategy @Inject constructor(
                                 )
                                 downloadViaPython(
                                     url,
-                                    cookieFile,
+                                    activeCookieFile,
                                     result.safeTitle,
                                     result.ext,
                                     sessionUa,
@@ -529,7 +531,7 @@ class YtDlpExtractionStrategy @Inject constructor(
                     // No progressive URL - use yt-dlp Python download (HLS/DASH native).
                     downloadViaPython(
                         url,
-                        cookieFile,
+                        activeCookieFile,
                         result.safeTitle,
                         result.ext,
                         sessionUa,
@@ -543,6 +545,30 @@ class YtDlpExtractionStrategy @Inject constructor(
         } finally {
             cookieFile?.let { cookieWriter.deleteCookieFile(it) }
         }
+    }
+
+    /**
+     * With a `sessionid` cookie yt-dlp's Instagram extractor takes a logged-in branch that recovers
+     * from a refused session only as an HTTP error. Instagram answers with a login page that ends
+     * 200 HTML, so the parse failure aborts the extraction before the logged-out branch, which can
+     * read a public reel, ever runs. Dropping the cookies is the only way to reach that branch.
+     */
+    private fun extractInfo(
+        ytdlp: PyObject,
+        opts: PyObject,
+        url: String,
+        hasCookieFile: Boolean,
+        onCookiesDropped: () -> Unit,
+    ): PyObject? = try {
+        ytdlp.callAttr("YoutubeDL", opts).callAttr("extract_info", url, false)
+    } catch (e: PyException) {
+        val host = url.toHttpUrlOrNull()?.host.orEmpty()
+        if (!hasCookieFile || !isRefusedInstagramSession(host, e.message)) throw e
+        Timber.w(e, "YtDlpExtractionStrategy: session refused, retrying without cookies host=%s", host)
+        Timber.d("S4519: retry without cookies host=%s", host)
+        opts.callAttr("pop", "cookiefile")
+        onCookiesDropped()
+        ytdlp.callAttr("YoutubeDL", opts).callAttr("extract_info", url, false)
     }
 
     /**
@@ -687,6 +713,13 @@ class YtDlpExtractionStrategy @Inject constructor(
     companion object {
         private const val PROBE_TIMEOUT_MS = 10_000L
         private const val MAX_BATCH_ITEMS = 50
+        private const val UNPARSABLE_ANSWER_MARKER = "Failed to parse JSON"
+
+        internal fun isRefusedInstagramSession(host: String, errorMessage: String?): Boolean {
+            val normalizedHost = host.lowercase()
+            val isInstagram = normalizedHost == "instagram.com" || normalizedHost.endsWith(".instagram.com")
+            return isInstagram && errorMessage.orEmpty().contains(UNPARSABLE_ANSWER_MARKER)
+        }
 
         /**
          * Single-thread executor for yt-dlp calls.

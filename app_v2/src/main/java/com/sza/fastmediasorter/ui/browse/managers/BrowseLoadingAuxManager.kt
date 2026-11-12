@@ -11,10 +11,12 @@ import com.sza.fastmediasorter.data.network.exceptions.BrowseFriendlyErrorResolv
 import com.sza.fastmediasorter.data.network.exceptions.LocalNetworkPermissionDeniedException
 import com.sza.fastmediasorter.data.repository.CachedFileListRepository
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.CompanionRecoveryChannel
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.usecase.GetDeadCompanionRecoveryChannelsUseCase
 import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseEvent
 import com.sza.fastmediasorter.ui.browse.BrowseState
@@ -40,6 +42,9 @@ import kotlin.coroutines.CoroutineContext
  *
  * Extracted from BrowseViewModel (Wave 1 decomposition - IV.1).
  */
+// Every parameter is a ViewModel field or callback this extracted helper needs; a holder object would only
+// rename the ViewModel's own state, not reduce what the helper depends on.
+@Suppress("LongParameterList")
 class BrowseLoadingAuxManager(
     private val context: Context,
     private val updateResourceUseCase: UpdateResourceUseCase,
@@ -54,7 +59,8 @@ class BrowseLoadingAuxManager(
     private val setLoading: (Boolean) -> Unit,
     private val getSettings: suspend () -> AppSettings,
     private val resourceId: Long,
-    private val onHandleError: (Throwable) -> Unit
+    private val onHandleError: (Throwable) -> Unit,
+    private val getDeadCompanionRecoveryChannels: GetDeadCompanionRecoveryChannelsUseCase
 ) {
     // ── Mutable jobs (owned here, cancel via cancelAll / cancelPlayerWarmup) ──
 
@@ -171,22 +177,54 @@ class BrowseLoadingAuxManager(
         if (resource.type == ResourceType.WEAR_WATCH) {
             return context.getString(R.string.paired_watch_not_connected)
         }
-        return BrowseFriendlyErrorResolver.peerUnreachableMessage(context, e) ?: companionAccessNote(resource, e)
+        return BrowseFriendlyErrorResolver.peerUnreachableMessage(context, e)
+            ?: companionShareMissing(resource, e)
+            ?: companionAccessNote(resource, e)
+    }
+
+    /**
+     * The server answered and the folder this resource points at is gone, so the address is fine and the
+     * recovery channels of [companionGuidance] do not apply. A missing subfolder is an ordinary deleted
+     * folder and keeps the generic text.
+     */
+    private fun companionShareMissing(resource: MediaResource, e: Throwable): String? {
+        val browsedPath = stateFlow.value.currentPath
+        val atRoot = browsedPath == null || browsedPath.trimEnd('/') == resource.path.trimEnd('/')
+        val missing = resource.type == ResourceType.SFTP && atRoot && BrowseFriendlyErrorResolver.isServerNotFound(e)
+        if (!missing) return null
+        Timber.i("BrowseLoadingAuxManager: server answered, shared folder missing for resource %d", resource.id)
+        Timber.d("S4517: share-missing text for ${resource.name}")
+        return context.getString(R.string.error_companion_share_missing)
     }
 
     private fun companionAccessNote(resource: MediaResource, e: Throwable): String? {
-        val msg = e.message.orEmpty()
-        val isConnectivity = msg.contains("timeout", ignoreCase = true) ||
-            msg.contains("timed out", ignoreCase = true) ||
-            msg.contains("unreachable", ignoreCase = true) ||
-            msg.contains("Connection", ignoreCase = true)
+        val isConnectivity = BrowseFriendlyErrorResolver.isConnectivityFailure(e)
         val companion = resource.type == ResourceType.SFTP || resource.type == ResourceType.FTP
         val accessNote = resource.accessNote?.takeIf { it.isNotBlank() }
         return when {
             !isConnectivity -> null
             !companion && accessNote == null -> null
-            else -> accessNote ?: context.getString(R.string.error_companion_connect_guidance)
+            else -> companionGuidance(resource, accessNote)
         }
+    }
+
+    /**
+     * S4513: the access note or the default guidance, then one sentence per recovery channel that cannot
+     * find the PC's new address - the generic text alone once kept an owner waiting a month for a reconnect.
+     */
+    private fun companionGuidance(resource: MediaResource, accessNote: String?): String {
+        val dead = getDeadCompanionRecoveryChannels(resource)
+        val lines = listOf(accessNote ?: context.getString(R.string.error_companion_unreachable)) +
+            dead.map { channel ->
+                when (channel) {
+                    CompanionRecoveryChannel.LOCAL_NETWORK ->
+                        context.getString(R.string.error_companion_channel_local_network)
+                    CompanionRecoveryChannel.GOOGLE_DRIVE -> context.getString(R.string.error_companion_channel_drive)
+                }
+            }
+        Timber.i("BrowseLoadingAuxManager: companion unreachable, dead recovery channels=%s", dead)
+        Timber.d("S4513: companion error for ${resource.name}")
+        return lines.joinToString("\n\n")
     }
 
     /**

@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.domain.usecase
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.programs.ProgramsSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.panel.ResolvePanelRouteAvailabilityUseCase
 import com.sza.fastmediasorter.testutil.testMediaCapabilities
@@ -147,7 +148,7 @@ class ApplyEnableAllSettingsUseCaseTest {
     // two apart - which is how the missing map entry survived S1924 unnoticed.
     @Test
     fun `the mirror comes back for a user who switched it off`() {
-        val start = AppSettings(mirrorEnabled = false)
+        val start = AppSettings(programs = ProgramsSettings(mirrorEnabled = false))
 
         val result = run(start, caps())
 

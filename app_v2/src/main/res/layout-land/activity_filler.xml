@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S4521 landscape host. The same scrollable column, inset from the wide edges in the READY order: place, space, reserve, Start; progress
+     and Stop replace Start during a run, and the cleanup block appears only while an earlier run left
+     files. The portrait file carries the same ids in the same order. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/fillerRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.sza.fastmediasorter.ui.common.widget.StandardToolbar
+        android:id="@+id/toolbar"
+        style="@style/Widget.FastMediaSorter.Toolbar.Flat"
+        android:layout_width="match_parent"
+        android:layout_height="?actionBarSize"
+        app:navigationIcon="@drawable/ic_arrow_back"
+        app:stbTitleIcon="@drawable/ic_storage"
+        app:title="@string/filler_title" />
+
+    <ScrollView
+        android:id="@+id/fillerScroll"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="@dimen/filler_content_padding_horizontal_land"
+            android:paddingVertical="@dimen/token_spacing_12">
+
+            <TextView
+                android:id="@+id/txtFillerIntro"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/filler_intro"
+                android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+            <TextView
+                android:id="@+id/txtFillerLocation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/token_spacing_16"
+                android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+            <Button
+                android:id="@+id/btnFillerChooseFolder"
+                style="@style/Widget.FastMediaSorter.Button.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/token_spacing_8"
+                android:nextFocusDown="@id/btnFillerStart"
+                android:text="@string/filler_choose_folder" />
+
+            <TextView
+                android:id="@+id/txtFillerFreeSpace"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/token_spacing_16"
+                android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+            <TextView
+                android:id="@+id/txtFillerReserve"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/token_spacing_4"
+                android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+            <Button
+                android:id="@+id/btnFillerStart"
+                style="@style/Widget.FastMediaSorter.Button.Filled"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/token_spacing_16"
+                android:nextFocusUp="@id/btnFillerChooseFolder"
+                android:text="@string/filler_start" />
+
+            <LinearLayout
+                android:id="@+id/fillerRunGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/token_spacing_16"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <com.google.android.material.progressindicator.LinearProgressIndicator
+                    android:id="@+id/progressFiller"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:importantForAccessibility="no" />
+
+                <TextView
+                    android:id="@+id/txtFillerProgress"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/token_spacing_8"
+                    android:accessibilityLiveRegion="polite"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+                <Button
+                    android:id="@+id/btnFillerCancel"
+                    style="@style/Widget.FastMediaSorter.Button.Destructive"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/token_spacing_8"
+                    android:text="@string/filler_cancel" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/fillerCleanupGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/token_spacing_16"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/txtFillerCleanupStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+                <Button
+                    android:id="@+id/btnFillerRetryCleanup"
+                    style="@style/Widget.FastMediaSorter.Button.Tonal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/token_spacing_8"
+                    android:text="@string/filler_retry_cleanup" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/txtFillerResult"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/token_spacing_16"
+                android:accessibilityLiveRegion="polite"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:visibility="gone" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

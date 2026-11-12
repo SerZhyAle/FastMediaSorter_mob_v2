@@ -1,9 +1,11 @@
 package com.sza.fastmediasorter.data.link.auth
 
-import java.net.HttpCookie
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.net.HttpCookie
 
 class AccountIdentityExtractorTest {
 
@@ -115,5 +117,101 @@ class AccountIdentityExtractorTest {
         )
 
         assertEquals("112233", out)
+    }
+
+    @Test
+    fun `instagram anonymous cookies are not a signed-in session`() {
+        val signedIn = AccountIdentityExtractor.hasSignedInCookies(
+            host = "www.instagram.com",
+            cookies = listOf(HttpCookie("csrftoken", "abc"), HttpCookie("mid", "def")),
+        )
+
+        assertFalse(signedIn)
+    }
+
+    @Test
+    fun `instagram sessionid makes a signed-in session`() {
+        val signedIn = AccountIdentityExtractor.hasSignedInCookies(
+            host = "www.instagram.com",
+            cookies = listOf(HttpCookie("csrftoken", "abc"), HttpCookie("SessionID", "42%3Atoken")),
+        )
+
+        assertTrue(signedIn)
+    }
+
+    @Test
+    fun `blank sessionid value is not a signed-in session`() {
+        val signedIn = AccountIdentityExtractor.hasSignedInCookies(
+            host = "instagram.com",
+            cookies = listOf(HttpCookie("sessionid", "")),
+        )
+
+        assertFalse(signedIn)
+    }
+
+    @Test
+    fun `threads needs sessionid too`() {
+        assertFalse(
+            AccountIdentityExtractor.hasSignedInCookies("threads.net", listOf(HttpCookie("csrftoken", "abc"))),
+        )
+        assertTrue(
+            AccountIdentityExtractor.hasSignedInCookies("threads.net", listOf(HttpCookie("sessionid", "42"))),
+        )
+    }
+
+    @Test
+    fun `facebook and x need their identity cookie`() {
+        assertFalse(AccountIdentityExtractor.hasSignedInCookies("www.facebook.com", listOf(HttpCookie("fr", "1"))))
+        assertTrue(AccountIdentityExtractor.hasSignedInCookies("www.facebook.com", listOf(HttpCookie("c_user", "1"))))
+        assertFalse(AccountIdentityExtractor.hasSignedInCookies("x.com", listOf(HttpCookie("guest_id", "1"))))
+        assertTrue(AccountIdentityExtractor.hasSignedInCookies("x.com", listOf(HttpCookie("twid", "u=1"))))
+    }
+
+    @Test
+    fun `unknown host passes on any non-empty cookie set`() {
+        assertTrue(AccountIdentityExtractor.hasSignedInCookies("vk.com", listOf(HttpCookie("remixsid", "1"))))
+        assertFalse(AccountIdentityExtractor.hasSignedInCookies("vk.com", emptyList()))
+    }
+
+    @Test
+    fun `blank host is never signed in`() {
+        assertFalse(AccountIdentityExtractor.hasSignedInCookies("", listOf(HttpCookie("sessionid", "1"))))
+    }
+
+    @Test
+    fun `tiktok share host returns sessionid`() {
+        val out = AccountIdentityExtractor.extract(
+            host = "vm.tiktok.com",
+            cookies = listOf(HttpCookie("tt_csrf_token", "x"), HttpCookie("sessionid", "abc123")),
+        )
+
+        assertEquals("abc123", out)
+    }
+
+    @Test
+    fun `tiktok web host without sessionid returns null`() {
+        val out = AccountIdentityExtractor.extract(
+            host = "www.tiktok.com",
+            cookies = listOf(HttpCookie("ttwid", "1"), HttpCookie("msToken", "2")),
+        )
+
+        assertNull(out)
+    }
+
+    @Test
+    fun `tiktok anonymous cookies are not a signed-in session on any subdomain`() {
+        val anonymous = listOf(HttpCookie("ttwid", "1"), HttpCookie("tt_csrf_token", "2"))
+
+        assertFalse(AccountIdentityExtractor.hasSignedInCookies("v16-webapp-prime.tiktok.com", anonymous))
+        assertFalse(AccountIdentityExtractor.hasSignedInCookies("tiktok.com", anonymous))
+    }
+
+    @Test
+    fun `tiktok sessionid makes a signed-in session and blank does not`() {
+        val signedIn = listOf(HttpCookie("sessionid", "42"))
+        val blank = listOf(HttpCookie("sessionid", ""))
+
+        assertTrue(AccountIdentityExtractor.hasSignedInCookies("v16-webapp-prime.tiktok.com", signedIn))
+        assertFalse(AccountIdentityExtractor.hasSignedInCookies("www.tiktok.com", blank))
     }
 }

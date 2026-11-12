@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.domain.model.WearEventEnvelope
 import com.sza.fastmediasorter.domain.model.WearFaceSlot
 import com.sza.fastmediasorter.domain.model.WearFaceSlotAssignment
 import com.sza.fastmediasorter.domain.model.WearFaceSlotOption
+import com.sza.fastmediasorter.domain.model.programs.ProgramsSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.WearFaceSlotsRepository
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
@@ -42,7 +43,7 @@ class PushWearFaceSlotsUseCaseTest {
     private val paths = mutableListOf<String>()
     private val envelopes = mutableListOf<WearEventEnvelope>()
 
-    private val settings = AppSettings(enableWearCompanion = true)
+    private val settings = AppSettings(programs = ProgramsSettings(enableWearCompanion = true))
     private val assignment = WearFaceSlotAssignment(
         mapOf(
             WearFaceSlot.OUTER_LEFT to WearFaceSlotOption.DEST_CALCULATOR,
@@ -96,7 +97,8 @@ class PushWearFaceSlotsUseCaseTest {
 
     @Test
     fun `a disabled companion puts nothing`() = runTest {
-        every { settingsRepository.getSettings() } returns flowOf(settings.copy(enableWearCompanion = false))
+        every { settingsRepository.getSettings() } returns
+            flowOf(settings.withPrograms { copy(enableWearCompanion = false) })
         every { slotsRepository.observe() } returns flowOf(assignment)
 
         val job = useCase().observeAndPush(this)

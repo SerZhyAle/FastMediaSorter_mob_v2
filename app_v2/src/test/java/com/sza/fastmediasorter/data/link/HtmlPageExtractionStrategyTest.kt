@@ -89,11 +89,15 @@ class HtmlPageExtractionStrategyTest {
         val out = strategy.open(pageUrl) { _, _ -> }
 
         assertTrue(out is OpenResult.Stream)
-        assertEquals(1, requests.count { it.url.host == "i.instagram.com" })
+        assertEquals(1, requests.count { it.url.encodedPath.startsWith("/api/v1/media/") })
         assertEquals(
             "936619743392459",
-            requests.single { it.url.host == "i.instagram.com" }.header("x-ig-app-id"),
+            requests.single { it.url.encodedPath.startsWith("/api/v1/media/") }.header("x-ig-app-id"),
         )
+        val apiRequest = requests.single { it.url.encodedPath.startsWith("/api/v1/media/") }
+        assertEquals("www.instagram.com", apiRequest.url.host)
+        assertEquals("XMLHttpRequest", apiRequest.header("x-requested-with"))
+        assertEquals(pageUrl, apiRequest.header("Referer"))
         verify(exactly = 1) { structuredMediaSniffer.sniffInstagramApiResponse(apiJson, pageUrl) }
         coVerify(exactly = 1) { direct.open("https://cdninstagram.com/full.jpg", any()) }
     }
@@ -150,6 +154,50 @@ class HtmlPageExtractionStrategyTest {
         )
         verify(exactly = 1) { structuredMediaSniffer.sniffInstagramApiResponse(apiJson, pageUrl) }
         coVerify(exactly = 0) { direct.open(any(), any()) }
+    }
+
+    @Test
+    fun `instagram login page from media info falls through to the graphql query`() = runTest {
+        val pageUrl = "https://www.instagram.com/p/ABC123/"
+        val pageHtml = """
+            <html><head><meta property="og:image" content="https://preview.example.com/p.jpg" /></head></html>
+        """.trimIndent()
+        val graphqlJson = """{"data":{"xdt_shortcode_media":{"display_url":"https://cdninstagram.com/full.jpg"}}}"""
+        val requests = mutableListOf<Request>()
+        val expected = OpenResult.Stream(
+            body = ByteArrayInputStream("img".toByteArray()),
+            contentLength = 3,
+            mime = "image/jpeg",
+            fileName = "full.jpg",
+            close = {},
+        )
+        every { structuredMediaSniffer.sniffInstagramGraphqlResponse(graphqlJson, pageUrl) } returns listOf(
+            embeddedCandidate("https://cdninstagram.com/full.jpg"),
+        )
+        coEvery { direct.open("https://cdninstagram.com/full.jpg", any()) } returns expected
+
+        val strategy = HtmlPageExtractionStrategy(
+            httpClient = fakeHttpClient(
+                pageUrl = pageUrl,
+                pageHtml = pageHtml,
+                apiJson = "<!DOCTYPE html><html><title>Login</title></html>",
+                requests = requests,
+                graphqlJson = graphqlJson,
+            ),
+            direct = direct,
+            streamingSniffer = StreamingManifestSniffer(),
+            structuredMediaSniffer = structuredMediaSniffer,
+            settingsRepository = settingsRepository,
+        )
+
+        val out = strategy.open(pageUrl) { _, _ -> }
+
+        assertTrue(out is OpenResult.Stream)
+        val graphqlRequest = requests.single { it.url.encodedPath == "/graphql/query/" }
+        assertEquals("www.instagram.com", graphqlRequest.url.host)
+        assertEquals("XMLHttpRequest", graphqlRequest.header("x-requested-with"))
+        assertTrue(graphqlRequest.url.queryParameter("variables").orEmpty().contains("\"shortcode\":\"ABC123\""))
+        verify(exactly = 0) { structuredMediaSniffer.sniffInstagramApiResponse(any(), any()) }
     }
 
     private fun embeddedCandidate(url: String): HtmlMediaCandidate = HtmlMediaCandidate(
@@ -219,6 +267,7 @@ class HtmlPageExtractionStrategyTest {
         pageHtml: String,
         apiJson: String,
         requests: MutableList<Request>,
+        graphqlJson: String = "{}",
     ): OkHttpClient {
         val htmlType = "text/html".toMediaType()
         val jsonType = "application/json".toMediaType()
@@ -231,12 +280,15 @@ class HtmlPageExtractionStrategyTest {
                     request.method == "GET" && request.url.toString() == pageUrl ->
                         response(request, 200, pageHtml.toResponseBody(htmlType))
 
-                    request.url.host == "i.instagram.com" -> {
+                    request.url.host == "www.instagram.com" && request.url.encodedPath.startsWith("/api/v1/media/") -> {
                         val hasAppId = request.header("x-ig-app-id") == "936619743392459"
                         val code = if (hasAppId) 200 else 401
                         val body = if (code == 200) apiJson.toResponseBody(jsonType) else "{}".toResponseBody(jsonType)
                         response(request, code, body)
                     }
+
+                    request.url.host == "www.instagram.com" && request.url.encodedPath == "/graphql/query/" ->
+                        response(request, 200, graphqlJson.toResponseBody(jsonType))
 
                     request.method == "HEAD" && request.url.host.contains("cdninstagram.com") ->
                         response(request, 200, ByteArray(0).toResponseBody(imageType))

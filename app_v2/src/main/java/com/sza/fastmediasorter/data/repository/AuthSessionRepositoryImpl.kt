@@ -76,6 +76,7 @@ class AuthSessionRepositoryImpl @Inject constructor(
         return withContext(Dispatchers.IO) {
             val identity = AccountIdentityExtractor.extract(host, cookies)
             val reusedId = identity?.let { store.findAccountIdByIdentity(host, it) }
+            Timber.d("S4549: webview save host=$host hasIdentity=${identity != null} reused=${reusedId != null}")
             val accountId = reusedId ?: java.util.UUID.randomUUID().toString()
             store.saveForAccount(host, accountId, displayName, cookies, userAgent)
             refreshFlows()
@@ -100,42 +101,13 @@ class AuthSessionRepositoryImpl @Inject constructor(
 
     override suspend fun listAccountsForHost(host: String): List<AuthAccountDomain> =
         withContext(Dispatchers.IO) {
-            // S0166 fix: exact host first; if empty, fall back to any account that lives
-            // under the same eTLD+1 registrable domain. Without this, sharing from
-            // vm.tiktok.com fails to find the account saved under www.tiktok.com and the
-            // user is forced to re-authenticate even though valid cookies exist.
-            // Matches the resolution logic in LinkAutoDownloadCoordinator.resolveSessionHost.
-            val exactEntries = store.listAccounts(host)
-            val (resolvedHost, entries) = if (exactEntries.isNotEmpty()) {
-                host to exactEntries
-            } else {
-                val reg = registrableDomainOrNull(host)
-                val fallbackHost = if (reg != null) {
-                    store.listAllAccounts()
-                        .asSequence()
-                        .filter { (h, e) ->
-                            e.type == EncryptedCookieStore.TYPE_ACTIVE &&
-                                e.cookieCount > 0 &&
-                                registrableDomainOrNull(h) == reg
-                        }
-                        .map { it.first }
-                        .firstOrNull()
-                } else {
-                    null
-                }
-                if (fallbackHost != null) {
-                    Timber.d(
-                        "listAccountsForHost eTLD+1 fallback: host=%s resolvedHost=%s reg=%s",
-                        host,
-                        fallbackHost,
-                        reg,
-                    )
-                    fallbackHost to store.listAccounts(fallbackHost)
-                } else {
-                    host to emptyList()
-                }
-            }
-            val live = entries.map { entry -> entry.toDomain(resolvedHost) }
+            // S0166 + S4549: an account belongs to the site (eTLD+1 registrable domain), not to the
+            // exact host the cookies were saved under. The old "exact host first, else first sibling"
+            // fallback made vm.tiktok.com and www.tiktok.com see 0, 1 or a different single account
+            // depending on which subdomain the link carried, so the picker and the auth offer flickered.
+            // Cookies stay keyed by the exact host; every account entry keeps the host it lives under.
+            val live = mergeSiteAccounts(host).map { (accountHost, entry) -> entry.toDomain(accountHost) }
+            Timber.d("S4549: listAccountsForHost host=$host accounts=${live.size}")
             val dismissed = buildList {
                 val hostDismiss = store.hasDismissedRecord(host)
                 if (hostDismiss) {
@@ -169,8 +141,10 @@ class AuthSessionRepositoryImpl @Inject constructor(
         }
     }
 
+    // S4549: same site rule as listAccountsForHost, so "a session was applied" and "a session exists"
+    // agree for a vm. link whose login was saved on www.
     override suspend fun hasAnySession(host: String): Boolean =
-        withContext(Dispatchers.IO) { store.listAccounts(host).isNotEmpty() }
+        withContext(Dispatchers.IO) { mergeSiteAccounts(host).isNotEmpty() }
 
     override suspend fun markDismissed(host: String) {
         if (host.isBlank()) return
@@ -241,6 +215,39 @@ class AuthSessionRepositoryImpl @Inject constructor(
                 store.hasDismissedRecord(host) || store.hasDismissedRecordForAccount(host, accountId)
             }
         }
+
+    /**
+     * Every active account of the site [host] belongs to, one entry per accountId. A webview save that
+     * reuses an account on another subdomain leaves the same accountId under two hosts (S4549); the entry
+     * under [host] wins, otherwise the freshest save, so the picker shows one row per real login.
+     */
+    private fun mergeSiteAccounts(host: String): List<Pair<String, EncryptedCookieStore.AccountEntry>> {
+        val exact = store.listAccounts(host).map { host to it }
+        val registrable = registrableDomainOrNull(host) ?: return exact
+        val siblings = store.listAllAccounts().filter { (accountHost, entry) ->
+            accountHost != host &&
+                entry.type == EncryptedCookieStore.TYPE_ACTIVE &&
+                entry.cookieCount > 0 &&
+                registrableDomainOrNull(accountHost) == registrable
+        }
+        val merged = (exact + siblings)
+            .groupBy { (_, entry) -> entry.accountId }
+            .map { (_, copies) ->
+                copies.firstOrNull { (accountHost, _) -> accountHost == host }
+                    ?: copies.maxBy { (_, entry) -> entry.savedAt ?: Instant.MIN }
+            }
+        if (siblings.isNotEmpty()) {
+            Timber.d(
+                "listAccountsForHost site merge: host=%s reg=%s exact=%d siblings=%d accounts=%d",
+                host,
+                registrable,
+                exact.size,
+                siblings.size,
+                merged.size,
+            )
+        }
+        return merged
+    }
 
     // Callers run on parallel IO threads; without the lock a caller holding an older store read could
     // publish after a newer one and leave the account lists stale until the next write.

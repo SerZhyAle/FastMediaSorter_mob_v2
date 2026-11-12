@@ -9,8 +9,10 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.screencapture.ScreenRecordingStateController
 import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
+import com.sza.fastmediasorter.core.ui.ProgramScreenGuardManager
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.domain.model.PermissionTask
 import com.sza.fastmediasorter.ui.common.permissions.permissionRationaleShort
@@ -39,6 +41,9 @@ class ScreenRecordingLaunchActivity : AppCompatActivity() {
     @Inject
     lateinit var stateController: ScreenRecordingStateController
 
+    @Inject
+    lateinit var programScreenGuard: ProgramScreenGuardManager
+
     private val recordAudioLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -65,7 +70,7 @@ class ScreenRecordingLaunchActivity : AppCompatActivity() {
                 controller.requestStop(this)
                 finish()
             }
-            else -> startOrLaunch()
+            else -> programScreenGuard.admit(this, InternalRouteCatalog.KEY_SCREEN_RECORDING) { startOrLaunch() }
         }
     }
 

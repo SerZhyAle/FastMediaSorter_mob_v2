@@ -87,6 +87,7 @@ object SubProgramAccentCatalog {
         // before it is anything else, and the menu reads the family by its tone.
         InternalRouteCatalog.KEY_WATER_FLASHLIGHT to R.color.color_program_accent_amber,
         InternalRouteCatalog.KEY_BLACK_SCREEN to R.color.color_program_accent_amber,
+        InternalRouteCatalog.KEY_FILLER to R.color.color_program_accent_amber,
 
         // Play and outdoors.
         InternalRouteCatalog.KEY_GAME to R.color.color_program_accent_green,

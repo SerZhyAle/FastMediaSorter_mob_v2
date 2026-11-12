@@ -7,7 +7,9 @@ import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.programs.ProgramsSettings
 import com.sza.fastmediasorter.domain.model.sos.SosMode
+import timber.log.Timber
 
 /**
  * Owns persistence of the sub-program switches: which of our own programs the user has turned on,
@@ -45,6 +47,7 @@ object ProgramsSettingsStore {
     // member name, which is also what travels to the paired device - one vocabulary, not two.
     private val KEY_ENABLE_SOS = booleanPreferencesKey("enable_sos")
     private val KEY_SOS_MODE = stringPreferencesKey("sos_mode")
+    private val KEY_ENABLE_FILLER = booleanPreferencesKey("enable_filler")
     private val KEY_FLASHLIGHT_SHORTCUT_NOTIFICATION =
         booleanPreferencesKey("flashlight_shortcut_notification_enabled")
     private val KEY_MIRROR_ENABLED = booleanPreferencesKey("mirror_enabled")
@@ -54,33 +57,8 @@ object ProgramsSettingsStore {
     private val KEY_SHOW_PROGRAMS_PANEL = booleanPreferencesKey("show_programs_panel_main_window")
     private val KEY_ENABLE_FAVORITES = booleanPreferencesKey("enable_favorites")
 
-    /** Sub-program fields read from DataStore, ready for [AppSettings]. */
-    data class Values(
-        val enableCalculator: Boolean,
-        val enableStopwatch: Boolean,
-        val enableNetworkMonitor: Boolean,
-        val enableSystemInfo: Boolean,
-        val enableTourist: Boolean,
-        val enableWearCompanion: Boolean,
-        val suppressWearMediaTakeover: Boolean,
-        val recordGnssTrack: Boolean,
-        val embeddedGameEnabled: Boolean,
-        val frontFlashlightEnabled: Boolean,
-        val frontFlashlightColor: Int,
-        val waterFlashlightEnabled: Boolean,
-        val enableSos: Boolean,
-        val sosMode: SosMode,
-        val flashlightShortcutNotificationEnabled: Boolean,
-        val mirrorEnabled: Boolean,
-        val mirrorZoomRatio: Float,
-        val mirrorHorizontallyFlipped: Boolean,
-        val mirrorBacklightOn: Boolean,
-        val showProgramsPanelInMainWindow: Boolean,
-        val enableFavorites: Boolean,
-    )
-
     @Suppress("CyclomaticComplexMethod") // S2997: one Elvis per field; complexity tracks field count
-    fun read(preferences: Preferences): Values = Values(
+    fun read(preferences: Preferences): ProgramsSettings = ProgramsSettings(
         enableCalculator = preferences[KEY_ENABLE_CALCULATOR] ?: false,
         enableStopwatch = preferences[KEY_ENABLE_STOPWATCH] ?: false,
         enableNetworkMonitor = preferences[KEY_ENABLE_NETWORK_MONITOR] ?: false,
@@ -96,6 +74,8 @@ object ProgramsSettingsStore {
             ?: AppSettings.FRONT_FLASHLIGHT_DEFAULT_COLOR,
         waterFlashlightEnabled = preferences[KEY_WATER_FLASHLIGHT_ENABLED] ?: false,
         enableSos = preferences[KEY_ENABLE_SOS] ?: false,
+        // S4542: true because the program predates its switch, the same reason the mirror gives below.
+        enableFiller = preferences[KEY_ENABLE_FILLER] ?: true,
         // An unknown token resolves to ALL rather than refusing to read: the stored name is the same
         // vocabulary the paired device sends, so a build that dropped a member must still start a siren.
         sosMode = SosMode.fromNameOrDefault(preferences[KEY_SOS_MODE]),
@@ -113,34 +93,13 @@ object ProgramsSettingsStore {
     )
 
     /**
-     * Applies the sub-program group onto [settings] rather than having the repository restate every
-     * field name a second time - the move S2213 already made for the launcher group.
+     * Applies the sub-program group onto [settings] as the one nested field it is (S4547), so the
+     * repository never restates the field names - the move S2213 already made for the launcher group.
      */
-    fun applyTo(settings: AppSettings, values: Values): AppSettings = settings.copy(
-        enableCalculator = values.enableCalculator,
-        enableStopwatch = values.enableStopwatch,
-        enableNetworkMonitor = values.enableNetworkMonitor,
-        enableSystemInfo = values.enableSystemInfo,
-        enableTourist = values.enableTourist,
-        enableWearCompanion = values.enableWearCompanion,
-        suppressWearMediaTakeover = values.suppressWearMediaTakeover,
-        recordGnssTrack = values.recordGnssTrack,
-        embeddedGameEnabled = values.embeddedGameEnabled,
-        frontFlashlightEnabled = values.frontFlashlightEnabled,
-        frontFlashlightColor = values.frontFlashlightColor,
-        waterFlashlightEnabled = values.waterFlashlightEnabled,
-        enableSos = values.enableSos,
-        sosMode = values.sosMode,
-        flashlightShortcutNotificationEnabled = values.flashlightShortcutNotificationEnabled,
-        mirrorEnabled = values.mirrorEnabled,
-        mirrorZoomRatio = values.mirrorZoomRatio,
-        mirrorHorizontallyFlipped = values.mirrorHorizontallyFlipped,
-        mirrorBacklightOn = values.mirrorBacklightOn,
-        showProgramsPanelInMainWindow = values.showProgramsPanelInMainWindow,
-        enableFavorites = values.enableFavorites,
-    )
+    fun applyTo(settings: AppSettings, values: ProgramsSettings): AppSettings = settings.copy(programs = values)
 
     fun write(preferences: MutablePreferences, settings: AppSettings) {
+        Timber.d("S4547: programs written sos=${settings.enableSos} zoom=${settings.mirrorZoomRatio}")
         preferences[KEY_ENABLE_CALCULATOR] = settings.enableCalculator
         preferences[KEY_ENABLE_STOPWATCH] = settings.enableStopwatch
         preferences[KEY_ENABLE_NETWORK_MONITOR] = settings.enableNetworkMonitor
@@ -154,6 +113,7 @@ object ProgramsSettingsStore {
         preferences[KEY_FRONT_FLASHLIGHT_COLOR] = settings.frontFlashlightColor
         preferences[KEY_WATER_FLASHLIGHT_ENABLED] = settings.waterFlashlightEnabled
         preferences[KEY_ENABLE_SOS] = settings.enableSos
+        preferences[KEY_ENABLE_FILLER] = settings.enableFiller
         preferences[KEY_SOS_MODE] = settings.sosMode.name
         preferences[KEY_FLASHLIGHT_SHORTCUT_NOTIFICATION] =
             settings.flashlightShortcutNotificationEnabled

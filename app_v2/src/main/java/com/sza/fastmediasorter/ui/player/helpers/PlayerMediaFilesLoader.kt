@@ -486,7 +486,6 @@ class PlayerMediaFilesLoader(
                         initialFilePath = initialFilePath,
                         currentFilePath = stateFlow.value.currentFile?.path,
                     )
-                    Timber.d("S4422: player reload scope=%s for resource %s", currentFolderPath, resource.path)
 
                     Timber.d("PlayerViewModel: Loading files from currentFolderPath=$currentFolderPath")
 

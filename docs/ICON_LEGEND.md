@@ -22,6 +22,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_resource_smb.svg" alt="ic_resource_smb" width="24" height="24"> | SMB network share |
 | <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Paired Wear OS watch |
 | <img src="icons/svg/ic_accessibility.svg" alt="ic_accessibility" width="24" height="24"> | Accessibility |
+| <img src="icons/svg/ic_apps.svg" alt="ic_apps" width="24" height="24"> | All apps |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | App info |
 | <img src="icons/svg/ic_quick_launch.svg" alt="ic_quick_launch" width="24" height="24"> | Quick-access panel |
 | <img src="icons/svg/ic_screen_rotation.svg" alt="ic_screen_rotation" width="24" height="24"> | Auto-rotate |
@@ -61,6 +62,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Start video recording |
 | <img src="icons/svg/ic_stopwatch.svg" alt="ic_stopwatch" width="24" height="24"> | Stopwatch |
 | <img src="icons/svg/ic_storage.svg" alt="ic_storage" width="24" height="24"> | Storage |
+| <img src="icons/svg/ic_storage.svg" alt="ic_storage" width="24" height="24"> | Storage filler |
 | <img src="icons/svg/ic_stream.svg" alt="ic_stream" width="24" height="24"> | Streams |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | System information |
 | <img src="icons/svg/ic_edit.svg" alt="ic_edit" width="24" height="24"> | Take a photo and edit |
@@ -86,6 +88,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Audio playback, covers and visuals |
 | <img src="icons/svg/ic_contact.svg" alt="ic_contact" width="24" height="24"> | Authorization and accounts |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Background audio playback |
+| <img src="icons/svg/ic_behavior.svg" alt="ic_behavior" width="24" height="24"> | App behavior and operating rules |
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Broadcast |
 | <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Photography |
 | <img src="icons/svg/ic_app_logo.svg" alt="ic_app_logo" width="24" height="24"> | Quick Sort destinations |
@@ -120,6 +123,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_game_kryvavitsa.svg" alt="ic_game_kryvavitsa" width="24" height="24"> | Mini-game |
 | <img src="icons/svg/ic_calculator.svg" alt="ic_calculator" width="24" height="24"> | Calculator |
 | <img src="icons/svg/ic_resource_favorites.svg" alt="ic_resource_favorites" width="24" height="24"> | Enable Favorites |
+| <img src="icons/svg/ic_storage.svg" alt="ic_storage" width="24" height="24"> | Storage filler |
 | <img src="icons/svg/ic_network_monitor.svg" alt="ic_network_monitor" width="24" height="24"> | Network Monitor |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Enable text recognition |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Background Playback |

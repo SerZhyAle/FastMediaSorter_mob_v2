@@ -125,4 +125,17 @@
     <string name="scheduled_op_reason_source_deleted">A origem foi excluída, por isso este agendamento está pausado</string>
     <string name="scheduled_op_reason_target_deleted">O destino foi excluído, por isso este agendamento está pausado</string>
     <string name="scheduled_ops_log_failed">Algo deu errado</string>
+    <string name="scheduled_ops_notif_stalled_title">A operação agendada não está em execução</string>
+    <string name="scheduled_ops_notif_stalled_text">%1$s - ignorada desde %2$s. %3$s</string>
+    <string name="scheduled_ops_op_fill">Preencher espaço livre</string>
+    <string name="scheduled_ops_fill_confirm_title">Agendar o preenchimento?</string>
+    <string name="scheduled_ops_fill_confirm_message">Cada execução grava arquivos temporários na pasta %1$s em %2$s até que %3$s fiquem livres e depois os exclui. Seus próprios arquivos ficam como estão.</string>
+    <string name="scheduled_ops_fill_not_usable">O preenchimento precisa de uma pasta no armazenamento interno ou em um cartão de memória que possa ser gravada agora. Escolha-a com Pasta local.</string>
+    <string name="scheduled_op_reason_fill_busy">O preenchimento já estava em andamento</string>
+    <string name="scheduled_op_reason_fill_not_local">A pasta não está em um dispositivo de armazenamento conectado deste telefone</string>
+    <string name="scheduled_op_reason_fill_storage_unavailable">O armazenamento não estava conectado ou não permitia gravação</string>
+    <string name="scheduled_op_reason_fill_measurement_unavailable">Não foi possível medir o espaço livre</string>
+    <string name="scheduled_op_reason_fill_no_free_space">Não há espaço livre acima da parte reservada para o sistema</string>
+    <string name="scheduled_op_reason_fill_write_failed">A gravação parou com um erro; os arquivos temporários foram excluídos</string>
+    <string name="scheduled_op_reason_fill_cleanup_pending">Restam arquivos temporários. Conecte o armazenamento, abra Preenchimento de armazenamento e toque em Excluir arquivos restantes</string>
 </resources>

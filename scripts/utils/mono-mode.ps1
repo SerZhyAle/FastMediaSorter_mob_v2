@@ -5,7 +5,7 @@
     lock and queue, post one journal note.
 
 .DESCRIPTION
-    MONO (`/spec-all -m`, `/spec-code -m`, `.\a.ps1 r0`) is the owner's declaration that exactly one
+    MONO (`/spec-all -m`, `/spec-code -m`, `/spec-next -m`) is the owner's declaration that exactly one
     agent works on the project. The run therefore makes none of the coordination calls that exist
     only to order it against siblings - no ticket lease, no code or build domain, no device lease, no
     chat line during the work - and never checks or waits for anyone.

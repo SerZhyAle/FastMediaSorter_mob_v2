@@ -2,17 +2,23 @@ package com.sza.fastmediasorter.ui.scheduledops
 
 import android.net.Uri
 import android.os.Bundle
+import android.text.format.Formatter
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.di.ScheduledOperationsEntryPoint
+import com.sza.fastmediasorter.domain.filler.FILLER_RESERVE_BYTES
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.model.ScheduledOpType
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
+import com.sza.fastmediasorter.domain.model.ScheduledOperationDraft
+import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.utils.queryDisplayName
 import com.sza.fastmediasorter.utils.queryTreeDisplayName
 import dagger.hilt.android.EntryPointAccessors
@@ -108,7 +114,13 @@ class ScheduledOperationsDialogManager(
                     folderPickerLauncher.launch(null)
                 },
                 onPickWatchImage = { imagePickerLauncher.launch(arrayOf(IMAGE_MIME_TYPES)) },
-                onSave = { draft -> scheduledViewModel.saveOperation(draft) },
+                onSave = { draft ->
+                    if (draft.operation.operationType == ScheduledOpType.FILL_FREE_SPACE) {
+                        confirmFill(draft, augmentedResources)
+                    } else {
+                        scheduledViewModel.saveOperation(draft)
+                    }
+                },
             )
             dialog.setOnDismissListener {
                 currentDialog = null
@@ -127,6 +139,42 @@ class ScheduledOperationsDialogManager(
                 session.pendingPickedImageUri = null
                 onWatchImagePicked(uri)
             }
+        }
+    }
+
+    /**
+     * S4522: a fill schedule is saved only for storage the filler can write now, and only after the user
+     * has read what every run does. The editor stays open on a refusal so the source can be changed.
+     */
+    private fun confirmFill(draft: ScheduledOperationDraft, resources: List<MediaResource>) {
+        Timber.d("S4522: fill schedule save requested")
+        val location = draft.sourceFolderPath
+            ?: resources.firstOrNull { it.id == draft.operation.sourceResourceId }?.path
+            ?: return
+        host.lifecycleScope.launch {
+            val place = EntryPointAccessors
+                .fromApplication(host.applicationContext, ScheduledOperationsEntryPoint::class.java)
+                .runScheduledFillUseCase()
+                .usablePlace(location)
+            if (place == null) {
+                Toast.makeText(host, R.string.scheduled_ops_fill_not_usable, Toast.LENGTH_LONG).show()
+                return@launch
+            }
+            val message = host.getString(
+                R.string.scheduled_ops_fill_confirm_message,
+                place.folderName,
+                place.volumeName,
+                Formatter.formatShortFileSize(host, FILLER_RESERVE_BYTES),
+            )
+            MaterialAlertDialogBuilder(host)
+                .setTitle(R.string.scheduled_ops_fill_confirm_title)
+                .setMessage(message)
+                .setPositiveButton(R.string.save) { _, _ ->
+                    scheduledViewModel.saveOperation(draft)
+                    currentDialog?.dismiss()
+                }
+                .setNegativeButton(R.string.cancel, null)
+                .showBoundToHost(host)
         }
     }
 

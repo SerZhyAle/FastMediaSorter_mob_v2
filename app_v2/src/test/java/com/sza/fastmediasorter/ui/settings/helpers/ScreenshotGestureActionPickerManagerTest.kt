@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.settings.helpers
 
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
+import com.sza.fastmediasorter.domain.model.programs.ProgramsSettings
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -29,13 +30,13 @@ class ScreenshotGestureActionPickerManagerTest {
         assertFalse(
             ScreenshotGestureActionPickerManager.isEnabledInSettings(
                 ScreenshotGestureAction.OPEN_TOURIST_INFO,
-                AppSettings(enableTourist = false),
+                AppSettings(programs = ProgramsSettings(enableTourist = false)),
             ),
         )
         assertTrue(
             ScreenshotGestureActionPickerManager.isEnabledInSettings(
                 ScreenshotGestureAction.OPEN_TOURIST_INFO,
-                AppSettings(enableTourist = true),
+                AppSettings(programs = ProgramsSettings(enableTourist = true)),
             ),
         )
     }

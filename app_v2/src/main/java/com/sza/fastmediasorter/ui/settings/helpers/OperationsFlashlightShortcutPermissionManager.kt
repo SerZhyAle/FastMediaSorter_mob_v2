@@ -43,7 +43,7 @@ class OperationsFlashlightShortcutPermissionManager(
                 if (granted) {
                     val viewModel = viewModelOf()
                     viewModel.updateSettings {
-                        it.copy(flashlightShortcutNotificationEnabled = true)
+                        it.withPrograms { copy(flashlightShortcutNotificationEnabled = true) }
                     }
                 }
             }

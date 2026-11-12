@@ -63,6 +63,25 @@ class LinkDownloadSessionContextTest {
     }
 
     @Test
+    fun vm_session_serves_www_and_cdn_hosts_of_the_same_registrable_domain() {
+        val cookies = listOf(HttpCookie("sessionid", "tt-session"))
+        context.set("vm.tiktok.com", cookies)
+
+        assertEquals(cookies, context.cookiesFor("www.tiktok.com"))
+        assertEquals(cookies, context.cookiesFor("v16-webapp-prime.tiktok.com"))
+    }
+
+    @Test
+    fun registrable_domain_fallback_never_crosses_sites_and_skips_cookieless_sessions() {
+        context.set("vm.tiktok.com", emptyList(), "ua", audioOnly = true, owner = Any())
+
+        assertNull(context.cookiesFor("www.tiktok.com"))
+        assertNull(context.userAgentFor("www.tiktok.com"))
+        assertFalse(context.audioOnlyFor("www.tiktok.com"))
+        assertNull(context.cookiesFor("www.instagram.com"))
+    }
+
+    @Test
     fun overlapping_runs_on_different_hosts_keep_each_others_cookies() {
         val runA = Any()
         val runB = Any()

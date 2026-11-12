@@ -64,7 +64,15 @@ class PdfPageDecoder(
         return cleanPath.endsWith(".pdf", ignoreCase = true)
     }
 
+    private val nonDecodable = PdfNonDecodableCache()
+
     override fun decode(source: File, width: Int, height: Int, options: Options): Resource<Bitmap>? {
+        val cacheKey = PdfNonDecodableCache.keyFor(source.path, source.length(), source.lastModified())
+        if (nonDecodable.isKnownNonDecodable(cacheKey)) {
+            Timber.d("S4552: skipped decode of remembered non-decodable PDF ${source.name}")
+            return null
+        }
+
         var pfd: ParcelFileDescriptor? = null
         var renderer: PdfRenderer? = null
         var page: PdfRenderer.Page? = null
@@ -84,7 +92,8 @@ class PdfPageDecoder(
             renderer = PdfRenderer(pfd)
 
             if (renderer.pageCount == 0) {
-                Timber.w("PdfPageDecoder: PDF has no pages: ${source.name}")
+                nonDecodable.markNonDecodable(cacheKey)
+                Timber.w("PdfPageDecoder: PDF has no pages: ${source.name}; placeholder, not retried")
                 return null
             }
 
@@ -111,11 +120,18 @@ class PdfPageDecoder(
 
             return SimpleResource(bitmap)
         } catch (e: IOException) {
-            Timber.e(e, "PdfPageDecoder: Failed to decode PDF: ${source.name}")
+            // A null descriptor means open() itself failed (provider not ready, file vanished): transient,
+            // and a content-URI key carries no length or mtime to ever invalidate the record.
+            if (pfd != null) nonDecodable.markNonDecodable(cacheKey)
+            Timber.w(
+                "PdfPageDecoder: system renderer cannot open ${source.name} (${e.message}); " +
+                    "placeholder, not retried"
+            )
             return null
         } catch (e: SecurityException) {
-            // Password-protected PDF
-            Timber.w("PdfPageDecoder: PDF is password-protected: ${source.name}")
+            // Password-protected PDF; the same descriptor guard applies, since a lost SAF grant also lands here.
+            if (pfd != null) nonDecodable.markNonDecodable(cacheKey)
+            Timber.w("PdfPageDecoder: PDF is password-protected: ${source.name}; placeholder, not retried")
             return null
         } catch (e: IllegalArgumentException) {
             // Unexpected render-config / dimension mismatch - degrade to placeholder, do not crash decode.

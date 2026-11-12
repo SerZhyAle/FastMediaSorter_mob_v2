@@ -718,6 +718,8 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
      * background page's toggle from showing the button for a page the user is not on.
      */
     private fun refreshCollapseAllButton() {
+        // Reached from viewPager.post, which can run after a theme recreate has already nulled the binding.
+        if (isDestroyed) return
         val position = binding.viewPager.currentItem
         val fragment = getSettingsFragment(position) as? BaseSettingsFragment
         if (fragment == null) {

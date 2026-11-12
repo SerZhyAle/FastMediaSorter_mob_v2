@@ -85,7 +85,9 @@ steps:
     text: |
       Open the launcher settings - **Launcher settings** in the long-press menu - and find the **Gestures** group. Tap **Swipe up**, **Swipe down**, **Swipe left** or **Swipe right** and pick an action from the list: the same actions the edge gestures offer, plus the launcher's own **All apps**, **Next screen** and **Previous screen**. For **Open app** or **Open URL**, the row **App to launch** below it asks which app or web address.
 
-      At the start, swiping up opens [All apps](term:all-apps) - once you have reached the bottom of the desktop - and swiping down opens the Android notification shade. Left and right have no action, so on a desktop with several screens they turn the pages.
+      At the start, swiping up opens [All apps](term:all-apps) - once you have reached the bottom of the desktop - and swiping down opens the Android notification shade. Left and right show **Switch screens**: they turn the pages of a desktop with several screens.
+
+      Left and right always turn the page first. An action you give **Swipe left** runs only on the last screen, and one you give **Swipe right** only on the first; on a desktop with a single screen it runs straight away. **Lock screen** locks the device, or blacks the screen out where the device lock is not available.
 
       When swiping down opens the shade, where the swipe starts decides what you get: from the left half of the screen the notifications, from the right half Quick Settings.
 
@@ -143,6 +145,6 @@ next_recipes:
     description: What a long press offers on apps, channels and gadgets.
 ---
 
-<sub class="doc-stamp">26.10.10 14:37</sub>
+<sub class="doc-stamp">26.11.10 13:31</sub>
 
 Once the [desktop](term:desktop) holds the things you use, arranging them is a matter of a few long presses. This page covers moving and resizing squares, sections you can fold, several screens, the four swipes and the lock that keeps it all in place.

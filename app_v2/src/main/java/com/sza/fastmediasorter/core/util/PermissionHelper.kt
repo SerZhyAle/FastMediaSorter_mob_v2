@@ -237,6 +237,8 @@ object PermissionHelper {
 
     fun requestLocalNetworkPermission(activity: Activity) {
         if (!isLocalNetworkRuntimePermissionExpected()) return
+        val rationale = shouldShowLocalNetworkRationale(activity)
+        Timber.i("PermissionHelper: ACCESS_LOCAL_NETWORK requested rationale=$rationale")
         ActivityCompat.requestPermissions(
             activity,
             arrayOf(LOCAL_NETWORK_PERMISSION),
@@ -260,7 +262,9 @@ object PermissionHelper {
     fun onLocalNetworkPermissionResult(activity: Activity, grantResults: IntArray): Boolean {
         val granted = grantResults.isNotEmpty() &&
             grantResults[0] == PackageManager.PERMISSION_GRANTED
-        if (!granted && !shouldShowLocalNetworkRationale(activity)) {
+        val routeToSettings = !granted && !shouldShowLocalNetworkRationale(activity)
+        Timber.i("PermissionHelper: ACCESS_LOCAL_NETWORK result granted=$granted routeToSettings=$routeToSettings")
+        if (routeToSettings) {
             routeToLocalNetworkSettings(activity)
         }
         return granted

@@ -37,6 +37,22 @@ language	bahasa indonesia	indonesian
 language	id	indonesian
 language	zh	chinese
 language	gr	greek
+# STREAM-BANK 2.5 item P.3: a three-letter code (ISO 639-2 bibliographic or terminological, or a named extension) folds to the language it names; a collective or special code names no language.
+language	rus	russian
+language	RUS	russian
+language	deu	german
+language	ger	german
+language	zho	chinese
+language	chi	chinese
+language	fra, fre	french
+language	rus; eng	russian,english
+language	haw	hawaiian
+language	mul	english
+language	und	english
+language	zxx	english
+language	mul, deu	german
+language	cz	english
+language	jp	english
 language	turkçe	turkish
 language	arapça	arabic
 language	română	romanian

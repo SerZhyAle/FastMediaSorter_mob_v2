@@ -20,11 +20,13 @@ import com.sza.fastmediasorter.core.apps.InstalledAppsChangeWatcher
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.cache.TranslationCacheManager
 import com.sza.fastmediasorter.core.debug.DebugToolsBridge
+import com.sza.fastmediasorter.core.debug.StrictModeReportingCanary
 import com.sza.fastmediasorter.core.debug.StrictModeViolationFilter
 import com.sza.fastmediasorter.core.debug.StrictModeViolationReport
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.init.AppStartupInitializer
 import com.sza.fastmediasorter.core.init.FirstFrameSignal
+import com.sza.fastmediasorter.core.init.StartupWindowTimer
 import com.sza.fastmediasorter.core.logging.LoggingHelper
 import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
 import com.sza.fastmediasorter.core.memory.MemoryProbe
@@ -99,6 +101,11 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
     @Inject
     lateinit var flashlightShortcutCoordinator:
         dagger.Lazy<com.sza.fastmediasorter.core.notification.FlashlightShortcutCoordinator>
+
+    /** S4545: republishes the app-icon shortcuts when a program switch changes what the menu may show. */
+    @Inject
+    lateinit var appShortcutsRefreshCoordinator:
+        dagger.Lazy<com.sza.fastmediasorter.core.AppShortcutsRefreshCoordinator>
 
     /** S4116: receives casts from the user's other devices while an exchange server is the outgoing one. */
     @Inject
@@ -248,6 +255,10 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
     @Inject
     lateinit var appKeepScreenAwakeManager: com.sza.fastmediasorter.core.ui.AppKeepScreenAwakeManager
 
+    // S4544: refuses a switched-off programs screen however it was reached; registered in onCreate.
+    @Inject
+    lateinit var programScreenGuardManager: com.sza.fastmediasorter.core.ui.ProgramScreenGuardManager
+
     // S2536: folds the charge, the system saver and the user's trigger into one policy level.
     // Injected directly: onCreate registers it as activity callbacks on every process start, so it
     // is always built here; its battery observation still starts only with the first started activity.
@@ -282,7 +293,10 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
     private var gestureOverlayRestoreScheduled = false
 
     override fun onCreate() {
+        // Every ContentProvider has run by now; super.onCreate() below is Hilt's field injection.
+        StartupWindowTimer.markOnCreateEnter()
         super.onCreate()
+        StartupWindowTimer.markInjected()
 
         // S0213 Pillar B: install OOM-safe media3 logger BEFORE any media3 component is touched.
         // Timber was planted earlier in attachBaseContext via LoggingHelper.initialize(), so the
@@ -337,6 +351,9 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
             flashlightShortcutCoordinator.get().start()
         }
         applicationScope.launch(Dispatchers.IO) {
+            appShortcutsRefreshCoordinator.get().start()
+        }
+        applicationScope.launch(Dispatchers.IO) {
             exchangeCastCoordinator.get().start()
         }
         applicationScope.launch(Dispatchers.IO) {
@@ -388,6 +405,7 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
         // S0439: apply the program-wide screen-rotation policy to every non-self-managed activity.
         registerActivityLifecycleCallbacks(appOrientationManager)
         registerActivityLifecycleCallbacks(appKeepScreenAwakeManager)
+        registerActivityLifecycleCallbacks(programScreenGuardManager)
         registerActivityLifecycleCallbacks(powerStateObserver)
         // S0943: decorate the focused view in-place with the D-pad/TV focus outline on every Activity
         // window (opt-out via FocusDecorationExcluded); one controller per window, hidden in touch mode.
@@ -631,6 +649,7 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
             .detectDiskReads()
             .detectDiskWrites()
             .detectNetwork()
+        val canary = StrictModeReportingCanary()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             // S2670: report violations through Timber so the platform's own (Samsung's Toast/Knox
@@ -638,7 +657,7 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
             // bury this app's. The listener runs on its own thread, which carries no policy, so
             // logging a violation cannot trigger another one.
             threadPolicy.penaltyListener(Executors.newSingleThreadExecutor()) { violation ->
-                if (!StrictModeViolationFilter.isPlatformNoise(violation)) {
+                if (!canary.consume(violation) && !StrictModeViolationFilter.isPlatformNoise(violation)) {
                     logStrictModeViolation(violation)
                 }
             }
@@ -648,7 +667,12 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
             threadPolicy.penaltyLog()
         }
 
-        StrictMode.setThreadPolicy(threadPolicy.build())
+        val builtThreadPolicy = threadPolicy.build()
+        StrictMode.setThreadPolicy(builtThreadPolicy)
+        // Below API 28 no listener exists to deliver the canary, so it would always read as silent.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            canary.arm(this, builtThreadPolicy)
+        }
 
             StrictMode.setVmPolicy(
                 StrictMode.VmPolicy.Builder()
@@ -707,6 +731,7 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
     }
 
     override fun attachBaseContext(base: Context) {
+        StartupWindowTimer.markAttachStart()
         // StrictMode is not yet configured here, but wrap in helper for consistency
         val contextWithLocale = com.sza.fastmediasorter.core.debug.StrictModeHelper.allowDiskReads {
             LocaleHelper.applyLocale(base)
@@ -723,6 +748,8 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
                 Timber.tag("FastMediaSorterApp").e(e, "Early logging init failed")
             }
         }
+        // After the logging init, so the stall sampler it starts has a file sink to write to.
+        StartupWindowTimer.markAttachEnd()
     }
     
     /**

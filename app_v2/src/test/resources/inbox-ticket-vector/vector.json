@@ -1,0 +1,45 @@
+{
+  "format": "INBOX-PACKET",
+  "version": 1,
+  "section": "S0045 INBOX-PACKET.md 7",
+  "producer": "SZA Unified Canon S0045",
+  "packetId": "ticket-vector-s0045-a",
+  "folder": "ticket-vector-s0045-a",
+  "manifestSha256": "d24baab4374df3606f2afe0ec0403f5dec31d0b28ef5080a1c69da5f3f3d9d76",
+  "totalSizeBytes": 495,
+  "files": [
+    {
+      "name": "text.md",
+      "sizeBytes": 214,
+      "sha256": "2048e993cd9168c8d4ec87eab0fd985c0cca3a95850c7c6eb4d7c1328ffcea9e",
+      "mimeType": "text/markdown",
+      "role": "text"
+    },
+    {
+      "name": "voice-note.m4a",
+      "sizeBytes": 75,
+      "sha256": "5f3f0a4be9e9eb7e6fbb753f61ea050c26418bcbe887f04140fdc57faee61ff2",
+      "mimeType": "audio/mp4",
+      "role": "voice"
+    },
+    {
+      "name": "screenshot-01.png",
+      "sizeBytes": 75,
+      "sha256": "12fbc866f242cd5e66ed836c07a17b0ff21d73ac33d0d84015be54d145a61172",
+      "mimeType": "image/png",
+      "role": "screenshot"
+    },
+    {
+      "name": "app-log.txt",
+      "sizeBytes": 131,
+      "sha256": "9825475a4a3a6e80628967f3b9ac8211c708e53d877be67ee308416360f86346",
+      "mimeType": "text/plain",
+      "role": "log"
+    }
+  ],
+  "replay": [
+    "writer probe: Write-InboxPacketManifest rebuilds manifest.json from the ordered reference in the tests and the live payload bytes, byte for byte, SHA-256 equal to manifestSha256",
+    "reader probe: Test-InboxPacketFolder accepts the folder as written, every payload file hashing as claimed"
+  ],
+  "changePolicy": "any byte change is a new vector: a new packetId, new hashes here and in manifest.json, and a note naming the change"
+}

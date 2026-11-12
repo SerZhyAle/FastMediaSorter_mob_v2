@@ -1,14 +1,13 @@
 package com.sza.fastmediasorter.service
 
-import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.net.ConnectivityManager
 import android.net.LinkProperties
@@ -24,6 +23,7 @@ import com.sza.fastmediasorter.core.notification.NotificationIds
 import com.sza.fastmediasorter.data.remote.sftp.server.SftpServerController
 import com.sza.fastmediasorter.domain.model.SftpServerPauseReason
 import com.sza.fastmediasorter.domain.model.SftpServerState
+import com.sza.fastmediasorter.worker.DataSyncForeground
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -254,16 +254,14 @@ class SftpServerService : Service() {
         private const val CHANNEL_ID = "sftp_server"
         private const val NOTIFICATION_ID = NotificationIds.SFTP_SERVER
 
-        fun hasDataSyncPermission(context: Context): Boolean {
-            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.FOREGROUND_SERVICE_DATA_SYNC,
-                ) == PackageManager.PERMISSION_GRANTED
-            } else {
-                true
-            }
-        }
+        /**
+         * True when this service may run in the foreground with the dataSync type. The store release
+         * overlay removes the type from this service's manifest entry, and from API 29 a typed start the
+         * manifest does not declare throws, so the merged manifest is asked rather than the permission alone.
+         */
+        fun hasDataSyncPermission(context: Context): Boolean =
+            Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
+                DataSyncForeground.isAvailable(context, ComponentName(context, SftpServerService::class.java))
 
         fun start(context: Context) {
             val intent = Intent(context, SftpServerService::class.java).setAction(ACTION_START)

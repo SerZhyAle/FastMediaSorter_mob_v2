@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.network.LanAddressResolver
+import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpDriveRendezvousPublisher
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpServerTunnelManager
 import com.sza.fastmediasorter.data.repository.settings.ExchangeGrantRepository
@@ -103,7 +104,12 @@ class SftpServerController @Inject constructor(
     suspend fun start(): SftpServerState = mutex.withLock {
         val current = mutableState.value
         if (current is SftpServerState.Running) return@withLock current
-        val result = if (isAvailable() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val result = if (!PermissionHelper.hasLocalNetworkPermission(context)) {
+            // Inbound TCP from the LAN needs the grant at targetSdk 37; without it the server would
+            // report Running while every client connection is dropped by the platform.
+            Timber.d("S4502: SFTP server start refused, local network permission missing")
+            SftpServerState.Failed(SftpServerFailure.LOCAL_NETWORK_DENIED)
+        } else if (isAvailable() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             mutableState.value = SftpServerState.Starting
             startLocked()
         } else {

@@ -34,7 +34,6 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
     // The loader emits ShowError and FinishActivity back to back; finishing at once used to discard
     // the error before its surface could load the settings it depends on.
     private val finishSequencer = PlayerErrorFinishSequencer {
-        Timber.d("S4422: player finishing after every error presentation ended")
         activity.finish()
     }
 

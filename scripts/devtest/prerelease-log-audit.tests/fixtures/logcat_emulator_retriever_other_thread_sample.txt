@@ -1,0 +1,5 @@
+11-10 19:05:12.835   600   635 I ActivityManager: Start proc 23173:com.sza.fastmediasorter.debug/u0a218 for next-top-activity {com.sza.fastmediasorter.debug/com.sza.fastmediasorter.ui.main.MainActivity}
+11-10 19:05:17.583 23173 23173 D MainActivity: onResume
+11-10 19:05:18.136 23173 23190 D EGL_emulation: app_time_stats: avg=54.08ms min=5.38ms max=132.75ms count=15
+11-10 19:06:29.184 23173 23313 E HeifDecoderImpl: getSize: not supported!
+11-10 19:06:29.742 23173 23429 E MediaMetadataRetrieverJNI: getFrameAtTime: videoFrame is a NULL pointer

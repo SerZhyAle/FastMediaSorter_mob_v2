@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.link.cookie
 
 import io.mockk.every
 import io.mockk.mockk
+import okhttp3.Cookie
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -11,8 +12,8 @@ import java.net.HttpCookie
 /**
  * Unit tests for [LinkDownloadCookieJar.loadForRequest]: session-context precedence over the
  * persistent store, HttpCookie→okhttp3.Cookie mapping (host-only vs explicit domain), the empty
- * fallback, and the read-only saveFromResponse no-op. Store + session context are mocked - no
- * CryptoHelper, no disk.
+ * fallback, and saveFromResponse folding redirect-hop cookies into the running session only (S4509).
+ * Store is mocked - no CryptoHelper, no disk.
  */
 class LinkDownloadCookieJarTest {
 
@@ -76,10 +77,93 @@ class LinkDownloadCookieJarTest {
     }
 
     @Test
-    fun `saveFromResponse is a no-op`() {
-        // Must not touch the store - persistence only happens via the explicit WebView flow.
+    fun `saveFromResponse never touches the store`() {
+        // Persistence only happens via the explicit WebView flow.
         jar.saveFromResponse("https://x.com/".toHttpUrl(), emptyList())
         io.mockk.verify(exactly = 0) { store.bestAccountIdFor(any()) }
+    }
+
+    private val sessionOwner = Any()
+
+    private fun responseCookie(name: String, value: String, expiresAtMillis: Long? = null): Cookie {
+        val builder = Cookie.Builder().name(name).value(value).domain("instagram.com").path("/")
+        if (expiresAtMillis != null) builder.expiresAt(expiresAtMillis)
+        return builder.build()
+    }
+
+    /** A jar over a real session context holding a signed-in Instagram session, as one run registers it. */
+    private fun jarWithInstagramSession(): LinkDownloadCookieJar {
+        val realContext = LinkDownloadSessionContext()
+        realContext.set(
+            "www.instagram.com",
+            listOf(httpCookie("sessionid", "s1"), httpCookie("csrftoken", "old")),
+            null,
+            audioOnly = false,
+            owner = sessionOwner,
+        )
+        return LinkDownloadCookieJar(store, realContext)
+    }
+
+    private fun valuesAfterSave(jar: LinkDownloadCookieJar, vararg received: Cookie): Map<String, String> {
+        val url = "https://www.instagram.com/p/abc/".toHttpUrl()
+        jar.saveFromResponse(url, received.toList())
+        return jar.loadForRequest(url).associate { it.name to it.value }
+    }
+
+    @Test
+    fun `rotated response cookie replaces the stale value on the next hop`() {
+        val values = valuesAfterSave(jarWithInstagramSession(), responseCookie("csrftoken", "new"))
+
+        assertEquals(mapOf("sessionid" to "s1", "csrftoken" to "new"), values)
+    }
+
+    @Test
+    fun `new response cookie is added to the running session`() {
+        val values = valuesAfterSave(jarWithInstagramSession(), responseCookie("rur", "r1"))
+
+        assertEquals(mapOf("sessionid" to "s1", "csrftoken" to "old", "rur" to "r1"), values)
+    }
+
+    @Test
+    fun `expired response cookie deletes the cookie it names`() {
+        val values = valuesAfterSave(jarWithInstagramSession(), responseCookie("sessionid", "", expiresAtMillis = 1L))
+
+        assertEquals(mapOf("csrftoken" to "old"), values)
+    }
+
+    @Test
+    fun `merge classifies each received cookie and remembers only deletions`() {
+        val realContext = LinkDownloadSessionContext()
+        realContext.set(
+            "www.instagram.com",
+            listOf(httpCookie("sessionid", "s1"), httpCookie("csrftoken", "old")),
+            null,
+            audioOnly = false,
+            owner = sessionOwner,
+        )
+        val expired = HttpCookie("sessionid", "").apply {
+            path = "/"
+            maxAge = 0L
+        }
+
+        val rotation = realContext.mergeResponseCookies("www.instagram.com", listOf(httpCookie("csrftoken", "new")))
+        assertEquals(listOf("csrftoken"), rotation.replaced)
+        assertTrue(realContext.serverDeletedCookies(sessionOwner).isEmpty())
+
+        val revoke = realContext.mergeResponseCookies("i.instagram.com", listOf(expired, httpCookie("rur", "r1")))
+        assertEquals(listOf("sessionid"), revoke.deleted)
+        assertEquals(listOf("rur"), revoke.added)
+        assertEquals(setOf("sessionid"), realContext.serverDeletedCookies(sessionOwner))
+        assertTrue(realContext.serverDeletedCookies(Any()).isEmpty())
+    }
+
+    @Test
+    fun `response cookie without a running session is dropped`() {
+        every { store.bestAccountIdFor(any()) } returns null
+        every { store.listAllAccounts() } returns emptyList()
+        val bare = LinkDownloadCookieJar(store, LinkDownloadSessionContext())
+
+        assertTrue(valuesAfterSave(bare, responseCookie("csrftoken", "new")).isEmpty())
     }
 
     @Test

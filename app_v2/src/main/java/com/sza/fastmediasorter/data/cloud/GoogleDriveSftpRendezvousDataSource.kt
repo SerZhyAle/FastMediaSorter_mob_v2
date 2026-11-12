@@ -55,7 +55,7 @@ class GoogleDriveSftpRendezvousDataSource @Inject constructor(
     /** Deletes the record of resource [resourceId]; an absent one is already gone. */
     suspend fun deleteResource(resourceId: String): Result<Unit> =
         when (val found = appData.findEntry(fileName(SftpRendezvousCodec.TYPE_RESOURCE, resourceId), ROOT)) {
-            is CloudResult.Error -> failure(found.message)
+            is CloudResult.Error -> failure(found)
             is CloudResult.Success -> found.data?.let { delete(it.id) } ?: Result.success(Unit)
         }
 
@@ -65,13 +65,13 @@ class GoogleDriveSftpRendezvousDataSource @Inject constructor(
      */
     suspend fun snapshot(requestsOnly: Boolean = false): Result<Snapshot> =
         when (val listed = appData.listChildren(ROOT)) {
-            is CloudResult.Error -> failure(listed.message)
+            is CloudResult.Error -> failure(listed)
             is CloudResult.Success -> Result.success(decode(listed.data.filterNot { it.isFolder }, requestsOnly))
         }
 
     suspend fun delete(fileId: String): Result<Unit> =
         when (val deleted = appData.deleteEntry(fileId)) {
-            is CloudResult.Error -> failure(deleted.message)
+            is CloudResult.Error -> failure(deleted)
             is CloudResult.Success -> Result.success(Unit)
         }
 
@@ -84,7 +84,7 @@ class GoogleDriveSftpRendezvousDataSource @Inject constructor(
                 content = SftpRendezvousCodec.encode(record).toByteArray(Charsets.UTF_8),
             )
         ) {
-            is CloudResult.Error -> failure(uploaded.message)
+            is CloudResult.Error -> failure(uploaded)
             is CloudResult.Success -> Result.success(uploaded.data.id)
         }
 
@@ -112,7 +112,10 @@ class GoogleDriveSftpRendezvousDataSource @Inject constructor(
             ?.toString(Charsets.UTF_8)
     }
 
-    private fun <T> failure(message: String): Result<T> = Result.failure(IOException(message))
+    // The cause stays attached: a lost sign-in must be told apart from a network hiccup (S4513).
+    private fun <T> failure(error: CloudResult.Error): Result<T> = Result.failure(
+        IOException(error.message, error.cause)
+    )
 
     companion object {
         private const val ROOT = GoogleDriveAppDataApi.APP_DATA_FOLDER_ALIAS

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="filler_title">Storage filler</string>
+    <string name="filler_intro">Fills the free space of a storage device with temporary files, then deletes them. Your own files stay as they are.</string>
+    <string name="filler_choose_folder">Choose folder</string>
+    <string name="filler_no_folder">No folder chosen. Choose a folder on built-in storage or on a memory card.</string>
+    <string name="filler_location">Folder %1$s on %2$s</string>
+    <string name="filler_free_space">Free space: %1$s</string>
+    <string name="filler_free_space_unknown">Free space: not measured</string>
+    <string name="filler_reserve">Kept free for the system: %1$s</string>
+    <string name="filler_start">Start filling</string>
+    <string name="filler_cancel">Stop and delete files</string>
+    <string name="filler_progress">Written %1$s of %2$s</string>
+    <string name="filler_confirm_title">Fill free space?</string>
+    <string name="filler_confirm_message">About %1$s of temporary files will be written to the folder %2$s on %3$s, and %4$s stays free. The files are deleted when filling finishes or stops.</string>
+    <string name="filler_confirm_positive">Fill</string>
+    <string name="filler_retry_cleanup">Delete remaining files</string>
+    <string name="filler_pending_cleanup">Temporary files from an earlier run are still on %1$s. Connect that storage, then tap Delete remaining files before filling again.</string>
+    <string name="filler_result_done">Done: %1$s written and deleted again.</string>
+    <string name="filler_result_cancelled">Filling stopped. The temporary files were deleted.</string>
+    <string name="filler_result_failed">Writing stopped because the storage reported an error. The temporary files were deleted.</string>
+    <string name="filler_result_cleanup_incomplete">Some temporary files could not be deleted yet. Connect the storage, then tap Delete remaining files.</string>
+    <string name="filler_result_cleanup_done">The remaining temporary files were deleted.</string>
+    <string name="filler_result_not_local">This folder is not on a storage device of this phone. Choose a folder on built-in storage or on a memory card.</string>
+    <string name="filler_result_no_access">Writing to this folder is not allowed now. Check that the storage is connected, then choose the folder again.</string>
+    <string name="filler_result_measurement_unavailable">Free space could not be measured. Check that the storage is connected, then choose the folder again.</string>
+    <string name="filler_result_insufficient_space">There is no free space above the part kept for the system. Free up space or choose another storage device.</string>
+    <string name="filler_result_busy">Filling is already running.</string>
+    <string name="filler_settings_toggle_subtitle">Fills the free space of a storage device with temporary files, then deletes them</string>
+    <string name="filler_settings_toggle_subtitle_pending">Temporary files from an earlier run are still on the storage. The program stays in the list until you delete them in it.</string>
+</resources>

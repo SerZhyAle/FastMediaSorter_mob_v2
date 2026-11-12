@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.programs.ProgramsSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.panel.ResolvePanelRouteAvailabilityUseCase
 import com.sza.fastmediasorter.testutil.testMediaCapabilities
@@ -13,6 +14,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 
 /**
@@ -124,6 +126,16 @@ class EnableAllCoverageClassificationTest {
     }
 
     /**
+     * S4542: Filler defaults to on, so the diff test cannot observe it; the run starts from a user who
+     * switched it off, the same shape as the remote sources above.
+     */
+    @Test
+    fun `the button switches Filler back on when the user turned it off`() {
+        val after = applyEnableAll(AppSettings(programs = ProgramsSettings(enableFiller = false)))
+        assertTrue("Enable-all left Filler off.", after.enableFiller)
+    }
+
+    /**
      * S2684: the «Send to..» registry is two sets of ids rather than a boolean, so no [Coverage] bucket can
      * hold its decision and this is the only place the answer is pinned. The two halves are asserted
      * together on purpose - clearing the opt-outs while also clearing the opt-ins would read as the same
@@ -182,7 +194,7 @@ class EnableAllCoverageClassificationTest {
      */
     @Test
     fun `no capability-shaped setting hides behind a non-boolean type`() {
-        val suspicious = AppSettings::class.java.declaredFields
+        val suspicious = modelFields()
             .filter { !it.isSynthetic }
             .filter { !Modifier.isStatic(it.modifiers) }
             .filter { it.type != java.lang.Boolean.TYPE }
@@ -200,7 +212,7 @@ class EnableAllCoverageClassificationTest {
             emptySet<String>(),
             suspicious,
         )
-        val declaredNames = AppSettings::class.java.declaredFields.mapTo(mutableSetOf()) { it.name }
+        val declaredNames = modelFields().mapTo(mutableSetOf()) { it.name }
         assertEquals(
             "An excused name is no longer a field in AppSettings - drop it from CAPABILITY_SHAPED_EXCUSED.",
             emptySet<String>(),
@@ -239,16 +251,29 @@ class EnableAllCoverageClassificationTest {
      * deliberately absent from this project's classpath.
      */
     private fun declaredBooleanSettingNames(): Set<String> =
-        AppSettings::class.java.declaredFields
+        modelFields()
             .filter { !it.isSynthetic }
             .filter { !Modifier.isStatic(it.modifiers) }
             .filter { it.type == java.lang.Boolean.TYPE }
             .mapTo(mutableSetOf()) { it.name }
 
+    /**
+     * S4547: the program switches live in the nested [ProgramsSettings] group under their old flat
+     * names, so the walk reads that group beside [AppSettings] - without it every program switch would
+     * be reported as "no longer a field".
+     */
+    private fun modelFields(): List<Field> =
+        AppSettings::class.java.declaredFields.toList() + ProgramsSettings::class.java.declaredFields
+
     private fun booleanValue(settings: AppSettings, name: String): Boolean {
-        val field = AppSettings::class.java.getDeclaredField(name)
+        val programField = ProgramsSettings::class.java.declaredFields.firstOrNull { it.name == name }
+        val (field, owner) = if (programField != null) {
+            programField to settings.programs
+        } else {
+            AppSettings::class.java.getDeclaredField(name) to settings
+        }
         field.isAccessible = true
-        return field.getBoolean(settings)
+        return field.getBoolean(owner)
     }
 
     private companion object {
@@ -289,6 +314,7 @@ class EnableAllCoverageClassificationTest {
                 "enableCalculator",
                 "enableCopying",
                 "enableFavorites",
+                "enableFiller",
                 "enableMoving",
                 "enableNetworkMonitor",
                 "enablePersistentAudioPlayback",

@@ -8,6 +8,7 @@ import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
@@ -20,6 +21,7 @@ import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeAccountDialogManager
 import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeFailureDialogManager
 import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeIntakeLaunchers
 import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeServerCardAdapter
+import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeStandardSettingsDialogManager
 import com.sza.fastmediasorter.ui.exchange.helpers.MyDevicesDialogManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
@@ -51,6 +53,9 @@ class MyDevicesActivity : BaseActivity<ActivityMyDevicesBinding>() {
     private val dialogs: MyDevicesDialogManager by lazy { MyDevicesDialogManager(this, viewModel, launchers) }
     private val accountDialogs: ExchangeAccountDialogManager by lazy { ExchangeAccountDialogManager(this, viewModel) }
     private val failureDialogs: ExchangeFailureDialogManager by lazy { ExchangeFailureDialogManager(this) }
+    private val standardSettingsDialogs: ExchangeStandardSettingsDialogManager by lazy {
+        ExchangeStandardSettingsDialogManager(this, viewModel, lifecycleScope)
+    }
     private val adapter: ExchangeServerCardAdapter by lazy {
         ExchangeServerCardAdapter(
             dialogs::showDevices,
@@ -126,6 +131,7 @@ class MyDevicesActivity : BaseActivity<ActivityMyDevicesBinding>() {
                 R.id.action_exchange_connect_watch -> viewModel.connectWatch(entry)
                 R.id.action_exchange_share -> dialogs.showShare(entry)
                 R.id.action_exchange_administer -> startActivity(ExchangeServerAdminActivity.createIntent(this, entry))
+                R.id.action_exchange_standard_settings -> standardSettingsDialogs.show(entry)
                 R.id.action_exchange_auto_attach -> viewModel.setAutoAttach(entry, !entry.autoAttach)
                 R.id.action_exchange_sign_in_again -> signInAgain(entry)
                 R.id.action_exchange_change_password -> accountDialogs.showChangePassword(entry)

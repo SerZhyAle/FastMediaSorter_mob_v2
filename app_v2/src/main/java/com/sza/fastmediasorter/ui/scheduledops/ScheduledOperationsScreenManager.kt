@@ -96,7 +96,6 @@ class ScheduledOperationsScreenManager(
         }
         activity.collectOnLifecycle(scheduledViewModel.loadedOperations) { scheduleToggleReconcile() }
         activity.collectOnLifecycle(scheduledViewModel.resourceNames) {
-            Timber.d("S4480: card names refreshed from ${it.size} resources")
             scheduledAdapter.notifyItemRangeChanged(0, scheduledAdapter.itemCount)
         }
         activity.collectOnLifecycle(scheduledViewModel.resources) {
@@ -212,7 +211,6 @@ class ScheduledOperationsScreenManager(
             ),
         )
         if (sentence != null) {
-            Timber.d("S4493: run log row shows the localized sentence with Details")
             row.btnLogDetails.isVisible = true
             row.btnLogDetails.setOnClickListener { runHistoryDialogManager.showDetails(entry.message) }
         }

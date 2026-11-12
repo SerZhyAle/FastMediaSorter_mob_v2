@@ -23,8 +23,13 @@ import android.view.WindowManager
 import androidx.annotation.StringRes
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.systeminfo.BatteryDetails
+import com.sza.fastmediasorter.core.systeminfo.BatteryDetailsCollector
 import com.sza.fastmediasorter.core.systeminfo.ExtendedDiagnosticsContributor
 import com.sza.fastmediasorter.core.systeminfo.ExtendedDiagnosticsSection
+import com.sza.fastmediasorter.core.systeminfo.MediaAudioDiagnosticsCollector
+import com.sza.fastmediasorter.core.systeminfo.PlatformDetailsCollector
+import com.sza.fastmediasorter.core.systeminfo.SensorsDiagnosticsCollector
 import com.sza.fastmediasorter.core.systeminfo.SystemInfoAccessClassifier
 import com.sza.fastmediasorter.core.systeminfo.SystemInfoBenchmark
 import com.sza.fastmediasorter.core.systeminfo.SystemInfoGroup
@@ -41,6 +46,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 /**
@@ -55,6 +61,10 @@ class GatherSystemInfoUseCase @Inject constructor(
     @ApplicationContext private val context: Context,
     private val extendedDiagnosticsContributors: Set<@JvmSuppressWildcards ExtendedDiagnosticsContributor>,
     private val cameraDiagnostics: GatherCameraDiagnosticsUseCase,
+    private val batteryDetails: BatteryDetailsCollector,
+    private val platformDetails: PlatformDetailsCollector,
+    private val sensorsDiagnostics: SensorsDiagnosticsCollector,
+    private val mediaAudioDiagnostics: MediaAudioDiagnosticsCollector,
 ) {
 
     /**
@@ -64,6 +74,7 @@ class GatherSystemInfoUseCase @Inject constructor(
      */
     operator fun invoke(appCameraView: List<String> = emptyList()): SystemInfoReport {
         val base = buildSections(appCameraView)
+        Timber.d("S4543: system info report gathered, base sections: ${base.size}")
         // Collect flavor-contributed sections defensively: a throwing contributor degrades the
         // extended part to empty, never breaking the base report (matches safe/safeList style).
         val extended: List<ExtendedDiagnosticsSection> = try {
@@ -90,14 +101,14 @@ class GatherSystemInfoUseCase @Inject constructor(
                 label(R.string.sysinfo_field_manufacturer) to safe { sanitize(Build.MANUFACTURER) },
                 label(R.string.sysinfo_field_model) to safe { sanitize(Build.MODEL) },
                 label(R.string.sysinfo_field_product) to safe { sanitize(Build.PRODUCT, sanitize(Build.DEVICE)) },
-            ),
+            ) + platformDetails.extraDeviceFields(),
             SystemInfoGroup.DEVICE,
         ),
         SystemInfoSection(
             label(R.string.sysinfo_section_user),
             listOf(
                 label(R.string.sysinfo_field_user_name) to safe { userName() },
-            ),
+            ) + platformDetails.extraUserFields(),
             SystemInfoGroup.USER,
         ),
         SystemInfoSection(
@@ -107,7 +118,7 @@ class GatherSystemInfoUseCase @Inject constructor(
                     sanitize(Build.VERSION.RELEASE, Build.VERSION.SDK_INT.toString())
                 },
                 label(R.string.sysinfo_field_api_level) to safe { Build.VERSION.SDK_INT.toString() },
-            ),
+            ) + platformDetails.extraOsFields(),
             SystemInfoGroup.OS,
         ),
         SystemInfoSection(
@@ -116,11 +127,13 @@ class GatherSystemInfoUseCase @Inject constructor(
                 label(R.string.sysinfo_field_app_version) to safe { BuildConfig.VERSION_NAME },
                 label(R.string.sysinfo_field_build) to safe { BuildConfig.VERSION_CODE.toString() },
                 label(R.string.sysinfo_field_flavor) to safe { BuildConfig.FLAVOR },
-            ),
+            ) + platformDetails.extraAppFields(),
             SystemInfoGroup.APP,
         ),
         SystemInfoSection(label(R.string.sysinfo_section_hardware), hardwareFields(), SystemInfoGroup.HARDWARE),
+        sensorsDiagnostics.collectSection(),
         cameraSection(appCameraView),
+        mediaAudioDiagnostics.collectSection(),
         SystemInfoSection(label(R.string.sysinfo_section_battery), batteryFields(), SystemInfoGroup.BATTERY),
         SystemInfoSection(label(R.string.sysinfo_section_memory), memoryFields(), SystemInfoGroup.MEMORY),
         SystemInfoSection(label(R.string.sysinfo_section_storage), storageFields(), SystemInfoGroup.STORAGE),
@@ -130,7 +143,7 @@ class GatherSystemInfoUseCase @Inject constructor(
             label(R.string.sysinfo_section_locale),
             listOf(
                 label(R.string.sysinfo_field_locale_current) to safe { Locale.getDefault().toLanguageTag() },
-            ),
+            ) + platformDetails.extraLocaleFields(),
             SystemInfoGroup.LOCALE,
         ),
         SystemInfoSection(
@@ -138,7 +151,7 @@ class GatherSystemInfoUseCase @Inject constructor(
             listOf(
                 label(R.string.sysinfo_field_time_current) to safe { currentTime() },
                 label(R.string.sysinfo_field_timezone) to safe { timezone() },
-            ),
+            ) + platformDetails.extraTimeFields(),
             SystemInfoGroup.TIME,
         ),
         SystemInfoSection(label(R.string.sysinfo_section_system), systemFields(), SystemInfoGroup.SYSTEM),
@@ -158,10 +171,14 @@ class GatherSystemInfoUseCase @Inject constructor(
     private fun benchmarkFields(): List<Pair<String, String>> = safeList {
         val mem = SystemInfoBenchmark.measureMemoryThroughputMbps()
         val (write, read) = SystemInfoBenchmark.measureStorageThroughputMbps(context.cacheDir)
+        val cpuSingle = SystemInfoBenchmark.measureCpuSingleThreadMops()
+        val cpuMulti = SystemInfoBenchmark.measureCpuMultiThreadMops()
         listOf(
             label(R.string.sysinfo_field_bench_memory) to formatMbps(mem),
             label(R.string.sysinfo_field_bench_storage_write) to formatMbps(write),
             label(R.string.sysinfo_field_bench_storage_read) to formatMbps(read),
+            label(R.string.sysinfo_field_bench_cpu_single) to formatMops(cpuSingle),
+            label(R.string.sysinfo_field_bench_cpu_multi) to formatMops(cpuMulti),
         )
     } ?: listOf(label(R.string.sysinfo_field_bench_memory) to UNKNOWN)
 
@@ -182,7 +199,7 @@ class GatherSystemInfoUseCase @Inject constructor(
             label(R.string.sysinfo_field_last_update) to safe { formatTime(packageInfo().lastUpdateTime) },
             label(R.string.sysinfo_field_device_name) to safe { deviceName() },
             label(R.string.sysinfo_field_input_method) to safe { inputMethodId() },
-        )
+        ) + platformDetails.extraSystemFields()
     } ?: listOf(label(R.string.sysinfo_field_fingerprint) to UNKNOWN)
 
     private fun localesList(): String =
@@ -237,7 +254,7 @@ class GatherSystemInfoUseCase @Inject constructor(
             label(R.string.sysinfo_field_gles) to safe { glEsVersion() },
             label(R.string.sysinfo_field_max_heap) to formatBytes(Runtime.getRuntime().maxMemory()),
             label(R.string.sysinfo_field_process_bits) to safe { if (Process.is64Bit()) "64-bit" else "32-bit" },
-        )
+        ) + platformDetails.extraHardwareFields()
     } ?: listOf(label(R.string.sysinfo_field_cpu_cores) to UNKNOWN)
 
     private fun socName(): String =
@@ -254,13 +271,40 @@ class GatherSystemInfoUseCase @Inject constructor(
 
     private fun batteryFields(): List<Pair<String, String>> = safeList {
         val intent = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
-            ?: return@safeList listOf(label(R.string.sysinfo_field_battery_level) to UNKNOWN)
+            ?: return@safeList listOf(
+                label(R.string.sysinfo_field_battery_level) to UNKNOWN,
+                label(R.string.sysinfo_field_battery_current) to label(R.string.sysinfo_battery_unavailable),
+                label(R.string.sysinfo_field_battery_power) to label(R.string.sysinfo_battery_unavailable),
+                label(R.string.sysinfo_field_battery_saver) to label(R.string.sysinfo_battery_unavailable),
+                label(R.string.sysinfo_field_battery_capacity_estimate) to label(R.string.sysinfo_battery_unavailable),
+                label(R.string.sysinfo_field_battery_charge_time) to label(R.string.sysinfo_battery_unavailable),
+                label(R.string.sysinfo_field_battery_discharge_time) to label(R.string.sysinfo_battery_unavailable),
+            )
         val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
         val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
         val pct = if (level >= 0 && scale > 0) "${level * 100 / scale}%" else UNKNOWN
         val temp = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, Int.MIN_VALUE)
         val tempStr = if (temp != Int.MIN_VALUE) String.format(Locale.US, "%.1f °C", temp / 10.0) else UNKNOWN
         val voltage = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1)
+        val details = runCatching { batteryDetails.read() }.getOrNull()
+        val unavailable = label(R.string.sysinfo_battery_unavailable)
+        fun formatBatteryDuration(millis: Long?): String {
+            if (millis == null || millis <= 0L) return unavailable
+            val minutes = TimeUnit.MILLISECONDS.toMinutes(millis)
+            val hours = TimeUnit.MINUTES.toHours(minutes)
+            val remainingMinutes = minutes - TimeUnit.HOURS.toMinutes(hours)
+            return "~${context.getString(R.string.sysinfo_battery_duration, hours, remainingMinutes)}"
+        }
+        val current = details?.currentMicroamps?.let {
+            String.format(Locale.getDefault(), "%.1f mA", it / MICROAMPS_PER_MILLIAMP)
+        } ?: unavailable
+        val power = details?.powerWatts?.let { String.format(Locale.getDefault(), "%.2f W", it) } ?: unavailable
+        val capacity = details?.estimatedCapacityMilliampHours?.let { "~$it mAh" } ?: unavailable
+        val saver = when (details?.powerSaveMode) {
+            true -> label(R.string.sysinfo_battery_saver_on)
+            false -> label(R.string.sysinfo_battery_saver_off)
+            null -> unavailable
+        }
         listOf(
             label(R.string.sysinfo_field_battery_level) to pct,
             label(R.string.sysinfo_field_battery_status) to batteryStatus(intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)),
@@ -269,7 +313,17 @@ class GatherSystemInfoUseCase @Inject constructor(
             label(R.string.sysinfo_field_battery_temperature) to tempStr,
             label(R.string.sysinfo_field_battery_voltage) to (if (voltage >= 0) "$voltage mV" else UNKNOWN),
             label(R.string.sysinfo_field_battery_technology) to sanitize(intent.getStringExtra(BatteryManager.EXTRA_TECHNOLOGY)),
-        )
+            label(R.string.sysinfo_field_battery_current) to current,
+            label(R.string.sysinfo_field_battery_power) to power,
+            label(R.string.sysinfo_field_battery_saver) to saver,
+            label(R.string.sysinfo_field_battery_capacity_estimate) to capacity,
+            label(R.string.sysinfo_field_battery_charge_time) to formatBatteryDuration(details?.chargeTimeMillis),
+            label(R.string.sysinfo_field_battery_discharge_time) to dischargeTimeText(
+                details,
+                label(R.string.sysinfo_battery_on_external_power),
+                ::formatBatteryDuration
+            ),
+        ) + platformDetails.extraBatteryFields(details, unavailable)
     } ?: listOf(label(R.string.sysinfo_field_battery_level) to UNKNOWN)
 
     private fun batteryStatus(value: Int): String = when (value) {
@@ -318,7 +372,7 @@ class GatherSystemInfoUseCase @Inject constructor(
                 onOff(Settings.Global.getInt(context.contentResolver, Settings.Global.AIRPLANE_MODE_ON, 0) == 1)
             },
             label(R.string.sysinfo_field_net_ip) to safe { localIpAddresses() },
-        )
+        ) + platformDetails.extraNetworkFields()
     } ?: listOf(label(R.string.sysinfo_field_net_transport) to UNKNOWN)
 
     private fun localIpAddresses(): String {
@@ -340,7 +394,7 @@ class GatherSystemInfoUseCase @Inject constructor(
         listOf(
             label(R.string.sysinfo_field_ram_total) to formatBytes(info.totalMem),
             label(R.string.sysinfo_field_ram_available) to formatBytes(info.availMem),
-        )
+        ) + platformDetails.extraMemoryFields()
     } ?: listOf(label(R.string.sysinfo_field_ram_total) to UNKNOWN)
 
     private fun storageFields(): List<Pair<String, String>> = safeList {
@@ -350,7 +404,7 @@ class GatherSystemInfoUseCase @Inject constructor(
         listOf(
             label(R.string.sysinfo_field_storage_total) to formatBytes(total),
             label(R.string.sysinfo_field_storage_available) to formatBytes(available),
-        )
+        ) + platformDetails.extraStorageFields()
     } ?: listOf(label(R.string.sysinfo_field_storage_total) to UNKNOWN)
 
     private fun displayFields(): List<Pair<String, String>> = safeList {
@@ -375,7 +429,7 @@ class GatherSystemInfoUseCase @Inject constructor(
             label(R.string.sysinfo_field_orientation) to safe { orientation(config.orientation) },
             label(R.string.sysinfo_field_smallest_width) to safe { "${config.smallestScreenWidthDp} dp" },
             label(R.string.sysinfo_field_display_count) to safe { displayCount() },
-        )
+        ) + platformDetails.extraDisplayFields(display, metrics)
     } ?: listOf(label(R.string.sysinfo_field_resolution) to UNKNOWN)
 
     @Suppress("DEPRECATION")
@@ -458,5 +512,13 @@ class GatherSystemInfoUseCase @Inject constructor(
 
     private companion object {
         const val UNKNOWN = "unknown"
+        const val MICROAMPS_PER_MILLIAMP = 1_000.0
     }
 }
+
+/** Kept outside the use case: the class already sits at detekt's function-count ceiling. */
+private fun dischargeTimeText(details: BatteryDetails?, onExternalPower: String, format: (Long?) -> String): String =
+    if (details?.isOnExternalPower == true) onExternalPower else format(details?.dischargeTimeMillis)
+
+private fun formatMops(value: Double): String =
+    if (value < 0) "unknown" else String.format(Locale.US, "~%.0f MOPS", value)

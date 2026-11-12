@@ -273,6 +273,28 @@ class BackupMapperTest {
     }
 
     @Test
+    fun `S4522 fill schedule round-trips without a target`() {
+        val src = createMediaResource(id = 3L, type = ResourceType.LOCAL, path = "content://tree/card")
+        val op = ScheduledOperation(
+            sourceResourceId = 3L,
+            operationType = ScheduledOpType.FILL_FREE_SPACE,
+            targetResourceId = null,
+            timeFilter = TimeFilter.ALL,
+            startTimeHour = 2,
+            startTimeMinute = 0,
+            intervalHours = 168,
+            intervalMinutes = 0,
+        )
+
+        val backup = BackupMapper.toBackupScheduledOperation(op, mapOf(3L to src))!!
+        val restored = BackupMapper.toScheduledOperation(backup, mapOf(src.path to src))!!
+
+        assertEquals(ScheduledOpType.FILL_FREE_SPACE, restored.operationType)
+        assertEquals(3L, restored.sourceResourceId)
+        assertNull(restored.targetResourceId)
+    }
+
+    @Test
     fun `S4248 watch message round-trips with no resources in the lookup`() {
         val op = ScheduledOperation(
             sourceResourceId = null,

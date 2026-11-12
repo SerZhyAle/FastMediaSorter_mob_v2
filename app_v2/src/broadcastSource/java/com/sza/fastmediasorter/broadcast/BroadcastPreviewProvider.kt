@@ -111,7 +111,6 @@ class BroadcastPreviewProvider @Inject constructor(
         // shape from the screen by the library's own rule, not from the encoder frame fixed at the start.
         // Fill crops the way the pre-start PreviewView does, so going on air does not shrink the picture.
         val portrait = CameraHelper.isPortrait(view.context)
-        Timber.d("S4418: broadcast preview copy fill portrait=$portrait frame=${frame.width()}x${frame.height()}")
         try {
             renderer.addMultiPreviewSurface(
                 view.holder.surface,

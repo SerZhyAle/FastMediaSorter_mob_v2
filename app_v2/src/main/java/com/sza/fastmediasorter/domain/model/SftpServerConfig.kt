@@ -72,5 +72,8 @@ enum class SftpServerFailure {
     /** Another app already listens on the configured port. */
     PORT_IN_USE,
 
+    /** Android 17+ has not granted access to the local network, so no LAN client could connect. */
+    LOCAL_NETWORK_DENIED,
+
     START_FAILED,
 }

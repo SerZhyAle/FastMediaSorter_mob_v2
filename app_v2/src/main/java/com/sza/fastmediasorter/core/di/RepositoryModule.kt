@@ -4,6 +4,8 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.sza.fastmediasorter.core.serialization.InstantTypeAdapter
 import com.sza.fastmediasorter.data.detector.RealDeviceProfileDetector
+import com.sza.fastmediasorter.data.filler.FillerSessionJournal
+import com.sza.fastmediasorter.data.filler.LocalFillerStorage
 import com.sza.fastmediasorter.data.game.GameStateRepositoryImpl
 import com.sza.fastmediasorter.data.local.ContentMediaAddressResolver
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeE2eKeyStore
@@ -54,6 +56,10 @@ import com.sza.fastmediasorter.data.repository.wear.WearResourceStampStore
 import com.sza.fastmediasorter.data.repository.wear.WearResourceTombstoneStore
 import com.sza.fastmediasorter.data.repository.wear.WearSettingsMirrorStore
 import com.sza.fastmediasorter.domain.detector.DeviceProfileDetector
+import com.sza.fastmediasorter.domain.filler.FillerJournal
+import com.sza.fastmediasorter.domain.filler.FillerPendingCleanup
+import com.sza.fastmediasorter.domain.filler.FillerStorage
+import com.sza.fastmediasorter.domain.filler.FillerTargetResolver
 import com.sza.fastmediasorter.domain.game.GameStateRepository
 import com.sza.fastmediasorter.domain.port.MediaAddressResolver
 import com.sza.fastmediasorter.domain.repository.BatteryRuntimeEstimator
@@ -176,6 +182,22 @@ abstract class RepositoryModule {
     abstract fun bindStorageVolumeSource(
         impl: PlatformStorageVolumeSource
     ): StorageVolumeSource
+
+    @Binds
+    @Singleton
+    abstract fun bindFillerStorage(impl: LocalFillerStorage): FillerStorage
+
+    @Binds
+    @Singleton
+    abstract fun bindFillerTargetResolver(impl: LocalFillerStorage): FillerTargetResolver
+
+    @Binds
+    @Singleton
+    abstract fun bindFillerJournal(impl: FillerSessionJournal): FillerJournal
+
+    @Binds
+    @Singleton
+    abstract fun bindFillerPendingCleanup(impl: FillerSessionJournal): FillerPendingCleanup
 
     @Binds
     @Singleton

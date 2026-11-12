@@ -143,6 +143,8 @@ function Get-TempRootInventory {
         'sza-forwarders-backup'            # utils/install-sza-forwarders.ps1 - pre-install copy of the replaced local scripts.
         'detekt-scoped'                    # quality/detekt-scoped.ps1.
         'selftest'                         # devtest/run-device-selftest.ps1 - one <timestamp>/ run dir per `.\a.ps1 fst`.
+        'deobfuscation'                    # release/fetch-deobfuscation.ps1 (-Destination default) - one <versionCode>/<variant>/ mapping and symbols per fetch, reused to decode later crash reports.
+        'site-audit'                       # the canon sza:site-audit skill - one <date>/ run folder per audit; the next run compares against the previous one, so the folders are its history, not scratch.
         'docs-pdf'                         # docs/build-docs-pdf.ps1 (-WorkDir default) - book HTML and a throwaway browser profile.
         'flavor-guard'                     # guard/flavor-isolation-guard.ps1.
         'isolated-stdout'                  # utils/invoke-isolated-stdout.ps1 (-LogDirectory default).

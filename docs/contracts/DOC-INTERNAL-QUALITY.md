@@ -5,7 +5,7 @@
 | | |
 | --- | --- |
 | **Id** | `DOC-INTERNAL-QUALITY` |
-| **Version** | 0.11, draft; wire carrier: file tree layout and check invariants. Owner: this product |
+| **Version** | 0.12, draft; wire carrier: file tree layout and check invariants. Owner: this product |
 | **Home** | `documentation-quality/README.md` section 2, in the shared contracts catalog |
 | **Role here** | owner and reference implementation |
 

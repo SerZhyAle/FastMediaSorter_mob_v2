@@ -106,10 +106,7 @@ class DirectFileExtractionStrategy @Inject constructor(
             ?: return@withContext OpenResult.Blocked(BlockedReason.NonHttpScheme)
 
         try {
-            val request = Request.Builder().url(httpUrl).get().apply {
-                extraHeaders.forEach { (name, value) -> header(name, value) }
-            }.build()
-            val response: Response = httpClient.newCall(request).execute()
+            val response: Response = executeWholeFile(httpUrl, extraHeaders)
             // OkHttp's HttpOnlyRedirectInterceptor rejects non-http(s) hops at request build time;
             // double-check the final url anyway in case of internal redirect handling differences.
             val finalScheme = response.request.url.scheme.lowercase()
@@ -156,6 +153,42 @@ class DirectFileExtractionStrategy @Inject constructor(
         } catch (io: IOException) {
             Timber.w(io, "DirectFileExtractionStrategy: open failed for %s", url)
             OpenResult.Error(io)
+        }
+    }
+
+    /**
+     * S4550: a Meta CDN URL sniffed from the page player names the one chunk the player asked for
+     * (`bytestart`/`byteend`), so replaying it verbatim saves a truncated file that plays up to the cut
+     * (Threads, journal 2026-11-11). Asks for the whole file first and falls back to the captured URL
+     * when the CDN refuses the stripped one.
+     */
+    private fun executeWholeFile(httpUrl: HttpUrl, extraHeaders: Map<String, String>): Response {
+        val wholeFileUrl = withoutByteRangeParams(httpUrl)
+        Timber.d("S4550: executeWholeFile host=${httpUrl.host} stripped=${wholeFileUrl != httpUrl}")
+        if (wholeFileUrl != httpUrl) {
+            val whole = httpClient.newCall(buildGet(wholeFileUrl, extraHeaders)).execute()
+            if (whole.isSuccessful) {
+                LinkDownloadTrace.verbose("byte-range params stripped host=${httpUrl.host}")
+                return whole
+            }
+            LinkDownloadTrace.verbose("byte-range-free url refused status=${whole.code} host=${httpUrl.host}")
+            whole.close()
+        }
+        return httpClient.newCall(buildGet(httpUrl, extraHeaders)).execute()
+    }
+
+    private fun buildGet(url: HttpUrl, extraHeaders: Map<String, String>): Request =
+        Request.Builder().url(url).get().apply {
+            extraHeaders.forEach { (name, value) -> header(name, value) }
+        }.build()
+
+    private fun withoutByteRangeParams(url: HttpUrl): HttpUrl {
+        val isMetaCdn = BYTE_RANGE_HOST_SUFFIXES.any { url.host.endsWith(it) }
+        val hasByteRange = BYTE_RANGE_PARAMS.any { url.queryParameter(it) != null }
+        return if (isMetaCdn && hasByteRange) {
+            url.newBuilder().apply { BYTE_RANGE_PARAMS.forEach { name -> removeAllQueryParameters(name) } }.build()
+        } else {
+            url
         }
     }
 
@@ -212,5 +245,10 @@ class DirectFileExtractionStrategy @Inject constructor(
         val ext = encodedPath.substringAfterLast('.', "").substringBefore('?').lowercase()
         if (ext.isBlank() || ext.length > 5) return false
         return MediaMimeWhitelist.mimeForExtension(ext) != null
+    }
+
+    private companion object {
+        val BYTE_RANGE_HOST_SUFFIXES = listOf(".cdninstagram.com", ".fbcdn.net")
+        val BYTE_RANGE_PARAMS = listOf("bytestart", "byteend")
     }
 }

@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
-import android.os.Build
 import android.os.SystemClock
 import com.sza.fastmediasorter.domain.model.devicestatus.BatteryStatus
 import com.sza.fastmediasorter.domain.model.devicestatus.DeviceStatusProvider
@@ -13,6 +12,7 @@ import com.sza.fastmediasorter.domain.repository.BatteryRuntimeEstimator
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -33,18 +33,26 @@ class GetBatteryStatusUseCase @Inject constructor(
             context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
         }.getOrNull()
         val percentOrNull = readPercent(sticky)
+        Timber.d("S4529: battery gadget estimate read")
         val charging = sticky?.let(::isCharging) ?: false
-        val systemEstimate = systemRemainingMillis()
+        val plugged = (sticky?.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) ?: 0) > 0
+        val manager = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
         val estimate = when {
-            systemEstimate is MetricValue.Known -> systemEstimate
             percentOrNull == null -> MetricValue.Unknown
-            else -> estimator.estimateRemainingMillis(percentOrNull, charging, SystemClock.elapsedRealtime())
+            else -> estimator.estimateRemainingMillis(
+                percentOrNull,
+                charging || plugged,
+                SystemClock.elapsedRealtime(),
+                readProperty(manager, BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER),
+                readProperty(manager, BatteryManager.BATTERY_PROPERTY_CURRENT_AVERAGE)?.takeIf { it != 0 }
+                    ?: readProperty(manager, BatteryManager.BATTERY_PROPERTY_CURRENT_NOW)
+            )
         }
         BatteryStatus(
             percent = percentOrNull?.let { MetricValue.Known(it) } ?: MetricValue.Unknown,
             isCharging = charging,
             remainingMillis = estimate,
-            isEstimateApproximate = estimate is MetricValue.Known && systemEstimate !is MetricValue.Known
+            isEstimateApproximate = estimate is MetricValue.Known
         )
     }
 
@@ -55,22 +63,12 @@ class GetBatteryStatusUseCase @Inject constructor(
         return if (level < 0 || scale <= 0) null else level * FULL_PERCENT / scale
     }
 
+    private fun readProperty(manager: BatteryManager?, property: Int): Int? =
+        runCatching { manager?.getIntProperty(property) }.getOrNull()?.takeUnless { it == Int.MIN_VALUE }
+
     private fun isCharging(intent: Intent): Boolean {
         val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN)
         return status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL
-    }
-
-    private fun systemRemainingMillis(): MetricValue<Long> {
-        val manager = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
-        // Not what the name suggests: this reports time to FULL CHARGE and answers -1 while discharging.
-        // No public Android API reports time to depletion, so in practice the estimator below is the live
-        // branch - this probe exists only to defer to a future OEM extension that fills the gap.
-        val remaining = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            manager?.computeChargeTimeRemaining()
-        } else {
-            null
-        }
-        return if (remaining != null && remaining > 0L) MetricValue.Known(remaining) else MetricValue.Unknown
     }
 
     private companion object {

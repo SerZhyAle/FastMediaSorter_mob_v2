@@ -190,7 +190,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                 accountId = accountId,
                 originalUrl = url,
                 canonicalAudioOnly = canonical.audioOnly,
-            )
+            ).let { outcome -> revokedSessionOrNull(outcome, canonical.url, sessionOwner) ?: outcome }
         } finally {
             sessionContext.clear(sessionOwner)
         }
@@ -200,6 +200,29 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                 .onFailure { it.rethrowIfCancellation() }
         }
         return result
+    }
+
+    /**
+     * S4509: a server that deletes the signed-in session cookie mid-run and then serves only the
+     * preview has revoked the login; reporting that as preview-only or no-media hides the re-login
+     * the user actually needs.
+     */
+    private fun revokedSessionOrNull(outcome: Result, url: String, sessionOwner: Any): Result? {
+        val host = url.toHttpUrlOrNull()?.host
+        val previewLike = outcome is Result.Failed.SocialPreviewOnly || outcome is Result.Failed.NoMediaFound
+        val sessionCookies = KnownAuthResources.matchHost(host)?.sessionCookieNames.orEmpty()
+        val revoked = if (previewLike && host != null) {
+            sessionContext.serverDeletedCookies(sessionOwner).intersect(sessionCookies)
+        } else {
+            emptySet()
+        }
+        Timber.d("S4509: revoked-session check host=$host previewLike=$previewLike revoked=$revoked")
+        return if (host != null && revoked.isNotEmpty()) {
+            Timber.i("LinkAutoDownloadCoordinator: session revoked by server host=%s cookies=%s", host, revoked)
+            Result.Failed.AuthRequired(host = host, originalUrl = url)
+        } else {
+            null
+        }
     }
 
     suspend fun handleBatch(urls: List<String>, callbacks: Callbacks): Result {

@@ -107,6 +107,7 @@ tips:
   - "**A network destination must be reachable** at the scheduled time - for a home computer, choose an hour when it is on."
   - "**Not sure it will work?** Tap **Run now** once and look at the Log."
   - "**A message to the watch.** Pick **Show on watch** as the operation, in app versions that work with a watch: enter a title, an optional text and one picture if you like, and at every slot the paired watch shows it as a notification - a tap opens the picture. An absent watch or a switched-off Wear Companion makes the run skipped, not failed."
+  - "**Fill free space on a schedule.** Pick **Fill free space** as the operation and a folder on built-in storage or a memory card as the source, chosen with **Local Folder**. Each run writes temporary files there until only the part kept for the system stays free, then deletes them - your own files stay as they are, and the destination and file filters are not used. If the card was removed mid-run, the temporary files stay until the storage is back: the next run deletes them first, or open **Storage filler** and tap **Delete remaining files**. Until then the history shows the run as failed, never as done."
 next_recipes:
   - title: Sorting files into destinations
     url: page:storage.destination-targets-setup
@@ -125,6 +126,6 @@ next_recipes:
     description: The other programs you can open from the same menu.
 ---
 
-<sub class="doc-stamp">26.10.26 01:15</sub>
+<sub class="doc-stamp">26.11.10 13:24</sub>
 
 Let the app copy, move or delete files by itself on a schedule - for example copy new camera photos to the home computer every night - and read the run history to see what was done.

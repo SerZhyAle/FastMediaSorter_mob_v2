@@ -161,7 +161,6 @@ class ExchangeCastCoordinator @Inject constructor(
 
     private suspend fun onOffer(received: ExchangeCastOffer, origin: DeviceExchangeAccountEntry?) {
         if (origin != null) origins[received.broadcastId] = origin else origins.remove(received.broadcastId)
-        Timber.d("S4421: cast offer received, on a receive-only stream=${origin != null}")
         // 27 item DK: the offered record's box is opened into its endpoints before anything imports it.
         val entry = origin ?: tunnel.liveEntry ?: accounts.outgoingEntry()
         val record = entry?.let { sealed.openCast(it, received.record) }

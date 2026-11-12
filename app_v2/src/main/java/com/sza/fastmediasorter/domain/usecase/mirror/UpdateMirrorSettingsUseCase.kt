@@ -15,14 +15,14 @@ class UpdateMirrorSettingsUseCase @Inject constructor(
 ) {
 
     suspend fun setZoomRatio(ratio: Float) {
-        settingsRepository.updateSettings { it.copy(mirrorZoomRatio = ratio) }
+        settingsRepository.updateSettings { it.withPrograms { copy(mirrorZoomRatio = ratio) } }
     }
 
     suspend fun setHorizontallyFlipped(flipped: Boolean) {
-        settingsRepository.updateSettings { it.copy(mirrorHorizontallyFlipped = flipped) }
+        settingsRepository.updateSettings { it.withPrograms { copy(mirrorHorizontallyFlipped = flipped) } }
     }
 
     suspend fun setBacklightOn(on: Boolean) {
-        settingsRepository.updateSettings { it.copy(mirrorBacklightOn = on) }
+        settingsRepository.updateSettings { it.withPrograms { copy(mirrorBacklightOn = on) } }
     }
 }

@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.data.cloud.GoogleDriveSftpRendezvousDataSource
 import com.sza.fastmediasorter.data.cloud.GoogleDriveSftpRendezvousDataSource.Entry
+import com.sza.fastmediasorter.data.cloud.helpers.DriveAppDataFailure
 import com.sza.fastmediasorter.data.repository.settings.SftpRendezvousIdentityStore
 import com.sza.fastmediasorter.domain.model.HostPort
 import com.sza.fastmediasorter.domain.model.SftpPairingPayload
@@ -55,6 +56,14 @@ class SftpRendezvousDirectory @Inject constructor(
     @Volatile
     private var lastRefreshMs: Long? = null
 
+    /**
+     * True when the last Drive read failed because the app's Drive access is gone (sign-in or app folder
+     * consent), so no moved address can arrive this way until the user signs in again (S4513).
+     */
+    @Volatile
+    var needsDriveSignIn: Boolean = false
+        private set
+
     private val refreshLock = Mutex()
     private val lastRequestMs = ConcurrentHashMap<String, Long>()
 
@@ -91,10 +100,16 @@ class SftpRendezvousDirectory @Inject constructor(
             lastRefreshMs = nowMs()
             store.snapshot()
                 .onSuccess { snapshot ->
+                    needsDriveSignIn = false
                     producers = index(snapshot)
                     removeOwnExpired(snapshot.requests)
                 }
-                .onFailure { Timber.i("SftpRendezvousDirectory: refresh skipped (%s)", it.message) }
+                .onFailure {
+                    val cause = it.cause
+                    needsDriveSignIn = cause is DriveAppDataFailure.AuthRequired ||
+                        cause is DriveAppDataFailure.ConsentRequired
+                    Timber.i("SftpRendezvousDirectory: refresh skipped (%s)", it.message)
+                }
         }
     }
 

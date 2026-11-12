@@ -39,6 +39,9 @@ class LauncherAppActionMenuManager(
     private val removeDesktopCell: ((cellId: Long) -> Unit)? = null,
 ) {
 
+    /** S4530: set by the all-apps screen only; the desktop menu stays as it was. */
+    var setCategories: ((packageName: String) -> Unit)? = null
+
     private var window: ListPopupWindow? = null
     private var pendingQuery: Job? = null
 
@@ -87,6 +90,11 @@ class LauncherAppActionMenuManager(
         }
         rows += action(anchor, R.string.launcher_app_action_pin_taskbar, R.drawable.ic_pin) {
             pinToTaskbar(packageName)
+        }
+        setCategories?.let { open ->
+            rows += action(anchor, R.string.launcher_app_action_set_category, R.drawable.ic_folder) {
+                open(packageName)
+            }
         }
         appInfoIntent(packageName)?.let { intent ->
             rows += action(anchor, R.string.launcher_app_action_app_info, R.drawable.ic_info) {

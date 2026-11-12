@@ -5,7 +5,6 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ServiceInfo
 import android.net.Uri
 import android.os.Build
 import android.os.SystemClock
@@ -123,7 +122,7 @@ class LinkDownloadWorker @AssistedInject constructor(
                 } else {
                     try {
                         val probing = context.getString(R.string.link_download_notif_text_probing)
-                        setForeground(buildForegroundInfo(probing))
+                        setDataSyncForegroundIfAllowed(buildForegroundInfo(probing))
                     } catch (e: Exception) {
                         e.warnUnlessCancellation("LinkDownloadWorker: setForeground failed (non-fatal)")
                     }
@@ -139,9 +138,14 @@ class LinkDownloadWorker @AssistedInject constructor(
 
         Timber.i("LinkDownloadWorker: done result=%s", result::class.java.simpleName)
         // Resolve dismiss status here (suspend context) so postResultNotification stays non-suspend.
-        val isDismissedHost = (result as? LinkAutoDownloadCoordinator.Result.Failed.SocialPreviewOnly)
+        val authGatedHost = when (result) {
+            is LinkAutoDownloadCoordinator.Result.Failed.SocialPreviewOnly -> result.host
+            is LinkAutoDownloadCoordinator.Result.Failed.AuthRequired -> result.host
+            else -> null
+        }
+        val isDismissedHost = authGatedHost
             ?.let {
-                runCatching { authSessionRepository.isDismissedForHost(it.host) }
+                runCatching { authSessionRepository.isDismissedForHost(it) }
                     .onFailure { t -> t.rethrowIfCancellation() }
                     .getOrDefault(false)
             }
@@ -349,6 +353,8 @@ class LinkDownloadWorker @AssistedInject constructor(
             }
             is LinkAutoDownloadCoordinator.Result.Failed.SocialPreviewOnly ->
                 applySocialPreviewOnly(builder, result, isDismissedHost)
+            is LinkAutoDownloadCoordinator.Result.Failed.AuthRequired ->
+                applyAuthRequired(builder, result, isDismissedHost)
             is LinkAutoDownloadCoordinator.Result.Failed -> {
                 builder
                     .setContentTitle(context.getString(R.string.link_download_notif_title_done))
@@ -392,6 +398,29 @@ class LinkDownloadWorker @AssistedInject constructor(
                     .addAction(buildSignInAction(result.originalUrl))
             }
         }
+    }
+
+    /**
+     * S4549: a login wall (HTTP 401/403 or a login redirect loop) means the stored session, if any, is not
+     * accepted by the site. A bare "Download failed" left the user with no file and no way forward, so the
+     * notification carries the same sign-in action as the preview-only case; "don't ask" stays respected.
+     */
+    private fun applyAuthRequired(
+        builder: NotificationCompat.Builder,
+        result: LinkAutoDownloadCoordinator.Result.Failed.AuthRequired,
+        isDismissedHost: Boolean,
+    ) {
+        Timber.d("S4549: auth-required notification host=${result.host} dismissed=$isDismissedHost")
+        if (isDismissedHost) {
+            builder
+                .setContentTitle(context.getString(R.string.link_download_notif_title_done))
+                .setContentText(context.getString(R.string.link_download_notif_text_failed))
+            return
+        }
+        builder
+            .setContentTitle(context.getString(R.string.link_download_notif_title_sign_in_needed))
+            .setContentText(context.getString(R.string.link_download_notif_text_sign_in_needed, result.host))
+            .addAction(buildSignInAction(result.originalUrl))
     }
 
     /**
@@ -488,11 +517,7 @@ class LinkDownloadWorker @AssistedInject constructor(
             .setProgress(0, 0, true)
             .addAction(buildCancelAction())
             .build()
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            ForegroundInfo(NOTIF_ID_PROGRESS, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-        } else {
-            ForegroundInfo(NOTIF_ID_PROGRESS, notification)
-        }
+        return DataSyncForeground.workerForegroundInfo(applicationContext, NOTIF_ID_PROGRESS, notification)
     }
 
     /**

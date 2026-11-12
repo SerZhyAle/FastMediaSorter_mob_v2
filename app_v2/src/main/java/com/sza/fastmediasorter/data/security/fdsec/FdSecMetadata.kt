@@ -76,7 +76,7 @@ class FdSecMetadata(
 
         /**
          * Returns null when the block cannot hold the fields it declares, or when the sealed name is
-         * not valid UTF-8 - a damaged container. Use [hasMalformedName] to tell the two apart.
+         * not valid UTF-8 or not in NFC - a damaged container. Use [hasMalformedName] to tell the two apart.
          */
         fun decode(block: ByteArray): FdSecMetadata? {
             if (block.size != FdSecFormat.METADATA_PLAINTEXT_SIZE) {
@@ -87,9 +87,10 @@ class FdSecMetadata(
         }
 
         /**
-         * True when the block's layout is sound but the sealed name bytes are not valid UTF-8, which
-         * FDSEC-FORMAT section 22 classes as damage in every suite. Kept apart from [decode] because
-         * a lossy decode would substitute U+FFFD and restore the file under a different name.
+         * True when the block's layout is sound but the sealed name is not valid UTF-8 (FDSEC-FORMAT
+         * section 22) or not in NFC (section 23), which the contract classes as damage in every suite.
+         * Kept apart from [decode] because a lossy decode would substitute U+FFFD, and a reader that
+         * normalised the name to open the container would restore the file under a different name.
          */
         fun hasMalformedName(block: ByteArray): Boolean {
             if (block.size != FdSecFormat.METADATA_PLAINTEXT_SIZE) {
@@ -108,7 +109,11 @@ class FdSecMetadata(
             return fixed + nameLength <= FdSecFormat.METADATA_PLAINTEXT_SIZE
         }
 
-        /** A legitimate U+FFFD (EF BF BD) decodes fine; only a malformed byte sequence yields null. */
+        /**
+         * A legitimate U+FFFD (EF BF BD) decodes fine; a malformed byte sequence yields null, and so
+         * does a name that is not in NFC - the writer normalises before sealing, so only a container
+         * from a writer outside the family reaches this branch.
+         */
         private fun strictName(block: ByteArray, nameLength: Int): String? =
             try {
                 Charsets.UTF_8.newDecoder()
@@ -116,6 +121,7 @@ class FdSecMetadata(
                     .onUnmappableCharacter(CodingErrorAction.REPORT)
                     .decode(ByteBuffer.wrap(block, NAME_LENGTH_FIELD_SIZE, nameLength))
                     .toString()
+                    .takeIf { Normalizer.isNormalized(it, Normalizer.Form.NFC) }
             } catch (ignored: CharacterCodingException) {
                 null
             }

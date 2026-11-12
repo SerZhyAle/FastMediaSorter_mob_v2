@@ -13,7 +13,14 @@ import com.sza.fastmediasorter.domain.model.ScheduledRunReason
 object ScheduledRunReasonText {
 
     @StringRes
-    fun of(reason: ScheduledRunReason?, outcome: ScheduledRunOutcome): Int = when (reason) {
+    fun of(reason: ScheduledRunReason?, outcome: ScheduledRunOutcome): Int = when {
+        reason != null -> textOf(reason)
+        outcome == ScheduledRunOutcome.SKIPPED -> R.string.scheduled_op_reason_skipped_other
+        else -> R.string.scheduled_op_reason_error_other
+    }
+
+    @StringRes
+    private fun textOf(reason: ScheduledRunReason): Int = when (reason) {
         ScheduledRunReason.SOURCE_UNREACHABLE -> R.string.scheduled_op_reason_source_unreachable
         ScheduledRunReason.TARGET_UNREACHABLE -> R.string.scheduled_op_reason_target_unreachable
         ScheduledRunReason.SOURCE_READ_ONLY -> R.string.scheduled_op_reason_source_read_only
@@ -28,10 +35,24 @@ object ScheduledRunReasonText {
         ScheduledRunReason.PERMISSION_REQUIRED -> R.string.scheduled_op_reason_permission_required
         ScheduledRunReason.SOURCE_DELETED -> R.string.scheduled_op_reason_source_deleted
         ScheduledRunReason.TARGET_DELETED -> R.string.scheduled_op_reason_target_deleted
-        null -> if (outcome == ScheduledRunOutcome.SKIPPED) {
-            R.string.scheduled_op_reason_skipped_other
-        } else {
-            R.string.scheduled_op_reason_error_other
-        }
+        ScheduledRunReason.FILL_BUSY,
+        ScheduledRunReason.FILL_NOT_LOCAL,
+        ScheduledRunReason.FILL_STORAGE_UNAVAILABLE,
+        ScheduledRunReason.FILL_MEASUREMENT_UNAVAILABLE,
+        ScheduledRunReason.FILL_NO_FREE_SPACE,
+        ScheduledRunReason.FILL_WRITE_FAILED,
+        ScheduledRunReason.FILL_CLEANUP_PENDING -> fillTextOf(reason)
+    }
+
+    // S4522: kept apart so neither mapping outgrows the complexity ceiling; each stays exhaustive.
+    @StringRes
+    private fun fillTextOf(reason: ScheduledRunReason): Int = when (reason) {
+        ScheduledRunReason.FILL_BUSY -> R.string.scheduled_op_reason_fill_busy
+        ScheduledRunReason.FILL_NOT_LOCAL -> R.string.scheduled_op_reason_fill_not_local
+        ScheduledRunReason.FILL_STORAGE_UNAVAILABLE -> R.string.scheduled_op_reason_fill_storage_unavailable
+        ScheduledRunReason.FILL_MEASUREMENT_UNAVAILABLE -> R.string.scheduled_op_reason_fill_measurement_unavailable
+        ScheduledRunReason.FILL_NO_FREE_SPACE -> R.string.scheduled_op_reason_fill_no_free_space
+        ScheduledRunReason.FILL_WRITE_FAILED -> R.string.scheduled_op_reason_fill_write_failed
+        else -> R.string.scheduled_op_reason_fill_cleanup_pending
     }
 }

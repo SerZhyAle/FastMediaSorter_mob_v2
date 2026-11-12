@@ -75,6 +75,36 @@ class StreamFacetFoldingTest {
     }
 
     @Test
+    fun `the ISO 639-2 table maps three-letter codes onto vocabulary languages without collisions`() {
+        val lines = codeLines(StreamFacetTables.ISO_639_2_TABLE)
+        val pairs = lines.map { it.substringBefore(' ') to it.substringAfter(' ') }
+        val codes3 = pairs.map { it.first }
+        val threeLetter = Regex("^[a-z]{3}$")
+        assertEquals("malformed three-letter code", emptyList<String>(), codes3.filterNot(threeLetter::matches))
+        assertEquals("duplicate three-letter code", codes3.size, codes3.toSet().size)
+        val unknown = pairs.map { it.second }.filter { it !in StreamFacetVocabulary.languageNamesByCode }
+        assertEquals("table points outside the vocabulary", emptyList<String>(), unknown)
+        val extension = codeLines(StreamFacetTables.ISO_639_3_EXTENSION_TABLE).map { it.substringBefore(' ') }
+        assertEquals("table repeats an extension code", emptySet<String>(), codes3.toSet() intersect extension.toSet())
+        val unreachable = StreamFacetVocabulary.languageNamesByCode.keys.filter { code ->
+            code !in RETIRED_COLLECTIVE_CODES && pairs.none { it.second == code }
+        }
+        assertEquals("a vocabulary language has no ISO 639-2 code", emptyList<String>(), unreachable)
+    }
+
+    private fun codeLines(table: String): List<String> =
+        table.lineSequence().map(String::trim).filter(String::isNotEmpty).toList()
+
+    @Test
+    fun `a three-letter code folds to the language it names and a collective code to nothing`() {
+        assertEquals("russian", StreamFacetFolding.foldLanguages("rus"))
+        assertEquals("german", StreamFacetFolding.foldLanguages("ger, deu"))
+        assertEquals("hawaiian", StreamFacetFolding.foldLanguages("haw"))
+        assertEquals("english", StreamFacetFolding.foldLanguages("mul"))
+        assertEquals("german", StreamFacetFolding.foldLanguages("mul, deu"))
+    }
+
+    @Test
     fun `every alias points at a vocabulary language`() {
         val canonical = StreamFacetVocabulary.canonicalLanguages
         val dangling = StreamFacetTables.LANGUAGE_ALIAS_TABLE.lineSequence()
@@ -109,6 +139,7 @@ class StreamFacetFoldingTest {
         val text = script!!.readText(Charsets.UTF_8).replace("\r\n", "\n")
         val pairs = mapOf(
             "FacetIso6391" to StreamFacetTables.ISO_639_1_TABLE,
+            "FacetIso6392" to StreamFacetTables.ISO_639_2_TABLE,
             "FacetIso6393Extension" to StreamFacetTables.ISO_639_3_EXTENSION_TABLE,
             "FacetLanguageAliases" to StreamFacetTables.LANGUAGE_ALIAS_TABLE,
             "FacetAssignedCountries" to StreamFacetTables.ASSIGNED_COUNTRY_TABLE,

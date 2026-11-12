@@ -33,7 +33,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -263,7 +262,6 @@ private class StreamWindowGadgetView(
             .putExtra(PlayerActivity.EXTRA_ENTER_PIP_ON_READY, enterPipOnReady)
         // The shared launcher task policy, not a bare NEW_TASK: alone, that flag joins the task holding
         // the last app screen, so Back from the player would unwind into it instead of the desktop.
-        Timber.d("S4428: stream window gadget starts its player through the shared task policy")
         executeCommand.startTarget(intent)
     }
 

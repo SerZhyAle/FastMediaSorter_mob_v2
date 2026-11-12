@@ -29,6 +29,7 @@ import com.sza.fastmediasorter.domain.usecase.DeleteDirectoriesUseCase
 import com.sza.fastmediasorter.domain.usecase.ExtractArchiveUseCase
 import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
+import com.sza.fastmediasorter.domain.usecase.GetDeadCompanionRecoveryChannelsUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.domain.usecase.GetMediaFilesUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
@@ -48,7 +49,10 @@ import javax.inject.Inject
 // satisfy (same precedent as ui/launcher/LauncherHomeDependencies.kt). One holder per BrowseViewModel
 // dependency group, so a dependency added later joins its group instead of the ViewModel constructor.
 
-/** Cloud/remote access - cloud clients, SMB operations and the remote-source availability gate. */
+/**
+ * Cloud/remote access - cloud clients, SMB operations, the remote-source availability gate and the
+ * companion recovery channels a connection error names.
+ */
 class BrowseRemoteAccessDependencies @Inject constructor(
     val smbClient: Lazy<SmbClient>,
     val smbOperationsUseCase: SmbOperationsUseCase,
@@ -56,6 +60,7 @@ class BrowseRemoteAccessDependencies @Inject constructor(
     val dropboxClient: Lazy<DropboxClient>,
     val oneDriveClient: Lazy<OneDriveRestClient>,
     val remoteSourceGate: RemoteSourceAvailabilityGate,
+    val getDeadCompanionRecoveryChannelsUseCase: GetDeadCompanionRecoveryChannelsUseCase,
 )
 
 /** Destructive cleanup operations - size-based delete, trash and orphaned-temp-file cleanup. */

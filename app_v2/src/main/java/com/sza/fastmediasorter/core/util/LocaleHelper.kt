@@ -35,6 +35,13 @@ object LocaleHelper {
     private const val RESTART_STATE_PREFS = "app_restart_state"
     private const val PREF_RETURN_TO_SETTINGS = "return_to_settings"
 
+    /**
+     * S4512: how long one [getLanguageForSnapshot] answer may serve later callers of the same snapshot. It
+     * only has to outlast the burst of collectors mapping one emission; it is also the ceiling on how stale
+     * an out-of-process language change can look to a caller that arrives with an unchanged snapshot.
+     */
+    private const val SNAPSHOT_MEMO_TTL_MS = 1_000L
+
     /** In-memory cache - avoids repeated SharedPreferences/LocaleManager reads per Activity creation. */
     @Volatile private var cachedLanguageCode: String? = null
 
@@ -46,6 +53,19 @@ object LocaleHelper {
     @Volatile private var lastLoggedAppliedLanguage: String? = null
 
     @Volatile private var lastLoggedS2936Language: String? = null
+
+    // S4512: the same displacement guard as above for the three "Read language from .." lines. A settings
+    // write fans out to every live collector of the settings flow, and each of them printed one of these.
+    @Volatile private var lastLoggedReadSource: String? = null
+
+    @Volatile private var lastLoggedReadLanguage: String? = null
+
+    // S4512: single-slot memo behind [getLanguageForSnapshot]; every field is guarded by snapshotMemoLock.
+    private val snapshotMemoLock = Any()
+    private var memoSnapshot: Any? = null
+    private var memoRevision = 0
+    private var memoReadAtMs = 0L
+    private var memoLanguage: String? = null
 
     private val languageRevisionState = MutableStateFlow(0)
 
@@ -195,7 +215,7 @@ object LocaleHelper {
                 val locales = localeManager?.applicationLocales
                 if (locales != null && !locales.isEmpty) {
                     val languageCode = resolveSupportedLanguageCode(locales[0].language)
-                    Timber.d("LocaleHelper: Read language from LocaleManager: $languageCode")
+                    logLanguageRead("LocaleManager", languageCode)
                     cachedLanguageCode = languageCode
                     return@allowDiskReads languageCode
                 }
@@ -206,7 +226,7 @@ object LocaleHelper {
 
         cachedLanguageCode?.let { cached ->
             if (!isFollowingSystemLanguageInternal(context)) {
-                Timber.d("LocaleHelper: Read language from cache: $cached")
+                logLanguageRead("cache", cached)
                 return@allowDiskReads cached
             }
         }
@@ -217,7 +237,7 @@ object LocaleHelper {
             val storedLanguageCode = prefs.getString(PREF_SELECTED_LANGUAGE, null)
             if (!isFollowSystemLanguage(storedLanguageCode)) {
                 val languageCode = resolveSupportedLanguageCode(storedLanguageCode)
-                Timber.d("LocaleHelper: Read language from SharedPreferences: $languageCode")
+                logLanguageRead("SharedPreferences", languageCode)
                 cachedLanguageCode = languageCode
                 return@allowDiskReads languageCode
             }
@@ -231,6 +251,45 @@ object LocaleHelper {
         }
         cachedLanguageCode = null
         return@allowDiskReads systemLanguage
+    }
+
+    /**
+     * S4512: [getLanguage] for a caller that runs once per settings emission - the `map` of
+     * `SettingsRepositoryImpl.getSettings()`, which every live collector of that cold flow executes for
+     * the same DataStore snapshot. Without this each of those runs was its own `LocaleManager` binder
+     * call, so one settings write cost one call per collector.
+     *
+     * [snapshot] is compared by identity: DataStore hands every collector the same object for one
+     * version, so collectors of one emission share the first reader's answer, and the next emission is a
+     * different object and reads again. The memo is also keyed by [languageRevision] (a save or reset
+     * must be seen at once) and expires after [SNAPSHOT_MEMO_TTL_MS], which is what keeps the S3092
+     * guarantee for a caller holding an unchanged snapshot: [getLanguage] itself is untouched and
+     * remains an unconditional fresh read.
+     */
+    fun getLanguageForSnapshot(snapshot: Any, context: Context): String {
+        val revision = languageRevisionState.value
+        synchronized(snapshotMemoLock) {
+            val now = SystemClock.elapsedRealtime()
+            memoizedLanguageOrNull(snapshot, revision, now)?.let { return it }
+            val language = getLanguage(context)
+            memoSnapshot = snapshot
+            memoRevision = revision
+            memoReadAtMs = now
+            memoLanguage = language
+            return language
+        }
+    }
+
+    /** The caller holds [snapshotMemoLock]. */
+    private fun memoizedLanguageOrNull(snapshot: Any, revision: Int, now: Long): String? = memoLanguage.takeIf {
+        memoSnapshot === snapshot && memoRevision == revision && now - memoReadAtMs < SNAPSHOT_MEMO_TTL_MS
+    }
+
+    private fun logLanguageRead(source: String, languageCode: String) {
+        if (source == lastLoggedReadSource && languageCode == lastLoggedReadLanguage) return
+        lastLoggedReadSource = source
+        lastLoggedReadLanguage = languageCode
+        Timber.d("LocaleHelper: Read language from $source: $languageCode")
     }
 
     /**

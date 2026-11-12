@@ -124,4 +124,17 @@
     <string name="scheduled_op_reason_source_deleted">La source a été supprimée, cette planification est donc en pause</string>
     <string name="scheduled_op_reason_target_deleted">La cible a été supprimée, cette planification est donc en pause</string>
     <string name="scheduled_ops_log_failed">Une erreur s\'est produite</string>
+    <string name="scheduled_ops_notif_stalled_title">L\'opération planifiée ne s\'exécute pas</string>
+    <string name="scheduled_ops_notif_stalled_text">%1$s - ignorée depuis %2$s. %3$s</string>
+    <string name="scheduled_ops_op_fill">Remplir l\'espace libre</string>
+    <string name="scheduled_ops_fill_confirm_title">Planifier le remplissage ?</string>
+    <string name="scheduled_ops_fill_confirm_message">Chaque exécution écrit des fichiers temporaires dans le dossier %1$s sur %2$s jusqu\'à ce qu\'il reste %3$s de libre, puis les supprime. Vos propres fichiers restent intacts.</string>
+    <string name="scheduled_ops_fill_not_usable">Le remplissage nécessite un dossier sur le stockage interne ou sur une carte mémoire accessible en écriture maintenant. Choisissez-le avec Dossier local.</string>
+    <string name="scheduled_op_reason_fill_busy">Le remplissage était déjà en cours</string>
+    <string name="scheduled_op_reason_fill_not_local">Le dossier ne se trouve sur aucun périphérique de stockage connecté de ce téléphone</string>
+    <string name="scheduled_op_reason_fill_storage_unavailable">Le stockage n\'était pas connecté ou pas accessible en écriture</string>
+    <string name="scheduled_op_reason_fill_measurement_unavailable">L\'espace libre n\'a pas pu être mesuré</string>
+    <string name="scheduled_op_reason_fill_no_free_space">Aucun espace libre au-delà de la part réservée au système</string>
+    <string name="scheduled_op_reason_fill_write_failed">L\'écriture s\'est arrêtée sur une erreur ; les fichiers temporaires ont été supprimés</string>
+    <string name="scheduled_op_reason_fill_cleanup_pending">Des fichiers temporaires subsistent. Connectez le stockage, ouvrez Remplissage du stockage et touchez Supprimer les fichiers restants</string>
 </resources>

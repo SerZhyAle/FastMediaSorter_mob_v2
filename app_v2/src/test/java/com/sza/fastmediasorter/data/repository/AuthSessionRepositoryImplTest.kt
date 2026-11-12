@@ -168,6 +168,85 @@ class AuthSessionRepositoryImplTest {
     }
 
     @Test
+    fun `listAccountsForHost finds a sibling subdomain account when the exact host is empty`() = runTest {
+        every { store.listAccounts("vm.tiktok.com") } returns emptyList()
+        every { store.listAllAccounts() } returns listOf("www.tiktok.com" to entry(accountId = "www-acc"))
+
+        val accounts = repo().listAccountsForHost("vm.tiktok.com")
+
+        assertEquals(listOf("www-acc"), accounts.map { it.accountId })
+        assertEquals("www.tiktok.com", accounts.single().host)
+    }
+
+    @Test
+    fun `listAccountsForHost merges accounts of every subdomain instead of the first sibling only`() = runTest {
+        every { store.listAccounts("vm.tiktok.com") } returns listOf(entry(accountId = "vm-acc"))
+        every { store.listAllAccounts() } returns listOf(
+            "vm.tiktok.com" to entry(accountId = "vm-acc"),
+            "www.tiktok.com" to entry(accountId = "www-acc"),
+            "tiktok.com" to entry(accountId = "root-acc"),
+        )
+
+        val accounts = repo().listAccountsForHost("vm.tiktok.com")
+
+        assertEquals(setOf("vm-acc", "www-acc", "root-acc"), accounts.map { it.accountId }.toSet())
+    }
+
+    @Test
+    fun `listAccountsForHost shows one row per accountId when a reused login lives under two hosts`() = runTest {
+        every { store.listAccounts("vm.tiktok.com") } returns listOf(entry(accountId = "same"))
+        every { store.listAllAccounts() } returns listOf(
+            "www.tiktok.com" to entry(accountId = "same", savedAt = Instant.ofEpochMilli(9000)),
+            "vm.tiktok.com" to entry(accountId = "same", savedAt = Instant.ofEpochMilli(1000)),
+        )
+
+        val accounts = repo().listAccountsForHost("vm.tiktok.com")
+
+        assertEquals(1, accounts.size)
+        assertEquals("vm.tiktok.com", accounts.single().host)
+    }
+
+    @Test
+    fun `listAccountsForHost ignores accounts of another registrable domain and empty cookie sets`() = runTest {
+        every { store.listAccounts("vm.tiktok.com") } returns emptyList()
+        every { store.listAllAccounts() } returns listOf(
+            "www.instagram.com" to entry(accountId = "other-site"),
+            "www.tiktok.com" to entry(accountId = "no-cookies", cookieCount = 0),
+            "www.tiktok.com" to entry(accountId = "dismissed", type = EncryptedCookieStore.TYPE_DISMISSED),
+        )
+
+        val accounts = repo().listAccountsForHost("vm.tiktok.com")
+
+        assertTrue(accounts.isEmpty())
+    }
+
+    @Test
+    fun `saveSessionFromWebView reuses a tiktok account through its sessionid identity`() = runTest {
+        val cookies = listOf(HttpCookie("sessionid", "abcdef123"))
+        every { store.findAccountIdByIdentity("vm.tiktok.com", "abcdef123") } returns "www-acc"
+
+        val id = repo().saveSessionFromWebView(
+            host = "vm.tiktok.com",
+            displayName = "d",
+            cookies = cookies,
+            userAgent = null,
+        )
+
+        assertEquals("www-acc", id)
+        coVerify { store.saveForAccount("vm.tiktok.com", "www-acc", "d", any(), null) }
+    }
+
+    @Test
+    fun `hasAnySession sees a login saved under a sibling subdomain`() = runTest {
+        every { store.listAccounts("vm.tiktok.com") } returns emptyList()
+        every { store.listAccounts("www.instagram.com") } returns emptyList()
+        every { store.listAllAccounts() } returns listOf("www.tiktok.com" to entry(accountId = "www-acc"))
+
+        assertTrue(repo().hasAnySession("vm.tiktok.com"))
+        assertFalse(repo().hasAnySession("www.instagram.com"))
+    }
+
+    @Test
     fun `hasAnySession reflects store account presence`() = runTest {
         every { store.listAccounts("h") } returns listOf(entry(accountId = "a"))
         every { store.listAccounts("empty") } returns emptyList()

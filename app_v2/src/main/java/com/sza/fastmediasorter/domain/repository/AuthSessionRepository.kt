@@ -27,8 +27,9 @@ interface AuthSessionRepository {
 
     /**
      * S0211: dedup-aware save. Computes identity from [cookies] for known platforms;
-     * if an existing account is found for (host, identity) → reuses its accountId.
-     * Otherwise generates a new UUID. Returns the accountId that was used, or `null`
+     * if an existing account is found for (registrable domain, identity) → reuses its accountId
+     * (S4549: a login saved on `www.` is found again from `vm.`). Otherwise generates a new UUID.
+     * Cookies are stored under the exact [host]. Returns the accountId that was used, or `null`
      * when the call was rejected (blank host or empty cookies).
      */
     suspend fun saveSessionFromWebView(
@@ -43,6 +44,11 @@ interface AuthSessionRepository {
     /** S0182: returns the User-Agent captured when the cookies were saved, or null. */
     suspend fun loadUserAgent(host: String, accountId: String): String?
 
+    /**
+     * S4549: every active account of the site [host] belongs to (registrable domain, so `vm.` and
+     * `www.` agree), one entry per accountId, plus a dismissed marker when [host] was dismissed.
+     * Each entry carries the host its cookies are stored under.
+     */
     suspend fun listAccountsForHost(host: String): List<AuthAccountDomain>
 
     suspend fun markLastUsed(host: String, accountId: String)

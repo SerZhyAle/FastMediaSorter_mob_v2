@@ -252,7 +252,10 @@ class WebViewAuthDialogFragment : DialogFragment() {
             return
         }
         val cookies = currentCookies()
-        if (cookies.isEmpty()) {
+        Timber.d("S4505: save pressed host=$targetHost cookieNames=${cookies.map { it.name }}")
+        // The Enter key reaches this path without going through the Save button, so the sign-in
+        // check is repeated here instead of trusting the button's enabled state.
+        if (!viewModel.hasSignedInCookies(targetHost, cookies)) {
             refreshSaveButtonState()
             view?.let {
                 Snackbar.make(it, R.string.s0140_webview_auth_sign_in_first, Snackbar.LENGTH_LONG).show()
@@ -330,8 +333,7 @@ class WebViewAuthDialogFragment : DialogFragment() {
     }
 
     private fun refreshSaveButtonState() {
-        val cookieCount = currentCookies().size
-        saveButton?.isEnabled = cookieCount > 0
+        saveButton?.isEnabled = viewModel.hasSignedInCookies(targetHost, currentCookies())
     }
 
     private fun currentCookies(): List<HttpCookie> {

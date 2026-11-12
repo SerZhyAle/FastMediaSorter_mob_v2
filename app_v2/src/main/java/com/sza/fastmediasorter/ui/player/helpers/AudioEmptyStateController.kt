@@ -313,7 +313,6 @@ class AudioEmptyStateController(
      * Works on API 16+. Falls back to no background (static note) when no clip is available or on any error.
      */
     private fun showVideo() {
-        Timber.d("S4425: showVideo attempt, canRecover=${recoveryPolicy.mayRecoverFromLifecycle()}")
         val file = deliveredSource.getRandomBackgroundFile()
         if (file == null) {
             videoActive = false
@@ -425,7 +424,6 @@ class AudioEmptyStateController(
                     // S0863: MediaPlayer.OnErrorListener contract - the object enters Error state and
                     // reset() must be called before reuse; releaseMediaPlayer() also clears isPrepared so
                     // the unguarded start() sites in onIsPlayingChanged/onResume never see a dead player.
-                    Timber.d("S4425: decorative video failed, static note shown, attempt invalidated")
                     releaseMediaPlayer()
                     videoActive = false
                     videoView.isVisible = false

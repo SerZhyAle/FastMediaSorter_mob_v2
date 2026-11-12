@@ -134,7 +134,7 @@ class GnssSectionViewModel @Inject constructor(
 
     fun onRecordTrackChanged(enabled: Boolean) {
         viewModelScope.launch {
-            settingsRepository.updateSettings { settings -> settings.copy(recordGnssTrack = enabled) }
+            settingsRepository.updateSettings { settings -> settings.withPrograms { copy(recordGnssTrack = enabled) } }
         }
     }
 

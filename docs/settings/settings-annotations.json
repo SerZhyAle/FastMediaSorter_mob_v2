@@ -1260,9 +1260,9 @@
     "uk": "Задає ціль дії свайпу вниз - програму, яку вона запускає, або адресу, яку відкриває. Рядок видно, лише поки призначена дія приймає ціль; натискання змінює ціль, а очистити її можна в діалозі адреси. Порожня ціль залишає запасну поведінку самої дії."
   },
   "rowLauncherDesktopSwipeLeft": {
-    "en": "Chooses a launcher swipe action from the same available actions as edge gestures. Selecting Open app or Open URL then asks for its target. By default no action is assigned, and on a multi-screen desktop an unassigned left or right swipe pages between screens. The list also carries the launcher's own routes - All apps, and the next and previous desktop screen.",
-    "ru": "Выбирает действие свайпа лаунчера из того же доступного набора, что и для жестов с края. При выборе «Открыть приложение» или «Открыть URL» затем задаётся цель. По умолчанию действие не назначено, а на многоэкранном рабочем столе незанятый свайп влево или вправо листает экраны. В списке есть и собственные маршруты лаунчера - «Все приложения», а также следующий и предыдущий экран рабочего стола.",
-    "uk": "Вибирає дію свайпу лаунчера з того самого доступного набору, що й для жестів з краю. Після вибору «Відкрити програму» або «Відкрити URL» задається ціль. Типово дію не призначено, а на багатоекранному робочому столі незайнятий свайп вліво або вправо гортає екрани. У списку є й власні маршрути лаунчера - «Усі програми», а також наступний і попередній екран робочого стола."
+    "en": "Chooses a launcher swipe action from the same available actions as edge gestures. Selecting Open app or Open URL then asks for its target. Shows Switch screens until an action is assigned. A left or right swipe always moves to the adjacent desktop screen first; the assigned action runs only on the last screen for a left swipe or the first screen for a right swipe, and at once on a single-screen desktop. The list also carries the launcher's own routes - All apps, and the next and previous desktop screen.",
+    "ru": "Выбирает действие свайпа лаунчера из того же доступного набора, что и для жестов с края. При выборе «Открыть приложение» или «Открыть URL» затем задаётся цель. Пока действие не назначено, показывает «Переключение экранов». Свайп влево или вправо сначала всегда листает к соседнему экрану рабочего стола; назначенное действие срабатывает только на последнем экране для свайпа влево или на первом для свайпа вправо, а на одноэкранном рабочем столе - сразу. В списке есть и собственные маршруты лаунчера - «Все приложения», а также следующий и предыдущий экран рабочего стола.",
+    "uk": "Вибирає дію свайпу лаунчера з того самого доступного набору, що й для жестів з краю. Після вибору «Відкрити програму» або «Відкрити URL» задається ціль. Поки дію не призначено, показує «Перемикання екранів». Свайп вліво або вправо спершу завжди гортає до сусіднього екрана робочого стола; призначена дія спрацьовує лише на останньому екрані для свайпу вліво або на першому для свайпу вправо, а на одноекранному робочому столі - одразу. У списку є й власні маршрути лаунчера - «Усі програми», а також наступний і попередній екран робочого стола."
   },
   "rowLauncherDesktopSwipeLeftTarget": {
     "en": "Sets the target of the leftward swipe's action - the app it launches or the web address it opens. Shown only while the assigned action takes a target; tap to change it, and clear it from the address dialog. An empty target keeps the action's own fallback.",
@@ -1270,9 +1270,9 @@
     "uk": "Задає ціль дії свайпу вліво - програму, яку вона запускає, або адресу, яку відкриває. Рядок видно, лише поки призначена дія приймає ціль; натискання змінює ціль, а очистити її можна в діалозі адреси. Порожня ціль залишає запасну поведінку самої дії."
   },
   "rowLauncherDesktopSwipeRight": {
-    "en": "Chooses a launcher swipe action from the same available actions as edge gestures. Selecting Open app or Open URL then asks for its target. By default no action is assigned, and on a multi-screen desktop an unassigned left or right swipe pages between screens. The list also carries the launcher's own routes - All apps, and the next and previous desktop screen.",
-    "ru": "Выбирает действие свайпа лаунчера из того же доступного набора, что и для жестов с края. При выборе «Открыть приложение» или «Открыть URL» затем задаётся цель. По умолчанию действие не назначено, а на многоэкранном рабочем столе незанятый свайп влево или вправо листает экраны. В списке есть и собственные маршруты лаунчера - «Все приложения», а также следующий и предыдущий экран рабочего стола.",
-    "uk": "Вибирає дію свайпу лаунчера з того самого доступного набору, що й для жестів з краю. Після вибору «Відкрити програму» або «Відкрити URL» задається ціль. Типово дію не призначено, а на багатоекранному робочому столі незайнятий свайп вліво або вправо гортає екрани. У списку є й власні маршрути лаунчера - «Усі програми», а також наступний і попередній екран робочого стола."
+    "en": "Chooses a launcher swipe action from the same available actions as edge gestures. Selecting Open app or Open URL then asks for its target. Shows Switch screens until an action is assigned. A left or right swipe always moves to the adjacent desktop screen first; the assigned action runs only on the last screen for a left swipe or the first screen for a right swipe, and at once on a single-screen desktop. The list also carries the launcher's own routes - All apps, and the next and previous desktop screen.",
+    "ru": "Выбирает действие свайпа лаунчера из того же доступного набора, что и для жестов с края. При выборе «Открыть приложение» или «Открыть URL» затем задаётся цель. Пока действие не назначено, показывает «Переключение экранов». Свайп влево или вправо сначала всегда листает к соседнему экрану рабочего стола; назначенное действие срабатывает только на последнем экране для свайпа влево или на первом для свайпа вправо, а на одноэкранном рабочем столе - сразу. В списке есть и собственные маршруты лаунчера - «Все приложения», а также следующий и предыдущий экран рабочего стола.",
+    "uk": "Вибирає дію свайпу лаунчера з того самого доступного набору, що й для жестів з краю. Після вибору «Відкрити програму» або «Відкрити URL» задається ціль. Поки дію не призначено, показує «Перемикання екранів». Свайп вліво або вправо спершу завжди гортає до сусіднього екрана робочого стола; призначена дія спрацьовує лише на останньому екрані для свайпу вліво або на першому для свайпу вправо, а на одноекранному робочому столі - одразу. У списку є й власні маршрути лаунчера - «Усі програми», а також наступний і попередній екран робочого стола."
   },
   "rowLauncherDesktopSwipeRightTarget": {
     "en": "Sets the target of the rightward swipe's action - the app it launches or the web address it opens. Shown only while the assigned action takes a target; tap to change it, and clear it from the address dialog. An empty target keeps the action's own fallback.",
@@ -1754,6 +1754,11 @@
     "ru": "Ограничивает предзагрузку миниатюр соединением по Wi-Fi, чтобы не расходовать мобильный трафик.",
     "uk": "Обмежує попереднє завантаження мініатюр з'єднанням по Wi-Fi, щоб не витрачати мобільний трафік."
   },
+  "rowTicketInbox": {
+    "en": "Sends a task with a voice note, screenshots and logs to the SZA ticket inbox on your Google Drive.",
+    "ru": "Отправляет задачу с голосовой заметкой, скриншотами и логами во входящие тикеты SZA на вашем Google Диске.",
+    "uk": "Надсилає задачу з голосовою заміткою, скриншотами й логами до вхідних тікетів SZA на вашому Google Диску."
+  },
   "rowWatchCameraStandby": {
     "en": "Arms the phone camera for the paired watch: turning it on starts a camera session while the app is on screen, so a request from the watch meets a stream that already exists and needs no tap on the phone. Available in the sideload build only, which is the one allowed to keep the camera on air after the app leaves the screen.",
     "ru": "Готовит камеру телефона для парных часов: при включении камера запускается, пока приложение на экране, и запрос с часов попадает в уже работающую трансляцию - касаться телефона не нужно. Доступно только в сайдлоад-сборке: лишь она удерживает камеру после ухода приложения с экрана.",
@@ -1813,6 +1818,11 @@
     "en": "Adds the SOS distress signal to the programs list: a loud Morse siren on the alarm channel, the rear flash and the screen strobing with it, and the same signal on the paired watch.",
     "ru": "Добавляет аварийный сигнал SOS в список программ: громкая сирена Морзе на канале будильника, задняя вспышка и мигающий вместе с ней экран, и такой же сигнал на парных часах.",
     "uk": "Додає аварійний сигнал SOS до списку програм: гучна сирена Морзе на каналі будильника, задній спалах і мигтючий разом із ним екран, і такий самий сигнал на парному годиннику."
+  },
+  "rowEnableFiller": {
+    "en": "Adds Storage filler to the programs list: it fills the free space of a chosen folder with temporary files and deletes them again. On by default. While files of an interrupted run remain, the program stays in the list until you delete them in it.",
+    "ru": "Добавляет заполнение накопителя в список программ: оно заполняет свободное место выбранной папки временными файлами и снова удаляет их. Включено по умолчанию. Если остались файлы прерванного запуска, программа остаётся в списке, пока вы не удалите их в ней.",
+    "uk": "Додає заповнення накопичувача до списку програм: воно заповнює вільне місце вибраної папки тимчасовими файлами й знову видаляє їх. Увімкнено за замовчуванням. Якщо залишилися файли перерваного запуску, програма залишається в списку, доки ви не видалите їх у ній."
   },
   "rowWaterFlashlight": {
     "en": "Adds the water flashlight to the programs list: the camera flash and the screen light together, and only a hardware button closes it.",
@@ -2058,7 +2068,8 @@
     "en": "Shows a pairing code with the address, login and host key fingerprint for another FastMediaSorter to scan.",
     "ru": "Показывает код для подключения с адресом, логином и отпечатком ключа сервера для сканирования в другом FastMediaSorter.",
     "uk": "Показує код для підключення з адресою, логіном і відбитком ключа сервера для сканування в іншому FastMediaSorter."
-  },  "btnSftpServerLegacyQr": {
+  },
+  "btnSftpServerLegacyQr": {
     "en": "Shows the pairing code without the exchange server part, for a FastMediaSorter too old to read the new code; it connects on the local network only.",
     "ru": "Показывает код подключения без данных сервера обмена - для FastMediaSorter, слишком старого для нового кода; такой код работает только в локальной сети.",
     "uk": "Показує код підключення без даних сервера обміну - для FastMediaSorter, надто старого для нового коду; такий код працює лише в локальній мережі."

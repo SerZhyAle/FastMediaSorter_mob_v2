@@ -127,4 +127,17 @@
     <string name="scheduled_op_reason_source_deleted">The source was deleted, so this schedule is paused</string>
     <string name="scheduled_op_reason_target_deleted">The target was deleted, so this schedule is paused</string>
     <string name="scheduled_ops_log_failed">Something went wrong</string>
+    <string name="scheduled_ops_notif_stalled_title">Scheduled operation is not running</string>
+    <string name="scheduled_ops_notif_stalled_text">%1$s - skipped since %2$s. %3$s</string>
+    <string name="scheduled_ops_op_fill">Fill free space</string>
+    <string name="scheduled_ops_fill_confirm_title">Schedule filling?</string>
+    <string name="scheduled_ops_fill_confirm_message">Each run writes temporary files to the folder %1$s on %2$s until %3$s stays free, then deletes them. Your own files stay as they are.</string>
+    <string name="scheduled_ops_fill_not_usable">Filling needs a folder on built-in storage or a memory card that can be written now. Choose it with Local Folder.</string>
+    <string name="scheduled_op_reason_fill_busy">Filling was already running</string>
+    <string name="scheduled_op_reason_fill_not_local">The folder is not on a connected storage device of this phone</string>
+    <string name="scheduled_op_reason_fill_storage_unavailable">The storage was not connected or not writable</string>
+    <string name="scheduled_op_reason_fill_measurement_unavailable">Free space could not be measured</string>
+    <string name="scheduled_op_reason_fill_no_free_space">No free space above the part kept for the system</string>
+    <string name="scheduled_op_reason_fill_write_failed">Writing stopped with an error; the temporary files were deleted</string>
+    <string name="scheduled_op_reason_fill_cleanup_pending">Temporary files remain. Connect the storage, open Storage filler and tap Delete remaining files</string>
 </resources>

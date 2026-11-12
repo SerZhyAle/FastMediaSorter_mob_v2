@@ -118,7 +118,8 @@ $benignPatterns = @(
     # cannot catch them.
     'Not starting debugger since process cannot load the jdwp agent',  # every debuggable process logs this
     'Failed to open rendernode',                                       # emulator has no host rendernode
-    'cr_AndroidProtocolHandler.*Unable to open asset URL'              # WebView probes first; the EPUB interceptor then serves the asset
+    # WebView probes first; the EPUB interceptor then serves the asset. The API 35 WebView drops the cr_ prefix.
+    '(cr_)?AndroidProtocolHandler.*Unable to open asset URL'
 ) -join '|'
 
 # S1700: the framework-emitted thumbnail-failure chain (mediaserver FrameDecoder ->
@@ -152,6 +153,13 @@ $guardedEmulatorDecoderTag = '^HeifDecoderImpl$'
 # S0484 sweep 2026-10-29: the same decoder also logs 'decode: videoFrame is a nullptr' (24 lines) for
 # the HEIC corpus files on a software-rendered API 35 image.
 $guardedEmulatorDecoder    = 'getSize: not supported|decode: videoFrame is a nullptr'
+# S0484 sweep 2026-11-10: a HEIF decode that HeifDecoderImpl just refused falls through to
+# MediaMetadataRetriever on the same thread, which then logs the thumbnail chain's
+# 'getFrameAtTime: videoFrame is a NULL pointer' (10 lines while listing an images-only folder). The
+# NetworkVideoFrameDecoder marker never accompanies it, so the chain is benign only for a pid/tid that
+# already logged a HeifDecoderImpl line in a software-rendered capture. Needs the threadtime tid column,
+# and the HEIF line first - the order the platform emits them in.
+$heifDecoderThreads = @{}
 
 # S4465: the emulator's SwiftShader renderer cannot match a requested swap, so the app's GL thread logs
 # one E line per frame (137 on the 2026-10-27 phone sweep), and WebView's first-run HTTP cache creation
@@ -287,7 +295,7 @@ function Get-ErrorStringPatterns([string]$resRoot) {
 $systemTagHint = '^(SurfaceFlinger|Bluetooth\w*|Battery\w*|Kernel\w*|libc|memtrack|gralloc|EGL_emulation|OMXNodeInstance|InputDispatcher|android\.os\.Debug|SELinux|cutils|audio_hw\w*|Parcel|app_process|chatty|linker\w*|Typeface|StrictMode|HwBinder|ProfileSaver|zygote\w*|SpellCheckerSession|ActivityManager|WindowManager|SurfaceControl)'
 
 # One parsed record per non-stack-trace E/(W) line.
-$lineRegexThreadtime = '^\s*\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d+\s+(?<pid>\d+)\s+\d+\s+(?<lvl>[EW])\s+(?<tag>\S+?)\s*:\s*(?<msg>.*)$'
+$lineRegexThreadtime = '^\s*\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d+\s+(?<pid>\d+)\s+(?<tid>\d+)\s+(?<lvl>[EW])\s+(?<tag>\S+?)\s*:\s*(?<msg>.*)$'
 $lineRegexTime       = '^\s*\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d+\s+(?<lvl>[EW])/(?<tag>[^(]+?)\(\s*(?<pid>\d+)\)\s*:\s*(?<msg>.*)$'
 
 $wantLevels = if ($IncludeWarnings) { @('E', 'W') } else { @('E') }
@@ -332,8 +340,14 @@ foreach ($raw in [System.IO.File]::ReadLines((Resolve-Path $LogFile))) {
         $toastHits += [pscustomobject]@{ tag = $tag; msg = $msg }
     }
 
+    $threadKey = if ($m.Groups['tid'].Success) { "$($m.Groups['pid'].Value)/$($m.Groups['tid'].Value)" } else { $null }
+    if ($softwareRenderedCapture -and $threadKey -and $tag -match $guardedEmulatorDecoderTag) {
+        $heifDecoderThreads[$threadKey] = $true
+    }
+
     $isBenign = (("$tag $msg") -match $benignPatterns) -or (Test-BenignPair $tag $msg) -or
                 ($thumbnailChainHandled -and $msg -match $guardedThumbnailChain) -or
+                ($threadKey -and $heifDecoderThreads.ContainsKey($threadKey) -and $msg -match $guardedThumbnailChain) -or
                 ($softwareRenderedCapture -and $tag -match $guardedEmulatorGpuNoiseTag -and
                  $msg -match $guardedEmulatorGpuNoise) -or
                 ($softwareRenderedCapture -and $tag -match $guardedEmulatorDecoderTag -and

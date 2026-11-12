@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.09.11 12:56</sub>
+<sub class="doc-stamp">26.10.30 11:35</sub>
 
 # Standard Production Release Readiness Gate
 
@@ -8,7 +8,7 @@ Canonical readiness contract for the **standard** Google Play production build (
 - **Flavor scope:** `standard` only (not vr / noLegal / lite / photos / legacy / foss / wear-only).
 - **Wear-only releases:** covered by `docs/RELEASE_READINESS_WEAR.md`, which is the watch module's own contract (S1984). This document is unchanged by it and continues to describe the phone build alone.
 - **Distribution target:** Google Play production.
-- **Platform baseline:** minSdk 26, targetSdk 36. Play enforces `App must target Android 16 (API level 36) or higher` since 2026-08-31, and `app_v2/build.gradle.kts` has met it since S1149 - this line said 35 until S2272 and told an operator the build targets exactly the level Play now rejects.
+- **Platform baseline:** minSdk 26, targetSdk 37 (S4502; wear 36, vr 34). Play enforces `App must target Android 16 (API level 36) or higher` since 2026-08-31. The first upload targeting 37 follows the filing of the Contacts, Location and Local Network declarations (`docs/PLAY_PUBLISHING_STATE.md`).
 - **Mechanical gate:** `scripts/release/standard-release-gate.ps1` folds the checks below into one PASS/FAIL/WAIVED verdict.
 
 Owner policy (S0553 §3.3, 2026-06-20):
@@ -76,9 +76,14 @@ Manual spot-checks on the release artifact for seams the launch smoke does not r
 
 `standard-release-smoke.ps1 -CheckSeams` statically asserts (no device): production Dropbox app key resolves for release, no debug `applicationIdSuffix` leaks into release (package stays `com.sza.fastmediasorter` so it matches production OAuth registrations), the debug Dropbox key never appears in release, and the MSAL (OneDrive) dependency is present. Manual operator check: release signing fingerprint matches the production OAuth / MSAL / Dropbox / AppAuth registrations and the Play upload key.
 
-### targetSdk 36 behavior checks
+### targetSdk 37 behavior checks
 
-The checks below were written against API 35 and are still correct at 36 - the platform restrictions they name are cumulative. What is **not** here yet is the set of behaviour deltas API 36 adds on top; that enumeration is outstanding, so treat this section as level-correct and not yet content-complete.
+The general checks below were written against API 35 and stay correct at 37 - the platform restrictions they name are cumulative. The first four are the Android 17 deltas that reach this app (S4502); each needs an Android 17 device or API 37 emulator:
+
+- Delivered native sets: an engine set installed before the update still plays or recognises - its `.so` files are read-only before `System.load`.
+- Inbound LAN servers: turning on the SFTP server without the local network grant shows the system request, and a refusal names the reason; a broadcast session asks for the grant at start.
+- Camera on a large screen: on a tablet (sw >= 600dp) the portrait lock is no longer honoured; preview, buttons and the saved photo stay correct in a landscape window.
+- Media-button restart: a headset button resumes playback after the app was closed.
 
 - Background work: WorkManager / foreground-service starts comply with Android 14/15/16 restrictions; declared foreground-service types are correct.
 - Permissions: photo/media access uses the selected-photos / granular media model; no legacy broad storage assumptions.

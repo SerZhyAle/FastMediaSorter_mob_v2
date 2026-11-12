@@ -20,11 +20,15 @@ import com.sza.fastmediasorter.domain.model.ExchangeEndpoint
 import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import com.sza.fastmediasorter.domain.model.ExchangeSealState
 import com.sza.fastmediasorter.domain.model.ExchangeServerCall
+import com.sza.fastmediasorter.domain.model.ExchangeSettingsGetResult
+import com.sza.fastmediasorter.domain.model.ExchangeSettingsSaveResult
 import com.sza.fastmediasorter.domain.model.IntakeTextDispatch
 import com.sza.fastmediasorter.domain.model.SftpRendezvousDevice
 import com.sza.fastmediasorter.domain.model.WatchExchangeHandoverOutcome
+import com.sza.fastmediasorter.domain.usecase.exchange.ApplyStandardSettingsUseCase
 import com.sza.fastmediasorter.domain.usecase.exchange.DiagnoseExchangeFailureUseCase
 import com.sza.fastmediasorter.domain.usecase.exchange.ManageExchangeAccountsUseCase
+import com.sza.fastmediasorter.domain.usecase.exchange.SaveStandardSettingsUseCase
 import com.sza.fastmediasorter.domain.usecase.intake.DispatchIntakeTextUseCase
 import com.sza.fastmediasorter.domain.usecase.sftpserver.ExchangeProducerLeave
 import com.sza.fastmediasorter.domain.usecase.sftpserver.ManageExchangeProducerUseCase
@@ -132,6 +136,8 @@ class MyDevicesViewModel @Inject constructor(
     private val connectWatchToEntry: ConnectWatchToExchangeEntryUseCase,
     private val diagnose: DiagnoseExchangeFailureUseCase,
     private val dispatchIntakeText: DispatchIntakeTextUseCase,
+    private val saveStandardSettingsUseCase: SaveStandardSettingsUseCase,
+    private val applyStandardSettingsUseCase: ApplyStandardSettingsUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -171,6 +177,18 @@ class MyDevicesViewModel @Inject constructor(
     fun connectionString(entry: DeviceExchangeAccountEntry): String? = accounts.connectionString(entry)
 
     fun announcedEndpoint(entry: DeviceExchangeAccountEntry): ExchangeEndpoint? = accounts.announcedEndpoint(entry)
+
+    /** S4536: Save as STANDARD - this device's [groups] go to [entry]'s server as the shared profile. */
+    suspend fun saveStandardSettings(
+        entry: DeviceExchangeAccountEntry,
+        groups: Set<String>,
+    ): ExchangeSettingsSaveResult = saveStandardSettingsUseCase(entry, groups)
+
+    /** S4536: Read STANDARD - [entry]'s server profile is applied to this device for [groups] only. */
+    suspend fun readStandardSettings(
+        entry: DeviceExchangeAccountEntry,
+        groups: Set<String>,
+    ): ExchangeSettingsGetResult = applyStandardSettingsUseCase(entry, groups)
 
     fun intakeText(text: String): ExchangeIntakeOutcome = when (val kind = dispatchIntakeText.dispatch(text)) {
         is IntakeTextDispatch.ExchangeString -> ExchangeIntakeOutcome.Filled(kind.value)

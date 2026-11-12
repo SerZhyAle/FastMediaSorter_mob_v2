@@ -84,7 +84,6 @@ object ResourceIconComposer {
     @DrawableRes
     private fun resolveThemeDrawable(resource: MediaResource): Int {
         predefinedGlyphFor(resource)?.let {
-            timber.log.Timber.d("S4477: predefined glyph res=$it path=${resource.path} stored=${resource.iconId}")
             return it
         }
 

@@ -26,6 +26,14 @@
     sibling archives into it. That is correct rather than noisy - it re-runs assert-archive-artefacts
     and nothing else.
 
+    S4498: every recorded group carries `since` - the time its CURRENT hash was first recorded. A
+    re-record keeps the previous `since` of a group whose hash did not move and stamps the new
+    recordedAt on one that did (or is new). assert-sweep-verdicts.ps1 reads it for the groups a
+    verdict judged (`verdictGroups` in the groups file): the re-record the sweep procedure orders
+    after a moved compare is always newer than the verdict, so recordedAt alone called every such
+    verdict stale although the tree it judged had not changed. A record from before S4498 has no
+    `since`; the reader then falls back to recordedAt.
+
 .PARAMETER Verb
     Record  - write the current fingerprint.
     Compare - compare the current tree against the recorded one and name every group that moved.
@@ -156,10 +164,30 @@ switch ($Verb) {
 
     'Record' {
         $map = Get-CurrentFingerprint
+        $recordedAt = (Get-Date).ToString('s')
+        $before = $null
+        if (Test-Path -LiteralPath $RecordPath) {
+            try { $before = Get-Content -LiteralPath $RecordPath -Raw -Encoding UTF8 | ConvertFrom-Json }
+            catch { $before = $null }
+        }
+        $beforeGroups = $null
+        if ($null -ne $before -and $before.PSObject.Properties.Name -contains 'groups' -and $null -ne $before.groups) {
+            $beforeGroups = $before.groups
+        }
+        foreach ($name in @($map.Keys)) {
+            $since = $recordedAt
+            if ($null -ne $beforeGroups -and $beforeGroups.PSObject.Properties.Name -contains $name -and
+                [string]$beforeGroups.$name.hash -eq [string]$map[$name].hash) {
+                $carried = if ($beforeGroups.$name.PSObject.Properties.Name -contains 'since') { $beforeGroups.$name.since } else { $before.recordedAt }
+                $since = Format-Stamp $carried
+                if (-not $since) { $since = $recordedAt }
+            }
+            $map[$name]['since'] = $since
+        }
         $record = [ordered]@{
             schema     = 1
             scope      = $Scope
-            recordedAt = (Get-Date).ToString('s')
+            recordedAt = $recordedAt
             groups     = $map
         }
         $dir = Split-Path -Parent $RecordPath

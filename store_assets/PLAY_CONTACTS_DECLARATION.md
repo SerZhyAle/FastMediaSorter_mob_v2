@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.02 14:53</sub>
+<sub class="doc-stamp">26.10.30 11:35</sub>
 
 # Play Console - Contacts Permission declaration (S4030)
 
@@ -24,7 +24,7 @@ The status of the declaration is recorded in `docs/PLAY_PUBLISHING_STATE.md`, in
 - Flavor: `standard` (the Play build). Package: `com.sza.fastmediasorter`.
 - `noLegal` is distributed outside Play and is out of scope; it keeps the permission whatever Play decides.
 - Enforcement: the policy applies to apps with targetSdk 37 or higher from 2027-01-27. The app is on
-  targetSdk 36, so nothing is blocked yet; the declaration is prepared ahead of the bump.
+  targetSdk 37 since S4502, so the first upload of that build follows the filing of this declaration.
 
 ---
 

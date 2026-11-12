@@ -11,6 +11,11 @@ import android.content.Intent
  */
 interface LauncherModeContract {
 
+    companion object {
+        const val ACTION_OPEN_ALL_APPS = "com.sza.fastmediasorter.launcher.action.OPEN_ALL_APPS"
+        const val WINDOW_ACTIVITY = "com.sza.fastmediasorter.ui.launcher.LauncherStartWindowActivity"
+    }
+
     /** True when this build compiles the launcher-mode surface (standard / noLegal). */
     val isAvailableInBuild: Boolean
 

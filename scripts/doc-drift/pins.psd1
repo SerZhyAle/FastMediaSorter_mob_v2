@@ -152,7 +152,7 @@
             name      = 'target-sdk'
             gradleKey = 'target-sdk'
             docs      = @{
-                'docs/TECH_STACK.md'       = @{ required = $true;  matcher = '`targetSdk`:\s*`?(?<v>\d+)`?\s+for both modules' }
+                'docs/TECH_STACK.md'       = @{ required = $true;  matcher = '`targetSdk`:\s*`?(?<v>\d+)`?\s+for the phone module' }
                 'dev/TECH_REQUIREMENTS.md' = @{ required = $true;  matcher = 'targetSdk\s*\|\s*(?<v>\d+)' }
                 'CLAUDE.md'                = @{ required = $false; matcher = $null }
             }

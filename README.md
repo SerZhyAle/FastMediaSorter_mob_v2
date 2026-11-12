@@ -82,23 +82,23 @@ FastMediaSorter is a complete shell for an Android device - home screen, media p
 
 > *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
 
-## What's New in v2.61.0292.144 (October 2026)
+## What's New in v2.61.1121.543 (November 2026)
+
+**New:**
+All apps in category groups and from anywhere, desktop swipes that turn the screen first, a map gadget that asks for approximate location only, battery and extended hardware details in System info, a storage filler with a scheduled run, settings exchange through a Media Exchange Server, an alert for stalled schedules, filing a ticket from the app, switched-off programs that stay off, more Tourist tiles, a framed battery bar on the watch face.
+
+**Fixed:**
+TikTok, Threads and signed-in Instagram downloads, web sign-in saving, PDF thumbnails, the surprise local network picker on Android 17, local network access prompts, the local folder picker crash, stream language codes, companion error messages, fewer freezes and crashes.
+
+[Full release notes →](docs/WHATS_NEW.md)
+
+## Previous Release: v2.61.0292.144 (October 2026)
 
 **New:**
 Broadcast links, QR codes and files ready before the broadcast starts, broadcasts that publish themselves to the exchange server, a broadcast password your way, viewers told an ended broadcast from a lost one, a landscape live picture, casts through every exchange server, scheduled messages to the watch, scheduled operations explained in plain words, gap-free network audio on the watch, one Google consent for Drive and the app folder, feature icons in screen titles, smarter channel list updates, background sync in the Play build.
 
 **Fixed:**
 Phone broadcasts to local-network listeners, broadcasts in Streams previous and next, scheduled operations over a deleted folder, early errors in the scheduled operation form, scroll buttons over row menus, launcher captions and gadget text, the file list header, watch stream failures, silent local-network addresses on the watch, watch grid labels and Streams toolbar on the round glass.
-
-[Full release notes →](docs/WHATS_NEW.md)
-
-## Previous Release: v2.61.0202.359 (October 2026)
-
-**New:**
-Exchange server accounts with end-to-end sealing and a shared clipboard, one resource across LAN, port forward and exchange tunnel, files via Google Drive between own phones, scheduled operations across devices, broadcasts of the phone screen and ready files, protected broadcasts, flashlight and bright frame, your broadcasts in Streams, in-app help on F1 and the ? button, player keyboard, collapse all in Settings, the watch on the exchange server.
-
-**Fixed:**
-Phone sharing start on Android 14 and later, read-only resources in scheduled operations, live broadcast audio-to-video switch, camera lenses after a switch, broadcasting files without sound, the full-screen exit button, Network Monitor crash, password length in diagnostic dumps, watch alerts and lists on the round glass.
 
 [Full release notes →](docs/WHATS_NEW.md)
 

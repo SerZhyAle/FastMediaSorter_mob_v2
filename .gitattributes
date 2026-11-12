@@ -44,3 +44,6 @@ app_v2/src/test/resources/user-playlist/*.m3u8 -text
 
 # Provenance hashes cover the catalog bytes, including their line endings.
 app_v2/src/test/resources/letterbox-fill/letterbox-fill-vectors.json binary
+
+# S4554: the INBOX-PACKET conformance vector is hashed byte for byte; never normalize it
+app_v2/src/test/resources/inbox-ticket-vector/** -text

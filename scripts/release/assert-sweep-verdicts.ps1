@@ -11,19 +11,25 @@
 
       - the file is missing or does not parse - exit 2;
       - pass is not true, or blocked is true - exit 1;
-      - the file was written BEFORE the matching scope's fingerprint record (recordedAt in
-        temp\RELEASE-FREEZE-FINGERPRINTS.json for the phone, temp\RELEASE-FREEZE-FINGERPRINTS-WEAR.json
-        for the watch) - the verdict is about an older tree than the one the sweep froze, exit 1.
-        A scope with no fingerprint record is "could not verify", exit 2.
+      - a group the verdict JUDGED changed after the file was written (S4498): the groups are
+        `verdictGroups` in scripts\quality\release-scope-fingerprint.groups.json (phone-src for the
+        phone, wear-src for the watch), their `since` stamp is in temp\RELEASE-FREEZE-FINGERPRINTS.json
+        (phone) or temp\RELEASE-FREEZE-FINGERPRINTS-WEAR.json (watch) - the verdict is about an older
+        tree than the one recorded, exit 1. A re-record that found those groups unchanged leaves
+        `since` alone, so the re-record the sweep procedure orders after a moved compare no longer
+        stales a verdict by itself; a moved group outside the judged ones (docs, scripts) is
+        re-gated by the procedure and does not stale it either. A record with no `since` for a judged
+        group (written before S4498) falls back to its recordedAt.
+        A scope with no fingerprint record, or no `verdictGroups` entry, is "could not verify", exit 2.
 
     -NoWear skips the watch verdicts for a release that ships no watch build, and is refused without
     -NoWearReason: an unexplained absence is exactly the silent drop this check exists to catch.
 
     Exit codes:
-      0 - every verdict exists, passed, is not blocked and is not older than its fingerprint
-      1 - a verdict FAILED, is BLOCKED, or is stale (older than its scope's fingerprint record)
-      2 - a verdict file or a fingerprint record is missing or unreadable, or the arguments are
-          unusable (no watch verdict without -NoWear, -NoWear without a reason)
+      0 - every verdict exists, passed, is not blocked and is not older than the groups it judged
+      1 - a verdict FAILED, is BLOCKED, or is stale (a group it judged changed after it was written)
+      2 - a verdict file, a fingerprint record or the verdictGroups map is missing or unreadable, or
+          the arguments are unusable (no watch verdict without -NoWear, -NoWear without a reason)
 
 .PARAMETER PhoneVerdict
     The phone sweep's verdict JSON (prerelease-verdict.ps1 -Json output, step 4 of /spec-prerelease).
@@ -39,8 +45,8 @@
     Why there is no watch verdict. Printed on the result line.
 
 .PARAMETER RepoRoot
-    Root the fingerprint records are read under (default: this repository). The contract suite
-    points it at a fixture tree.
+    Root the fingerprint records and the groups file are read under (default: this repository). The
+    contract suite points it at a fixture tree.
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/release/assert-sweep-verdicts.ps1 -PhoneVerdict temp/S0484/verdict_20261014.json -WearVerdicts temp/scratch/wear-prerelease-small-round/verdict.json,temp/scratch/wear-prerelease-large-round/verdict.json
@@ -73,18 +79,64 @@ if (-not $NoWear -and $wearList.Count -eq 0) {
     exit 2
 }
 
-function Get-RecordedAt {
+function ConvertTo-Stamp {
+    param($Value)
+    if ($Value -is [datetime]) { return $Value }
+    return [datetime]::Parse([string]$Value)
+}
+
+# The groups a scope's verdict judged. Held in the fingerprint's own groups file so the vocabulary
+# has one home; a missing map is "could not verify", never "judged nothing" (which would pass every
+# verdict whatever moved).
+function Get-JudgedGroups {
+    param([string]$Scope)
+    $path = Join-Path $RepoRoot 'scripts\quality\release-scope-fingerprint.groups.json'
+    if (-not (Test-Path -LiteralPath $path)) { return $null }
+    try {
+        $groups = Get-Content -LiteralPath $path -Raw -Encoding UTF8 | ConvertFrom-Json
+        if ($groups.PSObject.Properties.Name -notcontains 'verdictGroups') { return $null }
+        if ($groups.verdictGroups.PSObject.Properties.Name -notcontains $Scope) { return $null }
+        $list = @($groups.verdictGroups.$Scope)
+        if ($list.Count -eq 0) { return $null }
+        return $list
+    }
+    catch {
+        return $null
+    }
+}
+
+# When did the judged groups last change, as the scope's fingerprint record saw it? `since` is the
+# time a group's current hash was first recorded (S4498); the latest of the judged ones decides. A
+# record from before S4498 has no `since`, and recordedAt then stands in for it - the old reading.
+function Get-JudgedSince {
     param([string]$Scope)
     $name = if ($Scope -eq 'wear') { 'temp\RELEASE-FREEZE-FINGERPRINTS-WEAR.json' } else { 'temp\RELEASE-FREEZE-FINGERPRINTS.json' }
     $path = Join-Path $RepoRoot $name
-    if (-not (Test-Path -LiteralPath $path)) { return [pscustomobject]@{ Ok = $false; Path = $path; At = $null } }
+    $fail = [pscustomobject]@{ Ok = $false; Path = $path; At = $null; Group = $null; Reason = "the scope's record $path is missing or unreadable" }
+    if (-not (Test-Path -LiteralPath $path)) { return $fail }
+    $judged = Get-JudgedGroups -Scope $Scope
+    if ($null -eq $judged) {
+        $fail.Reason = "no verdictGroups entry for scope '$Scope' in scripts\quality\release-scope-fingerprint.groups.json"
+        return $fail
+    }
     try {
         $record = Get-Content -LiteralPath $path -Raw -Encoding UTF8 | ConvertFrom-Json
-        $at = if ($record.recordedAt -is [datetime]) { $record.recordedAt } else { [datetime]::Parse([string]$record.recordedAt) }
-        return [pscustomobject]@{ Ok = $true; Path = $path; At = $at }
+        $recordedAt = ConvertTo-Stamp $record.recordedAt
+        $latest = $null
+        $latestGroup = $null
+        foreach ($group in $judged) {
+            if ($record.groups.PSObject.Properties.Name -notcontains $group) {
+                $fail.Reason = "the scope's record $path carries no group '$group'"
+                return $fail
+            }
+            $entry = $record.groups.$group
+            $since = if ($entry.PSObject.Properties.Name -contains 'since') { ConvertTo-Stamp $entry.since } else { $recordedAt }
+            if ($null -eq $latest -or $since -gt $latest) { $latest = $since; $latestGroup = $group }
+        }
+        return [pscustomobject]@{ Ok = $true; Path = $path; At = $latest; Group = $latestGroup; Reason = $null }
     }
     catch {
-        return [pscustomobject]@{ Ok = $false; Path = $path; At = $null }
+        return $fail
     }
 }
 
@@ -112,9 +164,9 @@ foreach ($check in $checks) {
         $worst = [Math]::Max($worst, 2)
         continue
     }
-    $fingerprint = Get-RecordedAt -Scope $check.Scope
+    $fingerprint = Get-JudgedSince -Scope $check.Scope
     if (-not $fingerprint.Ok) {
-        Write-Host ("  {0,-5} NO-FINGERPRINT {1} - the scope's record {2} is missing or unreadable" -f $check.Scope, $path, $fingerprint.Path) -ForegroundColor Red
+        Write-Host ("  {0,-5} NO-FINGERPRINT {1} - {2}" -f $check.Scope, $path, $fingerprint.Reason) -ForegroundColor Red
         $worst = [Math]::Max($worst, 2)
         continue
     }
@@ -125,7 +177,7 @@ foreach ($check in $checks) {
               elseif (-not [bool]$verdict.pass) { 'FAIL' }
               else { 'PASS' }
     $colour = if ($result -eq 'PASS') { 'Green' } else { 'Red' }
-    $note = if ($result -eq 'STALE') { " - written before the fingerprint recorded at $($fingerprint.At.ToString('s'))" } else { '' }
+    $note = if ($result -eq 'STALE') { " - group $($fingerprint.Group) changed at $($fingerprint.At.ToString('s')), after the verdict was written" } else { '' }
     Write-Host ("  {0,-5} {1,-7} {2}  written {3}{4}" -f $check.Scope, $result, $path, $written, $note) -ForegroundColor $colour
     if ($result -ne 'PASS') { $worst = [Math]::Max($worst, 1) }
 }

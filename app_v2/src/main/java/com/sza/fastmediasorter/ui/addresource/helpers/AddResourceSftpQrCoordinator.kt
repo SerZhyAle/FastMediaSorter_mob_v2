@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.domain.model.SftpTunnelAddress
 import com.sza.fastmediasorter.domain.usecase.intake.DispatchIntakeTextUseCase
 import com.sza.fastmediasorter.ui.addresource.AddResourceActivity
 import com.sza.fastmediasorter.ui.exchange.ExchangeSignInActivity
+import timber.log.Timber
 
 /**
  * Turns a scanned embedded-server pairing code into a filled SFTP form ("Resources -> Add Resource ->
@@ -29,7 +30,9 @@ class AddResourceSftpQrCoordinator(
 
     /** True when [payload] was handled by this coordinator or opened an exchange flow. */
     fun handle(payload: String): Boolean {
-        return when (val dispatch = dispatchIntakeText.dispatch(payload)) {
+        val dispatch = dispatchIntakeText.dispatch(payload)
+        Timber.i("Add resource QR: code kind %s", kindOf(dispatch))
+        return when (dispatch) {
             is IntakeTextDispatch.ShareCode -> {
                 val pairing = dispatch.payload
                 rememberTunnel(SftpTunnelAddress.fromPairing(pairing))
@@ -57,6 +60,15 @@ class AddResourceSftpQrCoordinator(
                 }
             }
         }
+    }
+
+    // Literal names: a class name is minified in a release build, and remote logs come from those too.
+    private fun kindOf(dispatch: IntakeTextDispatch): String = when (dispatch) {
+        is IntakeTextDispatch.ShareCode -> "pairing"
+        is IntakeTextDispatch.ExchangeString -> "exchange"
+        is IntakeTextDispatch.NewerExchangeMajor -> "exchange-newer"
+        is IntakeTextDispatch.CompanionConfig -> "companion-config"
+        is IntakeTextDispatch.Unrecognized -> "unrecognized"
     }
 
     private fun apply(pairing: SftpPairingPayload) {

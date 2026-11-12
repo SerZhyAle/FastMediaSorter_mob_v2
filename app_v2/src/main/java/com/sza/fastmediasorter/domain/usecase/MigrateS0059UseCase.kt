@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -76,6 +77,7 @@ class MigrateS0059UseCase @Inject constructor(
                 displayOrder = maxOrder + 1,
                 isWritable = false,
                 scanSubdirectories = false,
+                sortMode = SortMode.DATE_DESC,
                 allFiles = true,
                 iconId = resolveResourceIconUseCase(
                     path = LocalMediaScanner.VIRTUAL_PATH_RECENT,

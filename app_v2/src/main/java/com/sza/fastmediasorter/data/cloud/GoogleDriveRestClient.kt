@@ -485,7 +485,7 @@ class GoogleDriveRestClient @Inject constructor(
                 parentFolderId = resolvedParentId,
                 fileSize = fileSize
             )
-            val json = com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveMultipartUploader.upload(
+            val json = com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveUploadRouter.upload(
                 DRIVE_UPLOAD_BASE, token, target, inputStream, progressCallback
             ) ?: return@withContext CloudResult.Error(context.getString(R.string.cloud_upload_failed))
             val parents = json.optJSONArray("parents")

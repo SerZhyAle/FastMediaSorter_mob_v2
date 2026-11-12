@@ -6,6 +6,8 @@ data class KnownAuthResource(
     val loginUrl: String,
     val previewOnlyMeansLogin: Boolean = false,
     val supportsEmbeddedJson: Boolean = false,
+    /** Cookies whose deletion by the server mid-download means the signed-in session was revoked (S4509). */
+    val sessionCookieNames: Set<String> = emptySet(),
 )
 
 object KnownAuthResources {
@@ -20,6 +22,7 @@ object KnownAuthResources {
             // `<script type="application/json" data-sjs>` payloads - the same `image_versions2`
             // schema used by Threads. Enables the embedded-JSON harvester on this host.
             supportsEmbeddedJson = true,
+            sessionCookieNames = setOf("sessionid"),
         ),
         KnownAuthResource(
             displayName = "Threads",
@@ -38,7 +41,15 @@ object KnownAuthResources {
             supportsEmbeddedJson = true,
         ),
         KnownAuthResource("Pinterest", "pinterest.com", "https://www.pinterest.com/login/"),
-        KnownAuthResource("TikTok", "tiktok.com", "https://www.tiktok.com/login", previewOnlyMeansLogin = true),
+        KnownAuthResource(
+            displayName = "TikTok",
+            host = "tiktok.com",
+            // S4549: the bare /login page hands sign-in to the TikTok app (tiktok://, snssdkotl1233://),
+            // which the auth webview must block, so `sessionid` never reached the jar and Save stayed
+            // off. The email/password form completes inside the webview; its tabs still reach phone login.
+            loginUrl = "https://www.tiktok.com/login/phone-or-email/email",
+            previewOnlyMeansLogin = true,
+        ),
         KnownAuthResource("X (Twitter)", "x.com", "https://x.com/login", previewOnlyMeansLogin = true),
         KnownAuthResource("DeviantArt", "deviantart.com", "https://www.deviantart.com/users/login"),
         KnownAuthResource("Reddit", "reddit.com", "https://www.reddit.com/login/"),

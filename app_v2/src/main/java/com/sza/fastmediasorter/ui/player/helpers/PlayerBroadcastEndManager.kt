@@ -74,7 +74,6 @@ class PlayerBroadcastEndManager @Inject constructor(
             removalWatch?.cancel()
             removalWatch = host.collectOnLifecycle(observeRemoval(id)) { removed ->
                 val readNow = hold.onDirectory(removed)
-                Timber.d("S4448: player directory removed=%s read now=%s", removed, readNow)
                 if (readNow) {
                     currentPath?.let { playing -> onStreamStopped(playing, BroadcastStopSignal.DirectoryRemoved) }
                 }
@@ -90,7 +89,6 @@ class PlayerBroadcastEndManager @Inject constructor(
         if (session == null || host == null) return false
         val signal = hold.atStop(stopSignal)
         Timber.i("PlayerBroadcastEndManager: broadcast stopped - %s (reported %s)", signal, stopSignal)
-        Timber.d("S4444: player broadcast stop %s", signal)
         pending?.cancel()
         pending = host.lifecycleScope.launch {
             when (val decision = handleStop(session, signal)) {
@@ -164,7 +162,6 @@ class PlayerBroadcastEndManager @Inject constructor(
     }
 
     private fun reconnectOnRequest(host: PlayerActivity, session: BroadcastPlaybackSession) {
-        Timber.d("S4444: player reconnect requested from the ended dialog")
         pending = host.lifecycleScope.launch {
             val url = handleStop.reconnect(session)
             if (url != null) play(host, session, url) else showEnded(host, session)

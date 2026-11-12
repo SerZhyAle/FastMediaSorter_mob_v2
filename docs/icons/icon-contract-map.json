@@ -19,6 +19,9 @@
   "glyphs": {
     "ic_page_previous": "media.previous",
     "ic_page_next": "media.next",
+    "ic_next_circle_red": "media.next",
+    "ic_next_circle_red_pressed": "media.next",
+    "ic_next_circle_selector": "media.next",
     "ic_copy_full_report": "action.copy",
     "ic_paste": "action.paste",
     "ic_draw_overlay": "feature.drawing",
@@ -60,6 +63,7 @@
     "ic_text_settings": "action.text-settings",
     "ic_quick_launch": "feature.quick-launch",
     "ic_replay": "action.retry",
+    "ic_behavior": "app.behavior",
     "wear:ic_app_calculator": "feature.calculator",
     "wear:ic_app_game": "feature.game",
     "wear:ic_tourist_counter": "action.add",

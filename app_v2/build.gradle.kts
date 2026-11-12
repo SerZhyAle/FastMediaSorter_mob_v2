@@ -534,10 +534,10 @@ android {
         applicationId = "com.sza.fastmediasorter"
         // Minimum supported Android 8.0 (API 26). Legacy flavor covers API 23-25.
         minSdk = 26
-        // targetSdk 36 stays one level behind compileSdk 37 on purpose (S2884): compileSdk is a
-        // compile-time ceiling only, targetSdk is the runtime-behaviour contract the Play mandate
-        // (S1149) governs. minSdk stays 26/23 - device reach unchanged.
-        targetSdk = 36
+        // targetSdk 37 (S4502) is the runtime-behaviour contract the Play mandate governs; the Android 17
+        // deltas it switches on are listed in docs/RELEASE_READINESS_STANDARD.md. The vr flavor keeps 34
+        // (Meta band) and the wear module keeps 36. minSdk stays 26/23 - device reach unchanged.
+        targetSdk = 37
         // Three sources in one order - passed property, in-build stamp when this invocation
         // packages, checked-in sentinel. See the block above the constants for why each exists.
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
@@ -900,7 +900,7 @@ android {
             //
             // This cannot be a BuildConfig gate (Rule 14): an SDK level is a build contract the
             // packager reads, not a runtime branch. It is also deliberately NOT a change to
-            // defaultConfig - targetSdk 36 there answers the Play mandate (S2884), and `vr` ships to no
+            // defaultConfig - targetSdk 37 there answers the Play mandate (S4502), and `vr` ships to no
             // Play track, so the two requirements do not collide and neither needs to win.
             //
             // minSdk 29, the BOTTOM of Meta's band, not the 32 it recommends. Meta publishes two

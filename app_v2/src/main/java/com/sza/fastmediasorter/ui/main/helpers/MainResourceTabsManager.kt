@@ -204,7 +204,6 @@ class MainResourceTabsManager(
     private fun fitTabLabels() {
         val strip = tabLayout.getChildAt(0) as? ViewGroup ?: return
         val floorPx = tabLayout.resources.getDimension(R.dimen.text_size_tiny)
-        timber.log.Timber.d("S4477: fit tab labels tabs=${strip.childCount} floorPx=$floorPx")
         for (i in 0 until strip.childCount) {
             (strip.getChildAt(i) as? ViewGroup)?.children
                 ?.filterIsInstance<TextView>()

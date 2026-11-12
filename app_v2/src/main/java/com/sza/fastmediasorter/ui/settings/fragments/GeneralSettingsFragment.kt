@@ -62,6 +62,7 @@ import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsResetHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsViewSetupHelper
 import com.sza.fastmediasorter.ui.settings.helpers.SftpServerSettingsPanelManager
 import com.sza.fastmediasorter.ui.settings.helpers.UnusedCredentialsHelper
+import com.sza.fastmediasorter.ui.settings.ticket.TicketComposerDialogFragment
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.utils.viewScoped
 import dagger.hilt.android.AndroidEntryPoint
@@ -347,6 +348,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         setupSavedAuthorizationsRow()
         setupDataTransferRow()
         setupCrossDeviceQueueRow()
+        setupTicketInboxRow()
         logHelper.setupVersionInfo()
         // S0200 Phase 06: bind the new Google Account card after the layout is inflated.
         // S1693: stays findViewById - the card is included TWICE in this layout (bare includes, no
@@ -455,7 +457,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
 
     // S3040: the pending-packet queue lives in the same App data card as the S1565 menu - the
     // strategic section 0 anchor "Settings -> Data / Cloud Transfer". Sending settings happens
-    // inside the queue dialog, so the card keeps exactly two entries.
+    // inside the queue dialog, so the queue needs no send row of its own on the card.
     private fun setupCrossDeviceQueueRow() {
         binding.rowCrossDevicePackets.isVisible = capabilityAvailability.isCloudAvailable()
         binding.rowCrossDevicePackets.setOnRowClickListener {
@@ -463,6 +465,14 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
                 parentFragmentManager,
                 CrossDevicePacketListDialogFragment.TAG
             )
+        }
+    }
+
+    // S4554: the third App data entry - a ticket filed into the SZA ticket inbox on the same Drive.
+    private fun setupTicketInboxRow() {
+        binding.rowTicketInbox.isVisible = capabilityAvailability.isCloudAvailable()
+        binding.rowTicketInbox.setOnRowClickListener {
+            TicketComposerDialogFragment().show(parentFragmentManager, TicketComposerDialogFragment.TAG)
         }
     }
 

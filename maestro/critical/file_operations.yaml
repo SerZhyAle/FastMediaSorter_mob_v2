@@ -1,4 +1,8 @@
 appId: com.sza.fastmediasorter.debug
+# prepared-device: needs the seeded test corpus and the all-files grants of the test phone (setup_test_media.ps1).
+# The CI emulator is a clean install, so .github/workflows/maestro-tests.yml excludes this tag.
+tags:
+  - prepared-device
 ---
 # Test: Copy and move files from Ops/src to Ops/dst (S0551 Phase 03).
 # Precondition: clean preparation exposes the standard "Загрузки" LOCAL resource and seeds

@@ -4,7 +4,7 @@
     Prints a queue runner's progress to its own console, live, from the agent chat progress stream.
 
 .DESCRIPTION
-    An unattended runner console (`.\a.ps1 r0`..`r3`) used to stay silent for the whole length of a
+    An unattended runner console (`.\a.ps1 r1`..`r3`) used to stay silent for the whole length of a
     ticket: the child is `claude -p`, which emits its one final line when the run ENDS, and
     .claude/runner/silent-mode.md forbids the child any narration before that. So a 30-60 minute
     pipeline looked identical to a hang.
@@ -63,7 +63,7 @@ Exit codes: 0 = watch ended normally (parent gone, -Once pass finished, or Ctrl+
 #>
 [CmdletBinding()]
 param(
-    # Show only agents carrying this FMS_QUEUE_INSTANCE stamp ('a', 'b', 'c', 'mono'). Empty = all.
+    # Show only agents carrying this FMS_QUEUE_INSTANCE stamp ('a', 'b', 'c'). Empty = all.
     [string] $Instance = '',
 
     # Seconds between passes. Short enough that the ticket title lands under the runner's header

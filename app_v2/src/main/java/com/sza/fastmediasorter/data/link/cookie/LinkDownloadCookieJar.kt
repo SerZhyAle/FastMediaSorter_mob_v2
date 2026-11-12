@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.core.util.httpOnlyCompat
 import okhttp3.Cookie
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
+import timber.log.Timber
 import java.net.HttpCookie
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -92,8 +93,40 @@ class LinkDownloadCookieJar @Inject constructor(
 
     private val domainMatches = ConcurrentHashMap<String, DomainMatch>()
 
+    /**
+     * Response cookies are never persisted - the encrypted store is written only by the explicit WebView
+     * auth flow. They are folded into the running download's in-memory session instead, because OkHttp
+     * re-reads [loadForRequest] on every redirect hop: a server that rotates a cookie and redirects to
+     * itself would otherwise get the stale value back until the follow-up limit trips (S4509).
+     */
     override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
-        // Cookies are persisted only via the explicit WebView auth flow.
+        if (cookies.isEmpty()) return
+        val now = System.currentTimeMillis()
+        val merged = context.mergeResponseCookies(url.host, cookies.mapNotNull { it.toHttpCookieOrNull(now) })
+        val names = LinkDownloadTrace.truncateCookies(cookies)
+        LinkDownloadTrace.verbose(
+            "link-download-cookie-jar save host=${url.host} $names added=${merged.added} " +
+                "replaced=${merged.replaced} deleted=${merged.deleted}",
+        )
+        Timber.d("S4509: jar save host=${url.host} deleted=${merged.deleted} replaced=${merged.replaced}")
     }
 
+    private fun Cookie.toHttpCookieOrNull(now: Long): HttpCookie? = try {
+        HttpCookie(name, value).also {
+            it.path = path
+            it.domain = if (hostOnly) null else domain
+            it.secure = secure
+            it.httpOnlyCompat = httpOnly
+            // A zero maxAge is how HttpCookie spells "delete this cookie" (Max-Age=0 or a past Expires).
+            it.maxAge = if (persistent) ((expiresAt - now) / MILLIS_PER_SECOND).coerceAtLeast(0L) else -1L
+        }
+    } catch (invalidName: IllegalArgumentException) {
+        // HttpCookie rejects names OkHttp parsed fine ($-prefixed, reserved attribute words); skip, not fatal.
+        LinkDownloadTrace.verbose("link-download-cookie-jar skip unrepresentable cookie ${invalidName.message}")
+        null
+    }
+
+    private companion object {
+        const val MILLIS_PER_SECOND = 1000L
+    }
 }

@@ -38,7 +38,6 @@ class DeferredStartupWorker @AssistedInject constructor(
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
-        Timber.d("S4423: deferred startup worker pass started")
         // S1323: no "clear-failed-video-cache" task here. VideoExtractionFailurePersistence exists
         // to survive restarts - it stamps every entry and expires it after seven days - and wiping
         // it on every launch made that storage dead weight: a video whose frame extraction timed

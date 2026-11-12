@@ -170,7 +170,6 @@ class ExchangeReceiverControlStreams @Inject constructor(
 
     private suspend fun serveRegistered(entry: DeviceExchangeAccountEntry, session: DeviceExchangeSession): Outcome =
         coroutineScope {
-            Timber.d("S4421: receive-only control stream welcomed for a non-outgoing entry")
             val lastHeard = AtomicLong(nowMs())
             val intervalMs = (session.welcome.keepaliveSeconds ?: KEEPALIVE_SECONDS).toLong() * MILLIS_PER_SECOND
             val keepalive = launch { keepalive(session, intervalMs, lastHeard) }

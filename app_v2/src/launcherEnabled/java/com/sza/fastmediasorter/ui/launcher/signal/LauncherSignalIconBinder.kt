@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.launcher.signal
 
 import android.content.Context
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.graphics.drawable.AdaptiveIconDrawable
@@ -10,6 +11,7 @@ import androidx.annotation.DrawableRes
 import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
 import timber.log.Timber
+import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -21,9 +23,23 @@ import java.util.concurrent.ConcurrentHashMap
  */
 internal object LauncherSignalIconBinder {
 
+    private const val ICON_CACHE_SIZE = 64
+    private const val ICON_CACHE_LOAD_FACTOR = 0.75f
+
     // S4090: a miss is logged once per package per process. Every strip re-render binds every chip again,
     // and a package the package manager cannot see used to log a full stack trace on each of them.
     private val reportedMisses = ConcurrentHashMap.newKeySet<String>()
+
+    // S4507: loading an application's icon reads its files, and a chip bind runs on the main thread - the
+    // strip re-binds every chip on every re-render. A constant state instantiates from memory alone, which is
+    // what keeps the bind off the disk once [warm] or an earlier bind has stored it. Bounded, because the set
+    // of applications that post notifications is not.
+    private val iconStates: MutableMap<String, Drawable.ConstantState> = Collections.synchronizedMap(
+        object : LinkedHashMap<String, Drawable.ConstantState>(ICON_CACHE_SIZE, ICON_CACHE_LOAD_FACTOR, true) {
+            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Drawable.ConstantState>): Boolean =
+                size > ICON_CACHE_SIZE
+        },
+    )
 
     /** What [resolve] decided a chip should draw. */
     sealed interface Resolved {
@@ -107,7 +123,7 @@ internal object LauncherSignalIconBinder {
         // straight from the application's own files.
         val info = icon.applicationInfo
         val drawable: Drawable? = if (info != null) {
-            context.packageManager.getApplicationIcon(info)
+            loadApplicationIcon(context, icon, info)
         } else {
             try {
                 context.packageManager.getApplicationIcon(icon.packageName)
@@ -123,5 +139,51 @@ internal object LauncherSignalIconBinder {
             }
         }
         return drawable?.let(Resolved::FromDrawable) ?: Resolved.FromResource(icon.fallbackRes)
+    }
+
+    /**
+     * S4507: loads the application's icon ahead of the bind, so the main-thread bind that follows finds it in
+     * memory. Meant for a background thread; the signal source calls it from its IO flow.
+     *
+     * @return whether an entry for the icon is cached afterwards. An icon without an install directory is never
+     * cached, see [cacheKey].
+     */
+    fun warm(context: Context, icon: LauncherSignalIcon): Boolean {
+        val application = icon as? LauncherSignalIcon.Application
+        val info = application?.applicationInfo
+        val key = application?.let(::cacheKey)
+        if (info == null || key == null) {
+            return false
+        }
+        return iconStates.containsKey(key) || remember(key, context.packageManager.getApplicationIcon(info))
+    }
+
+    private fun loadApplicationIcon(
+        context: Context,
+        icon: LauncherSignalIcon.Application,
+        info: ApplicationInfo,
+    ): Drawable {
+        val key = cacheKey(icon)
+        val cached = key?.let { iconStates[it] }?.newDrawable(context.resources)
+        if (cached != null) {
+            return cached
+        }
+        val loaded = context.packageManager.getApplicationIcon(info)
+        if (key != null) {
+            remember(key, loaded)
+        }
+        return loaded
+    }
+
+    // The install directory is in the key because an updated application installs to a new one, so it draws
+    // its new icon. A package known only by name has no such discriminator - an uninstall and a reinstall under
+    // one name would look the same - so it is never cached.
+    private fun cacheKey(icon: LauncherSignalIcon.Application): String? =
+        icon.applicationInfo?.sourceDir?.let { "${icon.packageName}|$it" }
+
+    private fun remember(key: String, drawable: Drawable): Boolean {
+        val state = drawable.constantState ?: return false
+        iconStates[key] = state
+        return true
     }
 }

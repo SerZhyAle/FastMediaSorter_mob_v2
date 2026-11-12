@@ -55,7 +55,6 @@ class MainWatchInstallOfferManager(
     fun offerIfNeeded() {
         activity.lifecycleScope.launch {
             val alreadyShown = withContext(ioDispatcher) { prefs.getBoolean(KEY_OFFER_SHOWN, false) }
-            Timber.d("S4484: watch offer flag read off the main thread, alreadyShown=$alreadyShown")
             if (alreadyShown) return@launch
             val offer = findOffer() ?: return@launch
             activity.withResumed {

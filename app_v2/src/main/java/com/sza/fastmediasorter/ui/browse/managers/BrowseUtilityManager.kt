@@ -5,7 +5,6 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.ui.browse.BrowseState
 import com.sza.fastmediasorter.util.VirtualPathUtils
-import timber.log.Timber
 
 /**
  * Utility functions for BrowseActivity UI string formatting.
@@ -23,20 +22,19 @@ class BrowseUtilityManager(
      */
     fun buildResourceInfo(state: BrowseState): String {
         val resource = state.resource ?: return ""
-        
+
         // Don't show loading in title when layoutProgress is visible (center of screen)
         // to avoid duplicate "Loading" text
         if (state.loadingProgress > 0) {
             return resource.name
         }
 
-        Timber.d("S4494: title strip selected=${state.selectedFiles.size} subfolder=${state.isSubfolderMode}")
         val selected = if (state.selectedFiles.isEmpty()) {
             ""
         } else {
             " • " + context.getString(R.string.browse_title_selected_count, state.selectedFiles.size)
         }
-        
+
         // Add file count if available
         val totalFileCount = state.totalFileCount
         val fileCount = when {
@@ -50,7 +48,7 @@ class BrowseUtilityManager(
             }
             else -> " (${context.getString(R.string.counting)})"
         }
-        
+
         val sortMode = when (state.sortMode) {
             SortMode.NAME_ASC -> context.getString(R.string.sort_by_name_asc)
             SortMode.NAME_DESC -> context.getString(R.string.sort_by_name_desc)
@@ -71,7 +69,7 @@ class BrowseUtilityManager(
             SortMode.MANUAL -> context.getString(R.string.sort_by_manual)
             SortMode.RANDOM -> context.getString(R.string.sort_by_random)
         }
-        
+
         // Show breadcrumb in subfolder mode, otherwise show normalized resource path
         val pathDisplay = state.currentPath?.takeIf { state.isSubfolderMode }?.let {
             buildBreadcrumb(state)
@@ -96,7 +94,6 @@ class BrowseUtilityManager(
     // S4483: a virtual collection ("virtual://all_audio") is an internal MediaStore scheme with no
     // location the user could open, so it gets the same empty segment.
     private fun buildRootPathDisplay(resourcePath: String, resourceName: String, isCloudResource: Boolean): String {
-        Timber.d("S4483: root path display for $resourceName virtual=${VirtualPathUtils.isVirtualPath(resourcePath)}")
         if (isCloudResource || VirtualPathUtils.isVirtualPath(resourcePath)) return ""
 
         val normalizedPath = resourcePath.trimEnd('/', '\\')
@@ -109,7 +106,7 @@ class BrowseUtilityManager(
             else -> resourcePath
         }
     }
-    
+
     /**
      * Builds a breadcrumb string for subfolder navigation.
      * Example: "Root > Photos > 2024"

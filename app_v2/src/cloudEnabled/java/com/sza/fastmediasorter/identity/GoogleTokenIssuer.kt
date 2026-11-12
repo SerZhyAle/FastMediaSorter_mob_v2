@@ -84,7 +84,6 @@ class GoogleTokenIssuer @Inject constructor(
             return@withLock TokenIssueResult.Success(cached)
         }
         if (consentRefusals.isRemembered(scopes)) {
-            Timber.d("S4487: consent refusal served from memory for scopes=$scopes")
             return@withLock TokenIssueResult.ConsentRequired
         }
         val scopeObjects = scopes.map { Scope(it.value) }

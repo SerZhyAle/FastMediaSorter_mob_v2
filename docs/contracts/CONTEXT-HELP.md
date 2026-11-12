@@ -5,7 +5,7 @@
 | | |
 | --- | --- |
 | **Id** | `CONTEXT-HELP` |
-| **Version** | 0.2, draft. Owner: shared |
+| **Version** | 0.3, draft. Owner: shared |
 | **Home** | `in-app-help/README.md` in the shared contracts catalog |
 | **Role here** | consumer - the phone app `app_v2`, adoption `partial` (first slice: Main, the four Settings tabs, Welcome); and the watch app `wear`, which meets rule 4 with a reasoned `none` row per route |
 

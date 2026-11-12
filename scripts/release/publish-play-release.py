@@ -20,8 +20,12 @@ Exit codes:
         --dry-run printed the plan.
     1 - the release is at fault: the AAB is missing, a non-default package has no notes file, or
         Play rejected the payload. That includes
-        the Foreground-service-permissions 403 on commit, which needs an owner action in the
-        Console and has to stay visible as a finding rather than as "could not verify".
+        the Foreground-service-permissions 403 on commit, which is a build defect - the standard
+        bundle gained a foreground-service type - fixed in the build (strip the type, re-version,
+        rebuild, republish) and has to stay visible as a finding rather than as "could not verify".
+
+After a successful commit the script prints one machine line, read by publish-play-release.ps1:
+    PLAY-COMMITTED versionCode=<n> package=<name> track=<track> status=<status> held=<0|1>
     2 - could not verify: a sustained transient failure (5xx, rate limit, network). The release is
         NOT implicated - re-run when the API recovers.
 """
@@ -50,9 +54,9 @@ API_NUM_RETRIES = 5
 
 # A failure carrying one of these is Google's or the network's, never the release's, so it maps onto
 # exit 2 - "could not verify" - instead of exit 1. Deliberately narrow, and the narrowness earns its
-# keep here more than for the listing: 403 on commit is the Foreground-service-permissions gate, the
-# one step of a release the owner must take by hand, and demoting it to "could not verify" would
-# hide the only thing that run is asking for.
+# keep here more than for the listing: 403 on commit is the Foreground-service-permissions gate, which
+# answers a foreground-service type the standard bundle must not carry, and demoting it to "could not
+# verify" would hide the build defect that run is reporting.
 TRANSIENT_STATUSES = frozenset((408, 429, 500, 502, 503, 504))
 
 
@@ -491,7 +495,13 @@ def main():
             print("Send it from the Console: Publishing overview -> Send changes for review.")
         else:
             print(f"SUCCESS: Edit transaction committed. AAB version {version_code} is now published on '{track_name}' track as '{status}'!")
-        
+        # Read by publish-play-release.ps1 to confirm the release's FGS snapshot (S4499); a held
+        # commit is not served yet, so the wrapper leaves the snapshot pending for it.
+        print(f"PLAY-COMMITTED versionCode={version_code} package={package_name} track={track_name} status={status} held={int(held)}")
+        if held and track_name == 'production' and package_name == PACKAGE_NAME:
+            print("FGS snapshot stays pending until the held changes are sent; then run "
+                  f"scripts/release/confirm-fgs-snapshot.ps1 -VersionCode {version_code}")
+
     except Exception as e:  # noqa: BLE001 - surface the API error and pick the honest exit code
         if _is_transient(e):
             print(f"\nCOULD NOT VERIFY: the Play API refused the request transiently: {e}")

@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.WearEventEnvelope
 import com.sza.fastmediasorter.domain.model.WearNode
 import com.sza.fastmediasorter.domain.model.WearStreamPinsPayload
+import com.sza.fastmediasorter.domain.model.programs.ProgramsSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
 import com.sza.fastmediasorter.domain.usecase.streams.ObservePinnedStreamSourcesUseCase
@@ -39,7 +40,8 @@ class PushWearStreamPinsUseCaseTest {
 
     @Before
     fun setUp() {
-        every { settingsRepository.getSettings() } returns flowOf(AppSettings(enableWearCompanion = true))
+        every { settingsRepository.getSettings() } returns
+            flowOf(AppSettings(programs = ProgramsSettings(enableWearCompanion = true)))
     }
 
     private fun useCase() = PushWearStreamPinsUseCase(wearRepository, gson, observePinned, settingsRepository)
@@ -123,7 +125,8 @@ class PushWearStreamPinsUseCaseTest {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `observeAndPush does nothing when enableWearCompanion is false`() = runTest {
-        every { settingsRepository.getSettings() } returns flowOf(AppSettings(enableWearCompanion = false))
+        every { settingsRepository.getSettings() } returns
+            flowOf(AppSettings(programs = ProgramsSettings(enableWearCompanion = false)))
         every { observePinned() } returns flowOf(listOf(source("a", "https://host.tv/one")))
 
         val job = useCase().observeAndPush(this)

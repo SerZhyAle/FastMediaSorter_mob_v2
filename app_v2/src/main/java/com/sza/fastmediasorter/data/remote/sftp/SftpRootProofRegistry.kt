@@ -26,11 +26,11 @@ import javax.inject.Singleton
 
 /**
  * Supplies the `pin-v1` proof (SHARE-SESSION 1.2, DEVICE-EXCHANGE 17 item AH) for every SFTP operation whose path
- * lies under the protected root of an attached exchange resource.
+ * lies under an exchange resource or a local resource whose PIN the server has accepted.
  *
  * About 40 places build [SftpClient.SftpConnectionInfo], so the proof is not threaded through them: [SftpClient]
  * asks here at its entry points, the way the host-key pin is filled in. A path decides the root, a stored PIN
- * decides whether that root is protected at all, so an unprotected resource costs one map lookup.
+ * decides whether that root is protected. A local PIN becomes eligible only after a root-specific proof succeeds.
  */
 @Singleton
 class SftpRootProofRegistry @Inject constructor(
@@ -43,6 +43,8 @@ class SftpRootProofRegistry @Inject constructor(
     internal data class Root(val name: String, val binding: ExchangeBinding)
 
     private val roots = MutableStateFlow<Map<String, List<Root>>?>(null)
+    private val localRoots = MutableStateFlow<Map<String, List<SftpRootProof>>>(emptyMap())
+    private val verifiedLocal = ConcurrentHashMap<String, SftpRootProof>()
     private val observing = AtomicBoolean(false)
 
     // The binding a proof was handed out for, by session key, so the outcome of that session names its owner.
@@ -82,11 +84,31 @@ class SftpRootProofRegistry @Inject constructor(
     /** A PIN just accepted for [binding] clears an earlier refusal. */
     fun clearRefusal(binding: ExchangeBinding) = refused.update { it - binding }
 
+    /** A local PIN is a candidate only for the resource root that just failed to list. */
+    suspend fun localCandidate(info: SftpClient.SftpConnectionInfo, path: String): SftpRootProof? {
+        if (info.rootProof != null) return null
+        val exchange = awaitRoots()[key(info.host, info.port)]
+        return if (exchange?.any { covers(it.name, path) } == true) {
+            null
+        } else {
+            localRoots.value[key(info.host, info.port)]?.firstOrNull { it.root == path.trim('/') }
+        }
+    }
+
+    /** Remember only a proof whose own session authenticated and could stat its root. */
+    fun rememberLocal(info: SftpClient.SftpConnectionInfo, proof: SftpRootProof) {
+        verifiedLocal[localKey(info, proof.root)] = proof
+    }
+
     private suspend fun proofFor(
         info: SftpClient.SftpConnectionInfo,
         remotePath: String,
         snapshot: Map<String, List<Root>>,
     ): SftpClient.SftpConnectionInfo {
+        val local = localRoots.value[key(info.host, info.port)]?.firstOrNull { covers(it.root, remotePath) }
+        if (local != null && verifiedLocal[localKey(info, local.root)] == local) {
+            return info.copy(rootProof = local)
+        }
         val root = snapshot[key(info.host, info.port)]?.firstOrNull { covers(it.name, remotePath) }
         val pin = root?.let { pins.pin(it.binding) }
         return if (root == null || pin == null) {
@@ -111,11 +133,34 @@ class SftpRootProofRegistry @Inject constructor(
                     Timber.e(e, "SFTP root proofs unavailable; protected roots will be refused")
                     roots.value = roots.value ?: emptyMap()
                 }
-                .collect { resources -> roots.value = buildRoots(resources) }
+                .collect { resources ->
+                    val local = buildLocalRoots(resources)
+                    val active = local.values.flatten().toSet()
+                    verifiedLocal.forEach { (key, proof) ->
+                        if (proof !in active) verifiedLocal.remove(key, proof)
+                    }
+                    localRoots.value = local
+                    roots.value = buildRoots(resources)
+                }
         }
     }
 
     internal companion object {
+        fun buildLocalRoots(resources: List<ResourceEntity>): Map<String, List<SftpRootProof>> {
+            val result = HashMap<String, MutableList<SftpRootProof>>()
+            resources.filter { it.type == ResourceType.SFTP && it.exchangeAccount == null }.forEach { entity ->
+                val pin = entity.accessPin?.takeIf { it.isNotBlank() } ?: return@forEach
+                val name = SftpPathUtils.parseSftpPath(entity.path)?.remotePath?.trim('/')
+                if (!name.isNullOrEmpty()) {
+                    val proof = SftpRootProof(name, pin)
+                    SftpHostKeyPinRegistry.addressesOf(entity).forEach { address ->
+                        result.getOrPut(address) { mutableListOf() } += proof
+                    }
+                }
+            }
+            return result
+        }
+
         /** Every address of every exchange-bound SFTP resource, mapped to the roots reachable through it. */
         fun buildRoots(resources: List<ResourceEntity>): Map<String, List<Root>> {
             val result = HashMap<String, MutableList<Root>>()
@@ -143,5 +188,8 @@ class SftpRootProofRegistry @Inject constructor(
 
         private fun sessionKey(info: SftpClient.SftpConnectionInfo, root: String) =
             key(info.host, info.port) + "|" + root
+
+        private fun localKey(info: SftpClient.SftpConnectionInfo, root: String) =
+            key(info.host, info.port) + "|" + info.username + "|" + root
     }
 }

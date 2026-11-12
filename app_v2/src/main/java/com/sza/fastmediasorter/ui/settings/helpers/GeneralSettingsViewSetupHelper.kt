@@ -80,7 +80,7 @@ class GeneralSettingsViewSetupHelper(
         setupAllFilesResourceButton()
         binding.rowEnableFavorites.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
-            viewModel.updateSettings { it.copy(enableFavorites = isChecked) }
+            viewModel.updateSettings { it.withPrograms { copy(enableFavorites = isChecked) } }
         }
         // S0473: opt-in statistics. Routed through a dedicated VM method (not updateSettings) so the
         // off-toggle also wipes detailed activity; the VM does the work off the UI thread.
@@ -175,7 +175,7 @@ class GeneralSettingsViewSetupHelper(
             if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             if (current.showProgramsPanelInMainWindow == isChecked) return@setOnCheckedChangeListener
-            viewModel.updateSettings { it.copy(showProgramsPanelInMainWindow = isChecked) }
+            viewModel.updateSettings { it.withPrograms { copy(showProgramsPanelInMainWindow = isChecked) } }
         }
         // S0911: main-window streams panel toggle (moved from Media > Streams).
         binding.rowShowStreamsPanel.setOnCheckedChangeListener { isChecked ->

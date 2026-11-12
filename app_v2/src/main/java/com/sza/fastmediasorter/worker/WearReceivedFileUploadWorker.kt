@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.worker
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.content.pm.ServiceInfo
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.hilt.work.HiltWorker
@@ -177,18 +176,11 @@ class WearReceivedFileUploadWorker @AssistedInject constructor(
             .setOngoing(true)
             .build()
 
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            ForegroundInfo(
-                NotificationIds.WEAR_RECEIVED_FILE_UPLOAD,
-                notification,
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
-            )
-        } else {
-            ForegroundInfo(
-                NotificationIds.WEAR_RECEIVED_FILE_UPLOAD,
-                notification
-            )
-        }
+        return DataSyncForeground.workerForegroundInfo(
+            applicationContext,
+            NotificationIds.WEAR_RECEIVED_FILE_UPLOAD,
+            notification,
+        )
     }
 
     private fun postTerminalNotification(title: String, message: String) {

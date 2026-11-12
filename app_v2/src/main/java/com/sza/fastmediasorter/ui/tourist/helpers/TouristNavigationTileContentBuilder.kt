@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.domain.model.sensors.SensorAccuracy
 import com.sza.fastmediasorter.domain.model.tourist.TouristDashboardState
 import com.sza.fastmediasorter.ui.tourist.helpers.TouristTileValueFormatter.Companion.NO_VALUE
 import com.sza.fastmediasorter.ui.tourist.helpers.TouristTileValueFormatter.TileValue
+import timber.log.Timber
 import java.util.Locale
 import kotlin.math.sqrt
 
@@ -143,19 +144,36 @@ class TouristNavigationTileContentBuilder(
 
     /** The interference warning is a sentence, never only a colour (strategic §3.2 accessibility). */
     fun magneticField(state: TouristDashboardState): TouristTileContent {
+        Timber.d("S4525: magneticField detail mbar pressure=%s", state.pressure.hectopascals)
         val field = state.environment.magneticMicrotesla
-        val detail = when {
-            field == null -> R.string.tourist_status_sensor_waiting
-            state.environment.magneticInterference -> R.string.tourist_detail_magnetic_interference
-            else -> R.string.tourist_detail_magnetic_normal
-        }
+        val sentence = string(
+            when {
+                field == null -> R.string.tourist_status_sensor_waiting
+                state.environment.magneticInterference -> R.string.tourist_detail_magnetic_interference
+                else -> R.string.tourist_detail_magnetic_normal
+            },
+        )
         return tileContent(
             context,
             R.drawable.ic_compass,
             R.string.tourist_tile_magnetic_field,
             formatter.microtesla(field),
-            string(detail),
+            withPressureDetail(sentence, state.pressure.hectopascals),
             R.color.tourist_tile_bg_group_environment,
+        )
+    }
+
+    /**
+     * S4525: realtime mbar rides the detail line next to the interference sentence when the
+     * state carries a barometer reading.
+     */
+    private fun withPressureDetail(sentence: String, hectopascals: Float?): String {
+        val pressure = formatter.millibars(hectopascals ?: return sentence)
+        return context.getString(
+            R.string.tourist_detail_magnetic_pressure,
+            sentence,
+            pressure.value,
+            pressure.unit,
         )
     }
 

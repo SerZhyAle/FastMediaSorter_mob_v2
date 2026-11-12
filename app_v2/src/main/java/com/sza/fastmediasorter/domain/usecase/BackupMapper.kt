@@ -196,7 +196,7 @@ object BackupMapper {
             type = backup.targetResourceType
         )
 
-        if (src == null || (opType != ScheduledOpType.DELETE && dst == null)) return null
+        if (src == null || (opType.usesTarget && dst == null)) return null
 
         return ScheduledOperation(
             id = 0,
@@ -483,10 +483,6 @@ object BackupMapper {
             preventSleep = backup.preventSleep,
             keepScreenOnPlayer = backup.keepScreenOnPlayer,
             showSmallControls = backup.showSmallControls,
-            embeddedGameEnabled = backup.embeddedGameEnabled,
-            frontFlashlightEnabled = backup.frontFlashlightEnabled,
-            frontFlashlightColor = backup.frontFlashlightColor,
-            waterFlashlightEnabled = backup.waterFlashlightEnabled,
             // S0406: restore global default network login from backup (was kept-from-current before).
             defaultUser = backup.defaultUser,
             defaultPassword = backup.defaultPassword,
@@ -580,7 +576,6 @@ object BackupMapper {
             overwriteOnMove = backup.overwriteOnMove,
             enableUndo = backup.enableUndo,
             maxRecipients = backup.maxRecipients,
-            enableFavorites = backup.enableFavorites,
             disableCameraCapture = backup.disableCameraCapture,
             skipCameraFilenameDialog = backup.skipCameraFilenameDialog,
             cameraCaptureOpenForEditing = backup.cameraCaptureOpenForEditing,
@@ -635,6 +630,13 @@ object BackupMapper {
                 ?.takeIf { it != StereoMode.AUTO && it != StereoMode.UNKNOWN }
                 ?: current.stereoDefaultProjection,
             launcher = restoreLauncherSettings(backup, current),
+            programs = current.programs.copy(
+                embeddedGameEnabled = backup.embeddedGameEnabled,
+                frontFlashlightEnabled = backup.frontFlashlightEnabled,
+                frontFlashlightColor = backup.frontFlashlightColor,
+                waterFlashlightEnabled = backup.waterFlashlightEnabled,
+                enableFavorites = backup.enableFavorites,
+            ),
         )
         // S2648: the eight grouped blocks apply on top of the flat copy above. A group the file does not
         // carry leaves its settings untouched, which is what lets a backup written before these groups

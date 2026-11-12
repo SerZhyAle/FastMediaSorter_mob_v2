@@ -6,6 +6,8 @@ import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
+import com.sza.fastmediasorter.domain.filler.FillerPendingCleanup
+import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.networkmonitor.NetworkMonitorContract
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -28,7 +30,9 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val mediaCapabilities: MediaCapabilities,
     private val networkMonitorContract: NetworkMonitorContract,
+    private val launcherModeContract: LauncherModeContract,
     private val screenVideoRecordingControllers: Set<@JvmSuppressWildcards ScreenVideoRecordingController>,
+    private val fillerPendingCleanup: FillerPendingCleanup,
 ) {
 
     /**
@@ -80,6 +84,8 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
     @Suppress("CyclomaticComplexMethod") // S2997: one when-branch per route; complexity tracks route count
     fun resolveOrNull(routeKey: String, settings: AppSettings): Availability? =
         when (routeKey) {
+            InternalRouteCatalog.KEY_ALL_APPS ->
+                Availability(availableInBuild = launcherModeContract.isAvailableInBuild, enabledAtRuntime = true)
             // S1103: the quick-access panel exists in every launcher build and has no runtime toggle.
             InternalRouteCatalog.KEY_APP_LAUNCH_PANEL ->
                 Availability(availableInBuild = true, enabledAtRuntime = true)
@@ -163,6 +169,7 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
                 Availability(availableInBuild = true, enabledAtRuntime = isMirrorEnabled(settings))
             else -> resolveLightRoute(routeKey, settings)
                 ?: resolveExchangeRoute(routeKey)
+                ?: resolveFillerRoute(routeKey, settings)
                 ?: resolveCaptureRoute(routeKey, settings)
         }
 
@@ -177,6 +184,21 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
             InternalRouteCatalog.KEY_CLIPBOARD_GET ->
                 Availability(availableInBuild = mediaCapabilities.supportsLocalNetworkSources, enabledAtRuntime = true)
             else -> null
+        }
+
+    /**
+     * S4521: the filler needs only a folder the user picks on the screen itself, so it is in every build.
+     * S4542: the switch gates it, except while the journal still lists files of an earlier run - the
+     * switch must never strand those files, and only this program's own screen deletes them.
+     */
+    private fun resolveFillerRoute(routeKey: String, settings: AppSettings): Availability? =
+        if (routeKey == InternalRouteCatalog.KEY_FILLER) {
+            Availability(
+                availableInBuild = true,
+                enabledAtRuntime = settings.enableFiller || fillerPendingCleanup.hasPending.value,
+            )
+        } else {
+            null
         }
 
     /**

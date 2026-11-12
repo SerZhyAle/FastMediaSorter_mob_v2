@@ -125,4 +125,17 @@
     <string name="scheduled_op_reason_source_deleted">L\'origine è stata eliminata, quindi questa pianificazione è in pausa</string>
     <string name="scheduled_op_reason_target_deleted">La destinazione è stata eliminata, quindi questa pianificazione è in pausa</string>
     <string name="scheduled_ops_log_failed">Qualcosa è andato storto</string>
+    <string name="scheduled_ops_notif_stalled_title">L\'operazione pianificata non è in esecuzione</string>
+    <string name="scheduled_ops_notif_stalled_text">%1$s - saltata da %2$s. %3$s</string>
+    <string name="scheduled_ops_op_fill">Riempi spazio libero</string>
+    <string name="scheduled_ops_fill_confirm_title">Pianificare il riempimento?</string>
+    <string name="scheduled_ops_fill_confirm_message">Ogni esecuzione scrive file temporanei nella cartella %1$s su %2$s finché restano liberi %3$s, poi li elimina. I tuoi file restano come sono.</string>
+    <string name="scheduled_ops_fill_not_usable">Il riempimento richiede una cartella nella memoria interna o su una scheda di memoria in cui sia possibile scrivere ora. Sceglila con Cartella locale.</string>
+    <string name="scheduled_op_reason_fill_busy">Il riempimento era già in corso</string>
+    <string name="scheduled_op_reason_fill_not_local">La cartella non si trova su un dispositivo di archiviazione collegato di questo telefono</string>
+    <string name="scheduled_op_reason_fill_storage_unavailable">La memoria non era collegata o non era scrivibile</string>
+    <string name="scheduled_op_reason_fill_measurement_unavailable">Non è stato possibile misurare lo spazio libero</string>
+    <string name="scheduled_op_reason_fill_no_free_space">Nessuno spazio libero oltre la parte riservata al sistema</string>
+    <string name="scheduled_op_reason_fill_write_failed">La scrittura si è interrotta con un errore; i file temporanei sono stati eliminati</string>
+    <string name="scheduled_op_reason_fill_cleanup_pending">Restano file temporanei. Collega la memoria, apri Riempimento memoria e tocca Elimina file rimanenti</string>
 </resources>

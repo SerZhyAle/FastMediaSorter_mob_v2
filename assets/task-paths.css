@@ -1,0 +1,90 @@
+/* ============================================================
+   Task-first onboarding paths (S4535)
+   Presents the three primary user intents before detailed scenarios.
+   Sequential on narrow screens, multi-column on tablet and desktop.
+   ============================================================ */
+
+.task-paths {
+    margin-bottom: clamp(2rem, 4vw, 3.5rem);
+}
+
+.task-paths-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .task-paths-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+    }
+}
+
+.task-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.task-card:hover,
+.task-card:focus-within {
+    border-color: var(--border-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.task-card-icon {
+    font-size: 1.75rem;
+    color: var(--acc);
+    margin-bottom: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+}
+
+.task-card-title {
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 0.25rem 0;
+}
+
+.task-card-profile {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 0 0 0.75rem 0;
+}
+
+.task-card-desc {
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: var(--text-2);
+    margin: 0 0 1.25rem 0;
+    flex-grow: 1;
+}
+
+.task-card-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--acc);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.task-card-link:hover,
+.task-card-link:focus {
+    color: var(--acc-strong);
+    text-decoration: underline;
+}

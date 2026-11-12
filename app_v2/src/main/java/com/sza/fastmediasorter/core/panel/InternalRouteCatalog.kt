@@ -6,6 +6,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.exchange.ExchangeClipboardActivity
+import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.wear.WatchListenLaunchActivity
 
 /**
@@ -31,6 +32,7 @@ object InternalRouteCatalog {
 
     // S1103: launch the quick-access panel overlay from a launcher cell.
     const val KEY_APP_LAUNCH_PANEL = "app_launch_panel"
+    const val KEY_ALL_APPS = "all_apps"
     const val KEY_CALCULATOR = "calculator"
 
     // S1411: a built-in stopwatch present wherever the calculator is present.
@@ -79,6 +81,7 @@ object InternalRouteCatalog {
     // S4226: the clipboard on the exchange server - two routes, one per direction, for the S2881 reason.
     const val KEY_CLIPBOARD_SEND = "exchange_clipboard_send"
     const val KEY_CLIPBOARD_GET = "exchange_clipboard_get"
+    const val KEY_FILLER = "storage_filler"
 
     // S0978: the camera/video gesture actions that already have a Context-generic trampoline, offered
     // as panel routes too (labels reused from the left-edge gesture picker so wording never drifts).
@@ -97,6 +100,12 @@ object InternalRouteCatalog {
     const val KEY_SCHEDULED_TASKS = "scheduled_tasks"
 
     private val routes: List<Route> = listOf(
+        Route(
+            key = KEY_ALL_APPS,
+            labelRes = R.string.launcher_action_all_apps,
+            iconRes = R.drawable.ic_apps,
+            intent = AppLaunchPanelRouteIntents::allApps,
+        ),
         Route(
             key = KEY_APP_LAUNCH_PANEL,
             labelRes = R.string.app_launch_panel_route_launch_panel,
@@ -189,6 +198,17 @@ object InternalRouteCatalog {
             labelRes = R.string.exchange_clipboard_get_label,
             iconRes = R.drawable.ic_clipboard_get_server,
             intent = { ExchangeClipboardActivity.createIntent(it, send = false) },
+        ),
+        Route(
+            key = KEY_FILLER,
+            labelRes = R.string.filler_title,
+            iconRes = R.drawable.ic_storage,
+            intent = AppLaunchPanelRouteIntents::filler,
+            // S4542: built inline because the route-intents object sits at its TooManyFunctions ceiling;
+            // NEW_TASK matches the panel flags, since a tile may fire from outside any activity task.
+            settingsIntent = {
+                SettingsActivity.openProgramsSectionIntent(it).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            },
         ),
         // S1736 §6.7, owner ruling 2026-09-05: this is the one pair where the menu's wording wins over
         // the route's - the route said "Photo OCR translate", which is jargon and worse Russian than the

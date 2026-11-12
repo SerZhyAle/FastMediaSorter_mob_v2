@@ -49,6 +49,8 @@ Set-Content -LiteralPath (Join-Path $fixture 'docs/GEN.md') -Value '# generated'
 
 $failures = 0
 function Reset-Fixture {
+    # `reset` first: an intent-to-add entry would otherwise make `checkout` rewrite the file it tracks.
+    & git -C $fixture reset -q *> $null
     & git -C $fixture checkout -q -- . *> $null
     & git -C $fixture clean -qfd *> $null
 }
@@ -149,6 +151,44 @@ Move-Item -LiteralPath $indexBackup -Destination $indexFile -Force
 if ($recordCode -eq 0 -and $recordOut -match 'fallback to HEAD') { Write-Host '  PASS  a failed snapshot announces the HEAD fallback' }
 else { Write-Host "  FAIL  a failed snapshot announces the HEAD fallback - exit $recordCode`: $($recordOut.Trim())"; $failures++ }
 Invoke-Case 'the judging run repeats the HEAD fallback' 0 @('-RepoRoot', $fixture, '-Id', 'S0004', '-Files', 'a.kt') 'baseline: fallback to HEAD'
+
+# S4520: a file that existed untracked when the baseline was taken is an edit, not a creation.
+function Write-Untracked([string]$File) {
+    Set-Content -LiteralPath (Join-Path $fixture $File) -Value "package x`n`nfun $([IO.Path]::GetFileNameWithoutExtension($File))() = 1" -Encoding utf8
+}
+function Save-Baseline([string]$Ticket) {
+    & $pwshExe -NoProfile -File $subject -RepoRoot $fixture -Id $Ticket -RecordBaseline *> $null
+}
+
+Write-Untracked 'u.kt'
+Save-Baseline 'S0005'
+Add-Line 'u.kt' 'fun mine() = 4'
+Invoke-Case 'an untracked file present at the baseline is not a new file' 0 @('-RepoRoot', $fixture, '-Id', 'S0005', '-Files', 'u.kt') 'PASS'
+
+# The S4513 shape: the closure registered the file intent-to-add before the gate ran.
+Write-Untracked 'u.kt'
+Save-Baseline 'S0006'
+Add-Line 'u.kt' 'fun mine() = 4'
+& git -C $fixture add -N u.kt *> $null
+Invoke-Case 'an intent-to-add file present at the baseline is not a new file' 0 @('-RepoRoot', $fixture, '-Id', 'S0006', '-Files', 'u.kt') 'PASS'
+
+Write-Untracked 'u.kt'
+Save-Baseline 'S0007'
+Add-Line 'u.kt' 'data class Mine(val id: Int)'
+Invoke-Case 'a type added to an untracked file after the baseline escalates' 1 @('-RepoRoot', $fixture, '-Id', 'S0007', '-Files', 'u.kt') 'adds'
+
+Write-Untracked 'u.kt'
+Save-Baseline 'S0008'
+Write-Untracked 'n.kt'
+Invoke-Case 'a file created after the baseline is still a new file' 1 @('-RepoRoot', $fixture, '-Id', 'S0008', '-Files', 'n.kt') 'n\.kt is a new file'
+
+Write-Untracked 'u.kt'
+Save-Baseline 'S0009'
+$stagedAfter = @(& git -C $fixture diff --cached --name-only)
+$stillUntracked = @(& git -C $fixture ls-files --others --exclude-standard)
+if ($stagedAfter.Count -eq 0 -and $stillUntracked -contains 'u.kt') { Write-Host '  PASS  the baseline leaves an untracked file untracked' }
+else { Write-Host "  FAIL  the baseline touched the real index: staged=[$($stagedAfter -join ', ')] untracked=[$($stillUntracked -join ', ')]"; $failures++ }
+Reset-Fixture
 
 Remove-Item -LiteralPath $fixture -Recurse -Force -ErrorAction SilentlyContinue
 

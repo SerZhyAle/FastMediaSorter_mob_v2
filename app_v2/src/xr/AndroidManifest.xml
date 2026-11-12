@@ -64,9 +64,6 @@
             <property
                 android:name="android.window.PROPERTY_XR_ACTIVITY_START_MODE"
                 android:value="XR_ACTIVITY_START_MODE_FULL_SPACE_UNMANAGED" />
-            <property
-                android:name="android.window.PROPERTY_COMPAT_ALLOW_RESTRICTED_RESIZABILITY"
-                android:value="true" />
         </activity>
         <activity
             android:name="com.sza.fastmediasorter.ui.xr.ImmersiveBrowseActivity"
@@ -80,9 +77,6 @@
             <property
                 android:name="android.window.PROPERTY_XR_ACTIVITY_START_MODE"
                 android:value="XR_ACTIVITY_START_MODE_FULL_SPACE_UNMANAGED" />
-            <property
-                android:name="android.window.PROPERTY_COMPAT_ALLOW_RESTRICTED_RESIZABILITY"
-                android:value="true" />
         </activity>
     </application>
 
