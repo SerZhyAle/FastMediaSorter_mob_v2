@@ -1,0 +1,5 @@
+• All apps in groups - collapsible category groups; set an app's categories from its long-press menu.
+• All apps from anywhere - from a gesture, the quick-launch panel or an app shortcut, even when another launcher is home.
+• Swipes turn the screen first - an assigned edge action runs only on the last or first launcher screen.
+• Map gadget asks less - current-position map gadgets request approximate location only.
+..
