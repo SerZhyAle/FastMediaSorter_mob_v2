@@ -208,7 +208,10 @@ foreach ($flavor in $spectrum.Keys) {
     if (-not $flavorVersion) {
         throw "${flavor}: no readable output-metadata.json in $dir - cannot tell which release $($apk.Name) belongs to. Rebuild the spectrum (scripts/release/build-release-spectrum.ps1)."
     }
-    if ($flavorVersion.VersionName -ne $version) {
+    # A flavor stamps its productFlavors versionNameSuffix (-VR, -Lite, -NoLegal..) after the shared
+    # release name, so the release part is what must match; a different release name stays refused.
+    $flavorReleaseName = $flavorVersion.VersionName -replace '-[A-Za-z]+$', ''
+    if ($flavorReleaseName -ne $version) {
         throw "$($apk.Name) ($flavor) carries versionName $($flavorVersion.VersionName), but this release is $version. Rebuild the spectrum (scripts/release/build-release-spectrum.ps1) before publishing."
     }
 
