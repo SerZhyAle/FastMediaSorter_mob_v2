@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.net.wifi.ScanResult
 import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
 import android.nfc.NfcManager
@@ -463,9 +464,9 @@ class PlatformDetailsCollector @Inject constructor(
         if (wm.is5GHzBandSupported) bands += "5 GHz"
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && wm.is6GHzBandSupported) bands += "6 GHz"
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            if (wm.isWifiStandardSupported(ScanResultWifiStandards.WIFI_STANDARD_11AX)) bands += "Wi-Fi 6"
+            if (wm.isWifiStandardSupported(ScanResult.WIFI_STANDARD_11AX)) bands += "Wi-Fi 6"
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                wm.isWifiStandardSupported(ScanResultWifiStandards.WIFI_STANDARD_11BE)
+                wm.isWifiStandardSupported(ScanResult.WIFI_STANDARD_11BE)
             ) {
                 bands += "Wi-Fi 7"
             }
@@ -636,11 +637,6 @@ class PlatformDetailsCollector @Inject constructor(
             Timber.w(e, "System info: failed to read platform field")
         }
         UNKNOWN
-    }
-
-    private object ScanResultWifiStandards {
-        const val WIFI_STANDARD_11AX = 6
-        const val WIFI_STANDARD_11BE = 8
     }
 
     private companion object {
