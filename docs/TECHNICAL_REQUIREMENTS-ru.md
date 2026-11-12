@@ -21,10 +21,10 @@ lang: ru
 
 | Модуль или редакция | minSdk | targetSdk | compileSdk |
 |---|---|---|---|
-| `standard / noLegal / lite / photos` | 26 | 36 | 37 |
-| `legacy / foss` | 23 | 36 | 37 |
+| `standard / noLegal / lite / photos` | 26 | 37 | 37 |
+| `legacy / foss` | 23 | 37 | 37 |
 | `vr` | 29 | 34 | 37 |
-| `xr` | 26 | 36 | 37 |
+| `xr` | 26 | 37 | 37 |
 | `wear: standard / noLegal` | 28 | 36 | 37 |
 | `watchface` | 36 | 36 | 36 |
 
