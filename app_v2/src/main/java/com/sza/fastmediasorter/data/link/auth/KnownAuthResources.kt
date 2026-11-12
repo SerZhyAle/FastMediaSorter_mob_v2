@@ -41,7 +41,15 @@ object KnownAuthResources {
             supportsEmbeddedJson = true,
         ),
         KnownAuthResource("Pinterest", "pinterest.com", "https://www.pinterest.com/login/"),
-        KnownAuthResource("TikTok", "tiktok.com", "https://www.tiktok.com/login", previewOnlyMeansLogin = true),
+        KnownAuthResource(
+            displayName = "TikTok",
+            host = "tiktok.com",
+            // S4549: the bare /login page hands sign-in to the TikTok app (tiktok://, snssdkotl1233://),
+            // which the auth webview must block, so `sessionid` never reached the jar and Save stayed
+            // off. The email/password form completes inside the webview; its tabs still reach phone login.
+            loginUrl = "https://www.tiktok.com/login/phone-or-email/email",
+            previewOnlyMeansLogin = true,
+        ),
         KnownAuthResource("X (Twitter)", "x.com", "https://x.com/login", previewOnlyMeansLogin = true),
         KnownAuthResource("DeviantArt", "deviantart.com", "https://www.deviantart.com/users/login"),
         KnownAuthResource("Reddit", "reddit.com", "https://www.reddit.com/login/"),

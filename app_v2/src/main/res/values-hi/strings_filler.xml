@@ -28,4 +28,6 @@
     <string name="filler_result_measurement_unavailable">खाली जगह मापी नहीं जा सकी। जाँचें कि स्टोरेज कनेक्ट है, फिर फ़ोल्डर दोबारा चुनें।</string>
     <string name="filler_result_insufficient_space">सिस्टम के लिए रखे गए हिस्से के ऊपर कोई खाली जगह नहीं है। जगह खाली करें या कोई दूसरा स्टोरेज डिवाइस चुनें।</string>
     <string name="filler_result_busy">भरना पहले से चल रहा है।</string>
+    <string name="filler_settings_toggle_subtitle">स्टोरेज डिवाइस की खाली जगह को अस्थायी फ़ाइलों से भरता है, फिर उन्हें हटा देता है</string>
+    <string name="filler_settings_toggle_subtitle_pending">पिछली बार की अस्थायी फ़ाइलें अभी भी स्टोरेज पर हैं। जब तक आप उन्हें इसी में से नहीं हटाते, प्रोग्राम सूची में बना रहता है।</string>
 </resources>

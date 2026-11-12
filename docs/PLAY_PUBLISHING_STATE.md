@@ -300,7 +300,7 @@ the only writer of this block and the only script that reads that API.
 
 <!-- s2272:measured:vitals:begin -->
 
-**Verdict:** `insufficient-data` - measured 2026-11-10 (UTC), window 2026-10-13..2026-11-09 America/Los_Angeles, source api. Rates as the API returns them, read as fraction (S2917 research 6).
+**Verdict:** `insufficient-data` - measured 2026-11-12 (UTC), window 2026-10-14..2026-11-10 America/Los_Angeles, source api. Rates as the API returns them, read as fraction (S2917 research 6).
 
 | Finding | Scope | Value | Band | Colour | Distinct users |
 |---------|-------|-------|------|--------|----------------|
@@ -332,6 +332,7 @@ Top error issues by distinct users (9):
   - `at android.os.Looper.loop (Looper.java:288)`
   - `at android.app.ActivityThread.main (ActivityThread.java:8010)`
   - `at java.lang.reflect.Method.invoke`
+- `CRASH` com.android.server.am.ActiveServices.setServiceForegroundInnerLocked at `android.os.RemoteException` - 2 users, 18 reports, last versionCode 261029214 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/c833ca20a5b60832aa73b7f3b1773204/details)
 - `APPLICATION_NOT_RESPONDING` [libhwui.so] android::uirenderer::ThreadBase::waitForWork at `Input dispatching timed out (No focused window)` - 1 users, 1 reports, last versionCode 261004154 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/15d37ad4d3fde22b5b29289813073bae/details)
   - `"main" tid=1 Native`
   - `#00  pc 0x000000000005da70  /apex/com.android.runtime/lib/bionic/libc.so (syscall+28)`
@@ -362,7 +363,7 @@ Top error issues by distinct users (9):
   - `at androidx.activity.ComponentActivity$activityResultRegistry$1.onLaunch (ComponentActivity.kt:223)`
   - `at androidx.activity.result.ActivityResultRegistry$register$2.launch (ActivityResultRegistry.kt:130)`
   - `at androidx.fragment.app.Fragment$10.launch (Fragment.java:3632)`
-- `CRASH` com.android.server.am.ActiveServices.setServiceForegroundInnerLocked at `android.os.RemoteException` - 1 users, 35 reports, last versionCode 261020235 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/b617f727a74914b7d454d84e7ba86fcd/details)
+- `CRASH` com.android.server.am.ActiveServices.setServiceForegroundInnerLocked at `android.os.RemoteException` - 1 users, 40 reports, last versionCode 261020235 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/b617f727a74914b7d454d84e7ba86fcd/details)
   - `Exception java.lang.RuntimeException:`
   - `at android.app.ActivityThread.handleServiceArgs (ActivityThread.java:4945)`
   - `at android.app.ActivityThread.-$$Nest$mhandleServiceArgs (ActivityThread.java)`
@@ -371,16 +372,6 @@ Top error issues by distinct users (9):
   - `at android.os.Looper.loopOnce (Looper.java:211)`
   - `at android.os.Looper.loop (Looper.java:300)`
   - `at android.app.ActivityThread.main (ActivityThread.java:8348)`
-  - `at java.lang.reflect.Method.invoke`
-- `CRASH` com.android.server.am.ActiveServices.setServiceForegroundInnerLocked at `android.os.RemoteException` - 1 users, 13 reports, last versionCode 261020235 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/c833ca20a5b60832aa73b7f3b1773204/details)
-  - `Exception java.lang.RuntimeException:`
-  - `at android.app.ActivityThread.handleServiceArgs (ActivityThread.java:4720)`
-  - `at android.app.ActivityThread.-$$Nest$mhandleServiceArgs (ActivityThread.java)`
-  - `at android.app.ActivityThread$H.handleMessage (ActivityThread.java:2192)`
-  - `at android.os.Handler.dispatchMessage (Handler.java:106)`
-  - `at android.os.Looper.loopOnce (Looper.java:201)`
-  - `at android.os.Looper.loop (Looper.java:288)`
-  - `at android.app.ActivityThread.main (ActivityThread.java:8010)`
   - `at java.lang.reflect.Method.invoke`
 - `CRASH` com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearSettingsMirrorStore$Companion$STAMP_MAP_TYPE$1.<init> at `java.lang.RuntimeException` - 1 users, 1 reports, last versionCode 260902195 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/daf4cfa06fbe2ac60ec520ebecc05e00/details)
   - `Exception java.lang.ExceptionInInitializerError:`

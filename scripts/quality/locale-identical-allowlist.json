@@ -1884,10 +1884,70 @@
   "sysinfo_field_abis",
   "sysinfo_field_android_version",
   "sysinfo_field_app_version",
+  {
+    "key": "sysinfo_field_baseband",
+    "locales": [
+      "ar",
+      "de",
+      "fr",
+      "it",
+      "ur"
+    ]
+  },
   "sysinfo_field_battery_status",
+  {
+    "key": "sysinfo_field_bench_cpu_multi",
+    "locales": [
+      "it"
+    ]
+  },
+  {
+    "key": "sysinfo_field_bench_cpu_single",
+    "locales": [
+      "it",
+      "pt"
+    ]
+  },
+  {
+    "key": "sysinfo_field_board",
+    "locales": [
+      "de",
+      "it"
+    ]
+  },
   "sysinfo_field_build",
   "sysinfo_field_camera_active_array",
+  {
+    "key": "sysinfo_field_camera_capabilities",
+    "locales": [
+      "ar",
+      "ur"
+    ]
+  },
+  {
+    "key": "sysinfo_field_camera_flash",
+    "locales": [
+      "es",
+      "fr",
+      "it",
+      "pt"
+    ]
+  },
   "sysinfo_field_display_count",
+  {
+    "key": "sysinfo_field_drm_widevine",
+    "locales": [
+      "ar",
+      "bn",
+      "es",
+      "hi",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   {
     "key": "sysinfo_field_fingerprint",
     "locales": [
@@ -1904,14 +1964,125 @@
     ]
   },
   "sysinfo_field_gles",
+  {
+    "key": "sysinfo_field_hardware_name",
+    "locales": [
+      "de",
+      "es",
+      "it",
+      "pt"
+    ]
+  },
   "sysinfo_field_hdr",
+  {
+    "key": "sysinfo_field_jvm_version",
+    "locales": [
+      "ar",
+      "bn",
+      "hi",
+      "it",
+      "ur"
+    ]
+  },
   "sysinfo_field_kernel",
+  {
+    "key": "sysinfo_field_native_heap",
+    "locales": [
+      "ar",
+      "ur"
+    ]
+  },
+  {
+    "key": "sysinfo_field_net_bt_nfc",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur"
+    ]
+  },
   "sysinfo_field_net_transport",
   "sysinfo_field_net_vpn",
   "sysinfo_field_orientation",
+  {
+    "key": "sysinfo_field_os_codename",
+    "locales": [
+      "de"
+    ]
+  },
+  {
+    "key": "sysinfo_field_package_name",
+    "locales": [
+      "fr"
+    ]
+  },
+  {
+    "key": "sysinfo_field_sdk_target_min",
+    "locales": [
+      "ru",
+      "uk"
+    ]
+  },
+  {
+    "key": "sysinfo_field_sku",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "sysinfo_field_soc",
   "sysinfo_field_storage_total",
+  {
+    "key": "sysinfo_field_swap_zram",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur"
+    ]
+  },
   "sysinfo_field_user_name",
+  {
+    "key": "sysinfo_field_vulkan",
+    "locales": [
+      "ar",
+      "bn",
+      "de",
+      "es",
+      "fr",
+      "hi",
+      "it",
+      "pt",
+      "ru",
+      "uk",
+      "ur",
+      "zh-Hans"
+    ]
+  },
   "sysinfo_section_app",
   "sysinfo_section_benchmark",
   "sysinfo_section_display",

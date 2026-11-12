@@ -16,7 +16,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/margin_small"
             android:text="@string/ticket_inbox_row_title"
-            android:textSize="@dimen/text_size_title_dialog"
+            android:textAppearance="@style/TextAppearance.FastMediaSorter.Dialog.Title"
             android:textStyle="bold" />
 
         <include

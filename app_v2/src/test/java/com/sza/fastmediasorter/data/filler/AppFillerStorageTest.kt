@@ -5,7 +5,11 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.job
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -23,6 +27,7 @@ import java.io.File
 class AppFillerStorageTest {
     private val context = RuntimeEnvironment.getApplication()
     private val volumes = mockk<StorageVolumeSource>()
+    private val journalScope = CoroutineScope(Dispatchers.Unconfined)
     private lateinit var journal: FillerSessionJournal
     private lateinit var storage: AppFillerStorage
 
@@ -66,5 +71,8 @@ class AppFillerStorageTest {
         assertTrue(journal.pendingSessions().isEmpty())
     }
 
-    private fun journalOf() = FillerSessionJournal(context, CoroutineScope(Dispatchers.Unconfined))
+    @After
+    fun tearDown() = runBlocking { journalScope.coroutineContext.job.cancelAndJoin() }
+
+    private fun journalOf() = FillerSessionJournal(context, journalScope)
 }

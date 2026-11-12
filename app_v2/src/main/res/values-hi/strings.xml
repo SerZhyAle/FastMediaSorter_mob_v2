@@ -4126,7 +4126,7 @@
     <string name="launcher_app_category_dialog_title">%1$s के लिए श्रेणियाँ</string>
     <string name="launcher_app_category_new">नई श्रेणी..</string>
     <string name="launcher_app_category_new_hint">श्रेणी का नाम</string>
-    <string name="launcher_app_category_unknown">अज्ञात</string>
+    <string name="launcher_app_category_unknown">अन्य</string>
     <string name="launcher_app_category_save_failed">श्रेणियाँ सहेजी नहीं जा सकीं। फिर से कोशिश करें।</string>
     <string name="launcher_app_category_reorder_title">%1$s को ले जाया जा रहा है</string>
     <string name="launcher_app_category_move_up">ऊपर ले जाएँ</string>
@@ -4142,4 +4142,5 @@
     <string name="launcher_app_category_productivity">उत्पादकता</string>
     <string name="launcher_app_category_accessibility">सुलभता</string>
     <string name="exchange_devices_menu_standard_settings">मानक सेटिंग्स</string>
+    <string name="program_guard_disabled_toast">%1$s बंद है। इसे सेटिंग में चालू करें।</string>
 </resources>

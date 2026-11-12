@@ -3,9 +3,9 @@ package com.sza.fastmediasorter.ui.settings.ticket.helpers
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.provider.OpenableColumns
 import com.sza.fastmediasorter.domain.model.ticket.TicketAttachmentRole
 import com.sza.fastmediasorter.domain.ticket.TicketAttachmentSource
+import com.sza.fastmediasorter.utils.queryDisplayName
 import timber.log.Timber
 import java.io.File
 
@@ -18,7 +18,7 @@ import java.io.File
  */
 class TicketAttachmentPickerManager(private val context: Context) {
 
-    fun resolve(uris: List<Uri>): List<TicketAttachmentSource> = uris.map { uri ->
+    suspend fun resolve(uris: List<Uri>): List<TicketAttachmentSource> = uris.map { uri ->
         keepReadGrant(uri)
         val name = displayNameOf(uri)
         val mime = context.contentResolver.getType(uri) ?: DEFAULT_MIME
@@ -34,12 +34,8 @@ class TicketAttachmentPickerManager(private val context: Context) {
         }.onFailure { Timber.d("Ticket attachment grant is not persistable: ${it.javaClass.simpleName}") }
     }
 
-    private fun displayNameOf(uri: Uri): String {
-        val queried = runCatching {
-            context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use {
-                if (it.moveToFirst()) it.getString(0) else null
-            }
-        }.getOrNull()
+    private suspend fun displayNameOf(uri: Uri): String {
+        val queried = context.contentResolver.queryDisplayName(uri)
         return queried?.takeIf(String::isNotBlank) ?: uri.lastPathSegment?.substringAfterLast('/') ?: FALLBACK_NAME
     }
 

@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.12 13:18</sub>
+<sub class="doc-stamp">26.11.12 15:22</sub>
 
 # Development Changelog
 
@@ -37538,3 +37538,6 @@ Format: | datetime | file | target | description |
 | 2026-11-12 13:01:02 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/streams/facets/StreamFacetFolding.kt` | `S4555` | Three-letter language codes (ISO 639-2 B and T, named ISO 639-3 extension codes) fold to the language they name in the publisher module and the Kotlin fold; P.3 vectors and table tests added [branch: DEBUG-v048] |
 | 2026-11-12 13:01:03 | `scripts/streams/export-facet-tables.ps1` | `S4555` | New export of the facet tables and vectors into stream-catalog/ of the contracts root, country names tagged with the reference runtime; README documents both commands [branch: DEBUG-v048] |
 | 2026-11-12 13:18:42 | `scripts/quality/blockneedusertest-probe-baseline.txt` | `S1655` | S1655: pre-handoff audit and probe-baseline row for the vr build emulator walk; build and walk deferred to the release tier [set of 2: PLAN/S1655_vr-store-build-headset-validation.md] [branch: DEBUG-v048] |
+| 2026-11-12 14:37:27 | `PLAN/S4556_screenshot-20261112-143354-fast-media.md` | `S4556` | Capture Draft S4556 screenshot-20261112-143354-fast-media [branch: DEBUG-v048] |
+| 2026-11-12 14:39:12 | `PLAN/S4557_bugfix-screenshot-20261112-143750-fast-media.md` | `S4557` | Capture Draft S4557 bugfix-screenshot-20261112-143750-fast-media [branch: DEBUG-v048] |
+| 2026-11-12 15:22:32 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/KnownAuthResources.kt` | `S4549` | TikTok auth webview opens the email/password login form so sign-in completes in the webview and Save authorization enables (bare /login handed off to the TikTok app) [set of 4: app_v2/src/main/java/com/sza/fastmediasorter/data/repository/AuthSessionRepositoryImpl.kt, app_v2/src/main/java/com/sza/fastmediasorter/worker/LinkDownloadWorker.kt, PLAN/S4549_bugfix-tiktok-account-download.md] [branch: DEBUG-v048] |

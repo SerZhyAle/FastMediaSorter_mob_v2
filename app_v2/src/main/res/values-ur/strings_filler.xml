@@ -28,4 +28,6 @@
     <string name="filler_result_measurement_unavailable">خالی جگہ ناپی نہیں جا سکی۔ چیک کریں کہ اسٹوریج منسلک ہے، پھر فولڈر دوبارہ منتخب کریں۔</string>
     <string name="filler_result_insufficient_space">سسٹم کے لیے رکھے گئے حصے سے اوپر کوئی خالی جگہ نہیں ہے۔ جگہ خالی کریں یا کوئی دوسرا اسٹوریج ڈیوائس منتخب کریں۔</string>
     <string name="filler_result_busy">بھرنا پہلے سے جاری ہے۔</string>
+    <string name="filler_settings_toggle_subtitle">اسٹوریج ڈیوائس کی خالی جگہ کو عارضی فائلوں سے بھر دیتا ہے، پھر انہیں حذف کر دیتا ہے</string>
+    <string name="filler_settings_toggle_subtitle_pending">پچھلے رن کی عارضی فائلیں اب بھی اسٹوریج پر موجود ہیں۔ پروگرام اس وقت تک فہرست میں رہے گا جب تک آپ اس میں سے انہیں حذف نہیں کر دیتے۔</string>
 </resources>

@@ -4128,7 +4128,7 @@
     <string name="launcher_app_category_dialog_title">Categorie per %1$s</string>
     <string name="launcher_app_category_new">Nuova categoria..</string>
     <string name="launcher_app_category_new_hint">Nome categoria</string>
-    <string name="launcher_app_category_unknown">Sconosciuta</string>
+    <string name="launcher_app_category_unknown">Altro</string>
     <string name="launcher_app_category_save_failed">Impossibile salvare le categorie. Riprova.</string>
     <string name="launcher_app_category_reorder_title">Spostamento di %1$s</string>
     <string name="launcher_app_category_move_up">Sposta su</string>
@@ -4143,4 +4143,5 @@
     <string name="launcher_app_category_productivity">Produttività</string>
     <string name="launcher_app_category_accessibility">Accessibilità</string>
     <string name="exchange_devices_menu_standard_settings">Impostazioni standard</string>
+    <string name="program_guard_disabled_toast">%1$s è disattivato. Attivalo nelle Impostazioni.</string>
 </resources>

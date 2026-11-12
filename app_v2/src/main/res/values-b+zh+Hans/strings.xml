@@ -4127,7 +4127,7 @@
     <string name="launcher_app_category_dialog_title">%1$s 的类别</string>
     <string name="launcher_app_category_new">新类别..</string>
     <string name="launcher_app_category_new_hint">类别名称</string>
-    <string name="launcher_app_category_unknown">未知</string>
+    <string name="launcher_app_category_unknown">其他</string>
     <string name="launcher_app_category_save_failed">无法保存类别。请重试。</string>
     <string name="launcher_app_category_reorder_title">正在移动 %1$s</string>
     <string name="launcher_app_category_move_up">上移</string>
@@ -4143,4 +4143,5 @@
     <string name="launcher_app_category_productivity">效率</string>
     <string name="launcher_app_category_accessibility">无障碍</string>
     <string name="exchange_devices_menu_standard_settings">标准设置</string>
+    <string name="program_guard_disabled_toast">%1$s 已关闭。请在设置中开启。</string>
 </resources>

@@ -52,6 +52,9 @@ class TicketInboxRepositoryImpl @Inject constructor(
 
     override fun scheduleDelivery() = TicketInboxDeliveryWorker.enqueue(context)
 
+    // The Drive auth restore surfaces auth, IO and state failures alike; any of them only means
+    // "not signed in now", so packets stay queued for the next worker run.
+    @Suppress("TooGenericExceptionCaught")
     override suspend fun deliverQueued(): TicketDeliveryReport = locked {
         Timber.d("S4554: delivering queued ticket packets to Drive inbox")
         val pending = store.list().filter {
@@ -59,7 +62,13 @@ class TicketInboxRepositoryImpl @Inject constructor(
         }
         var delivered = 0
         if (pending.isNotEmpty()) {
-            val signedIn = runCatching { inbox.ensureSignedIn() }.getOrDefault(false)
+            val signedIn = try {
+                inbox.ensureSignedIn()
+            } catch (e: Exception) {
+                e.rethrowIfCancellation()
+                Timber.w(e, "Ticket inbox sign-in check failed, packets stay queued")
+                false
+            }
             pending.forEach { packet ->
                 val failure = if (signedIn) uploadFailure(packet) else NOT_SIGNED_IN
                 val next = if (failure == null) {

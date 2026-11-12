@@ -28,4 +28,6 @@
     <string name="filler_result_measurement_unavailable">Não foi possível medir o espaço livre. Verifique se o armazenamento está conectado e escolha a pasta novamente.</string>
     <string name="filler_result_insufficient_space">Não há espaço livre acima da parte reservada para o sistema. Libere espaço ou escolha outro dispositivo de armazenamento.</string>
     <string name="filler_result_busy">O preenchimento já está em andamento.</string>
+    <string name="filler_settings_toggle_subtitle">Preenche o espaço livre de um dispositivo de armazenamento com arquivos temporários e depois os exclui</string>
+    <string name="filler_settings_toggle_subtitle_pending">Ainda há arquivos temporários de uma execução anterior no armazenamento. O programa permanece na lista até que você os exclua nele.</string>
 </resources>

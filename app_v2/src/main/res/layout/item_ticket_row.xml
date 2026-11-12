@@ -34,5 +34,5 @@
         android:background="?attr/selectableItemBackgroundBorderless"
         android:focusable="true"
         android:contentDescription="@string/ticket_inbox_discard"
-        android:src="@drawable/ic_delete" />
+        android:src="@drawable/ic_remove_circle_outline" />
 </LinearLayout>

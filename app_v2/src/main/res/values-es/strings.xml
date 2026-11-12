@@ -4130,7 +4130,7 @@
     <string name="launcher_app_category_dialog_title">Categorías de %1$s</string>
     <string name="launcher_app_category_new">Nueva categoría..</string>
     <string name="launcher_app_category_new_hint">Nombre de la categoría</string>
-    <string name="launcher_app_category_unknown">Desconocida</string>
+    <string name="launcher_app_category_unknown">Otros</string>
     <string name="launcher_app_category_save_failed">No se pudieron guardar las categorías. Inténtalo de nuevo.</string>
     <string name="launcher_app_category_reorder_title">Moviendo %1$s</string>
     <string name="launcher_app_category_move_up">Subir</string>
@@ -4146,4 +4146,5 @@
     <string name="launcher_app_category_productivity">Productividad</string>
     <string name="launcher_app_category_accessibility">Accesibilidad</string>
     <string name="exchange_devices_menu_standard_settings">Ajustes estándar</string>
+    <string name="program_guard_disabled_toast">%1$s está desactivado. Actívalo en Ajustes.</string>
 </resources>

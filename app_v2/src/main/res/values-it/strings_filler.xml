@@ -28,4 +28,6 @@
     <string name="filler_result_measurement_unavailable">Non è stato possibile misurare lo spazio libero. Verifica che la memoria sia collegata, poi scegli di nuovo la cartella.</string>
     <string name="filler_result_insufficient_space">Non c\'è spazio libero oltre la parte riservata al sistema. Libera spazio o scegli un altro dispositivo di archiviazione.</string>
     <string name="filler_result_busy">Il riempimento è già in corso.</string>
+    <string name="filler_settings_toggle_subtitle">Riempie lo spazio libero di un dispositivo di archiviazione con file temporanei, poi li elimina</string>
+    <string name="filler_settings_toggle_subtitle_pending">I file temporanei di un\'esecuzione precedente sono ancora presenti nell\'archivio. Il programma resta nell\'elenco finché non li elimini da lì.</string>
 </resources>

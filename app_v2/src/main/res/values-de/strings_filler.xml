@@ -28,4 +28,6 @@
     <string name="filler_result_measurement_unavailable">Der freie Speicher konnte nicht gemessen werden. Prüfe, ob der Speicher verbunden ist, und wähle den Ordner dann erneut.</string>
     <string name="filler_result_insufficient_space">Über dem für das System freigehaltenen Teil ist kein freier Speicher vorhanden. Gib Speicher frei oder wähle ein anderes Speichergerät.</string>
     <string name="filler_result_busy">Das Füllen läuft bereits.</string>
+    <string name="filler_settings_toggle_subtitle">Füllt den freien Speicherplatz eines Speichergeräts mit temporären Dateien und löscht sie anschließend</string>
+    <string name="filler_settings_toggle_subtitle_pending">Temporäre Dateien eines früheren Durchlaufs liegen noch auf dem Speicher. Das Programm bleibt in der Liste, bis du sie dort löschst.</string>
 </resources>

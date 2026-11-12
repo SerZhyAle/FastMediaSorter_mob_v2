@@ -28,4 +28,6 @@
     <string name="filler_result_measurement_unavailable">খালি জায়গা মাপা যায়নি। স্টোরেজ সংযুক্ত আছে কিনা দেখুন, তারপর আবার ফোল্ডারটি বেছে নিন।</string>
     <string name="filler_result_insufficient_space">সিস্টেমের জন্য রাখা অংশের বাইরে কোনো খালি জায়গা নেই। জায়গা খালি করুন বা অন্য একটি স্টোরেজ ডিভাইস বেছে নিন।</string>
     <string name="filler_result_busy">ভরা ইতিমধ্যে চলছে।</string>
+    <string name="filler_settings_toggle_subtitle">স্টোরেজ ডিভাইসের খালি জায়গা অস্থায়ী ফাইল দিয়ে ভরে দেয়, তারপর সেগুলো মুছে ফেলে</string>
+    <string name="filler_settings_toggle_subtitle_pending">আগের রান থেকে অস্থায়ী ফাইল এখনও স্টোরেজে রয়ে গেছে। আপনি এর ভেতর থেকে সেগুলো মুছে না ফেলা পর্যন্ত প্রোগ্রামটি তালিকায় থাকবে।</string>
 </resources>

@@ -19,7 +19,7 @@
     <string name="ticket_inbox_state_queued">В очереди - уйдёт, как только появится сеть</string>
     <string name="ticket_inbox_state_waiting">Ждёт отправки на Диск: %1$s</string>
     <string name="ticket_inbox_state_sent">На Диске - ждёт ПК</string>
-    <string name="ticket_inbox_state_processed">processed: %1$s</string>
+    <string name="ticket_inbox_state_processed">обработан: %1$s</string>
     <string name="ticket_inbox_state_failed">ПК отклонил: %1$s</string>
     <string name="ticket_inbox_empty_draft">Сначала напишите текст или прикрепите файл</string>
     <string name="ticket_inbox_queued_notice">Тикет поставлен в очередь на отправку</string>

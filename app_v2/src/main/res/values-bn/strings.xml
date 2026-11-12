@@ -4129,7 +4129,7 @@
     <string name="launcher_app_category_dialog_title">%1$s-এর বিভাগ</string>
     <string name="launcher_app_category_new">নতুন বিভাগ..</string>
     <string name="launcher_app_category_new_hint">বিভাগের নাম</string>
-    <string name="launcher_app_category_unknown">অজানা</string>
+    <string name="launcher_app_category_unknown">অন্যান্য</string>
     <string name="launcher_app_category_save_failed">বিভাগগুলো সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।</string>
     <string name="launcher_app_category_reorder_title">%1$s সরানো হচ্ছে</string>
     <string name="launcher_app_category_move_up">উপরে সরান</string>
@@ -4145,4 +4145,5 @@
     <string name="launcher_app_category_productivity">উৎপাদনশীলতা</string>
     <string name="launcher_app_category_accessibility">অ্যাক্সেসিবিলিটি</string>
     <string name="exchange_devices_menu_standard_settings">স্ট্যান্ডার্ড সেটিংস</string>
+    <string name="program_guard_disabled_toast">%1$s বন্ধ আছে। সেটিংসে এটি চালু করুন।</string>
 </resources>

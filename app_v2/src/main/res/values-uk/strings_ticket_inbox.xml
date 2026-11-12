@@ -19,7 +19,7 @@
     <string name="ticket_inbox_state_queued">У черзі - піде, щойно з\'явиться мережа</string>
     <string name="ticket_inbox_state_waiting">Чекає надсилання на Диск: %1$s</string>
     <string name="ticket_inbox_state_sent">На Диску - чекає на ПК</string>
-    <string name="ticket_inbox_state_processed">processed: %1$s</string>
+    <string name="ticket_inbox_state_processed">оброблено: %1$s</string>
     <string name="ticket_inbox_state_failed">ПК відхилив: %1$s</string>
     <string name="ticket_inbox_empty_draft">Спочатку напишіть текст або прикріпіть файл</string>
     <string name="ticket_inbox_queued_notice">Тікет поставлено в чергу на надсилання</string>

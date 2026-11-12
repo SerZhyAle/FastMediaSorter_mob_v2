@@ -28,4 +28,6 @@
     <string name="filler_result_measurement_unavailable">L\'espace libre n\'a pas pu être mesuré. Vérifiez que le stockage est connecté, puis choisissez à nouveau le dossier.</string>
     <string name="filler_result_insufficient_space">Il n\'y a pas d\'espace libre au-delà de la part réservée au système. Libérez de l\'espace ou choisissez un autre périphérique de stockage.</string>
     <string name="filler_result_busy">Le remplissage est déjà en cours.</string>
+    <string name="filler_settings_toggle_subtitle">Remplit l\'espace libre d\'un périphérique de stockage avec des fichiers temporaires, puis les supprime</string>
+    <string name="filler_settings_toggle_subtitle_pending">Des fichiers temporaires d\'une exécution précédente se trouvent toujours sur le stockage. Le programme reste dans la liste tant que vous ne les avez pas supprimés depuis celle-ci.</string>
 </resources>

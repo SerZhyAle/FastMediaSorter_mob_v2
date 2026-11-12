@@ -1754,6 +1754,11 @@
     "ru": "Ограничивает предзагрузку миниатюр соединением по Wi-Fi, чтобы не расходовать мобильный трафик.",
     "uk": "Обмежує попереднє завантаження мініатюр з'єднанням по Wi-Fi, щоб не витрачати мобільний трафік."
   },
+  "rowTicketInbox": {
+    "en": "Sends a task with a voice note, screenshots and logs to the SZA ticket inbox on your Google Drive.",
+    "ru": "Отправляет задачу с голосовой заметкой, скриншотами и логами во входящие тикеты SZA на вашем Google Диске.",
+    "uk": "Надсилає задачу з голосовою заміткою, скриншотами й логами до вхідних тікетів SZA на вашому Google Диску."
+  },
   "rowWatchCameraStandby": {
     "en": "Arms the phone camera for the paired watch: turning it on starts a camera session while the app is on screen, so a request from the watch meets a stream that already exists and needs no tap on the phone. Available in the sideload build only, which is the one allowed to keep the camera on air after the app leaves the screen.",
     "ru": "Готовит камеру телефона для парных часов: при включении камера запускается, пока приложение на экране, и запрос с часов попадает в уже работающую трансляцию - касаться телефона не нужно. Доступно только в сайдлоад-сборке: лишь она удерживает камеру после ухода приложения с экрана.",
@@ -2063,7 +2068,8 @@
     "en": "Shows a pairing code with the address, login and host key fingerprint for another FastMediaSorter to scan.",
     "ru": "Показывает код для подключения с адресом, логином и отпечатком ключа сервера для сканирования в другом FastMediaSorter.",
     "uk": "Показує код для підключення з адресою, логіном і відбитком ключа сервера для сканування в іншому FastMediaSorter."
-  },  "btnSftpServerLegacyQr": {
+  },
+  "btnSftpServerLegacyQr": {
     "en": "Shows the pairing code without the exchange server part, for a FastMediaSorter too old to read the new code; it connects on the local network only.",
     "ru": "Показывает код подключения без данных сервера обмена - для FastMediaSorter, слишком старого для нового кода; такой код работает только в локальной сети.",
     "uk": "Показує код підключення без даних сервера обміну - для FastMediaSorter, надто старого для нового коду; такий код працює лише в локальній мережі."

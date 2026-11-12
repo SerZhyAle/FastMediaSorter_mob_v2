@@ -28,4 +28,6 @@
     <string name="filler_result_measurement_unavailable">تعذر قياس المساحة الفارغة. تحقق من توصيل وحدة التخزين، ثم اختر المجلد مرة أخرى.</string>
     <string name="filler_result_insufficient_space">لا توجد مساحة فارغة فوق الجزء المحجوز للنظام. حرّر مساحة أو اختر جهاز تخزين آخر.</string>
     <string name="filler_result_busy">الملء قيد التشغيل بالفعل.</string>
+    <string name="filler_settings_toggle_subtitle">يملأ المساحة الفارغة في وحدة التخزين بملفات مؤقتة ثم يحذفها</string>
+    <string name="filler_settings_toggle_subtitle_pending">لا تزال ملفات مؤقتة من تشغيل سابق موجودة في التخزين. يبقى البرنامج في القائمة إلى أن تحذفها من خلاله.</string>
 </resources>

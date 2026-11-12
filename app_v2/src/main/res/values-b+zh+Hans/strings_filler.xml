@@ -28,4 +28,6 @@
     <string name="filler_result_measurement_unavailable">无法测量可用空间。请检查存储是否已连接，然后重新选择文件夹。</string>
     <string name="filler_result_insufficient_space">除系统保留部分外没有可用空间。请释放空间或选择其他存储设备。</string>
     <string name="filler_result_busy">填充已在运行。</string>
+    <string name="filler_settings_toggle_subtitle">用临时文件填满存储设备的可用空间，然后将其删除</string>
+    <string name="filler_settings_toggle_subtitle_pending">上次运行遗留的临时文件仍在存储设备上。在程序内删除这些文件之前，该程序会一直保留在列表中。</string>
 </resources>

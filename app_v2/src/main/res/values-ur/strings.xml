@@ -4131,7 +4131,7 @@
     <string name="launcher_app_category_dialog_title">%1$s کے زمرے</string>
     <string name="launcher_app_category_new">نیا زمرہ..</string>
     <string name="launcher_app_category_new_hint">زمرے کا نام</string>
-    <string name="launcher_app_category_unknown">نامعلوم</string>
+    <string name="launcher_app_category_unknown">دیگر</string>
     <string name="launcher_app_category_save_failed">زمرے محفوظ نہیں ہو سکے۔ دوبارہ کوشش کریں۔</string>
     <string name="launcher_app_category_reorder_title">%1$s منتقل ہو رہا ہے</string>
     <string name="launcher_app_category_move_up">اوپر منتقل کریں</string>
@@ -4147,4 +4147,5 @@
     <string name="launcher_app_category_productivity">پیداواری صلاحیت</string>
     <string name="launcher_app_category_accessibility">رسائی پذیری</string>
     <string name="exchange_devices_menu_standard_settings">معیاری ترتیبات</string>
+    <string name="program_guard_disabled_toast">%1$s بند ہے۔ اسے سیٹنگز میں آن کریں۔</string>
 </resources>

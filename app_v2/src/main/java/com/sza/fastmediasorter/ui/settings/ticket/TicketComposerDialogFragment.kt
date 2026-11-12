@@ -10,6 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
@@ -17,10 +18,13 @@ import com.sza.fastmediasorter.databinding.DialogTicketComposerBinding
 import com.sza.fastmediasorter.domain.model.ticket.TicketOutboxEntry
 import com.sza.fastmediasorter.domain.model.ticket.TicketOutboxState
 import com.sza.fastmediasorter.domain.model.ticket.TicketProject
+import com.sza.fastmediasorter.ui.common.dialog.DialogWindowSizer
+import com.sza.fastmediasorter.ui.common.dialog.applyDialogInsets
 import com.sza.fastmediasorter.ui.settings.ticket.helpers.TicketAttachmentPickerManager
 import com.sza.fastmediasorter.ui.settings.ticket.helpers.TicketVoiceRecordManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /**
@@ -45,7 +49,9 @@ class TicketComposerDialogFragment : DialogFragment() {
     private var handledSends = 0
 
     private val pickFiles = registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
-        if (uris.isNotEmpty()) viewModel.addAttachments(TicketAttachmentPickerManager(requireContext()).resolve(uris))
+        if (uris.isEmpty()) return@registerForActivityResult
+        val picker = TicketAttachmentPickerManager(requireContext())
+        lifecycleScope.launch { viewModel.addAttachments(picker.resolve(uris)) }
     }
 
     private val askMicrophone = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -59,7 +65,10 @@ class TicketComposerDialogFragment : DialogFragment() {
 
     override fun onStart() {
         super.onStart()
-        dialog?.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        dialog?.let { shown ->
+            DialogWindowSizer.applyTo(shown)
+            shown.applyDialogInsets()
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

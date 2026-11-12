@@ -119,6 +119,7 @@ _Generated from the app. Do not edit by hand._
 | Computer on the internet (S)FTP | Enables adding internet-accessible FTP/SFTP servers as remote resources. |
 | Local network (Ethernet) SMB | Enables adding local-network SMB shares (NAS, PC) as remote resources. |
 | Wi-Fi only preload | Restricts thumbnail preloading to Wi-Fi connections only, saving mobile data. |
+| File a ticket | Sends a task with a voice note, screenshots and logs to the SZA ticket inbox on your Google Drive. |
 | Unit system | Chooses the measurement system the desktop weather and dew-point gadgets read: metric shows degrees Celsius, US shows degrees Fahrenheit. Metric by default; changing it refreshes the reading rather than converting the one already shown. |
 | My devices | Opens My devices: your exchange servers, the devices of each account, revoking a lost device and issuing a pairing code. |
 | Saved authorizations | Opens the list of saved sign-ins to remote sources so you can review or remove them. |

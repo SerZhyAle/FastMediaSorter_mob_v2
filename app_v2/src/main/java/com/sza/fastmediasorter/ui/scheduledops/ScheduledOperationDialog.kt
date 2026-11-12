@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.LinearLayout
 import android.widget.NumberPicker
@@ -26,6 +27,7 @@ import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.model.ScheduledOperationDraft
 import com.sza.fastmediasorter.domain.model.TimeFilter
 import com.sza.fastmediasorter.domain.model.computeNextRunAt
+import com.sza.fastmediasorter.ui.common.dialog.DialogWindowSizer
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.scheduledops.helpers.ScheduledOpConditionsFormManager
 import com.sza.fastmediasorter.ui.scheduledops.helpers.ScheduledOpWatchMessageFormManager
@@ -95,16 +97,13 @@ class ScheduledOperationDialog(
         super.onCreate(savedInstanceState)
         b = DialogScheduledOperationBinding.inflate(layoutInflater)
         setContentView(b.root)
-        val dm = context.resources.displayMetrics
-        val isWide = context.isWideLayout()
-        window?.setLayout(
-            (dm.widthPixels * 0.93).toInt(),
-            if (isWide) {
-                (dm.heightPixels * 0.90).toInt()
-            } else {
-                android.view.WindowManager.LayoutParams.WRAP_CONTENT
-            }
-        )
+        // A wide window caps the height so the long form scrolls inside the dialog instead of past the screen.
+        val height = if (context.isWideLayout()) {
+            (context.resources.displayMetrics.heightPixels * WIDE_HEIGHT_FRACTION).toInt()
+        } else {
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        }
+        DialogWindowSizer.applyTo(this, height)
         setupDropdowns()
         watchForm.bind(::updateSaveButtonState)
         setupNextRunPreview()
@@ -762,6 +761,7 @@ class ScheduledOperationDialog(
     fun onWatchImagePicked(uri: String, name: String) = watchForm.setImage(uri, name)
 
     private companion object {
+        const val WIDE_HEIGHT_FRACTION = 0.90
         const val MIN_INTERVAL_MINUTES = 15
 
         // Dropdown order; the item-click position indexes this list.
