@@ -5,7 +5,7 @@
 | | |
 | --- | --- |
 | **Id** | `BUTTONS` |
-| **Version** | 2.0, active. Owner: shared |
+| **Version** | 2.1, active. Owner: shared |
 | **Home** | `buttons/README.md` in the shared contracts catalog |
 | **Role here** | consumer - phone, launcher, watch and the help pages |
 

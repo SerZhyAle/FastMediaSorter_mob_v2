@@ -5,7 +5,7 @@
 | | |
 | --- | --- |
 | **Id** | `DOC-EXTERNAL-QUALITY` |
-| **Version** | 0.13, draft; wire carrier: documentation corpus and web rendering structure. Owner: this product |
+| **Version** | 0.14, draft; wire carrier: documentation corpus and web rendering structure. Owner: this product |
 | **Home** | `documentation-quality/README.md` section 3, in the shared contracts catalog |
 | **Role here** | owner and reference implementation |
 

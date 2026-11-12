@@ -5,7 +5,7 @@
 | | |
 | --- | --- |
 | **Id** | `SITE-FAMILY-MAP` |
-| **Version** | 1.11, active. Owner: the sza.od.ua hub |
+| **Version** | 1.12, active. Owner: the sza.od.ua hub |
 | **Home** | `product-web-pages/SITE-FAMILY-MAP.md` in the shared contracts catalog |
 | **Role here** | consumer - the footer of the product site |
 

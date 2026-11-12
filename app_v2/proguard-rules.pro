@@ -761,3 +761,8 @@
     <fields>;
 }
 
+# S4554: TicketOutboxState.name is the state field of every staged ticket packet's entry JSON and is
+# restored by TicketOutboxStore through valueOf, so a rename strands every queued ticket.
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.ticket.TicketOutboxState {
+    <fields>;
+}

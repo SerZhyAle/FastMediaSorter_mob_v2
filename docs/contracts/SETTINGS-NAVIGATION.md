@@ -5,7 +5,7 @@
 | | |
 | --- | --- |
 | **Id** | `SETTINGS-NAVIGATION` |
-| **Version** | 2.0, active. Owner: shared |
+| **Version** | 2.1, active. Owner: shared |
 | **Home** | `settings-navigation/README.md` in the shared contracts catalog |
 | **Role here** | consumer - the main settings, every settings dialog and the watch settings |
 

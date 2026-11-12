@@ -10,7 +10,7 @@ app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/KnownAuthResources.k
 app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/KnownAuthResources.kt	host = "threads.com",
 app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/KnownAuthResources.kt	loginUrl = "https://www.threads.com/login",
 app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/KnownAuthResources.kt	KnownAuthResource("Pinterest", "pinterest.com", "https://www.pinterest.com/login/"),
-app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/KnownAuthResources.kt	KnownAuthResource("TikTok", "tiktok.com", "https://www.tiktok.com/login", previewOnlyMeansLogin = true),
+app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/KnownAuthResources.kt	displayName = "TikTok",
 app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/KnownAuthResources.kt	KnownAuthResource("X (Twitter)", "x.com", "https://x.com/login", previewOnlyMeansLogin = true),
 app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/KnownAuthResources.kt	KnownAuthResource("Reddit", "reddit.com", "https://www.reddit.com/login/"),
 app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/KnownAuthResources.kt	KnownAuthResource("Tumblr", "tumblr.com", "https://www.tumblr.com/login"),

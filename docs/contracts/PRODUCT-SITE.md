@@ -5,7 +5,7 @@
 | | |
 | --- | --- |
 | **Id** | `SITE-STRUCTURE`, `SITE-EXPERIENCE`, `SITE-REPRESENTATION` |
-| **Version** | 0.4, 0.5, 0.2, draft (in the order of the ids above); wire carrier: none - a page set, a stylesheet layer and a content model. Owner: this product |
+| **Version** | 0.4, 0.6, 0.2, draft (in the order of the ids above); wire carrier: none - a page set, a stylesheet layer and a content model. Owner: this product |
 | **Home** | `product-site/README.md` in the shared contracts catalog |
 | **Role here** | owner and reference implementation - the product site: landing, sideload pages, documentation portal and the `docs/` reference pages |
 
