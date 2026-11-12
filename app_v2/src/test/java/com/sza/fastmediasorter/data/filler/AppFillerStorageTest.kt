@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.filler
 
+import android.os.Environment
 import com.sza.fastmediasorter.data.repository.StorageVolumeSource
 import io.mockk.every
 import io.mockk.mockk
@@ -20,6 +21,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowEnvironment
 import java.io.File
 
 @RunWith(RobolectricTestRunner::class)
@@ -37,6 +39,10 @@ class AppFillerStorageTest {
         File(context.noBackupFilesDir, "filler-sessions.json.bak").delete()
         File(context.noBackupFilesDir, "filler-sessions.json.new").delete()
         every { volumes.listVolumes() } returns emptyList()
+        // Robolectric reports no state for a directory nobody declared, so the volume a device would
+        // report as mounted is declared here; AppFillerStorage asks about the canonical path.
+        val downloads = requireNotNull(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS))
+        ShadowEnvironment.setExternalStorageState(downloads.canonicalFile, Environment.MEDIA_MOUNTED)
         journal = journalOf()
         storage = AppFillerStorage(context, volumes, journal)
     }

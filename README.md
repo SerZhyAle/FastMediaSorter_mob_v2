@@ -82,7 +82,7 @@ FastMediaSorter is a complete shell for an Android device - home screen, media p
 
 > *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
 
-## What's New in v2.61.1121.543 (November 2026)
+## What's New in v2.61.1121.715 (November 2026)
 
 **New:**
 All apps in category groups and from anywhere, desktop swipes that turn the screen first, a map gadget that asks for approximate location only, battery and extended hardware details in System info, a storage filler with a scheduled run, settings exchange through a Media Exchange Server, an alert for stalled schedules, filing a ticket from the app, switched-off programs that stay off, more Tourist tiles, a framed battery bar on the watch face.

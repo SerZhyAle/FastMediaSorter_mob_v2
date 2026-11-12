@@ -19,13 +19,15 @@ import java.io.File
  * The `legacy` edition reaches API 25, where app shortcuts exist but adaptive icons do not, so its only
  * decorated shortcut is the bitmap branch and the three layer-list fallbacks - no test device runs them.
  */
+// Pinned for the whole class: a method left unpinned boots at targetSdk, which is newer than any image
+// Robolectric ships, and that refusal fails every method of the class at initialization.
 @RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
 class DecoratedShortcutIconsTest {
 
     private val context: Context get() = RuntimeEnvironment.getApplication()
 
     @Test
-    @Config(sdk = [34])
     fun `API 25 publishes a bitmap icon, not an adaptive one`() {
         val icon = DecoratedShortcutIcons.forGlyph(
             context,
@@ -38,7 +40,6 @@ class DecoratedShortcutIconsTest {
     }
 
     @Test
-    @Config(sdk = [34])
     fun `API 26 and later publish an adaptive icon`() {
         val icon = DecoratedShortcutIcons.forGlyph(context, R.drawable.ic_calculator, R.color.color_icon_plate_accent)
 
@@ -46,7 +47,6 @@ class DecoratedShortcutIconsTest {
     }
 
     @Test
-    @Config(sdk = [34])
     @GraphicsMode(GraphicsMode.Mode.NATIVE)
     fun `the API 25 shape is a 44 dp circle in a 48 dp asset`() {
         val bitmap = DecoratedShortcutIcons.render(1f, 48f, 44f, 24f, PLATE, ColorDrawable(Color.TRANSPARENT))
