@@ -16,7 +16,7 @@ class LauncherCategoryAppGroupManager {
     fun groupApps(
         apps: List<InstalledApp>,
         catalog: AppCategoryCatalog,
-        collapsedKeys: Set<String>,
+        expandedKeys: Set<String>,
         reorderTargetKey: String?,
         labelOf: (AppCategory) -> String,
         unknownLabel: String,
@@ -30,10 +30,10 @@ class LauncherCategoryAppGroupManager {
         }
         val sections = catalog.orderedCategories(labelOf).mapNotNull { category ->
             val members = membersById[category.id] ?: return@mapNotNull null
-            section(KEY_PREFIX + category.id, labelOf(category), members, collapsedKeys, reorderTargetKey)
+            section(KEY_PREFIX + category.id, labelOf(category), members, expandedKeys, reorderTargetKey)
         }
         val unknownSection = unknown.takeIf { it.isNotEmpty() }
-            ?.let { section(KEY_UNKNOWN, unknownLabel, it, collapsedKeys, reorderTargetKey) }
+            ?.let { section(KEY_UNKNOWN, unknownLabel, it, expandedKeys, reorderTargetKey) }
         return sections + listOfNotNull(unknownSection)
     }
 
@@ -46,13 +46,13 @@ class LauncherCategoryAppGroupManager {
         key: String,
         title: String,
         members: List<InstalledApp>,
-        collapsedKeys: Set<String>,
+        expandedKeys: Set<String>,
         reorderTargetKey: String?,
     ) = LauncherAppGroupSection(
         key = key,
         title = title,
         apps = members.map(::toItem),
-        isExpanded = key !in collapsedKeys,
+        isExpanded = key in expandedKeys,
         isCategory = true,
         isReorderTarget = key == reorderTargetKey,
     )

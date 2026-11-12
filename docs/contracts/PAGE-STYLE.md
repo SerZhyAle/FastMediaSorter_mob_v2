@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.29 05:03</sub>
+<sub class="doc-stamp">26.11.12 03:27</sub>
 
 # Pointer - `PAGE-STYLE`
 
 | | |
 | --- | --- |
 | **Id** | `PAGE-STYLE` |
-| **Version** | 3.5, active. Owner: the sza.od.ua hub |
+| **Version** | 3.9, active. Owner: the sza.od.ua hub |
 | **Home** | `product-web-pages/PAGE-STYLE.md` in the shared contracts catalog |
 | **Role here** | consumer - the product site's landing and sideload pages, and the documentation portal (per-language documentation pages, section 6) |
 
@@ -28,6 +28,10 @@
   product stylesheet carries the kit's tokens and components in its own layer, which is the kit exception open in
   the catalog's registry. The exchange server's picture is drawn unaltered with the `alt` of `EXCHANGE-MARK`
   rule 10 and never as an action glyph (3.4, section 9); the help layer of a help page stays beside the kit (3.2).
+- The per-locale landing option of 3.7 and 3.9 is an option, not an obligation, and is not taken up: the RU / EN / UA
+  switcher of `index.html` switches the language in the page through `data-lang`, and the root never forwards to
+  another address. The kit revisions 3.6 and 3.8 reach this product only through a re-vendor, which the open kit
+  exception defers; the stylesheet has no `.pill` rule that draws text in `--acc`.
 - Walk the per-site acceptance checklist (section 11) before publishing a page change.
 - The deviations currently open are recorded as exceptions in the catalog's registry.
 

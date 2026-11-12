@@ -26,6 +26,7 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
+import java.io.RandomAccessFile
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -94,6 +95,7 @@ class LinkDownloadWriter @Inject constructor(
             // URL re-fetched without the WebView request context (Referer/UA) often yields a
             // 403-HTML page, a JSON error, or a truncated chunk - none of which are playable.
             val sniff = sniffMedia(tempFile)
+            Timber.d("S4550: sniff kind=$sniff bytes=$totalBytes name=$fileName")
             if (sniff != null) {
                 Timber.w("LinkDownloadWriter: rejected corrupted download - kind=%s bytes=%d name=%s", sniff, totalBytes, fileName)
                 return@withContext WriteResult.Corrupted(bytesWritten = totalBytes, sniffedKind = sniff)
@@ -233,7 +235,7 @@ class LinkDownloadWriter @Inject constructor(
             startsWith(0x89, 0x50, 0x4E, 0x47) ||                   // PNG
             asciiAt(0, "GIF8") ||                                   // GIF
             startsWith(0x42, 0x4D)                                  // BMP
-        if (isKnownMedia) return null
+        if (isKnownMedia) return if (asciiAt(4, "ftyp") && isIsoBmffTruncated(file)) "truncated" else null
 
         // Obvious error-page / metadata content → reject.
         when (head[0].toInt() and 0xFF) {
@@ -243,6 +245,48 @@ class LinkDownloadWriter @Inject constructor(
         // Too small to be the media the user asked for (signed CDN error stubs are tiny).
         if (length < 1024L) return "too-small"
         return null
+    }
+
+    /**
+     * S4550: a body cut off mid-transfer still opens with a valid `ftyp` box, so the header sniff
+     * accepts it, yet the player freezes at the cut or fails with read-position-out-of-range
+     * (journal 2026-11-11: Threads files stuck at 5575 of 22033 ms and 3014 of 10000 ms). Walks the
+     * top-level ISO-BMFF boxes and reports true when one declares more bytes than the file holds.
+     * Lenient on purpose: a malformed box header ends the walk as "unknown", never as truncated.
+     */
+    private fun isIsoBmffTruncated(file: File): Boolean {
+        val fileLength = file.length()
+        var truncated = false
+        RandomAccessFile(file, "r").use { raf ->
+            var offset = 0L
+            var boxes = 0
+            // Fewer than a box header left is trailing padding, not a cut box.
+            while (!truncated && fileLength - offset >= BOX_HEADER_BYTES && boxes < MAX_BOXES_WALKED) {
+                val remaining = fileLength - offset
+                val size = readBoxSize(raf, offset, remaining)
+                truncated = size > remaining
+                offset = if (truncated || size == MALFORMED_BOX) fileLength else offset + size
+                boxes++
+            }
+        }
+        return truncated
+    }
+
+    // The 32-bit size field means: 0 = box runs to end of file, 1 = real size is the 64-bit field
+    // after the type, 2..7 = impossible (smaller than its own header).
+    private fun readBoxSize(raf: RandomAccessFile, offset: Long, remaining: Long): Long {
+        raf.seek(offset)
+        val size32 = raf.readInt().toLong() and UINT32_MASK
+        return when {
+            size32 == 0L -> remaining
+            size32 == 1L && remaining < LARGE_BOX_HEADER_BYTES -> TRUNCATED_BOX
+            size32 == 1L -> {
+                raf.skipBytes(Int.SIZE_BYTES)
+                raf.readLong().takeIf { it >= LARGE_BOX_HEADER_BYTES } ?: MALFORMED_BOX
+            }
+            size32 < BOX_HEADER_BYTES -> MALFORMED_BOX
+            else -> size32
+        }
     }
 
     // mkdir() either creates the directory or fails, atomically, so a directory this call created
@@ -257,6 +301,15 @@ class LinkDownloadWriter @Inject constructor(
 
     private companion object {
         const val RUN_DIRECTORY_ATTEMPTS = 3
+        const val BOX_HEADER_BYTES = 8L
+        const val LARGE_BOX_HEADER_BYTES = 16L
+        const val UINT32_MASK = 0xFFFFFFFFL
+        const val MALFORMED_BOX = -1L
+        const val TRUNCATED_BOX = Long.MAX_VALUE
+
+        // A long fragmented file holds one moof+mdat pair per fragment; the cap bounds the walk and a
+        // file that exhausts it is accepted, never rejected.
+        const val MAX_BOXES_WALKED = 100_000
     }
 
     private fun sanitiseFileName(value: String): String {

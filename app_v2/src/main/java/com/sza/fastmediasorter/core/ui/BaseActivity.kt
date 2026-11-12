@@ -69,6 +69,10 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     @Inject
     lateinit var backgroundOperationTrackManager: BackgroundOperationTrackManager
 
+    // S4544: holds a guarded program's deferred setup until its off-switch has been read.
+    @Inject
+    lateinit var programScreenGuardManager: ProgramScreenGuardManager
+
     // S1329: the one settings stream every subclass may read. Exposed here so a screen that only
     // needs a settings snapshot inherits it instead of injecting SettingsRepository of its own.
     protected val appSettings: Flow<AppSettings> get() = keepScreenAwakeManager.settings
@@ -167,44 +171,53 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
             // (e.g. WelcomeActivity forces a night-mode recreate in onCreate). onDestroy() has
             // already nulled _binding by then, so bail out before setupViews() touches it.
             if (_binding == null || isDestroyed) return@post
-            if (BuildConfig.DEBUG) {
-                val waitMs = SystemClock.uptimeMillis() - onCreateT0
-                Timber.d(
-                    "BaseActivity.setupViews[${this::class.simpleName}]: START (waited ${waitMs}ms for first frame)"
-                )
+            // S4544: on a cold process the guard's first answer can arrive after this frame, and the
+            // light, camera and siren programs start their work in setupViews(); the check is repeated
+            // because a late admission may find the screen already gone.
+            programScreenGuardManager.admitScreen(this) {
+                if (_binding != null && !isDestroyed) runDeferredSetup(onCreateT0)
             }
-            val setupT0 = if (BuildConfig.DEBUG) SystemClock.uptimeMillis() else 0L
-            setupViews()
-            if (BuildConfig.DEBUG) {
-                val setupMs = SystemClock.uptimeMillis() - setupT0
-                Timber.d("BaseActivity.setupViews[${this::class.simpleName}]: done in ${setupMs}ms")
-            }
-            observeData()
-            if (showsBackgroundOperationBar()) {
-                BackgroundOperationBarAttachManager(this, backgroundOperationTrackManager).attach()
-            }
-            viewsReady = true
-            while (pendingViewsReadyActions.isNotEmpty()) {
-                pendingViewsReadyActions.removeFirst().invoke()
-            }
-            if (resumePending) {
-                resumePending = false
-                onResumeWithViews()
-            }
-            // S0230 + S0289: set initial focus on any non-touch input device.
-            // S0504: redirect off a scrollable/paged container to the first real control inside it,
-            // so D-pad/keyboard focus never parks on a bare container with the controls unreachable.
-            val needsInitialFocus = shouldRequestInitialFocus()
-            if (needsInitialFocus) {
-                // S0944: fall back to the content root when a screen declares no explicit initial
-                // focus, so every screen lands focus on a real control (resolver skips scroll
-                // containers / EditText) instead of leaving a dead screen with the first key wasted.
-                (getInitialFocusView() ?: _binding?.root)
-                    ?.let { FocusTargetResolver.resolveToLeafFocusable(it) ?: it }
-                    ?.requestFocus()
-            }
-            showGmsWarningIfNeeded()
         }
+    }
+
+    private fun runDeferredSetup(onCreateT0: Long) {
+        if (BuildConfig.DEBUG) {
+            val waitMs = SystemClock.uptimeMillis() - onCreateT0
+            Timber.d(
+                "BaseActivity.setupViews[${this::class.simpleName}]: START (waited ${waitMs}ms for first frame)"
+            )
+        }
+        val setupT0 = if (BuildConfig.DEBUG) SystemClock.uptimeMillis() else 0L
+        setupViews()
+        if (BuildConfig.DEBUG) {
+            val setupMs = SystemClock.uptimeMillis() - setupT0
+            Timber.d("BaseActivity.setupViews[${this::class.simpleName}]: done in ${setupMs}ms")
+        }
+        observeData()
+        if (showsBackgroundOperationBar()) {
+            BackgroundOperationBarAttachManager(this, backgroundOperationTrackManager).attach()
+        }
+        viewsReady = true
+        while (pendingViewsReadyActions.isNotEmpty()) {
+            pendingViewsReadyActions.removeFirst().invoke()
+        }
+        if (resumePending) {
+            resumePending = false
+            onResumeWithViews()
+        }
+        // S0230 + S0289: set initial focus on any non-touch input device.
+        // S0504: redirect off a scrollable/paged container to the first real control inside it,
+        // so D-pad/keyboard focus never parks on a bare container with the controls unreachable.
+        val needsInitialFocus = shouldRequestInitialFocus()
+        if (needsInitialFocus) {
+            // S0944: fall back to the content root when a screen declares no explicit initial
+            // focus, so every screen lands focus on a real control (resolver skips scroll
+            // containers / EditText) instead of leaving a dead screen with the first key wasted.
+            (getInitialFocusView() ?: _binding?.root)
+                ?.let { FocusTargetResolver.resolveToLeafFocusable(it) ?: it }
+                ?.requestFocus()
+        }
+        showGmsWarningIfNeeded()
     }
 
     /**

@@ -4,11 +4,13 @@ import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.databinding.ItemLauncherAppCategoryTileBinding
 import com.sza.fastmediasorter.databinding.ItemLauncherAppGridCellBinding
 import com.sza.fastmediasorter.databinding.ItemLauncherAppGroupHeaderBinding
 import com.sza.fastmediasorter.databinding.ItemLauncherAppGroupTileBinding
@@ -74,6 +76,8 @@ class LauncherAppGridAdapter(
         diff.dispatchUpdatesTo(this)
     }
 
+    fun itemKeys(): List<String> = items.map { it.stableKey }
+
     /** An app is keyed by its section too: the preview row and its letter group can both show it. */
     private class DisplayItemDiff(
         private val old: List<DisplayItem>,
@@ -91,10 +95,10 @@ class LauncherAppGridAdapter(
     }
 
     override fun getItemViewType(position: Int): Int = when (val item = items[position]) {
-        is DisplayItem.Header -> if (item.group.isPreview || item.group.isCategory) {
-            VIEW_TYPE_PREVIEW_HEADER
-        } else {
-            VIEW_TYPE_GROUP_TILE
+        is DisplayItem.Header -> when {
+            item.group.isPreview -> VIEW_TYPE_PREVIEW_HEADER
+            item.group.isCategory -> VIEW_TYPE_CATEGORY_TILE
+            else -> VIEW_TYPE_GROUP_TILE
         }
         is DisplayItem.App -> VIEW_TYPE_APP
     }
@@ -104,6 +108,10 @@ class LauncherAppGridAdapter(
         return when (viewType) {
             VIEW_TYPE_PREVIEW_HEADER -> {
                 PreviewHeaderViewHolder(ItemLauncherAppGroupHeaderBinding.inflate(inflater, parent, false))
+            }
+
+            VIEW_TYPE_CATEGORY_TILE -> {
+                CategoryTileViewHolder(ItemLauncherAppCategoryTileBinding.inflate(inflater, parent, false))
             }
 
             VIEW_TYPE_GROUP_TILE -> {
@@ -118,6 +126,7 @@ class LauncherAppGridAdapter(
         when (val item = items[position]) {
             is DisplayItem.Header -> when (holder) {
                 is PreviewHeaderViewHolder -> holder.bind(item.group)
+                is CategoryTileViewHolder -> holder.bind(item.group)
                 is GroupTileViewHolder -> holder.bind(item.group)
                 else -> error("Unexpected holder for an app group")
             }
@@ -130,7 +139,10 @@ class LauncherAppGridAdapter(
 
     override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
         super.onViewRecycled(holder)
-        if (holder is AppViewHolder) holder.clear()
+        when (holder) {
+            is AppViewHolder -> holder.clear()
+            is CategoryTileViewHolder -> holder.clear()
+        }
     }
 
     /**
@@ -201,6 +213,56 @@ class LauncherAppGridAdapter(
         return value.resourceId
     }
 
+    inner class CategoryTileViewHolder(
+        private val binding: ItemLauncherAppCategoryTileBinding,
+    ) : RecyclerView.ViewHolder(binding.root) {
+        private val icons = listOf(binding.icon1, binding.icon2, binding.icon3, binding.icon4)
+
+        fun bind(group: LauncherAppGroupSection) {
+            clear()
+            val apps = if (group.key == LauncherCategoryAppGroupManager.KEY_UNKNOWN) emptyList() else group.apps
+            icons.forEachIndexed { index, icon ->
+                val app = apps.getOrNull(index)
+                if (app != null) {
+                    thumbnailBinder.bindIcon(icon, app.iconFile, app.iconVersion, R.drawable.ic_launcher_mode)
+                } else if (index == 0) {
+                    icon.setImageResource(R.drawable.ic_launcher_mode)
+                }
+            }
+            binding.groupTitle.text = group.title
+            binding.groupCount.text = group.apps.size.toString()
+            binding.groupIndicator.rotation = if (group.isExpanded) EXPANDED_ROTATION else 0f
+            binding.root.contentDescription = "${group.title}, ${group.apps.size}"
+            ViewCompat.setStateDescription(
+                binding.root,
+                binding.root.context.getString(
+                    if (group.isExpanded) {
+                        R.string.collapsible_section_state_expanded
+                    } else {
+                        R.string.collapsible_section_state_collapsed
+                    },
+                ),
+            )
+            binding.root.isActivated = group.isReorderTarget
+            if (group.isReorderTarget) {
+                binding.root.setBackgroundColor(
+                    MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorSecondaryContainer)
+                )
+            } else {
+                binding.root.setBackgroundResource(selectableBackgroundOf(binding.root))
+            }
+            binding.root.setOnClickListener { onGroupToggle(group.key) }
+            binding.root.setOnLongClickListener { onGroupLongClick(group.key) }
+        }
+
+        fun clear() {
+            icons.forEach { icon ->
+                thumbnailBinder.clear(icon)
+                icon.setImageDrawable(null)
+            }
+        }
+    }
+
     inner class GroupTileViewHolder(
         private val binding: ItemLauncherAppGroupTileBinding,
     ) : RecyclerView.ViewHolder(binding.root) {
@@ -263,6 +325,7 @@ class LauncherAppGridAdapter(
         const val VIEW_TYPE_PREVIEW_HEADER = 0
         const val VIEW_TYPE_GROUP_TILE = 1
         const val VIEW_TYPE_APP = 2
+        const val VIEW_TYPE_CATEGORY_TILE = 3
         const val EXPANDED_ROTATION = 180f
         const val SYMBOL_GROUP = "#"
 

@@ -177,4 +177,41 @@ class AccountIdentityExtractorTest {
     fun `blank host is never signed in`() {
         assertFalse(AccountIdentityExtractor.hasSignedInCookies("", listOf(HttpCookie("sessionid", "1"))))
     }
+
+    @Test
+    fun `tiktok share host returns sessionid`() {
+        val out = AccountIdentityExtractor.extract(
+            host = "vm.tiktok.com",
+            cookies = listOf(HttpCookie("tt_csrf_token", "x"), HttpCookie("sessionid", "abc123")),
+        )
+
+        assertEquals("abc123", out)
+    }
+
+    @Test
+    fun `tiktok web host without sessionid returns null`() {
+        val out = AccountIdentityExtractor.extract(
+            host = "www.tiktok.com",
+            cookies = listOf(HttpCookie("ttwid", "1"), HttpCookie("msToken", "2")),
+        )
+
+        assertNull(out)
+    }
+
+    @Test
+    fun `tiktok anonymous cookies are not a signed-in session on any subdomain`() {
+        val anonymous = listOf(HttpCookie("ttwid", "1"), HttpCookie("tt_csrf_token", "2"))
+
+        assertFalse(AccountIdentityExtractor.hasSignedInCookies("v16-webapp-prime.tiktok.com", anonymous))
+        assertFalse(AccountIdentityExtractor.hasSignedInCookies("tiktok.com", anonymous))
+    }
+
+    @Test
+    fun `tiktok sessionid makes a signed-in session and blank does not`() {
+        val signedIn = listOf(HttpCookie("sessionid", "42"))
+        val blank = listOf(HttpCookie("sessionid", ""))
+
+        assertTrue(AccountIdentityExtractor.hasSignedInCookies("v16-webapp-prime.tiktok.com", signedIn))
+        assertFalse(AccountIdentityExtractor.hasSignedInCookies("www.tiktok.com", blank))
+    }
 }

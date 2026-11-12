@@ -439,7 +439,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun updateEmbeddedGameEnabled(enabled: Boolean) {
-        updateSettings { it.copy(embeddedGameEnabled = enabled) }
+        updateSettings { it.withPrograms { copy(embeddedGameEnabled = enabled) } }
         GameLaunchWidgetProvider.updateAll(context, enabled)
     }
 
@@ -502,9 +502,8 @@ class SettingsViewModel @Inject constructor(
                 defaultIconSize = defaults.defaultIconSize,
                 enableSafeMode = defaults.enableSafeMode,
                 confirmDelete = defaults.confirmDelete,
-                confirmMove = defaults.confirmMove,
-                enableFavorites = defaults.enableFavorites
-            )
+                confirmMove = defaults.confirmMove
+            ).withPrograms { copy(enableFavorites = defaults.enableFavorites) }
         }
     }
 
@@ -641,9 +640,6 @@ class SettingsViewModel @Inject constructor(
                 micRecordingEnabled = defaults.micRecordingEnabled,
                 micRecordingAskFilename = defaults.micRecordingAskFilename,
                 showBlackScreenButton = defaults.showBlackScreenButton,
-                enableCalculator = defaults.enableCalculator,
-                enableTourist = defaults.enableTourist,
-                embeddedGameEnabled = defaults.embeddedGameEnabled,
                 // SystemApps group (moved from Player tab)
                 preventSleep = defaults.preventSleep,
                 programFollowSystemRotation = defaults.programFollowSystemRotation,
@@ -680,7 +676,13 @@ class SettingsViewModel @Inject constructor(
                     rightBottomRight = defaults.screenshotGesture.rightBottomRight,
                     rightBottomUp = defaults.screenshotGesture.rightBottomUp
                 )
-            )
+            ).withPrograms {
+                copy(
+                    enableCalculator = defaults.enableCalculator,
+                    enableTourist = defaults.enableTourist,
+                    embeddedGameEnabled = defaults.embeddedGameEnabled,
+                )
+            }
         }
     }
 

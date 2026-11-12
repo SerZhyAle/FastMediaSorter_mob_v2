@@ -191,7 +191,6 @@ fun HomeScreen(
 private fun BoxScope.HomeSleepAffordance(minimizeApp: () -> Unit) {
     WearScreenOffAffordance(
         onClick = {
-            Timber.d("S4532: Home sleep sends the app to the background")
             minimizeApp()
         },
         modifier = Modifier

@@ -26,4 +26,6 @@
     <string name="filler_result_measurement_unavailable">Не удалось измерить свободное место. Проверьте, что накопитель подключён, и выберите папку снова.</string>
     <string name="filler_result_insufficient_space">Сверх места, оставляемого системе, свободного места нет. Освободите место или выберите другой накопитель.</string>
     <string name="filler_result_busy">Заполнение уже идёт.</string>
+    <string name="filler_settings_toggle_subtitle">Заполняет свободное место накопителя временными файлами и затем удаляет их</string>
+    <string name="filler_settings_toggle_subtitle_pending">Временные файлы прошлого запуска ещё лежат на накопителе. Программа остаётся в списке, пока вы не удалите их в ней.</string>
 </resources>

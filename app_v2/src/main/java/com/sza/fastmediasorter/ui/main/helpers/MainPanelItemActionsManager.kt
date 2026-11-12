@@ -97,7 +97,7 @@ class MainPanelItemActionsManager(
      *  three-dots button (refreshMainWindowDropdownMenuVisibility). Re-enable there or via Settings. */
     fun hideProgramsPanelFromPanel() {
         activity.lifecycleScope.launch {
-            settingsRepository.updateSettings { it.copy(showProgramsPanelInMainWindow = false) }
+            settingsRepository.updateSettings { it.withPrograms { copy(showProgramsPanelInMainWindow = false) } }
         }
     }
 

@@ -34,4 +34,13 @@ class SystemInfoBenchmarkTest {
         val leftovers = dir.listFiles()?.filter { it.name.startsWith("sysinfo_bench_") }.orEmpty()
         assertEquals("benchmark temp file must be deleted", emptyList<Any>(), leftovers)
     }
+
+    @Test
+    fun `cpu single-thread and multi-thread throughput are positive`() {
+        val single = SystemInfoBenchmark.measureCpuSingleThreadMops()
+        val multi = SystemInfoBenchmark.measureCpuMultiThreadMops()
+
+        assertTrue("single-thread CPU throughput must be positive, was $single", single > 0.0)
+        assertTrue("multi-thread CPU throughput must be positive, was $multi", multi > 0.0)
+    }
 }

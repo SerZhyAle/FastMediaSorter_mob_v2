@@ -2,19 +2,29 @@ package com.sza.fastmediasorter.data.filler
 
 import android.content.Context
 import android.util.AtomicFile
+import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.domain.filler.FillerFile
 import com.sza.fastmediasorter.domain.filler.FillerJournal
+import com.sza.fastmediasorter.domain.filler.FillerPendingCleanup
 import com.sza.fastmediasorter.domain.filler.FillerSession
 import com.sza.fastmediasorter.domain.filler.FillerTarget
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
+import timber.log.Timber
 import java.io.File
 import java.io.FileNotFoundException
+import java.io.IOException
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -30,10 +40,27 @@ internal data class FillerJournalEntry(
 @Singleton
 class FillerSessionJournal @Inject constructor(
     @param:ApplicationContext context: Context,
-) : FillerJournal {
+    @ApplicationScope scope: CoroutineScope,
+) : FillerJournal, FillerPendingCleanup {
     // noBackupFilesDir checks the directory on disk; resolving it lazily keeps that read inside read/change on IO.
     private val file by lazy { AtomicFile(File(context.noBackupFilesDir, JOURNAL_FILE)) }
     private val mutex = Mutex()
+    private val pending = MutableStateFlow(false)
+    override val hasPending: StateFlow<Boolean> = pending.asStateFlow()
+
+    init {
+        scope.launch(Dispatchers.IO) {
+            mutex.withLock {
+                pending.value = try {
+                    load().isNotEmpty()
+                } catch (e: JSONException) {
+                    unreadable(e)
+                } catch (e: IOException) {
+                    unreadable(e)
+                }
+            }
+        }
+    }
 
     override suspend fun pendingSessions(): List<FillerSession> = read { entries -> entries.map { it.session } }
 
@@ -91,6 +118,7 @@ class FillerSessionJournal @Inject constructor(
             val entries = load().toMutableList()
             val result = block(entries)
             save(entries)
+            pending.value = entries.isNotEmpty()
             result
         }
     }
@@ -141,6 +169,13 @@ class FillerSessionJournal @Inject constructor(
         } finally {
             if (!complete) file.failWrite(output)
         }
+    }
+
+    // The file is left untouched and the program stays reachable, because the unread journal may list files
+    // that still wait for deletion.
+    private fun unreadable(error: Exception): Boolean {
+        Timber.w(error, "Filler journal could not be read; keeping cleanup reachable")
+        return true
     }
 
     private fun MutableList<FillerJournalEntry>.update(

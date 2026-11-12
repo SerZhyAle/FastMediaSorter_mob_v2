@@ -57,7 +57,20 @@ class LinkDownloadSessionContext @Inject constructor() {
         }
     }
 
-    fun cookiesFor(requestHost: String): List<HttpCookie>? = matching(requestHost)?.cookies
+    fun cookiesFor(requestHost: String): List<HttpCookie>? =
+        (matching(requestHost) ?: matchingRegistrableDomain(requestHost))?.cookies
+
+    /**
+     * S4549: a session saved under `vm.tiktok.com` must still serve `www.tiktok.com` and the CDN hosts the
+     * extractors follow; the subdomain rule above only reaches downwards from the saved host, so without this
+     * the jar fell through to "first account of the domain", which can be a different (sessionless) login.
+     * Cookies only: the pinned UA and the audio-only hint stay bound to the host the run started from.
+     */
+    private fun matchingRegistrableDomain(requestHost: String): Active? {
+        val registrable = registrableDomainOrNull(requestHost) ?: return null
+        val snapshot = synchronized(lock) { sessions.toList() }
+        return snapshot.lastOrNull { it.cookies.isNotEmpty() && registrableDomainOrNull(it.host) == registrable }
+    }
 
     /** S0182: returns the pinned User-Agent for the matching session, or null if unset. */
     fun userAgentFor(requestHost: String): String? = matching(requestHost)?.userAgent

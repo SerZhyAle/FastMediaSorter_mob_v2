@@ -6,6 +6,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.exchange.ExchangeClipboardActivity
+import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.wear.WatchListenLaunchActivity
 
 /**
@@ -203,6 +204,11 @@ object InternalRouteCatalog {
             labelRes = R.string.filler_title,
             iconRes = R.drawable.ic_storage,
             intent = AppLaunchPanelRouteIntents::filler,
+            // S4542: built inline because the route-intents object sits at its TooManyFunctions ceiling;
+            // NEW_TASK matches the panel flags, since a tile may fire from outside any activity task.
+            settingsIntent = {
+                SettingsActivity.openProgramsSectionIntent(it).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            },
         ),
         // S1736 §6.7, owner ruling 2026-09-05: this is the one pair where the menu's wording wins over
         // the route's - the route said "Photo OCR translate", which is jargon and worse Russian than the

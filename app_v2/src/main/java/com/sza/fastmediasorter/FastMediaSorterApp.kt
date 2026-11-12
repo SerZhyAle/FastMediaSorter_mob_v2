@@ -102,6 +102,11 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
     lateinit var flashlightShortcutCoordinator:
         dagger.Lazy<com.sza.fastmediasorter.core.notification.FlashlightShortcutCoordinator>
 
+    /** S4545: republishes the app-icon shortcuts when a program switch changes what the menu may show. */
+    @Inject
+    lateinit var appShortcutsRefreshCoordinator:
+        dagger.Lazy<com.sza.fastmediasorter.core.AppShortcutsRefreshCoordinator>
+
     /** S4116: receives casts from the user's other devices while an exchange server is the outgoing one. */
     @Inject
     lateinit var exchangeCastCoordinator:
@@ -250,6 +255,10 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
     @Inject
     lateinit var appKeepScreenAwakeManager: com.sza.fastmediasorter.core.ui.AppKeepScreenAwakeManager
 
+    // S4544: refuses a switched-off programs screen however it was reached; registered in onCreate.
+    @Inject
+    lateinit var programScreenGuardManager: com.sza.fastmediasorter.core.ui.ProgramScreenGuardManager
+
     // S2536: folds the charge, the system saver and the user's trigger into one policy level.
     // Injected directly: onCreate registers it as activity callbacks on every process start, so it
     // is always built here; its battery observation still starts only with the first started activity.
@@ -342,6 +351,9 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
             flashlightShortcutCoordinator.get().start()
         }
         applicationScope.launch(Dispatchers.IO) {
+            appShortcutsRefreshCoordinator.get().start()
+        }
+        applicationScope.launch(Dispatchers.IO) {
             exchangeCastCoordinator.get().start()
         }
         applicationScope.launch(Dispatchers.IO) {
@@ -393,6 +405,7 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
         // S0439: apply the program-wide screen-rotation policy to every non-self-managed activity.
         registerActivityLifecycleCallbacks(appOrientationManager)
         registerActivityLifecycleCallbacks(appKeepScreenAwakeManager)
+        registerActivityLifecycleCallbacks(programScreenGuardManager)
         registerActivityLifecycleCallbacks(powerStateObserver)
         // S0943: decorate the focused view in-place with the D-pad/TV focus outline on every Activity
         // window (opt-out via FocusDecorationExcluded); one controller per window, hidden in touch mode.

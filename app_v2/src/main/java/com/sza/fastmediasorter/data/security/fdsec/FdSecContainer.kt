@@ -293,9 +293,10 @@ class FdSecContainer(
         }
         val block = openMetadataBlock(file, view) ?: return PrefixResult.Refused(FdSecOutcome.WrongCredentialOrTamper)
         if (FdSecMetadata.hasMalformedName(block)) {
-            // The block authenticated, so this is damage and not a wrong credential. The message is
-            // constant on purpose: the sealed name never reaches a log or a screen.
-            return PrefixResult.Refused(FdSecOutcome.Damaged("the sealed name is not valid UTF-8"))
+            // The block authenticated, so this is damage and not a wrong credential, whether the name
+            // is not UTF-8 or not in NFC. The message is constant on purpose: the sealed name never
+            // reaches a log or a screen.
+            return PrefixResult.Refused(FdSecOutcome.Damaged("the sealed name is not valid UTF-8 in NFC"))
         }
         val metadata = FdSecMetadata.decode(block) ?: return PrefixResult.Refused(FdSecOutcome.WrongCredentialOrTamper)
         val damaged = lengthMismatch(length, view, metadata.realSize)

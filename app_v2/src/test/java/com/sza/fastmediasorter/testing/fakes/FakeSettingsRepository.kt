@@ -67,7 +67,7 @@ class FakeSettingsRepository(
     override suspend fun getLastUsedResourceId(): Long = settingsFlow.value.lastUsedResourceId
 
     override suspend fun updateEmbeddedGameEnabled(enabled: Boolean) {
-        updateSettings(settingsFlow.value.copy(embeddedGameEnabled = enabled))
+        updateSettings(settingsFlow.value.withPrograms { copy(embeddedGameEnabled = enabled) })
     }
 
     override suspend fun updateScheduledOperationsPaused(paused: Boolean) {

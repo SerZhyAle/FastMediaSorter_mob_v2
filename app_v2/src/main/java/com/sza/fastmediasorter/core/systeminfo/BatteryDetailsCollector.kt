@@ -25,8 +25,7 @@ class BatteryDetailsCollector @Inject constructor(
         }.getOrNull()
         val manager = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
         val status = intent?.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN)
-        val current = runCatching { manager?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW) }
-            .getOrNull()?.takeUnless { it == Int.MIN_VALUE }
+        val current = readProperty(manager, BatteryManager.BATTERY_PROPERTY_CURRENT_NOW)
         val voltage = intent?.getIntExtra(BatteryManager.EXTRA_VOLTAGE, INVALID)?.takeIf { it > 0 }
         val power = if (current != null && voltage != null) current.toDouble() * voltage / POWER_DIVISOR else null
         val canEstimateCharge = status == BatteryManager.BATTERY_STATUS_CHARGING &&
@@ -39,26 +38,70 @@ class BatteryDetailsCollector @Inject constructor(
         val level = intent?.getIntExtra(BatteryManager.EXTRA_LEVEL, INVALID) ?: INVALID
         val scale = intent?.getIntExtra(BatteryManager.EXTRA_SCALE, INVALID) ?: INVALID
         val percent = if (level >= 0 && scale > 0 && level <= scale) level * FULL_PERCENT / scale else null
-        val discharging = status == BatteryManager.BATTERY_STATUS_DISCHARGING
-        val remaining = if (percent != null) {
-            estimator.estimateRemainingMillis(percent, !discharging, SystemClock.elapsedRealtime())
-        } else {
-            MetricValue.Unknown
-        }
+        // EXTRA_PLUGGED, not the status: a charge limiter reports "not charging" while the cable is in,
+        // and that device is not running on its battery.
+        val onExternalPower = (intent?.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) ?: 0) > 0
+        val counter = readProperty(manager, BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER)?.takeIf { it > 0 }
+        val remaining = estimateRemaining(manager, percent, onExternalPower, counter, current)
         val saver = (context.getSystemService(Context.POWER_SERVICE) as? PowerManager)?.isPowerSaveMode
-        val capacity = estimateCapacityMilliampHours(manager, percent)
-        return BatteryDetails(current, power, chargeTime, (remaining as? MetricValue.Known)?.value, saver, capacity)
+        val capacity = estimateCapacityMilliampHours(counter, percent)
+        val cycleCount = intent?.getIntExtra(EXTRA_CYCLE_COUNT, INVALID)?.takeIf { it >= 0 }
+        val chargingPolicy = chargingPolicyText(intent?.getIntExtra(EXTRA_CHARGING_STATUS, INVALID))
+        val chargeCounterMah = counter?.let { (it / MICROAMPS_PER_MILLIAMP).toInt() }
+        val averageCurrent = readProperty(manager, BatteryManager.BATTERY_PROPERTY_CURRENT_AVERAGE)
+            ?.takeIf { it != 0 }
+        return BatteryDetails(
+            currentMicroamps = current,
+            powerWatts = power,
+            chargeTimeMillis = chargeTime,
+            dischargeTimeMillis = remaining,
+            powerSaveMode = saver,
+            estimatedCapacityMilliampHours = capacity,
+            isOnExternalPower = onExternalPower,
+            cycleCount = cycleCount,
+            chargingPolicy = chargingPolicy,
+            chargeCounterMilliampHours = chargeCounterMah,
+            averageCurrentMicroamps = averageCurrent,
+        )
     }
+
+    private fun chargingPolicyText(status: Int?): String? = when (status) {
+        CHARGING_POLICY_DEFAULT -> "Normal"
+        CHARGING_POLICY_ADAPTIVE_AC, CHARGING_POLICY_ADAPTIVE_AON -> "Adaptive"
+        CHARGING_POLICY_ADAPTIVE_LONGLIFE -> "Long life (80% limit)"
+        else -> null
+    }
+
+    private fun estimateRemaining(
+        manager: BatteryManager?,
+        percent: Int?,
+        onExternalPower: Boolean,
+        counter: Int?,
+        currentNow: Int?
+    ): Long? {
+        if (percent == null) return null
+        // The average current, where the fuel gauge keeps one, is steadier than the instantaneous one.
+        val draw = readProperty(manager, BatteryManager.BATTERY_PROPERTY_CURRENT_AVERAGE)
+            ?.takeIf { it != 0 } ?: currentNow
+        val estimate = estimator.estimateRemainingMillis(
+            percent,
+            onExternalPower,
+            SystemClock.elapsedRealtime(),
+            counter,
+            draw
+        )
+        return (estimate as? MetricValue.Known)?.value
+    }
+
+    private fun readProperty(manager: BatteryManager?, property: Int): Int? =
+        runCatching { manager?.getIntProperty(property) }.getOrNull()?.takeUnless { it == Int.MIN_VALUE }
 
     /**
      * Full-charge capacity derived from the remaining charge counter and the charge level.
      * Android exposes no public rated (design) capacity, so this is a calculated value and is never
      * presented as one; a low level or an implausible result leaves it absent.
      */
-    private fun estimateCapacityMilliampHours(manager: BatteryManager?, percent: Int?): Int? {
-        val counterMicroampHours = runCatching {
-            manager?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER)
-        }.getOrNull()?.takeIf { it > 0 }
+    private fun estimateCapacityMilliampHours(counterMicroampHours: Int?, percent: Int?): Int? {
         return if (percent != null && percent >= MIN_CAPACITY_PERCENT && counterMicroampHours != null) {
             val milliampHours = counterMicroampHours.toDouble() / MICROAMPS_PER_MILLIAMP * FULL_PERCENT / percent
             milliampHours.toInt().takeIf { it in PLAUSIBLE_CAPACITY_MAH }
@@ -74,6 +117,12 @@ class BatteryDetailsCollector @Inject constructor(
         const val MICROAMPS_PER_MILLIAMP = 1_000.0
         const val MIN_CAPACITY_PERCENT = 10
         val PLAUSIBLE_CAPACITY_MAH = 100..50_000
+        const val EXTRA_CYCLE_COUNT = "android.os.extra.CYCLE_COUNT"
+        const val EXTRA_CHARGING_STATUS = "android.os.extra.CHARGING_STATUS"
+        const val CHARGING_POLICY_DEFAULT = 1
+        const val CHARGING_POLICY_ADAPTIVE_AC = 2
+        const val CHARGING_POLICY_ADAPTIVE_AON = 3
+        const val CHARGING_POLICY_ADAPTIVE_LONGLIFE = 4
     }
 }
 
@@ -83,5 +132,10 @@ data class BatteryDetails(
     val chargeTimeMillis: Long?,
     val dischargeTimeMillis: Long?,
     val powerSaveMode: Boolean?,
-    val estimatedCapacityMilliampHours: Int?
+    val estimatedCapacityMilliampHours: Int?,
+    val isOnExternalPower: Boolean = false,
+    val cycleCount: Int? = null,
+    val chargingPolicy: String? = null,
+    val chargeCounterMilliampHours: Int? = null,
+    val averageCurrentMicroamps: Int? = null,
 )

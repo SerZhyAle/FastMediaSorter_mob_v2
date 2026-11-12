@@ -10,7 +10,7 @@ data class LauncherAppGroupSection(
     val isExpanded: Boolean,
     val isPreview: Boolean = false,
     val isSingleApp: Boolean = false,
-    // S4530: a category group is drawn as a full-width header, not as a one-letter tile.
+    // Category groups retain their own tile and reorder behavior.
     val isCategory: Boolean = false,
     val isReorderTarget: Boolean = false,
 )

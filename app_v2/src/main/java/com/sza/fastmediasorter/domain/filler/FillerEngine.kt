@@ -20,6 +20,7 @@ data class FillerPlace(val target: FillerTarget, val volumeName: String, val fol
 
 /** Turns a picked folder address into a target; null means it is not on a local mounted volume. */
 interface FillerTargetResolver {
+    suspend fun defaultLocation(): String? = null
     suspend fun grant(location: String): Boolean
     suspend fun place(location: String): FillerPlace?
 }

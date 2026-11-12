@@ -7,6 +7,8 @@ import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
+import com.sza.fastmediasorter.core.ui.ProgramScreenGuardManager
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -31,6 +33,8 @@ class CameraQuickCaptureActivity : AppCompatActivity() {
     }
 
     @Inject lateinit var launchManagerFactory: CameraQuickCaptureLaunchManagerFactory
+
+    @Inject lateinit var programScreenGuard: ProgramScreenGuardManager
 
     private lateinit var launchManager: CameraQuickCaptureLaunchManager
 
@@ -63,7 +67,7 @@ class CameraQuickCaptureActivity : AppCompatActivity() {
         if (savedInstanceState != null) {
             launchManager.restoreState(savedInstanceState)
         } else {
-            launchManager.start()
+            programScreenGuard.admit(this, InternalRouteCatalog.KEY_QUICK_CAMERA) { launchManager.start() }
         }
     }
 

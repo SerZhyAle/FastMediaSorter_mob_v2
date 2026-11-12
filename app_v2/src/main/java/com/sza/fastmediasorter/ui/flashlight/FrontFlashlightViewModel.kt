@@ -32,7 +32,7 @@ class FrontFlashlightViewModel @Inject constructor(
 
     fun setGlowColor(color: Int) {
         viewModelScope.launch {
-            settingsRepository.updateSettings { it.copy(frontFlashlightColor = color) }
+            settingsRepository.updateSettings { it.withPrograms { copy(frontFlashlightColor = color) } }
         }
     }
 

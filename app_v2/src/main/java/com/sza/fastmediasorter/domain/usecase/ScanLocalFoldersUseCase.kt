@@ -64,6 +64,7 @@ class ScanLocalFoldersUseCase @Inject constructor(
                         slideshowInterval = settings.slideshowInterval,
                         scanSubdirectories = false,
                         supportedMediaTypes = supportedMediaTypes,
+                        sortMode = SortMode.DATE_DESC,
                         allFiles = settings.allFiles
                     )
                 )

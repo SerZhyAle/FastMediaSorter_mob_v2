@@ -255,10 +255,10 @@ internal class AddResourceVirtualCoordinator(
             else -> null
         }
 
-        val defaultSortMode = if (virtualPath == LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS) {
-            SortMode.DATE_DESC
-        } else {
-            SortMode.NAME_ASC
+        val defaultSortMode = when (virtualPath) {
+            LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS,
+            LocalMediaScanner.VIRTUAL_PATH_RECENT -> SortMode.DATE_DESC
+            else -> SortMode.NAME_ASC
         }
 
         return MediaResource(

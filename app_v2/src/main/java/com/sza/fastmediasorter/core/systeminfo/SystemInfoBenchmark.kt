@@ -26,6 +26,69 @@ object SystemInfoBenchmark {
     private const val MEMORY_TIME_CAP_NANOS = 200_000_000L
     private const val STORAGE_FILE_BYTES = 8 * 1024 * 1024
     private const val STORAGE_BLOCK_BYTES = 64 * 1024
+    private const val CPU_TIME_CAP_NANOS = 120_000_000L
+    private const val CPU_BATCH_OPS = 4_096
+    private const val MAX_BENCH_THREADS = 8
+    private const val THREAD_JOIN_TIMEOUT_MS = 500L
+    private const val INITIAL_SEED = 0x1234_5678_9ABC_DEF0L
+    private const val SHIFT_LEFT_BITS = 13
+    private const val SHIFT_RIGHT_BITS = 7
+    private const val LCG_MULT = 6364136223846793005L
+    private const val LCG_ADD = 1442695040888963407L
+    private const val OPS_PER_MILLION = 1_000_000.0
+    private const val NANOS_PER_SECOND = 1_000_000_000.0
+
+    /** Approximate single-thread integer/FP mix throughput in million operations per second (MOPS). */
+    fun measureCpuSingleThreadMops(): Double = try {
+        val start = System.nanoTime()
+        val ops = runCpuLoop(start, CPU_TIME_CAP_NANOS)
+        val elapsedNanos = System.nanoTime() - start
+        if (elapsedNanos <= 0 || ops <= 0L) FAILED else toMops(ops, elapsedNanos)
+    } catch (e: Exception) {
+        Timber.w(e, "System info: single-thread CPU benchmark failed")
+        FAILED
+    }
+
+    /** Approximate multi-thread integer/FP mix throughput in million operations per second (MOPS). */
+    fun measureCpuMultiThreadMops(): Double = try {
+        val threadsCount = Runtime.getRuntime().availableProcessors().coerceIn(1, MAX_BENCH_THREADS)
+        val counts = LongArray(threadsCount)
+        val start = System.nanoTime()
+        val workers = Array(threadsCount) { idx ->
+            Thread {
+                counts[idx] = runCpuLoop(start, CPU_TIME_CAP_NANOS)
+            }.apply { start() }
+        }
+        workers.forEach { it.join(THREAD_JOIN_TIMEOUT_MS) }
+        val elapsedNanos = System.nanoTime() - start
+        val totalOps = counts.sum()
+        if (elapsedNanos <= 0 || totalOps <= 0L) FAILED else toMops(totalOps, elapsedNanos)
+    } catch (e: Exception) {
+        Timber.w(e, "System info: multi-thread CPU benchmark failed")
+        FAILED
+    }
+
+    private fun runCpuLoop(startNanos: Long, budgetNanos: Long): Long {
+        var acc = INITIAL_SEED
+        var ops = 0L
+        while (System.nanoTime() - startNanos < budgetNanos) {
+            var i = 0
+            while (i < CPU_BATCH_OPS) {
+                acc = acc xor (acc shl SHIFT_LEFT_BITS)
+                acc = acc xor (acc ushr SHIFT_RIGHT_BITS)
+                acc = acc * LCG_MULT + LCG_ADD
+                i++
+            }
+            ops += CPU_BATCH_OPS
+        }
+        if (acc == 0L) Timber.v("CPU bench sink")
+        return ops
+    }
+
+    private fun toMops(ops: Long, elapsedNanos: Long): Double {
+        val seconds = elapsedNanos / NANOS_PER_SECOND
+        return (ops / OPS_PER_MILLION) / seconds
+    }
 
     /** Approximate in-memory copy throughput in MB/s, measured under a hard time cap. */
     fun measureMemoryThroughputMbps(): Double = try {

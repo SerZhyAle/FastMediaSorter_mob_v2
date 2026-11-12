@@ -73,15 +73,16 @@
     iw   - Build and install noLegal Wear OS Debug APK on a selected watch
     wfr  - Signed release bundle of the watch face for the Play upload
     wfd  - Build and verify watch face debug APK (:watchface), optionally install (-Install [-DeviceId <id>])
-    r0   - MONO queue: one agent alone on the project, children run `/spec-all -m <id>` with no
-           lease, lock or chat wait; starts by dropping every leftover lease, lock and queue (S3158)
+    r0   - Portfolio worker for this repository: `pq start -Repo <key>`, so every pass has a ticket
+           lease and a row in the portfolio ledger (S4541). Extra options go to pq (`-MaxTickets`,
+           `-Until`, `-Drain`, `-Ticket`); `-DryRun` shows what would start. Stop it with `pq stop`.
     r1   - Run the release queue unattended, instance A (one fresh claude process per ticket)
     r2   - Same, instance B - the second parallel stream, staggered so it does not race A
     r3   - Same, instance C - the third parallel stream, staggered further so it does not race A or B
            Order comes from PLAN/RELEASE_QUEUE.md; the model is picked per ticket (Opus where a
            decision is left, Sonnet for Implemented and tier 1-2). Options forward through, e.g.
            `.\a.ps1 r1 -MaxTickets 5 -TimeoutMinutes 45`.
-           Each of the four prints its own progress into its console as it goes - status flips,
+           Each of the three prints its own progress into its console as it goes - status flips,
            closure verdicts, phase posts - read live from the agent chat, plus a still-working line
            every 10 quiet minutes. Watch all of them from a spare window instead:
            `pwsh -NoProfile -File scripts/utils/watch-agent-progress.ps1`.
@@ -411,9 +412,9 @@ $scripts = @{
     # r2 and r3 stagger their first ranking, each by a wider window than the last, so no pair
     # ranks on the same instant and races for the same ticket. Long-running by design: start them
     # in their own windows.
-    # S3158: the MONO chain - one agent alone on the project, so its children take no lease or lock
-    # and the wrapper runs the MONO start instead of the lease cleanup below.
-    'r0'        = @{ Path = 'scripts\utils\run-mono-queue.ps1'; Args = @{} }
+    # S4541: r0 is a pq worker for this repository, so its passes carry a lease and reach the portfolio
+    # ledger; it takes no part in the lease cleanup or the concurrency bound below, which are r1-r3's.
+    'r0'        = @{ Path = 'scripts\utils\run-pq-queue.ps1'; Args = @{} }
     # Quiet keeps each child's stdout and stderr in temp/spec-queue/<id>.log: without it a child that
     # dies at launch leaves a journal row with exit 1 and no cause (S4191).
     'r1'        = @{ Path = 'scripts\utils\run-spec-queue.ps1'; Args = @{ Instance = 'a'; Quiet = $true } }
@@ -533,7 +534,7 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "  iw   - Build + install noLegal Wear OS Debug (-DeviceId <watch> when multiple devices)" -ForegroundColor Cyan
     Write-Host "  wfr  - Signed release bundle of the watch face for the Play upload" -ForegroundColor Cyan
     Write-Host "  wfd  - Build and verify watch face debug APK (:watchface), optionally install (-Install)" -ForegroundColor Cyan
-    Write-Host "  r0   - MONO queue: one agent alone, children run /spec-all -m <id> (no lease, lock or wait)" -ForegroundColor Cyan
+    Write-Host "  r0   - pq worker for this repository: pq start -Repo <key> (leased passes, portfolio rows)" -ForegroundColor Cyan
     Write-Host "  r1   - Run the release queue unattended, instance A (fresh process per ticket)" -ForegroundColor Cyan
     Write-Host "  r2   - Same, instance B - the second parallel stream" -ForegroundColor Cyan
     Write-Host "  r3   - Same, instance C - the third parallel stream" -ForegroundColor Cyan
@@ -792,8 +793,8 @@ $queueRunnerStartCommands = @('r1', 'r2', 'r3')
 # S3308. How much runs at once was set by two unconnected hands - lanes started deliberately here,
 # and sessions opened beside them - so neither hand could see the total. The bound is declared once
 # in .sza-profile.json and read here, and it counts every active agent rather than only the lanes,
-# because the larger half of the load was never the lanes. r0 is exempt: MONO is one agent alone,
-# which is the opposite of adding load.
+# because the larger half of the load was never the lanes. r0 is exempt: it starts a pq worker, and
+# pq bounds its own workers per repository (maxWorkers in the portfolio registry).
 #
 # Active is the owner's definition of 2026-09-19: an agent that talked, wrote a file or ran a script
 # inside the profile's window. A hung, interrupted, limit-stopped, finished or owner-declared-dead
@@ -869,9 +870,9 @@ if ($queueRunnerStartCommands -contains $Command) {
 }
 
 # The instance name each runner stamps on its own process tree, and the progress watcher
-# started beside it. r0's MONO chain takes no lease, so it is absent from the lease cleanup below
-# but present in both maps - it needs the console progress at least as much, being one agent alone.
-$queueRunnerInstanceNames = @{ 'r0' = 'mono'; 'r1' = 'a'; 'r2' = 'b'; 'r3' = 'c' }
+# started beside it. r0 is absent: its passes run as pq's own `pq<k>` instances, and a stamp set here
+# would leak into their chat records; `pq tail` is its live view.
+$queueRunnerInstanceNames = @{ 'r1' = 'a'; 'r2' = 'b'; 'r3' = 'c' }
 $queueRunnerProgressProc = $null
 if ($queueRunnerInstanceNames.ContainsKey($Command)) {
     # Stamp the instance on every descendant. agent-identity.ps1 reads FMS_QUEUE_INSTANCE and writes
@@ -906,7 +907,9 @@ if ($queueRunnerInstanceNames.ContainsKey($Command)) {
 # only a READER of the freeze learns it is over, and a lane start is the one moment where nothing else
 # reads it: run-spec-queue.ps1 sees the flag alone and, with any headless child alive, refuses to start
 # (exit 3) having run nothing. The status read is read-only against a live freeze and costs one line.
-if ($queueRunnerInstanceNames.ContainsKey($Command)) {
+# r0 is read too (S4541): pq skips a repository while the shared stop file exists, so a flag left by an
+# expired freeze would hold its worker idle exactly as it held the lanes.
+if ($queueRunnerInstanceNames.ContainsKey($Command) -or $Command -eq 'r0') {
     $freezeStatusScript = Join-Path $ProjectRoot 'scripts\utils\release-freeze.ps1'
     if (Test-Path $freezeStatusScript) {
         try { & $freezeStatusScript -Verb Status }

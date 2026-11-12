@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.data.networkmonitor
 import android.content.Context
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.networkmonitor.GnssCoordinate
+import com.sza.fastmediasorter.domain.model.programs.ProgramsSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import io.mockk.every
 import io.mockk.mockk
@@ -53,7 +54,7 @@ class GnssTrackRecorderTest {
 
     @Test
     fun `no point is recorded while the setting is off`() = runTest {
-        settings.value = AppSettings(recordGnssTrack = false)
+        settings.value = AppSettings(programs = ProgramsSettings(recordGnssTrack = false))
         val coordinates = MutableSharedFlow<GnssCoordinate>(extraBufferCapacity = COORDINATE_BUFFER)
         val statuses = mutableListOf<GnssTrackStatus>()
 
@@ -73,7 +74,7 @@ class GnssTrackRecorderTest {
 
     @Test
     fun `turning the setting off mid-session stops the recording`() = runTest {
-        settings.value = AppSettings(recordGnssTrack = true)
+        settings.value = AppSettings(programs = ProgramsSettings(recordGnssTrack = true))
         val coordinates = MutableSharedFlow<GnssCoordinate>(extraBufferCapacity = COORDINATE_BUFFER)
         val statuses = mutableListOf<GnssTrackStatus>()
 
@@ -85,7 +86,7 @@ class GnssTrackRecorderTest {
         val recordedBeforeStop = statuses.last().pointCount
         val trackFile = statuses.last().trackFile
 
-        settings.value = AppSettings(recordGnssTrack = false)
+        settings.value = AppSettings(programs = ProgramsSettings(recordGnssTrack = false))
         coordinates.emit(coordinate(millis = 3L))
         collection.cancel()
 
@@ -97,7 +98,7 @@ class GnssTrackRecorderTest {
 
     @Test
     fun `cancelling the collection releases the recorder`() = runTest {
-        settings.value = AppSettings(recordGnssTrack = true)
+        settings.value = AppSettings(programs = ProgramsSettings(recordGnssTrack = true))
         val coordinates = MutableSharedFlow<GnssCoordinate>(extraBufferCapacity = COORDINATE_BUFFER)
         val statuses = mutableListOf<GnssTrackStatus>()
 

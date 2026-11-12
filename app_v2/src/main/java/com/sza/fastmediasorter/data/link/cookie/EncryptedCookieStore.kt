@@ -141,22 +141,31 @@ class EncryptedCookieStore @Inject constructor(
     }
 
     /**
-     * S0211: lookup helper for dedup-aware save. For [host] iterate over stored active
-     * accounts, extract the platform identity from each cookie set via
-     * [AccountIdentityExtractor], return the first accountId whose extracted identity
+     * S0211: lookup helper for dedup-aware save. Iterates the stored active accounts of the
+     * site [host] belongs to, extracts the platform identity from each cookie set via
+     * [AccountIdentityExtractor], and returns the first accountId whose extracted identity
      * matches [identity]. Returns `null` when no record matches or inputs are blank.
+     *
+     * S4549: the site is the registrable domain, not the exact host - a login saved on
+     * `www.tiktok.com` must be found when the same login is saved again on `vm.tiktok.com`,
+     * otherwise every subdomain the webview lands on mints its own duplicate account. The
+     * cookies themselves stay keyed by the exact host they were saved under.
      */
     fun findAccountIdByIdentity(host: String, identity: String): String? {
         if (host.isBlank() || identity.isBlank()) return null
-        val prefix = "$ACCT_PREFIX$host:"
-        return prefs.all.keys.asSequence()
-            .filter { it.startsWith(prefix) }
-            .mapNotNull { key -> loadAccountEntry(host, key.removePrefix(prefix)) }
-            .filter { it.type == TYPE_ACTIVE && it.cookieCount > 0 }
-            .firstOrNull { entry ->
-                val cookies = loadForAccount(host, entry.accountId)
-                AccountIdentityExtractor.extract(host, cookies) == identity
+        val registrable = registrableDomainOrNull(host)
+        return listAllAccounts()
+            .asSequence()
+            .filter { (accountHost, entry) ->
+                val sameSite = accountHost == host ||
+                    (registrable != null && registrableDomainOrNull(accountHost) == registrable)
+                sameSite && entry.type == TYPE_ACTIVE && entry.cookieCount > 0
             }
+            .firstOrNull { (accountHost, entry) ->
+                val cookies = loadForAccount(accountHost, entry.accountId)
+                AccountIdentityExtractor.extract(accountHost, cookies) == identity
+            }
+            ?.second
             ?.accountId
     }
 

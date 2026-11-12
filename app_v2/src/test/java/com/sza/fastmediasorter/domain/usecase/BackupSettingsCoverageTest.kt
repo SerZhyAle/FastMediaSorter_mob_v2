@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.domain.model.BroadcastSettings
 import com.sza.fastmediasorter.domain.model.LetterboxHaloSettings
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureSettings
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSettings
+import com.sza.fastmediasorter.domain.model.programs.ProgramsSettings
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.lang.reflect.Modifier
@@ -38,7 +39,8 @@ class BackupSettingsCoverageTest {
             LauncherSettings::class.java,
             ScreenshotGestureSettings::class.java,
             BroadcastSettings::class.java,
-            LetterboxHaloSettings::class.java
+            LetterboxHaloSettings::class.java,
+            ProgramsSettings::class.java
         )
 
         /**
@@ -159,7 +161,9 @@ class BackupSettingsCoverageTest {
         LauncherSettings() to "launcher",
         ScreenshotGestureSettings() to "screenshotGesture",
         BroadcastSettings() to "broadcast",
-        LetterboxHaloSettings() to "letterboxHalo"
+        LetterboxHaloSettings() to "letterboxHalo",
+        // S4547: the program group kept its members' flat names, so it carries no prefix.
+        ProgramsSettings() to ""
     )
 
     /**

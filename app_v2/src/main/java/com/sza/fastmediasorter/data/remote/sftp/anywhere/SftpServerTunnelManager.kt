@@ -312,6 +312,7 @@ class SftpServerTunnelManager @Inject constructor(
             terminal = outcome.terminalState
             if (terminal == null) {
                 backoffMs = if (outcome.wasWelcomed) INITIAL_BACKOFF_MS else backoffMs
+                Timber.i("SftpServerTunnelManager: control stream reopens in %d ms", backoffMs)
                 delay(backoffMs)
                 backoffMs = (backoffMs * 2).coerceAtMost(MAX_BACKOFF_MS)
             }
@@ -412,6 +413,7 @@ class SftpServerTunnelManager @Inject constructor(
         val lastHeard = LastHeard()
         val keepalive = tunnels.launch(ioDispatcher) { keepalive(session, intervalMs, lastHeard) }
         var outcome = SessionOutcome(wasWelcomed = true)
+        var end: ControlStreamEnd? = null
         try {
             source.rememberWelcome(entry, session.welcome)
             control.serverSeals = session.welcome.features?.contains(DeviceExchangeAccountEntry.FEATURE_SEALED) == true
@@ -432,16 +434,31 @@ class SftpServerTunnelManager @Inject constructor(
             val started = broadcast?.let { announce(control, it, sealedPublication(control, it)) } == true
             if (started) sendGrants(control, folders = false)
             var envelope = session.receive()
+            var refusedHere = false
             while (envelope != null) {
                 lastHeard.touch()
                 val refused = handle(tunnels, control, envelope, entry, sharePort)
                 if (refused != null) outcome = refused.copy(wasWelcomed = true)
+                refusedHere = refused != null
                 envelope = if (refused == null) session.receive() else null
             }
+            // A refusal reports its own row; any other way out of the loop is the server closing the stream.
+            if (!refusedHere) {
+                end = ControlStreamEnd.SERVER_CLOSED
+                end.report(null, lastHeard.sessionAgeMs(), lastHeard.silentFor())
+            }
         } catch (e: IOException) {
-            Timber.i(e, "SftpServerTunnelManager: control stream lost")
+            end = ControlStreamEnd.of(e, lastHeard.keepaliveClosed, detached = !currentCoroutineContext().isActive)
+            end.report(e, lastHeard.sessionAgeMs(), lastHeard.silentFor())
         } finally {
             keepalive.cancel()
+        }
+        if (end != null) {
+            Timber.d("S4551: control stream ended cause=%s share=%b", end, record != null)
+            // The server drops this device's records with the stream, so a published share is not Registered now.
+            if (record != null && share != null && currentCoroutineContext().isActive) {
+                mutableState.value = SftpTunnelState.Connecting
+            }
         }
         return outcome
     }
@@ -603,6 +620,7 @@ class SftpServerTunnelManager @Inject constructor(
             alive = lastHeard.silentFor() <= intervalMs * KEEPALIVE_WINDOW && sendQuietly(control, KEEPALIVE)
         }
         Timber.i("SftpServerTunnelManager: keepalive window missed or write failed")
+        lastHeard.keepaliveClosed = true
         close(control.connection)
     }
 
@@ -855,14 +873,22 @@ class SftpServerTunnelManager @Inject constructor(
     private data class SentGrant(val grantId: String, val broadcast: Boolean)
 
     private class LastHeard {
+        private val startedAt = System.nanoTime()
+
         @Volatile
-        private var at = System.nanoTime()
+        private var at = startedAt
+
+        /** Set by the keepalive before it closes the socket, so the read failure after it is not blamed on the net. */
+        @Volatile
+        var keepaliveClosed = false
 
         fun touch() {
             at = System.nanoTime()
         }
 
         fun silentFor(): Long = (System.nanoTime() - at) / NANOS_PER_MILLI
+
+        fun sessionAgeMs(): Long = (System.nanoTime() - startedAt) / NANOS_PER_MILLI
     }
 
     private data class SessionOutcome(

@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.domain.model.ScheduledOpType
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.model.TimeFilter
+import com.sza.fastmediasorter.domain.model.programs.ProgramsSettings
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -261,12 +262,6 @@ class ImportSettingsUseCase @Inject constructor(
                                         
                                         defaultSortMode = SortMode.valueOf(data["defaultSortMode"] ?: "NAME_ASC"),
                                         slideshowInterval = data["slideshowInterval"]?.toInt() ?: 10,
-                                        embeddedGameEnabled = data["embeddedGameEnabled"]?.toBoolean() ?: false,
-                                        frontFlashlightEnabled = data["frontFlashlightEnabled"]?.toBoolean() ?: false,
-                                        frontFlashlightColor = data["frontFlashlightColor"]?.toIntOrNull()
-                                            ?: AppSettings.FRONT_FLASHLIGHT_DEFAULT_COLOR,
-                                        waterFlashlightEnabled =
-                                            data["waterFlashlightEnabled"]?.toBoolean() ?: false,
                                         enableSlideshowBackgroundMusic = data["enableSlideshowBackgroundMusic"]?.toBoolean() ?: false,
                                         slideshowMusicResourceId = data["slideshowMusicResourceId"]?.toLongOrNull(),
                                         
@@ -294,8 +289,6 @@ class ImportSettingsUseCase @Inject constructor(
                                         enablePlayerWarmup = data["enablePlayerWarmup"]?.toBoolean() ?: false,
                                         rendererMigrationEnabled = data["rendererMigrationEnabled"]?.toBoolean() ?: false,
                                         enableSafeMode = data["enableSafeMode"]?.toBoolean() ?: true,
-                                        enableFavorites = data["enableFavorites"]?.toBoolean()
-                                            ?: AppSettings.DEFAULTS.enableFavorites,
                                         disableCameraCapture = data["disableCameraCapture"]?.toBoolean() ?: false,
                                         skipCameraFilenameDialog = data["skipCameraFilenameDialog"]?.toBoolean() ?: false,
                                         cameraCaptureOpenForEditing = data["cameraCaptureOpenForEditing"]?.toBoolean() ?: false,
@@ -325,7 +318,18 @@ class ImportSettingsUseCase @Inject constructor(
                                             videoSnapshotFormat = data["videoSnapshotFormat"]
                                                 ?.let { if (it == "JPG") "JPG" else "PNG" }
                                                 ?: AppSettings.DEFAULTS.videoSnapshotFormat,
-                                        videoFrameCopyToClipboard = data["videoFrameCopyToClipboard"]?.toBoolean() ?: false
+                                        videoFrameCopyToClipboard = data["videoFrameCopyToClipboard"]?.toBoolean() ?: false,
+                                        programs = ProgramsSettings(
+                                            embeddedGameEnabled = data["embeddedGameEnabled"]?.toBoolean() ?: false,
+                                            frontFlashlightEnabled =
+                                                data["frontFlashlightEnabled"]?.toBoolean() ?: false,
+                                            frontFlashlightColor = data["frontFlashlightColor"]?.toIntOrNull()
+                                                ?: AppSettings.FRONT_FLASHLIGHT_DEFAULT_COLOR,
+                                            waterFlashlightEnabled =
+                                                data["waterFlashlightEnabled"]?.toBoolean() ?: false,
+                                            enableFavorites = data["enableFavorites"]?.toBoolean()
+                                                ?: AppSettings.DEFAULTS.enableFavorites,
+                                        ),
                                     )
                                 }
                                 currentResource = null

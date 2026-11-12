@@ -63,6 +63,7 @@
     "ic_text_settings": "action.text-settings",
     "ic_quick_launch": "feature.quick-launch",
     "ic_replay": "action.retry",
+    "ic_behavior": "app.behavior",
     "wear:ic_app_calculator": "feature.calculator",
     "wear:ic_app_game": "feature.game",
     "wear:ic_tourist_counter": "action.add",

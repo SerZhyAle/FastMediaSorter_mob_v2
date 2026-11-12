@@ -4,6 +4,7 @@ import com.google.gson.GsonBuilder
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.BroadcastSettings
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSettings
+import com.sza.fastmediasorter.domain.model.programs.ProgramsSettings
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.lang.reflect.Field
@@ -53,7 +54,8 @@ class SettingsDefaultParityTest {
     @Test
     fun backupSettingsDefaults_matchTheirSourceOfTruth() {
         val backupDefaults = fieldValues(BackupSettings())
-        val appDefaults = fieldValues(AppSettings())
+        // S4547: the program group keeps its members' flat names, so it joins the top level unprefixed.
+        val appDefaults = fieldValues(AppSettings()) + fieldValues(ProgramsSettings())
         val launcherDefaults = fieldValues(LauncherSettings())
         val broadcastDefaults = fieldValues(BroadcastSettings())
 

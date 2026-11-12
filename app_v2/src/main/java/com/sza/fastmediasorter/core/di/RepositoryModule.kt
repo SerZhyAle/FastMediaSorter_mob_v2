@@ -57,6 +57,7 @@ import com.sza.fastmediasorter.data.repository.wear.WearResourceTombstoneStore
 import com.sza.fastmediasorter.data.repository.wear.WearSettingsMirrorStore
 import com.sza.fastmediasorter.domain.detector.DeviceProfileDetector
 import com.sza.fastmediasorter.domain.filler.FillerJournal
+import com.sza.fastmediasorter.domain.filler.FillerPendingCleanup
 import com.sza.fastmediasorter.domain.filler.FillerStorage
 import com.sza.fastmediasorter.domain.filler.FillerTargetResolver
 import com.sza.fastmediasorter.domain.game.GameStateRepository
@@ -193,6 +194,10 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindFillerJournal(impl: FillerSessionJournal): FillerJournal
+
+    @Binds
+    @Singleton
+    abstract fun bindFillerPendingCleanup(impl: FillerSessionJournal): FillerPendingCleanup
 
     @Binds
     @Singleton

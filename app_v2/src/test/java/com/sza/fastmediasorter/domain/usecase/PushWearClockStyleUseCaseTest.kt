@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.WearEventEnvelope
 import com.sza.fastmediasorter.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSettings
+import com.sza.fastmediasorter.domain.model.programs.ProgramsSettings
 import com.sza.fastmediasorter.domain.repository.ClockDialStyle
 import com.sza.fastmediasorter.domain.repository.ClockDialStyleSource
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -43,7 +44,7 @@ class PushWearClockStyleUseCaseTest {
     private val envelopes = mutableListOf<WearEventEnvelope>()
 
     private val settings = AppSettings(
-        enableWearCompanion = true,
+        programs = ProgramsSettings(enableWearCompanion = true),
         launcher = LauncherSettings(
             animationPalette = AppSettings.ANIMATION_PALETTE_DYNAMIC,
             wallpaperIntensity = 0.5f,
@@ -128,7 +129,8 @@ class PushWearClockStyleUseCaseTest {
 
     @Test
     fun `a disabled companion puts nothing`() = runTest {
-        every { settingsRepository.getSettings() } returns flowOf(settings.copy(enableWearCompanion = false))
+        every { settingsRepository.getSettings() } returns
+            flowOf(settings.withPrograms { copy(enableWearCompanion = false) })
         every { dialSource.observe() } returns flowOf(style)
 
         val job = useCase().observeAndPush(this)

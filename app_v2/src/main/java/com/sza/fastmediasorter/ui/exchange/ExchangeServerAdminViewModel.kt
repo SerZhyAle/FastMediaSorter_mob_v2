@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 sealed interface ExchangeAdminScreenState {
@@ -112,6 +113,7 @@ class ExchangeServerAdminViewModel @Inject constructor(
             return
         }
         mutableState.value = ExchangeAdminScreenState.SigningIn
+        Timber.d("S4356: admin sign-in started")
         work = viewModelScope.launch {
             try {
                 when (val reply = admin.signIn(selected, password)) {

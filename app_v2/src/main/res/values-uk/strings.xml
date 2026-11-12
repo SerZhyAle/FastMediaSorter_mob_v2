@@ -4587,7 +4587,7 @@
     <string name="launcher_app_category_dialog_title">Категорії для %1$s</string>
     <string name="launcher_app_category_new">Нова категорія..</string>
     <string name="launcher_app_category_new_hint">Назва категорії</string>
-    <string name="launcher_app_category_unknown">Невідомі</string>
+    <string name="launcher_app_category_unknown">Інше</string>
     <string name="launcher_app_category_save_failed">Не вдалося зберегти категорії. Спробуйте ще раз.</string>
     <string name="launcher_app_category_reorder_title">Переміщення: %1$s</string>
     <string name="launcher_app_category_move_up">Вище</string>
@@ -4603,4 +4603,5 @@
     <string name="launcher_app_category_productivity">Робота та продуктивність</string>
     <string name="launcher_app_category_accessibility">Спеціальні можливості</string>
     <string name="exchange_devices_menu_standard_settings">Еталонні налаштування</string>
+    <string name="program_guard_disabled_toast">Програму «%1$s» вимкнено. Увімкніть її в налаштуваннях.</string>
 </resources>

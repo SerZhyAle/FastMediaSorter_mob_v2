@@ -66,11 +66,13 @@ class FillerViewModel @Inject constructor(
 
     private var run: Job? = null
     private var pendingSession: FillerSession? = null
+    private var selectionVersion = 0
 
     init {
         viewModelScope.launch {
             refreshPending()
-            savedState.get<String>(KEY_LOCATION)?.let { select(it) }
+            val defaultLocation = if (savedState.get<String>(KEY_LOCATION) == null) resolver.defaultLocation() else null
+            (savedState.get<String>(KEY_LOCATION) ?: defaultLocation)?.let { select(it) }
         }
     }
 
@@ -131,15 +133,19 @@ class FillerViewModel @Inject constructor(
     }
 
     private suspend fun select(location: String) {
+        val version = ++selectionVersion
         val place = resolver.place(location)
         if (place == null) {
-            mutableState.update {
-                it.copy(place = null, accessible = false, availableBytes = null, outcome = FillerOutcome.NOT_LOCAL)
+            if (version == selectionVersion) {
+                mutableState.update {
+                    it.copy(place = null, accessible = false, availableBytes = null, outcome = FillerOutcome.NOT_LOCAL)
+                }
             }
             return
         }
         val accessible = storage.validate(place.target)
         val available = if (accessible) storage.availableBytes(place.target) else null
+        if (version != selectionVersion) return
         mutableState.update {
             it.copy(
                 place = place,

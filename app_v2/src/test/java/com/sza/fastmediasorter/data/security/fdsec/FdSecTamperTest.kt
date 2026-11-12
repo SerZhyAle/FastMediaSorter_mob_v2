@@ -146,6 +146,40 @@ class FdSecTamperTest {
         assertEquals(name, (outcome as FdSecOutcome.Unpacked).metadata.originalName)
     }
 
+    @Test
+    fun `a sealed name that is not in NFC is damaged and restores nothing`() {
+        val fixture = packFixture()
+        resealName(fixture, NOT_NFC_NAME.toByteArray(Charsets.UTF_8))
+
+        val restoreInto = folder.newFolder("not-nfc-name-out")
+        val outcome = container(PASSPHRASE).unpack(fixture, restoreInto, PASSPHRASE.toCharArray())
+
+        assertTrue("expected damaged, got $outcome", outcome is FdSecOutcome.Damaged)
+        assertTrue("a refused restore left files behind", restoreInto.list().isNullOrEmpty())
+    }
+
+    @Test
+    fun `reading the metadata of a sealed name that is not in NFC is damaged and not wrong-credential`() {
+        val fixture = packFixture()
+        resealName(fixture, NOT_NFC_NAME.toByteArray(Charsets.UTF_8))
+
+        val outcome = container(PASSPHRASE).readMetadata(fixture, PASSPHRASE.toCharArray())
+
+        assertTrue("expected damaged, got $outcome", outcome is FdSecOutcome.Damaged)
+    }
+
+    @Test
+    fun `a sealed name in NFC is read as written`() {
+        val fixture = packFixture()
+        val name = "caf\u00E9.txt"
+        resealName(fixture, name.toByteArray(Charsets.UTF_8))
+
+        val outcome = container(PASSPHRASE).readMetadata(fixture, PASSPHRASE.toCharArray())
+
+        assertTrue("expected the metadata, got $outcome", outcome is FdSecOutcome.Unpacked)
+        assertEquals(name, (outcome as FdSecOutcome.Unpacked).metadata.originalName)
+    }
+
     /**
      * Replaces the sealed name with raw [nameBytes] and seals the metadata again under the same key,
      * so the block authenticates and only the name differs - the one case the reader must call damage.
@@ -241,6 +275,9 @@ class FdSecTamperTest {
 
         /** 0xFF never occurs in UTF-8, so a name holding it can only be damage. */
         const val LONE_INVALID_BYTE: Byte = -1
+
+        /** The letter e followed by U+0301 COMBINING ACUTE ACCENT: valid UTF-8, but its NFC form is U+00E9. */
+        const val NOT_NFC_NAME = "cafe\u0301.txt"
 
         const val NAME_FIELD_SIZE = 2
 

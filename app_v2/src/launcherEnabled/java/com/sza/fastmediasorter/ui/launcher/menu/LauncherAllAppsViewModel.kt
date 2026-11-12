@@ -56,8 +56,9 @@ class LauncherAllAppsViewModel @Inject constructor(
     }
 
     /** S4530: the groups the category order draws, and every category the chooser offers. */
-    val catalog: StateFlow<AppCategoryCatalog> = observeAppCategoryCatalog()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS), AppCategoryCatalog.EMPTY)
+    val catalog: StateFlow<AppCategoryCatalog?> = observeAppCategoryCatalog()
+        .map<AppCategoryCatalog, AppCategoryCatalog?> { it }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS), null)
 
     private val _categorySaveFailed = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 

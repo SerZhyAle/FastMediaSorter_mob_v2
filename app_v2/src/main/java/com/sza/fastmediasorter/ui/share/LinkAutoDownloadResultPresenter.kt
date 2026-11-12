@@ -10,6 +10,7 @@ import androidx.lifecycle.withResumed
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.log.LinkDownloadTrace
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.browser.CctAvailabilityChecker
 import com.sza.fastmediasorter.data.browser.CctUnavailableException
 import com.sza.fastmediasorter.data.browser.GoogleDomainBrowserLauncher
@@ -299,6 +300,7 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
         // Activity at that instant can leave it in the back stack without visually snapping to
         // front. Wait for genuine RESUMED before launching; repeatOnLifecycle cancels this collector
         // (and this suspend point) if the host drops below STARTED again, so no leak/hang risk.
+        Timber.d("S4550: launchPlayer uri=$uri")
         try {
             host.lifecycle.withResumed {
                 // S0393: route through the dispatcher (resolves media family -> specialized host);
@@ -314,7 +316,10 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
                 host.startActivity(intent)
             }
         } catch (throwable: Throwable) {
-            Timber.e(throwable, "failed to launch player for %s", uri)
+            // startActivity pauses the host, repeatOnLifecycle then cancels this collector, and
+            // withResumed rethrows that cancellation after the block already launched the player -
+            // so a cancellation is a successful launch and must propagate, not log as a failure.
+            throwable.errorUnlessCancellation("failed to launch player for %s", uri)
         }
     }
 

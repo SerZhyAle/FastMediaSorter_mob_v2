@@ -41,7 +41,7 @@ class FillerActivity : BaseActivity<ActivityFillerBinding>() {
         collectOnLifecycle(viewModel.state) { state -> screen.render(state) }
     }
 
-    override fun getInitialFocusView(): View = binding.btnFillerChooseFolder
+    override fun getInitialFocusView(): View = binding.btnFillerStart
 
     override fun getMouseScrollTargetView(): View = binding.fillerScroll
 

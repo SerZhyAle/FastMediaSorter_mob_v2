@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S4554: the composer form shared by both orientations of dialog_ticket_composer.xml.
+     Focus order: text -> voice -> attach -> attachments -> project. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/ticket_inbox_text_hint">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etTicketText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="top|start"
+            android:inputType="textMultiLine|textCapSentences"
+            android:minLines="3"
+            android:nextFocusDown="@+id/btnTicketVoice" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnTicketVoice"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/margin_small"
+            android:minHeight="@dimen/touch_target_min_height"
+            android:nextFocusRight="@+id/btnTicketAttach"
+            android:nextFocusDown="@+id/btnTicketAttach"
+            android:text="@string/ticket_inbox_record_voice" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnTicketAttach"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/touch_target_min_height"
+            android:nextFocusLeft="@+id/btnTicketVoice"
+            android:nextFocusDown="@+id/spinnerTicketProject"
+            android:text="@string/ticket_inbox_attach" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvTicketRecording"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:accessibilityLiveRegion="polite"
+        android:text="@string/ticket_inbox_recording"
+        android:textAppearance="@style/TextAppearance.FastMediaSorter.HelperText"
+        android:visibility="gone" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/listTicketAttachments"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:nestedScrollingEnabled="false" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        android:labelFor="@+id/spinnerTicketProject"
+        android:text="@string/ticket_inbox_project_label" />
+
+    <Spinner
+        android:id="@+id/spinnerTicketProject"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/ticket_inbox_project_label"
+        android:focusable="true"
+        android:minHeight="@dimen/touch_target_min_height"
+        android:nextFocusUp="@+id/btnTicketAttach" />
+
+    <TextView
+        android:id="@+id/tvTicketProjectsHint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/ticket_inbox_projects_unavailable"
+        android:textAppearance="@style/TextAppearance.FastMediaSorter.HelperText"
+        android:visibility="gone" />
+</LinearLayout>

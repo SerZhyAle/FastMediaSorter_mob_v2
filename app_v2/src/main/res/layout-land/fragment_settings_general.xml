@@ -1036,6 +1036,18 @@
                         app:ssr_title="@string/cross_device_transfer_pending_title"
                         app:ssr_subtitle="@string/cross_device_transfer_row_subtitle" />
 
+                    <!-- S4554: files a ticket into the SZA ticket inbox on the same Drive; the third entry
+                         of the App data card, mirrored in both orientations (one ViewBinding). -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                        android:id="@+id/rowTicketInbox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_tiny"
+                        android:layout_marginBottom="@dimen/margin_tiny"
+                        app:ssr_navMode="true"
+                        app:ssr_title="@string/ticket_inbox_row_title"
+                        app:ssr_subtitle="@string/ticket_inbox_row_subtitle" />
+
                     <!-- Reset All Settings - destructive action, placed at the very end of the Backup & Export section. -->
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
 

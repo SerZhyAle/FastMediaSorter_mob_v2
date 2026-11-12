@@ -121,6 +121,7 @@ object StandardSettingsSerializer {
         addProperty("enableStopwatch", settings.enableStopwatch)
         addProperty("embeddedGameEnabled", settings.embeddedGameEnabled)
         addProperty("enableSos", settings.enableSos)
+        addProperty("enableFiller", settings.enableFiller)
         addProperty("mirrorEnabled", settings.mirrorEnabled)
     }
 
@@ -179,10 +180,13 @@ object StandardSettingsSerializer {
     private fun applyAppearance(settings: AppSettings, a: JsonObject): AppSettings = settings.copy(
         colorTheme = a.stringOrNull("colorTheme") ?: settings.colorTheme,
         resourceOpsInOverflowMenu = a.boolOrNull("resourceOpsInOverflowMenu")
-            ?: settings.resourceOpsInOverflowMenu,
-        showProgramsPanelInMainWindow = a.boolOrNull("showProgramsPanelInMainWindow")
-            ?: settings.showProgramsPanelInMainWindow
-    )
+            ?: settings.resourceOpsInOverflowMenu
+    ).withPrograms {
+        copy(
+            showProgramsPanelInMainWindow = a.boolOrNull("showProgramsPanelInMainWindow")
+                ?: settings.showProgramsPanelInMainWindow
+        )
+    }
 
     private fun applyPlayback(settings: AppSettings, p: JsonObject): AppSettings = settings.copy(
         slideshowInterval = p.intOrNull("slideshowIntervalSeconds") ?: settings.slideshowInterval,
@@ -195,13 +199,16 @@ object StandardSettingsSerializer {
             ?: settings.stopwatchVolumeKeysControl
     )
 
-    private fun applyBehavior(settings: AppSettings, b: JsonObject): AppSettings = settings.copy(
-        enableCalculator = b.boolOrNull("enableCalculator") ?: settings.enableCalculator,
-        enableStopwatch = b.boolOrNull("enableStopwatch") ?: settings.enableStopwatch,
-        embeddedGameEnabled = b.boolOrNull("embeddedGameEnabled") ?: settings.embeddedGameEnabled,
-        enableSos = b.boolOrNull("enableSos") ?: settings.enableSos,
-        mirrorEnabled = b.boolOrNull("mirrorEnabled") ?: settings.mirrorEnabled
-    )
+    private fun applyBehavior(settings: AppSettings, b: JsonObject): AppSettings = settings.withPrograms {
+        copy(
+            enableCalculator = b.boolOrNull("enableCalculator") ?: settings.enableCalculator,
+            enableStopwatch = b.boolOrNull("enableStopwatch") ?: settings.enableStopwatch,
+            embeddedGameEnabled = b.boolOrNull("embeddedGameEnabled") ?: settings.embeddedGameEnabled,
+            enableSos = b.boolOrNull("enableSos") ?: settings.enableSos,
+            enableFiller = b.boolOrNull("enableFiller") ?: settings.enableFiller,
+            mirrorEnabled = b.boolOrNull("mirrorEnabled") ?: settings.mirrorEnabled
+        )
+    }
 
     private fun JsonObject.stringOrNull(key: String): String? =
         get(key)?.takeIf(JsonElement::isJsonPrimitive)?.asString

@@ -26,4 +26,6 @@
     <string name="filler_result_measurement_unavailable">Free space could not be measured. Check that the storage is connected, then choose the folder again.</string>
     <string name="filler_result_insufficient_space">There is no free space above the part kept for the system. Free up space or choose another storage device.</string>
     <string name="filler_result_busy">Filling is already running.</string>
+    <string name="filler_settings_toggle_subtitle">Fills the free space of a storage device with temporary files, then deletes them</string>
+    <string name="filler_settings_toggle_subtitle_pending">Temporary files from an earlier run are still on the storage. The program stays in the list until you delete them in it.</string>
 </resources>

@@ -37,9 +37,12 @@ class LocalFillerStorage @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val volumeSource: StorageVolumeSource,
     private val journal: FillerSessionJournal,
+    private val appStorage: AppFillerStorage,
 ) : FillerStorage, FillerTargetResolver {
     private val resolver: ContentResolver
         get() = context.contentResolver
+
+    override suspend fun defaultLocation(): String? = appStorage.defaultLocation()
 
     override suspend fun grant(location: String): Boolean = io(false) {
         val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
@@ -48,46 +51,59 @@ class LocalFillerStorage @Inject constructor(
     }
 
     /** Only the external-storage provider names a real mounted volume; cloud and network trees yield null. */
-    override suspend fun place(location: String): FillerPlace? = io(null) {
-        val tree = Uri.parse(location)
-        val root = if (tree.authority == LOCAL_AUTHORITY) rootDocument(tree) else null
-        val volumeId = root?.substringBefore(VOLUME_SEPARATOR, "")
-        val volume = volumeId?.takeIf { it.isNotEmpty() }?.let { id ->
-            volumeSource.listVolumes().firstOrNull { it.isMounted && it.id.equals(id, ignoreCase = true) }
-        }
-        volume?.let {
-            val path = root.orEmpty().substringAfter(VOLUME_SEPARATOR)
-            FillerPlace(
-                target = FillerTarget(location, it.id),
-                volumeName = it.displayName.ifEmpty { it.id },
-                folderName = path.substringAfterLast(PATH_SEPARATOR).ifEmpty { it.displayName.ifEmpty { it.id } },
-            )
+    override suspend fun place(location: String): FillerPlace? = if (appStorage.isLocation(location)) {
+        appStorage.place()
+    } else {
+        io(null) {
+            val tree = Uri.parse(location)
+            val root = if (tree.authority == LOCAL_AUTHORITY) rootDocument(tree) else null
+            val volumeId = root?.substringBefore(VOLUME_SEPARATOR, "")
+            val volume = volumeId?.takeIf { it.isNotEmpty() }?.let { id ->
+                volumeSource.listVolumes().firstOrNull { it.isMounted && it.id.equals(id, ignoreCase = true) }
+            }
+            volume?.let {
+                val path = root.orEmpty().substringAfter(VOLUME_SEPARATOR)
+                FillerPlace(
+                    target = FillerTarget(location, it.id),
+                    volumeName = it.displayName.ifEmpty { it.id },
+                    folderName = path.substringAfterLast(PATH_SEPARATOR).ifEmpty { it.displayName.ifEmpty { it.id } },
+                )
+            }
         }
     }
 
-    override suspend fun validate(target: FillerTarget): Boolean = io(false) {
-        val tree = Uri.parse(target.location)
-        val root = rootDocument(tree)
-        tree.authority == LOCAL_AUTHORITY &&
-            root.substringBefore(VOLUME_SEPARATOR).equals(target.volumeId, ignoreCase = true) &&
-            hasWriteGrant(tree) &&
-            writableMount(target.volumeId) != null &&
-            supportsCreate(tree, root)
+    override suspend fun validate(target: FillerTarget): Boolean = if (appStorage.isLocation(target.location)) {
+        appStorage.validate(target)
+    } else {
+        io(false) {
+            val tree = Uri.parse(target.location)
+            val root = rootDocument(tree)
+            tree.authority == LOCAL_AUTHORITY &&
+                root.substringBefore(VOLUME_SEPARATOR).equals(target.volumeId, ignoreCase = true) &&
+                hasWriteGrant(tree) &&
+                writableMount(target.volumeId) != null &&
+                supportsCreate(tree, root)
+        }
     }
 
     /** Measured on the volume itself; a failed read is null, never zero. */
-    override suspend fun availableBytes(target: FillerTarget): Long? = io(null) {
-        writableMount(target.volumeId)?.let { path ->
-            try {
-                StatFs(path).availableBytes
-            } catch (e: IllegalArgumentException) {
-                Timber.w(e, "LocalFillerStorage: free space unavailable")
-                null
+    override suspend fun availableBytes(target: FillerTarget): Long? = if (appStorage.isLocation(target.location)) {
+        appStorage.availableBytes(target)
+    } else {
+        io(null) {
+            writableMount(target.volumeId)?.let { path ->
+                try {
+                    StatFs(path).availableBytes
+                } catch (e: IllegalArgumentException) {
+                    Timber.w(e, "LocalFillerStorage: free space unavailable")
+                    null
+                }
             }
         }
     }
 
     override suspend fun create(session: FillerSession, index: Int): FillerFile = withContext(Dispatchers.IO) {
+        if (appStorage.isLocation(session.target.location)) return@withContext appStorage.create(session, index)
         val tree = Uri.parse(session.target.location)
         val directory = journal.entry(session).directory ?: createSessionDirectory(session, tree)
         val parent = DocumentsContract.buildDocumentUriUsingTree(tree, directory)
@@ -97,6 +113,7 @@ class LocalFillerStorage @Inject constructor(
     }
 
     override suspend fun append(file: FillerFile, count: Int) = withContext(Dispatchers.IO) {
+        if (appStorage.isFile(file)) return@withContext appStorage.append(file, count)
         // Fresh random bytes per chunk keep compressing or deduplicating storage from absorbing the fill.
         val bytes = Random.nextBytes(count)
         val output = resolver.openOutputStream(Uri.parse(file.id), APPEND_MODE)
@@ -105,6 +122,7 @@ class LocalFillerStorage @Inject constructor(
     }
 
     override suspend fun cleanup(session: FillerSession): Boolean = withContext(Dispatchers.IO) {
+        if (appStorage.isLocation(session.target.location)) return@withContext appStorage.cleanup(session)
         Timber.d("S4521: filler cleanup on local volume")
         if (!validate(session.target)) {
             false

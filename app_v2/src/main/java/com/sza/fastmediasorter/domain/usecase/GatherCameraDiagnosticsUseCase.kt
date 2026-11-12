@@ -60,8 +60,50 @@ class GatherCameraDiagnosticsUseCase @Inject constructor(
         entry.maxHighResolutionJpegSize?.let {
             fields += label(id, R.string.sysinfo_field_camera_max_photo_high_res) to sizeText(it)
         }
+        entry.hardwareLevel?.let {
+            fields += label(id, R.string.sysinfo_field_camera_hw_level) to hardwareLevelText(it)
+        }
+        if (entry.apertures.isNotEmpty()) {
+            fields += label(id, R.string.sysinfo_field_camera_apertures) to
+                entry.apertures.joinToString(", ") { String.format(Locale.US, "f/%.2f", it) }
+        }
+        entry.flashAvailable?.let {
+            fields += label(id, R.string.sysinfo_field_camera_flash) to if (it) "yes" else "no"
+        }
+        if (entry.opticalStabilization != null || entry.videoStabilization != null) {
+            fields += label(id, R.string.sysinfo_field_camera_stabilization) to
+                stabilizationText(entry.opticalStabilization == true, entry.videoStabilization == true)
+        }
+        entry.maxVideoSize?.let { videoSize ->
+            val fpsSuffix = entry.maxVideoFps?.let { " @ ${it}fps" }.orEmpty()
+            fields += label(id, R.string.sysinfo_field_camera_max_video) to
+                "${videoSize.width}x${videoSize.height}$fpsSuffix"
+        }
+        if (entry.supportsRaw != null || entry.supportsTenBitDynamicRange != null) {
+            fields += label(id, R.string.sysinfo_field_camera_capabilities) to
+                capabilitiesText(entry.supportsRaw == true, entry.supportsTenBitDynamicRange == true)
+        }
         return fields
     }
+
+    private fun hardwareLevelText(level: Int): String = when (level) {
+        CameraMetadata.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY -> "LEGACY"
+        CameraMetadata.INFO_SUPPORTED_HARDWARE_LEVEL_LIMITED -> "LIMITED"
+        CameraMetadata.INFO_SUPPORTED_HARDWARE_LEVEL_FULL -> "FULL"
+        CameraMetadata.INFO_SUPPORTED_HARDWARE_LEVEL_3 -> "LEVEL_3"
+        CameraMetadata.INFO_SUPPORTED_HARDWARE_LEVEL_EXTERNAL -> "EXTERNAL"
+        else -> UNKNOWN
+    }
+
+    private fun stabilizationText(ois: Boolean, eis: Boolean): String = when {
+        ois && eis -> "OIS + EIS"
+        ois -> "OIS"
+        eis -> "EIS"
+        else -> "none"
+    }
+
+    private fun capabilitiesText(raw: Boolean, tenBit: Boolean): String =
+        "RAW: ${if (raw) "yes" else "no"}, 10-bit: ${if (tenBit) "yes" else "no"}"
 
     private fun label(id: String, @StringRes res: Int): String = "[$id] ${context.getString(res)}"
 

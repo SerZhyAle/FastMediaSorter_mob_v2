@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.09.30 11:24</sub>
+<sub class="doc-stamp">26.11.12 01:39</sub>
 
 # Build Scripts
 
@@ -27,6 +27,7 @@ Fast validation helpers:
 .\scripts\builders\check-standard-fast.ps1 -Mode Resources
 .\scripts\builders\check-standard-fast.ps1 -Mode CodeAndResources
 .\scripts\builders\check-standard-fast.ps1 -Mode Unit -Tests "com.sza.fastmediasorter.SomeClassTest"
+.\scripts\builders\check-unattended-compile.ps1 # app_v2 + wear Kotlin compile: the one build an unattended pass runs (profile commands.compileCheck)
 ```
 
 ## Cleanup

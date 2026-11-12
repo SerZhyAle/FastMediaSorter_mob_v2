@@ -26,4 +26,6 @@
     <string name="filler_result_measurement_unavailable">Не вдалося виміряти вільне місце. Перевірте, що накопичувач під\'єднано, і виберіть теку знову.</string>
     <string name="filler_result_insufficient_space">Понад місце, що залишається системі, вільного місця немає. Звільніть місце або виберіть інший накопичувач.</string>
     <string name="filler_result_busy">Заповнення вже триває.</string>
+    <string name="filler_settings_toggle_subtitle">Заповнює вільне місце накопичувача тимчасовими файлами й потім видаляє їх</string>
+    <string name="filler_settings_toggle_subtitle_pending">Тимчасові файли минулого запуску ще лежать на накопичувачі. Програма залишається в списку, доки ви не видалите їх у ній.</string>
 </resources>

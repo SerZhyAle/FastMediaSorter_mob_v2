@@ -4663,7 +4663,7 @@
     <string name="launcher_app_category_dialog_title">Categories for %1$s</string>
     <string name="launcher_app_category_new">New category..</string>
     <string name="launcher_app_category_new_hint">Category name</string>
-    <string name="launcher_app_category_unknown">Unknown</string>
+    <string name="launcher_app_category_unknown">Other</string>
     <string name="launcher_app_category_save_failed">Couldn\'t save the categories. Try again.</string>
     <string name="launcher_app_category_reorder_title">Moving %1$s</string>
     <string name="launcher_app_category_move_up">Move up</string>
@@ -4679,4 +4679,5 @@
     <string name="launcher_app_category_productivity">Productivity</string>
     <string name="launcher_app_category_accessibility">Accessibility</string>
     <string name="exchange_devices_menu_standard_settings">Standard settings</string>
+    <string name="program_guard_disabled_toast">%1$s is turned off. Turn it on in Settings.</string>
 </resources>

@@ -37,6 +37,14 @@ data class CameraHardwareEntry(
     val hardwareLevel: Int? = null,
     val maxJpegSize: Size? = null,
     val maxHighResolutionJpegSize: Size? = null,
+    val apertures: List<Float> = emptyList(),
+    val flashAvailable: Boolean? = null,
+    val opticalStabilization: Boolean? = null,
+    val videoStabilization: Boolean? = null,
+    val maxVideoSize: Size? = null,
+    val maxVideoFps: Int? = null,
+    val supportsRaw: Boolean? = null,
+    val supportsTenBitDynamicRange: Boolean? = null,
 ) {
     /** The entry describes a lens inside a logical camera rather than a camera the app can list. */
     val isPhysicalSubLens: Boolean get() = logicalParentId != null

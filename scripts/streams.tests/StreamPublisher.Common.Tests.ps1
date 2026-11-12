@@ -100,6 +100,21 @@ Describe 'StreamPublisher.Common' {
         $countries.Assigned.Contains('AQ') | Should Be $true
     }
 
+    It 'folds a three-letter language code to the language it names, and a collective code to nothing' {
+        # STREAM-BANK 2.5 item P.3: bibliographic and terminological forms alike, the canonical entry is the name.
+        (Get-CanonicalLanguages 'rus') | Should Be 'russian'
+        (Get-CanonicalLanguages 'ger, deu') | Should Be 'german'
+        (Get-CanonicalLanguages 'haw') | Should Be 'hawaiian'
+        (Get-CanonicalLanguages 'mul') | Should Be 'english'
+        (Get-CanonicalLanguages 'mul, deu') | Should Be 'german'
+        $tables = Get-FacetLanguageTables
+        $tables.Codes3.Count | Should BeGreaterThan 200
+        foreach ($code in $tables.Codes3.Keys) {
+            $code -cmatch '^[a-z]{3}$' | Should Be $true
+            $tables.Canonical.Contains($tables.Codes3[$code]) | Should Be $true
+        }
+    }
+
     It 'assigns the Webcam category from the rubric, not from the collecting source' {
         # The published CSV carries no source column, so the rubric is the only signal that reaches the
         # rows already shipped - these are the exact shapes the webcam collectors and TfL emit (S1476).

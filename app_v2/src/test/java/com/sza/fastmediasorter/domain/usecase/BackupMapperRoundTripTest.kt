@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.domain.model.LauncherAllAppsSwipeAction
 import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeAction
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.StreamDefaultSort
+import com.sza.fastmediasorter.domain.model.programs.ProgramsSettings
 import com.sza.fastmediasorter.domain.model.sos.SosMode
 import com.sza.fastmediasorter.domain.repository.RawAuthSession
 import org.junit.Assert.assertEquals
@@ -191,11 +192,8 @@ class BackupMapperRoundTripTest {
     @Test
     fun sosAndTaskbarRows_surviveTheRoundTrip() {
         val configured = AppSettings().let {
-            it.copy(
-                enableSos = true,
-                sosMode = SosMode.LIGHT_ONLY,
-                launcher = it.launcher.copy(taskbarRows = AppSettings.MAX_LAUNCHER_TASKBAR_ROWS)
-            )
+            it.copy(launcher = it.launcher.copy(taskbarRows = AppSettings.MAX_LAUNCHER_TASKBAR_ROWS))
+                .withPrograms { copy(enableSos = true, sosMode = SosMode.LIGHT_ONLY) }
         }
 
         val restored = BackupMapper.toAppSettings(
@@ -210,17 +208,29 @@ class BackupMapperRoundTripTest {
     }
 
     /**
+     * S4542: false on purpose - the field defaults to true, so only a switched-off Filler shows the value
+     * actually travels through the backup.
+     */
+    @Test
+    fun fillerSwitchedOff_survivesTheRoundTrip() {
+        val restored = BackupMapper.toAppSettings(
+            BackupMapper.toBackupSettings(AppSettings(programs = ProgramsSettings(enableFiller = false))),
+            AppSettings(),
+            BackupPayload.CURRENT_VERSION
+        )
+
+        assertFalse(restored.enableFiller)
+    }
+
+    /**
      * S3224: a file written before S3216 and S3131 carries none of the three keys, so all three arrive
      * null and the restore keeps what the device already has - the S2730 reason the fields are nullable.
      */
     @Test
     fun backupWrittenBeforeSosAndTaskbarRows_keepsCurrentSettings() {
         val current = AppSettings().let {
-            it.copy(
-                enableSos = true,
-                sosMode = SosMode.SOUND_ONLY,
-                launcher = it.launcher.copy(taskbarRows = AppSettings.MAX_LAUNCHER_TASKBAR_ROWS)
-            )
+            it.copy(launcher = it.launcher.copy(taskbarRows = AppSettings.MAX_LAUNCHER_TASKBAR_ROWS))
+                .withPrograms { copy(enableSos = true, sosMode = SosMode.SOUND_ONLY) }
         }
 
         val restored = BackupMapper.toAppSettings(BackupSettings(), current, BackupPayload.CURRENT_VERSION)
@@ -310,9 +320,8 @@ class BackupMapperRoundTripTest {
             browseSwipeLeftAction = swipe,
             enabledShareTargets = setOf("target-a", "target-b"),
             cameraGeotagEnabled = true,
-            enableStopwatch = true,
             playerShowFps = true
-        )
+        ).withPrograms { copy(enableStopwatch = true) }
 
         val restored = BackupMapper.toAppSettings(
             BackupMapper.toBackupSettings(configured),
@@ -438,9 +447,7 @@ class BackupMapperRoundTripTest {
                 channelCount = 2,
                 autoOpenShare = false,
             ),
-            flashlightShortcutNotificationEnabled = true,
-            suppressWearMediaTakeover = true
-        )
+        ).withPrograms { copy(flashlightShortcutNotificationEnabled = true, suppressWearMediaTakeover = true) }
 
         val restored = BackupMapper.toAppSettings(
             BackupMapper.toBackupSettings(configured),
@@ -477,9 +484,7 @@ class BackupMapperRoundTripTest {
                 channelCount = 2,
                 autoOpenShare = false,
             ),
-            flashlightShortcutNotificationEnabled = true,
-            suppressWearMediaTakeover = true
-        )
+        ).withPrograms { copy(flashlightShortcutNotificationEnabled = true, suppressWearMediaTakeover = true) }
         val legacyBackup = BackupSettings(
             streams = BackupSettings.Streams(),
             programs = BackupSettings.Programs(),

@@ -300,7 +300,7 @@ the only writer of this block and the only script that reads that API.
 
 <!-- s2272:measured:vitals:begin -->
 
-**Verdict:** `insufficient-data` - measured 2026-11-10 (UTC), window 2026-10-12..2026-11-08 America/Los_Angeles, source api. Rates as the API returns them, read as fraction (S2917 research 6).
+**Verdict:** `insufficient-data` - measured 2026-11-10 (UTC), window 2026-10-13..2026-11-09 America/Los_Angeles, source api. Rates as the API returns them, read as fraction (S2917 research 6).
 
 | Finding | Scope | Value | Band | Colour | Distinct users |
 |---------|-------|-------|------|--------|----------------|
@@ -313,6 +313,16 @@ Google anomalies in the window: none.
 
 Top error issues by distinct users (9):
 - `CRASH` Unknown Source - v9k.c at `java.lang.IllegalArgumentException` - 4 users, 101 reports, last versionCode 261020235 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/9ffdb283b34782c07a5413220051334c/details)
+  - `Exception java.lang.RuntimeException:`
+  - `at android.app.ActivityThread.handleServiceArgs (ActivityThread.java:4720)`
+  - `at android.app.ActivityThread.-$$Nest$mhandleServiceArgs (ActivityThread.java)`
+  - `at android.app.ActivityThread$H.handleMessage (ActivityThread.java:2192)`
+  - `at android.os.Handler.dispatchMessage (Handler.java:106)`
+  - `at android.os.Looper.loopOnce (Looper.java:201)`
+  - `at android.os.Looper.loop (Looper.java:288)`
+  - `at android.app.ActivityThread.main (ActivityThread.java:8010)`
+  - `at java.lang.reflect.Method.invoke`
+- `CRASH` android.os.Parcel.createExceptionOrNull at `java.lang.IllegalArgumentException` - 2 users, 3 reports, last versionCode 261020235 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/80bc1efd6a749a1926821f75f2e881d0/details)
   - `Exception java.lang.RuntimeException:`
   - `at android.app.ActivityThread.handleServiceArgs (ActivityThread.java:4720)`
   - `at android.app.ActivityThread.-$$Nest$mhandleServiceArgs (ActivityThread.java)`
@@ -352,17 +362,7 @@ Top error issues by distinct users (9):
   - `at androidx.activity.ComponentActivity$activityResultRegistry$1.onLaunch (ComponentActivity.kt:223)`
   - `at androidx.activity.result.ActivityResultRegistry$register$2.launch (ActivityResultRegistry.kt:130)`
   - `at androidx.fragment.app.Fragment$10.launch (Fragment.java:3632)`
-- `CRASH` android.os.Parcel.createExceptionOrNull at `java.lang.IllegalArgumentException` - 1 users, 1 reports, last versionCode 261020235 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/80bc1efd6a749a1926821f75f2e881d0/details)
-  - `Exception java.lang.RuntimeException:`
-  - `at android.app.ActivityThread.handleServiceArgs (ActivityThread.java:4720)`
-  - `at android.app.ActivityThread.-$$Nest$mhandleServiceArgs (ActivityThread.java)`
-  - `at android.app.ActivityThread$H.handleMessage (ActivityThread.java:2192)`
-  - `at android.os.Handler.dispatchMessage (Handler.java:106)`
-  - `at android.os.Looper.loopOnce (Looper.java:201)`
-  - `at android.os.Looper.loop (Looper.java:288)`
-  - `at android.app.ActivityThread.main (ActivityThread.java:8010)`
-  - `at java.lang.reflect.Method.invoke`
-- `CRASH` com.android.server.am.ActiveServices.setServiceForegroundInnerLocked at `android.os.RemoteException` - 1 users, 31 reports, last versionCode 261020235 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/b617f727a74914b7d454d84e7ba86fcd/details)
+- `CRASH` com.android.server.am.ActiveServices.setServiceForegroundInnerLocked at `android.os.RemoteException` - 1 users, 35 reports, last versionCode 261020235 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/b617f727a74914b7d454d84e7ba86fcd/details)
   - `Exception java.lang.RuntimeException:`
   - `at android.app.ActivityThread.handleServiceArgs (ActivityThread.java:4945)`
   - `at android.app.ActivityThread.-$$Nest$mhandleServiceArgs (ActivityThread.java)`

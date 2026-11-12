@@ -116,13 +116,16 @@ class StandardSettingsSerializerTest {
             isResourceGridMode = !defaults.isResourceGridMode,
             disableAnimations = !defaults.disableAnimations,
             colorTheme = CHANGED_THEME,
-            showProgramsPanelInMainWindow = !defaults.showProgramsPanelInMainWindow,
             slideshowInterval = CHANGED_INTERVAL,
             openVideoInFullscreen = !defaults.openVideoInFullscreen,
             stopwatchVolumeKeysControl = !defaults.stopwatchVolumeKeysControl,
-            enableCalculator = !defaults.enableCalculator,
-            mirrorEnabled = !defaults.mirrorEnabled,
-        )
+        ).withPrograms {
+            copy(
+                showProgramsPanelInMainWindow = !defaults.showProgramsPanelInMainWindow,
+                enableCalculator = !defaults.enableCalculator,
+                mirrorEnabled = !defaults.mirrorEnabled,
+            )
+        }
     }
 
     private companion object {

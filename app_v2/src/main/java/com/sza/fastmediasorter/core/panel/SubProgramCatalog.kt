@@ -62,7 +62,7 @@ object SubProgramCatalog {
                 SubProgramSurface.WIDGET,
             ),
             widgetKey = "calculator",
-            disable = { it.copy(enableCalculator = false) },
+            disable = { it.withPrograms { copy(enableCalculator = false) } },
         ),
         SubProgramEntry(
             routeKey = InternalRouteCatalog.KEY_NETWORK_MONITOR,
@@ -75,7 +75,7 @@ object SubProgramCatalog {
                 SubProgramSurface.WIDGET,
             ),
             widgetKey = "network_monitor",
-            disable = { it.copy(enableNetworkMonitor = false) },
+            disable = { it.withPrograms { copy(enableNetworkMonitor = false) } },
         ),
         SubProgramEntry(
             routeKey = InternalRouteCatalog.KEY_OCR,
@@ -140,7 +140,7 @@ object SubProgramCatalog {
                 SubProgramSurface.WIDGET,
             ),
             widgetKey = "game_launch",
-            disable = { it.copy(embeddedGameEnabled = false) },
+            disable = { it.withPrograms { copy(embeddedGameEnabled = false) } },
         ),
         SubProgramEntry(
             routeKey = InternalRouteCatalog.KEY_SYSTEM_INFO,
@@ -151,7 +151,7 @@ object SubProgramCatalog {
                 SubProgramSurface.LAUNCHER_SHORTCUT,
                 SubProgramSurface.OS_APP_SHORTCUT,
             ),
-            disable = { it.copy(enableSystemInfo = false) },
+            disable = { it.withPrograms { copy(enableSystemInfo = false) } },
         ),
         // S2922: Tourist dashboard sub-program.
         SubProgramEntry(
@@ -164,7 +164,7 @@ object SubProgramCatalog {
                 SubProgramSurface.OS_APP_SHORTCUT,
                 SubProgramSurface.WIDGET,
             ),
-            disable = { it.copy(enableTourist = false) },
+            disable = { it.withPrograms { copy(enableTourist = false) } },
             widgetKey = "tourist_info",
         ),
         SubProgramEntry(
@@ -176,7 +176,7 @@ object SubProgramCatalog {
                 SubProgramSurface.LAUNCHER_SHORTCUT,
                 SubProgramSurface.OS_APP_SHORTCUT,
             ),
-            disable = { it.copy(enableWearCompanion = false) },
+            disable = { it.withPrograms { copy(enableWearCompanion = false) } },
         ),
         // S2881: the two listen calls stand beside the companion they extend, both keyed to the same
         // switch - removing the companion removes its listening with it. Two entries, not one (ADR-6):
@@ -193,7 +193,7 @@ object SubProgramCatalog {
                 SubProgramSurface.WIDGET,
             ),
             widgetKey = "watch_listen",
-            disable = { it.copy(enableWearCompanion = false) },
+            disable = { it.withPrograms { copy(enableWearCompanion = false) } },
         ),
         SubProgramEntry(
             routeKey = InternalRouteCatalog.KEY_WATCH_LISTEN_RECORD,
@@ -204,7 +204,7 @@ object SubProgramCatalog {
                 SubProgramSurface.LAUNCHER_SHORTCUT,
                 SubProgramSurface.OS_APP_SHORTCUT,
             ),
-            disable = { it.copy(enableWearCompanion = false) },
+            disable = { it.withPrograms { copy(enableWearCompanion = false) } },
         ),
         // S4226: send before get, beside the other programs that reach another device. No widget - the owner
         // asked for main-window buttons and desktop shortcuts - and no switch of their own: the network flag
@@ -238,6 +238,7 @@ object SubProgramCatalog {
                 SubProgramSurface.LAUNCHER_SHORTCUT,
                 SubProgramSurface.OS_APP_SHORTCUT,
             ),
+            disable = { it.withPrograms { copy(enableFiller = false) } },
         ),
         SubProgramEntry(
             routeKey = InternalRouteCatalog.KEY_FRONT_FLASHLIGHT,
@@ -250,7 +251,7 @@ object SubProgramCatalog {
                 SubProgramSurface.WIDGET,
             ),
             widgetKey = "front_flashlight",
-            disable = { it.copy(frontFlashlightEnabled = false) },
+            disable = { it.withPrograms { copy(frontFlashlightEnabled = false) } },
         ),
         SubProgramEntry(
             routeKey = InternalRouteCatalog.KEY_PHYSICAL_FLASHLIGHT,
@@ -275,7 +276,7 @@ object SubProgramCatalog {
                 SubProgramSurface.WIDGET,
             ),
             widgetKey = "water_flashlight",
-            disable = { it.copy(waterFlashlightEnabled = false) },
+            disable = { it.withPrograms { copy(waterFlashlightEnabled = false) } },
         ),
         // S1924: no widget pairing - none is planned, and an entry declaring WIDGET must name a
         // paired HomeWidgetCatalog key or the completeness test fails.
@@ -288,7 +289,7 @@ object SubProgramCatalog {
                 SubProgramSurface.LAUNCHER_SHORTCUT,
                 SubProgramSurface.OS_APP_SHORTCUT,
             ),
-            disable = { it.copy(mirrorEnabled = false) },
+            disable = { it.withPrograms { copy(mirrorEnabled = false) } },
         ),
         // S3216: order 104, the one free slot left between the mirror and the black screen - the
         // distress signal is the fourth member of the light family, and ADR-5 fixes this table's order
@@ -302,7 +303,7 @@ object SubProgramCatalog {
                 SubProgramSurface.LAUNCHER_SHORTCUT,
                 SubProgramSurface.OS_APP_SHORTCUT,
             ),
-            disable = { it.copy(enableSos = false) },
+            disable = { it.withPrograms { copy(enableSos = false) } },
         ),
         SubProgramEntry(
             routeKey = InternalRouteCatalog.KEY_BLACK_SCREEN,
@@ -329,7 +330,7 @@ object SubProgramCatalog {
                 SubProgramSurface.WIDGET,
             ),
             widgetKey = "stopwatch",
-            disable = { it.copy(enableStopwatch = false) },
+            disable = { it.withPrograms { copy(enableStopwatch = false) } },
         ),
         SubProgramEntry(
             routeKey = InternalRouteCatalog.KEY_TAKE_PHOTO_SEND_TO,

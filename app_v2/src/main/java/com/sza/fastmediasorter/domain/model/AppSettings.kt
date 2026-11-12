@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.model
 
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSettings
+import com.sza.fastmediasorter.domain.model.programs.ProgramsSettings
 import com.sza.fastmediasorter.domain.model.sos.SosMode
 import kotlin.math.abs
 
@@ -60,63 +61,13 @@ data class AppSettings(
     // when preventSleep is on, this is logically treated as on and hidden in the settings UI.
     val keepScreenOnPlayer: Boolean = true,
     val showSmallControls: Boolean = false,
-    val enableCalculator: Boolean = false,
-    // S1411: the stopwatch is a sub-program like the calculator - off until the user asks for it.
-    val enableStopwatch: Boolean = false,
-    // S1411 ADR-7: what the tool does once opened. The switch above decides whether it is reachable;
-    // these four decide how it behaves, and they live in the shared store so an update keeps them.
+    // S1411 ADR-7: what the tool does once opened. The `enableStopwatch` switch in [programs] decides
+    // whether it is reachable; these four decide how it behaves, and they live in the shared store so
+    // an update keeps them.
     val stopwatchParticipantCount: Int = STOPWATCH_DEFAULT_PARTICIPANTS,
     val stopwatchMusicEnabled: Boolean = false,
     val stopwatchMusicUri: String = "",
     val stopwatchVolumeKeysControl: Boolean = true,
-    val embeddedGameEnabled: Boolean = false,
-    // S1796: the front flashlight is a program like its neighbours - off until the user asks for it.
-    val frontFlashlightEnabled: Boolean = false,
-    // S1796: ARGB of the glow. White is the requested start state; the picker writes any other choice here.
-    val frontFlashlightColor: Int = FRONT_FLASHLIGHT_DEFAULT_COLOR,
-    // S2516: the water flashlight is its own program beside the one above, off until asked for.
-    val waterFlashlightEnabled: Boolean = false,
-    // S3216: the distress signal is a program like its neighbours - off until the user asks for it, so
-    // an update never puts a siren one tap away from a pocket.
-    val enableSos: Boolean = false,
-    // S3216: which halves of the signal the SOS screen starts with, and what the paired device is asked
-    // for. Written by the screen's own mode chips rather than by a settings row, so the last choice is
-    // the next start - the mode is a decision taken in the emergency, not in advance.
-    val sosMode: SosMode = SosMode.ALL,
-    // S2776: the camera flashlight has no switch of its own - it is offered wherever the device has a
-    // flash - so its shade shortcut needs one here, and a permanent notification nobody asked for is
-    // a defect rather than a service.
-    val flashlightShortcutNotificationEnabled: Boolean = false,
-    // S1924: on by default wherever a front lens exists, unlike the flashlight above - ADR-3 records
-    // the divergence so a later reader does not take it for an oversight and align the two.
-    val mirrorEnabled: Boolean = true,
-    val mirrorZoomRatio: Float = MIRROR_DEFAULT_ZOOM_RATIO,
-    val mirrorHorizontallyFlipped: Boolean = true,
-    val mirrorBacklightOn: Boolean = true,
-    // S1433: the Network Monitor program is off until the user asks for it, like every other program.
-    val enableNetworkMonitor: Boolean = false,
-    // S1433: recording a GNSS track is a separate choice from opening the Monitor - on by default it
-    // would change the Play Data Safety answer without the user ever acting.
-    val recordGnssTrack: Boolean = false,
-    // S1733: system information becomes a program like its neighbours - off until the user asks for it,
-    // so an update never changes the composition of the programs panel on its own.
-    val enableSystemInfo: Boolean = false,
-    // S2997: the Tourist dashboard is a sub-program like its neighbours - off until the user asks for it,
-    // so an update never changes the composition of the programs panel on its own.
-    val enableTourist: Boolean = false,
-    // S1735: the Wear companion becomes a program like its neighbours. Off by default so an update never
-    // adds an entry to the programs panel on its own; it is shown at all only where the build carries the
-    // watch bridge, which is a separate condition read from MediaCapabilities.
-    val enableWearCompanion: Boolean = false,
-    // S2810: suppress the Wear OS system media-control takeover of the watch screen. When ON, the
-    // phone's AudioPlaybackService refuses a MediaSession connection from the Wear OS companion bridge
-    // so the watch stops surfacing the phone's player as a system "now playing" screen. Off by default
-    // so an update never changes current behavior. Phone-only toggle (read by the phone service), not a
-    // watch-mirror field, so it lives here rather than in WearSettingsMirrorStore (see S2050).
-    val suppressWearMediaTakeover: Boolean = false,
-    // S0755: mirror the programs "three-dots" menu as a horizontal panel on the main window. Default
-    // OFF (no behaviour change on upgrade); when ON the top three-dots button is hidden (panel replaces it).
-    val showProgramsPanelInMainWindow: Boolean = false,
     val defaultUser: String = "",
     // S1254: rename-proof mask marker for the startup settings dump (see SensitiveSetting).
     @field:SensitiveSetting
@@ -288,7 +239,6 @@ data class AppSettings(
     val overwriteOnMove: Boolean = false,
     val enableUndo: Boolean = true,
     val maxRecipients: Int = 10, // Maximum number of destination buttons (1-10)
-    val enableFavorites: Boolean = true, // Enable "Favorites" feature (enabled by default)
     val disableCameraCapture: Boolean = false, // Hide camera-capture button in Browse globally
     val skipCameraFilenameDialog: Boolean = false, // Skip rename dialog after capture; use timestamp name
     val cameraCaptureOpenForEditing: Boolean = false, // Open the captured photo in the drawing editor after saving
@@ -471,6 +421,10 @@ data class AppSettings(
     // reached the JVM ceiling of 255 descriptor slots and every build crashed on launch. The count and
     // the failure are recorded on [LauncherSettings].
     val launcher: LauncherSettings = LauncherSettings(),
+
+    // S4547: the program switches and remembered program values, nested for the same 255-slot
+    // ceiling the launcher group records; see [ProgramsSettings].
+    val programs: ProgramsSettings = ProgramsSettings(),
 ) {
 
     // S2300: the launcher group moved into [launcher] to get this class back under the JVM descriptor
@@ -530,6 +484,31 @@ data class AppSettings(
     val launcherStepsResetCount: Long get() = launcher.stepsResetCount
     val launcherStepsResetTimestamp: Long get() = launcher.stepsResetTimestamp
     val launcherAnimationPalette: String get() = launcher.animationPalette
+
+    // S4547: the program group moved into [programs] for the same ceiling as [launcher]; these keep
+    // every `settings.<name>` read valid, and a write goes through [withPrograms].
+    val enableCalculator: Boolean get() = programs.enableCalculator
+    val enableStopwatch: Boolean get() = programs.enableStopwatch
+    val embeddedGameEnabled: Boolean get() = programs.embeddedGameEnabled
+    val frontFlashlightEnabled: Boolean get() = programs.frontFlashlightEnabled
+    val frontFlashlightColor: Int get() = programs.frontFlashlightColor
+    val waterFlashlightEnabled: Boolean get() = programs.waterFlashlightEnabled
+    val enableSos: Boolean get() = programs.enableSos
+    val enableFiller: Boolean get() = programs.enableFiller
+    val sosMode: SosMode get() = programs.sosMode
+    val flashlightShortcutNotificationEnabled: Boolean get() = programs.flashlightShortcutNotificationEnabled
+    val mirrorEnabled: Boolean get() = programs.mirrorEnabled
+    val mirrorZoomRatio: Float get() = programs.mirrorZoomRatio
+    val mirrorHorizontallyFlipped: Boolean get() = programs.mirrorHorizontallyFlipped
+    val mirrorBacklightOn: Boolean get() = programs.mirrorBacklightOn
+    val enableNetworkMonitor: Boolean get() = programs.enableNetworkMonitor
+    val recordGnssTrack: Boolean get() = programs.recordGnssTrack
+    val enableSystemInfo: Boolean get() = programs.enableSystemInfo
+    val enableTourist: Boolean get() = programs.enableTourist
+    val enableWearCompanion: Boolean get() = programs.enableWearCompanion
+    val suppressWearMediaTakeover: Boolean get() = programs.suppressWearMediaTakeover
+    val showProgramsPanelInMainWindow: Boolean get() = programs.showProgramsPanelInMainWindow
+    val enableFavorites: Boolean get() = programs.enableFavorites
     companion object {
         /**
          * S2603: 100KB, the only home of the `video_size_min` default.
@@ -794,6 +773,12 @@ data class AppSettings(
      * which names the receiver twice and pushes most call sites past the line limit.
      */
     fun withLauncher(edit: LauncherSettings.() -> LauncherSettings): AppSettings = copy(launcher = launcher.edit())
+
+    /**
+     * S4547: edits the nested program group - `settings.withPrograms { copy(enableSos = true) }`, the
+     * same shape as [withLauncher].
+     */
+    fun withPrograms(edit: ProgramsSettings.() -> ProgramsSettings): AppSettings = copy(programs = programs.edit())
 
     /**
      * Returns set of MediaTypes that are globally enabled in app settings.

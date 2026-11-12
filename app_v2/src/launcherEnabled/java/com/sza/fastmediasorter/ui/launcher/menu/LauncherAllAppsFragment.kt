@@ -43,6 +43,7 @@ import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAppActionMenuManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -73,6 +74,7 @@ class LauncherAllAppsFragment : DialogFragment() {
 
     /** Detached in onDestroyView: the RecyclerView outlives this fragment's view on a re-inflate. */
     private var swipeTouchListener: RecyclerView.OnItemTouchListener? = null
+    private var scrollListener: RecyclerView.OnScrollListener? = null
 
     private val systemDialogsReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -92,8 +94,12 @@ class LauncherAllAppsFragment : DialogFragment() {
     private var latestCatalog: AppCategoryCatalog = AppCategoryCatalog.EMPTY
     private val expandedGroupKeys = mutableSetOf<String>()
 
-    /** S4530: category groups start open, so this set remembers the closed ones instead. */
-    private val collapsedCategoryKeys = mutableSetOf<String>()
+    private val stateManager by lazy {
+        LauncherAllAppsStateManager(requireContext().getSharedPreferences(STATE_PREFERENCES, Context.MODE_PRIVATE))
+    }
+    private val expandedCategoryKeys by lazy { stateManager.expandedKeys().toMutableSet() }
+    private var catalogReady = false
+    private var restorePending = true
     private var currentSections: List<LauncherAppGroupSection> = emptyList()
 
     /** S2736: resolved from the laid-out grid; the floor is what the block occupied before it was measured. */
@@ -178,6 +184,7 @@ class LauncherAllAppsFragment : DialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        restorePending = true
         setUpGrid()
         attachPreviewRowMeasurement()
         attachSwipeGestures()
@@ -191,7 +198,12 @@ class LauncherAllAppsFragment : DialogFragment() {
             closeSystemDialogsFilter,
             ContextCompat.RECEIVER_NOT_EXPORTED,
         )
-        binding.allAppsSearch.doAfterTextChanged { viewModel.setQuery(it?.toString().orEmpty()) }
+        binding.allAppsSearch.doAfterTextChanged {
+            val query = it?.toString().orEmpty()
+            if (viewModel.query.value.isBlank() && query.isNotBlank()) saveCategoryAnchor()
+            if (query.isBlank() && viewModel.query.value.isNotBlank()) restorePending = true
+            viewModel.setQuery(query)
+        }
         binding.allAppsSort.setOnClickListener { showOrderMenu(it) }
 
         collectOnLifecycle(viewModel.apps) { apps ->
@@ -200,8 +212,11 @@ class LauncherAllAppsFragment : DialogFragment() {
             applyEmptyState(apps.isEmpty())
         }
         collectOnLifecycle(viewModel.catalog) { catalog ->
-            latestCatalog = catalog
-            renderGroups()
+            if (catalog != null) {
+                latestCatalog = catalog
+                catalogReady = true
+                renderGroups()
+            }
         }
         collectOnLifecycle(viewModel.order) { renderGroups() }
         collectOnLifecycle(viewModel.categorySaveFailed) {
@@ -221,6 +236,11 @@ class LauncherAllAppsFragment : DialogFragment() {
         DialogKeyboardDelegate.applyToDialogFragment(dialog, onConfirm = {})
     }
 
+    override fun onStop() {
+        saveCategoryAnchor()
+        super.onStop()
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         // The popup anchors inside this screen and must not outlive it.
@@ -229,6 +249,8 @@ class LauncherAllAppsFragment : DialogFragment() {
         requireContext().unregisterReceiver(systemDialogsReceiver)
         swipeTouchListener?.let { binding.allAppsGrid.removeOnItemTouchListener(it) }
         swipeTouchListener = null
+        scrollListener?.let { binding.allAppsGrid.removeOnScrollListener(it) }
+        scrollListener = null
         previewRowsObserver?.let { binding.allAppsGrid.viewTreeObserver.removeOnGlobalLayoutListener(it) }
         previewRowsObserver = null
         swipeActionHandler = null
@@ -236,7 +258,9 @@ class LauncherAllAppsFragment : DialogFragment() {
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
+        saveCategoryAnchor()
         super.onConfigurationChanged(newConfig)
+        restorePending = true
         // The launcher handles rotation itself, so the dialog must recalculate its grid instead of
         // waiting for a new app-list emission that may never arrive.
         renderGroups()
@@ -246,6 +270,14 @@ class LauncherAllAppsFragment : DialogFragment() {
         val layoutManager = GridLayoutManager(requireContext(), desktopColumns())
         binding.allAppsGrid.layoutManager = layoutManager
         binding.allAppsGrid.adapter = appsAdapter
+        binding.allAppsGrid.itemAnimator = null
+        val listener = object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                if (newState == RecyclerView.SCROLL_STATE_IDLE) saveCategoryAnchor()
+            }
+        }
+        scrollListener = listener
+        binding.allAppsGrid.addOnScrollListener(listener)
         layoutManager.spanSizeLookup = appsAdapter.getSpanSizeLookup(desktopColumns())
     }
 
@@ -323,7 +355,7 @@ class LauncherAllAppsFragment : DialogFragment() {
             categoryManager.groupApps(
                 apps = latestApps,
                 catalog = latestCatalog,
-                collapsedKeys = collapsedCategoryKeys,
+                expandedKeys = expandedCategoryKeys,
                 reorderTargetKey = reorderManager.targetKey,
                 labelOf = categoryLabels::labelOf,
                 unknownLabel = categoryLabels.unknownLabel(),
@@ -335,8 +367,32 @@ class LauncherAllAppsFragment : DialogFragment() {
         singleAppGroupCount = groups.count { it.isSingleApp }
         currentSections = groups
         appsAdapter.submitGroups(groups)
+        restoreCategoryAnchor(layoutManager)
         val targetTitle = groups.firstOrNull { it.isReorderTarget }?.title
         reorderManager.bind(binding.allAppsReorderBar, binding.allAppsReorderTitle, targetTitle)
+    }
+
+    private fun restoreCategoryAnchor(layoutManager: GridLayoutManager) {
+        if (!restorePending || !isCategoryMode() || !catalogReady) return
+        if (latestApps.isEmpty() || viewModel.query.value.isNotBlank()) return
+        Timber.d("S4548: restoring category drawer")
+        val anchor = stateManager.anchor()
+        val position = anchor?.let { LauncherAllAppsStateManager.resolvePosition(it, appsAdapter.itemKeys()) }
+        if (position != null && anchor != null) layoutManager.scrollToPositionWithOffset(position, anchor.offset)
+        restorePending = false
+    }
+
+    private fun saveCategoryAnchor() {
+        val grid = _binding?.allAppsGrid ?: return
+        if (restorePending || !isCategoryMode() || viewModel.query.value.isNotBlank()) return
+        (grid.layoutManager as? GridLayoutManager)?.let { manager ->
+            val position = manager.findFirstVisibleItemPosition()
+            val key = appsAdapter.itemKeys().getOrNull(position)
+            val child = manager.findViewByPosition(position)
+            if (key != null && child != null) {
+                stateManager.saveAnchor(LauncherAllAppsStateManager.Anchor(key, position, child.top - grid.paddingTop))
+            }
+        }
     }
 
     private fun isCategoryMode(): Boolean = viewModel.order.value == InstalledAppSortOrder.CATEGORY
@@ -374,8 +430,13 @@ class LauncherAllAppsFragment : DialogFragment() {
     }
 
     private fun toggleGroup(key: String) {
-        val keys = if (LauncherCategoryAppGroupManager.isCategoryKey(key)) collapsedCategoryKeys else expandedGroupKeys
+        val category = LauncherCategoryAppGroupManager.isCategoryKey(key)
+        val keys = if (category) expandedCategoryKeys else expandedGroupKeys
         if (!keys.add(key)) keys.remove(key)
+        if (category) {
+            Timber.d("S4548: category group toggled")
+            stateManager.saveExpandedKeys(keys)
+        }
         renderGroups()
     }
 
@@ -420,6 +481,7 @@ class LauncherAllAppsFragment : DialogFragment() {
     )
 
     companion object {
+        private const val STATE_PREFERENCES = "launcher_all_apps_state"
         const val TAG = "launcher_all_apps"
 
         /** Kept clear of the order ids, which are the map's indices. */

@@ -92,13 +92,13 @@ steps:
     id: category-groups
     title: Keep your apps in category groups
     text: |
-      **All apps** opens on **By category**: every app sits in a group such as Games, Social or Productivity, each with its own header. Tap a header to fold or unfold the group. Pick any other order in the sort menu and All apps opens on that order next time; pick **By category** to return to the groups.
+      **All apps** opens on **By category**: every app sits in a group such as Games, Social or Productivity, each with its own tile. Groups start collapsed; tap a tile to open or close it. All apps remembers the open groups and your scroll position when you return. Pick any other order in the sort menu and All apps opens on that order next time; pick **By category** to return to the groups.
 
-      The groups start from the type each app declares about itself, both on the first start and for every app you install later. Apps that declare nothing are in **Unknown**, which is always the last group.
+      The groups start from the type each app declares about itself, both on the first start and for every app you install later. Apps that declare nothing are in **Other**, which is always the last group.
 
       Long press an app and choose **Set category..** to tick every group it belongs to - one app can be in several, for example Slack in Work and in Messengers. **New category..** in the same window names a new group and ticks it at once. A group with no apps is hidden from the list but stays in that window, ready to be chosen.
 
-      To change the order of the groups, long press a group header: it is highlighted, and **Move up** and **Move down** move it one place at a time; **Done** ends the mode. The groups start in alphabetical order, and **Unknown** stays last.
+      To change the order of the groups, long press a group tile: it is highlighted, and **Move up** and **Move down** move it one place at a time; **Done** ends the mode. The groups start in alphabetical order, and **Other** stays last.
 
       Your groups, the apps in them, their order and the chosen sort order stay in place after an update and travel with the settings backup.
 outcome: |
@@ -125,6 +125,6 @@ next_recipes:
     description: The starter layout the Start menu and All apps sit alongside.
 ---
 
-<sub class="doc-stamp">26.11.10 14:03</sub>
+<sub class="doc-stamp">26.11.11 16:33</sub>
 
 Start is the short list, [All apps](term:all-apps) is the long one. This page covers sizing the Start panel, opening the full app list, searching and sorting it, an app's own shortcuts from a long press, and the four swipes that move through the list without a single tap.

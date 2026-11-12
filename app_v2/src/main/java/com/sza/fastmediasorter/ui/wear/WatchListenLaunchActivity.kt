@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
+import com.sza.fastmediasorter.core.ui.ProgramScreenGuardManager
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.service.WatchListenSessionManager
 import com.sza.fastmediasorter.service.WearListenState
@@ -32,18 +34,23 @@ class WatchListenLaunchActivity : AppCompatActivity() {
 
     @Inject lateinit var sessionManager: WatchListenSessionManager
 
+    @Inject lateinit var programScreenGuard: ProgramScreenGuardManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val record = intent?.getBooleanExtra(EXTRA_RECORD, false) ?: false
-        when (intent?.action) {
-            ACTION_TOGGLE ->
-                when (sessionManager.listenState.value) {
-                    is WearListenState.Idle -> sessionManager.start(record = record)
-                    else -> sessionManager.stop()
-                }
-            else -> sessionManager.start(record = record)
+        val stopsRunningSession =
+            intent?.action == ACTION_TOGGLE && sessionManager.listenState.value !is WearListenState.Idle
+        if (stopsRunningSession) {
+            sessionManager.stop()
+            finish()
+            return
         }
-        finish()
+        // S4544: only a start waits for the companion's switch, so a running session can always be stopped.
+        programScreenGuard.admit(this, InternalRouteCatalog.KEY_WATCH_LISTEN) {
+            sessionManager.start(record = record)
+            finish()
+        }
     }
 
     companion object {

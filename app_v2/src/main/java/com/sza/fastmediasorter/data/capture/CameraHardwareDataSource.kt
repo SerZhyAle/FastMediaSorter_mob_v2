@@ -77,6 +77,13 @@ class CameraHardwareDataSource @Inject constructor(
         characteristics: CameraCharacteristics,
     ): CameraHardwareEntry {
         val configs = read(characteristics, CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+        val capabilities = read(
+            characteristics,
+            CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES,
+        )?.toSet().orEmpty()
+        val oisModes = read(characteristics, CameraCharacteristics.LENS_INFO_AVAILABLE_OPTICAL_STABILIZATION)
+        val eisModes = read(characteristics, CameraCharacteristics.CONTROL_AVAILABLE_VIDEO_STABILIZATION_MODES)
+        val fpsRanges = read(characteristics, CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES)
         return CameraHardwareEntry(
             cameraId = id,
             logicalParentId = parentId,
@@ -98,8 +105,25 @@ class CameraHardwareDataSource @Inject constructor(
             hardwareLevel = read(characteristics, CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL),
             maxJpegSize = largest(configs?.getOutputSizes(ImageFormat.JPEG)),
             maxHighResolutionJpegSize = largest(highResolutionSizes(configs)),
+            apertures = read(characteristics, CameraCharacteristics.LENS_INFO_AVAILABLE_APERTURES)
+                ?.toList()
+                .orEmpty(),
+            flashAvailable = read(characteristics, CameraCharacteristics.FLASH_INFO_AVAILABLE),
+            opticalStabilization = oisModes?.any { it != CameraCharacteristics.LENS_OPTICAL_STABILIZATION_MODE_OFF },
+            videoStabilization = eisModes?.any { it != CameraCharacteristics.CONTROL_VIDEO_STABILIZATION_MODE_OFF },
+            maxVideoSize = largest(videoSizes(configs)),
+            maxVideoFps = fpsRanges?.maxOfOrNull { it.upper },
+            supportsRaw = capabilities.contains(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_RAW),
+            supportsTenBitDynamicRange = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                capabilities.contains(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_DYNAMIC_RANGE_TEN_BIT)
+            } else {
+                false
+            },
         )
     }
+
+    private fun videoSizes(configs: StreamConfigurationMap?): Array<Size>? =
+        runCatching { configs?.getOutputSizes(android.media.MediaRecorder::class.java) }.getOrNull()
 
     /**
      * The zoom range as the device states it. Below API 30 there is no ratio range at all, so the

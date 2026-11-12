@@ -302,6 +302,7 @@ _Available in: Standard, Legacy, VR, FOSS_
 | Calculator | Enables a quick-access calculator within the app. |
 | Allow copying | Shows Copy everywhere it appears - the bottom bar after a selection, the buttons and three-dots menu of a file, swipe actions, keyboard shortcuts and the player's copy panel. Off hides Copy in all of them. |
 | FileDO encryption operations | Shows "Encrypt with FileDO" and "Decrypt with FileDO" in the operations menu of every file. Opening an .fd-sec file works whether this is on or off. |
+| Storage filler | Adds Storage filler to the programs list: it fills the free space of a chosen folder with temporary files and deletes them again. On by default. While files of an interrupted run remain, the program stays in the list until you delete them in it. |
 | Allow moving | Shows Move everywhere it appears - the bottom bar after a selection, the buttons and three-dots menu of a file, swipe actions, keyboard shortcuts and the player's move panel. Off hides Move in all of them. |
 | Network Monitor | Adds Network Monitor to the app's program menus and launcher surfaces. It is off by default and does not start any checks by itself. |
 | Enable Safe Mode | Activates Safe Mode, which restricts destructive operations to prevent accidental file loss. |

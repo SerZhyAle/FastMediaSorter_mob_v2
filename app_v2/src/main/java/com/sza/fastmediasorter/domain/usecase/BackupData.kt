@@ -440,6 +440,7 @@ data class BackupSettings(
         // program off for a user who had asked for it. `sosMode` travels as the enum member name, the
         // same wire shape the watch and the preset CSV already use.
         val enableSos: Boolean? = null,
+        val enableFiller: Boolean? = null,
         val sosMode: String? = null
     )
 

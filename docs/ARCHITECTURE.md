@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.29 04:34</sub>
+<sub class="doc-stamp">26.11.12 03:04</sub>
 
 # FastMediaSorter v2: Architecture & Flow
 
@@ -475,6 +475,8 @@ FMS ships about two dozen small programs of its own - the calculator, the stopwa
 
 **What the registry owns, and only that.** A `SubProgramEntry` states which route key is a sub-program at all, its `order` in the one sequence every surface shows, the `surfaces` it is eligible for, the `widgetKey` it pairs with, and the `disable` that switches it off. It stores no name, no icon, no intent and no availability: the label, the icon and the launch intent come from `InternalRouteCatalog.byKey(routeKey)`, and whether the program exists in this build and is switched on comes from `ResolvePanelRouteAvailabilityUseCase`. Copying either into the entry would recreate the second copy the registry exists to remove - which is exactly what the programs menu did until S1736 phase 04 took its label and icon table away.
 
+**One availability input that is not a setting (S4542).** The availability decision answers from the settings model alone for every program except Filler, whose availability also reads the leftover-files state of its journal, so that the program stays reachable for cleanup while its switch is off. The state is a read-only `StateFlow` implemented by `FillerSessionJournal` and bound through its own interface, `FillerPendingCleanup`. A new program must not copy this unless it keeps unfinished work that only its own screen can finish.
+
 **Route keys are the vocabulary.** They are already persisted on user devices inside launcher cell targets and quick-access tile targets (ADR-1), so a widget key or a menu id maps onto a route key rather than the other way round.
 
 **The surfaces.** `SubProgramSurface` names five: `PROGRAMS_MENU` (the main-window dropdown and the programs panel that replays its population), `QUICK_ACCESS_PANEL`, `WIDGET` (the in-app picker that pins one of our home-screen widgets), `LAUNCHER_SHORTCUT` (a desktop cell added when the program is switched on) and `OS_APP_SHORTCUT` (the dynamic shortcuts under a long press on the app icon, moved by S1925 and read today by `ResolveLauncherCommandLabelUseCase`). Launcher informer tiles - the clock, the weather - are excluded permanently by ADR-3: they are not programs, nothing launches them, and half the entry's fields would be inapplicable to half its rows.
@@ -617,6 +619,17 @@ parameters, and one marker. `copy$default` spends the same plus the receiver.
 - The launcher group keeps read-through properties on `AppSettings` (`settings.launcherWallpaperMode`), so
   a read needs no knowledge of the grouping and the device-profile preset CSV keeps naming fields as
   before. Reads may use either form; writes go through the group.
+- The program switches and the values our programs remember are the second such group: `ProgramsSettings`
+  (`domain/model/programs/`), held as `AppSettings.programs`, written through
+  `settings.withPrograms { copy(enableSos = true) }` and persisted whole by `ProgramsSettingsStore`
+  (S4547). A field added for a program goes into it and costs no slot.
+- A group whose members keep their flat names (no prefix) in the device-profile preset CSV lives in a
+  subpackage of `domain/model/`, as `launcher/` and `programs/` do: `scripts/check_device_profile_presets.ps1`
+  prefixes the members of a `*Settings` class found directly in `domain/model/` with the group's name. The
+  group field itself is registered as a container in `docs/settings/device-profile-nonpresettable.json`.
+- The next folding candidate is the stopwatch's own values - `stopwatchParticipantCount`,
+  `stopwatchMusicEnabled`, `stopwatchMusicUri`, `stopwatchVolumeKeysControl` - which have their own store,
+  `StopwatchSettingsStore`.
 - `scripts/quality/assert-ctor-arg-slots.ps1` does the arithmetic and runs in every closure that changes a
   `.kt`. It reports headroom in whole properties - when it warns, group a domain, never buy back one slot.
 

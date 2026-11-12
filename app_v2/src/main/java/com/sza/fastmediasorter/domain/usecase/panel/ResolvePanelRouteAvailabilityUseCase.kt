@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
+import com.sza.fastmediasorter.domain.filler.FillerPendingCleanup
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.networkmonitor.NetworkMonitorContract
@@ -31,6 +32,7 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
     private val networkMonitorContract: NetworkMonitorContract,
     private val launcherModeContract: LauncherModeContract,
     private val screenVideoRecordingControllers: Set<@JvmSuppressWildcards ScreenVideoRecordingController>,
+    private val fillerPendingCleanup: FillerPendingCleanup,
 ) {
 
     /**
@@ -167,6 +169,7 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
                 Availability(availableInBuild = true, enabledAtRuntime = isMirrorEnabled(settings))
             else -> resolveLightRoute(routeKey, settings)
                 ?: resolveExchangeRoute(routeKey)
+                ?: resolveFillerRoute(routeKey, settings)
                 ?: resolveCaptureRoute(routeKey, settings)
         }
 
@@ -181,6 +184,21 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
             InternalRouteCatalog.KEY_CLIPBOARD_GET ->
                 Availability(availableInBuild = mediaCapabilities.supportsLocalNetworkSources, enabledAtRuntime = true)
             else -> null
+        }
+
+    /**
+     * S4521: the filler needs only a folder the user picks on the screen itself, so it is in every build.
+     * S4542: the switch gates it, except while the journal still lists files of an earlier run - the
+     * switch must never strand those files, and only this program's own screen deletes them.
+     */
+    private fun resolveFillerRoute(routeKey: String, settings: AppSettings): Availability? =
+        if (routeKey == InternalRouteCatalog.KEY_FILLER) {
+            Availability(
+                availableInBuild = true,
+                enabledAtRuntime = settings.enableFiller || fillerPendingCleanup.hasPending.value,
+            )
+        } else {
+            null
         }
 
     /**
@@ -216,8 +234,6 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
             InternalRouteCatalog.KEY_SOS ->
                 Availability(availableInBuild = true, enabledAtRuntime = settings.enableSos)
             // S2211: black screen needs no special capability - always available in build and runtime.
-            // S4521: the filler needs only a folder the user picks on the screen itself.
-            InternalRouteCatalog.KEY_FILLER,
             InternalRouteCatalog.KEY_BLACK_SCREEN ->
                 Availability(availableInBuild = true, enabledAtRuntime = true)
             else -> null

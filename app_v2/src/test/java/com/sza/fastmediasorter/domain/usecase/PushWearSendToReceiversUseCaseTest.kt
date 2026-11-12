@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.WearEventEnvelope
 import com.sza.fastmediasorter.domain.model.WearNode
 import com.sza.fastmediasorter.domain.model.WearSendToReceiversPayload
+import com.sza.fastmediasorter.domain.model.programs.ProgramsSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
 import com.sza.fastmediasorter.service.WearDataLayerPaths
@@ -89,7 +90,7 @@ class PushWearSendToReceiversUseCaseTest {
     @Test
     fun `a receiver switched off on the phone never reaches the watch`() = runTest {
         val settings = AppSettings(
-            enableWearCompanion = true,
+            programs = ProgramsSettings(enableWearCompanion = true),
             disabledShareTargets = setOf("email")
         )
         val (pathSlot, envelopeSlot) = captureEnvelope()
@@ -109,7 +110,7 @@ class PushWearSendToReceiversUseCaseTest {
     @Test
     fun `an empty set is still published rather than skipped`() = runTest {
         val settings = AppSettings(
-            enableWearCompanion = true,
+            programs = ProgramsSettings(enableWearCompanion = true),
             disabledShareTargets = setOf("email")
         )
         val (_, envelopeSlot) = captureEnvelope()
@@ -126,7 +127,7 @@ class PushWearSendToReceiversUseCaseTest {
      */
     @Test
     fun `the paired-watch receiver is never published to the watch`() = runTest {
-        val settings = AppSettings(enableWearCompanion = true)
+        val settings = AppSettings(programs = ProgramsSettings(enableWearCompanion = true))
         val (_, envelopeSlot) = captureEnvelope()
 
         val targets = setOf(
@@ -140,7 +141,7 @@ class PushWearSendToReceiversUseCaseTest {
 
     @Test
     fun `no connected watch publishes nothing`() = runTest {
-        val settings = AppSettings(enableWearCompanion = true)
+        val settings = AppSettings(programs = ProgramsSettings(enableWearCompanion = true))
         coEvery { wearRepository.getConnectedNodes() } returns emptyList()
 
         val result = useCase(setOf(target("print")), settings)()

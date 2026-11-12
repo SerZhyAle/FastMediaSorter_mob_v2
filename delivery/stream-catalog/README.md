@@ -376,6 +376,15 @@ silent change. The legacy `-NormalizeTopics` switch remains the topic-only subse
 `scripts/quality/assert-stream-facet-values.ps1` (release scope) fails while any cell of the catalog is
 not a fixed point of the fold.
 
+A three-letter language code (ISO 639-2 bibliographic or terminological, or one of the named ISO 639-3
+extension codes) folds to the language it names, like a two-letter code (STREAM-BANK item P.3); a
+collective or special code such as `mul` names no language and reads like any unrecognized word.
+
+- `scripts/streams/update-iso6392-table.ps1` regenerates the ISO 639-2 table of both normalizers from the
+  registration authority's list.
+- `scripts/streams/export-facet-tables.ps1` writes the tables and vectors into `stream-catalog/` of the
+  contracts root.
+
 ```
 # Review the diff first - writes the backup + move report, publishes nothing:
 pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -NormalizeFacets

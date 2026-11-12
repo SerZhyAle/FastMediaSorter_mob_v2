@@ -60,27 +60,28 @@ class DeviceProfilePresetApplier @Inject constructor(
             "preventSleep" -> settings.copy(preventSleep = raw.toBool())
             "keepScreenOnPlayer" -> settings.copy(keepScreenOnPlayer = raw.toBool())
             "showSmallControls" -> settings.copy(showSmallControls = raw.toBool())
-            "enableCalculator" -> settings.copy(enableCalculator = raw.toBool())
-            "enableStopwatch" -> settings.copy(enableStopwatch = raw.toBool())
-            "enableTourist" -> settings.copy(enableTourist = raw.toBool())
+            "enableCalculator" -> settings.withPrograms { copy(enableCalculator = raw.toBool()) }
+            "enableStopwatch" -> settings.withPrograms { copy(enableStopwatch = raw.toBool()) }
+            "enableTourist" -> settings.withPrograms { copy(enableTourist = raw.toBool()) }
             "flashlightShortcutNotificationEnabled" ->
-                settings.copy(flashlightShortcutNotificationEnabled = raw.toBool())
-            "suppressWearMediaTakeover" -> settings.copy(suppressWearMediaTakeover = raw.toBool())
+                settings.withPrograms { copy(flashlightShortcutNotificationEnabled = raw.toBool()) }
+            "suppressWearMediaTakeover" -> settings.withPrograms { copy(suppressWearMediaTakeover = raw.toBool()) }
             "streamsVisualizeAsMusic" -> settings.copy(streamsVisualizeAsMusic = raw.toBool())
             "launcherShowScreenNumber" -> settings.withLauncher { copy(showScreenNumber = raw.toBool()) }
             "stopwatchMusicEnabled" -> settings.copy(stopwatchMusicEnabled = raw.toBool())
             "stopwatchVolumeKeysControl" -> settings.copy(stopwatchVolumeKeysControl = raw.toBool())
-            "embeddedGameEnabled" -> settings.copy(embeddedGameEnabled = raw.toBool())
-            "frontFlashlightEnabled" -> settings.copy(frontFlashlightEnabled = raw.toBool())
-            "waterFlashlightEnabled" -> settings.copy(waterFlashlightEnabled = raw.toBool())
-            "enableSos" -> settings.copy(enableSos = raw.toBool())
+            "embeddedGameEnabled" -> settings.withPrograms { copy(embeddedGameEnabled = raw.toBool()) }
+            "frontFlashlightEnabled" -> settings.withPrograms { copy(frontFlashlightEnabled = raw.toBool()) }
+            "waterFlashlightEnabled" -> settings.withPrograms { copy(waterFlashlightEnabled = raw.toBool()) }
+            "enableSos" -> settings.withPrograms { copy(enableSos = raw.toBool()) }
+            "enableFiller" -> settings.withPrograms { copy(enableFiller = raw.toBool()) }
             "sosMode" ->
                 runCatching { SosMode.valueOf(raw.trim()) }.getOrNull()
-                    ?.let { settings.copy(sosMode = it) } ?: skip(field, raw, settings)
-            "mirrorEnabled" -> settings.copy(mirrorEnabled = raw.toBool())
-            "enableNetworkMonitor" -> settings.copy(enableNetworkMonitor = raw.toBool())
-            "enableSystemInfo" -> settings.copy(enableSystemInfo = raw.toBool())
-            "enableWearCompanion" -> settings.copy(enableWearCompanion = raw.toBool())
+                    ?.let { settings.withPrograms { copy(sosMode = it) } } ?: skip(field, raw, settings)
+            "mirrorEnabled" -> settings.withPrograms { copy(mirrorEnabled = raw.toBool()) }
+            "enableNetworkMonitor" -> settings.withPrograms { copy(enableNetworkMonitor = raw.toBool()) }
+            "enableSystemInfo" -> settings.withPrograms { copy(enableSystemInfo = raw.toBool()) }
+            "enableWearCompanion" -> settings.withPrograms { copy(enableWearCompanion = raw.toBool()) }
             "disableAnimations" -> settings.copy(disableAnimations = raw.toBool())
             "launcherTrayShowSpeed" -> settings.withLauncher { copy(trayShowSpeed = raw.toBool()) }
             "isCacheSizeUserModified" -> settings.copy(isCacheSizeUserModified = raw.toBool())
@@ -147,7 +148,7 @@ class DeviceProfilePresetApplier @Inject constructor(
             "enableMoving" -> settings.copy(enableMoving = raw.toBool())
             "overwriteOnMove" -> settings.copy(overwriteOnMove = raw.toBool())
             "enableUndo" -> settings.copy(enableUndo = raw.toBool())
-            "enableFavorites" -> settings.copy(enableFavorites = raw.toBool())
+            "enableFavorites" -> settings.withPrograms { copy(enableFavorites = raw.toBool()) }
             "disableCameraCapture" -> settings.copy(disableCameraCapture = raw.toBool())
             "skipCameraFilenameDialog" -> settings.copy(skipCameraFilenameDialog = raw.toBool())
             "cameraCaptureOpenForEditing" -> settings.copy(cameraCaptureOpenForEditing = raw.toBool())
@@ -381,7 +382,8 @@ class DeviceProfilePresetApplier @Inject constructor(
                 settings.copy(
                     screenshotGesture = settings.screenshotGesture.copy(zoneRightBottomStripVisible = raw.toBool())
                 )
-            "showProgramsPanelInMainWindow" -> settings.copy(showProgramsPanelInMainWindow = raw.toBool())
+            "showProgramsPanelInMainWindow" ->
+                settings.withPrograms { copy(showProgramsPanelInMainWindow = raw.toBool()) }
             "showStreamsPanelInMainWindow" -> settings.copy(showStreamsPanelInMainWindow = raw.toBool())
             "screenRecordingEnabled" -> settings.copy(screenRecordingEnabled = raw.toBool())
             "resourceTypeTabCollapsed" -> settings.copy(resourceTypeTabCollapsed = raw.toBool())

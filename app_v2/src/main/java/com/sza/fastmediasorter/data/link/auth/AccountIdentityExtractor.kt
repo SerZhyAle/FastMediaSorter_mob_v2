@@ -21,6 +21,7 @@ object AccountIdentityExtractor {
     private const val PLATFORM_FACEBOOK = "facebook.com"
     private const val PLATFORM_X = "x.com"
     private const val PLATFORM_TWITTER = "twitter.com"
+    private const val PLATFORM_TIKTOK = "tiktok.com"
 
     private const val COOKIE_DS_USER_ID = "ds_user_id"
     private const val COOKIE_C_USER = "c_user"
@@ -60,6 +61,7 @@ object AccountIdentityExtractor {
     private fun signedInCookieNameForHost(normalizedHost: String): String? = when {
         matchesPlatform(normalizedHost, PLATFORM_INSTAGRAM) -> COOKIE_SESSION_ID
         matchesPlatform(normalizedHost, PLATFORM_THREADS) -> COOKIE_SESSION_ID
+        matchesPlatform(normalizedHost, PLATFORM_TIKTOK) -> COOKIE_SESSION_ID
         else -> cookieNameForHost(normalizedHost)
     }
 
@@ -69,6 +71,9 @@ object AccountIdentityExtractor {
         matchesPlatform(normalizedHost, PLATFORM_FACEBOOK) -> COOKIE_C_USER
         matchesPlatform(normalizedHost, PLATFORM_X) -> COOKIE_TWID
         matchesPlatform(normalizedHost, PLATFORM_TWITTER) -> COOKIE_TWID
+        // TikTok exposes no user-id cookie to the webview jar; sessionid is the only cookie that
+        // is shared by every tiktok.com subdomain of one login, so it keys the www./vm. dedup.
+        matchesPlatform(normalizedHost, PLATFORM_TIKTOK) -> COOKIE_SESSION_ID
         else -> null
     }
 

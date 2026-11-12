@@ -929,6 +929,17 @@ scripts/builders/check-standard-fast.ps1
   Exit: 120 s foreground timeout, which would have killed it with no verdict at all. The place
 ```
 
+### check-unattended-compile.ps1
+The compile-only command an unattended queue pass runs once: `commands.compileCheck` in .sza-profile.json (S4541).
+
+```
+scripts/builders/check-unattended-compile.ps1
+  The compile-only command an unattended queue pass runs once: `commands.compileCheck` in .sza-profile.json (S4541).
+  Params:
+    -DryRun         [SwitchParameter]
+  Exit: 0 every module compiled, or -DryRun listed the commands.; 1 a module has a compile error; the modules after it were not run.; 2 a module could not be checked to a verdict (check-standard-fast.ps1's own exit 2).
+```
+
 ### clean-gradle-caches.ps1
 Gradle caches clean script (project-level)
 
@@ -8591,7 +8602,6 @@ scripts/spec_catalog/check-block-note.ps1
     -NewStatus     (req)  [String]
     -StatusNote           [String]
     -NoteSupplied         [SwitchParameter]
-  Exit: 1 = no reason, or no directional blocker - the transition must not proceed.; 2 = bad invocation (malformed id, or an id no record carries), or the spec file
 ```
 
 ### check-capability-recorded.ps1
@@ -8672,6 +8682,7 @@ scripts/spec_catalog/close-and-log.ps1
     -FeatArea                [String] = ''
     -FeatName                [String] = ''
     -FeatFlavors             [String] = ''
+    -FeatGate                [String] = ''
     -CatalogModule           [String] = ''
     -StatusNote              [String] = ''
     -FeatNoLegal             [SwitchParameter]
@@ -8970,7 +8981,7 @@ scripts/spec_catalog/spec-next-preflight.ps1
     -ClaimAs                   [String] = ''
     -Reason                    [String] = 'spec-next-preflight'
     -AdditionalExclude         [String[]] = @()
-  Exit: 2 - usage error only.
+  Exit: 2 - usage error only: a dash-led token that is not a declared option (S4397), or -ClaimAs
 ```
 
 ### spec-next-session.ps1
@@ -9372,6 +9383,33 @@ scripts/streams/collect-stream-candidates.ps1
     -LiveTvCategories                 [String[]] = @(
         'news', 'documentary', 'movies', 'sports', 'kids', 'music', 'science', 'general'
     )
+```
+
+### export-facet-tables.ps1
+Export the stream facet tables and vectors into the shared contracts catalog (STREAM-BANK item P.1, P.2).
+
+```
+scripts/streams/export-facet-tables.ps1
+  Export the stream facet tables and vectors into the shared contracts catalog (STREAM-BANK item P.1, P.2).
+  Params:
+    -CatalogRoot         [String] = $env:FMS_CONTRACTS_ROOT
+    -RepoRoot            [String]
+  Exit: 0 every file was written.; 1 the tables are inconsistent (an alias points outside the vocabulary, a line is malformed); nothing
+```
+
+### update-iso6392-table.ps1
+Regenerate the ISO 639-2 table of the stream facet fold from the registration authority's code list.
+
+```
+scripts/streams/update-iso6392-table.ps1
+  Regenerate the ISO 639-2 table of the stream facet fold from the registration authority's code list.
+  Params:
+    -SourceFile           [String]
+    -Url                  [String] = 'https://www.loc.gov/standards/iso639-2/ISO-639-2_utf-8.txt'
+    -RepoRoot             [String]
+    -RetiredCodes         [String[]] = @('bh')
+    -Check                [SwitchParameter]
+  Exit: 0 both table files hold what the list produces (written, or unchanged; with -Check, unchanged).; 1 the list is inconsistent with the vocabulary (a vocabulary code absent from it, a duplicate or
 ```
 
 ## scripts\streams.tests
@@ -10469,14 +10507,14 @@ scripts/utils/run-maestro-stress.ps1
     -SkipBuild         [SwitchParameter]
 ```
 
-### run-mono-queue.ps1
-`.\a.ps1 r0` - the release queue for the one MONO agent (S3158): a fresh process per ticket, each running `/spec-all -m <id>`.
+### run-pq-queue.ps1
+`.\a.ps1 r0` - start one portfolio worker for THIS repository: `pq start -Repo <key>` (S4541).
 
 ```
-scripts/utils/run-mono-queue.ps1
-  `.\a.ps1 r0` - the release queue for the one MONO agent (S3158): a fresh process per ticket, each running `/spec-all -m <id>`.
+scripts/utils/run-pq-queue.ps1
+  `.\a.ps1 r0` - start one portfolio worker for THIS repository: `pq start -Repo <key>` (S4541).
   (no param block)
-  Exit: 2 the MONO start could not clear a store (mono-mode.ps1's own code), or the runner forwarder
+  Exit: 0 pq's own exit 0, or -DryRun resolved both facts.; 2 this repository is not in the portfolio registry, the registry could not be read, or no pq.ps1
 ```
 
 ### run-spec-queue.ps1
@@ -10486,27 +10524,30 @@ Drive the release queue one ticket at a time, each in its own fresh Claude Code 
 scripts/utils/run-spec-queue.ps1
   Drive the release queue one ticket at a time, each in its own fresh Claude Code process.
   Params:
-    -Ids                       [String] = ''
-    -MaxTickets                [Int32] = 0
-    -TimeoutMinutes            [Int32] = 90
-    -ModelPolicy               [String] = 'tiered'  {tiered|shape|fixed|default}
-    -Model                     [String] = 'opus'
-    -StrongModel               [String] = 'opus'
-    -CheapModel                [String] = 'sonnet'
-    -Instance                  [String] = 'a'
-    -StartDelaySeconds         [Int32] = 0
-    -ClaimGraceSeconds         [Int32] = 180
-    -PromptTemplate            [String] = ''
-    -PermissionMode            [String] = 'bypassPermissions'  {acceptEdits|auto|bypassPermissions|manual|dontAsk|plan}
-    -Quiet                     [SwitchParameter]
-    -DryRun                    [SwitchParameter]
-    -Stop                      [SwitchParameter]
-    -Kill                      [SwitchParameter]
-    -KeepSkipCache             [SwitchParameter]
-    -RepoRoot                  [String] = ''
-    -AgentJson                 [String] = ''
-    -ExitOnLimit               [SwitchParameter]
-    -Help                      [SwitchParameter]
+    -Ids                        [String] = ''
+    -MaxTickets                 [Int32] = 0
+    -TimeoutMinutes             [Double] = 90
+    -StatusGraceMinutes         [Double] = 5.0
+    -MaxTimeoutMinutes          [Int32] = 150
+    -ModelPolicy                [String] = 'tiered'  {tiered|shape|fixed|default}
+    -Model                      [String] = 'opus'
+    -StrongModel                [String] = 'opus'
+    -CheapModel                 [String] = 'sonnet'
+    -DefaultModel               [String] = 'sonnet'
+    -Instance                   [String] = 'a'
+    -StartDelaySeconds          [Int32] = 0
+    -ClaimGraceSeconds          [Int32] = 180
+    -PromptTemplate             [String] = ''
+    -PermissionMode             [String] = 'bypassPermissions'  {acceptEdits|auto|bypassPermissions|manual|dontAsk|plan}
+    -Quiet                      [SwitchParameter]
+    -DryRun                     [SwitchParameter]
+    -Stop                       [SwitchParameter]
+    -Kill                       [SwitchParameter]
+    -KeepSkipCache              [SwitchParameter]
+    -RepoRoot                   [String] = ''
+    -AgentJson                  [String] = ''
+    -ExitOnLimit                [SwitchParameter]
+    -Help                       [SwitchParameter]
   Exit: 2 = invalid invocation - the Claude CLI or the preflight script could not be found or
 ```
 
@@ -11093,6 +11134,18 @@ Contract tests for scripts/utils/release-freeze.ps1 - the release-sweep tree fre
 ```
 scripts/utils/release-freeze.tests/Run-Tests.ps1
   Contract tests for scripts/utils/release-freeze.ps1 - the release-sweep tree freeze (S3010).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
+```
+
+## scripts\utils\run-pq-queue.tests
+
+### Run-Tests.ps1
+Contract tests for scripts/utils/run-pq-queue.ps1 - the launcher behind `.\a.ps1 r0` (S4541).
+
+```
+scripts/utils/run-pq-queue.tests/Run-Tests.ps1
+  Contract tests for scripts/utils/run-pq-queue.ps1 - the launcher behind `.\a.ps1 r0` (S4541).
   (no param block)
   Exit: 0 - every case passed.; 1 - at least one case failed.
 ```

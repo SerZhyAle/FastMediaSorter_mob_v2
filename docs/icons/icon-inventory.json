@@ -585,6 +585,14 @@
   },
   {
     "surface": "program-nav",
+    "key": "all_apps",
+    "feature": "launcher_action_all_apps",
+    "drawable": "ic_apps",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
     "key": "app_info",
     "feature": "app_launch_panel_os_app_info",
     "drawable": "ic_info",
@@ -897,6 +905,14 @@
   },
   {
     "surface": "program-nav",
+    "key": "storage_filler",
+    "feature": "filler_title",
+    "drawable": "ic_storage",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
     "key": "streams",
     "feature": "app_launch_panel_route_streams",
     "drawable": "ic_stream",
@@ -1169,6 +1185,14 @@
   },
   {
     "surface": "settings-header",
+    "key": "headerBehaviour",
+    "feature": "settings_category_behaviour",
+    "drawable": "ic_behavior",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
     "key": "headerBroadcast",
     "feature": "settings_broadcast_section",
     "drawable": "ic_microphone",
@@ -1404,6 +1428,14 @@
     "key": "rowEnableFavorites",
     "feature": "enable_favorites",
     "drawable": "ic_resource_favorites",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowEnableFiller",
+    "feature": "filler_title",
+    "drawable": "ic_storage",
     "assetFormat": "vector",
     "public": true
   },
