@@ -25,7 +25,6 @@ import com.sza.fastmediasorter.ui.settings.ticket.helpers.TicketVoiceRecordManag
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * S4554: files a ticket into the SZA ticket inbox on the owner's Google Drive (INBOX-PACKET v1).
@@ -73,7 +72,6 @@ class TicketComposerDialogFragment : DialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        Timber.d("S4554: ticket composer opened")
         val form = binding.composer
         val recorder = TicketVoiceRecordManager(requireContext())
         voice = recorder

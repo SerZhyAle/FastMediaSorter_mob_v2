@@ -410,7 +410,6 @@ class LinkDownloadWorker @AssistedInject constructor(
         result: LinkAutoDownloadCoordinator.Result.Failed.AuthRequired,
         isDismissedHost: Boolean,
     ) {
-        Timber.d("S4549: auth-required notification host=${result.host} dismissed=$isDismissedHost")
         if (isDismissedHost) {
             builder
                 .setContentTitle(context.getString(R.string.link_download_notif_title_done))

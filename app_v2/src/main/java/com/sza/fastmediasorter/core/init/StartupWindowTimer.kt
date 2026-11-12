@@ -60,7 +60,6 @@ object StartupWindowTimer {
         Timber.i(
             formatWindowLine(processStart, attachStart, attachEnd, onCreateEnter, SystemClock.uptimeMillis())
         )
-        Timber.d("S4506: startup window logged, sampler stopping")
     }
 
     private fun startSampler(mainThread: Thread, windowStart: Long) {

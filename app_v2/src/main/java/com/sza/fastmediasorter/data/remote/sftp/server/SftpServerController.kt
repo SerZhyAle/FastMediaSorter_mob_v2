@@ -107,7 +107,6 @@ class SftpServerController @Inject constructor(
         val result = if (!PermissionHelper.hasLocalNetworkPermission(context)) {
             // Inbound TCP from the LAN needs the grant at targetSdk 37; without it the server would
             // report Running while every client connection is dropped by the platform.
-            Timber.d("S4502: SFTP server start refused, local network permission missing")
             SftpServerState.Failed(SftpServerFailure.LOCAL_NETWORK_DENIED)
         } else if (isAvailable() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             mutableState.value = SftpServerState.Starting

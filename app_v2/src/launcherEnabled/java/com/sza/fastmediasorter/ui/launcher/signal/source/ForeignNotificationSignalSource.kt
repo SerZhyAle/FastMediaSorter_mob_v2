@@ -78,7 +78,6 @@ class ForeignNotificationSignalSource @Inject constructor(
         )
         // S4507: this flow runs on IO, so the icon is read here and the chip's main-thread bind finds it
         // in memory instead of loading it from the application's files.
-        Timber.d("S4507: signal icon warm-up off-main pkg=$packageName")
         LauncherSignalIconBinder.warm(context, icon)
         return LauncherSignal(
             id = SIGNAL_ID_PREFIX + packageName,

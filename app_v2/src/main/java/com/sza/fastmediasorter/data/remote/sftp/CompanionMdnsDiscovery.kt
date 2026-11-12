@@ -125,7 +125,6 @@ class CompanionMdnsDiscovery @Inject constructor(
      */
     private fun hasLocalNetworkGrant(): Boolean {
         val granted = PermissionHelper.hasLocalNetworkPermission(context)
-        Timber.d("S4510: mDNS discovery grant check, granted=$granted")
         if (!granted) Timber.i("mDNS discovery skipped: ACCESS_LOCAL_NETWORK not granted")
         return granted
     }

@@ -54,7 +54,6 @@ class ProgramScreenGuardManager @Inject constructor(
      * first settings read otherwise; a refused launch is redirected and [onAdmitted] never runs.
      */
     fun admit(activity: ComponentActivity, routeKey: String, onAdmitted: () -> Unit) {
-        Timber.d("S4544: admit requested for a guarded launcher or screen")
         val snapshot = settings.value
         if (snapshot != null) {
             decide(activity, routeKey, snapshot, onAdmitted)
@@ -104,7 +103,6 @@ class ProgramScreenGuardManager @Inject constructor(
 
     private fun redirect(activity: Activity, routeKey: String) {
         if (activity.isFinishing) return
-        Timber.d("S4544: switched-off program redirected to its settings")
         Timber.i("ProgramScreenGuard: %s is switched off, leaving %s", routeKey, activity.javaClass.simpleName)
         val route = InternalRouteCatalog.byKey(routeKey)
         route?.let {

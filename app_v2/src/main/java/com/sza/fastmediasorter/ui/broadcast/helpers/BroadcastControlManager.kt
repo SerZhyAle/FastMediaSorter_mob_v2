@@ -279,7 +279,6 @@ class BroadcastControlManager @Inject constructor(
             // LAN viewers need the local network grant on Android 17; the internet link works without
             // it, so the session starts either way and the system dialog only adds the LAN path.
             if (!PermissionHelper.hasLocalNetworkPermission(activity)) {
-                Timber.d("S4502: broadcast start requests the local network permission")
                 PermissionHelper.requestLocalNetworkPermission(activity)
             }
             controller.start(selectedMode, selectedLensId)

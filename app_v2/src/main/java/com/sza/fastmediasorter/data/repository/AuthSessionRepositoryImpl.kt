@@ -76,7 +76,6 @@ class AuthSessionRepositoryImpl @Inject constructor(
         return withContext(Dispatchers.IO) {
             val identity = AccountIdentityExtractor.extract(host, cookies)
             val reusedId = identity?.let { store.findAccountIdByIdentity(host, it) }
-            Timber.d("S4549: webview save host=$host hasIdentity=${identity != null} reused=${reusedId != null}")
             val accountId = reusedId ?: java.util.UUID.randomUUID().toString()
             store.saveForAccount(host, accountId, displayName, cookies, userAgent)
             refreshFlows()
@@ -107,7 +106,6 @@ class AuthSessionRepositoryImpl @Inject constructor(
             // depending on which subdomain the link carried, so the picker and the auth offer flickered.
             // Cookies stay keyed by the exact host; every account entry keeps the host it lives under.
             val live = mergeSiteAccounts(host).map { (accountHost, entry) -> entry.toDomain(accountHost) }
-            Timber.d("S4549: listAccountsForHost host=$host accounts=${live.size}")
             val dismissed = buildList {
                 val hostDismiss = store.hasDismissedRecord(host)
                 if (hostDismiss) {

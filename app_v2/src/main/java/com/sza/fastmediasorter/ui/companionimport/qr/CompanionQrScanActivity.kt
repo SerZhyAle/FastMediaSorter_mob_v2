@@ -94,7 +94,6 @@ class CompanionQrScanActivity : AppCompatActivity() {
         // The cancel button and system back both end here; a rotation is not the end of a scan.
         if (isFinishing && !finishedWithResult) {
             Timber.i("QR scan: closed without a code")
-            Timber.d("S4517: QR scan closed without a code")
         }
         session.unbind()
         super.onDestroy()

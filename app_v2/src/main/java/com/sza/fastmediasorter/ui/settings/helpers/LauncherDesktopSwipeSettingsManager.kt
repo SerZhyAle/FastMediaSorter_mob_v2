@@ -15,7 +15,6 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /** Owns the desktop-swipe row family while the dialog remains its lifecycle host. */
 class LauncherDesktopSwipeSettingsManager(
@@ -58,7 +57,6 @@ class LauncherDesktopSwipeSettingsManager(
     }
 
     fun render(settings: AppSettings) {
-        Timber.d("S4526: render desktop swipe rows")
         LauncherDesktopSwipeDirection.entries.forEach { direction ->
             val action = direction.actionOf(settings)
             val horizontal = direction == LauncherDesktopSwipeDirection.LEFT ||

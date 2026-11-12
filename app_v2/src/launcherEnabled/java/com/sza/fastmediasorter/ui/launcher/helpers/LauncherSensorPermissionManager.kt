@@ -7,7 +7,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
-import timber.log.Timber
 
 /**
  * S1179: which sensor gadget needs which runtime permission, and the single place that asks.
@@ -49,14 +48,12 @@ class LauncherSensorPermissionManager(private val activity: FragmentActivity) {
      */
     fun placeAfterAsking(gadgetKey: String, place: () -> Unit) {
         val permission = PERMISSIONS[gadgetKey]?.takeIf { isRequestable(it) }
-        Timber.d("S4504: placeAfterAsking gadget=%s permission=%s", gadgetKey, permission)
         if (permission == null || isGranted(permission)) {
             place()
             return
         }
         pendingPlacement = place
         val permissions = requestSet(permission)
-        Timber.d("S4508: launching request permissions=%s", permissions.joinToString())
         request.launch(permissions)
     }
 

@@ -43,7 +43,6 @@ import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAppActionMenuManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -375,7 +374,6 @@ class LauncherAllAppsFragment : DialogFragment() {
     private fun restoreCategoryAnchor(layoutManager: GridLayoutManager) {
         if (!restorePending || !isCategoryMode() || !catalogReady) return
         if (latestApps.isEmpty() || viewModel.query.value.isNotBlank()) return
-        Timber.d("S4548: restoring category drawer")
         val anchor = stateManager.anchor()
         val position = anchor?.let { LauncherAllAppsStateManager.resolvePosition(it, appsAdapter.itemKeys()) }
         if (position != null && anchor != null) layoutManager.scrollToPositionWithOffset(position, anchor.offset)
@@ -434,7 +432,6 @@ class LauncherAllAppsFragment : DialogFragment() {
         val keys = if (category) expandedCategoryKeys else expandedGroupKeys
         if (!keys.add(key)) keys.remove(key)
         if (category) {
-            Timber.d("S4548: category group toggled")
             stateManager.saveExpandedKeys(keys)
         }
         renderGroups()

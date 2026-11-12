@@ -565,7 +565,6 @@ class YtDlpExtractionStrategy @Inject constructor(
         val host = url.toHttpUrlOrNull()?.host.orEmpty()
         if (!hasCookieFile || !isRefusedInstagramSession(host, e.message)) throw e
         Timber.w(e, "YtDlpExtractionStrategy: session refused, retrying without cookies host=%s", host)
-        Timber.d("S4519: retry without cookies host=%s", host)
         opts.callAttr("pop", "cookiefile")
         onCookiesDropped()
         ytdlp.callAttr("YoutubeDL", opts).callAttr("extract_info", url, false)

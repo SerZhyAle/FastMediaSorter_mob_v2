@@ -50,7 +50,6 @@ class AppShortcutsRefreshCoordinator @Inject constructor(
                 .debounce(REFRESH_DEBOUNCE_MS)
                 .catch { Timber.w(it, "App shortcuts: settings watcher stopped; other triggers remain") }
                 .collect {
-                    Timber.d("S4545: launchable programs changed, refreshing app shortcuts")
                     appShortcuts.get().requestRefresh()
                 }
         }

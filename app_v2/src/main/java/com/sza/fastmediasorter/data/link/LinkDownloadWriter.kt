@@ -95,7 +95,6 @@ class LinkDownloadWriter @Inject constructor(
             // URL re-fetched without the WebView request context (Referer/UA) often yields a
             // 403-HTML page, a JSON error, or a truncated chunk - none of which are playable.
             val sniff = sniffMedia(tempFile)
-            Timber.d("S4550: sniff kind=$sniff bytes=$totalBytes name=$fileName")
             if (sniff != null) {
                 Timber.w("LinkDownloadWriter: rejected corrupted download - kind=%s bytes=%d name=%s", sniff, totalBytes, fileName)
                 return@withContext WriteResult.Corrupted(bytesWritten = totalBytes, sniffedKind = sniff)

@@ -121,7 +121,6 @@ class OperationsProgramsManager(
         }
         binding.rowEnableFiller.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
-            Timber.d("S4542: filler toggle -> $isChecked")
             viewModel.updateSettings { it.withPrograms { copy(enableFiller = isChecked) } }
         }
         binding.root.findViewTreeLifecycleOwner()?.collectOnLifecycle(fillerPendingCleanup.hasPending) { pending ->
@@ -130,7 +129,6 @@ class OperationsProgramsManager(
             } else {
                 R.string.filler_settings_toggle_subtitle
             }
-            Timber.d("S4542: filler cleanup pending -> $pending")
             binding.rowEnableFiller.setSubtitle(caption)
         }
     }

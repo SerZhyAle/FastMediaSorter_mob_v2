@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -112,14 +111,12 @@ class LauncherAllAppsViewModel @Inject constructor(
     }
 
     fun setAppCategories(packageName: String, categoryIds: Set<String>) {
-        Timber.d("S4530: set app categories")
         viewModelScope.launch {
             reportFailure(setAppCategoriesUseCase(packageName, categoryIds))
         }
     }
 
     fun createCategory(name: String, onCreated: (String) -> Unit) {
-        Timber.d("S4530: create category")
         viewModelScope.launch {
             val result = createAppCategory(name)
             result.onSuccess(onCreated)
@@ -128,7 +125,6 @@ class LauncherAllAppsViewModel @Inject constructor(
     }
 
     fun moveCategory(categoryId: String, displayedOrder: List<String>, offset: Int) {
-        Timber.d("S4530: move category")
         viewModelScope.launch {
             reportFailure(moveAppCategory(categoryId, displayedOrder, offset))
         }

@@ -5,7 +5,6 @@ import com.sza.fastmediasorter.core.util.httpOnlyCompat
 import okhttp3.Cookie
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
-import timber.log.Timber
 import java.net.HttpCookie
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -108,7 +107,6 @@ class LinkDownloadCookieJar @Inject constructor(
             "link-download-cookie-jar save host=${url.host} $names added=${merged.added} " +
                 "replaced=${merged.replaced} deleted=${merged.deleted}",
         )
-        Timber.d("S4509: jar save host=${url.host} deleted=${merged.deleted} replaced=${merged.replaced}")
     }
 
     private fun Cookie.toHttpCookieOrNull(now: Long): HttpCookie? = try {

@@ -36,7 +36,6 @@ class CookieFileWriter @Inject constructor(
      * `try/finally` block.
      */
     fun writeCookieFile(targetHost: String, cookies: List<HttpCookie>): File? {
-        Timber.d("S4511: cookie file requested host=%s sessionCookies=%d", targetHost, cookies.size)
         if (cookies.isEmpty()) return null
 
         val file = File(context.filesDir, "ytdlp_cookies_${System.currentTimeMillis()}.txt")

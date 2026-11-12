@@ -93,7 +93,6 @@ class TouristEnvironmentTelemetry @Inject constructor(
     private fun observeMagneticField(scope: CoroutineScope, state: MutableStateFlow<TouristDashboardState>) {
         scope.launch {
             environmentSensorReadingSource.magneticField().collect { reading ->
-                timber.log.Timber.d("S4524: magnetic field microtesla=%s", reading.microtesla)
                 state.update { prev ->
                     val outOfBand = reading.microtesla !in EARTH_FIELD_MIN_UT..EARTH_FIELD_MAX_UT
                     val distrusted = prev.compassAccuracy == SensorAccuracy.LOW ||

@@ -397,7 +397,6 @@ class BrowseResourceLoadManager(
      * finds nothing, which ends the chain.
      */
     private fun launchTempCleanup(resource: MediaResource) {
-        Timber.d("S4516: temp cleanup detached from scan - '${resource.name}'")
         tempCleanupJob?.cancel()
         tempCleanupJob = scope.launch(ioDispatcher + exceptionHandler) {
             val removed = try {

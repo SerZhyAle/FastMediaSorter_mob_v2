@@ -45,7 +45,6 @@ object DataSyncForeground {
         val granted = Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE ||
             ContextCompat.checkSelfPermission(context, Manifest.permission.FOREGROUND_SERVICE_DATA_SYNC) ==
             PackageManager.PERMISSION_GRANTED
-        Timber.d("S4537: dataSync check %s types=%d granted=%b", component.className, manifestTypes, granted)
         return resolveType(Build.VERSION.SDK_INT, manifestTypes, granted) != null
     }
 

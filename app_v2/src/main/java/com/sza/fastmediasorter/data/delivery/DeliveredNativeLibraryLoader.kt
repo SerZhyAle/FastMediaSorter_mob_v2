@@ -167,7 +167,6 @@ class DeliveredNativeLibraryLoader @Inject constructor(
      * delivered again.
      */
     private fun makePayloadReadOnly(set: DeliverableSet, setDir: File, soFiles: List<PayloadFile>) {
-        Timber.d("S4502: making %d payload file(s) of set %s read-only", soFiles.size, set)
         for (payloadFile in soFiles) {
             val file = File(setDir, payloadFile.fileName)
             file.setReadOnly()

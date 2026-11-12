@@ -300,7 +300,6 @@ class LinkAutoDownloadResultPresenter @Inject constructor(
         // Activity at that instant can leave it in the back stack without visually snapping to
         // front. Wait for genuine RESUMED before launching; repeatOnLifecycle cancels this collector
         // (and this suspend point) if the host drops below STARTED again, so no leak/hang risk.
-        Timber.d("S4550: launchPlayer uri=$uri")
         try {
             host.lifecycle.withResumed {
                 // S0393: route through the dispatcher (resolves media family -> specialized host);

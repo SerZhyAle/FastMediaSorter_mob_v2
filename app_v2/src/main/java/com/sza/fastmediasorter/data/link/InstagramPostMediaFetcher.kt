@@ -42,7 +42,6 @@ internal class InstagramPostMediaFetcher(
             val csrfToken = httpClient.cookieJar.loadForRequest(url)
                 .firstOrNull { it.name == CSRF_COOKIE }?.value
             val hasCsrf = !csrfToken.isNullOrBlank()
-            Timber.d("S4515: instagram media request label=$label csrf=$hasCsrf")
             val request = Request.Builder()
                 .url(url)
                 .header("Accept", "*/*")

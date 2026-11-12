@@ -454,7 +454,6 @@ class SftpServerTunnelManager @Inject constructor(
             keepalive.cancel()
         }
         if (end != null) {
-            Timber.d("S4551: control stream ended cause=%s share=%b", end, record != null)
             // The server drops this device's records with the stream, so a published share is not Registered now.
             if (record != null && share != null && currentCoroutineContext().isActive) {
                 mutableState.value = SftpTunnelState.Connecting

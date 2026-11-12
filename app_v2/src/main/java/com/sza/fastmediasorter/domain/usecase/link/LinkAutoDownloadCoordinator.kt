@@ -216,7 +216,6 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         } else {
             emptySet()
         }
-        Timber.d("S4509: revoked-session check host=$host previewLike=$previewLike revoked=$revoked")
         return if (host != null && revoked.isNotEmpty()) {
             Timber.i("LinkAutoDownloadCoordinator: session revoked by server host=%s cookies=%s", host, revoked)
             Result.Failed.AuthRequired(host = host, originalUrl = url)

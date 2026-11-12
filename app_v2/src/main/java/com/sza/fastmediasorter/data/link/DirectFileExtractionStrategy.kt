@@ -164,7 +164,6 @@ class DirectFileExtractionStrategy @Inject constructor(
      */
     private fun executeWholeFile(httpUrl: HttpUrl, extraHeaders: Map<String, String>): Response {
         val wholeFileUrl = withoutByteRangeParams(httpUrl)
-        Timber.d("S4550: executeWholeFile host=${httpUrl.host} stripped=${wholeFileUrl != httpUrl}")
         if (wholeFileUrl != httpUrl) {
             val whole = httpClient.newCall(buildGet(wholeFileUrl, extraHeaders)).execute()
             if (whole.isSuccessful) {

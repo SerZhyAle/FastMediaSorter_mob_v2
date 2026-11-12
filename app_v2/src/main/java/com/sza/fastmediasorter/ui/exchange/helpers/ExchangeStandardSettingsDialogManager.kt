@@ -16,7 +16,6 @@ import com.sza.fastmediasorter.ui.exchange.MyDevicesViewModel
 import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * Manages the dialog for selecting standard settings groups and performing Save as STANDARD and Read STANDARD.
@@ -31,7 +30,6 @@ class ExchangeStandardSettingsDialogManager(
     private var binding: DialogExchangeStandardSettingsBinding? = null
 
     fun show(entry: DeviceExchangeAccountEntry) {
-        Timber.d("S4536: standard settings dialog opened")
         dismiss()
         val view = DialogExchangeStandardSettingsBinding.inflate(LayoutInflater.from(activity))
         binding = view
@@ -79,7 +77,6 @@ class ExchangeStandardSettingsDialogManager(
         val groups = getSelectedGroups(view)
         setBusy(view, dialog, true)
         scope.launch {
-            Timber.d("S4536: save standard groups=$groups")
             val result = viewModel.saveStandardSettings(entry, groups)
             setBusy(view, dialog, false)
             when (result) {
@@ -111,7 +108,6 @@ class ExchangeStandardSettingsDialogManager(
         val groups = getSelectedGroups(view)
         setBusy(view, dialog, true)
         scope.launch {
-            Timber.d("S4536: read standard groups=$groups")
             val result = viewModel.readStandardSettings(entry, groups)
             setBusy(view, dialog, false)
             when (result) {

@@ -27,7 +27,6 @@ class RunScheduledFillUseCase @Inject constructor(
 
     /** The run's result; a cancellation is rethrown after the engine has deleted what it wrote. */
     suspend operator fun invoke(operationId: Long, source: MediaResource): ScheduledExecutionResult {
-        Timber.d("S4522: scheduled fill run started")
         val place = resolver.place(source.path)
         return when {
             place == null -> error(

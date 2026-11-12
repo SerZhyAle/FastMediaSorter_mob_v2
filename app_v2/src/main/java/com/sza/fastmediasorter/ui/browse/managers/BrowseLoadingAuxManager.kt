@@ -193,7 +193,6 @@ class BrowseLoadingAuxManager(
         val missing = resource.type == ResourceType.SFTP && atRoot && BrowseFriendlyErrorResolver.isServerNotFound(e)
         if (!missing) return null
         Timber.i("BrowseLoadingAuxManager: server answered, shared folder missing for resource %d", resource.id)
-        Timber.d("S4517: share-missing text for ${resource.name}")
         return context.getString(R.string.error_companion_share_missing)
     }
 
@@ -223,7 +222,6 @@ class BrowseLoadingAuxManager(
                 }
             }
         Timber.i("BrowseLoadingAuxManager: companion unreachable, dead recovery channels=%s", dead)
-        Timber.d("S4513: companion error for ${resource.name}")
         return lines.joinToString("\n\n")
     }
 

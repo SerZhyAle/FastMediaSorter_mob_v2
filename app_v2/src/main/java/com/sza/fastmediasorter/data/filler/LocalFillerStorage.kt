@@ -123,7 +123,6 @@ class LocalFillerStorage @Inject constructor(
 
     override suspend fun cleanup(session: FillerSession): Boolean = withContext(Dispatchers.IO) {
         if (appStorage.isLocation(session.target.location)) return@withContext appStorage.cleanup(session)
-        Timber.d("S4521: filler cleanup on local volume")
         if (!validate(session.target)) {
             false
         } else {

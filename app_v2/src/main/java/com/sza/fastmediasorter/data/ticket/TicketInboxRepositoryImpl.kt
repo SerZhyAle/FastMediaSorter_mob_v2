@@ -43,7 +43,6 @@ class TicketInboxRepositoryImpl @Inject constructor(
     override val outbox: StateFlow<List<TicketOutboxEntry>> = entries.asStateFlow()
 
     override suspend fun stage(draft: TicketDraft): Result<String> = locked {
-        Timber.d("S4554: staging ticket packet attachments=${draft.attachments.size} project=${draft.project}")
         runCatching { store.stage(draft).manifest.packetId }
             .onFailure { it.rethrowIfCancellation() }
             .onSuccess { TicketInboxDeliveryWorker.enqueue(context) }
@@ -56,7 +55,6 @@ class TicketInboxRepositoryImpl @Inject constructor(
     // "not signed in now", so packets stay queued for the next worker run.
     @Suppress("TooGenericExceptionCaught")
     override suspend fun deliverQueued(): TicketDeliveryReport = locked {
-        Timber.d("S4554: delivering queued ticket packets to Drive inbox")
         val pending = store.list().filter {
             it.entry.state == TicketOutboxState.QUEUED || it.entry.state == TicketOutboxState.WAITING_ON_DRIVE
         }
@@ -85,7 +83,6 @@ class TicketInboxRepositoryImpl @Inject constructor(
     }
 
     override suspend fun syncStatuses(): Result<Unit> = locked {
-        Timber.d("S4554: reading done/failed verdicts of sent ticket packets")
         val sent = store.list().filter { it.entry.state == TicketOutboxState.SENT }
         val outcome = runCatching {
             if (sent.isNotEmpty() && !inbox.ensureSignedIn()) throw IOException(NOT_SIGNED_IN)

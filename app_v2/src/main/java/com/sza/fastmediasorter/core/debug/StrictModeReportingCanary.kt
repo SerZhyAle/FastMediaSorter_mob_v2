@@ -89,7 +89,6 @@ class StrictModeReportingCanary : Application.ActivityLifecycleCallbacks {
         val policy = StrictMode.getThreadPolicy().toString()
         if (policy == armedPolicyText) return
         StrictMode.setThreadPolicy(restored)
-        Timber.d("S4518: debug thread policy re-applied before $where")
         Timber.w("StrictMode reporting: policy changed before $where, $armedPolicyText -> $policy, re-applied")
     }
 

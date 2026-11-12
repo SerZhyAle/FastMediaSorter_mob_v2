@@ -9,7 +9,6 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.programs.ProgramsSettings
 import com.sza.fastmediasorter.domain.model.sos.SosMode
-import timber.log.Timber
 
 /**
  * Owns persistence of the sub-program switches: which of our own programs the user has turned on,
@@ -99,7 +98,6 @@ object ProgramsSettingsStore {
     fun applyTo(settings: AppSettings, values: ProgramsSettings): AppSettings = settings.copy(programs = values)
 
     fun write(preferences: MutablePreferences, settings: AppSettings) {
-        Timber.d("S4547: programs written sos=${settings.enableSos} zoom=${settings.mirrorZoomRatio}")
         preferences[KEY_ENABLE_CALCULATOR] = settings.enableCalculator
         preferences[KEY_ENABLE_STOPWATCH] = settings.enableStopwatch
         preferences[KEY_ENABLE_NETWORK_MONITOR] = settings.enableNetworkMonitor
