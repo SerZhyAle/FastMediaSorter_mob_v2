@@ -8,7 +8,7 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.61.1121.543** (November 2026)
+**Current release: 2.61.1121.715** (November 2026)
 
 > Changes since version 2.61.0292.144
 
