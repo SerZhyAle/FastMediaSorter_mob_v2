@@ -78,6 +78,9 @@ object SubProgramAccentCatalog {
         // every other respect, so it takes the same accent instead of minting a colour for one tool.
         InternalRouteCatalog.KEY_STOPWATCH to R.color.color_program_accent_orange,
         InternalRouteCatalog.KEY_APP_LAUNCH_PANEL to R.color.color_program_accent_orange,
+        // The app drawer is the launch panel's other half - both open the user's own apps - so it
+        // shares the panel's tone rather than reading as a separate family.
+        InternalRouteCatalog.KEY_ALL_APPS to R.color.color_program_accent_orange,
         InternalRouteCatalog.KEY_SCHEDULED_TASKS to R.color.color_program_accent_orange,
 
         // The screen or the lamp used as a light.

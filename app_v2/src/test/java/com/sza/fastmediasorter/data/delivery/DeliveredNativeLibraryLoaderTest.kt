@@ -34,6 +34,9 @@ class DeliveredNativeLibraryLoaderTest {
         val payload = File(setDir, "libtest.so").apply { writeBytes(byteArrayOf(0x7F)) }
         every { context.filesDir } returns filesDir
         every { bundledSets.contains(DeliverableSet.FFMPEG_DTS) } returns false
+        // A relaxed mock answers a sealed result with its first subclass, Failed, which stops load before the
+        // read-only step; the payload has to pass verification for that step to be reached at all.
+        every { verifier.verify(any(), any()) } returns PayloadIntegrityVerifier.Result.Verified
         val descriptor = DeliverableSourceDescriptor(
             set = DeliverableSet.FFMPEG_DTS,
             files = listOf(PayloadFile("libtest.so", emptyList(), "", 1L)),
