@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.29 01:54</sub>
+<sub class="doc-stamp">26.11.12 20:13</sub>
 
 # Build vs Release - workflow glossary
 
@@ -26,7 +26,7 @@ Skills `/build`, `/skill-release` and `/skill-release-wear` reference this file 
 
 ## CI cost map
 
-Seven GitHub Actions workflows exist, and since S4488 (owner order 2026-10-29: the full build and every check over 5 seconds run only before or during a release) none of them fires on a `DEBUG-v0NN` push, on a pull request or on a clock. Six fire on a push to `main`, which is the release run and the only push that reaches `main` (`scripts/githooks/pre-push`); every one also takes a manual dispatch, which is how the owner names a run between releases. The seventh, `jekyll-gh-pages.yml`, deploys the site on a push to `main` and builds and tests nothing of the app.
+Seven GitHub Actions workflows exist, and since S4488 (owner order 2026-10-29: the full build and every check over 5 seconds run only before or during a release) none of them fires on a `DEBUG-v0NN` push, on a pull request or on a clock. Six fire on a push to `main`, which is the release run and the only push that reaches `main` (`scripts/githooks/pre-push`); every one also takes a manual dispatch, which is how the owner names a run between releases and how `/skill-release` Step 7b starts the release candidate's CI on the pushed DEBUG head before the merge and the tag (`scripts/release/assert-ci-verdict.ps1 -Dispatch`: `android-ci.yml`, `static-gates.yml`, `maestro-tests.yml`, `security-scan.yml`). The seventh, `jekyll-gh-pages.yml`, deploys the site on a push to `main` and builds and tests nothing of the app.
 
 | Workflow | Triggers | Fires on a `DEBUG-v0NN` push? |
 |----------|----------|:-----------------------------:|
@@ -38,7 +38,7 @@ Seven GitHub Actions workflows exist, and since S4488 (owner order 2026-10-29: t
 | `dependency-scan.yml` (jobs `submit-graph`, `dependency-review`, `sbom`) | push to `main` (path-filtered to the version catalog, the build scripts and the workflow file), manual dispatch | No |
 | `nightly-device-loop.yml` (leak watch over the critical flows; job `leak-watch`) | push to `main`, manual dispatch | No |
 
-A DEBUG push fires nothing, so a test build costs no CI run at all; the local checks between releases are the fast tier only (`.\a.ps1 ff`, see `docs/BUILD_TEST_FAST_PATH.md`).
+A DEBUG push fires nothing, so a test build costs no CI run at all; the one CI run a DEBUG head gets is the release's own dispatch at Step 7b. The local checks between releases are the fast tier only (`.\a.ps1 ff`, see `docs/BUILD_TEST_FAST_PATH.md`).
 
 ### The nightly device loop: cadence and measured cost
 
@@ -63,7 +63,7 @@ Nothing in money - because the repository is public, not because CI stays quiet.
 
 Flip the repository to private and the claim inverts: a DEBUG push starts billing ubuntu minutes at roughly the length of its run - about 30 per push at the current pipeline - while `maestro-tests.yml` stays unaffected, since it never fires outside a PR.
 
-Conclusion: **a test build (commit + push to a DEBUG branch) bills 0 minutes because the repository is public.** Since S4488 it also runs nothing: the full `android-ci.yml` pipeline runs on the release push to `main` only. No flow in this repository spends paid Actions minutes at present; what the `main` boundary adds is the site deploy and the publication itself, not the bill.
+Conclusion: **a test build (commit + push to a DEBUG branch) bills 0 minutes because the repository is public.** Since S4488 it also runs nothing: the full `android-ci.yml` pipeline runs on the release push to `main` and on the release's own dispatch against the DEBUG head (Step 7b). No flow in this repository spends paid Actions minutes at present; what the `main` boundary adds is the site deploy and the publication itself, not the bill.
 
 ---
 

@@ -36,7 +36,7 @@ steps:
     id: import-m3u-playlist
     title: Import a whole playlist from its web address
     text: |
-      To bring in a whole station list at once, open the overflow menu and tap **Import from URL**. Paste the playlist's address into **Playlist URL (.m3u)** and tap **OK**. FastMediaSorter downloads the file and adds every channel it finds in it as its own entry in your list.
+      To bring in a whole station list at once, open the overflow menu and tap **Import from URL**. Paste the playlist's address into **Playlist URL (.m3u, .m3u8)** and tap **OK**. FastMediaSorter downloads the file and adds every channel it finds in it as its own entry in your list.
 
       This is different from **Update catalog**, the toolbar button next to it - that one refreshes FastMediaSorter's own built-in channel list, not anything of yours. See [Browsing internet stream channels](page:streams.channel-catalog-browsing) for that side of Streams.
     image_bookmark:
@@ -113,6 +113,6 @@ next_recipes:
     description: Why a channel shows a live frame, a logo, a flag or a plain icon, and what its status dot means.
 ---
 
-<sub class="doc-stamp">26.10.07 01:10</sub>
+<sub class="doc-stamp">26.11.14 02:56</sub>
 
 Bring your own [channels](term:channel) into [Streams](term:streams-screen): type a web address for a single stream, or import a whole station list from a remote M3U playlist. This page covers adding, importing, editing and the duplicate-address check that keeps one address from ending up in your list twice.

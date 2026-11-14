@@ -89,8 +89,16 @@ class SearchableOptionPickerDialog : DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         _binding = DialogSearchableOptionPickerBinding.inflate(layoutInflater)
+        timber.log.Timber.d("S4570: option picker reset row glyph follows its siblings")
         val resetRow = if (includeResetRow) {
-            Option(id = RESET_ID, label = getString(R.string.streams_filter_all))
+            // S4570: the reset row draws `action.select-all` only beside rows that carry a picture, so
+            // the list is uniform either way (ICON-RENDER sibling-set rule).
+            val siblingsDrawn = options.any { it.countryFlag != null || it.leading != null }
+            Option(
+                id = RESET_ID,
+                label = getString(R.string.streams_filter_all),
+                leading = if (siblingsDrawn) LeadingVisual.IconRes(R.drawable.ic_select_all, tintIcon = true) else null,
+            )
         } else {
             null
         }

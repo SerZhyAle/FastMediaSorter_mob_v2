@@ -84,6 +84,12 @@ class TextViewerManager(
 
         // S0189: invoked by Save & Close to return the user to Browse with the new file.
         fun finishActivity()
+
+        /**
+         * The pinned «Select resource..» row of the editor's «Send to..» menu; null on a host that has
+         * no copy dialog, so both send menus of the unified player offer the same rows.
+         */
+        fun sendToPickResource(): (() -> Unit)? = null
     }
 
     private var currentFile: MediaFile? = null
@@ -1048,16 +1054,40 @@ class TextViewerManager(
         val sendToMenuManager = dagger.hilt.android.EntryPointAccessors
             .fromApplication(context.applicationContext, SendToMenuEntryPoint::class.java)
             .sendToMenuManager()
+        // A text-only payload hides every file receiver (Print, Email, messengers); carrying the saved
+        // file as well gives this menu the same receivers as the player's top-bar «Send to..».
+        val localFile = currentLocalFile?.takeIf { it.isFile }
+        Timber.d("S4569: editor send-to payload carries file=%s", localFile != null)
+        val localUri = localFile?.let { buildLocalShareUri(it) }
         val content = com.sza.fastmediasorter.core.share.ShareableContent(
-            uris = emptyList(),
+            uris = listOfNotNull(localUri),
             mime = "text/plain",
             mediaType = com.sza.fastmediasorter.domain.model.MediaType.TEXT,
             text = text,
+            displayName = localFile?.name ?: currentFile?.name,
+            mediaFile = localFile?.takeIf { localUri != null }?.let { currentFile?.copy(path = it.absolutePath) },
         )
         coroutineScope.launch {
             val settings = settingsRepository.getSettings().first()
-            sendToMenuManager.show(activity, content, settings)
+            sendToMenuManager.show(activity, content, settings, onPickResource = callback.sendToPickResource())
         }
+    }
+
+    private fun buildLocalShareUri(file: java.io.File): android.net.Uri? = try {
+        androidx.core.content.FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+    } catch (e: IllegalArgumentException) {
+        Timber.w("SendTo: FileProvider URI failed for %s: %s", file.path, e.message)
+        null
+    }
+
+    /** Text a «Send to..» payload carries for text receivers: the editor buffer while editing, else the shown text. */
+    fun shareableText(): String? {
+        val text = if (safeViews.textEditContainer.isVisible) {
+            safeViews.etTextContent.text.toString()
+        } else {
+            originalTextForTranslation()
+        }
+        return text.ifBlank { null }
     }
 
     /** Returns the text to translate: original page text without line numbers, or displayed text. */

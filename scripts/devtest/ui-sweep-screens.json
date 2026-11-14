@@ -1030,6 +1030,11 @@
       "note": "S3365 scan surfacing: renders tourist info only for a configured destination."
     },
     {
+      "activity": "NotesActivity",
+      "reason": "needs-seeded-content",
+      "note": "S4568: offered on the programs menu only while its programs switch is on, which is off by default; the list is empty until notes exist."
+    },
+    {
       "activity": "TouristCounterActivity",
       "reason": "needs-seeded-content",
       "note": "S4184: opened only from the Counter hero card of the Tourist dashboard, whose host TouristInfoActivity is itself excluded needs-seeded-content."

@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ru" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Справка - Заметки</title>
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<main class="container">
+<nav class="help-crumbs" aria-label="Оглавление справки">
+<a href="index.html">Оглавление справки</a><span class="sep" aria-hidden="true">/</span><span>Заметки</span>
+</nav>
+<header class="hero">
+<h1>Заметки</h1>
+</header>
+<h2>Для чего этот экран</h2>
+<p class="lead">Все текстовые заметки одним списком, новые сверху, с поиском. Новая заметка создаётся одним нажатием и сразу открывается в текстовом редакторе; каждая заметка - обычный текстовый файл в папке Notes внутри Documents, поэтому её видят и проводник, и другие приложения.</p>
+<h2>Порядок действий</h2>
+<ol class="order">
+<li>Нажмите «Новая заметка» <a class="ref" href="#new-note">6</a>, чтобы начать писать. Редактор откроется на пустой заметке; наберите текст и сохраните - заметка появится в начале списка.</li>
+<li>Нажмите на заметку в списке <a class="ref" href="#list">3</a>, чтобы открыть её в редакторе. В строке видны первая строка как заголовок, следующая строка под ней и время последнего изменения.</li>
+<li>Чтобы найти заметку, наберите текст в поле поиска <a class="ref" href="#search">2</a>. В списке останутся только заметки, в которых он встречается.</li>
+<li>Кнопка в конце строки <a class="ref" href="#row-more">4</a> отправляет текст заметки или удаляет её. Перед удалением приложение спрашивает подтверждение.</li>
+<li>Стрелка назад <a class="ref" href="#back">1</a> закрывает экран. Пока заметок нет, подсказка <a class="ref" href="#empty">5</a> говорит, как написать первую.</li>
+</ol>
+<h2>Элементы</h2>
+<div class="elements">
+<h3>Заголовок</h3>
+<details class="el" id="back">
+<summary><span class="mk">1</span><span><span class="name">Стрелка назад</span><span class="one">Закрывает экран и возвращает туда, откуда вы пришли.</span></span></summary>
+<div class="full">
+<p>Ничего не теряется: каждая заметка уже лежит в файле, а список читается заново при следующем открытии экрана.</p>
+</div>
+</details>
+<h3>Поиск и список</h3>
+<details class="el" id="search">
+<summary><span class="mk">2</span><span><span class="name">Поиск в заметках</span><span class="one">Оставляет в списке только заметки, в тексте которых есть набранное.</span></span></summary>
+<div class="full">
+<p>Поиск смотрит весь текст заметки, а не только первую строку, и не различает заглавные и строчные буквы. Очистите поле, чтобы снова увидеть все заметки.</p>
+</div>
+</details>
+<details class="el" id="list">
+<summary><span class="mk">3</span><span><span class="name">Список заметок</span><span class="one">Все заметки из папки Notes, новые сверху.</span></span></summary>
+<div class="full">
+<p>Первая строка заметки служит заголовком, следующая показана под ней, поэтому большинству заметок имя не нужно. Нажатие на строку открывает заметку в редакторе; долгое нажатие открывает те же действия, что и кнопка в конце строки.</p>
+</div>
+</details>
+<details class="el" id="row-more">
+<summary><span class="mk">4</span><span><span class="name">Другие действия с заметкой</span><span class="one">Отправляет текст заметки или удаляет заметку.</span></span></summary>
+<div class="full">
+<p>«Поделиться» передаёт текст любому приложению, которое принимает текст, например мессенджеру или почте. «Удалить» спрашивает подтверждение и затем удаляет файл с устройства.</p>
+</div>
+</details>
+<details class="el" id="empty">
+<summary><span class="mk">5</span><span><span class="name">Заметок пока нет. Нажмите «Новая заметка», чтобы написать первую.</span><span class="one">Видна, пока заметок нет или ни одна не подходит под поиск.</span></span></summary>
+<div class="full">
+<p>Нажмите «Новая заметка», чтобы написать первую.</p>
+</div>
+</details>
+<h3>Запись</h3>
+<details class="el" id="new-note">
+<summary><span class="mk">6</span><span><span class="name">Новая заметка</span><span class="one">Создаёт новую заметку и открывает её в текстовом редакторе.</span></span></summary>
+<div class="full">
+<p>Заметка получает имя по текущей дате и времени и сохраняется в папке Notes внутри Documents. Пока вы не сохраните её в редакторе, файл не записывается.</p>
+</div>
+</details>
+</div>
+<h2>Связанное</h2>
+<ul class="related">
+<li><a href="main.html"><b>Список ресурсов</b><span class="pill">Экран</span></a></li>
+<li><a href="settings-operations.html"><b>Настройки: Управление</b><span class="pill">Экран</span></a></li>
+<li><a href="player.html"><b>Плеер</b><span class="pill">Экран</span></a></li>
+<li><a href="index.html"><b>Оглавление справки</b></a></li>
+</ul>
+<footer class="help-foot">
+<span>Fast Media Sorter, 2026-11-14</span>
+<a href="index.html">Оглавление справки</a>
+<a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Задать вопрос или сообщить о проблеме</a>
+</footer>
+</main>
+</body>
+</html>

@@ -264,6 +264,11 @@
         Fix   = 'A confirm/cancel pair uses a one-off button style - switch to Widget.FastMediaSorter.Button.DialogConfirm / DialogCancel / DialogDestructive.'
     }
 
+    'uniform-glyph-sets-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-uniform-glyph-sets.ps1'
+        Fix   = 'A menu level, header set or settings group mixes members with and without a glyph - give each glyph-less member a mapped ICON-SET glyph (ICON-RENDER sibling-set rule).'
+    }
+
     'rtl-layout-attrs-gate' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-rtl-layout-attrs.ps1 -Gate'
         Fix   = 'A layout uses left/right attributes without their start/end counterpart - add the start/end form so RTL locales lay out correctly.'

@@ -680,6 +680,8 @@ class SettingsViewModel @Inject constructor(
                 copy(
                     enableCalculator = defaults.enableCalculator,
                     enableTourist = defaults.enableTourist,
+                    enableNotes = defaults.enableNotes,
+                    enableFeedback = defaults.enableFeedback,
                     embeddedGameEnabled = defaults.embeddedGameEnabled,
                 )
             }

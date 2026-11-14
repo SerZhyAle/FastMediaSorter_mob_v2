@@ -1833,7 +1833,7 @@
     <string name="streams_pin_to_top">Fijar arriba</string>
     <string name="streams_remove">Quitar</string>
     <string name="streams_add_url_hint">URL de la emisión (http, https, rtsp)</string>
-    <string name="streams_import_url_hint">URL de la lista (.m3u)</string>
+    <string name="streams_import_url_hint">URL de la lista (.m3u, .m3u8)</string>
     <string name="streams_title_hint">Título (opcional)</string>
     <string name="streams_error_invalid_url">Introduce una dirección http, https o rtsp válida.</string>
     <string name="streams_error_network">No se pudo cargar la lista. Comprueba la conexión e inténtalo de nuevo.</string>

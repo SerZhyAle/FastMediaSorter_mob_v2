@@ -116,6 +116,34 @@ try {
 
     $noFile = (& pwsh -NoProfile -File $script -Sha $sha -RunsJsonPath (Join-Path $sandbox 'absent.json') -RepoRoot $sandbox 2>&1 | Out-String)
     Assert-Case 'a missing runs file gives 2' ($LASTEXITCODE -eq 2) "exit ${LASTEXITCODE}: $noFile"
+
+    $dispatched = @('Static Gates', 'Maestro E2E Tests', 'Security scan')
+
+    $noBranch = Invoke-Verdict @((New-Run $gate 'completed' 'success')) @('-Dispatch')
+    Assert-Case '-Dispatch without -Branch gives 2' ($noBranch.Code -eq 2 -and $noBranch.Text -match 'needs -Branch') "exit $($noBranch.Code): $($noBranch.Text)"
+
+    $fresh = Invoke-Verdict @((New-Run $gate 'completed' 'success')) @('-Dispatch', '-Branch', 'DEBUG-v041')
+    $freshLines = @($dispatched | Where-Object { $fresh.Text -match ('dispatch \(fixture run, nothing sent\): {0} on DEBUG-v041' -f [regex]::Escape($_)) })
+    Assert-Case 'every workflow without a run is dispatched on the branch' ($freshLines.Count -eq 3) $fresh.Text
+    Assert-Case 'a workflow that already has a run is not dispatched again' ($fresh.Text -match 'Android CI Quality Gate already has a run' -and $fresh.Text -notmatch 'nothing sent\): Android CI Quality Gate') $fresh.Text
+    Assert-Case 'right after the dispatch the new runs are pending, not missing' ($fresh.Code -eq 3) "exit $($fresh.Code): $($fresh.Text)"
+
+    $allRuns = @((New-Run $gate 'completed' 'success'), (New-Run 'Static Gates' 'completed' 'success' -Id 2),
+        (New-Run 'Maestro E2E Tests' 'completed' 'success' -Id 3), (New-Run 'Security scan' 'completed' 'success' -Id 4))
+    $already = Invoke-Verdict $allRuns @('-Dispatch', '-Branch', 'DEBUG-v041')
+    Assert-Case 'a commit that has every run dispatches nothing' ($already.Text -notmatch 'nothing sent' -and ([regex]::Matches($already.Text, 'already has a run')).Count -eq 4) $already.Text
+    Assert-Case 'a commit that has every run is judged as before' ($already.Code -eq 0 -and $already.Text -match 'PASS - commit aaaaaaa - 4 workflow run') "exit $($already.Code): $($already.Text)"
+
+    $neverShows = Invoke-Verdict @((New-Run $gate 'completed' 'success')) @('-Dispatch', '-Branch', 'DEBUG-v041', '-WaitSeconds', '4', '-PollSeconds', '1', '-AppearSeconds', '1')
+    Assert-Case 'a dispatched workflow that never shows a run gives 2' ($neverShows.Code -eq 2) "exit $($neverShows.Code): $($neverShows.Text)"
+    Assert-Case 'the dispatched workflow without a run is named MISSING' ($neverShows.Text -match 'MISSING\s+Static Gates') $neverShows.Text
+
+    $withoutStatic = @($allRuns | Where-Object { $_.workflowName -ne 'Static Gates' })
+    $joinsRequired = Invoke-Verdict $withoutStatic @('-Dispatch', '-Branch', 'DEBUG-v041', '-Required', 'Android CI Quality Gate')
+    Assert-Case 'a dispatched workflow joins an overridden -Required set, so its missing run is pending' ($joinsRequired.Code -eq 3 -and $joinsRequired.Text -match 'PENDING.*Static Gates') "exit $($joinsRequired.Code): $($joinsRequired.Text)"
+
+    $listedDispatch = Invoke-Verdict @((New-Run $gate 'completed' 'success')) @('-Dispatch', '-Branch', 'DEBUG-v041', '-DispatchWorkflows', 'Static Gates,Security scan')
+    Assert-Case 'a comma list in -DispatchWorkflows is split and limits the dispatch' ($listedDispatch.Text -match 'nothing sent\): Static Gates' -and $listedDispatch.Text -match 'nothing sent\): Security scan' -and $listedDispatch.Text -notmatch 'nothing sent\): Maestro') $listedDispatch.Text
 }
 finally {
     Remove-Item -LiteralPath $sandbox -Recurse -Force -ErrorAction SilentlyContinue

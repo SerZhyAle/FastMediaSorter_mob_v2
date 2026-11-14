@@ -1827,7 +1827,7 @@
     <string name="streams_pin_to_top">置顶</string>
     <string name="streams_remove">移除</string>
     <string name="streams_add_url_hint">流地址 (http、https、rtsp)</string>
-    <string name="streams_import_url_hint">播放列表地址 (.m3u)</string>
+    <string name="streams_import_url_hint">播放列表地址 (.m3u, .m3u8)</string>
     <string name="streams_title_hint">名称 (可选)</string>
     <string name="streams_error_invalid_url">请输入有效的 http、https 或 rtsp 地址。</string>
     <string name="streams_error_network">无法加载列表。请检查网络连接后重试。</string>

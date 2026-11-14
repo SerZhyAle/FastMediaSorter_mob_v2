@@ -57,6 +57,7 @@ class TouristTileContentManager(
         TouristTileType.WATCH_BODY_TEMPERATURE -> watch.bodyTemperature(state)
         TouristTileType.STOPWATCH -> stopwatch(state)
         TouristTileType.COUNTER -> counter(state)
+        TouristTileType.GYROSCOPE -> navigation.gyroscope(state)
     }
 
     private fun counter(state: TouristDashboardState): TouristTileContent = tileContent(

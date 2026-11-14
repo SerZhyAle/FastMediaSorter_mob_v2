@@ -167,6 +167,30 @@ object SubProgramCatalog {
             disable = { it.withPrograms { copy(enableTourist = false) } },
             widgetKey = "tourist_info",
         ),
+        // S4568: no WIDGET surface - a notes widget is out of the ticket's scope.
+        SubProgramEntry(
+            routeKey = InternalRouteCatalog.KEY_NOTES,
+            order = 87,
+            surfaces = setOf(
+                SubProgramSurface.PROGRAMS_MENU,
+                SubProgramSurface.QUICK_ACCESS_PANEL,
+                SubProgramSurface.LAUNCHER_SHORTCUT,
+                SubProgramSurface.OS_APP_SHORTCUT,
+            ),
+            disable = { it.withPrograms { copy(enableNotes = false) } },
+        ),
+        // S4573: off by default; no WIDGET surface - the form is opened, not glanced at.
+        SubProgramEntry(
+            routeKey = InternalRouteCatalog.KEY_FEEDBACK,
+            order = 88,
+            surfaces = setOf(
+                SubProgramSurface.PROGRAMS_MENU,
+                SubProgramSurface.QUICK_ACCESS_PANEL,
+                SubProgramSurface.LAUNCHER_SHORTCUT,
+                SubProgramSurface.OS_APP_SHORTCUT,
+            ),
+            disable = { it.withPrograms { copy(enableFeedback = false) } },
+        ),
         SubProgramEntry(
             routeKey = InternalRouteCatalog.KEY_WEAR_COMPANION,
             order = 90,

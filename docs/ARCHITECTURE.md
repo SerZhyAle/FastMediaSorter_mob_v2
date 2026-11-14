@@ -471,7 +471,7 @@ Related specs: S0404 (the founding ADR set, archived), S1103 (cell actions), S11
 
 ## Sub-Program Registry
 
-FMS ships about two dozen small programs of its own - the calculator, the stopwatch, the mini-game, the network monitor, the recorder, the lights, seven camera routes, the watch companion. `SubProgramCatalog` (`core/panel/`) is the one list of them, and every surface that offers a sub-program derives its composition from that list instead of holding one.
+FMS ships about two dozen small programs of its own - the calculator, the stopwatch, the mini-game, the network monitor, the recorder, the lights, the notes, seven camera routes, the watch companion. `SubProgramCatalog` (`core/panel/`) is the one list of them, and every surface that offers a sub-program derives its composition from that list instead of holding one.
 
 **What the registry owns, and only that.** A `SubProgramEntry` states which route key is a sub-program at all, its `order` in the one sequence every surface shows, the `surfaces` it is eligible for, the `widgetKey` it pairs with, and the `disable` that switches it off. It stores no name, no icon, no intent and no availability: the label, the icon and the launch intent come from `InternalRouteCatalog.byKey(routeKey)`, and whether the program exists in this build and is switched on comes from `ResolvePanelRouteAvailabilityUseCase`. Copying either into the entry would recreate the second copy the registry exists to remove - which is exactly what the programs menu did until S1736 phase 04 took its label and icon table away.
 

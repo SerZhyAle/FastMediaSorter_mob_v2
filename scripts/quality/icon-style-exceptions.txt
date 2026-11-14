@@ -26,6 +26,9 @@ ic_signal_cellular_bar_2 | centre | one level of the signal meter; every level s
 ic_signal_cellular_bar_3 | centre | one level of the signal meter; every level shares the full meter's frame
 ic_signal_cellular_bar_4 | centre | one level of the signal meter; every level shares the full meter's frame
 
+# Sparse by meaning.
+ic_blur_on | weight | view.halo is a field of dots fading outward (Material blur_on); thicker marks would read as a solid patch, not a glow
+
 # Colours that carry meaning, until the vocabulary owner decides a one-paint drawing.
 ic_compass | paint | the needle's red and blue halves are north and south; a one-paint redraw is a vocabulary decision
 ic_prank_system_alert | paint | imitates a system alert on purpose; its red and white are the imitation

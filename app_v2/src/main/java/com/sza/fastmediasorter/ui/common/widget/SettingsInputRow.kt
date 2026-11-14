@@ -15,9 +15,11 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ListPopupWindow
 import android.widget.TextView
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.core.content.res.use
 import androidx.core.view.updateLayoutParams
@@ -50,6 +52,7 @@ class SettingsInputRow @JvmOverloads constructor(
 
     private val binding = ViewSettingsInputRowBinding.inflate(LayoutInflater.from(context), this)
 
+    private val iconView: ImageView = binding.sirIcon
     private val titleView: TextView = binding.sirTitle
     private val helpIcon: ImageButton = binding.sirIconHelp
     private val help = HelpRowDelegate(helpIcon, "SettingsInputRow")
@@ -112,6 +115,19 @@ class SettingsInputRow @JvmOverloads constructor(
      */
     fun setTitle(@StringRes resId: Int) {
         setTitle(context.getText(resId))
+    }
+
+    /**
+     * Sets the optional leading feature icon; `0` hides the slot (S4570).
+     */
+    fun setIcon(@DrawableRes resId: Int) {
+        if (resId == 0) {
+            iconView.setImageDrawable(null)
+            iconView.visibility = View.GONE
+        } else {
+            iconView.setImageResource(resId)
+            iconView.visibility = View.VISIBLE
+        }
     }
 
     /**
@@ -180,6 +196,7 @@ class SettingsInputRow @JvmOverloads constructor(
 
     override fun setEnabled(enabled: Boolean) {
         super.setEnabled(enabled)
+        iconView.isEnabled = enabled
         titleView.isEnabled = enabled
         help.setEnabled(enabled)
         inputLayout.isEnabled = enabled
@@ -340,15 +357,20 @@ class SettingsInputRow @JvmOverloads constructor(
     }
 
     /**
-     * Natural width of the title plus its help icon, measured unconstrained so a column width the
-     * group already applied is never fed back to it. A stacked row reports zero: it has no label
-     * column, and a caption on its own line must not widen the one its inline siblings share.
+     * Natural width of the leading icon, the title and its help icon, measured unconstrained so a
+     * column width the group already applied is never fed back to it. A stacked row reports zero: it
+     * has no label column, and a caption on its own line must not widen the one its inline siblings
+     * share.
      */
     override fun measureLabelNaturalWidth(): Int {
         if (!inlineLayout) return 0
         val unbounded = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
         titleView.measure(unbounded, unbounded)
         var width = titleView.measuredWidth
+        if (iconView.visibility == View.VISIBLE) {
+            width += resources.getDimensionPixelSize(R.dimen.settings_help_icon_size) +
+                resources.getDimensionPixelSize(R.dimen.settings_help_icon_margin)
+        }
         if (helpIcon.visibility == View.VISIBLE) {
             helpIcon.measure(unbounded, unbounded)
             width += helpIcon.measuredWidth + resources.getDimensionPixelSize(R.dimen.settings_help_icon_margin)
@@ -406,6 +428,7 @@ class SettingsInputRow @JvmOverloads constructor(
         context.obtainStyledAttributes(attrs, R.styleable.SettingsInputRow, defStyleAttr, 0).use { typedArray ->
             setTitle(typedArray.getText(R.styleable.SettingsInputRow_sir_title) ?: "")
             setHint(typedArray.getText(R.styleable.SettingsInputRow_sir_hint))
+            setIcon(typedArray.getResourceId(R.styleable.SettingsInputRow_sir_icon, 0))
             val inputType = typedArray.getInt(R.styleable.SettingsInputRow_sir_inputType, InputType.TYPE_CLASS_TEXT)
             editText.inputType = inputType
             inputLayout.endIconMode = when (typedArray.getInt(R.styleable.SettingsInputRow_sir_endIconMode, 0)) {

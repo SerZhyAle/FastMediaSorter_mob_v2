@@ -1828,7 +1828,7 @@
     <string name="streams_pin_to_top">Oben anheften</string>
     <string name="streams_remove">Entfernen</string>
     <string name="streams_add_url_hint">Stream-URL (http, https, rtsp)</string>
-    <string name="streams_import_url_hint">Playlist-URL (.m3u)</string>
+    <string name="streams_import_url_hint">Playlist-URL (.m3u, .m3u8)</string>
     <string name="streams_title_hint">Titel (optional)</string>
     <string name="streams_error_invalid_url">Gültige http-, https- oder rtsp-Adresse eingeben.</string>
     <string name="streams_error_network">Liste konnte nicht geladen werden. Verbindung prüfen und erneut versuchen.</string>

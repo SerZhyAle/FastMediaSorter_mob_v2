@@ -193,6 +193,11 @@ class TouristTileValueFormatter(
     fun degrees(value: Float?): TileValue =
         TileValue(value?.let { decimal(it.toDouble(), NO_DECIMALS) } ?: NO_VALUE, string(R.string.tourist_unit_degrees))
 
+    fun degreesPerSecond(value: Float?): TileValue = TileValue(
+        value?.let { decimal(it.toDouble(), NO_DECIMALS) } ?: NO_VALUE,
+        string(R.string.tourist_unit_degrees_per_second),
+    )
+
     fun uvIndex(value: Double?): TileValue = TileValue(value?.let { decimal(it, ONE_DECIMAL) } ?: NO_VALUE, "")
 
     /** Compass point from resources, so a locale can use its own letters (strategic §3.2). */

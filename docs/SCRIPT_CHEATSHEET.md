@@ -2676,6 +2676,7 @@ scripts/docs/check-settings-annotations.ps1
   Params:
     -ManifestPath            [String] = (Join-Path $PSScriptRoot '..\..\docs\settings\settings-manifest.json')
     -AnnotationsPath         [String] = (Join-Path $PSScriptRoot '..\..\docs\settings\settings-annotations.json')
+  Exit: 0 - in sync (pending rows allowed outside the release tier).; 1 - invalid JSON, missing file, or drift.
 ```
 
 ### DocumentationShell.ps1
@@ -5626,6 +5627,20 @@ scripts/quality/assert-ui-sweep-catalog.ps1
   Exit: 0 - no divergence, or reporting mode, or advisory downgrade under -ChangedFiles.; 1 - divergence found and -Gate was passed.; 2 - cannot verify: a declared input file is missing or does not parse.; 3 - advisory: -ChangedFiles was given and named none of this gate's inputs.
 ```
 
+### assert-uniform-glyph-sets.ps1
+S4570 gate for the ICON-RENDER sibling-set rule: inside one set of sibling items a glyph is on every member or on none.
+
+```
+scripts/quality/assert-uniform-glyph-sets.ps1
+  S4570 gate for the ICON-RENDER sibling-set rule: inside one set of sibling items a glyph is on every member or on none.
+  Params:
+    -Root                 [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -ChangedFiles         [String] = ''
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+  Exit: 0 - no mixed set is charged to this run.; 1 - at least one charged set is mixed.; 2 - could not verify: the source root app_v2/src is missing.; 3 - advisory: mixed sets exist, but none is in -ChangedFiles.
+```
+
 ### assert-unreferenced-strings.ps1
 S1568 ratchet gate: no NEW unreferenced name may appear in a module's strings file.
 
@@ -7121,6 +7136,18 @@ scripts/quality/assert-trivial-scope.tests/Run-Tests.ps1
   Exit: 0 every case passed.; 1 at least one case failed.; 2 cannot verify - git is not on PATH or the subject script is missing.
 ```
 
+## scripts\quality\assert-uniform-glyph-sets.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S4570) - regression suite for assert-uniform-glyph-sets.ps1.
+
+```
+scripts/quality/assert-uniform-glyph-sets.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S4570) - regression suite for assert-uniform-glyph-sets.ps1.
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
 ## scripts\quality\assert-watchface-listing-live.tests
 
 ### Run-Tests.ps1
@@ -7817,21 +7844,24 @@ scripts/release/apply-github-store-metadata.ps1
 ```
 
 ### assert-ci-verdict.ps1
-Read GitHub Actions' verdict for the commit a release pushed, and refuse the release on a red or a missing one.
+Read GitHub Actions' verdict for the commit a release judges, start the CI on it first when asked, and refuse the release on a red or a missing one.
 
 ```
 scripts/release/assert-ci-verdict.ps1
-  Read GitHub Actions' verdict for the commit a release pushed, and refuse the release on a red or a missing one.
+  Read GitHub Actions' verdict for the commit a release judges, start the CI on it first when asked, and refuse the release on a red or a missing one.
   Params:
-    -Sha                   [String] = 'origin/main'
-    -Required              [String[]] = @('Android CI Quality Gate')
-    -Accept                [String[]] = @()
-    -AcceptReason          [String] = ''
-    -WaitSeconds           [Int32] = 0  {range 0..3600}
-    -PollSeconds           [Int32] = 30  {range 1..600}
-    -AppearSeconds         [Int32] = 120  {range 0..3600}
-    -RunsJsonPath          [String]
-    -RepoRoot              [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Sha                       [String] = 'origin/main'
+    -Dispatch                  [SwitchParameter]
+    -Branch                    [String] = ''
+    -DispatchWorkflows         [String[]] = @('Android CI Quality Gate', 'Static Gates', 'Maestro E2E Tests', 'Security scan')
+    -Required                  [String[]] = @('Android CI Quality Gate')
+    -Accept                    [String[]] = @()
+    -AcceptReason              [String] = ''
+    -WaitSeconds               [Int32] = 0  {range 0..3600}
+    -PollSeconds               [Int32] = 30  {range 1..600}
+    -AppearSeconds             [Int32] = 120  {range 0..3600}
+    -RunsJsonPath              [String]
+    -RepoRoot                  [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
   Exit: 0 - every run for the commit is green and every required workflow has a run; 1 - at least one run is red (failure, cancelled, timed out, ..) and not accepted; 2 - could not verify: gh missing or unauthenticated, the commit does not resolve, an unreadable
 ```
 
@@ -8830,7 +8860,7 @@ scripts/spec_catalog/preview.ps1
   Params:
     -Id      (req)  [String]
     -Format         [String] = 'json'  {table|json}
-  Exit: 0 - preview emitted.; 2 - cannot run: malformed -Id, spec absent from the catalog, or its file missing
+  Exit: 0 - preview emitted.; 2 - cannot run: malformed -Id, spec absent from the catalog (or the catalog unreadable), or its file missing
 ```
 
 ### purge-probe-records.ps1
@@ -8976,12 +9006,12 @@ scripts/spec_catalog/spec-next-preflight.ps1
     -Exclude                   [String[]] = @()
     -NoDrift                   [SwitchParameter]
     -Format                    [String] = 'json'  {json|table}
-    -MaxScan                   [Int32] = 25
+    -MaxScan                   [Int32] = 0
+    -ScanAll                   [SwitchParameter]
     -Claim                     [SwitchParameter]
     -ClaimAs                   [String] = ''
     -Reason                    [String] = 'spec-next-preflight'
     -AdditionalExclude         [String[]] = @()
-  Exit: 2 - usage error only: a dash-led token that is not a declared option (S4397), or -ClaimAs
 ```
 
 ### spec-next-session.ps1

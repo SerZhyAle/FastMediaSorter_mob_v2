@@ -234,7 +234,6 @@ class PlayerMediaLoaderManager(
 
         imageDisplayJob?.cancel()
         imageDisplayJob = lifecycleScope.launch {
-            Timber.d("S4507: image stereo detection off-main path=$path")
             val detected = withContext(ioDispatcher) {
                 stereoDetector.detectForImage(path = path, width = width, height = height, config = config)
             }
@@ -293,13 +292,13 @@ class PlayerMediaLoaderManager(
             cancelAudioPrefetch()
         }
         imageLoadingManager.hideAnimatedBadge()
-        
+
         // Skip if activity is being destroyed
         if (activity.isFinishing || activity.isDestroyed) {
             Timber.d("PlayerMediaLoaderManager.playVideo: Activity is finishing/destroyed, skipping video playback")
             return
         }
-        
+
         // Safety check: never try to play image files with ExoPlayer
         val lowerPath = path.lowercase()
         if (IMAGE_EXTENSIONS.any { lowerPath.endsWith(it) }) {
@@ -310,9 +309,9 @@ class PlayerMediaLoaderManager(
             displayImage(path)
             return
         }
-        
+
         Timber.d("PlayerMediaLoaderManager.playVideo: Hiding image views and setting up video UI")
-        
+
         val currentFile = viewModel.state.value.currentFile
         val resource = viewModel.state.value.resource
 
@@ -347,16 +346,16 @@ class PlayerMediaLoaderManager(
         imageLoadingManager.clearForVideoTransition()
 
         hideTextViewerControls()
-        
+
         hidePdfViewerControls()
-        
+
         hideEpubViewerControls()
-        
+
         binding.playerView.isVisible = true
-        
+
         // Configure PlayerView based on media type
         configurePlayerViewForMediaType(isAudioFile, currentFile)
-        
+
         // S0704: show the generic media-buffering spinner after 1s (covers in-app video/audio and
         // the brief pre-bind window for service audio). Cleared by onPlaybackReady (in-app) or
         // bindServicePlayerToView (service).
@@ -383,13 +382,13 @@ class PlayerMediaLoaderManager(
 
         unbindServicePlaybackListener()
         onAudioServicePlaybackChanged(false)
-        
+
         // Determine resource type from path prefix (for Favorites with mixed sources)
         val actualResourceType = determineResourceType(path, resource?.type)
-        
+
         // Delegate to VideoPlayerManager
         playVideoWithResourceType(path, actualResourceType, currentFile, resource)
-        
+
         Timber.d("PlayerMediaLoaderManager.playVideo: END")
     }
 
@@ -899,7 +898,7 @@ class PlayerMediaLoaderManager(
     fun reloadCurrentImage() {
         val currentFile = viewModel.state.value.currentFile ?: return
         val resource = viewModel.state.value.resource
-        
+
         lifecycleScope.launch(Dispatchers.Main) {
             try {
                 // S0704: clear the image spinner + its pending show/safety before reloading the
@@ -910,10 +909,10 @@ class PlayerMediaLoaderManager(
                 val requestManager = Glide.get(activity)
                     .requestManagerRetriever
                     .get(activity)
-                
+
                 requestManager.clear(binding.imageView)
                 requestManager.clear(binding.photoView)
-                
+
                 // Clear Glide disk cache for this specific file (in background)
                 withContext(Dispatchers.IO) {
                     try {
@@ -925,21 +924,21 @@ class PlayerMediaLoaderManager(
                         e.warnUnlessCancellation("Failed to clear Glide disk cache")
                     }
                 }
-                
+
                 // Get updated file info from ViewModel state (should have new size after refreshCurrentFileInfo)
                 val updatedFile = viewModel.state.value.currentFile
-                
+
                 // Update MediaFilesCache with new file info (for BrowseActivity thumbnails)
                 if (resource != null && updatedFile != null) {
                     mediaFilesCacheManager.updateFile(resource.id, currentFile.path, updatedFile)
                     Timber.d("PlayerMediaLoaderManager: Updated MediaFilesCache for edited file: ${currentFile.name}")
                 }
-                
+
                 Timber.d("PlayerMediaLoaderManager: Reloading image after edit: ${currentFile.name}")
-                
+
                 // Reload image fresh from network
                 displayImage(currentFile.path)
-                
+
             } catch (e: Exception) {
                 e.errorUnlessCancellation("PlayerMediaLoaderManager: Error reloading image after edit")
                 activity.showError(activity.getString(R.string.msg_failed_reload_image), e)
@@ -1038,7 +1037,7 @@ class PlayerMediaLoaderManager(
         val state = viewModel.state.value
         val isAudioFile = state.currentFile?.type == MediaType.AUDIO
         val isInFullscreenMode = !state.showCommandPanel && !state.showControls
-        
+
         // NEVER show overlay for audio - audio uses ExoPlayer UI, not touch zones
         safeViews.audioTouchZonesOverlay.isVisible = false
         Timber.d("PlayerMediaLoaderManager.updateAudioTouchZonesVisibility: Overlay hidden - audio=$isAudioFile, fullscreen=$isInFullscreenMode")
@@ -1057,12 +1056,12 @@ class PlayerMediaLoaderManager(
         val currentFile = viewModel.state.value.currentFile
         val isEpubOrPdf = currentFile?.type == MediaType.EPUB || currentFile?.type == MediaType.PDF
         val isText = currentFile?.type == MediaType.TEXT
-        
+
         // ALWAYS hide View-based touch zone overlays
         // TouchZoneGestureManager handles all touch zone detection via gesture listeners
         safeViews.touchZonesOverlay.isVisible = false
         safeViews.touchZones3Overlay.isVisible = false
-        
+
         if (isVideo) {
             // For video/audio: View-based touch zones hidden - but gestures handled by PlayerGestureSetupManager
             Timber.d("PlayerMediaLoaderManager.adjustTouchZonesForVideo: View-based touch zones HIDDEN for video/audio (gestures active)")
@@ -1100,20 +1099,20 @@ class PlayerMediaLoaderManager(
             // Hide PlayerView's internal video/content layer for audio.
             // Otherwise its empty black TextureView sits above our external audio background views.
             exoContentFrame?.isVisible = false
-            
+
             // Make PlayerView transparent so animation views behind it (lower z) are visible.
             // exo_bottom_bar has its own opaque background so controls remain readable.
             binding.playerView.setBackgroundColor(android.graphics.Color.TRANSPARENT)
             binding.playerView.setShutterBackgroundColor(android.graphics.Color.TRANSPARENT)
-            
+
             // Disable PlayerView's built-in artwork display - we use our own audioCoverArtView
             // This prevents duplicate cover art (one from PlayerView, one from audioCoverArtView)
             binding.playerView.setShowBuffering(androidx.media3.ui.PlayerView.SHOW_BUFFERING_NEVER)
             binding.playerView.artworkDisplayMode = androidx.media3.ui.PlayerView.ARTWORK_DISPLAY_MODE_OFF
-            
+
             // Show touch zones overlay for audio in fullscreen mode
             updateAudioTouchZonesVisibility()
-            
+
             showAudioFileInfo(currentFile)
         } else {
             // For video: auto-hide controls after configured delay
@@ -1129,17 +1128,17 @@ class PlayerMediaLoaderManager(
 
             // Restore PlayerView's video/content layer for real video playback.
             exoContentFrame?.isVisible = true
-            
+
             // Restore opaque background for video (prevents animation bleeding through)
             binding.playerView.setBackgroundColor(android.graphics.Color.BLACK)
             binding.playerView.setShutterBackgroundColor(android.graphics.Color.BLACK)
-            
+
             // Re-enable artwork display for video (in case it was disabled for audio)
             binding.playerView.artworkDisplayMode = androidx.media3.ui.PlayerView.ARTWORK_DISPLAY_MODE_FIT
-            
+
             // Hide touch zones overlay for video
             safeViews.audioTouchZonesOverlay.isVisible = false
-            
+
             // Hide audio info overlay for video
             binding.audioInfoOverlay.isVisible = false
         }
@@ -1190,7 +1189,7 @@ class PlayerMediaLoaderManager(
         if (currentFile != null &&
             (resourceType == ResourceType.SMB || resourceType == ResourceType.SFTP ||
              resourceType == ResourceType.FTP || resourceType == ResourceType.CLOUD)) {
-            
+
             // For Favorites, get credentialsId from the file's original resource
             if (resource?.id == SyntheticResourceIds.FAVORITES && currentFile.resourceId != null) {
                 // Launch coroutine to get credentials from original resource
@@ -1198,7 +1197,7 @@ class PlayerMediaLoaderManager(
                     val resourceId = currentFile.resourceId
                     val credId = viewModel.getCredentialsIdForResource(resourceId)
                     Timber.d("PlayerMediaLoaderManager.playVideoWithResourceType: Favorites file, resolved credentialsId=$credId from resourceId=${currentFile.resourceId}")
-                    
+
                     // Network or cloud playback via manager
                     videoPlayerManager.playVideo(
                         path = path,

@@ -1827,7 +1827,7 @@
     <string name="streams_pin_to_top">ऊपर पिन करें</string>
     <string name="streams_remove">हटाएं</string>
     <string name="streams_add_url_hint">स्ट्रीम URL (http, https, rtsp)</string>
-    <string name="streams_import_url_hint">प्लेलिस्ट URL (.m3u)</string>
+    <string name="streams_import_url_hint">प्लेलिस्ट URL (.m3u, .m3u8)</string>
     <string name="streams_title_hint">शीर्षक (वैकल्पिक)</string>
     <string name="streams_error_invalid_url">मान्य http, https या rtsp पता दर्ज करें।</string>
     <string name="streams_error_network">सूची लोड नहीं हो सकी। कनेक्शन जांचें और फिर कोशिश करें।</string>

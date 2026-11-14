@@ -75,7 +75,8 @@ class TicketOutboxStore @Inject constructor(
                 createdAtEpochMs = manifest.createdAtEpochMs,
                 title = titleOf(text, files),
                 project = draft.project,
-                state = TicketOutboxState.QUEUED
+                state = TicketOutboxState.QUEUED,
+                inboxResourceId = draft.inboxResourceId
             )
             writeState(folder, entry, files)
             File(folder, TicketPacketManifest.MANIFEST_FILE_NAME)
@@ -145,7 +146,8 @@ class TicketOutboxStore @Inject constructor(
             state = runCatching { TicketOutboxState.valueOf(state.optString(KEY_STATE)) }
                 .getOrDefault(TicketOutboxState.QUEUED),
             tickets = (0 until tickets.length()).map(tickets::getString),
-            failure = state.optString(KEY_FAILURE).ifEmpty { null }
+            failure = state.optString(KEY_FAILURE).ifEmpty { null },
+            inboxResourceId = if (state.has(KEY_INBOX_RESOURCE)) state.getLong(KEY_INBOX_RESOURCE) else null
         )
     }
 
@@ -158,6 +160,8 @@ class TicketOutboxStore @Inject constructor(
             .put(KEY_STATE, entry.state.name)
             .put(KEY_TICKETS, JSONArray(entry.tickets))
             .put(KEY_FAILURE, entry.failure ?: "")
+        // An S4554 packet carries no key at all, which reads back as the Drive inbox.
+        entry.inboxResourceId?.let { json.put(KEY_INBOX_RESOURCE, it) }
         val fileArray = files?.let { list -> JSONArray(list.map(::fileJson)) }
             ?: previous?.optJSONArray(KEY_FILES)
             ?: JSONArray()
@@ -229,6 +233,7 @@ class TicketOutboxStore @Inject constructor(
         private const val KEY_TICKETS = "tickets"
         private const val KEY_FAILURE = "failure"
         private const val KEY_FILES = "files"
+        private const val KEY_INBOX_RESOURCE = "inboxResourceId"
         private const val DEFAULT_MIME = "application/octet-stream"
         private const val TEXT_MIME = "text/markdown"
         private const val COPY_BUFFER_BYTES = 65_536

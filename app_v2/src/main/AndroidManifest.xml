@@ -387,6 +387,9 @@
         <!-- S2922: Tourist dashboard sub-program - real-time telemetry and navigation tiles.
              No orientation|screenSize in configChanges so rotation inflates layout-land variant. -->
         <activity android:name=".ui.tourist.TouristInfoActivity" android:exported="false" android:label="@string/tourist_info_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+        <activity android:name=".ui.notes.NotesActivity" android:exported="false" android:label="@string/notes_title" android:configChanges="keyboardHidden" android:windowSoftInputMode="adjustResize" android:parentActivityName=".ui.main.MainActivity" />
+        <!-- S4573: the Send feedback form; rotation inflates layout-land. -->
+        <activity android:name=".ui.feedback.FeedbackActivity" android:exported="false" android:label="@string/feedback_title" android:configChanges="keyboardHidden" android:windowSoftInputMode="adjustResize" android:parentActivityName=".ui.main.MainActivity" />
         <!-- S4184: the Tourist tally counter, opened from its dashboard tile; rotation inflates layout-land. -->
         <activity android:name=".ui.tourist.counter.TouristCounterActivity" android:exported="false" android:label="@string/tourist_tile_counter" android:configChanges="keyboardHidden" android:parentActivityName=".ui.tourist.TouristInfoActivity" />
 

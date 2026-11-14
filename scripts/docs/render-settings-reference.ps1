@@ -81,7 +81,7 @@ $publishedFlavors = @('standard','lite','photos','legacy','vr','foss')
 $locales = @('en','ru','uk')
 # S1313: the documentation-only sections (SettingsDocScopeCatalog) are appended after the
 # nine settings-screen sections, so the published page still opens with the main tabs.
-$sectionOrder = @('general','images','video','audio','documents','streams','other','playback','destinations','launcher','gestures','defaultApps','camera','translation','networkMonitor','wear')
+$sectionOrder = @('general','images','video','audio','documents','streams','other','playback','destinations','launcher','gestures','defaultApps','camera','translation','networkMonitor','feedback','wear')
 $sectionLabel = @{
     general      = @{ en='General';      ru='Общие';            uk='Загальні' }
     images       = @{ en='Images';       ru='Изображения';      uk='Зображення' }
@@ -98,6 +98,7 @@ $sectionLabel = @{
     camera       = @{ en='Camera capture'; ru='Съёмка камерой'; uk='Зйомка камерою' }
     translation  = @{ en='On-screen translation'; ru='Перевод на экране'; uk='Переклад на екрані' }
     networkMonitor = @{ en='Network Monitor'; ru='Монитор сети'; uk='Монітор мережі' }
+    feedback     = @{ en='Send feedback'; ru='Отправить отзыв'; uk='Надіслати відгук' }
     wear         = @{ en='Wear OS';      ru='Wear OS';          uk='Wear OS' }
 }
 $pageTitle = @{ en='Settings reference - what is what'; ru='Справочник настроек - что к чему'; uk='Довідник налаштувань - що до чого' }
@@ -111,7 +112,7 @@ $flavorName= @{ standard='Standard'; lite='Lite'; photos='Photos'; legacy='Legac
 # for a surface with a real entry point (SettingsDocScopeCatalog.hostKey non-empty), or a plain
 # statement of which non-Settings UI hosts it when hostKey is empty. Keyed by sectionId, not
 # derived from hostKey at render time, so the text stays human-authored and reviewable.
-$docScopeSections = @('launcher','gestures','defaultApps','camera','translation','networkMonitor','wear')
+$docScopeSections = @('launcher','gestures','defaultApps','camera','translation','networkMonitor','feedback','wear')
 $docScopePath = @{
     launcher    = @{ en='Settings -> General -> System launcher settings'; ru='Настройки -> Общие -> Настройки системного лаунчера'; uk='Налаштування -> Загальні -> Налаштування системного лаунчера' }
     gestures    = @{ en='Settings -> Destinations -> Configure gestures'; ru='Настройки -> Назначения -> Настроить жесты'; uk='Налаштування -> Призначення -> Налаштувати жести' }
@@ -119,6 +120,7 @@ $docScopePath = @{
     camera      = @{ en='Reached from the camera capture screen, not from Settings.'; ru='Доступно с экрана съёмки камерой, не из Настроек.'; uk='Доступно з екрана зйомки камерою, не з Налаштувань.' }
     translation = @{ en='Reached from the on-screen translation overlay, not from Settings.'; ru='Доступно из панели перевода на экране, не из Настроек.'; uk='Доступно з панелі перекладу на екрані, не з Налаштувань.' }
     networkMonitor = @{ en='Reached from Network Monitor -> Satellites, not from Settings.'; ru='Доступно из Монитора сети -> Спутники, не из Настроек.'; uk='Доступно з Монітора мережі -> Супутники, не з Налаштувань.' }
+    feedback    = @{ en='Reached from the Send feedback program, not from Settings.'; ru='Доступно из программы «Отправить отзыв», не из Настроек.'; uk='Доступно з програми «Надіслати відгук», не з Налаштувань.' }
     wear        = @{ en='Reached from Wear OS watch app -> Settings.'; ru='Доступно из приложения для часов Wear OS -> Настройки.'; uk='Доступно з застосунку для годинника Wear OS -> Налаштування.' }
 }
 

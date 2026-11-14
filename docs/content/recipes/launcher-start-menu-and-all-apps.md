@@ -98,7 +98,7 @@ steps:
 
       Long press an app and choose **Set category..** to tick every group it belongs to - one app can be in several, for example Slack in Work and in Messengers. **New category..** in the same window names a new group and ticks it at once. A group with no apps is hidden from the list but stays in that window, ready to be chosen.
 
-      To change the order of the groups, long press a group tile: it is highlighted, and **Move up** and **Move down** move it one place at a time; **Done** ends the mode. The groups start in alphabetical order, and **Other** stays last.
+      To change the order of the groups, long press a group tile: it is highlighted, and **Move up** and **Move down** move it one place at a time; **Rename** in the same mode opens a window with the group's name, ready to type over; a name that another group already shows is refused. **Done** ends the mode. The groups start in alphabetical order, and **Other** stays last.
 
       Your groups, the apps in them, their order and the chosen sort order stay in place after an update and travel with the settings backup.
 outcome: |

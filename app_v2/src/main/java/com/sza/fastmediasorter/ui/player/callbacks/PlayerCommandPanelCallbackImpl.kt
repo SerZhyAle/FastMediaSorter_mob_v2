@@ -58,6 +58,7 @@ class PlayerCommandPanelCallbackImpl(
 
     override fun onSendToClicked() {
         val content = buildShareableContent() ?: return
+        Timber.d("S4569: top-bar send-to payload carries text=%s", content.text != null)
         val settings = activity.currentSettings ?: return
         // S0681: the pinned «Select resource..» row reuses the player's existing copy dialog, which
         // already excludes the current resource and honours the goToNextAfterCopy setting.
@@ -104,6 +105,8 @@ class PlayerCommandPanelCallbackImpl(
             uris = listOfNotNull(localUri),
             mime = mimeTypeForFile(file.name, file.type),
             mediaType = file.type,
+            // A note also carries its text so Keep-text works here as it does in the editor's menu.
+            text = if (file.type == MediaType.TEXT) activity._textViewerManager?.shareableText() else null,
             displayName = file.name,
             mediaFile = file,
             sourcePath = if (isRemote) file.path else null,

@@ -16,7 +16,7 @@ why: |
   **Chromecast** plays the video you are watching on a TV. The phone becomes the remote control. **Live Broadcast** goes the other way round: your phone's microphone, or its camera and microphone, become a live channel that other people open on their own devices - a baby monitor, a talk in the next room, a view of the garden.
 ingredients:
   - "Chromecast: FastMediaSorter in the Standard, noLegal, Lite or Legacy [edition](term:edition), and a [Chromecast](term:chromecast) or a TV with Chromecast built in on the same Wi-Fi network as the phone."
-  - "Live Broadcast: the Standard, noLegal or Legacy edition. The phone and the people who watch must be on the same Wi-Fi network."
+  - "Live Broadcast: the Standard, noLegal or Legacy edition. On the same Wi-Fi network the people who watch connect to the phone directly; from another network they connect through your [exchange server](../../docs/media-exchange-portal/exchange-server.html)."
   - "Live Broadcast asks for access to the microphone, to the camera when you send a picture, and to notifications so the broadcast keeps running while the screen is off. See [understanding app permissions](page:getting-started.permissions-guide)."
 steps:
   - number: 1
@@ -108,7 +108,7 @@ outcome: |
   Your video plays on the big TV with the phone as a remote, or your phone sends a live sound or camera picture that family and friends open on their phones, watches or computers with one scan of a QR code.
 tips:
   - "**Chromecast not in the list?** The phone and the TV must be on the same Wi-Fi network. Guest networks often keep devices apart."
-  - "**Nobody can connect to the broadcast?** Check that everyone is on the same Wi-Fi. Some routers block devices from talking to each other - look for an option called client or AP isolation."
+  - "**Nobody can connect to the broadcast?** On the same Wi-Fi network, check that everyone is on it. Some routers block devices from talking to each other - look for an option called client or AP isolation. From another network, the broadcast plays through your [exchange server](../../docs/media-exchange-portal/exchange-server.html) once the phone is signed in to it in **My devices**."
   - "**Music on a Chromecast** works the same way from the audio player - see [playing and organizing music files](page:audio.playing-and-organizing-music)."
   - "**Want to record the screen instead?** See [recording the screen with audio](page:capture.screen-recording-and-audio)."
   - "**Want a phone or a watch to go on air for your other devices?** The [media exchange portal](../../docs/media-exchange-portal/live-broadcast.html) describes the routes between devices, step by step."
@@ -130,6 +130,6 @@ next_recipes:
     description: Keep watching in a small window.
 ---
 
-<sub class="doc-stamp">26.10.15 21:43</sub>
+<sub class="doc-stamp">26.11.14 03:05</sub>
 
 Send the video you are watching to a TV with Chromecast, or turn your phone into a small live sound or camera station that others open with a QR code.

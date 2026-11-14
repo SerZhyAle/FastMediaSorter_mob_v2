@@ -12,6 +12,7 @@ import androidx.media3.common.Tracks
 import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.ui.common.popupIconColor
 import com.sza.fastmediasorter.ui.player.StandalonePlayerViewModel
 import com.sza.fastmediasorter.ui.player.helpers.PlayerFileSelectionManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerFrameStepManager
@@ -135,9 +136,10 @@ class StandaloneViewerCommandManager(
     fun toggleLoop(): Boolean = range.toggle()
 
     fun populateMenu(menu: Menu) {
+        timber.log.Timber.d("S4570: standalone overflow items added with tinted glyphs")
         addMenu(menu, R.id.menu_file_grid, R.string.player_file_grid, R.drawable.ic_view_grid)
         addMenu(menu, R.id.menu_file_list, R.string.player_file_list, R.drawable.ic_view_list)
-        addMenu(menu, R.id.menu_file_number, R.string.player_file_jump, 0)
+        addMenu(menu, R.id.menu_file_number, R.string.player_file_jump, R.drawable.ic_go_to_page)
         if (viewModel.state.value.mediaType == MediaType.VIDEO) {
             addMenu(menu, R.id.menu_frame_forward, R.string.player_frame_forward, R.drawable.ic_skip_next)
             addMenu(menu, R.id.menu_frame_back, R.string.player_frame_back_unavailable, R.drawable.ic_skip_previous)
@@ -147,7 +149,10 @@ class StandaloneViewerCommandManager(
     }
 
     private fun addMenu(menu: Menu, id: Int, title: Int, icon: Int) {
-        if (menu.findItem(id) == null) menu.add(Menu.NONE, id, Menu.NONE, title).setIcon(icon)
+        if (menu.findItem(id) != null) return
+        val item = menu.add(Menu.NONE, id, Menu.NONE, title).setIcon(icon)
+        // S4570: these items arrive after applyStandaloneOverflowIcons tinted the inflated ones.
+        item.icon?.mutate()?.setTint(host.popupIconColor())
     }
 
     fun handleMenu(id: Int): Boolean = when (id) {

@@ -83,6 +83,14 @@ class OperationsProgramsManager(
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
             viewModel.updateSettings { it.withPrograms { copy(enableTourist = isChecked) } }
         }
+        binding.rowEnableNotes.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
+            viewModel.updateSettings { it.withPrograms { copy(enableNotes = isChecked) } }
+        }
+        binding.rowEnableFeedback.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
+            viewModel.updateSettings { it.withPrograms { copy(enableFeedback = isChecked) } }
+        }
         binding.rowEmbeddedGame.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
             viewModel.updateEmbeddedGameEnabled(isChecked)
@@ -153,6 +161,12 @@ class OperationsProgramsManager(
         }
         if (binding.rowEnableTourist.isChecked != settings.enableTourist) {
             binding.rowEnableTourist.setCheckedSilently(settings.enableTourist)
+        }
+        if (binding.rowEnableNotes.isChecked != settings.enableNotes) {
+            binding.rowEnableNotes.setCheckedSilently(settings.enableNotes)
+        }
+        if (binding.rowEnableFeedback.isChecked != settings.enableFeedback) {
+            binding.rowEnableFeedback.setCheckedSilently(settings.enableFeedback)
         }
         if (binding.rowEmbeddedGame.isChecked != settings.embeddedGameEnabled) {
             binding.rowEmbeddedGame.setCheckedSilently(settings.embeddedGameEnabled)

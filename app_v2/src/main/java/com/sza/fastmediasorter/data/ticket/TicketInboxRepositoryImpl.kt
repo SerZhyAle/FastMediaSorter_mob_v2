@@ -34,6 +34,7 @@ class TicketInboxRepositoryImpl @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val store: TicketOutboxStore,
     private val inbox: GoogleDriveTicketInboxDataSource,
+    private val folderInbox: ResourceTicketInboxDataSource,
     @IoDispatcher private val io: CoroutineDispatcher
 ) : TicketInboxRepository {
 
@@ -60,7 +61,8 @@ class TicketInboxRepositoryImpl @Inject constructor(
         }
         var delivered = 0
         if (pending.isNotEmpty()) {
-            val signedIn = try {
+            // S4573: a packet bound for a resource folder needs no Drive sign-in, so only ask when one goes to Drive.
+            val signedIn = pending.any { it.entry.inboxResourceId == null } && try {
                 inbox.ensureSignedIn()
             } catch (e: Exception) {
                 e.rethrowIfCancellation()
@@ -68,7 +70,7 @@ class TicketInboxRepositoryImpl @Inject constructor(
                 false
             }
             pending.forEach { packet ->
-                val failure = if (signedIn) uploadFailure(packet) else NOT_SIGNED_IN
+                val failure = uploadFailure(packet, signedIn)
                 val next = if (failure == null) {
                     delivered++
                     packet.entry.copy(state = TicketOutboxState.SENT, failure = null)
@@ -85,20 +87,14 @@ class TicketInboxRepositoryImpl @Inject constructor(
     override suspend fun syncStatuses(): Result<Unit> = locked {
         val sent = store.list().filter { it.entry.state == TicketOutboxState.SENT }
         val outcome = runCatching {
-            if (sent.isNotEmpty() && !inbox.ensureSignedIn()) throw IOException(NOT_SIGNED_IN)
-            sent.forEach { packet ->
-                when (val verdict = inbox.readVerdict(packet.entry.packetId)) {
-                    is TicketInboxVerdict.Done -> store.update(
-                        packet,
-                        packet.entry.copy(state = TicketOutboxState.PROCESSED, tickets = verdict.result.tickets)
-                    )
-                    is TicketInboxVerdict.Failed -> store.update(
-                        packet,
-                        packet.entry.copy(state = TicketOutboxState.FAILED, failure = refusalLine(verdict))
-                    )
-                    TicketInboxVerdict.Pending -> Unit
+            val (viaDrive, viaFolder) = sent.partition { it.entry.inboxResourceId == null }
+            viaFolder.forEach { packet ->
+                packet.entry.inboxResourceId?.let { id ->
+                    applyVerdict(packet, folderInbox.readVerdict(id, packet.entry.packetId))
                 }
             }
+            if (viaDrive.isNotEmpty() && !inbox.ensureSignedIn()) throw IOException(NOT_SIGNED_IN)
+            viaDrive.forEach { packet -> applyVerdict(packet, inbox.readVerdict(packet.entry.packetId)) }
         }.onFailure {
             it.rethrowIfCancellation()
             Timber.w(it, "Ticket inbox status read failed")
@@ -123,12 +119,34 @@ class TicketInboxRepositoryImpl @Inject constructor(
 
     override suspend fun refreshOutbox() = locked { publish() }
 
-    private suspend fun uploadFailure(packet: StagedTicketPacket): String? = try {
-        inbox.upload(packet.folder, packet.manifest)
-        null
-    } catch (error: IOException) {
-        Timber.w(error, "Ticket packet upload failed")
-        error.message ?: error.javaClass.simpleName
+    private fun applyVerdict(packet: StagedTicketPacket, verdict: TicketInboxVerdict) {
+        when (verdict) {
+            is TicketInboxVerdict.Done -> store.update(
+                packet,
+                packet.entry.copy(state = TicketOutboxState.PROCESSED, tickets = verdict.result.tickets)
+            )
+            is TicketInboxVerdict.Failed -> store.update(
+                packet,
+                packet.entry.copy(state = TicketOutboxState.FAILED, failure = refusalLine(verdict))
+            )
+            TicketInboxVerdict.Pending -> Unit
+        }
+    }
+
+    private suspend fun uploadFailure(packet: StagedTicketPacket, driveSignedIn: Boolean): String? {
+        val resourceId = packet.entry.inboxResourceId
+        if (resourceId == null && !driveSignedIn) return NOT_SIGNED_IN
+        return try {
+            if (resourceId == null) {
+                inbox.upload(packet.folder, packet.manifest)
+            } else {
+                folderInbox.upload(resourceId, packet.folder, packet.manifest)
+            }
+            null
+        } catch (error: IOException) {
+            Timber.w(error, "Ticket packet upload failed")
+            error.message ?: error.javaClass.simpleName
+        }
     }
 
     private fun refusalLine(verdict: TicketInboxVerdict.Failed): String =

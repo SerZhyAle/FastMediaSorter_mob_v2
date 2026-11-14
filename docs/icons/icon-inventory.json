@@ -801,6 +801,14 @@
   },
   {
     "surface": "program-nav",
+    "key": "notes",
+    "feature": "notes_title",
+    "drawable": "ic_send_note",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
     "key": "ocr",
     "feature": "setting_camera_ocr_translation_title",
     "drawable": "ic_camera_ocr_translate",
@@ -1444,6 +1452,14 @@
     "key": "rowEnableNetworkMonitor",
     "feature": "settings_enable_network_monitor",
     "drawable": "ic_network_monitor",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowEnableNotes",
+    "feature": "notes_title",
+    "drawable": "ic_send_note",
     "assetFormat": "vector",
     "public": true
   },

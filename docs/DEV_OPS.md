@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.12 01:38</sub>
+<sub class="doc-stamp">26.11.12 20:14</sub>
 
 # FastMediaSorter v2: OPS & Guidelines
 
@@ -2893,4 +2893,4 @@ Verbs, parameters and exit codes: `scripts/devtest/dynamic-audit/da.ps1` (its he
 
 - Owner order 2026-10-29: the full build and every check over 5 s run only before or during a release. Class of each check: `scripts/quality/gate-tiers.json`, generated from the gate journal by `generate-gate-tiers.ps1` (median 5 s or less over 5 executed runs in 30 days = fast; no record = release). Tier resolution and the fail-safe: `scripts/quality/lib/gate-tier.ps1`.
 - Fast command: `.\a.ps1 ff -Files "<paths>"`. A docs-only set measured 4.8-5.0 s on 2026-10-29; a script set 12.8-13.2 s, because the closure facade starts its gates in two waves and wave two waits for the Kotlin formatter - a correctness property, so the wave order was not touched.
-- The release run is `FMS_TIER=Release` (`a.ps1` targets) or `-Tier Release`; `assert-release-scope-gates.ps1` exports it and runs `assert-release-tier-closure.ps1` over every file changed since the last `v*` tag. Branch CI fires on the push to `main` only (`docs/BUILD_VS_RELEASE.md`).
+- The release run is `FMS_TIER=Release` (`a.ps1` targets) or `-Tier Release`; `assert-release-scope-gates.ps1` exports it and runs `assert-release-tier-closure.ps1` over every file changed since the last `v*` tag. Branch CI fires on the push to `main` and on the release's own dispatch against the DEBUG head before the tag (`/skill-release` Step 7b; `docs/BUILD_VS_RELEASE.md`).

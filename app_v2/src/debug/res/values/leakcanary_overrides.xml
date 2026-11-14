@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- LeakCanary's auto-installer calls ShortcutManager synchronously on the main thread inside
+         ContentProvider.attachInfo. Right after an install that binder call has blocked for 18 s,
+         long enough for the system to kill the process with a BIND APPLICATION ANR. The dynamic
+         shortcut also takes a slot from the app's own dynamic shortcuts; the launcher icon stays. -->
+    <bool name="leak_canary_add_dynamic_shortcut">false</bool>
+</resources>

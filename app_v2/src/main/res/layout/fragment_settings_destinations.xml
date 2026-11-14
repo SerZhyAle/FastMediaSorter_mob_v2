@@ -13,6 +13,7 @@
                     android:id="@+id/headerCopyMove"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:csh_icon="@drawable/ic_copy"
                     app:csh_title="@string/settings_category_copy_move" />
 
                 <LinearLayout android:id="@+id/containerFileOperations" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
@@ -395,6 +396,7 @@
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowCameraAskFilename"
+                            app:str_icon="@drawable/ic_rename"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             app:str_title="@string/setting_camera_ask_filename_title"
@@ -402,6 +404,7 @@
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowCameraOpenForEditing"
+                            app:str_icon="@drawable/ic_edit"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             app:str_title="@string/setting_camera_open_for_editing_title"
@@ -410,6 +413,7 @@
                         <!-- S0469: also place the captured photo on the system clipboard, ready to paste. -->
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowCameraCopyToClipboard"
+                            app:str_icon="@drawable/ic_copy"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             app:str_title="@string/setting_camera_copy_to_clipboard_title"
@@ -418,6 +422,7 @@
                         <!-- S0766: opt-in GPS geotag of in-app camera photos (default off). -->
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowCameraGeotag"
+                            app:str_icon="@drawable/ic_location"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             app:str_title="@string/setting_camera_geotag_title"
@@ -508,6 +513,7 @@
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowVideoCaptureOpenInPlayer"
+                            app:str_icon="@drawable/ic_play"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             app:str_title="@string/setting_video_capture_open_in_player_title"
@@ -600,6 +606,7 @@
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowMicRecordingAskFilename"
+                            app:str_icon="@drawable/ic_rename"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:visibility="gone"
@@ -847,6 +854,7 @@
                     <LinearLayout android:id="@+id/layoutCameraOcrOnly" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/settings_nested_margin_start">
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowCameraOcrOnly"
+                            app:str_icon="@drawable/ic_ocr"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="@dimen/margin_small"
@@ -881,6 +889,7 @@
                          its gear button, which is what its doc-scope host key records. -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
                         android:id="@+id/rowOpenStopwatchSettings"
+                        app:ssr_icon="@drawable/ic_settings"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         app:ssr_showChevron="true"
@@ -910,6 +919,22 @@
                         app:str_icon="@drawable/ic_tourist"
                         app:str_title="@string/tourist_info_title"
                         app:str_subtitle="@string/setting_enable_tourist_desc" />
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowEnableNotes"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:str_icon="@drawable/ic_send_note"
+                        app:str_title="@string/notes_title"
+                        app:str_subtitle="@string/setting_enable_notes_desc" />
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowEnableFeedback"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:str_icon="@drawable/ic_send_plane"
+                        app:str_title="@string/feedback_title"
+                        app:str_subtitle="@string/setting_enable_feedback_desc" />
 
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                         android:id="@+id/rowEmbeddedGame"
@@ -1286,6 +1311,7 @@
 
             <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
                 android:id="@+id/rowControlsKeybindings"
+                app:ssr_icon="@drawable/ic_hotkeys"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingStart="@dimen/margin_small"

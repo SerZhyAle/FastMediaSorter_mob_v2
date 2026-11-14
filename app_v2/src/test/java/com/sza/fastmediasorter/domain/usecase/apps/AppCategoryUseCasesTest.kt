@@ -91,6 +91,66 @@ class AppCategoryUseCasesTest {
         assertEquals(listOf("x", "z", "y"), repository.state.value.order)
     }
 
+    @Test
+    fun `renaming stores the trimmed name and keeps the id`() = runTest {
+        val id = CreateAppCategoryUseCase(repository)("Work").getOrThrow()
+
+        RenameAppCategoryUseCase(repository)(id, "  Office ", labelOf).getOrThrow()
+
+        val renamed = repository.state.value.categories.single()
+        assertEquals(id, renamed.id)
+        assertEquals("Office", renamed.name)
+    }
+
+    @Test
+    fun `a renamed seeded category keeps its system category and is not seeded twice`() = runTest {
+        seed.seed(listOf(app("a", 0)))
+
+        RenameAppCategoryUseCase(repository)("system:0", "Play", labelOf).getOrThrow()
+        seed.seed(listOf(app("a", 0), app("b", 0)))
+
+        val catalog = repository.state.value
+        assertEquals(1, catalog.categories.size)
+        assertEquals("Play", catalog.categories.single().name)
+        assertEquals(0, catalog.categories.single().systemCategory)
+        assertEquals(setOf("system:0"), catalog.categoryIdsOf("b"))
+    }
+
+    @Test
+    fun `a name another category shows is refused in any letter case`() = runTest {
+        seed.seed(listOf(app("a", 0)))
+        val work = CreateAppCategoryUseCase(repository)("Work").getOrThrow()
+        val before = repository.state.value
+
+        val result = RenameAppCategoryUseCase(repository)(work, " games ", labelOf)
+
+        assertTrue(result.exceptionOrNull() is AppCategoryNameTakenException)
+        assertEquals(before, repository.state.value)
+    }
+
+    @Test
+    fun `a category may take its own name in another letter case`() = runTest {
+        val id = CreateAppCategoryUseCase(repository)("Work").getOrThrow()
+
+        RenameAppCategoryUseCase(repository)(id, "WORK", labelOf).getOrThrow()
+
+        assertEquals("WORK", repository.state.value.categories.single().name)
+    }
+
+    @Test
+    fun `renaming to a blank name or an unknown id changes nothing`() = runTest {
+        val id = CreateAppCategoryUseCase(repository)("Work").getOrThrow()
+        val before = repository.state.value
+        val rename = RenameAppCategoryUseCase(repository)
+
+        assertTrue(rename(id, "  ", labelOf).isFailure)
+        rename("user:missing", "Office", labelOf).getOrThrow()
+
+        assertEquals(before, repository.state.value)
+    }
+
+    private val labelOf: (AppCategory) -> String = { it.name ?: SYSTEM_CATEGORY_LABEL }
+
     private fun category(id: String) = AppCategory(id = id, name = id, systemCategory = null)
 
     private fun app(packageName: String, category: Int) = InstalledApp(
@@ -134,5 +194,8 @@ class AppCategoryUseCasesTest {
 
     private companion object {
         const val UNDEFINED = -1
+
+        /** What a seeded category, which stores no name, is drawn as in these tests. */
+        const val SYSTEM_CATEGORY_LABEL = "Games"
     }
 }

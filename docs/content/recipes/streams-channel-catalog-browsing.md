@@ -63,7 +63,7 @@ steps:
     id: narrow-with-filters
     title: Narrow it down with filters
     text: |
-      Tap **Filter** to open rows for **Category**, **Language**, **Country** and **Topic** - Topic only shows up when the catalog actually carries topics. Language and Country open a type-to-filter searchable picker with flags: the language picker pins English, Russian and Ukrainian to the top, and a country's flag-and-code chip sits before its language chip in the list. The Language list holds only real languages, one entry each however the catalog spells them - regional variants and typos fold into one. The Country list holds only real countries, by full name with a flag, in alphabetical order, with the countries of your interface language first. A filter you saved earlier whose value no longer exists goes back to **All**.
+      Tap **Filter** to open rows for **Category**, **Language**, **Country** and **Topic** - Topic only shows up when the catalog actually carries topics. Language and Country open a type-to-filter searchable picker with flags: the language picker pins English, Russian and Ukrainian to the top, and a country's flag-and-code chip sits before its language chip in the list. The Language list holds only real languages, one entry each however the catalog spells them - regional variants and typos fold into one. The Country list holds only real countries, by full name with a flag, in alphabetical order, with the countries of your interface language first. A saved **Language** or **Country** that the catalog no longer carries goes back to **All** on its own. A saved **Category** or **Topic** whose value no longer exists keeps that value, and the list stays empty until you choose **All** for it.
 
       Two small icons beside the search box split the list by media kind in one tap - **Audio**, **Video**, or **Own** for channels you added yourself - and agree with whatever the Filter dialog already has selected. The filter button carries a **Filter active** mark when something is on; **Clear filters** in the dialog drops it all at once.
     image_bookmark:
@@ -98,17 +98,17 @@ steps:
     id: check-channel-health
     title: See which channels are alive before you tap one
     text: |
-      Refreshing the list does more than fetch new rows: FastMediaSorter checks every visible channel for reachability while it works, showing **Checking streams..** and marking each one green or red as the answer comes in - a channel that fails shows **No signal**. Touching the screen stops the probe where it is, and video tiles get a fresh thumbnail out of the same pass.
+      Refreshing the list does more than fetch new rows: FastMediaSorter checks every visible channel for reachability while it works, showing **Checking streams..** and marking each channel that answers green as the answer comes in. A channel that does not answer gets an amber unknown mark instead, never red - red comes only from a playback you started that failed. Touching the screen stops the probe where it is, and video tiles get a fresh thumbnail out of the same pass.
 
       The marks are informational, not permanent - clear them any time with **Settings**, the **Streams** section, **Clear play marks**; the channels themselves stay exactly where they were.
     image_bookmark:
       shot_id: streams.refresh-health-marks
       device_profile: phone
       screen_state: streams-refresh-health-probe
-      alt: The Streams list mid-refresh with the Checking streams message showing and channel rows marked green or red for reachability
-      caption: "Checking streams.. - green for reachable, red for No signal."
+      alt: The Streams list mid-refresh with the Checking streams message showing and channel rows marked green for reachable or amber for unknown
+      caption: "Checking streams.. - green for a channel that answers, amber for one that does not."
       title: "Screenshot: Streams refresh health probe"
-      desc: Streams list during a refresh health probe, some rows marked green, one marked red as No signal.
+      desc: Streams list during a refresh health probe, some rows marked green, others showing the amber unknown mark.
   - number: 8
     id: card-overflow-menu
     title: The three-dot menu on every card
@@ -207,6 +207,6 @@ next_recipes:
     description: What happens once you actually tap a channel and playback starts.
 ---
 
-<sub class="doc-stamp">26.10.26 18:01</sub>
+<sub class="doc-stamp">26.11.14 02:38</sub>
 
 The [catalog](term:catalog) is how [Streams](term:streams-screen) goes from empty to thousands of [channels](term:channel) worth browsing: download it, keep it fresh, then find your way around with filters, curated collections, sorting and a list that remembers exactly where you left it.

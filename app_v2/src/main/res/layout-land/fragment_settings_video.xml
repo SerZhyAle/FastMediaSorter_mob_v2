@@ -34,6 +34,7 @@
         <!-- Show video thumbnails -->
         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
             android:id="@+id/rowShowVideoThumbnails"
+            app:str_icon="@drawable/ic_view_grid"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -50,6 +51,7 @@
     <!-- S0820: launch straight into fullscreen when a video is opened from Browse -->
     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
         android:id="@+id/rowOpenVideoInFullscreen"
+        app:str_icon="@drawable/ic_fullscreen"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/settings_item_margin_bottom"
@@ -130,6 +132,7 @@
             <!-- S0470: also place the extracted frame on the system clipboard -->
             <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                 android:id="@+id/rowVideoFrameCopyToClipboard"
+                app:str_icon="@drawable/ic_copy"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:nextFocusRight="@id/rowPlayerShowFps"
@@ -148,6 +151,7 @@
             <!-- S0021: Show FPS over flat (non-immersive) player -->
             <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                 android:id="@+id/rowPlayerShowFps"
+                app:str_icon="@drawable/ic_developer_options"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:nextFocusLeft="@id/rowVideoFrameCopyToClipboard"

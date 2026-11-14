@@ -1,4 +1,4 @@
-﻿# Combined post-change runner.
+# Combined post-change runner.
 # Chains the applicable mechanical post-change steps for a given change type.
 #
 # Usage:
@@ -510,6 +510,10 @@ $runsNoTestRetryGate = (Test-AnyChangedFile '^(app_v2|wear)/src/(test|androidTes
 # never a one-off cancel style. Baseline ratchets DOWN. Narrow trigger keeps it cheap.
 $runsDialogCancelGate = ($isResourceChange -and
     (Test-AnyChangedFile 'res/layout.*/(dialog_|bottom_sheet_).*\.xml$'))
+# S4570 uniform-glyph-sets gate. A menu level, the group headers of one page or the rows of one settings
+# group must carry a glyph on every member or on none (ICON-RENDER sibling-set rule).
+$runsUniformGlyphSetsGate = ($isResourceChange -and
+    (Test-AnyChangedFile 'res/(layout|menu)[^/]*/.*\.xml$'))
 # S1190 RTL gate. An absolute Left/Right attribute reads correctly in English and wrong in Arabic
 # or Urdu, which no English-language check can see - so a touched layout is judged directly.
 $runsRtlLayoutGate = ($isResourceChange -and
@@ -1145,26 +1149,13 @@ if ($runsDetektGate -and -not $detektPreflightFailed) {
 # half-corrected file - and are consumed at their own call sites below, in the original order.
 $argvNeuroslop = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-neuroslop.ps1"), '-Gate')
 if ($ScopeToFile) { $argvNeuroslop += @('-ChangedFiles', ($changedFiles -join ',')) }
-$argvOrientationFeature = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-orientation-implied-feature.ps1"), '-Gate')
-$argvOrientationPairing = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-orientation-layout-pairing.ps1"), '-Gate')
-$argvLayoutVariantParity = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-layout-variant-id-parity.ps1"), '-Gate')
-$argvFocusParity = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-focus-parity.ps1"), '-Gate', '-Quiet')
-# S2326: the FGS gate reads every Kotlin file in both trees twice. Handing it the changed set makes
-# it judge what this change could have broken - a new call site, or a drawable it may have tinted.
-$argvFgs = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-fgs-notifications.ps1"), '-Gate')
-if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvFgs += @('-ChangedFiles', ($changedFiles -join ',')) }
+$argvAllFeatures = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-allfeatures-sync.ps1"), '-Gate')
 $argvFocusHighlight = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-focus-highlight.ps1"), '-Gate')
 if ($ScopeToFile) { $argvFocusHighlight += @('-ChangedFiles', ($changedFiles -join ',')) }
-$argvDialogCancel = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-dialog-cancel-style.ps1"), '-Gate')
 $argvRtlLayout = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-rtl-layout-attrs.ps1"), '-Gate')
 if ($ScopeToFile) { $argvRtlLayout += @('-ChangedFiles', ($changedFiles -join ',')) }
 $argvListenerSymmetry = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-listener-symmetry.ps1"), '-Gate')
 if ($ScopeToFile) { $argvListenerSymmetry += @('-ChangedFiles', ($changedFiles -join ',')) }
-$argvActivityLocaleWrapper = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-activity-locale-wrapper.ps1"), '-Gate')
-if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvActivityLocaleWrapper += @('-ChangedFiles', ($changedFiles -join ',')) }
-$argvQuantityFormatSeam = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-quantity-format-seam.ps1"), '-Gate')
-if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvQuantityFormatSeam += @('-ChangedFiles', ($changedFiles -join ',')) }
-$argvAllFeatures = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-allfeatures-sync.ps1"), '-Gate')
 # Argument vectors of the doc/config/wear-wire gate family live in this lib - extracted to hold
 # the facade under the Rule 2 ceiling. Dot-sourcing lands every vector in this scope; $root,
 # $ScopeToFile and $changedFiles are set by the time this runs.
@@ -1187,6 +1178,7 @@ if ($runsFocusParityGate) { Start-PooledGate @argvFocusParity }
 if ($runsFgsGate) { Start-PooledGate @argvFgs }
 if ($runsFocusHighlightGate) { Start-PooledGate @argvFocusHighlight }
 if ($runsDialogCancelGate) { Start-PooledGate @argvDialogCancel }
+if ($runsUniformGlyphSetsGate) { Start-PooledGate @argvUniformGlyphSets }
 if ($runsRtlLayoutGate) { Start-PooledGate @argvRtlLayout }
 if ($runsListenerSymmetryGate) { Start-PooledGate @argvListenerSymmetry }
 if ($runsActivityLocaleWrapperGate) { Start-PooledGate @argvActivityLocaleWrapper }
@@ -1319,6 +1311,13 @@ if ($runsDialogCancelGate) {
 }
 else {
     Skip-Step "dialog-cancel-style-gate" "not applicable - no changed file is a dialog/bottom-sheet layout"
+}
+
+if ($runsUniformGlyphSetsGate) {
+    Invoke-Gate "uniform-glyph-sets-gate" { Invoke-GateChild @argvUniformGlyphSets }
+}
+else {
+    Skip-Step "uniform-glyph-sets-gate" "not applicable - no changed file is a layout or menu XML"
 }
 
 if ($runsRtlLayoutGate) {

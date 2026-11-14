@@ -8,6 +8,7 @@
         <!-- Extensions Manager Entrance (S0645: navigation-row etalon, landscape counterpart). -->
         <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
             android:id="@+id/layoutExtensionsManager"
+            app:ssr_icon="@drawable/ic_cloud_download"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/bottom_sheet_binary_file_tvFileName_layout_marginBottom"
@@ -37,6 +38,7 @@
 
             <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                 android:id="@+id/rowTranslationLensStyle"
+                app:str_icon="@drawable/ic_text_layer"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -108,10 +110,10 @@
         <TextView android:id="@+id/tvOcrSummary" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart" android:layout_marginBottom="@dimen/settings_margin_standard" android:text="@string/enable_ocr_summary" android:textColor="@color/text_color_secondary" android:textSize="@dimen/toggler_desc_text_size" />
 
         <!-- OCR Font Size - trigger row opens SimpleValueChoiceDialog (S0646). -->
-        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow android:id="@+id/rowOcrFontSize" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart" app:ssr_title="@string/ocr_font_size" />
+        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow android:id="@+id/rowOcrFontSize" app:ssr_icon="@drawable/ic_text_increase" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart" app:ssr_title="@string/ocr_font_size" />
 
         <!-- OCR Font Family - trigger row opens SimpleValueChoiceDialog (S0646). -->
-        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow android:id="@+id/rowOcrFontFamily" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart" app:ssr_title="@string/ocr_font_family" />
+        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow android:id="@+id/rowOcrFontFamily" app:ssr_icon="@drawable/ic_text_settings" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart" app:ssr_title="@string/ocr_font_family" />
 
 
     </LinearLayout>

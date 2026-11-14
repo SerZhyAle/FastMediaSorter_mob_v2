@@ -1827,7 +1827,7 @@
     <string name="streams_pin_to_top">উপরে পিন করুন</string>
     <string name="streams_remove">সরান</string>
     <string name="streams_add_url_hint">স্ট্রিম URL (http, https, rtsp)</string>
-    <string name="streams_import_url_hint">প্লেলিস্ট URL (.m3u)</string>
+    <string name="streams_import_url_hint">প্লেলিস্ট URL (.m3u, .m3u8)</string>
     <string name="streams_title_hint">শিরোনাম (ঐচ্ছিক)</string>
     <string name="streams_error_invalid_url">একটি বৈধ http, https বা rtsp ঠিকানা লিখুন।</string>
     <string name="streams_error_network">তালিকা লোড করা যায়নি। সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।</string>

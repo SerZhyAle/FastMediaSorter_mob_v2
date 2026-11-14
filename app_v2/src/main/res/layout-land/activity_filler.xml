@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- S4521 landscape host. The same scrollable column, inset from the wide edges in the READY order: place, space, reserve, Start; progress
-     and Stop replace Start during a run, and the cleanup block appears only while an earlier run left
+<!-- S4521 landscape host. The same scrollable column, inset from the wide edges in the READY order: place, space,
+     reserve, reserve slider (S4567), Start; progress and Stop replace Start during a run, and the cleanup block appears only while an earlier run left
      files. The portrait file carries the same ids in the same order. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -52,7 +52,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/token_spacing_8"
-                android:nextFocusDown="@id/btnFillerStart"
+                android:nextFocusDown="@id/sliderFillerReserve"
                 android:text="@string/filler_choose_folder" />
 
             <TextView
@@ -69,13 +69,26 @@
                 android:layout_marginTop="@dimen/token_spacing_4"
                 android:textAppearance="?attr/textAppearanceBodyMedium" />
 
+            <com.google.android.material.slider.Slider
+                android:id="@+id/sliderFillerReserve"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/token_spacing_4"
+                android:contentDescription="@string/filler_reserve_slider_description"
+                android:nextFocusUp="@id/btnFillerChooseFolder"
+                android:nextFocusDown="@id/btnFillerStart"
+                android:stepSize="1"
+                android:value="6"
+                android:valueFrom="0"
+                android:valueTo="6" />
+
             <Button
                 android:id="@+id/btnFillerStart"
                 style="@style/Widget.FastMediaSorter.Button.Filled"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/token_spacing_16"
-                android:nextFocusUp="@id/btnFillerChooseFolder"
+                android:nextFocusUp="@id/sliderFillerReserve"
                 android:text="@string/filler_start" />
 
             <LinearLayout
@@ -99,6 +112,13 @@
                     android:layout_marginTop="@dimen/token_spacing_8"
                     android:accessibilityLiveRegion="polite"
                     android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+                <TextView
+                    android:id="@+id/txtFillerEstimate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/token_spacing_4"
+                    android:textAppearance="?attr/textAppearanceBodyMedium" />
 
                 <Button
                     android:id="@+id/btnFillerCancel"

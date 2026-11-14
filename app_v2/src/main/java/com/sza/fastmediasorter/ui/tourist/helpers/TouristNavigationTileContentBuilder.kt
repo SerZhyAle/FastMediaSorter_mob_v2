@@ -4,6 +4,7 @@ import android.content.Context
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.sensors.SensorAccuracy
 import com.sza.fastmediasorter.domain.model.tourist.TouristDashboardState
+import com.sza.fastmediasorter.domain.model.tourist.TouristTileType
 import com.sza.fastmediasorter.ui.tourist.helpers.TouristTileValueFormatter.Companion.NO_VALUE
 import com.sza.fastmediasorter.ui.tourist.helpers.TouristTileValueFormatter.TileValue
 import java.util.Locale
@@ -138,6 +139,23 @@ class TouristNavigationTileContentBuilder(
             formatter.lux(lux),
             if (lux == null) string(R.string.tourist_status_sensor_waiting) else null,
             R.color.tourist_tile_bg_group_environment,
+        )
+    }
+
+    /**
+     * S4560: the sensors run only while this tile is focused, so in the grid it has no reading by design and
+     * says how to get one instead of "waiting for the sensor".
+     */
+    fun gyroscope(state: TouristDashboardState): TouristTileContent {
+        val focused = state.focusedTile == TouristTileType.GYROSCOPE
+        return tileContent(
+            context,
+            R.drawable.ic_screen_rotation,
+            R.string.tourist_tile_gyroscope,
+            formatter.degreesPerSecond(state.turnRateDegreesPerSecond.takeIf { focused }),
+            string(if (focused) R.string.tourist_detail_gyroscope else R.string.tourist_detail_gyroscope_idle),
+            R.color.tourist_tile_bg_group_navigation,
+            HeroVisual.Attitude,
         )
     }
 

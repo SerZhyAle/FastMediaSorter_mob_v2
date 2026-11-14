@@ -97,7 +97,10 @@ enum class TicketOutboxState {
     FAILED
 }
 
-/** One packet of the phone outbox as the composer lists it. */
+/**
+ * One packet of the phone outbox as the composer lists it. [inboxResourceId] names the resource whose
+ * root holds the inbox spools (S4573); null keeps the S4554 destination, the Drive inbox.
+ */
 data class TicketOutboxEntry(
     val packetId: String,
     val createdAtEpochMs: Long,
@@ -105,5 +108,6 @@ data class TicketOutboxEntry(
     val project: String?,
     val state: TicketOutboxState,
     val tickets: List<String> = emptyList(),
-    val failure: String? = null
+    val failure: String? = null,
+    val inboxResourceId: Long? = null
 )

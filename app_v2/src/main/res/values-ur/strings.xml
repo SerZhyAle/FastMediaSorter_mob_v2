@@ -1829,7 +1829,7 @@
     <string name="streams_pin_to_top">اوپر پن کریں</string>
     <string name="streams_remove">ہٹائیں</string>
     <string name="streams_add_url_hint">سٹریم URL (http, https, rtsp)</string>
-    <string name="streams_import_url_hint">پلے لسٹ URL (.m3u)</string>
+    <string name="streams_import_url_hint">پلے لسٹ URL (.m3u, .m3u8)</string>
     <string name="streams_title_hint">عنوان (اختیاری)</string>
     <string name="streams_error_invalid_url">درست http، https یا rtsp پتہ درج کریں۔</string>
     <string name="streams_error_network">فہرست لوڈ نہیں ہو سکی۔ کنکشن جانچ کر دوبارہ کوشش کریں۔</string>

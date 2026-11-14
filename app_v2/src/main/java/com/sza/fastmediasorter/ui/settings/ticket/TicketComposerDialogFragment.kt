@@ -151,7 +151,9 @@ class TicketComposerDialogFragment : DialogFragment() {
         binding.composer.spinnerTicketProject.isEnabled = !projects.isNullOrEmpty()
     }
 
-    private fun renderOutbox(entries: List<TicketOutboxEntry>) {
+    private fun renderOutbox(all: List<TicketOutboxEntry>) {
+        // S4573: a feedback packet bound for a resource folder is the feedback form's to show, not a Drive ticket.
+        val entries = all.filter { it.inboxResourceId == null }
         binding.outbox.tvTicketOutboxEmpty.isVisible = entries.isEmpty()
         outboxAdapter?.submitList(
             entries.map { entry ->

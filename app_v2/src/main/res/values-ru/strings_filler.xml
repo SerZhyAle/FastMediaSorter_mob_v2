@@ -28,4 +28,8 @@
     <string name="filler_result_busy">Заполнение уже идёт.</string>
     <string name="filler_settings_toggle_subtitle">Заполняет свободное место накопителя временными файлами и затем удаляет их</string>
     <string name="filler_settings_toggle_subtitle_pending">Временные файлы прошлого запуска ещё лежат на накопителе. Программа остаётся в списке, пока вы не удалите их в ней.</string>
+    <string name="filler_estimate">%1$d%% выполнено, осталось: %2$s</string>
+    <string name="filler_estimate_calculating">%1$d%% выполнено, осталось: считается..</string>
+    <string name="filler_reserve_slider_description">Место, остающееся свободным для системы</string>
+    <string name="filler_confirm_reserve_lowered">Это меньше обычных %1$s, поэтому у системы и других приложений остаётся меньше места, пока идёт заполнение.</string>
 </resources>

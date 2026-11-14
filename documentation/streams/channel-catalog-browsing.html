@@ -85,7 +85,7 @@ layout: null
           "@type": "HowToStep",
           "position": 4,
           "name": "Narrow it down with filters",
-          "text": "Tap Filter to open rows for Category, Language, Country and Topic - Topic only shows up when the catalog actually carries topics. Language and Country open a type-to-filter searchable picker with flags: the language picker pins English, Russian and Ukrainian to the top, and a country\u0027s flag-and-code chip sits before its language chip in the list. The Language list holds only real languages, one entry each however the catalog spells them - regional variants and typos fold into one. The Country list holds only real countries, by full name with a flag, in alphabetical order, with the countries of your interface language first. A filter you saved earlier whose value no longer exists goes back to All. Two small icons beside the search box split the list by media kind in one tap - Audio, Video, or Own for channels you added yourself - and agree with whatever the Filter dialog already has selected. The filter button carries a Filter active mark when something is on; Clear filters in the dialog drops it all at once.",
+          "text": "Tap Filter to open rows for Category, Language, Country and Topic - Topic only shows up when the catalog actually carries topics. Language and Country open a type-to-filter searchable picker with flags: the language picker pins English, Russian and Ukrainian to the top, and a country\u0027s flag-and-code chip sits before its language chip in the list. The Language list holds only real languages, one entry each however the catalog spells them - regional variants and typos fold into one. The Country list holds only real countries, by full name with a flag, in alphabetical order, with the countries of your interface language first. A saved Language or Country that the catalog no longer carries goes back to All on its own. A saved Category or Topic whose value no longer exists keeps that value, and the list stays empty until you choose All for it. Two small icons beside the search box split the list by media kind in one tap - Audio, Video, or Own for channels you added yourself - and agree with whatever the Filter dialog already has selected. The filter button carries a Filter active mark when something is on; Clear filters in the dialog drops it all at once.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-catalog-browsing.html#narrow-with-filters"
         },
         {
@@ -106,7 +106,7 @@ layout: null
           "@type": "HowToStep",
           "position": 7,
           "name": "See which channels are alive before you tap one",
-          "text": "Refreshing the list does more than fetch new rows: FastMediaSorter checks every visible channel for reachability while it works, showing Checking streams.. and marking each one green or red as the answer comes in - a channel that fails shows No signal. Touching the screen stops the probe where it is, and video tiles get a fresh thumbnail out of the same pass. The marks are informational, not permanent - clear them any time with Settings, the Streams section, Clear play marks; the channels themselves stay exactly where they were.",
+          "text": "Refreshing the list does more than fetch new rows: FastMediaSorter checks every visible channel for reachability while it works, showing Checking streams.. and marking each channel that answers green as the answer comes in. A channel that does not answer gets an amber unknown mark instead, never red - red comes only from a playback you started that failed. Touching the screen stops the probe where it is, and video tiles get a fresh thumbnail out of the same pass. The marks are informational, not permanent - clear them any time with Settings, the Streams section, Clear play marks; the channels themselves stay exactly where they were.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-catalog-browsing.html#check-channel-health"
         },
         {
@@ -183,7 +183,7 @@ layout: null
 </head>
 
 <body class="doc-body">
-<div class="doc-stamp">26.10.26 18:01</div>
+<div class="doc-stamp">26.11.14 02:38</div>
     <a class="doc-skip-link" href="#main-content">Skip to content</a>
 
     <!-- Header Chrome -->
@@ -543,7 +543,7 @@ layout: null
                         <h2 class="doc-step-title">Narrow it down with filters</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>Tap <strong>Filter</strong> to open rows for <strong>Category</strong>, <strong>Language</strong>, <strong>Country</strong> and <strong>Topic</strong> - Topic only shows up when the catalog actually carries topics. Language and Country open a type-to-filter searchable picker with flags: the language picker pins English, Russian and Ukrainian to the top, and a country's flag-and-code chip sits before its language chip in the list. The Language list holds only real languages, one entry each however the catalog spells them - regional variants and typos fold into one. The Country list holds only real countries, by full name with a flag, in alphabetical order, with the countries of your interface language first. A filter you saved earlier whose value no longer exists goes back to <strong>All</strong>.</p>
+                        <p>Tap <strong>Filter</strong> to open rows for <strong>Category</strong>, <strong>Language</strong>, <strong>Country</strong> and <strong>Topic</strong> - Topic only shows up when the catalog actually carries topics. Language and Country open a type-to-filter searchable picker with flags: the language picker pins English, Russian and Ukrainian to the top, and a country's flag-and-code chip sits before its language chip in the list. The Language list holds only real languages, one entry each however the catalog spells them - regional variants and typos fold into one. The Country list holds only real countries, by full name with a flag, in alphabetical order, with the countries of your interface language first. A saved <strong>Language</strong> or <strong>Country</strong> that the catalog no longer carries goes back to <strong>All</strong> on its own. A saved <strong>Category</strong> or <strong>Topic</strong> whose value no longer exists keeps that value, and the list stays empty until you choose <strong>All</strong> for it.</p>
                         <p>Two small icons beside the search box split the list by media kind in one tap - <strong>Audio</strong>, <strong>Video</strong>, or <strong>Own</strong> for channels you added yourself - and agree with whatever the Filter dialog already has selected. The filter button carries a <strong>Filter active</strong> mark when something is on; <strong>Clear filters</strong> in the dialog drops it all at once.</p>
                         <figure class="doc-figure" data-shot-id="streams.catalog-filter-sheet">
                             <img src="../assets/images/streams/catalog-filter-sheet.png" alt="The Streams filter dialog open with Category, Language, Country and Topic rows and Audio/Video/Own media type choices" class="doc-screenshot" loading="lazy" />
@@ -586,11 +586,11 @@ layout: null
                         <h2 class="doc-step-title">See which channels are alive before you tap one</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>Refreshing the list does more than fetch new rows: FastMediaSorter checks every visible channel for reachability while it works, showing <strong>Checking streams..</strong> and marking each one green or red as the answer comes in - a channel that fails shows <strong>No signal</strong>. Touching the screen stops the probe where it is, and video tiles get a fresh thumbnail out of the same pass.</p>
+                        <p>Refreshing the list does more than fetch new rows: FastMediaSorter checks every visible channel for reachability while it works, showing <strong>Checking streams..</strong> and marking each channel that answers green as the answer comes in. A channel that does not answer gets an amber unknown mark instead, never red - red comes only from a playback you started that failed. Touching the screen stops the probe where it is, and video tiles get a fresh thumbnail out of the same pass.</p>
                         <p>The marks are informational, not permanent - clear them any time with <strong>Settings</strong>, the <strong>Streams</strong> section, <strong>Clear play marks</strong>; the channels themselves stay exactly where they were.</p>
                         <figure class="doc-figure" data-shot-id="streams.refresh-health-marks">
-                            <img src="../assets/images/streams/refresh-health-marks.png" alt="The Streams list mid-refresh with the Checking streams message showing and channel rows marked green or red for reachability" class="doc-screenshot" loading="lazy" />
-                            <figcaption>Checking streams.. - green for reachable, red for No signal.</figcaption>
+                            <img src="../assets/images/streams/refresh-health-marks.png" alt="The Streams list mid-refresh with the Checking streams message showing and channel rows marked green for reachable or amber for unknown" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Checking streams.. - green for a channel that answers, amber for one that does not.</figcaption>
                         </figure>
                     </div>
                 </div>

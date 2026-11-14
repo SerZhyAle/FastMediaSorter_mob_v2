@@ -14,6 +14,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ListPopupWindow
 import android.widget.TextView
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.core.content.res.use
 import androidx.core.view.updateLayoutParams
@@ -46,6 +47,7 @@ class SettingsDropdownRow @JvmOverloads constructor(
     private val binding = ViewSettingsDropdownRowBinding.inflate(LayoutInflater.from(context), this)
 
     private val textGroup: LinearLayout = binding.sdrTextGroup
+    private val iconView: ImageView = binding.sdrIcon
     private val titleView: TextView = binding.sdrTitle
     private val subtitleView: TextView = binding.sdrSubtitle
     private val helpIcon: ImageButton = binding.sdrIconHelp
@@ -97,6 +99,19 @@ class SettingsDropdownRow @JvmOverloads constructor(
      */
     fun setTitle(@StringRes resId: Int) {
         setTitle(context.getText(resId))
+    }
+
+    /**
+     * Sets the optional leading feature icon; `0` hides the slot (S4570).
+     */
+    fun setIcon(@DrawableRes resId: Int) {
+        if (resId == 0) {
+            iconView.setImageDrawable(null)
+            iconView.visibility = View.GONE
+        } else {
+            iconView.setImageResource(resId)
+            iconView.visibility = View.VISIBLE
+        }
     }
 
     /**
@@ -176,6 +191,7 @@ class SettingsDropdownRow @JvmOverloads constructor(
 
     override fun setEnabled(enabled: Boolean) {
         super.setEnabled(enabled)
+        iconView.isEnabled = enabled
         titleView.isEnabled = enabled
         subtitleView.isEnabled = enabled
         help.setEnabled(enabled)
@@ -288,6 +304,7 @@ class SettingsDropdownRow @JvmOverloads constructor(
         context.obtainStyledAttributes(attrs, R.styleable.SettingsDropdownRow, defStyleAttr, 0).use { typedArray ->
             setTitle(typedArray.getText(R.styleable.SettingsDropdownRow_sdr_title) ?: "")
             setSubtitle(typedArray.getText(R.styleable.SettingsDropdownRow_sdr_subtitle))
+            setIcon(typedArray.getResourceId(R.styleable.SettingsDropdownRow_sdr_icon, 0))
             help.setPayload(
                 typedArray.getText(R.styleable.SettingsDropdownRow_sdr_helpTitle),
                 typedArray.getText(R.styleable.SettingsDropdownRow_sdr_helpMessage),
@@ -419,13 +436,17 @@ class SettingsDropdownRow @JvmOverloads constructor(
     }
 
     /**
-     * Natural width of the title plus its help icon, measured unconstrained so an already applied
-     * column width is never fed back to [SettingsValueRowGroup].
+     * Natural width of the leading icon, the title and its help icon, measured unconstrained so an
+     * already applied column width is never fed back to [SettingsValueRowGroup].
      */
     override fun measureLabelNaturalWidth(): Int {
         val unbounded = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
         titleView.measure(unbounded, unbounded)
         var width = titleView.measuredWidth
+        if (iconView.visibility == View.VISIBLE) {
+            width += resources.getDimensionPixelSize(R.dimen.settings_help_icon_size) +
+                resources.getDimensionPixelSize(R.dimen.settings_help_icon_margin)
+        }
         if (helpIcon.visibility == View.VISIBLE) {
             helpIcon.measure(unbounded, unbounded)
             width += helpIcon.measuredWidth + resources.getDimensionPixelSize(R.dimen.settings_help_icon_margin)

@@ -179,6 +179,10 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
                     activity.setResult(android.app.Activity.RESULT_OK)
                     activity.finish()
                 }
+
+                override fun sendToPickResource(): () -> Unit = {
+                    activity.dialogAndUiStateManager.showCopyDialog()
+                }
             },
             translationManager = activity.translationManager,
             saveFlow = saveFlow,

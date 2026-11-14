@@ -18,4 +18,7 @@ enum class SensorCapability {
     LIGHT,
     MAGNETOMETER,
     LEVEL,
+
+    /** S4560: device attitude from the game or geomagnetic rotation vector. */
+    ATTITUDE,
 }

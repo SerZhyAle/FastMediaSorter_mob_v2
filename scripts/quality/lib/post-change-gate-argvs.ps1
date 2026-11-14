@@ -72,3 +72,20 @@ if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvDiagnosticsRedaction += 
 # layout debt cannot fail this closure.
 $argvA11ySemantics = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-a11y-semantics.ps1"), '-Gate')
 if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvA11ySemantics += @('-ChangedFiles', ($changedFiles -join ',')) }
+# S4570: the layout/resource and source-scan vectors below moved here from the facade to hold it under
+# the Rule 2 ceiling when the uniform-glyph-sets gate was wired; order and scoping are unchanged.
+$argvOrientationFeature = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-orientation-implied-feature.ps1"), '-Gate')
+$argvOrientationPairing = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-orientation-layout-pairing.ps1"), '-Gate')
+$argvLayoutVariantParity = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-layout-variant-id-parity.ps1"), '-Gate')
+$argvFocusParity = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-focus-parity.ps1"), '-Gate', '-Quiet')
+# S2326: the FGS gate reads every Kotlin file in both trees twice. Handing it the changed set makes
+# it judge what this change could have broken - a new call site, or a drawable it may have tinted.
+$argvFgs = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-fgs-notifications.ps1"), '-Gate')
+if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvFgs += @('-ChangedFiles', ($changedFiles -join ',')) }
+$argvDialogCancel = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-dialog-cancel-style.ps1"), '-Gate')
+$argvUniformGlyphSets = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-uniform-glyph-sets.ps1"), '-Gate', '-Quiet')
+if ($ScopeToFile) { $argvUniformGlyphSets += @('-ChangedFiles', ($changedFiles -join ',')) }
+$argvActivityLocaleWrapper = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-activity-locale-wrapper.ps1"), '-Gate')
+if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvActivityLocaleWrapper += @('-ChangedFiles', ($changedFiles -join ',')) }
+$argvQuantityFormatSeam = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-quantity-format-seam.ps1"), '-Gate')
+if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvQuantityFormatSeam += @('-ChangedFiles', ($changedFiles -join ',')) }

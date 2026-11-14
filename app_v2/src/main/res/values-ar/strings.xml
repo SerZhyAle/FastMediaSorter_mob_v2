@@ -1847,7 +1847,7 @@
     <string name="streams_pin_to_top">تثبيت في الأعلى</string>
     <string name="streams_remove">إزالة</string>
     <string name="streams_add_url_hint">رابط البث (http، https، rtsp)</string>
-    <string name="streams_import_url_hint">رابط قائمة التشغيل (m3u)</string>
+    <string name="streams_import_url_hint">رابط قائمة التشغيل (m3u, m3u8)</string>
     <string name="streams_title_hint">الاسم (اختياري)</string>
     <string name="streams_error_invalid_url">أدخل عنوان http أو https أو rtsp صالحًا.</string>
     <string name="streams_error_network">تعذّر تحميل القائمة. تحقّق من الاتصال وأعد المحاولة.</string>

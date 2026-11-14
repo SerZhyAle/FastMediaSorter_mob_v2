@@ -3,15 +3,18 @@ package com.sza.fastmediasorter.ui.launcher.menu
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.launcher.AppCategory
 import com.sza.fastmediasorter.domain.model.launcher.AppCategoryCatalog
 import com.sza.fastmediasorter.domain.model.launcher.InstalledApp
 import com.sza.fastmediasorter.domain.model.launcher.InstalledAppSortOrder
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.usecase.apps.AppCategoryNameTakenException
 import com.sza.fastmediasorter.domain.usecase.apps.ApplyAllAppsSortDefaultUseCase
 import com.sza.fastmediasorter.domain.usecase.apps.CreateAppCategoryUseCase
 import com.sza.fastmediasorter.domain.usecase.apps.MoveAppCategoryUseCase
 import com.sza.fastmediasorter.domain.usecase.apps.ObserveAppCategoryCatalogUseCase
 import com.sza.fastmediasorter.domain.usecase.apps.QueryAllAppsUseCase
+import com.sza.fastmediasorter.domain.usecase.apps.RenameAppCategoryUseCase
 import com.sza.fastmediasorter.domain.usecase.apps.SeedAppCategoriesUseCase
 import com.sza.fastmediasorter.domain.usecase.apps.SetAppCategoriesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,6 +29,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -44,6 +48,7 @@ class LauncherAllAppsViewModel @Inject constructor(
     private val setAppCategoriesUseCase: SetAppCategoriesUseCase,
     private val createAppCategory: CreateAppCategoryUseCase,
     private val moveAppCategory: MoveAppCategoryUseCase,
+    private val renameAppCategory: RenameAppCategoryUseCase,
 ) : ViewModel() {
 
     init {
@@ -63,6 +68,11 @@ class LauncherAllAppsViewModel @Inject constructor(
 
     /** S4530: a write that did not persist is reported, never drawn as done (strategic §3.4). */
     val categorySaveFailed: SharedFlow<Unit> = _categorySaveFailed
+
+    private val _categoryNameTaken = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+
+    /** S4563: a rename refused because another group already shows that name - the user can pick another. */
+    val categoryNameTaken: SharedFlow<Unit> = _categoryNameTaken
 
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query
@@ -127,6 +137,18 @@ class LauncherAllAppsViewModel @Inject constructor(
     fun moveCategory(categoryId: String, displayedOrder: List<String>, offset: Int) {
         viewModelScope.launch {
             reportFailure(moveAppCategory(categoryId, displayedOrder, offset))
+        }
+    }
+
+    fun renameCategory(categoryId: String, name: String, labelOf: (AppCategory) -> String) {
+        Timber.d("S4563: rename category submitted")
+        viewModelScope.launch {
+            val result = renameAppCategory(categoryId, name, labelOf)
+            if (result.exceptionOrNull() is AppCategoryNameTakenException) {
+                _categoryNameTaken.tryEmit(Unit)
+            } else {
+                reportFailure(result)
+            }
         }
     }
 

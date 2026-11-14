@@ -73,7 +73,7 @@ steps:
     id: clock-gestures
     title: Swipe the clock to change how it looks
     text: |
-      The **Clock** [gadget](term:gadget) answers its own swipes: hide or bring back the seconds, or swipe for a random dial color and time typeface, or swipe back to the theme color. The date keeps its own typeface while sharing whichever dial color you land on, and the choice survives a launcher restart.
+      The **Clock** [gadget](term:gadget) answers its own swipes: hide or bring back the seconds, or swipe for a random dial color and time typeface, or swipe back to the theme color. Twenty distinct time typefaces take turns, colors run from soft pastels to bright tones, and a paired watch face shows the same typeface and color. The date keeps its own typeface while sharing whichever dial color you land on, and the choice survives a launcher restart.
   - number: 8
     id: double-tap-lock
     title: Double-tap to lock the screen
@@ -111,6 +111,6 @@ next_recipes:
     description: The Start button, recent and pinned apps and the status tray.
 ---
 
-<sub class="doc-stamp">26.11.10 13:31</sub>
+<sub class="doc-stamp">26.11.13 16:00</sub>
 
 An [edge gesture](term:edge-gesture) works from inside any app, and the [launcher](term:launcher) [desktop](term:desktop) adds its own swipes and taps on top. This page covers setting up both, plus the small gestures on the Clock gadget and the double tap that locks the screen.

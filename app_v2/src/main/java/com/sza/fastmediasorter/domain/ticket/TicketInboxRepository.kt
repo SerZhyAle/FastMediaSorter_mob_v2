@@ -17,7 +17,9 @@ data class TicketAttachmentSource(
 data class TicketDraft(
     val text: String,
     val project: String?,
-    val attachments: List<TicketAttachmentSource>
+    val attachments: List<TicketAttachmentSource>,
+    /** S4573: the resource whose root is the inbox; null = the Drive inbox. */
+    val inboxResourceId: Long? = null
 )
 
 /** S4554: one delivery pass - how many packets reached Drive and how many still wait. */

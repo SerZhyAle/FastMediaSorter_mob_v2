@@ -38,6 +38,7 @@
       - assert-backup-rules-consistent (S1552 API 31+ extraction rules vs the pre-31 backup rules)
       - assert-launcher-reset-coverage (S1540 launcher settings vs the launcher reset's field list)
       - assert-help-map              (S4288 every phone surface vs its in-app help row and pages)
+      - assert-uniform-glyph-sets    (S4570 a menu level, header set or settings group mixing glyph / no glyph)
       - assert-maestro-oracle        (S1612 Maestro flows that are green without proving anything)
       - assert-hook-inventory        (S1604 registered Claude Code hooks vs docs/AGENT_HOOKS.md)
       - assert-rule-digest-sync      (S1548 CLAUDE.md numbered rules vs the two full digests)
@@ -584,6 +585,9 @@ $gates = [ordered]@{
     # update. R8 must keep the matching enum fields stable or a later version cannot `valueOf`
     # the earlier value. The gate inventories those boundaries against base release rules.
     'assert-enum-persistence-contract.ps1'      = @('-Quiet')
+    # S4570: ICON-RENDER sibling-set rule - a menu level, the group headers of one page or the rows of
+    # one settings group mixing members with and without a glyph. Parses menu and layout XML, no gradle.
+    'assert-uniform-glyph-sets.ps1'             = @('-Quiet')
 }
 
 # S1338: these five accept -ChangedFiles and used to be invoked with no arguments at
@@ -599,6 +603,7 @@ $changedFilesAware = @(
     'assert-gate-placement.ps1',
     'assert-quantity-format-seam.ps1',
     'assert-log-redaction.ps1',
+    'assert-uniform-glyph-sets.ps1',
     'assert-credential-encryption.ps1',
     'assert-diagnostics-redaction.ps1'
 )

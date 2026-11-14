@@ -31,6 +31,18 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
+                <!-- Optional leading feature icon (S4570). Decorative; inside the cluster so it stays
+                     with the caption in the stacked, inline and value text forms alike. -->
+                <ImageView
+                    android:id="@+id/sdr_icon"
+                    android:layout_width="@dimen/settings_help_icon_size"
+                    android:layout_height="@dimen/settings_help_icon_size"
+                    android:layout_marginEnd="@dimen/settings_help_icon_margin"
+                    android:contentDescription="@null"
+                    android:importantForAccessibility="no"
+                    app:tint="?attr/colorOnSurfaceVariant"
+                    android:visibility="gone" />
+
                 <TextView
                     android:id="@+id/sdr_title"
                     android:layout_width="wrap_content"

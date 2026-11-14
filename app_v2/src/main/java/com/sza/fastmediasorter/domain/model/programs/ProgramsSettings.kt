@@ -58,6 +58,13 @@ data class ProgramsSettings(
     // S2997: the Tourist dashboard is a sub-program like its neighbours - off until the user asks for it,
     // so an update never changes the composition of the programs panel on its own.
     val enableTourist: Boolean = false,
+    // S4568: Notes joins the programs off by default, for the same reason as its neighbours above.
+    val enableNotes: Boolean = false,
+    // S4573: Send feedback joins the programs off by default, for the same reason as its neighbours.
+    val enableFeedback: Boolean = false,
+    // S4573: the resource the feedback form writes its packet into, a folder published by the computer
+    // through the exchange server; null keeps feedback on the Send to.. menu alone.
+    val feedbackInboxResourceId: Long? = null,
     // S1735: the Wear companion becomes a program like its neighbours. Off by default so an update never
     // adds an entry to the programs panel on its own; it is shown at all only where the build carries the
     // watch bridge, which is a separate condition read from MediaCapabilities.

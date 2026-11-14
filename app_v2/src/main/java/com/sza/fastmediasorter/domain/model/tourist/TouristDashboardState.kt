@@ -42,6 +42,8 @@ data class TouristDashboardState(
     val counterValue: Long = 0L,
     val stopwatchElapsedMillis: Long = 0L,
     val stopwatchRunning: Boolean = false,
+    /** S4560: gyroscope turning speed, present only while the GYROSCOPE tile is focused. */
+    val turnRateDegreesPerSecond: Float? = null,
 )
 
 /**

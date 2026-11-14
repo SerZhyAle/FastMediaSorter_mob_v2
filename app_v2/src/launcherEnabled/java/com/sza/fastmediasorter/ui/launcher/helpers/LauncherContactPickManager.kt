@@ -363,6 +363,7 @@ class LauncherContactPickManager(
         val anyApp = SearchableOptionPickerDialog.Option(
             id = MESSENGER_ANY,
             label = activity.getString(R.string.launcher_contact_messenger_any),
+            leading = APPS_GLYPH,
         )
         // The icon is fetched, never stored, for the same reason channelOptions gives: a Drawable does
         // not go into saved state, and the package is enough to ask for it again.
@@ -373,7 +374,7 @@ class LauncherContactPickManager(
             SearchableOptionPickerDialog.Option(
                 id = messenger.packageName,
                 label = messenger.label,
-                leading = appIcon?.let { SearchableOptionPickerDialog.LeadingVisual.IconDrawable(it) },
+                leading = appLeading(appIcon),
             )
         }
     }
@@ -581,10 +582,17 @@ class LauncherContactPickManager(
             SearchableOptionPickerDialog.Option(
                 id = channel.target.messageDataId.toString(),
                 label = channel.label,
-                leading = appIcon?.let { SearchableOptionPickerDialog.LeadingVisual.IconDrawable(it) },
+                leading = appLeading(appIcon),
             )
         }
     }
+
+    /**
+     * S4570: an app whose icon cannot be read keeps the `content.apps` stand-in (ICON-EXTERNAL rule 4),
+     * so its row is not the one glyph-less member of a list of app icons.
+     */
+    private fun appLeading(appIcon: android.graphics.drawable.Drawable?): SearchableOptionPickerDialog.LeadingVisual =
+        appIcon?.let { SearchableOptionPickerDialog.LeadingVisual.IconDrawable(it) } ?: APPS_GLYPH
 
     private fun onChannelPicked(pickedId: String?) {
         val channels = stepState.readChannels()
@@ -658,5 +666,7 @@ class LauncherContactPickManager(
 
         /** Below this the question has one answer, so it is not asked. */
         const val MIN_MESSENGERS_TO_ASK = 2
+
+        private val APPS_GLYPH = SearchableOptionPickerDialog.LeadingVisual.IconRes(R.drawable.ic_apps, tintIcon = true)
     }
 }

@@ -49,6 +49,19 @@ class FillerEngineTest {
     }
 
     @Test
+    fun `reserve below the floor refuses before a session begins and the floor itself runs`() = runTest {
+        assertEquals(FillerResult.InvalidTarget, engine.run(target, FILLER_MIN_RESERVE_BYTES - 1))
+        assertFalse(journal.began)
+        assertEquals(INITIAL_SPACE, storage.available)
+
+        assertEquals(
+            FillerResult.Finished(INITIAL_SPACE - FILLER_MIN_RESERVE_BYTES, true),
+            engine.run(target, FILLER_MIN_RESERVE_BYTES),
+        )
+        assertTrue(journal.began)
+    }
+
+    @Test
     fun `write failure retains journal when cleanup fails`() = runTest {
         storage.writeFails = true
         storage.cleanupSucceeds = false
@@ -179,7 +192,7 @@ class FillerEngineTest {
     }
 
     private companion object {
-        const val INITIAL_SPACE = 2048L
-        const val RESERVE = 1024L
+        const val RESERVE = FILLER_MIN_RESERVE_BYTES
+        const val INITIAL_SPACE = 2 * RESERVE
     }
 }

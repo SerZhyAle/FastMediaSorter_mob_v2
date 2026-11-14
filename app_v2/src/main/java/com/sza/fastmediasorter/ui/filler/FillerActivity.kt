@@ -5,6 +5,7 @@ import android.content.Intent
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import com.google.android.material.slider.Slider
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityFillerBinding
 import com.sza.fastmediasorter.ui.common.help.HelpToolbarEntryManager
@@ -19,6 +20,8 @@ class FillerActivity : BaseActivity<ActivityFillerBinding>() {
     private val viewModel: FillerViewModel by viewModels()
 
     private lateinit var screen: FillerScreenManager
+
+    private var reserveListener: Slider.OnChangeListener? = null
 
     private val folderPicker = registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
         uri?.let { viewModel.onFolderPicked(it.toString()) }
@@ -35,6 +38,18 @@ class FillerActivity : BaseActivity<ActivityFillerBinding>() {
         binding.btnFillerStart.setOnClickListener { screen.confirmStart(viewModel.state.value, viewModel::start) }
         binding.btnFillerCancel.setOnClickListener { viewModel.cancel() }
         binding.btnFillerRetryCleanup.setOnClickListener { viewModel.retryCleanup() }
+        val listener = Slider.OnChangeListener { _, stop, fromUser ->
+            if (fromUser) FillerUiState.RESERVE_CHOICES_BYTES.getOrNull(stop.toInt())?.let(viewModel::chooseReserve)
+        }
+        binding.sliderFillerReserve.addOnChangeListener(listener)
+        reserveListener = listener
+    }
+
+    override fun onDestroy() {
+        // Before super, which nulls the binding this listener is read off.
+        reserveListener?.let { binding.sliderFillerReserve.removeOnChangeListener(it) }
+        reserveListener = null
+        super.onDestroy()
     }
 
     override fun observeData() {

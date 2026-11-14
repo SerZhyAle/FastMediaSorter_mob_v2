@@ -23,6 +23,7 @@
     <!-- Search audio covers online -->
     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
         android:id="@+id/rowSearchAudioCoversOnline"
+        app:str_icon="@drawable/ic_search"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart"
@@ -33,6 +34,7 @@
     <!-- Search covers only on WiFi (sub-option of searchAudioCoversOnline) - visibility toggled in fragment -->
     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
         android:id="@+id/rowSearchCoversOnlyWifi"
+        app:str_icon="@drawable/ic_wifi"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/settings_nested_margin_start"
@@ -45,6 +47,7 @@
     <!-- Save audio metadata locally (sub-option of searchAudioCoversOnline) -->
     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
         android:id="@+id/rowSaveAudioMetadataLocally"
+        app:str_icon="@drawable/ic_save"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/settings_nested_margin_start"
@@ -78,6 +81,7 @@
     <!-- Enable photos during audio playback - help payload folded into the row -->
     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
         android:id="@+id/rowEnablePhotosDuringAudio"
+        app:str_icon="@drawable/ic_image"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart"
@@ -109,6 +113,7 @@
 
         <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
             android:id="@+id/rowAudioEmptyStateMode"
+            app:ssr_icon="@drawable/ic_graphic_eq"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:ssr_title="@string/audio_empty_state_label" />

@@ -111,8 +111,17 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
                 Availability(availableInBuild = true, enabledAtRuntime = settings.enableSystemInfo)
             // S2922: Tourist dashboard sub-program - universal across flavors.
             InternalRouteCatalog.KEY_TOURIST_INFO ->
-                Availability(availableInBuild = true, enabledAtRuntime = settings.enableTourist).also {
-                }
+                Availability(availableInBuild = true, enabledAtRuntime = settings.enableTourist)
+            // S4568: notes open in the text editor, which ships only where documents do.
+            InternalRouteCatalog.KEY_NOTES ->
+                Availability(
+                    availableInBuild = mediaCapabilities.supportsDocuments,
+                    enabledAtRuntime = settings.enableNotes,
+                )
+            // S4573: the form, Send to.. and the outbox exist in every build; only the computer folder
+            // needs the exchange layer, and the form hides that selector on its own.
+            InternalRouteCatalog.KEY_FEEDBACK ->
+                Availability(availableInBuild = true, enabledAtRuntime = settings.enableFeedback)
             // S1883: unlike system information, the companion needs the watch bridge, so it declares the
             // same capability-and-switch pair the quick voice route uses rather than a hardcoded true.
             // S2881: the two listen calls are that bridge in action, so they answer with the same pair -

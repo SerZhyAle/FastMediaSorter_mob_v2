@@ -125,5 +125,7 @@ object SubProgramAccentCatalog {
         InternalRouteCatalog.KEY_FAVORITES to R.color.color_program_accent_purple,
         InternalRouteCatalog.KEY_CONTINUE_READING to R.color.color_program_accent_purple,
         InternalRouteCatalog.KEY_RANDOM_MUSIC to R.color.color_program_accent_purple,
+        InternalRouteCatalog.KEY_NOTES to R.color.color_program_accent_purple,
+        InternalRouteCatalog.KEY_FEEDBACK to R.color.color_program_accent_purple,
     )
 }

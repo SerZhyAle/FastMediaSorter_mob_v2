@@ -1,15 +1,21 @@
 #requires -Version 7.0
 <#
 .SYNOPSIS
-    Read GitHub Actions' verdict for the commit a release pushed, and refuse the release on a red or a missing one.
+    Read GitHub Actions' verdict for the commit a release judges, start the CI on it first when asked,
+    and refuse the release on a red or a missing one.
 
 .DESCRIPTION
-    Step 12 of /skill-release, after the artifact build and before the first store publication.
-    Step 10 pushes `main` and the tag, and since S4488 that push is what starts the full CI: the
-    Android build with lint and the unit suite, the emulator E2E, the static gates. run-ci-parity.ps1
-    (Step 6b) narrows what CI can find but, by its own header, cannot see Linux / JDK 21 behaviour,
-    so CI stays the verdict on the pushed commit. Until this script nothing in the release read that
-    verdict, and a red CI was found afterwards by the owner, release after release.
+    Step 7b of /skill-release, after the DEBUG branch is pushed and before the merge into `main` and
+    the tag. Since S4488 only a push to `main` (or a manual dispatch) starts the full CI: the Android
+    build with lint and the unit suite, the emulator E2E, the static gates. A DEBUG push starts none
+    of it, so a red CI used to surface after the tag, one round per burned version, AAB build and
+    flavor spectrum (release 48: three rounds). run-ci-parity.ps1 (Step 6b) narrows what CI can find
+    but, by its own header, cannot see Linux / JDK 21 behaviour, so CI stays the verdict.
+
+    -Dispatch starts the release workflows on the pushed branch head through `workflow_dispatch`;
+    the tag later binds to that verdict because assert-release-tree-binding.ps1 proves the tagged
+    tree equals the tested one. Without -Dispatch the script only reads runs that already exist
+    (the informational read of the `main` push after the tag).
 
     Every workflow run that exists for the commit is judged. The newest run of each workflow stands,
     so a re-run that went green supersedes the red it re-ran; a run that needed more than one
@@ -27,8 +33,22 @@
     calls this with -WaitSeconds below the tool timeout and calls it again on exit 3.
 
 .PARAMETER Sha
-    The commit CI judged: a full SHA, or any ref the repository resolves (a release passes the tag,
-    `release/v<version>`). Defaults to `origin/main`.
+    The commit CI judged: a full SHA, or any ref the repository resolves (a release passes the pushed
+    DEBUG head, `origin/DEBUG-v0NN`, or the tag, `release/v<version>`). Defaults to `origin/main`.
+
+.PARAMETER Dispatch
+    Start the -DispatchWorkflows on -Branch before judging. A workflow that already has a run for the
+    commit is left alone, so calling again on exit 3 never cancels a run in flight. Every dispatched
+    workflow joins -Required.
+
+.PARAMETER Branch
+    The branch -Dispatch starts the workflows on. Mandatory with -Dispatch. Its head on `origin`
+    must equal the commit -Sha resolves to, because GitHub runs the branch tip, not a local ref.
+
+.PARAMETER DispatchWorkflows
+    Workflow names -Dispatch starts. Defaults to the workflows that judge the tree on the release
+    push to `main`: Android CI Quality Gate, Static Gates, Maestro E2E Tests, Security scan. The site
+    deploy is not among them and is never dispatched from a branch.
 
 .PARAMETER Required
     Workflow names that must have a run for the commit. Defaults to `Android CI Quality Gate`.
@@ -55,19 +75,27 @@
     Repository root, used to resolve -Sha and as the working directory of `gh`.
 
 .EXAMPLE
-    pwsh -NoProfile -File scripts/release/assert-ci-verdict.ps1 -Sha release/v2.61.0291.626 -WaitSeconds 540
+    pwsh -NoProfile -File scripts/release/assert-ci-verdict.ps1 -Dispatch -Branch DEBUG-v041 -Sha origin/DEBUG-v041 -WaitSeconds 540
+
+.EXAMPLE
+    pwsh -NoProfile -File scripts/release/assert-ci-verdict.ps1 -Sha release/v2.61.0291.626 -WaitSeconds 0
 
 .NOTES
     Exit codes:
       0 - every run for the commit is green and every required workflow has a run
       1 - at least one run is red (failure, cancelled, timed out, ..) and not accepted
       2 - could not verify: gh missing or unauthenticated, the commit does not resolve, an unreadable
-          run list, -Accept without -AcceptReason, or a required workflow that never got a run
+          run list, -Accept without -AcceptReason, -Dispatch without -Branch, a branch that is not on
+          origin or whose origin head is not the judged commit, a `gh workflow run` that failed, or a
+          required workflow that never got a run
       3 - not a verdict yet: runs are still pending when the wait ended. Call again.
 #>
 [CmdletBinding()]
 param(
     [string] $Sha = 'origin/main',
+    [switch] $Dispatch,
+    [string] $Branch = '',
+    [string[]] $DispatchWorkflows = @('Android CI Quality Gate', 'Static Gates', 'Maestro E2E Tests', 'Security scan'),
     [string[]] $Required = @('Android CI Quality Gate'),
     [string[]] $Accept = @(),
     [string] $AcceptReason = '',
@@ -83,6 +111,7 @@ $ErrorActionPreference = 'Stop'
 # `pwsh -File` hands a comma list over as one string, so a release can write -Required 'A','B' or 'A,B'.
 $Required = @($Required | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
 $Accept = @($Accept | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+$DispatchWorkflows = @($DispatchWorkflows | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
 
 function Stop-Unverified([string] $Message) {
     Write-Host "assert-ci-verdict: COULD NOT VERIFY - $Message"
@@ -91,6 +120,13 @@ function Stop-Unverified([string] $Message) {
 
 if ($Accept.Count -gt 0 -and [string]::IsNullOrWhiteSpace($AcceptReason)) {
     Stop-Unverified '-Accept needs -AcceptReason, the owner''s word for accepting this red'
+}
+if ($Dispatch -and [string]::IsNullOrWhiteSpace($Branch)) {
+    Stop-Unverified '-Dispatch needs -Branch, the branch the workflows are started on'
+}
+if ($Dispatch) {
+    # A dispatched workflow that never shows a run must read as a missing verdict, not as "nothing red".
+    $Required = @($Required + $DispatchWorkflows | Select-Object -Unique)
 }
 
 $fullSha = $null
@@ -177,6 +213,49 @@ function Write-FailureDetail($Run) {
         foreach ($step in @($job.steps) | Where-Object { @('failure', 'cancelled', 'timed_out') -contains [string] $_.conclusion }) {
             Write-Host "      step: $($step.name)"
         }
+    }
+}
+
+function Assert-OriginHeadIsJudgedCommit {
+    # `gh workflow run --ref` runs the branch tip on GitHub; a local ref that is ahead of or behind it
+    # would be judged by CI results of another commit.
+    if ($RunsJsonPath) { return }
+    $remote = & git -C $RepoRoot ls-remote origin "refs/heads/$Branch" 2>$null
+    if ($LASTEXITCODE -ne 0) { Stop-Unverified "git ls-remote origin failed for '$Branch' - check network and credentials" }
+    $line = [string] (@($remote) | Select-Object -First 1)
+    if (-not $line) { Stop-Unverified "branch '$Branch' is not on origin - push it before dispatching CI" }
+    $remoteSha = ($line -split '\s+')[0].ToLowerInvariant()
+    if ($remoteSha -ne $fullSha) {
+        Stop-Unverified ("origin/{0} is at {1} but '{2}' resolved to {3} - push or fetch so they match" -f $Branch, $remoteSha.Substring(0, 7), $Sha, $fullSha.Substring(0, 7))
+    }
+}
+
+function Start-WorkflowRun([string] $Name) {
+    if ($RunsJsonPath) {
+        Write-Host "assert-ci-verdict: dispatch (fixture run, nothing sent): $Name on $Branch"
+        return
+    }
+    Push-Location $RepoRoot
+    try {
+        $out = & $gh workflow run $Name --ref $Branch 2>&1 | Out-String
+        $code = $LASTEXITCODE
+    }
+    finally { Pop-Location }
+    if ($code -ne 0) { Stop-Unverified "gh workflow run '$Name' --ref $Branch exited ${code}: $($out.Trim())" }
+    Write-Host "assert-ci-verdict: dispatched $Name on $Branch"
+}
+
+if ($Dispatch) {
+    Assert-OriginHeadIsJudgedCommit
+    # Assigned, not wrapped in @(): Get-RunSnapshot returns `, @(..)` and `@(Get-RunSnapshot)` would keep that extra level.
+    $snapshot = Get-RunSnapshot
+    $haveRun = @($snapshot | ForEach-Object { [string] $_.workflowName } | Sort-Object -Unique)
+    foreach ($name in $DispatchWorkflows) {
+        if ($haveRun -contains $name) {
+            Write-Host "assert-ci-verdict: $name already has a run for this commit - not dispatched again"
+            continue
+        }
+        Start-WorkflowRun $name
     }
 }
 

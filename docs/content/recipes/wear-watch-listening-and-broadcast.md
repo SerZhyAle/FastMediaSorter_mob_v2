@@ -12,9 +12,9 @@ availability_note: The full watch version (sideload only); the phone's Listen to
 recipe_number: "09"
 canonical_url: documentation/wear/watch-listening-and-broadcast.html
 why: |
-  Your watch is already on your wrist wherever you are - in the kitchen, in the kid's room, out on a walk. That makes its microphone useful for more than telling the time: your phone can listen through it from across the house, and the watch itself can [broadcast](term:live-broadcast) what it hears to anyone on the same Wi-Fi, including a Windows PC.
+  Your watch is already on your wrist wherever you are - in the kitchen, in the kid's room, out on a walk. That makes its microphone useful for more than telling the time: your phone can listen through it from across the house, and the watch itself can [broadcast](term:live-broadcast) what it hears to anyone on the same Wi-Fi, or through your exchange server to anyone on another network, including a Windows PC.
 
-  The sessions of this recipe stay on your own local network, between devices that are already paired. A watch that has its own entry on an exchange server also reaches your account's folders and broadcasts over its own Wi-Fi or LTE - see [the watch on your account](../../docs/media-exchange-portal/watch-exchange.html).
+  Listening to the watch from the phone stays on your own local network, between devices that are already paired. A watch broadcast reaches listeners on the same Wi-Fi directly and listeners on other networks through your exchange server, and a watch that has its own entry on that server also reaches your account's folders and broadcasts over its own Wi-Fi or LTE - see [the watch on your account](../../docs/media-exchange-portal/watch-exchange.html).
 ingredients:
   - "The [watch app](term:watch-app) installed and paired - see [installing and pairing the watch](page:wear.installation-and-pairing)."
   - "The full version of the watch app. *Sideload version only* - see the [noLegal edition](term:nolegal-edition)."
@@ -42,7 +42,7 @@ steps:
     id: broadcast-from-watch
     title: Broadcast audio straight from the watch
     text: |
-      Open **Broadcast** from the Programs grid, or from the watch's home screen if it was the [program](term:program) you last used. Tap **Start broadcast** and the watch opens its own microphone and serves the sound over Wi-Fi to anyone you share the address with - several listeners at once. The screen shows **On air** the whole time, and the ongoing notification carries a **Stop** button, so ending it never needs you to reopen the app.
+      Open **Broadcast** from the Programs grid, or from the watch's home screen if it was the [program](term:program) you last used. Tap **Start broadcast** and the watch opens its own microphone and serves the sound over Wi-Fi to anyone you share the address with - up to four listeners at once. The screen shows **On air** the whole time, and the ongoing notification carries a **Stop** button, so ending it never needs you to reopen the app.
 
       A second button, **Screen off**, blanks the watch's display while the broadcast keeps going; a double tap, a press and hold, or the watch's own button brings the controls back. Broadcasting with the screen on is the hungriest thing the watch does - budget about a third of its battery an hour, so keep it on the charger for a long session.
 
@@ -101,9 +101,9 @@ steps:
       title: "Screenshot: Broadcast after sleep"
       desc: Watch broadcasting to one listener, screen turned off and woken again.
 outcome: |
-  You can hear what's happening near your watch from anywhere on the same Wi-Fi, and turn the watch's own microphone into a broadcast anyone nearby - or a Windows PC - can pick up, all without leaving the room your phone is in.
+  You can hear what's happening near your watch from anywhere on the same Wi-Fi, and turn the watch's own microphone into a broadcast that listeners on the same Wi-Fi, listeners on another network through your exchange server, or a Windows PC can pick up, all without leaving the room your phone is in.
 tips:
-  - "**Nothing plays on the PC?** Check that StreamsPlayer and the watch are on the same Wi-Fi network - the broadcast never reaches beyond it."
+  - "**Nothing plays on the PC?** On the same Wi-Fi network, check that StreamsPlayer and the watch are both on it. From another network, the broadcast reaches the PC through your [exchange server](../../docs/media-exchange-portal/exchange-server.html), which needs the watch to have its own entry there - see [the watch on your account](../../docs/media-exchange-portal/watch-exchange.html)."
   - "**Watch screen off during a broadcast?** Double tap it, press and hold, or use the watch's own button - the broadcast itself keeps running the whole time."
   - "**A long call is draining the watch?** Broadcasting with the screen on costs about a third of the battery an hour - dim the screen or keep it on the charger."
   - "**Want a phone or a watch to go on air for your other devices?** The [media exchange portal](../../docs/media-exchange-portal/live-broadcast.html) describes the routes between devices, step by step."
@@ -125,6 +125,6 @@ next_recipes:
     description: Everything else waiting in the watch's Programs grid.
 ---
 
-<sub class="doc-stamp">26.10.15 15:05</sub>
+<sub class="doc-stamp">26.11.14 03:06</sub>
 
-Listen to your paired [watch](term:watch)'s microphone from the phone, [broadcast](term:live-broadcast) the watch's own microphone to listeners on the same Wi-Fi or into a Windows PC, and send a live broadcast from the phone straight to the watch.
+Listen to your paired [watch](term:watch)'s microphone from the phone, [broadcast](term:live-broadcast) the watch's own microphone to listeners on the same Wi-Fi, to listeners on another network through your exchange server, or into a Windows PC, and send a live broadcast from the phone straight to the watch.

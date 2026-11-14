@@ -615,6 +615,7 @@ class CommandPanelController(
 
         val popup = PopupMenu(context, anchor)
         popup.setForceShowIcon(true)
+        Timber.d("S4570: embedded overflow built with a glyph on every item")
 
         val iconColor = context.popupIconColor()
 
@@ -630,7 +631,13 @@ class CommandPanelController(
                 android.view.Menu.NONE,
                 editCommands.minOf { it.priority },
                 context.getString(R.string.menu_edit_submenu_title)
-            ).apply { clearHeader() }
+            ).apply {
+                clearHeader()
+                // S4570: a submenu header is a member of the parent set, which force-shows icons.
+                item.icon = androidx.core.content.ContextCompat.getDrawable(context, R.drawable.ic_edit)
+                    ?.mutate()
+                    ?.apply { setTint(iconColor) }
+            }
         }
 
         // Build menu dynamically in priority order

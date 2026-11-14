@@ -1,0 +1,154 @@
+{
+  "help": "notes",
+  "surface": "NotesActivity",
+  "elements": [
+    { "id": "back", "viewId": "notesToolbar" },
+    { "id": "search", "viewId": "notesSearchView", "labelKey": "notes_search_hint" },
+    { "id": "list", "viewId": "notesRecyclerView" },
+    { "id": "row-more", "viewId": "noteMore", "labelKey": "notes_row_more" },
+    { "id": "empty", "viewId": "notesEmptyText", "labelKey": "notes_empty" },
+    { "id": "new-note", "viewId": "notesNewButton", "labelKey": "notes_new" }
+  ],
+  "related": [
+    { "help": "main" },
+    { "help": "settings-operations" },
+    { "help": "player" }
+  ],
+  "locales": {
+    "en": {
+      "title": "Notes",
+      "purpose": "All your text notes in one list, newest first, with search. A new note is one tap away and opens straight in the text editor; every note is a plain text file in the Notes folder of Documents, so the file browser and other apps see it too.",
+      "steps": [
+        "Tap New note (6) to start writing. The editor opens on an empty note; type, then save, and the note appears at the top of the list.",
+        "Tap a note in the list (3) to open it in the editor. Each row shows the first line as the title, the next line below it and the time of the last change.",
+        "To find a note, type in the search field (2). Only the notes whose text contains what you typed stay in the list.",
+        "The button at the end of a row (4) shares the note's text or deletes the note. Deleting asks first.",
+        "The back arrow (1) closes the screen. When there are no notes yet, a hint (5) says how to write the first one."
+      ],
+      "groups": [
+        { "title": "Title bar", "elements": ["back"] },
+        { "title": "Search and the list", "elements": ["search", "list", "row-more", "empty"] },
+        { "title": "Writing", "elements": ["new-note"] }
+      ],
+      "elements": {
+        "back": {
+          "name": "Back arrow",
+          "summary": "Leaves the screen and returns to where you came from.",
+          "details": "Nothing is lost: every note is already a file, and the list is read again the next time you open the screen."
+        },
+        "search": {
+          "summary": "Narrows the list to the notes whose text contains what you type.",
+          "details": "The search looks at the whole text of each note, not only its first line, and ignores upper and lower case. Clear the field to see every note again."
+        },
+        "list": {
+          "name": "List of notes",
+          "summary": "Every note of the Notes folder, newest first.",
+          "details": "The first line of a note is its title and the next line is shown under it, so most notes need no name. Tap a row to open the note in the text editor; a long press opens the same actions as the button at the end of the row."
+        },
+        "row-more": {
+          "summary": "Shares the note's text or deletes the note.",
+          "details": "Share sends the text to any app that accepts text, such as a messenger or email. Delete asks for confirmation and then removes the file from the device."
+        },
+        "empty": {
+          "name": "Empty list hint",
+          "summary": "Shown while there are no notes, or none matches the search.",
+          "details": "Tap New note to write the first one."
+        },
+        "new-note": {
+          "summary": "Creates a new note and opens it in the text editor.",
+          "details": "The note is named after the current date and time and saved in the Notes folder of Documents. Until you save it in the editor no file is written."
+        }
+      }
+    },
+    "ru": {
+      "title": "Заметки",
+      "purpose": "Все текстовые заметки одним списком, новые сверху, с поиском. Новая заметка создаётся одним нажатием и сразу открывается в текстовом редакторе; каждая заметка - обычный текстовый файл в папке Notes внутри Documents, поэтому её видят и проводник, и другие приложения.",
+      "steps": [
+        "Нажмите «Новая заметка» (6), чтобы начать писать. Редактор откроется на пустой заметке; наберите текст и сохраните - заметка появится в начале списка.",
+        "Нажмите на заметку в списке (3), чтобы открыть её в редакторе. В строке видны первая строка как заголовок, следующая строка под ней и время последнего изменения.",
+        "Чтобы найти заметку, наберите текст в поле поиска (2). В списке останутся только заметки, в которых он встречается.",
+        "Кнопка в конце строки (4) отправляет текст заметки или удаляет её. Перед удалением приложение спрашивает подтверждение.",
+        "Стрелка назад (1) закрывает экран. Пока заметок нет, подсказка (5) говорит, как написать первую."
+      ],
+      "groups": [
+        { "title": "Заголовок", "elements": ["back"] },
+        { "title": "Поиск и список", "elements": ["search", "list", "row-more", "empty"] },
+        { "title": "Запись", "elements": ["new-note"] }
+      ],
+      "elements": {
+        "back": {
+          "name": "Стрелка назад",
+          "summary": "Закрывает экран и возвращает туда, откуда вы пришли.",
+          "details": "Ничего не теряется: каждая заметка уже лежит в файле, а список читается заново при следующем открытии экрана."
+        },
+        "search": {
+          "summary": "Оставляет в списке только заметки, в тексте которых есть набранное.",
+          "details": "Поиск смотрит весь текст заметки, а не только первую строку, и не различает заглавные и строчные буквы. Очистите поле, чтобы снова увидеть все заметки."
+        },
+        "list": {
+          "name": "Список заметок",
+          "summary": "Все заметки из папки Notes, новые сверху.",
+          "details": "Первая строка заметки служит заголовком, следующая показана под ней, поэтому большинству заметок имя не нужно. Нажатие на строку открывает заметку в редакторе; долгое нажатие открывает те же действия, что и кнопка в конце строки."
+        },
+        "row-more": {
+          "summary": "Отправляет текст заметки или удаляет заметку.",
+          "details": "«Поделиться» передаёт текст любому приложению, которое принимает текст, например мессенджеру или почте. «Удалить» спрашивает подтверждение и затем удаляет файл с устройства."
+        },
+        "empty": {
+          "name": "Подсказка пустого списка",
+          "summary": "Видна, пока заметок нет или ни одна не подходит под поиск.",
+          "details": "Нажмите «Новая заметка», чтобы написать первую."
+        },
+        "new-note": {
+          "summary": "Создаёт новую заметку и открывает её в текстовом редакторе.",
+          "details": "Заметка получает имя по текущей дате и времени и сохраняется в папке Notes внутри Documents. Пока вы не сохраните её в редакторе, файл не записывается."
+        }
+      }
+    },
+    "uk": {
+      "title": "Нотатки",
+      "purpose": "Усі текстові нотатки одним списком, нові зверху, з пошуком. Нова нотатка створюється одним натисканням і одразу відкривається в текстовому редакторі; кожна нотатка - звичайний текстовий файл у папці Notes всередині Documents, тому її бачать і провідник, і інші застосунки.",
+      "steps": [
+        "Натисніть «Нова нотатка» (6), щоб почати писати. Редактор відкриється на порожній нотатці; наберіть текст і збережіть - нотатка з'явиться на початку списку.",
+        "Натисніть на нотатку в списку (3), щоб відкрити її в редакторі. У рядку видно перший рядок як заголовок, наступний рядок під ним і час останньої зміни.",
+        "Щоб знайти нотатку, наберіть текст у полі пошуку (2). У списку залишаться лише нотатки, у яких він трапляється.",
+        "Кнопка в кінці рядка (4) надсилає текст нотатки або видаляє її. Перед видаленням застосунок питає підтвердження.",
+        "Стрілка назад (1) закриває екран. Поки нотаток немає, підказка (5) пояснює, як написати першу."
+      ],
+      "groups": [
+        { "title": "Заголовок", "elements": ["back"] },
+        { "title": "Пошук і список", "elements": ["search", "list", "row-more", "empty"] },
+        { "title": "Запис", "elements": ["new-note"] }
+      ],
+      "elements": {
+        "back": {
+          "name": "Стрілка назад",
+          "summary": "Закриває екран і повертає туди, звідки ви прийшли.",
+          "details": "Нічого не втрачається: кожна нотатка вже лежить у файлі, а список читається знову під час наступного відкриття екрана."
+        },
+        "search": {
+          "summary": "Залишає в списку лише нотатки, у тексті яких є набране.",
+          "details": "Пошук переглядає весь текст нотатки, а не лише перший рядок, і не розрізняє великі та малі літери. Очистьте поле, щоб знову побачити всі нотатки."
+        },
+        "list": {
+          "name": "Список нотаток",
+          "summary": "Усі нотатки з папки Notes, нові зверху.",
+          "details": "Перший рядок нотатки слугує заголовком, наступний показано під ним, тому більшості нотаток ім'я не потрібне. Натискання на рядок відкриває нотатку в редакторі; довге натискання відкриває ті самі дії, що й кнопка в кінці рядка."
+        },
+        "row-more": {
+          "summary": "Надсилає текст нотатки або видаляє нотатку.",
+          "details": "«Поділитися» передає текст будь-якому застосунку, що приймає текст, наприклад месенджеру чи пошті. «Видалити» питає підтвердження, а потім видаляє файл із пристрою."
+        },
+        "empty": {
+          "name": "Підказка порожнього списку",
+          "summary": "Видно, поки нотаток немає або жодна не підходить під пошук.",
+          "details": "Натисніть «Нова нотатка», щоб написати першу."
+        },
+        "new-note": {
+          "summary": "Створює нову нотатку й відкриває її в текстовому редакторі.",
+          "details": "Нотатка отримує ім'я за поточною датою й часом і зберігається в папці Notes всередині Documents. Поки ви не збережете її в редакторі, файл не записується."
+        }
+      }
+    }
+  }
+}

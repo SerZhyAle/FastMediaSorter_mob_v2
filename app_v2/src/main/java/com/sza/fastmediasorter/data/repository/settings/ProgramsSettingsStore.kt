@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.programs.ProgramsSettings
@@ -26,6 +27,9 @@ object ProgramsSettingsStore {
 
     // S2997: the Tourist dashboard toggle persists with the programs group.
     private val KEY_ENABLE_TOURIST = booleanPreferencesKey("enable_tourist")
+    private val KEY_ENABLE_NOTES = booleanPreferencesKey("enable_notes")
+    private val KEY_ENABLE_FEEDBACK = booleanPreferencesKey("enable_feedback")
+    private val KEY_FEEDBACK_INBOX_RESOURCE_ID = longPreferencesKey("feedback_inbox_resource_id")
 
     // S2050: this field stays in AppSettings/DataStore rather than the watch-mirror store because it
     // is read as a reactive phone-behaviour toggle by code outside the companion sheet (e.g. the
@@ -63,6 +67,9 @@ object ProgramsSettingsStore {
         enableNetworkMonitor = preferences[KEY_ENABLE_NETWORK_MONITOR] ?: false,
         enableSystemInfo = preferences[KEY_ENABLE_SYSTEM_INFO] ?: false,
         enableTourist = preferences[KEY_ENABLE_TOURIST] ?: false,
+        enableNotes = preferences[KEY_ENABLE_NOTES] ?: false,
+        enableFeedback = preferences[KEY_ENABLE_FEEDBACK] ?: false,
+        feedbackInboxResourceId = preferences[KEY_FEEDBACK_INBOX_RESOURCE_ID],
         enableWearCompanion = preferences[KEY_ENABLE_WEAR_COMPANION] ?: false,
         suppressWearMediaTakeover = preferences[KEY_SUPPRESS_WEAR_MEDIA_TAKEOVER] ?: false,
         // S1433: recording a satellite track is a separate choice from opening the Monitor.
@@ -103,6 +110,14 @@ object ProgramsSettingsStore {
         preferences[KEY_ENABLE_NETWORK_MONITOR] = settings.enableNetworkMonitor
         preferences[KEY_ENABLE_SYSTEM_INFO] = settings.enableSystemInfo
         preferences[KEY_ENABLE_TOURIST] = settings.enableTourist
+        preferences[KEY_ENABLE_NOTES] = settings.enableNotes
+        preferences[KEY_ENABLE_FEEDBACK] = settings.enableFeedback
+        val inbox = settings.feedbackInboxResourceId
+        if (inbox == null) {
+            preferences.remove(KEY_FEEDBACK_INBOX_RESOURCE_ID)
+        } else {
+            preferences[KEY_FEEDBACK_INBOX_RESOURCE_ID] = inbox
+        }
         preferences[KEY_ENABLE_WEAR_COMPANION] = settings.enableWearCompanion
         preferences[KEY_SUPPRESS_WEAR_MEDIA_TAKEOVER] = settings.suppressWearMediaTakeover
         preferences[KEY_RECORD_GNSS_TRACK] = settings.recordGnssTrack

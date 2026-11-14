@@ -71,6 +71,10 @@ object InternalRouteCatalog {
 
     // S2922: Tourist dashboard sub-program - real-time telemetry and navigation tiles.
     const val KEY_TOURIST_INFO = "tourist_info"
+
+    // S4568: notes as a sub-program of their own instead of an action buried in a resource's menu.
+    const val KEY_NOTES = "notes"
+    const val KEY_FEEDBACK = "feedback"
     const val KEY_WEAR_COMPANION = "wear_companion"
 
     // S2881: two routes, not one - a registry entry resolves to exactly one intent, so the plain and
@@ -158,6 +162,20 @@ object InternalRouteCatalog {
             iconRes = R.drawable.ic_tourist,
             intent = AppLaunchPanelRouteIntents::touristInfo,
             settingsIntent = AppLaunchPanelRouteIntents::touristSettings,
+        ),
+        Route(
+            key = KEY_NOTES,
+            labelRes = R.string.notes_title,
+            iconRes = R.drawable.ic_send_note,
+            intent = AppLaunchPanelRouteIntents::notes,
+            settingsIntent = AppLaunchPanelRouteIntents::notesSettings,
+        ),
+        Route(
+            key = KEY_FEEDBACK,
+            labelRes = R.string.feedback_title,
+            iconRes = R.drawable.ic_send_plane,
+            intent = AppLaunchPanelRouteIntents::feedback,
+            settingsIntent = AppLaunchPanelRouteIntents::feedbackSettings,
         ),
         // S1883: label reused from the button that has always opened the companion, for the same reason
         // system information reuses its settings string - two wordings for one program drift apart.

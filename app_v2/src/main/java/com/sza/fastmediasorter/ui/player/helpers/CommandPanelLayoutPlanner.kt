@@ -102,7 +102,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             R.id.menu_file_number,
             false,
             R.string.player_file_jump,
-            0
+            R.drawable.ic_go_to_page
         ),
         FRAME_FORWARD(
             FRAME_FORWARD_PRIORITY,

@@ -43,6 +43,7 @@ import com.sza.fastmediasorter.ui.launcher.helpers.LauncherAppActionMenuManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -134,6 +135,7 @@ class LauncherAllAppsFragment : DialogFragment() {
             labels = categoryLabels,
             onSave = viewModel::setAppCategories,
             onCreate = viewModel::createCategory,
+            onRename = { categoryId, name -> viewModel.renameCategory(categoryId, name, categoryLabels::labelOf) },
         )
     }
 
@@ -221,12 +223,23 @@ class LauncherAllAppsFragment : DialogFragment() {
         collectOnLifecycle(viewModel.categorySaveFailed) {
             Toast.makeText(requireContext(), R.string.launcher_app_category_save_failed, Toast.LENGTH_SHORT).show()
         }
+        collectOnLifecycle(viewModel.categoryNameTaken) {
+            Toast.makeText(requireContext(), R.string.launcher_app_category_name_taken, Toast.LENGTH_SHORT).show()
+        }
         binding.allAppsReorderUp.setOnClickListener { reorderManager.moveUp() }
         binding.allAppsReorderDown.setOnClickListener { reorderManager.moveDown() }
+        binding.allAppsReorderRename.setOnClickListener { renameTargetCategory() }
         binding.allAppsReorderDone.setOnClickListener { reorderManager.exit() }
     }
 
     private fun enterCategoryReorder(key: String): Boolean = isCategoryMode() && reorderManager.enter(key)
+
+    private fun renameTargetCategory() {
+        Timber.d("S4563: rename pressed in the category reorder bar")
+        val categoryId = reorderManager.targetCategoryId ?: return
+        val label = currentSections.firstOrNull { it.isReorderTarget }?.title ?: return
+        categoryDialog.showRename(categoryId, label)
+    }
 
     override fun onStart() {
         super.onStart()
