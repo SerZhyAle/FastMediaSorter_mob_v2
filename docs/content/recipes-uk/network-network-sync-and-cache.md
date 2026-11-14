@@ -10,9 +10,9 @@ availability_note: Фонова синхронізація - Standard, noLegal, 
 recipe_number: "07"
 canonical_url: documentation/network/network-sync-and-cache-uk.html
 why: |
-  Хтось інший постійно додає фотографії в спільну папку на домашньому NAS, і набагато приємніше бачити вже актуальний список файлів при відкритті, ніж щоразу тягнути екран, щоб оновити його вручну. FastMediaSorter вміє сам перевіряти ваші мережеві та хмарні [ресурси](term:resource) на зміни за розкладом, який ви задаєте, і готувати мініатюри у фоні заздалегідь - тож відкриття папки відчувається миттєвим.
+  Хтось інший постійно додає фотографії в спільну папку на домашньому NAS, і набагато приємніше бачити вже актуальний список файлів при відкритті, ніж щоразу тягнути екран, щоб оновити його вручну. Fast Media Sorter & Organizer вміє сам перевіряти ваші мережеві та хмарні [ресурси](term:resource) на зміни за розкладом, який ви задаєте, і готувати мініатюри у фоні заздалегідь - тож відкриття папки відчувається миттєвим.
 ingredients:
-  - "FastMediaSorter у [редакції](term:edition) Standard, noLegal, Photos, Legacy або VR для фонової синхронізації - не Lite, не FOSS. Див. [Сім редакцій](page:flavors.overview-and-comparison)."
+  - "Fast Media Sorter & Organizer у [редакції](term:edition) Standard, noLegal, Photos, Legacy або VR для фонової синхронізації - не Lite, не FOSS. Див. [Сім редакцій](page:flavors.overview-and-comparison)."
   - "Хоча б одна вже додана [мережева папка](term:network-folder) чи [хмарне сховище](term:cloud-storage) - див. [Додавання мережевих папок і хмарних сховищ як джерел](page:storage.network-and-cloud-sources)."
 steps:
   - number: 1

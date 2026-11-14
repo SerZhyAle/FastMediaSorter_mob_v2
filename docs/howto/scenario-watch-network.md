@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Connect Smartwatch to NAS & PC Shares - FastMediaSorter v2"
+title: "Connect Smartwatch to NAS & PC Shares - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-watch-network.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -11,7 +11,7 @@ permalink: /docs/howto/scenario-watch-network.html
 
 > **Full version only** - this guide is not implemented in the version distributed through Google Play. It applies to the full version, a direct APK download from [Downloads](../DOWNLOADS.md).
 
-FastMediaSorter on Wear OS connects directly to your home network storage (NAS, PC shared folders, FTP, or SFTP servers) over Wi-Fi. You can browse remote files, stream music to Bluetooth headphones, and sync your favorite folders without needing your phone.
+Fast Media Sorter & Organizer on Wear OS connects directly to your home network storage (NAS, PC shared folders, FTP, or SFTP servers) over Wi-Fi. You can browse remote files, stream music to Bluetooth headphones, and sync your favorite folders without needing your phone.
 
 > **New to network shares?** If you have not set up a shared folder on your PC or NAS yet, start with our [Connect to NAS / Windows Share (SMB)](scenario-smb-setup.md) guide first.
 
@@ -34,7 +34,7 @@ FastMediaSorter on Wear OS connects directly to your home network storage (NAS, 
 
 ![Resources screen on Wear OS](screenshots/screenshot-wear-network-step1.png)
 
-> **Sync from Phone shortcut:** If you already added your SMB or SFTP shares in FastMediaSorter on your Android phone, tap **Sync from Phone** to import all connection settings to your watch with one tap.
+> **Sync from Phone shortcut:** If you already added your SMB or SFTP shares in Fast Media Sorter & Organizer on your Android phone, tap **Sync from Phone** to import all connection settings to your watch with one tap.
 
 ---
 

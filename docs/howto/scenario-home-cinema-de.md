@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Heimkino & VR-Streaming - FastMediaSorter v2"
+title: "Heimkino & VR-Streaming - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-home-cinema-de.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -21,7 +21,7 @@ Sehen Sie Ihre Seriensammlung direkt von Ihrem heimischen PC aus - auf Ihrem Han
 
 - Handy / Tablet / VR-Headset im gleichen **Heim-Wi-Fi-Netzwerk** wie Ihr PC
 - Videos auf Ihrem **PC oder NAS** (Ihre Router-Box mit Speicher)
-- Installiertes FastMediaSorter
+- Installiertes Fast Media Sorter & Organizer
 
 ---
 
@@ -39,7 +39,9 @@ Unter **Windows:**
 
 ---
 
-## Schritt 2 - Den Videoordner in FastMediaSorter hinzufügen
+<a id="schritt-2---den-videoordner-in-fastmediasorter-hinzufügen"></a>
+
+## Schritt 2 - Den Videoordner in Fast Media Sorter & Organizer hinzufügen
 
 1. Öffnen Sie die App → tippen Sie auf **Hinzufügen <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** → **„Netzwerkordner (SMB)“**
 2. Tippen Sie auf **„Netzwerk durchsuchen“** - die App durchsucht Ihr Heimnetzwerk nach verfügbaren PCs
@@ -104,7 +106,7 @@ Wenn **„Automatisch weiter“** aktiviert ist, startet die nächste Episode au
 
 > **Dieser Abschnitt ist für Besitzer eines VR-Headsets** (wie Meta Quest 2/3 oder Pico 4). Falls Sie keins haben, überspringen Sie diesen Schritt.
 
-Android-basierte VR-Headsets können FastMediaSorter ausführen. Installieren Sie es per Sideloading:
+Android-basierte VR-Headsets können Fast Media Sorter & Organizer ausführen. Installieren Sie es per Sideloading:
 1. Laden Sie die APK von der [Downloads-Seite](../DOWNLOADS.md) herunter
 2. Aktivieren Sie auf Ihrem Headset in den Entwickleroptionen **„Installation aus unbekannten Quellen“**
 3. Installieren Sie die APK über SideQuest oder direkt per ADB
@@ -115,7 +117,7 @@ Nach der Installation funktioniert der Videoplayer genau gleich:
 - Verwenden Sie den **Thumbstick**, um zwischen Episoden zu wischen (falls Ihr Headset Medientasten zuordnet)
 - Für gewöhnliche 2D-Filme und -Serien funktioniert es sofort, ohne zusätzliche Einrichtung
 
-> **Für das VR-Kinoerlebnis:** Sie können eine dedizierte VR-Kino-App als Launcher verwenden und dann „Mit FastMediaSorter öffnen“ wählen, um die Dateiverwaltung zu übernehmen. FastMediaSorter kümmert sich um das Durchsuchen der Dateien; die VR-Kino-App übernimmt die immersive 360°-Anzeige.
+> **Für das VR-Kinoerlebnis:** Sie können eine dedizierte VR-Kino-App als Launcher verwenden und dann „Mit Fast Media Sorter & Organizer öffnen“ wählen, um die Dateiverwaltung zu übernehmen. Fast Media Sorter & Organizer kümmert sich um das Durchsuchen der Dateien; die VR-Kino-App übernimmt die immersive 360°-Anzeige.
 
 ---
 

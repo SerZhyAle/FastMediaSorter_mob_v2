@@ -15,10 +15,12 @@ import com.sza.fastmediasorter.ui.editor.dirty.EditorDirtyStateTracker
 import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.File
 
 /** Enter / exit / save lifecycle for the text-editor in [TextViewerManager]. Extracted to keep the host class under the 1000-LOC budget. */
@@ -50,6 +52,9 @@ internal class TextEditorModeController(
     private val loadingIndicatorCoordinator: PlayerLoadingIndicatorCoordinator? = null,
 ) {
 
+    // The editor opens after an off-main draft read; a repeated tap or exitEditMode must cancel the pending open.
+    private var pendingEnterJob: Job? = null
+
     /** S0704: route the save spinner through the coordinator when present, else write directly. */
     private fun setTextSaveSpinner(visible: Boolean) {
         val coord = loadingIndicatorCoordinator
@@ -61,18 +66,32 @@ internal class TextEditorModeController(
     }
 
     fun enterEditMode(autoOpen: Boolean = false) {
+        Timber.d("S4580: enterEditMode reads the draft on IO before showEditor")
         val pager = getTextFilePager()
         if (pager != null && !pager.isSinglePage()) {
             Toast.makeText(context, R.string.text_editing_large_file, Toast.LENGTH_SHORT).show()
             return
         }
-        var textToEdit = getOriginalTextWithoutNumbers().ifBlank { safeViews.tvTextContent.text.toString() }
+        val originalText = getOriginalTextWithoutNumbers().ifBlank { safeViews.tvTextContent.text.toString() }
         val filePath = getCurrentFile()?.path ?: ""
-        if (getAutoSaveManager() == null) {
-            val tempDir = File(context.filesDir.parentFile, "temp")
-            setAutoSaveManager(TextEditorAutoSaveManager(tempDir, coroutineScope))
+        val existingManager = getAutoSaveManager()
+        pendingEnterJob?.cancel()
+        pendingEnterJob = coroutineScope.launch {
+            // Resolving filesDir and reading the draft are disk access; the editor opens once they return.
+            val (manager, draft) = withContext(Dispatchers.IO) {
+                val resolved = existingManager
+                    ?: TextEditorAutoSaveManager(File(context.filesDir.parentFile, "temp"), coroutineScope)
+                resolved to resolved.restoreDraft(filePath)
+            }
+            if (getAutoSaveManager() == null) setAutoSaveManager(manager)
+            // The user may have paged to another file while the draft was read.
+            if (getCurrentFile()?.path.orEmpty() != filePath) return@launch
+            showEditor(originalText, draft, filePath)
         }
-        val draft = getAutoSaveManager()?.restoreDraft(filePath)
+    }
+
+    private fun showEditor(originalText: String, draft: String?, filePath: String) {
+        var textToEdit = originalText
         if (draft != null && draft != textToEdit) {
             textToEdit = draft
             Toast.makeText(context, R.string.draft_restored, Toast.LENGTH_LONG).show()
@@ -120,6 +139,8 @@ internal class TextEditorModeController(
     }
 
     fun exitEditMode() {
+        pendingEnterJob?.cancel()
+        pendingEnterJob = null
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(safeViews.etTextContent.windowToken, 0)
         getUndoRedoManager()?.detach()
@@ -182,7 +203,7 @@ internal class TextEditorModeController(
                     }
                     setOriginalTextWithoutNumbers(newText)
                     safeViews.tvTextContent.text = applyLineNumbers(newText, settings.showTextLineNumbers, 1)
-                    getAutoSaveManager()?.stopAutoSave(deleteDraft = true)
+                    getAutoSaveManager()?.stopAutoSaveAndDeleteDraft()
                     exitEditMode()
                     Toast.makeText(context, R.string.toast_text_saved, Toast.LENGTH_SHORT).show()
                     onSuccess()

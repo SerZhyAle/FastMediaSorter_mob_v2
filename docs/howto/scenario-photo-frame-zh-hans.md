@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "平板上的数字相框 - FastMediaSorter v2"
+title: "平板上的数字相框 - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-photo-frame-zh-hans.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -47,7 +47,7 @@ permalink: /docs/howto/scenario-photo-frame-zh-hans.html
 2. 点击**登录** → 在浏览器中完成身份验证
 3. 选择存放照片的文件夹 → **完成**
 
-![FastMediaSorter 主屏幕 - 添加照片文件夹后可见的照片资源卡片](screenshots/screenshot-pf-step1.png)
+![Fast Media Sorter & Organizer 主屏幕 - 添加照片文件夹后可见的照片资源卡片](screenshots/screenshot-pf-step1.png)
 
 ---
 
@@ -123,12 +123,12 @@ Android 设置 → 显示 → 屏幕超时 → 设为**“永不”**（或最�
 这一步是为了方便：想在拿起平板时立即启动相框 - 而不用打开应用再导航吗？
 
 1. 长按您的主屏幕 → 点击**小组件**
-2. 在小组件列表中找到 **FastMediaSorter**
+2. 在小组件列表中找到 **Fast Media Sorter & Organizer**
 3. 将**“资源快捷方式”**小组件拖到主屏幕
 4. 出现提示时，选择您的照片资源
 5. 随时点击该小组件 → 幻灯片立即启动
 
-![放置了 FastMediaSorter 资源快捷方式小组件的 Android 主屏幕](screenshots/screenshot-pf-step6.png)
+![放置了 Fast Media Sorter & Organizer 资源快捷方式小组件的 Android 主屏幕](screenshots/screenshot-pf-step6.png)
 
 ---
 

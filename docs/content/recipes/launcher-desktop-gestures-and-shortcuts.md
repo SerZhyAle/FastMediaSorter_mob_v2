@@ -12,7 +12,7 @@ canonical_url: documentation/launcher/desktop-gestures-and-shortcuts.html
 why: |
   A swipe from the edge of the screen can take a screenshot, open the camera or launch your favorite app - from inside any app, not only from the desktop. Add the desktop's own swipes and taps on top of that, and most things you reach for often are one gesture away, with nothing extra to unlock or tap through first.
 ingredients:
-  - "FastMediaSorter in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition), with **Gesture overlay** turned on in **Settings**, the **Destinations** tab. Turning it on asks for the **Display over other apps** permission, since [edge gestures](term:edge-gesture) work over any app."
+  - "Fast Media Sorter & Organizer in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition), with **Gesture overlay** turned on in **Settings**, the **Destinations** tab. Turning it on asks for the **Display over other apps** permission, since [edge gestures](term:edge-gesture) work over any app."
   - "The [launcher](term:launcher) [desktop](term:desktop) open for its own swipes and taps - see [Your launcher desktop](page:launcher.desktop-grid-and-icons)."
 steps:
   - number: 1
@@ -45,7 +45,7 @@ steps:
     id: launch-target
     title: Point a gesture at an app or a web address
     text: |
-      Choose **Launch a chosen app** and pick from the installed apps - each of the twelve gesture slots keeps its own choice. The row under the action names the app and clears it in one tap; with nothing chosen, or once the chosen app is gone, the gesture opens FastMediaSorter instead. Choosing **Open a web address** works the same way: a **Web address** row appears under the action, always ready to re-read, correct or clear, so a mistyped address is one tap away from fixed rather than a re-entry from scratch.
+      Choose **Launch a chosen app** and pick from the installed apps - each of the twelve gesture slots keeps its own choice. The row under the action names the app and clears it in one tap; with nothing chosen, or once the chosen app is gone, the gesture opens Fast Media Sorter & Organizer instead. Choosing **Open a web address** works the same way: a **Web address** row appears under the action, always ready to re-read, correct or clear, so a mistyped address is one tap away from fixed rather than a re-entry from scratch.
     image_bookmark:
       shot_id: gestures.gesture-target-row
       device_profile: phone

@@ -105,7 +105,7 @@ Si une fonctionnalité est marquée « ✗ », choisissez le build **Standard** 
 
 ## Groupes de scénarios
 
-Ces sections sont volontairement plus variées que les blocs de référence de base ci-dessous. Chaque scénario combine un chemin rapide avec du contexte, des compromis, et les situations où FastMediaSorter est particulièrement efficace.
+Ces sections sont volontairement plus variées que les blocs de référence de base ci-dessous. Chaque scénario combine un chemin rapide avec du contexte, des compromis, et les situations où Fast Media Sorter & Organizer est particulièrement efficace.
 
 > **⭐ À la une : transférez les dossiers de votre PC vers votre téléphone en un seul scan.** Lancez le compagnon gratuit [Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) sur votre PC, choisissez les dossiers contenant vos vidéos, votre musique, vos documents ou vos photos, et il affiche un code à l'écran. Sur le téléphone, appuyez sur **Ajouter**, choisissez **Importer par code-barres**, pointez la caméra vers le code - les dossiers du PC sont connectés instantanément, sans avoir à saisir d'adresse, de port ni de mot de passe. Procédure complète : [Ouvrir les dossiers du PC en scannant un code](howto/scenario-companion-share-fr.md) &bull; recette rapide : [Importer un partage Companion Windows](#how-to-import-a-windows-companion-share).
 
@@ -201,7 +201,7 @@ Ces sections sont volontairement plus variées que les blocs de référence de b
 1. Ouvrez le menu déroulant de la fenêtre principale et appuyez sur **Flux**, ou allez dans **Paramètres > Média > Flux** et activez l'interrupteur s'il est désactivé.
 2. Appuyez sur **⋮** à l'extrémité de la barre d'outils, choisissez **Ajouter un flux**, et collez n'importe quelle URL de station radio (http:// ou https://, .m3u8, rtsp://).
 3. Appuyez sur la ligne de la station - l'audio démarre dans le mini-contrôle collé en bas. La liste reste défilable.
-4. Pour un catalogue plus vaste, appuyez sur **Importer** et saisissez une URL `.m3u` distante, ou téléchargez le catalogue FastMediaSorter organisé depuis l'écran **Extensions**.
+4. Pour un catalogue plus vaste, appuyez sur **Importer** et saisissez une URL `.m3u` distante, ou téléchargez le catalogue Fast Media Sorter & Organizer organisé depuis l'écran **Extensions**.
 
 **Parcours du scénario**
 
@@ -236,7 +236,7 @@ Ces sections sont volontairement plus variées que les blocs de référence de b
 
 1. Créez ou choisissez un dossier local pour le voyage.
 2. Copiez-y les médias, PDF, EPUB ou notes dont vous avez besoin avant de quitter le Wi-Fi.
-3. Ouvrez ce dossier une fois dans FastMediaSorter pour que les vignettes et les dernières positions soient prêtes.
+3. Ouvrez ce dossier une fois dans Fast Media Sorter & Organizer pour que les vignettes et les dernières positions soient prêtes.
 4. Utilisez le dossier hors ligne pendant le voyage.
 
 **Parcours du scénario**
@@ -320,7 +320,7 @@ Ces sections sont volontairement plus variées que les blocs de référence de b
 
 **Parcours du scénario**
 
-- Utilisez ceci quand FastMediaSorter est le meilleur navigateur pour le stockage distant, mais qu'une autre application est le meilleur éditeur ou visualiseur pour un type de fichier donné.
+- Utilisez ceci quand Fast Media Sorter & Organizer est le meilleur navigateur pour le stockage distant, mais qu'une autre application est le meilleur éditeur ou visualiseur pour un type de fichier donné.
 - Les cas de transfert typiques sont les documents bureautiques, les PDF avancés, les vidéos gourmandes en codecs et les formats multimédias de niche.
 - La copie téléchargée reste dans `Downloads`, vous pouvez donc la rouvrir plus tard même si la source distante devient inaccessible.
 
@@ -454,7 +454,7 @@ Ces sections sont volontairement plus variées que les blocs de référence de b
 2. Saisissez l'adresse .m3u distante. Appuyez sur **Importer**.
 3. Toutes les stations du fichier apparaissent dans la liste.
 
-**Télécharger le catalogue FastMediaSorter organisé :**
+**Télécharger le catalogue Fast Media Sorter & Organizer organisé :**
 
 1. Ouvrez **Paramètres > Extensions** (ou la ligne Flux de l'accueil de bienvenue).
 2. Appuyez sur **Télécharger** à côté de l'entrée du catalogue Flux.
@@ -1137,7 +1137,7 @@ Traduisez automatiquement le texte des images, PDF et fichiers texte : **Tessera
 **Chemin rapide**
 
 1. Allez sur votre écran d'accueil Android, faites un appui long, et sélectionnez **Widgets**.
-2. Faites glisser un widget **FastMediaSorter** (comme l'enregistreur vocal rapide 1×1 ou l'OCR caméra) vers votre écran.
+2. Faites glisser un widget **Fast Media Sorter & Organizer** (comme l'enregistreur vocal rapide 1×1 ou l'OCR caméra) vers votre écran.
 3. Configurez le dossier de destination et les paramètres de capture, puis appuyez sur **Enregistrer**.
 4. Utilisez le widget pour exécuter des tâches en un appui directement depuis votre écran d'accueil.
 
@@ -1160,12 +1160,12 @@ Traduisez automatiquement le texte des images, PDF et fichiers texte : **Tessera
 
 ## Comment utiliser l'application comme écran d'accueil {#how-to-use-the-app-as-your-home-screen}
 
-FastMediaSorter peut prendre le contrôle de l'écran d'accueil de votre appareil et afficher son propre bureau à la place - vos dossiers, une horloge, la météo, vos applications et une barre des tâches sur un bord. Si vous avez déjà utilisé un bureau Windows, cela vous semblera familier : les choses restent où vous les mettez, et un bouton Démarrer ouvre le menu. C'est ce qu'on appelle le mode lanceur, et il n'est présent que dans les builds **Standard** et **noLegal**.
+Fast Media Sorter & Organizer peut prendre le contrôle de l'écran d'accueil de votre appareil et afficher son propre bureau à la place - vos dossiers, une horloge, la météo, vos applications et une barre des tâches sur un bord. Si vous avez déjà utilisé un bureau Windows, cela vous semblera familier : les choses restent où vous les mettez, et un bouton Démarrer ouvre le menu. C'est ce qu'on appelle le mode lanceur, et il n'est présent que dans les builds **Standard** et **noLegal**.
 
 **L'activer :**
 
 1. Ouvrez **Paramètres → Général** et activez **Faire de cette application l'écran d'accueil**.
-2. Android vous demande de confirmer. Sur Android 10 et versions ultérieures, c'est une seule question - « Autoriser FastMediaSorter à être votre application d'accueil ? » - il suffit donc d'accepter. Sur les versions plus anciennes, le choix classique apparaît la prochaine fois que vous appuyez sur Accueil : choisissez FastMediaSorter et appuyez sur **Toujours**, ou **Une seule fois** si vous voulez seulement essayer pour l'instant.
+2. Android vous demande de confirmer. Sur Android 10 et versions ultérieures, c'est une seule question - « Autoriser Fast Media Sorter & Organizer à être votre application d'accueil ? » - il suffit donc d'accepter. Sur les versions plus anciennes, le choix classique apparaît la prochaine fois que vous appuyez sur Accueil : choisissez Fast Media Sorter & Organizer et appuyez sur **Toujours**, ou **Une seule fois** si vous voulez seulement essayer pour l'instant.
 3. Appuyez sur Accueil. Le bureau apparaît, déjà rempli d'environ une douzaine d'éléments utiles - une horloge, la météo, vos dossiers, une zone de recherche - de sorte que le premier jour n'est pas une grille vide.
 
 Sur une installation toute neuve, il existe un raccourci : cochez **Utiliser comme écran d'accueil** sur la première page d'accueil. Cela n'interrompt pas la configuration par une boîte de dialogue système - la confirmation d'Android apparaît la première fois que vous ouvrez ensuite **Paramètres → Général**.
@@ -1184,7 +1184,7 @@ Sur une installation toute neuve, il existe un raccourci : cochez **Utiliser com
 
 - La barre des tâches se trouve le long du bord inférieur et contient le bouton Démarrer, les applications récemment utilisées, celles que vous avez épinglées, et une petite zone avec l'horloge, la batterie, le réseau et le signal SIM.
 - Vous la préférez en haut ? **Paramètres → Général → Paramètres du lanceur système → Barre des tâches → Position de la barre des tâches** bascule entre **Bas** et **Haut**. Le menu Démarrer suit la barre et se déploie vers le bas quand la barre est en haut.
-- Le bouton Démarrer ouvre le menu : ouvrir FastMediaSorter, vos ressources, ajouter une ressource, les paramètres Android, les paramètres de l'application, les paramètres du lanceur, modifier le contenu du bureau, et à la fin redémarrer, éteindre et **Quitter le mode lanceur**. Redémarrer et éteindre ne fonctionnent que si votre appareil permet à une application ordinaire de le faire - sur la plupart des téléphones, ils ne feront simplement rien.
+- Le bouton Démarrer ouvre le menu : ouvrir Fast Media Sorter & Organizer, vos ressources, ajouter une ressource, les paramètres Android, les paramètres de l'application, les paramètres du lanceur, modifier le contenu du bureau, et à la fin redémarrer, éteindre et **Quitter le mode lanceur**. Redémarrer et éteindre ne fonctionnent que si votre appareil permet à une application ordinaire de le faire - sur la plupart des téléphones, ils ne feront simplement rien.
 
 **Vos applications :** la grille d'applications regroupe les applications en sections, chacune avec un petit en-tête. Appuyez sur un en-tête pour réduire une section que vous ouvrez rarement ; les en-têtes réduits se rangent les uns à côté des autres, de sorte que le bureau devient plus court au lieu de laisser des vides. Un bureau tout neuf divise en deux les applications qu'il propose au départ : une section **Google** pour les applications Google que vous avez déjà installées, et une section **Applications** pour les vôtres - messageries, jeux et tout ce que vous avez mis d'autre sur l'appareil. Aucune application ne se retrouve dans les deux. Faites un appui long sur n'importe quelle application de la liste pour **Placer sur le bureau** et **Épingler à la barre des tâches**.
 
@@ -1208,13 +1208,13 @@ Sur une installation toute neuve, il existe un raccourci : cochez **Utiliser com
 
 Votre disposition de bureau est conservée dans tous les cas, donc réactiver le mode la restaure exactement telle que vous l'avez laissée.
 
-**Un avertissement honnête.** Quelques appareils refusent de mémoriser le choix. Certains autoradios Android bon marché et d'autres boîtiers Android intégrés réimposent leur écran d'accueil d'usine à chaque démarrage, quel que soit votre choix. C'est le firmware de l'appareil lui-même qui vous contredit, pas un défaut de l'application, et aucune application ne peut contourner cela. Si le vôtre se comporte ainsi, choisissez de nouveau FastMediaSorter comme application d'accueil après un redémarrage - et si cela ne tient toujours pas, cet appareil ne le permet tout simplement pas.
+**Un avertissement honnête.** Quelques appareils refusent de mémoriser le choix. Certains autoradios Android bon marché et d'autres boîtiers Android intégrés réimposent leur écran d'accueil d'usine à chaque démarrage, quel que soit votre choix. C'est le firmware de l'appareil lui-même qui vous contredit, pas un défaut de l'application, et aucune application ne peut contourner cela. Si le vôtre se comporte ainsi, choisissez de nouveau Fast Media Sorter & Organizer comme application d'accueil après un redémarrage - et si cela ne tient toujours pas, cet appareil ne le permet tout simplement pas.
 
 ---
 
 ## Comment utiliser FMS sur un boîtier Android TV {#how-to-use-fms-on-android-tv-box}
 
-FastMediaSorter fonctionne sur n'importe quel boîtier Android TV ou set-top box (Xiaomi Mi Box, Nvidia Shield, Amazon Fire TV, boîtiers Android génériques). Aucun écran tactile requis - l'application est entièrement utilisable via une télécommande TV ou un clavier Bluetooth.
+Fast Media Sorter & Organizer fonctionne sur n'importe quel boîtier Android TV ou set-top box (Xiaomi Mi Box, Nvidia Shield, Amazon Fire TV, boîtiers Android génériques). Aucun écran tactile requis - l'application est entièrement utilisable via une télécommande TV ou un clavier Bluetooth.
 
 **Ce dont vous avez besoin :**
 
@@ -1420,11 +1420,11 @@ Les nouvelles captures utilisent le modèle `prefix_yyMMdd_HHmmss`. Les préfixe
 
 ## Comment recevoir des fichiers partagés depuis une autre application {#how-to-receive-files-shared-from-another-app}
 
-La feuille de partage de n'importe quelle application peut envoyer des fichiers vers FastMediaSorter, qui les copie ensuite où vous voulez.
+La feuille de partage de n'importe quelle application peut envoyer des fichiers vers Fast Media Sorter & Organizer, qui les copie ensuite où vous voulez.
 
 **Étapes :**
 
-1. Dans l'autre application, partagez le ou les fichiers et choisissez **FastMediaSorter**.
+1. Dans l'autre application, partagez le ou les fichiers et choisissez **Fast Media Sorter & Organizer**.
 2. Choisissez le dossier de destination sur l'écran de réception.
 3. Démarrez la copie.
 

@@ -99,7 +99,7 @@
     <string name="phone_resource_loading">Chargement depuis votre téléphone..</string>
     <string name="phone_resource_retry">Réessayer</string>
     <string name="phone_resource_empty">Votre téléphone n\'a rien à afficher ici. Ouvrez un autre dossier ou réessayez.</string>
-    <string name="phone_resource_unavailable">FastMediaSorter ne répond pas sur votre téléphone. Ouvrez l\'app là-bas et gardez le téléphone à proximité.</string>
+    <string name="phone_resource_unavailable">Fast Media Sorter &amp; Organizer ne répond pas sur votre téléphone. Ouvrez l\'app là-bas et gardez le téléphone à proximité.</string>
     <string name="phone_resource_access_denied">Votre téléphone ne partage pas ce dossier avec la montre.</string>
     <string name="phone_resource_unsupported">La montre ne peut pas ouvrir ce type de fichier.</string>
     <string name="phone_resource_transfer_rejected">Ce fichier est trop volumineux pour être envoyé à la montre.</string>
@@ -383,9 +383,9 @@
     <string name="phone_resource_no_resource_for_type">Aucune ressource téléphonique n\'est configurée pour contenir ce type.</string>
     <string name="wear_folder_load_more">Afficher plus</string>
     <string name="wear_file_op_outcome_needs_consent">Non confirmé - rien n\'a changé</string>
-    <string name="wear_sync_no_phone_paired">Aucun téléphone n\'est connecté. Jumelez votre téléphone et installez FastMediaSorter dessus.</string>
+    <string name="wear_sync_no_phone_paired">Aucun téléphone n\'est connecté. Jumelez votre téléphone et installez Fast Media Sorter &amp; Organizer dessus.</string>
     <string name="wear_sync_request_failed">Impossible d\'interroger le téléphone. Réessayez.</string>
-    <string name="phone_resource_not_paired">Aucun téléphone n\'est connecté à cette montre. Jumelez-en un et installez FastMediaSorter dessus.</string>
+    <string name="phone_resource_not_paired">Aucun téléphone n\'est connecté à cette montre. Jumelez-en un et installez Fast Media Sorter &amp; Organizer dessus.</string>
     <string name="wear_streams_sort_most_used">Plus utilisés</string>
     <string name="streams_rubric_general">Général</string>
     <string name="streams_rubric_news">Actualités</string>
@@ -767,7 +767,7 @@
     <string name="wear_cast_phone_busy">Votre téléphone n\'a pas répondu - vérifiez qu\'il est à proximité</string>
     <string name="wear_cast_not_castable">Seuls les flux et fichiers provenant d\'une source du téléphone peuvent être affichés sur une TV</string>
     <string name="wear_stream_stalled">Le flux a cessé d\'émettre. La lecture a été arrêtée pour économiser la batterie.</string>
-    <string name="phone_resource_companion_disabled">L\'interrupteur Compagnon Wear est désactivé sur votre téléphone. Activez-le dans les paramètres de FastMediaSorter, puis réessayez.</string>
+    <string name="phone_resource_companion_disabled">L\'interrupteur Compagnon Wear est désactivé sur votre téléphone. Activez-le dans les paramètres de Fast Media Sorter &amp; Organizer, puis réessayez.</string>
     <string name="wear_tourist_app">Touriste</string>
     <string name="wear_tourist_metric_speed">Vitesse</string>
     <string name="wear_tourist_metric_altitude">Altitude</string>
@@ -933,12 +933,12 @@
     <string name="about_watch_face_caption">Pour Wear OS 6 et versions ultérieures</string>
     <string name="about_watch_face_no_store">Pas de Google Play sur cette montre</string>
     <string name="wear_companion_hint_connect">Connectez votre téléphone pour voir Ressources et Téléphone</string>
-    <string name="wear_companion_hint_install">Installez FastMediaSorter sur votre téléphone pour voir Ressources et Téléphone</string>
-    <string name="wear_companion_offer_title">FastMediaSorter n’est pas sur votre téléphone</string>
+    <string name="wear_companion_hint_install">Installez Fast Media Sorter &amp; Organizer sur votre téléphone pour voir Ressources et Téléphone</string>
+    <string name="wear_companion_offer_title">Fast Media Sorter &amp; Organizer n’est pas sur votre téléphone</string>
     <string name="wear_companion_offer_message">Installez-le pour parcourir le téléphone et ses ressources depuis la montre</string>
     <string name="wear_companion_offer_install">Installer</string>
     <string name="wear_companion_offer_later">Plus tard</string>
-    <string name="wear_companion_install_row">Installer FastMediaSorter sur le téléphone</string>
+    <string name="wear_companion_install_row">Installer Fast Media Sorter &amp; Organizer sur le téléphone</string>
     <string name="wear_tourist_metric_pressure">Pression</string>
     <string name="wear_tourist_metric_baro_altitude">Altitude barométrique</string>
     <string name="wear_tourist_metric_elevation_gain_loss">Montée</string>

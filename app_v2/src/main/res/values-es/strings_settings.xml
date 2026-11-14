@@ -94,7 +94,6 @@
     <string name="settings_all_files_profile_confirm_message">Este perfil activa el modo gestor de archivos y creará la fuente \"Todos los archivos\" que falta. ¿Continuar?</string>
     <string name="settings_reset_settings_failed">No se pudieron restablecer los ajustes. Inténtelo de nuevo.</string>
     <string name="settings_reset_smb_failed">No se pudieron restablecer las conexiones SMB. Inténtelo de nuevo.</string>
-    <string name="settings_saved">Ajustes guardados</string>
     <string name="settings_search_close">Cerrar la búsqueda de ajustes</string>
     <string name="settings_search_hint">Buscar en los ajustes</string>
     <string name="settings_search_no_results">No se han encontrado ajustes</string>

@@ -12,9 +12,9 @@ availability_note: noLegal and VR, on a compatible headset
 recipe_number: "02"
 canonical_url: documentation/vr/spatial-cinema-playback.html
 why: |
-  A flat screen is honest about what a video is - a rectangle. [VR Cinema](term:vr-cinema) is FastMediaSorter's answer to what a video could be instead: a 360° trip wrapped all the way around you, a 3D film with real depth, or simply an ordinary video projected onto a virtual screen the size of a real cinema, floating in a dark room built just for it.
+  A flat screen is honest about what a video is - a rectangle. [VR Cinema](term:vr-cinema) is Fast Media Sorter & Organizer's answer to what a video could be instead: a 360° trip wrapped all the way around you, a 3D film with real depth, or simply an ordinary video projected onto a virtual screen the size of a real cinema, floating in a dark room built just for it.
 
-  This page is about what happens once you are actually inside - the screen shapes, the stereo formats, the playlist that keeps going without a return trip to the flat player, and the handful of things that can go wrong along the way and how FastMediaSorter tells you about them instead of just going dark. Headset and edition setup is its own recipe, linked below, and so is the floating control panel you use once you are in.
+  This page is about what happens once you are actually inside - the screen shapes, the stereo formats, the playlist that keeps going without a return trip to the flat player, and the handful of things that can go wrong along the way and how Fast Media Sorter & Organizer tells you about them instead of just going dark. Headset and edition setup is its own recipe, linked below, and so is the floating control panel you use once you are in.
 ingredients:
   - "Everything from [setting up your headset and OpenXR](page:vr.headset-setup-and-openxr): a supported edition, a compatible headset, and the 3D-VR master switch turned on."
   - "A video - local files work everywhere; the immersive player only opens files it can reach directly, not ones still downloading from the network."
@@ -26,7 +26,7 @@ steps:
     text: |
       Open any video in the ordinary flat [video player](term:video-player) and, on a headset with immersive mode on, a **VR** badge sits right in the controls row alongside play, seek and volume - tap it and VR Cinema opens on the spot. The same jump is in the overflow menu as **Open in VR**, for when you would rather reach for a menu than a badge.
 
-      For a file that is already stereo or panoramic, FastMediaSorter can skip the tap entirely: turn on auto-immersive entry and that kind of file launches straight into VR Cinema the moment you open it, no extra step. Either way, the flat player's state - where you were, what you had set - is captured before the handoff and handed back to you exactly as it was if you return to it, and a brief loading screen covers the transition while the first immersive frame decodes, so you are never staring at a half-built scene.
+      For a file that is already stereo or panoramic, Fast Media Sorter & Organizer can skip the tap entirely: turn on auto-immersive entry and that kind of file launches straight into VR Cinema the moment you open it, no extra step. Either way, the flat player's state - where you were, what you had set - is captured before the handoff and handed back to you exactly as it was if you return to it, and a brief loading screen covers the transition while the first immersive frame decodes, so you are never staring at a half-built scene.
     image_bookmark:
       shot_id: vr.player-vr-badge
       device_profile: phone
@@ -64,16 +64,16 @@ steps:
     id: stereo-and-depth
     title: Stereo 3D - detected, or set by hand
     text: |
-      Side-by-side and over-under are the two stereo layouts FastMediaSorter understands, rendered per eye so each one actually sees its own half of the frame. It works out which one a file uses, and whether the file is stereo at all, from three places in order: a marker in the filename, the file's own embedded spatial metadata, and - optionally - an aspect-ratio guess for files that carry neither. A video whose name was changed after downloading no longer has to fall back to flat and mono just because the filename lost its marker - the metadata still carries the truth.
+      Side-by-side and over-under are the two stereo layouts Fast Media Sorter & Organizer understands, rendered per eye so each one actually sees its own half of the frame. It works out which one a file uses, and whether the file is stereo at all, from three places in order: a marker in the filename, the file's own embedded spatial metadata, and - optionally - an aspect-ratio guess for files that carry neither. A video whose name was changed after downloading no longer has to fall back to flat and mono just because the filename lost its marker - the metadata still carries the truth.
 
-      Got it wrong, or just prefer a different layout for one particular file? Override it by hand in that file's own settings, and FastMediaSorter remembers your choice and uses it again next time, ahead of anything auto-detection would have picked.
+      Got it wrong, or just prefer a different layout for one particular file? Override it by hand in that file's own settings, and Fast Media Sorter & Organizer remembers your choice and uses it again next time, ahead of anything auto-detection would have picked.
 
       Once the picture is stereo, a slider on the floating panel - see [the controls in the headset](page:vr.passthrough-and-controllers) - adjusts how much depth the 3D effect has in real time, no need to leave the film to retune it.
   - number: 5
     id: playlist-and-navigation
     title: A playlist that keeps going
     text: |
-      VR Cinema does not play one file in isolation - it carries the whole ordered list of images and videos you came from, so **PREV** and **NEXT** on the panel walk the same folder or resource you were already browsing, in the same order, without a return trip to the flat screen. When you reach either end, FastMediaSorter tells you plainly - **First file** or **Last file** - instead of looping silently or doing nothing.
+      VR Cinema does not play one file in isolation - it carries the whole ordered list of images and videos you came from, so **PREV** and **NEXT** on the panel walk the same folder or resource you were already browsing, in the same order, without a return trip to the flat screen. When you reach either end, Fast Media Sorter & Organizer tells you plainly - **First file** or **Last file** - instead of looping silently or doing nothing.
   - number: 6
     id: subtitles
     title: Subtitles, right in front of you
@@ -85,7 +85,7 @@ steps:
     id: when-things-go-wrong
     title: When something goes wrong
     text: |
-      A file VR Cinema cannot open at all says so honestly - **This file type is not ready for VR yet** - and a stereo or panoramic file that briefly fails to decode gets the same courtesy rather than a silent freeze. If immersive mode itself cannot start, FastMediaSorter stops playback outright instead of leaving audio running behind a black screen - **Immersive mode failed to start. Playback was stopped to avoid background audio.**
+      A file VR Cinema cannot open at all says so honestly - **This file type is not ready for VR yet** - and a stereo or panoramic file that briefly fails to decode gets the same courtesy rather than a silent freeze. If immersive mode itself cannot start, Fast Media Sorter & Organizer stops playback outright instead of leaving audio running behind a black screen - **Immersive mode failed to start. Playback was stopped to avoid background audio.**
 
       A playback error mid-session tears down cleanly: the video surface switches off, the panel stops mirroring a player that is no longer running, and the next file you try does not trip over anything left behind by the last one. And if immersive mode is unavailable for a file that would otherwise qualify, you land in flat mode instead of nowhere - **Immersive mode unavailable - playing in flat mode. You can change the 3D format in player settings.**
 outcome: |
@@ -115,4 +115,4 @@ next_recipes:
 
 <sub class="doc-stamp">26.10.07 01:10</sub>
 
-Step from the flat player into VR Cinema, meet the 360, 180, cylinder and flat virtual cinema screens, watch stereo 3D detected or set by hand, keep walking your playlist with PREV and NEXT, and see how FastMediaSorter handles it when something along the way does not work.
+Step from the flat player into VR Cinema, meet the 360, 180, cylinder and flat virtual cinema screens, watch stereo 3D detected or set by hand, keep walking your playlist with PREV and NEXT, and see how Fast Media Sorter & Organizer handles it when something along the way does not work.

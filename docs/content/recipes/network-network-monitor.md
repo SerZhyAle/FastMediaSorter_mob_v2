@@ -71,7 +71,7 @@ steps:
     id: widget-and-gadget
     title: The same readings on your home screen and desktop
     text: |
-      You do not have to open the app to see one number. The **Network monitor** [widget](term:widget) sits on the Android home screen, resizable, and shows a single reading of your choice; **Choose what to show** offers **Local address**, **Wi-Fi, Bluetooth, SIM**, **Signal level**, **Live speed**, **External address**, **Last speed test**, **Saved resource**, **Satellites** or **Hotspot state**. Tap it and it opens Network Monitor straight on that reading's own section - see [FastMediaSorter widgets for your home screen](page:launcher.home-screen-widgets).
+      You do not have to open the app to see one number. The **Network monitor** [widget](term:widget) sits on the Android home screen, resizable, and shows a single reading of your choice; **Choose what to show** offers **Local address**, **Wi-Fi, Bluetooth, SIM**, **Signal level**, **Live speed**, **External address**, **Last speed test**, **Saved resource**, **Satellites** or **Hotspot state**. Tap it and it opens Network Monitor straight on that reading's own section - see [Fast Media Sorter & Organizer widgets for your home screen](page:launcher.home-screen-widgets).
 
       The [launcher](term:launcher) [desktop](term:desktop) offers the same set as a [gadget](term:gadget): place it, pick a reading the same way when you do, and tapping it opens the matching section too - see [Desktop gadgets](page:launcher.built-in-gadgets).
   - number: 9

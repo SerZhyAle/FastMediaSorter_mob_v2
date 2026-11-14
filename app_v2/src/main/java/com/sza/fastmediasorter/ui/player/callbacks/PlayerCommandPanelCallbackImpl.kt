@@ -4,6 +4,7 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.core.share.ShareableContent
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
@@ -398,7 +399,11 @@ class PlayerCommandPanelCallbackImpl(
     private fun buildShareUri(path: String): Uri? {
         if (path.contains("://") || path.startsWith("cloud:/")) return null // remote path - materialized on dispatch
         return try {
-            FileProvider.getUriForFile(activity, "${activity.packageName}.fileprovider", File(path))
+            // getUriForFile parses the provider's path XML and canonicalises the file, and the menu
+            // builders that call this must populate the menu before they return, so it cannot move off-main.
+            StrictModeHelper.allowDiskReads {
+                FileProvider.getUriForFile(activity, "${activity.packageName}.fileprovider", File(path))
+            }
         } catch (e: Exception) {
             Timber.w("SendTo: FileProvider URI failed for %s: %s", path, e.message)
             null

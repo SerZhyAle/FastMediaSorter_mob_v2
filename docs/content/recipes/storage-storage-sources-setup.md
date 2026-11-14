@@ -10,11 +10,11 @@ availability: all
 recipe_number: "01"
 canonical_url: documentation/storage/storage-sources-setup.html
 why: |
-  Your photos from the last holiday sit in the camera folder, the music you copied years ago lives on the memory card, and a USB stick from a friend is plugged into the phone. FastMediaSorter shows none of them until you tell it where to look. Every place you add becomes a [resource](term:resource) - one row or tile on the [resource list](term:resource-list) that opens straight into that folder.
+  Your photos from the last holiday sit in the camera folder, the music you copied years ago lives on the memory card, and a USB stick from a friend is plugged into the phone. Fast Media Sorter & Organizer shows none of them until you tell it where to look. Every place you add becomes a [resource](term:resource) - one row or tile on the [resource list](term:resource-list) that opens straight into that folder.
 
   Adding a [local folder](term:local-folder) takes a minute and changes nothing in your files. Removing the resource later removes only the app's entry; the folder and everything in it stay where they are.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR or FOSS. Adding a folder from the device works in all of them."
+  - "Fast Media Sorter & Organizer in any [edition](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR or FOSS. Adding a folder from the device works in all of them."
   - "The permission to read your media. The app asks for it on first launch; see [Understanding app permissions](page:getting-started.permissions-guide) if you said no."
   - "For a memory card or a USB drive: the card inserted or the drive connected (a USB drive usually needs a small USB-C or OTG adapter)."
 steps:

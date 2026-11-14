@@ -23,6 +23,10 @@
         android:checkable="true"
         android:title="@string/exchange_devices_menu_auto_attach" />
     <item
+        android:id="@+id/action_exchange_sync_notes"
+        android:checkable="true"
+        android:title="@string/exchange_devices_menu_sync_notes" />
+    <item
         android:id="@+id/action_exchange_sign_in_again"
         android:title="@string/exchange_devices_menu_sign_in_again" />
     <item

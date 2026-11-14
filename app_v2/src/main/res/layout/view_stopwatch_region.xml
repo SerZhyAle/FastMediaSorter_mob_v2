@@ -53,18 +53,30 @@
             android:textSize="@dimen/text_size_small" />
     </ScrollView>
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:baselineAligned="false"
-        android:orientation="horizontal">
+        android:layout_height="wrap_content">
+
+        <androidx.constraintlayout.helper.widget.Flow
+            android:id="@+id/flowStopwatchRegionActions"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:constraint_referenced_ids="btnStopwatchRegionPrimary,btnStopwatchRegionSecondary"
+            app:flow_wrapMode="chain"
+            app:flow_horizontalStyle="packed"
+            app:flow_horizontalBias="0"
+            app:flow_verticalAlign="top"
+            app:flow_horizontalGap="@dimen/token_spacing_8"
+            app:flow_verticalGap="@dimen/token_spacing_8"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnStopwatchRegionPrimary"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/margin_tiny"
-            android:layout_weight="2"
             android:clickable="true"
             android:focusable="true"
             android:minHeight="@dimen/touch_target_min_height"
@@ -73,14 +85,13 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnStopwatchRegionSecondary"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
+            style="@style/Widget.FastMediaSorter.Button.Command"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:clickable="true"
             android:focusable="true"
             android:minHeight="@dimen/touch_target_min_height"
             android:text="@string/stopwatch_action_reset"
             android:textSize="@dimen/text_size_normal" />
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </LinearLayout>

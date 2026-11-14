@@ -7,6 +7,9 @@ import com.sza.fastmediasorter.domain.usecase.exchange.ObserveLiveBroadcastSourc
 
 /** A broadcast row being played: the stored row and, when it plays through an exchange server, its broadcast id. */
 class BroadcastPlaybackSession(val source: StreamSourceEntity, val broadcastId: String?) {
+    /** S4607, item BJ: the entry whose directory alone may end this channel; null reads the whole account. */
+    val entryKey: String? get() = source.exchangeEntryId?.takeIf { it.isNotEmpty() }
+
     // The row carries its endpoint list, and a sealed endpoint carries the key that opens the broadcast.
     override fun toString(): String = "BroadcastPlaybackSession(id=${source.id})"
 }
@@ -39,7 +42,28 @@ object BroadcastPlaybackSessions {
     @Synchronized
     fun clear(playedUrl: String) {
         byPlayedUrl.remove(playedUrl)
+        if (leftToService == playedUrl) leftToService = null
     }
+
+    /**
+     * S4609: the played address the Streams screen left to the background audio service. While the screen holds
+     * a broadcast it owns its ends and its password question, so the service acts on a broadcast only once the
+     * screen let go of it.
+     */
+    private var leftToService: String? = null
+
+    @Synchronized
+    fun markLeftToService(playedUrl: String) {
+        leftToService = playedUrl
+    }
+
+    @Synchronized
+    fun clearLeftToService() {
+        leftToService = null
+    }
+
+    @Synchronized
+    fun isLeftToService(playedUrl: String): Boolean = playedUrl == leftToService && byPlayedUrl[playedUrl] != null
 
     private fun broadcastIdOf(source: StreamSourceEntity): String? =
         BroadcastExchangeEndpoints.playOrder(source.broadcastEndpoints, source.url).firstNotNullOfOrNull {

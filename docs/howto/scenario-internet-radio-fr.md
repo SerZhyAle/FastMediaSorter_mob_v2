@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Radio internet et flux - FastMediaSorter v2"
+title: "Radio internet et flux - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-internet-radio-fr.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -11,7 +11,7 @@ permalink: /docs/howto/scenario-internet-radio-fr.html
 
 > **Niveau :** Débutant - **Durée :** ~10 minutes - **Édition :** Standard, Legacy, VR, noLegal (les flux sont absents dans Lite et Photos)
 
-FastMediaSorter inclut un écran Flux dédié pour les sources audio et vidéo internet. Ajoutez n'importe quelle URL de radio internet, importez une playlist .m3u, ou parcourez un catalogue de stations sélectionnées - sans application radio séparée. Fonctionne très bien sur les autoradios Android, lecteurs audio, téléphones et tablettes.
+Fast Media Sorter & Organizer inclut un écran Flux dédié pour les sources audio et vidéo internet. Ajoutez n'importe quelle URL de radio internet, importez une playlist .m3u, ou parcourez un catalogue de stations sélectionnées - sans application radio séparée. Fonctionne très bien sur les autoradios Android, lecteurs audio, téléphones et tablettes.
 
 > **Remplace :** une application séparée de radio Internet ou de lecture de flux.
 
@@ -20,7 +20,7 @@ FastMediaSorter inclut un écran Flux dédié pour les sources audio et vidéo i
 ## Ce dont vous aurez besoin
 
 - Un appareil Android avec une connexion réseau (données mobiles ou Wi-Fi)
-- FastMediaSorter Standard, Legacy, VR, ou noLegal (l'écran Flux est absent dans Lite et Photos)
+- Fast Media Sorter & Organizer Standard, Legacy, VR, ou noLegal (l'écran Flux est absent dans Lite et Photos)
 - Une URL de flux, un fichier ou une URL de playlist .m3u, ou le catalogue sélectionné intégré
 
 ---

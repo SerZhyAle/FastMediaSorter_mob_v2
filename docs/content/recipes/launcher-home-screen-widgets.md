@@ -1,8 +1,8 @@
 ---
 page_id: launcher.home-screen-widgets
-title: FastMediaSorter Widgets for Your Home Screen - Camera, Photo Frame, Music, Recorder and More
+title: Fast Media Sorter & Organizer Widgets for Your Home Screen - Camera, Photo Frame, Music, Recorder and More
 nav_title: Home screen widgets
-description: Which widgets FastMediaSorter offers for the Android home screen, what each one does, how to add and set one up, and in which editions each is available.
+description: Which widgets Fast Media Sorter & Organizer offers for the Android home screen, what each one does, how to add and set one up, and in which editions each is available.
 category: "Launcher: Gadgets and Widgets"
 category_slug: launcher
 ticket: S2959
@@ -13,9 +13,9 @@ canonical_url: documentation/launcher/home-screen-widgets.html
 why: |
   Some things you do many times a day: snap a receipt into the right folder, play something random while cooking, see a new family photo, pick up the book where you stopped. A [widget](term:widget) puts that one action on your [home screen](term:home-screen), one tap away, without opening the app first.
 
-  The widgets work with any home screen - the one that came with your phone, or the FastMediaSorter [launcher](term:launcher).
+  The widgets work with any home screen - the one that came with your phone, or the Fast Media Sorter & Organizer [launcher](term:launcher).
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition). Which widgets each edition has is listed in step 2 - see also [The seven editions of FastMediaSorter](page:flavors.overview-and-comparison)."
+  - "Fast Media Sorter & Organizer in any [edition](term:edition). Which widgets each edition has is listed in step 2 - see also [The seven editions of Fast Media Sorter & Organizer](page:flavors.overview-and-comparison)."
   - "A home screen with a free spot."
   - "For the photo frame, the music and the folder widgets: at least one [resource](term:resource) added in the app - see [Adding folders from your phone, memory card and USB drive](page:storage.storage-sources-setup)."
 steps:
@@ -26,14 +26,14 @@ steps:
       There are two ways:
 
       - **From the app.** Open **Settings**, the **Management** tab, and tap **Add widget to the Android home screen..**. Pick a widget in **Choose a widget**, and confirm when Android asks where to put it.
-      - **From the home screen.** Touch and hold an empty spot on your home screen, tap **Widgets**, scroll to **FastMediaSorter** and drag the widget you want to its place. The exact words differ a little between phone makers - see [Add apps, shortcuts and widgets to your home screens](https://support.google.com/android/answer/9450271).
+      - **From the home screen.** Touch and hold an empty spot on your home screen, tap **Widgets**, scroll to **Fast Media Sorter & Organizer** and drag the widget you want to its place. The exact words differ a little between phone makers - see [Add apps, shortcuts and widgets to your home screens](https://support.google.com/android/answer/9450271).
 
       If the widget is already there, the app tells you: **Widget already added to home screen**.
     image_bookmark:
       shot_id: launcher.home-widgets-picker
       device_profile: phone
       screen_state: settings-choose-a-widget
-      alt: The Choose a widget list of FastMediaSorter widgets, opened from the Management tab of Settings
+      alt: The Choose a widget list of Fast Media Sorter & Organizer widgets, opened from the Management tab of Settings
       caption: "Choose a widget."
       title: "Screenshot: Widget picker"
       desc: Settings, Management tab, Add widget to the Android home screen tapped, the picker list open, portrait.
@@ -65,9 +65,9 @@ steps:
       device_profile: phone
       screen_state: home-screen-with-app-widgets
       alt: An Android home screen with the Camera, Quick capture, Random Music and Calculator widgets captioned under their icons, a Random Photo Frame and an Audio Now Playing widget
-      caption: "A home screen with several FastMediaSorter widgets."
+      caption: "A home screen with several Fast Media Sorter & Organizer widgets."
       title: "Screenshot: Home screen widgets"
-      desc: Stock Android home screen with six FastMediaSorter widgets, portrait.
+      desc: Stock Android home screen with six Fast Media Sorter & Organizer widgets, portrait.
   - number: 3
     id: set-up
     title: Set up a widget that needs a choice
@@ -83,7 +83,7 @@ steps:
 outcome: |
   The actions you use most sit on your home screen - a photo into the right folder, a random song, a new family picture, the book where you stopped - each one tap away.
 tips:
-  - "**Using the FastMediaSorter launcher?** The same widgets can sit on its desktop too - see [Placing, resizing and styling gadgets and widgets](page:launcher.android-widgets-placement). There they keep settings of their own, separate from the copy on another home screen."
+  - "**Using the Fast Media Sorter & Organizer launcher?** The same widgets can sit on its desktop too - see [Placing, resizing and styling gadgets and widgets](page:launcher.android-widgets-placement). There they keep settings of their own, separate from the copy on another home screen."
   - "**Looking for a widget that is not here?** The stream, stopwatch, flashlight, tourist, game and broadcast widgets are described with the features they belong to - for example [Shortcuts, the stream widget and the streams panel](page:streams.shortcuts-widget-and-panel), [Built-in programs](page:programs.built-in-mini-apps), [The calculator and the stopwatch](page:programs.calculator-and-stopwatch) and [The mini-game](page:programs.mini-game)."
   - "**A widget vanished from the list?** Favorites, Scheduled Operations and Quick capture are offered only while their feature is switched on in the app."
   - "**The Voice recorder widget is gone.** Earlier versions had a separate voice recorder widget; **Quick Recorder** does the same job with one tap to start and one to stop."
@@ -107,4 +107,4 @@ next_recipes:
 
 <sub class="doc-stamp">26.10.07 01:10</sub>
 
-FastMediaSorter offers a set of [widgets](term:widget) for the Android [home screen](term:home-screen): one-tap buttons for the camera, the recorder, random music and your folders, and larger windows for a photo frame, the player and your scheduled jobs. This page shows what each one does, in which editions it is available, and how to add and set it up.
+Fast Media Sorter & Organizer offers a set of [widgets](term:widget) for the Android [home screen](term:home-screen): one-tap buttons for the camera, the recorder, random music and your folders, and larger windows for a photo frame, the player and your scheduled jobs. This page shows what each one does, in which editions it is available, and how to add and set it up.

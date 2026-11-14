@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.wear.data.exchange.WearBroadcastPlaybackResolver
 import com.sza.fastmediasorter.wear.data.exchange.WearDirectoryBroadcast
 import com.sza.fastmediasorter.wear.domain.model.SOURCE_ID_STREAM
 import com.sza.fastmediasorter.wear.domain.model.WearBroadcastPlayback
+import com.sza.fastmediasorter.wear.domain.model.WearBroadcastRoute
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearStreamPlaybackTarget
@@ -101,7 +102,7 @@ class PrepareWearStreamPlaybackUseCase @Inject constructor(
         }
         val mediaFile = channel.copy(url = playback.url).toWearMediaFile(playback.isVideo)
         recordHistory(channel)
-        select(mediaFile, playback.url)
+        select(mediaFile, playback.url, playback.route)
         playbackSetManager.publish(listOf(mediaFile), 0)
         return WearStreamPlaybackTarget(fileId = mediaFile.id, isVideo = playback.isVideo)
     }
@@ -125,7 +126,7 @@ class PrepareWearStreamPlaybackUseCase @Inject constructor(
         preferencesRepository.setLastUsedStream(normalizeWearStreamUrl(channel.url), channel.name)
     }
 
-    private fun select(mediaFile: WearMediaFile, streamUri: String) {
+    private fun select(mediaFile: WearMediaFile, streamUri: String, broadcastRoute: WearBroadcastRoute? = null) {
         selectedMediaManager.selectFile(
             file = mediaFile,
             isNetworkSource = true,
@@ -134,6 +135,7 @@ class PrepareWearStreamPlaybackUseCase @Inject constructor(
             // definition, so a change to one would not have reached the other.
             sourceId = SOURCE_ID_STREAM,
             isDirectStream = true,
+            broadcastRoute = broadcastRoute,
         )
     }
 

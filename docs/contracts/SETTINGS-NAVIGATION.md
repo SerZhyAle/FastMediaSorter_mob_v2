@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.18 17:47</sub>
+<sub class="doc-stamp">26.11.14 16:01</sub>
 
 # Pointer - `SETTINGS-NAVIGATION`
 
@@ -13,7 +13,7 @@
 
 - Settings are navigated the way the contract lays out, with About reachable as its last page.
 - Not implemented on the existing surfaces yet - not "not applicable": the migration, and the evidence the
-  contract asks for before conformance is claimed, are owned by S4352.
+  contract asks for before conformance is claimed, are owned by S4619.
 - The deviations currently open are recorded as exceptions in the catalog's registry.
 
 ## Where it lives here

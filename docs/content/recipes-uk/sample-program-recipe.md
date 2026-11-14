@@ -8,7 +8,7 @@ ticket: S2961
 recipe_number: "03"
 canonical_url: documentation/sample-program-recipe-uk.html
 ingredients:
-  - Встановлений FastMediaSorter v2.
+  - Встановлений Fast Media Sorter & Organizer.
   - Надані дозволи на сховище для сканування медіатек.
 steps:
   - number: 1

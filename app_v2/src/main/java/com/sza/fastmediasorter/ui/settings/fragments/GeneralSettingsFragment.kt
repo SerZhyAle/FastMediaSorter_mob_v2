@@ -38,7 +38,6 @@ import com.sza.fastmediasorter.domain.usecase.sftpserver.ManageExchangeProducerU
 import com.sza.fastmediasorter.domain.usecase.sftpserver.ManageSftpServerUseCase
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
-import com.sza.fastmediasorter.ui.delivery.ExtensionsManagerFragment
 import com.sza.fastmediasorter.ui.exchange.MyDevicesActivity
 import com.sza.fastmediasorter.ui.settings.BackupRestoreViewModel
 import com.sza.fastmediasorter.ui.settings.DataTransferDialogFragment
@@ -46,6 +45,7 @@ import com.sza.fastmediasorter.ui.settings.SettingsProfileViewModel
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.auth.AuthSessionsActivity
 import com.sza.fastmediasorter.ui.settings.cloud.CrossDevicePacketListDialogFragment
+import com.sza.fastmediasorter.ui.settings.cloud.CrossDeviceTransferViewModel
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsActionHelpers
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsBackupHelper
 import com.sza.fastmediasorter.ui.settings.helpers.GeneralSettingsCacheHelper
@@ -107,8 +107,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
     @Inject
     lateinit var menuScreenshotLaunchers: Set<@JvmSuppressWildcards MenuScreenshotLauncher>
 
-    // S0547: gate the Downloadable Extensions row - lite/photos ship no downloadable sets, so the
-    // screen would open empty. Same contract the welcome page already uses.
+    // Gates the cloud-backed App data rows (cross-device queue, ticket inbox).
     @Inject lateinit var capabilityAvailability: com.sza.fastmediasorter.core.capability.CapabilityAvailability
 
     // S0391: gate decides whether the cloud group toggle row is visible on this flavor.
@@ -124,6 +123,9 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
     // S0200 Phase 06: ViewModel for the new "Google Account" Settings card.
     private val googleAccountViewModel: com.sza.fastmediasorter.ui.settings.GoogleAccountSettingsViewModel by viewModels()
     private val profileViewModel: SettingsProfileViewModel by viewModels()
+
+    // S4622: only the Drive channel switches are bound here; the queue poll starts in the dialog alone.
+    private val driveChannelViewModel: CrossDeviceTransferViewModel by viewModels()
 
     @Inject lateinit var cctChecker: com.sza.fastmediasorter.data.browser.CctAvailabilityChecker
 
@@ -349,7 +351,6 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         setupDataTransferRow()
         setupCrossDeviceQueueRow()
         setupTicketInboxRow()
-        logHelper.setupVersionInfo()
         // S0200 Phase 06: bind the new Google Account card after the layout is inflated.
         // S1693: stays findViewById - the card is included TWICE in this layout (bare includes, no
         // include-tag id), so no unambiguous binding field exists and the first-match lookup is the
@@ -386,27 +387,6 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         }
         binding.btnDeviceStorageRefresh?.setOnClickListener {
             viewModel.refreshDeviceStorage()
-        }
-        binding.btnPermissionsManagement?.setOnClickListener {
-            requireActivity().supportFragmentManager
-                .beginTransaction()
-                .replace(android.R.id.content, PermissionsManagementFragment())
-                .addToBackStack(null)
-                .commit()
-        }
-        // S0386 Phase 10: app-wide Downloadable Extensions aggregator lives on the General tab. Uses
-        // the activity FragmentManager so the full-screen overlay attaches to a real container.
-        // S0547: hide on flavors with nothing to download (lite/photos) - mirrors the welcome page gate.
-        if (!capabilityAvailability.isExtensionsScreenAvailable(requireContext())) {
-            binding.btnDownloadableExtensions?.visibility = View.GONE
-        } else {
-            binding.btnDownloadableExtensions?.setOnClickListener {
-                requireActivity().supportFragmentManager
-                    .beginTransaction()
-                    .add(android.R.id.content, ExtensionsManagerFragment(), ExtensionsManagerFragment.TAG)
-                    .addToBackStack(null)
-                    .commit()
-            }
         }
     }
 
@@ -465,6 +445,21 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
                 parentFragmentManager,
                 CrossDevicePacketListDialogFragment.TAG
             )
+        }
+        setupDriveChannelSwitches()
+    }
+
+    private fun setupDriveChannelSwitches() {
+        binding.groupDriveChannel.isVisible = capabilityAvailability.isCloudAvailable()
+        Timber.d("S4622: Drive channel switches bound on General")
+        binding.rowDriveChannelEnabled.setOnCheckedChangeListener(driveChannelViewModel::setChannelEnabled)
+        binding.rowDriveChannelBackground.setOnCheckedChangeListener(driveChannelViewModel::setBackgroundPoll)
+        collectOnLifecycle(driveChannelViewModel.channelEnabled) { enabled ->
+            binding.rowDriveChannelEnabled.setCheckedSilently(enabled)
+            binding.rowDriveChannelBackground.isEnabled = enabled
+        }
+        collectOnLifecycle(driveChannelViewModel.backgroundPoll) {
+            binding.rowDriveChannelBackground.setCheckedSilently(it)
         }
     }
 
@@ -557,7 +552,6 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         if (BuildConfig.DEBUG) {
             register(binding.headerDebugSettings, binding.containerDebugSettings, "general__debug")
         }
-        register(binding.headerAboutApp, binding.containerAboutApp, "general__about_app")
     }
 
     private fun setupGeneralLayouts() {

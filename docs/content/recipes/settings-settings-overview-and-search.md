@@ -13,7 +13,7 @@ canonical_url: documentation/settings/settings-overview-and-search.html
 why: |
   [Settings](term:settings) has grown into dozens of groups and well over a hundred individual rows. Folded into collapsible sections and searchable by keyword, it stays a screen you can scan in seconds instead of a list you scroll through by hand - and every row, whatever it controls, opens and reads the same way, so nothing has to be learned twice.
 ingredients:
-  - "FastMediaSorter, any edition, with **Settings** open."
+  - "Fast Media Sorter & Organizer, any edition, with **Settings** open."
   - "A wide screen or a rotated device to see the two-column layout mentioned below - it is not required for anything else here."
 steps:
   - number: 1
@@ -148,4 +148,4 @@ next_recipes:
 
 <sub class="doc-stamp">26.10.07 01:10</sub>
 
-[Settings](term:settings) is where you shape how FastMediaSorter looks and behaves, and it has grown into a lot of ground to cover - which is why it is organized into collapsible groups, searchable by keyword, and built from one consistent row pattern instead of a different one per screen. This page walks through finding your way around it and searching it; the individual settings themselves are covered on the pages that follow.
+[Settings](term:settings) is where you shape how Fast Media Sorter & Organizer looks and behaves, and it has grown into a lot of ground to cover - which is why it is organized into collapsible groups, searchable by keyword, and built from one consistent row pattern instead of a different one per screen. This page walks through finding your way around it and searching it; the individual settings themselves are covered on the pages that follow.

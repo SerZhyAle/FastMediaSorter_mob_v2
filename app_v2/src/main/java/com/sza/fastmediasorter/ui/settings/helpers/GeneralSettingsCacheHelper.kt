@@ -35,7 +35,7 @@ class GeneralSettingsCacheHelper(
             // default 2048 MB look permanently mis-sized.
             val settings = viewModel.awaitPersistedSettings()
             if (!settings.isCacheSizeUserModified) {
-                val optimalSizeMb = calculateOptimalCacheSizeUseCase()
+                val optimalSizeMb = withContext(Dispatchers.IO) { calculateOptimalCacheSizeUseCase() }
                 if (settings.cacheSizeMb != optimalSizeMb) applyOptimalCacheSize(optimalSizeMb)
             }
         }
@@ -194,7 +194,7 @@ class GeneralSettingsCacheHelper(
      * when the process initialises, so the new value lands on the next ordinary launch; forcing a
      * restart for a change the user never asked for is what produced the Settings restart cycle.
      */
-    private fun applyOptimalCacheSize(optimalSizeMb: Int) {
+    private suspend fun applyOptimalCacheSize(optimalSizeMb: Int) {
         persistCacheSize(newCacheSizeMb = optimalSizeMb, isUserModified = false)
         if (!fragment.isAdded) return
         Toast.makeText(
@@ -206,25 +206,33 @@ class GeneralSettingsCacheHelper(
 
     private fun applyCacheSizeAndRestart(newCacheSizeMb: Int, isUserModified: Boolean) {
         val context = fragment.requireContext()
-        // Reached from a dialog the user operated, so the screen has rendered and settings.value is loaded.
-        persistCacheSize(newCacheSizeMb, isUserModified)
-        // The user confirmed a restart, and only a fresh process re-reads the Glide cache size.
-        // saveLanguage() re-applies the current language purely to make LocaleManager kill the process.
-        LocaleHelper.saveLanguage(context, LocaleHelper.getLanguage(context))
-        LocaleHelper.markReturnToSettings(context)
-        LocaleHelper.restartApp(fragment.requireActivity())
+        fragment.viewLifecycleOwner.lifecycleScope.launch {
+            // Reached from a dialog the user operated, so the screen has rendered and settings.value is loaded.
+            // The write is awaited before the restart so it is queued ahead of the process kill.
+            persistCacheSize(newCacheSizeMb, isUserModified)
+            // The user confirmed a restart, and only a fresh process re-reads the Glide cache size.
+            // saveLanguage() re-applies the current language purely to make LocaleManager kill the process.
+            LocaleHelper.saveLanguage(context, LocaleHelper.getLanguage(context))
+            LocaleHelper.markReturnToSettings(context)
+            LocaleHelper.restartApp(fragment.requireActivity())
+        }
     }
 
     // S1535/S3819: a transform, never a copy of viewModel.settings.value - that value can still be the
     // AppSettings() seed right after awaitPersistedSettings(), and copying it would write every other
     // setting back to its default.
-    private fun persistCacheSize(newCacheSizeMb: Int, isUserModified: Boolean) {
+    private suspend fun persistCacheSize(newCacheSizeMb: Int, isUserModified: Boolean) {
+        Timber.d("S4580: persistCacheSize writes glide_config on IO")
         viewModel.updateSettings { it.copy(cacheSizeMb = newCacheSizeMb, isCacheSizeUserModified = isUserModified) }
-        fragment.requireContext()
-            .getSharedPreferences("glide_config", android.content.Context.MODE_PRIVATE)
-            .edit()
-            .putInt("cache_size_mb", newCacheSizeMb)
-            .apply()
+        val appContext = fragment.requireContext().applicationContext
+        // Loading the prefs file is a disk read; apply() keeps the write itself asynchronous.
+        withContext(Dispatchers.IO) {
+            appContext
+                .getSharedPreferences("glide_config", android.content.Context.MODE_PRIVATE)
+                .edit()
+                .putInt("cache_size_mb", newCacheSizeMb)
+                .apply()
+        }
     }
 
     private fun showAudioCacheSizeWarning() {

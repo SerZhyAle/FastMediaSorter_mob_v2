@@ -11,7 +11,7 @@ canonical_url: documentation/launcher/status-area-and-notifications-ru.html
 why: |
   Часы, уровень сигнала сети и процент заряда батареи - это компактные индикаторы, на которые мы смотрим автоматически. В этом руководстве рассказывается, как настроить их под себя: выбрать отображение на [панели задач](term:taskbar) или в системной строке Android, включить только нужные датчики и контролировать уведомления сторонних программ без случайного открытия окон.
 ingredients:
-  - "FastMediaSorter в [редакции Standard](term:standard-edition) или [noLegal](term:nolegal-edition) со включенным [лаунчером](term:launcher) (см. [Рабочий стол лаунчера](page:launcher.desktop-grid-and-icons))."
+  - "Fast Media Sorter & Organizer в [редакции Standard](term:standard-edition) или [noLegal](term:nolegal-edition) со включенным [лаунчером](term:launcher) (см. [Рабочий стол лаунчера](page:launcher.desktop-grid-and-icons))."
   - "Отображаемая панель задач (см. [Использование панели задач и дока](page:launcher.taskbar-and-dock))."
 steps:
   - number: 1

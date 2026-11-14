@@ -1,24 +1,24 @@
 ---
 layout: doc
-title: "FastMediaSorter v2 - Complete Feature List"
+title: "Fast Media Sorter & Organizer - Complete Feature List"
 permalink: /docs/FEATURES.html
 ---
 <sub class="doc-stamp">26.11.10 04:08</sub>
 
-# FastMediaSorter v2 - Complete Feature List
+# Fast Media Sorter & Organizer - Complete Feature List {#fastmediasorter-v2---complete-feature-list}
 
 *Last updated: 2026-11-12*
 
 This document is the curated showcase of standout user-facing features. The complete developer inventory of every implemented capability lives in `docs/ALL_FEATURES.jsonl`.
 
-FastMediaSorter is a complete shell for an Android device. The showcase follows its eight pillars in a fixed order: device shell, media player, live streams, app launching, a replacement for stock apps, a companion on the watch, device monitoring and a full file manager.
+Fast Media Sorter & Organizer is a complete shell for an Android device. The showcase follows its eight pillars in a fixed order: device shell, media player, live streams, app launching, a replacement for stock apps, a companion on the watch, device monitoring and a full file manager.
 
 **Platform requirements:** Android 8.0+ (API 26) for Standard flavor. The Legacy flavor extends support down to Android 6.0+ (API 23) covering the same features. The Lite flavor is local-files-only, with no network sources (SMB/FTP/SFTP) or cloud drives. Supported devices: phones, tablets, Android TV boxes, and Android head units. Runs on Chrome OS via Google Play (ARC++).
 
 ---
 
 ## 1. Device shell
-- **Use the app as your home screen** `[Standard / noLegal]`: Launcher mode turns FastMediaSorter into the device home screen, with resizable gadgets, a working clock, and a labeled scrollable app grid. <!-- af: settings-navigation.launcher-mode, launcher.resize-home-screen-gadgets, launcher.labeled-scrollable-app-grid-in-start-menu -->
+- **Use the app as your home screen** `[Standard / noLegal]`: Launcher mode turns Fast Media Sorter & Organizer into the device home screen, with resizable gadgets, a working clock, and a labeled scrollable app grid. <!-- af: settings-navigation.launcher-mode, launcher.resize-home-screen-gadgets, launcher.labeled-scrollable-app-grid-in-start-menu -->
 - **Split notification swipe** `[Standard / noLegal]`: When the desktop down-swipe opens the notification shade, start on the left for notifications or the right for Quick Settings. <!-- af: launcher.split-notification-shade-swipe -->
 - **Make the desktop yours** `[Standard / noLegal]`: Choose the branded waves-and-particles animation, a flat empty surface, or a picture of your own including an animated GIF, cropped to fill the screen. <!-- af: launcher.desktop_wallpaper -->
 - **Weather without a location permission** `[Standard / noLegal]`: A desktop gadget shows current conditions for a place you name, using keyless Open-Meteo data instead of your device location. <!-- af: launcher.desktop-weather-gadget -->

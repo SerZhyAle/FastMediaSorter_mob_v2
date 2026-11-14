@@ -216,7 +216,7 @@
     <string name="backup_account">الحساب: %s</string>
     <string name="google_sign_in_cancelled">تم إلغاء تسجيل الدخول إلى Google</string>
     <string name="battery_optimization_hint_title">تحذير تحسين البطارية</string>
-    <string name="battery_optimization_hint_message">قد يمنع تحسين البطارية تشغيل الصوت في الخلفية. عطّل تحسين البطارية لتطبيق FastMediaSorter من إعدادات النظام لضمان تشغيل صوتي موثوق في الخلفية.</string>
+    <string name="battery_optimization_hint_message">قد يمنع تحسين البطارية تشغيل الصوت في الخلفية. عطّل تحسين البطارية لتطبيق Fast Media Sorter &amp; Organizer من إعدادات النظام لضمان تشغيل صوتي موثوق في الخلفية.</string>
     <string name="no_internet_connection">لا يوجد اتصال بالإنترنت. حاول مرة أخرى لاحقًا.</string>
     <string name="restart_required_title">إعادة التشغيل مطلوبة</string>
     <string name="restart_required_message">تم استيراد الإعدادات. يرجى إعادة تشغيل التطبيق لتطبيق التغييرات.</string>
@@ -417,7 +417,6 @@
     <string name="connection_test_success_title">اختبار الاتصال - نجاح</string>
     <string name="connection_test_failed_title">اختبار الاتصال - فشل</string>
     <string name="restart_app_title">إعادة تشغيل التطبيق</string>
-    <string name="restart_app_message">لتطبيق اللغة الجديدة (%1$s)، يجب إعادة تشغيل التطبيق. هل تريد المتابعة؟</string>
     <string name="restart_app_cache_message">لتطبيق حجم ذاكرة التخزين المؤقت الجديد (%1$d ميغابايت)، يجب إعادة تشغيل التطبيق. هل تريد المتابعة؟</string>
     <string name="restart_app_compact_elements_message">لتطبيق الحجم الجديد لعناصر تحكم المشغّل، يجب إعادة تشغيل التطبيق. هل تريد المتابعة؟</string>
     <string name="restart">إعادة التشغيل</string>
@@ -1264,7 +1263,7 @@
     <string name="shortcut_slideshow_short">عرض الشرائح</string>
     <string name="shortcut_slideshow_long">بدء عرض الشرائح</string>
     <string name="confirm_delete_standalone">حذف \"%1$s\"؟</string>
-    <string name="open_in_fms">افتح في برنامج FastMediaSorter</string>
+    <string name="open_in_fms">افتح في برنامج Fast Media Sorter &amp; Organizer</string>
     <string name="cd_add_to_favorites">أضف إلى المفضلة</string>
     <string name="cd_remove_from_favorites">إزالة من المفضلة</string>
     <string name="tile_audio_label">إف إم إس أوديو</string>
@@ -1539,13 +1538,13 @@
     <string name="browse_transfer_notif_title_permission_required">يلزم منح إذن</string>
     <string name="browse_transfer_notif_text_preparing">جارٍ التجهيز..</string>
     <string name="browse_transfer_notif_text_progress">%1$d%% - %2$s</string>
-    <string name="browse_transfer_notif_text_failed">افتح FastMediaSorter لعرض التفاصيل</string>
-    <string name="browse_transfer_notif_text_auth_required">افتح FastMediaSorter لتسجيل الدخول والمتابعة</string>
-    <string name="browse_transfer_notif_text_permission_required">افتح FastMediaSorter لمنح الإذن وإعادة المحاولة</string>
+    <string name="browse_transfer_notif_text_failed">افتح Fast Media Sorter &amp; Organizer لعرض التفاصيل</string>
+    <string name="browse_transfer_notif_text_auth_required">افتح Fast Media Sorter &amp; Organizer لتسجيل الدخول والمتابعة</string>
+    <string name="browse_transfer_notif_text_permission_required">افتح Fast Media Sorter &amp; Organizer لمنح الإذن وإعادة المحاولة</string>
     <string name="browse_transfer_notif_action_cancel">إلغاء</string>
     <string name="midi_playback_failed">تعذر تشغيل ملف MIDI هذا. حاول استخدام نسخة أخرى أو انتقل إلى المقطع التالي.</string>
     <string name="tooltip_calculator_title">الآلة الحاسبة</string>
-    <string name="tooltip_calculator_message">يضيف آلة حاسبة بسيطة إلى القائمة الرئيسية ويفعّل أداة الآلة الحاسبة. تبقى الآلة الحاسبة داخل FastMediaSorter.</string>
+    <string name="tooltip_calculator_message">يضيف آلة حاسبة بسيطة إلى القائمة الرئيسية ويفعّل أداة الآلة الحاسبة. تبقى الآلة الحاسبة داخل Fast Media Sorter &amp; Organizer.</string>
     <string name="profile_picker_title">اختر ملف تعريف جهازك</string>
     <string name="profile_picker_select">يختار</string>
     <string name="system_info_copy_full_report">انسخ التقرير الكامل</string>
@@ -1650,7 +1649,7 @@
     <string name="cache_size_installed_toast">تم ضبط ذاكرة التخزين المؤقت: %1$d ميجابايت</string>
     <string name="welcome_enable_all">تفعيل الكل</string>
     <string name="welcome_enable_all_content_description">قم بتفعيل كل شيء وأكمل الإعداد</string>
-    <string name="default_player_choose_in_settings">في إعدادات النظام، اختر FastMediaSorter كتطبيق افتراضي لهذا النوع.</string>
+    <string name="default_player_choose_in_settings">في إعدادات النظام، اختر Fast Media Sorter &amp; Organizer كتطبيق افتراضي لهذا النوع.</string>
     <string name="s0413_audio_track_skipped">تم تخطي \"%1$s\" - لا يمكن تشغيل هذا الملف.</string>
     <string name="s0413_audio_queue_unplayable">لا يمكن تشغيل أي شيء هنا.</string>
     <string name="settings_remote_sources_title">الموارد البعيدة (SMB و(S)FTP والتخزين السحابي)</string>
@@ -1668,8 +1667,8 @@
     <string name="settings_remote_source_cloud_help_message">افتح الملفات في التخزين السحابي - Google Drive وOneDrive وDropbox. اربط حسابًا لتصفّح مجلداتك السحابية داخل التطبيق مباشرة.</string>
     <string name="settings_remote_source_disable_confirm_title">إخفاء هذه المجلدات؟</string>
     <string name="settings_remote_source_disable_confirm_message">ستُخفى مجلدات هذا المصدر ولن تُحذف. تبقى مواردك المحفوظة وتظهر مجددًا عند إعادة تفعيل المصدر.</string>
-    <string name="screenshot_accessibility_service_description">يتيح لتطبيق FastMediaSorter التقاط لقطات الشاشة بإيماءة من الحافة وحفظها، بدون مربع حوار لكل لقطة. يشمل هذا لقطات الشاشة فقط - تسجيل فيديو الشاشة منفصل ويطلب الإذن من Android عند بدء كل تسجيل.</string>
-    <string name="screenshot_accessibility_permission_rationale">لالتقاط لقطات الشاشة بإيماءة الحافة، شغّل خدمة إمكانية الوصول الخاصة بـ FastMediaSorter:\n\n1. اضغط على «فتح الإعدادات»، ثم فعّل FastMediaSorter في قائمة إمكانية الوصول.\n2. إذا ظهر «يتحكم فيه إعداد مقيّد» أو «تم رفض وصول التطبيق»: افتح هذا التطبيق في «معلومات التطبيق»، واضغط على القائمة (3 نقاط)، واختر «السماح بالإعدادات المقيدة»، وأكّد، ثم ارجع وفعّله.\n\nإذا لم تتمكن من تفعيلها، فاضغط على «الطريقة القديمة» لاستخدام نسخة تطلب الإذن عند كل لقطة.</string>
+    <string name="screenshot_accessibility_service_description">يتيح لتطبيق Fast Media Sorter &amp; Organizer التقاط لقطات الشاشة بإيماءة من الحافة وحفظها، بدون مربع حوار لكل لقطة. يشمل هذا لقطات الشاشة فقط - تسجيل فيديو الشاشة منفصل ويطلب الإذن من Android عند بدء كل تسجيل.</string>
+    <string name="screenshot_accessibility_permission_rationale">لالتقاط لقطات الشاشة بإيماءة الحافة، شغّل خدمة إمكانية الوصول الخاصة بـ Fast Media Sorter &amp; Organizer:\n\n1. اضغط على «فتح الإعدادات»، ثم فعّل Fast Media Sorter &amp; Organizer في قائمة إمكانية الوصول.\n2. إذا ظهر «يتحكم فيه إعداد مقيّد» أو «تم رفض وصول التطبيق»: افتح هذا التطبيق في «معلومات التطبيق»، واضغط على القائمة (3 نقاط)، واختر «السماح بالإعدادات المقيدة»، وأكّد، ثم ارجع وفعّله.\n\nإذا لم تتمكن من تفعيلها، فاضغط على «الطريقة القديمة» لاستخدام نسخة تطلب الإذن عند كل لقطة.</string>
     <string name="screen_capture_rate_limited">كانت لقطة الشاشة سريعة جدًا، حاول مرة أخرى</string>
     <string name="screenshot_gesture_permission_dialog_title">تفعيل إيماءات الشاشة</string>
     <string name="screenshot_gesture_open_settings">فتح الإعدادات</string>
@@ -1785,7 +1784,7 @@
     <string name="statistics_privacy_note">تبقى هذه البيانات على جهازك. أنت من يرسل الملخص إلى المؤلف بنفسك، من تطبيق البريد الخاص بك.</string>
     <string name="statistics_send_to_author">إرسال إلى المؤلف</string>
     <string name="statistics_export">تصدير</string>
-    <string name="statistics_email_subject">إحصائيات FastMediaSorter</string>
+    <string name="statistics_email_subject">إحصائيات Fast Media Sorter &amp; Organizer</string>
     <string name="statistics_no_email_app">لا يوجد تطبيق يمكنه إرسال هذا - ثبّت تطبيق بريد أو مشاركة وحاول مرة أخرى.</string>
     <string name="statistics_report_all_time">الإجماليات منذ البداية</string>
     <string name="statistics_report_section_summary">الملخص</string>
@@ -1796,7 +1795,7 @@
     <string name="statistics_report_tech_android">أندرويد</string>
     <string name="statistics_report_unknown">غير معروف</string>
     <string name="error_dialog_report_to_author">إرسال تقرير العطل بالبريد الإلكتروني إلى المطوّر</string>
-    <string name="crash_report_email_subject">تقرير عن عطل برنامج FastMediaSorter</string>
+    <string name="crash_report_email_subject">تقرير عن عطل برنامج Fast Media Sorter &amp; Organizer</string>
     <string name="crash_report_email_body_intro">يرجى وصف ما كنت تفعله عند حدوث المشكلة. التفاصيل التقنية وسجل التطبيق مرفقان أدناه.</string>
     <string name="crash_prompt_title">إرسال تقرير عن الحادث؟</string>
     <string name="crash_prompt_message">تم إغلاق التطبيق بشكل غير متوقع في المرة السابقة. هل ترغب بإرسال تقرير عطل مع سجل التطبيق إلى مطور التطبيق؟</string>
@@ -1909,7 +1908,7 @@
     <string name="app_launch_panel_action_move">نقل</string>
     <string name="app_launch_panel_action_replace">استبدال</string>
     <string name="app_launch_panel_action_remove">إزالة</string>
-    <string name="app_launch_panel_own_app_label">FastMediaSorter</string>
+    <string name="app_launch_panel_own_app_label">Fast Media Sorter &amp; Organizer</string>
     <string name="app_picker_title">اختر تطبيقًا</string>
     <string name="app_launch_panel_title">التشغيل السريع</string>
     <string name="app_launch_panel_edit_action">تعديل</string>
@@ -1944,8 +1943,8 @@
     <string name="app_launch_panel_add_chooser_title">إضافة إلى اللوحة</string>
     <string name="app_launch_panel_path_external_app">تطبيق Android</string>
     <string name="app_launch_panel_path_os_part">إعدادات نظام Android</string>
-    <string name="app_launch_panel_path_app_feature">ميزة في FastMediaSorter</string>
-    <string name="app_launch_panel_path_app_resource">مورد في FastMediaSorter</string>
+    <string name="app_launch_panel_path_app_feature">ميزة في Fast Media Sorter &amp; Organizer</string>
+    <string name="app_launch_panel_path_app_resource">مورد في Fast Media Sorter &amp; Organizer</string>
     <string name="app_launch_panel_picker_feature_title">اختر ميزة</string>
     <string name="app_launch_panel_picker_os_title">اختر إعداد نظام Android</string>
     <string name="app_launch_panel_picker_resource_title">اختر موردًا</string>
@@ -2034,7 +2033,7 @@
     <string name="screen_recording_card_title">شاشة التسجيل</string>
     <string name="screen_recording_stop">أوقف التسجيل</string>
     <string name="screen_recording_disclosure_title">تسجيل فيديو للشاشة</string>
-    <string name="screen_recording_disclosure_message">سيقوم برنامج FastMediaSorter بتسجيل كل ما يظهر على شاشتك، بما في ذلك التطبيقات الأخرى، في ملف فيديو مع صوت الميكروفون حتى توقفه. يستمر التسجيل في الخلفية. يطلب منك نظام أندرويد اختيار هذا التطبيق أو الشاشة بأكملها عند بدء كل تسجيل، ولا يمكن تخطي هذه الخطوة.</string>
+    <string name="screen_recording_disclosure_message">سيقوم برنامج Fast Media Sorter &amp; Organizer بتسجيل كل ما يظهر على شاشتك، بما في ذلك التطبيقات الأخرى، في ملف فيديو مع صوت الميكروفون حتى توقفه. يستمر التسجيل في الخلفية. يطلب منك نظام أندرويد اختيار هذا التطبيق أو الشاشة بأكملها عند بدء كل تسجيل، ولا يمكن تخطي هذه الخطوة.</string>
     <string name="screen_recording_disclosure_start">ابدأ التسجيل</string>
     <string name="screen_recording_saved">تم حفظ تسجيل الشاشة: %1$s</string>
     <string name="screen_recording_error">تعذر حفظ تسجيل الشاشة.</string>
@@ -2117,7 +2116,7 @@
     <string name="edge_gesture_general_group_title">إعدادات الإيماءات العامة</string>
     <string name="edge_gesture_schema_content_description">خريطة إيماءات الحافة: انقر على اتجاه منطقة لتعيين إجراء</string>
     <string name="companion_qr_share_title">امسح الرمز لإضافة المورد</string>
-    <string name="companion_qr_share_hint">في FastMediaSorter: إضافة مورد -&gt; مسح رمز QR</string>
+    <string name="companion_qr_share_hint">في Fast Media Sorter &amp; Organizer: إضافة مورد -&gt; مسح رمز QR</string>
     <string name="companion_qr_share_no_password_note">لم تُضمَّن كلمة المرور - يُدخلها المستلم عند الاستيراد.</string>
     <string name="companion_qr_share_encode_failed">تعذّر إنشاء رمز QR.</string>
     <string name="sftp_share_show_qr_action">إظهار رمز الاستجابة السريعة (QR)</string>
@@ -2137,7 +2136,7 @@
     <string name="gesture_action_explain_send_to_recipients">يلتقط الشاشة ويرسلها إلى المستلمين الذين اخترتهم.</string>
     <string name="gesture_action_explain_share">يلتقط الشاشة ويفتح لوحة المشاركة في النظام.</string>
     <string name="gesture_action_explain_crop_and_share">يلتقط الشاشة ويتيح لك قصّها ثم يشارك النتيجة.</string>
-    <string name="gesture_action_explain_open_app">يفتح التطبيق الذي تختاره لهذه الإيماءة. وإذا لم تختر تطبيقًا، يفتح FastMediaSorter.</string>
+    <string name="gesture_action_explain_open_app">يفتح التطبيق الذي تختاره لهذه الإيماءة. وإذا لم تختر تطبيقًا، يفتح Fast Media Sorter &amp; Organizer.</string>
     <string name="gesture_action_explain_open_panel">يفتح لوحة الوصول السريع.</string>
     <string name="gesture_action_explain_launch_camera">يفتح الكاميرا المدمجة في التطبيق.</string>
     <string name="gesture_action_explain_take_photo">يلتقط صورة بالكاميرا المدمجة ويحفظها.</string>
@@ -2211,7 +2210,7 @@
     <string name="launcher_home_mode_play">تشغيل</string>
     <string name="launcher_home_cell_with_mode">%1$s، %2$s</string>
     <string name="launcher_taskbar_start">ابدأ</string>
-    <string name="launcher_menu_open_app">فتح FastMediaSorter</string>
+    <string name="launcher_menu_open_app">فتح Fast Media Sorter &amp; Organizer</string>
     <string name="launcher_menu_resources">مواردي</string>
     <string name="launcher_menu_all_apps">كل التطبيقات</string>
     <string name="launcher_menu_android_settings">إعدادات Android</string>
@@ -2303,8 +2302,6 @@
     <string name="settings_streams_smart_buffering_summary">احتياطي أكبر عند البدء وإعادة اتصال صامتة عندما يكون الاتصال غير مستقر</string>
     <string name="streams_section_pinned">المثبّتة</string>
     <string name="streams_section_main">القنوات</string>
-    <string name="streams_section_expand">توسيع القسم</string>
-    <string name="streams_section_collapse">طيّ القسم</string>
     <string name="ext_channel_preview_atlas_title">أطلس معاينات القنوات</string>
     <string name="ext_channel_preview_atlas_desc">يعرض معاينة لقنوات الفيديو في وضع الشبكة قبل مشاهدتك الأولى.</string>
     <string name="streams_atlas_prompt_message">هل تريد تنزيل معاينات القنوات لتظهر صورة لقنوات الفيديو قبل تشغيلها؟</string>
@@ -2440,7 +2437,7 @@
     <string name="launcher_tray_sim_signal_none">SIM %1$d، لا خدمة</string>
     <string name="launcher_now_playing_other_apps">إظهار موسيقى التطبيقات الأخرى</string>
     <string name="launcher_now_playing_access_title">إظهار الموسيقى من تطبيقات أخرى</string>
-    <string name="launcher_now_playing_access_message">يقرأ FastMediaSorter جلسة الوسائط الخاصة بأي تطبيق قيد التشغيل - عنوان المقطع والفنان وحالة التشغيل - لكي تعرض هذه الأداة ذلك وتتحكم في التشغيل. يسمّي Android هذا الإذن الوصول إلى الإشعارات، لكن التطبيق لا يقرأ أي إشعارات، بل يقرأ جلسة الوسائط فقط. تمنح هذا الإذن من شاشة إعدادات Android ويمكنك سحبه منها في أي وقت.</string>
+    <string name="launcher_now_playing_access_message">يقرأ Fast Media Sorter &amp; Organizer جلسة الوسائط الخاصة بأي تطبيق قيد التشغيل - عنوان المقطع والفنان وحالة التشغيل - لكي تعرض هذه الأداة ذلك وتتحكم في التشغيل. يسمّي Android هذا الإذن الوصول إلى الإشعارات، لكن التطبيق لا يقرأ أي إشعارات، بل يقرأ جلسة الوسائط فقط. تمنح هذا الإذن من شاشة إعدادات Android ويمكنك سحبه منها في أي وقت.</string>
     <string name="perm_title_notification_listener">الوصول إلى الإشعارات</string>
     <string name="perm_desc_notification_listener">يتيح لأداة «قيد التشغيل الآن» على سطح مكتب المشغل عرض ما تشغّله التطبيقات الأخرى والتحكم فيه. يقرأ التطبيق جلسات الوسائط فقط، ولا يقرأ محتوى الإشعارات أبدًا. اختياري - يُمنح من شاشة إعدادات Android.</string>
     <string name="perm_title_write_external_storage">الحفظ في تخزين الجهاز</string>
@@ -2921,7 +2918,7 @@
     <string name="wear_log_report_channel_name">سجلات الساعة</string>
     <string name="wear_log_report_notification_title">تم استلام سجلات الساعة</string>
     <string name="wear_log_report_notification_text">اضغط لإرسالها إلى المطوّر</string>
-    <string name="wear_log_report_email_subject">سجلات ساعة FastMediaSorter</string>
+    <string name="wear_log_report_email_subject">سجلات ساعة Fast Media Sorter &amp; Organizer</string>
     <string name="wear_log_report_email_body">يحتوي الأرشيف على سجلات كل من الساعة والهاتف.</string>
     <string name="settings_unused_credentials_title">بيانات اعتماد غير مستخدمة</string>
     <string name="settings_unused_credentials_button">بيانات اعتماد غير مستخدمة - %1$d</string>
@@ -3037,7 +3034,6 @@
     <string name="ext_vlc_engine_desc">يقوم بتشغيل ملفات الفيديو وصور الأقراص التي لا يمكن للمشغل المدمج فتحها. تنزيل لمرة واحدة بحجم 44 ميجابايت تقريبًا.</string>
     <string name="calculator_display_content_description">نتيجة. انقر للنسخ، ثم اضغط لفترة طويلة للصق رقم</string>
     <string name="calculator_action_settings">إعدادات الآلة الحاسبة</string>
-    <string name="calculator_settings_title">إعدادات الآلة الحاسبة</string>
     <string name="calculator_settings_group_thousands">أرقام المجموعة</string>
     <string name="calculator_settings_group_thousands_summary">ضع فاصلة بين كل ثلاثة أرقام، على جانبي العلامة العشرية</string>
     <string name="calculator_settings_text_size">حجم النتيجة</string>
@@ -3164,7 +3160,7 @@
     <string name="welcome_enable_all_explainer_step_permissions_title">السماح بالوصول</string>
     <string name="welcome_enable_all_explainer_step_permissions_body">يعرض نظام Android طلبه الخاص. اضغط على السماح. بعض أنواع الوصول تفتح صفحة إعدادات منفصلة بدلاً من ذلك - فعّل المفتاح هناك ثم اضغط على رجوع.</string>
     <string name="welcome_enable_all_explainer_step_default_app_title">اختر التطبيق لملفاتك</string>
-    <string name="welcome_enable_all_explainer_step_default_app_body">يفتح أحد ملفاتك الخاصة حتى يتمكن نظام Android من سؤالك عن التطبيق الذي يجب أن يتعامل معه. هذا أمر متوقع. اختر FastMediaSorter، اضغط على دائمًا، ثم اضغط على رجوع للعودة إلى هنا.</string>
+    <string name="welcome_enable_all_explainer_step_default_app_body">يفتح أحد ملفاتك الخاصة حتى يتمكن نظام Android من سؤالك عن التطبيق الذي يجب أن يتعامل معه. هذا أمر متوقع. اختر Fast Media Sorter &amp; Organizer، اضغط على دائمًا، ثم اضغط على رجوع للعودة إلى هنا.</string>
     <string name="welcome_enable_all_explainer_step_back_title">زر رجوع يعيدك إلى هنا</string>
     <string name="welcome_enable_all_explainer_step_back_body">كل شاشة ليست تابعة لنا تُغادَر بزر رجوع. لا شيء يُفقد - يتابع الإعداد من حيث توقف.</string>
     <string name="welcome_enable_all_explainer_continue">فهمت، ابدأ</string>
@@ -3319,7 +3315,7 @@
     <string name="widget_water_flashlight_label">مصباح الماء</string>
     <string name="widget_water_flashlight_description">يشغّل الفلاش والشاشة ويقفل الشاشة - لا يغلقه إلا زر</string>
     <string name="tooltip_stopwatch_title">ساعة إيقاف</string>
-    <string name="tooltip_stopwatch_message">يضيف ساعة إيقاف إلى القائمة الرئيسية. تقيس جولة واحدة أو عدة جولات متتالية، لأربعة مشاركين في وقت واحد، وتحفظ النتيجة داخل FastMediaSorter.</string>
+    <string name="tooltip_stopwatch_message">يضيف ساعة إيقاف إلى القائمة الرئيسية. تقيس جولة واحدة أو عدة جولات متتالية، لأربعة مشاركين في وقت واحد، وتحفظ النتيجة داخل Fast Media Sorter &amp; Organizer.</string>
     <string name="stopwatch_volume_label">مستوى صوت الموسيقى</string>
     <string name="stopwatch_settings_title">إعدادات ساعة الإيقاف</string>
     <string name="stopwatch_settings_participants">المشاركون</string>
@@ -3374,7 +3370,7 @@
     <string name="wear_listen_caption_idle">استمع إلى ما يسمعه ميكروفون الساعة. ستطلب منك الساعة التأكيد.</string>
     <string name="wear_listen_caption_waiting">في انتظار تأكيدك على الساعة..</string>
     <string name="wear_listen_caption_listening">جارٍ الاستماع إلى الساعة.</string>
-    <string name="wear_listen_refusal_not_asked">لم تتمكن الساعة من سؤالك: فعّل إشعاراتها لتطبيق FastMediaSorter.</string>
+    <string name="wear_listen_refusal_not_asked">لم تتمكن الساعة من سؤالك: فعّل إشعاراتها لتطبيق Fast Media Sorter &amp; Organizer.</string>
     <string name="wear_listen_refusal_declined">لقد رفضت الطلب على الساعة.</string>
     <string name="wear_listen_refusal_expired">لم يرد أحد على الساعة في الوقت المحدد.</string>
     <string name="wear_listen_refusal_capture_failed">لم تتمكن الساعة من فتح الميكروفون الخاص بها.</string>
@@ -3588,7 +3584,7 @@
     <string name="wear_system_info_channel_name">معلومات نظام الساعة</string>
     <string name="wear_system_info_notification_title">تم استلام تقرير الساعة</string>
     <string name="wear_system_info_notification_text">انقر لفتح التقرير أو إرساله</string>
-    <string name="wear_system_info_share_subject">معلومات نظام ساعة FastMediaSorter</string>
+    <string name="wear_system_info_share_subject">معلومات نظام ساعة Fast Media Sorter &amp; Organizer</string>
     <string name="wear_clipboard_channel_name">حافظة الساعة</string>
     <string name="wear_clipboard_notification_title">نص من الساعة</string>
     <string name="wear_clipboard_notification_text">أصبح الآن في حافظة هذا الهاتف</string>
@@ -3734,8 +3730,8 @@
     <string name="settings_sftp_server_apply_hint">أوقف الخادم ثم شغّله مرة أخرى لتطبيق التغيير</string>
     <string name="settings_sftp_server_show_qr">إظهار رمز الإقران</string>
     <string name="settings_sftp_server_hide_qr">إخفاء رمز الإقران</string>
-    <string name="settings_sftp_server_qr_description">رمز الإقران: امسحه في FastMediaSorter على جهاز آخر</string>
-    <string name="add_resource_sftp_pairing_invalid">هذا الرمز ليس رمز إقران كاملًا لـ FastMediaSorter - أظهره مرة أخرى على هاتف الخادم وأعد المسح</string>
+    <string name="settings_sftp_server_qr_description">رمز الإقران: امسحه في Fast Media Sorter &amp; Organizer على جهاز آخر</string>
+    <string name="add_resource_sftp_pairing_invalid">هذا الرمز ليس رمز إقران كاملًا لـ Fast Media Sorter &amp; Organizer - أظهره مرة أخرى على هاتف الخادم وأعد المسح</string>
     <string name="add_resource_sftp_pairing_filled">تمت تعبئة بيانات الاتصال من رمز الإقران - راجعها واحفظ</string>
     <string name="add_resource_sftp_pairing_name">خادم الجهاز %1$s</string>
     <string name="filedo_password_remember_leak">يمكن لأي شخص يحمل هذا الهاتف وهو غير مقفل فتح كل ملف .fd-sec تناسبه كلمة المرور هذه دون كتابتها.</string>
@@ -3842,8 +3838,8 @@
     <string name="wear_watchface_hint">يتوفر وجه ساعة FastMediaSorter لساعتك.</string>
     <string name="wear_watchface_hint_action">احصل عليه</string>
     <string name="wear_install_offer_title">ساعة متصلة</string>
-    <string name="wear_install_offer_message">%1$s متصلة بهذا الهاتف. ثبّت FastMediaSorter على الساعة لفتح وسائطك مباشرةً من معصمك، واحصل على وجه ساعة FastMediaSorter.</string>
-    <string name="wear_install_offer_message_face_only">FastMediaSorter موجود بالفعل على %1$s. هل تريد الحصول على وجه ساعة FastMediaSorter أيضًا؟</string>
+    <string name="wear_install_offer_message">%1$s متصلة بهذا الهاتف. ثبّت Fast Media Sorter &amp; Organizer على الساعة لفتح وسائطك مباشرةً من معصمك، واحصل على وجه ساعة Fast Media Sorter &amp; Organizer.</string>
+    <string name="wear_install_offer_message_face_only">Fast Media Sorter &amp; Organizer موجود بالفعل على %1$s. هل تريد الحصول على وجه ساعة Fast Media Sorter &amp; Organizer أيضًا؟</string>
     <string name="wear_install_offer_app">التثبيت على الساعة</string>
     <string name="wear_install_offer_face">وجه الساعة</string>
     <string name="wear_install_offer_app_no_watch">لا توجد ساعة متصلة - تُفتح صفحة تطبيق الساعة هنا بدلًا من ذلك.</string>
@@ -3860,7 +3856,7 @@
     <string name="wear_stream_pins_push_no_watch">لا توجد ساعة في النطاق</string>
     <string name="wear_stream_pins_push_failed">لم تصل القائمة إلى الساعة. حاول مرة أخرى.</string>
     <string name="wear_stream_pins_picker_title">تثبيت قناة للساعة</string>
-    <string name="welcome_default_player_hint_side">اضغط على أحد الأزرار - ستظهر نافذة حوار. اختر FastMediaSorter ثم اضغط على <b>دائمًا</b>.</string>
+    <string name="welcome_default_player_hint_side">اضغط على أحد الأزرار - ستظهر نافذة حوار. اختر Fast Media Sorter &amp; Organizer ثم اضغط على <b>دائمًا</b>.</string>
     <string name="host_key_repin_warning_format">لم يتم تحميل أي شيء حفاظًا على أمانك. حدّث البصمة فقط إذا كنت تثق بهذه الشبكة. سيؤدي هذا إلى تحديث البصمة في %1$d من الموارد التي تشترك في هذا العنوان.</string>
     <string name="host_key_repin_confirm">تحديث البصمة</string>
     <string name="host_key_repin_done">تم تحديث البصمة</string>
@@ -4045,7 +4041,6 @@
     <string name="broadcast_control_group_share">الرابط والمشاركة</string>
     <string name="msg_transfer_same_folder_refused">هذا هو مجلد الملف بالفعل. اختر وجهة مختلفة.</string>
     <string name="settings_collapse_all">طيّ الكل</string>
-    <string name="settings_category_about_app">كل شيء عن هذا التطبيق</string>
     <string name="broadcast_control_preview_toggle_cd">صورة البث. اضغط لإظهار عناصر التحكم أو إخفائها</string>
     <string name="broadcast_link_password_title">كلمة مرور الرابط</string>
     <string name="broadcast_link_password_mode_auto">تلقائي</string>

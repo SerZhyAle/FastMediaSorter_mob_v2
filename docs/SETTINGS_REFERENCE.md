@@ -100,7 +100,7 @@ _Generated from the app. Do not edit by hand._
 | Resources | Chooses resources as the data set to export or import. |
 | Settings | Chooses app settings as the data set to export or import. |
 | Pinned streams | Chooses the pinned stream list as the data set to export or import. |
-| Language/Язык/Мова | Opens a searchable list of the interface languages. On a Play install the chosen language is downloaded first; if it cannot be fetched, the app keeps the language it is using. |
+| Language/Язык/Мова | Opens a searchable list of the interface languages. On a Play install the chosen language is downloaded first; if it cannot be fetched, the app keeps the language it is using. The change takes effect at once, with no restart. |
 | Primary startup window | Selects what opens when FastMediaSorter launches or when the Home button is pressed: the device home screen, the in-app desktop without replacing the system home screen, or the resource list. On a Googlebook the device home screen is not offered and the in-app desktop is the default. |
 | System launcher settings | Opens the system launcher settings dialog for shaping the home-screen desktop, taskbar and grid density. |
 | Statistics | Opens the usage statistics screen. |

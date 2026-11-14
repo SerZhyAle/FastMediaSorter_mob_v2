@@ -70,9 +70,10 @@ class PlayerBroadcastEndManager @Inject constructor(
         val host = activity
         if (host != null && id != null && id != watchedId) {
             watchedId = id
+            Timber.d("S4607: player removal watch, bound to an entry=${session.entryKey != null}")
             hold.reset()
             removalWatch?.cancel()
-            removalWatch = host.collectOnLifecycle(observeRemoval(id)) { removed ->
+            removalWatch = host.collectOnLifecycle(observeRemoval(id, session.entryKey)) { removed ->
                 val readNow = hold.onDirectory(removed)
                 if (readNow) {
                     currentPath?.let { playing -> onStreamStopped(playing, BroadcastStopSignal.DirectoryRemoved) }

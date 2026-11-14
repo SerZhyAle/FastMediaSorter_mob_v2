@@ -93,7 +93,6 @@
     <string name="settings_all_files_profile_confirm_message">এই ধরনটি ফাইল-ব্যবস্থাপক মোড চালু করে এবং অনুপস্থিত \"সব ফাইল\" উৎস তৈরি করবে। চালিয়ে যাবেন?</string>
     <string name="settings_reset_settings_failed">সেটিংস পুনঃস্থাপন করা যায়নি। আবার চেষ্টা করুন।</string>
     <string name="settings_reset_smb_failed">SMB সংযোগ পুনঃস্থাপন করা যায়নি। আবার চেষ্টা করুন।</string>
-    <string name="settings_saved">সেটিংস সংরক্ষিত হয়েছে</string>
     <string name="settings_search_close">সেটিংস অনুসন্ধান বন্ধ করুন</string>
     <string name="settings_search_hint">সেটিংসে খুঁজুন</string>
     <string name="settings_search_no_results">কোনো সেটিং পাওয়া যায়নি</string>

@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Conectar a um NAS / Compartilhamento do Windows (SMB) - FastMediaSorter v2"
+title: "Conectar a um NAS / Compartilhamento do Windows (SMB) - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-smb-setup-pt.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -13,7 +13,7 @@ permalink: /docs/howto/scenario-smb-setup-pt.html
 
 O SMB (também chamado de Compartilhamento de Arquivos do Windows ou CIFS) permite navegar pelos arquivos do seu PC, notebook ou dispositivo NAS de casa exatamente como se estivessem no seu celular - sem cabos, sem USB, apenas Wi-Fi.
 
-> **Explicação em linguagem simples:** Imagine que o seu PC tem um quadro de avisos público no seu Wi-Fi de casa. Qualquer dispositivo na casa pode ler esse quadro. O FastMediaSorter se conecta a esse "quadro" (sua pasta compartilhada) e permite navegar pelos seus arquivos como se estivessem armazenados diretamente no seu celular. Nada é copiado ou baixado de antemão - os arquivos abrem sob demanda.
+> **Explicação em linguagem simples:** Imagine que o seu PC tem um quadro de avisos público no seu Wi-Fi de casa. Qualquer dispositivo na casa pode ler esse quadro. O Fast Media Sorter & Organizer se conecta a esse "quadro" (sua pasta compartilhada) e permite navegar pelos seus arquivos como se estivessem armazenados diretamente no seu celular. Nada é copiado ou baixado de antemão - os arquivos abrem sob demanda.
 
 ---
 
@@ -67,12 +67,12 @@ No **Windows:**
 
 ---
 
-## Passo 3 - Abra o FastMediaSorter e Toque em "+"
+## Passo 3 - Abra o Fast Media Sorter & Organizer e Toque em "+" {#passo-3---abra-o-fastmediasorter-e-toque-em-}
 
 1. Abra o app
 2. Na **tela principal**, toque no botão **"Adicionar" <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** na barra de ferramentas superior
 
-![Tela principal do FastMediaSorter - botão Adicionar destacado na barra de ferramentas superior, aba SMB visível](screenshots/screenshot-smb-step3.png)
+![Tela principal do Fast Media Sorter & Organizer - botão Adicionar destacado na barra de ferramentas superior, aba SMB visível](screenshots/screenshot-smb-step3.png)
 
 ---
 
@@ -147,7 +147,7 @@ Toque em **"Salvar"**. A nova pasta aparece na tela principal com um selo SMB.
 
 Toque nela para navegar pelo conteúdo - fotos, vídeos e outros arquivos aparecem como miniaturas, igual a qualquer pasta local.
 
-![Tela principal do FastMediaSorter - novo card de recurso SMB "Common" (smb://192.168.1.100/Common) com selo Pasta de rede SMB destacado](screenshots/screenshot-smb-step8.png)
+![Tela principal do Fast Media Sorter & Organizer - novo card de recurso SMB "Common" (smb://192.168.1.100/Common) com selo Pasta de rede SMB destacado](screenshots/screenshot-smb-step8.png)
 
 ---
 

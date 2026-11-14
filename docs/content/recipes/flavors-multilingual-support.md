@@ -2,7 +2,7 @@
 page_id: flavors.multilingual-support
 title: Choosing the App Language and Units
 nav_title: Language and units
-description: How FastMediaSorter picks its language on the first start, how to switch to any of its thirteen languages, and how to choose between metric and US units, a 24-hour and a 12-hour clock.
+description: How Fast Media Sorter & Organizer picks its language on the first start, how to switch to any of its thirteen languages, and how to choose between metric and US units, a 24-hour and a 12-hour clock.
 category: Editions, Extensions & Languages
 category_slug: flavors
 ticket: S2947
@@ -10,18 +10,18 @@ availability: all
 recipe_number: "03"
 canonical_url: documentation/flavors/multilingual-support.html
 why: |
-  An app is easiest to use in your own language, with distances, temperatures and times written the way you are used to. FastMediaSorter speaks thirteen languages and can show everything either in metric units with a 24-hour clock or in US units with a 12-hour clock.
+  An app is easiest to use in your own language, with distances, temperatures and times written the way you are used to. Fast Media Sorter & Organizer speaks thirteen languages and can show everything either in metric units with a 24-hour clock or in US units with a 12-hour clock.
 
   Usually you do not need to do anything: the app starts in the language of your phone. This page is for the moments when you want something else - the app in English on a phone set to German, or miles on a phone that shows kilometers.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition). Language and units work the same in all seven."
+  - "Fast Media Sorter & Organizer in any [edition](term:edition). Language and units work the same in all seven."
   - "An internet connection, only if you installed the app from Google Play and pick a language the phone has not used before: the app then downloads that language first."
 steps:
   - number: 1
     id: first-start
     title: Let the app pick your language on the first start
     text: |
-      On the first start, FastMediaSorter looks at the list of languages in your phone's settings and takes the first one it speaks. Many people have more than one language in that list, for example Catalan first and Spanish second. FastMediaSorter does not speak Catalan, so it starts in Spanish - not in English.
+      On the first start, Fast Media Sorter & Organizer looks at the list of languages in your phone's settings and takes the first one it speaks. Many people have more than one language in that list, for example Catalan first and Spanish second. Fast Media Sorter & Organizer does not speak Catalan, so it starts in Spanish - not in English.
 
       The app speaks these thirteen languages: English, Arabic, Bengali, Chinese (Simplified), French, German, Hindi, Italian, Portuguese, Russian, Spanish, Ukrainian and Urdu.
 
@@ -37,9 +37,8 @@ steps:
       1. Open **Settings**, stay on the **General** tab, and open **General interface settings**.
       2. Tap **Language/Язык/Мова**. The row carries its name in three languages on purpose, so that you can find it even when the app speaks a language you cannot read.
       3. A list of languages opens. Type the first letters of a language to find it faster, then tap it.
-      4. The app asks **Restart Application**: to apply the new language, it has to restart. Tap **Restart**.
 
-      The app closes and opens again in the new language, on the same screen of [Settings](term:settings). Your resources, favorites and settings stay as they were.
+      The app shows the new language at once, on the same screen of [Settings](term:settings). Your resources, favorites and settings stay as they were.
     image_bookmark:
       shot_id: flavors.language-picker
       device_profile: phone
@@ -112,4 +111,4 @@ next_recipes:
 
 <sub class="doc-stamp">26.10.21 15:53</sub>
 
-FastMediaSorter speaks thirteen languages and shows times, distances and temperatures in metric or US units. This page shows how the app picks its language, how to change it, and how to choose your units.
+Fast Media Sorter & Organizer speaks thirteen languages and shows times, distances and temperatures in metric or US units. This page shows how the app picks its language, how to change it, and how to choose your units.

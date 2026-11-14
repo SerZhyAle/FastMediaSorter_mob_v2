@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S4621: one settings page menu row - rail on wide windows, full-window list on narrow ones. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="@dimen/settings_rail_row_min_height"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:background="@drawable/bg_settings_rail_row"
+    android:foreground="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true">
+
+    <View
+        android:id="@+id/railSelectedBar"
+        android:layout_width="@dimen/settings_rail_selected_bar_width"
+        android:layout_height="match_parent"
+        android:background="?attr/colorPrimary"
+        android:visibility="invisible" />
+
+    <ImageView
+        android:id="@+id/railGlyph"
+        android:layout_width="@dimen/settings_rail_glyph_size"
+        android:layout_height="@dimen/settings_rail_glyph_size"
+        android:layout_marginStart="@dimen/margin_medium"
+        android:contentDescription="@null"
+        android:importantForAccessibility="no"
+        app:tint="?attr/colorOnSurface" />
+
+    <TextView
+        android:id="@+id/railCaption"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="@dimen/settings_rail_glyph_gap"
+        android:layout_marginEnd="@dimen/margin_small"
+        android:paddingTop="@dimen/margin_tiny"
+        android:paddingBottom="@dimen/margin_tiny"
+        android:textAppearance="?attr/textAppearanceLabelLarge"
+        android:textColor="?attr/colorOnSurface" />
+
+</LinearLayout>

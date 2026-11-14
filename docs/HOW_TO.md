@@ -105,7 +105,7 @@ If a feature is marked with "✗", choose the **Standard** or **XR / noLegal** b
 
 ## Scenario Groups
 
-These sections are intentionally more varied than the core reference blocks below. Each scenario mixes a fast path with context, trade-offs, and the situations where FastMediaSorter is especially strong.
+These sections are intentionally more varied than the core reference blocks below. Each scenario mixes a fast path with context, trade-offs, and the situations where Fast Media Sorter & Organizer is especially strong.
 
 > **⭐ Featured: bring your PC's folders to your phone with one scan.** Run the free [Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) companion on your PC, pick the folders with your videos, music, documents, or photos, and it shows a code on screen. On the phone, tap **Add**, choose **Import by barcode**, point the camera at the code - the PC folders are connected instantly, with no address, port, or password typing. Full walkthrough: [Open PC Folders by Scanning a Code](howto/scenario-companion-share.md) &bull; quick recipe: [Import a Windows Companion Share](#how-to-import-a-windows-companion-share).
 
@@ -201,7 +201,7 @@ These sections are intentionally more varied than the core reference blocks belo
 1. Open the main window dropdown and tap **Streams**, or go to **Settings > Media > Streams** and enable the toggle if it is off.
 2. Tap **⋮** at the end of the toolbar, choose **Add stream**, and paste any radio station URL (http:// or https://, .m3u8, rtsp://).
 3. Tap the station row - audio starts in the sticky bottom mini-control. The list stays scrollable.
-4. For a larger catalog, tap **Import** and enter a remote `.m3u` URL, or download the curated FastMediaSorter catalog from the **Extensions** screen.
+4. For a larger catalog, tap **Import** and enter a remote `.m3u` URL, or download the curated Fast Media Sorter & Organizer catalog from the **Extensions** screen.
 
 **Scenario Walkthrough**
 
@@ -236,7 +236,7 @@ These sections are intentionally more varied than the core reference blocks belo
 
 1. Create or choose one local folder for the trip.
 2. Copy the media, PDFs, EPUBs, or notes you need into it before leaving Wi-Fi.
-3. Open that folder once in FastMediaSorter so thumbnails and last positions are ready.
+3. Open that folder once in Fast Media Sorter & Organizer so thumbnails and last positions are ready.
 4. Use the folder offline during the trip.
 
 **Scenario Walkthrough**
@@ -320,7 +320,7 @@ These sections are intentionally more varied than the core reference blocks belo
 
 **Scenario Walkthrough**
 
-- Use this when FastMediaSorter is the best browser for remote storage, but another app is the best editor or viewer for one file type.
+- Use this when Fast Media Sorter & Organizer is the best browser for remote storage, but another app is the best editor or viewer for one file type.
 - Typical handoff cases are office documents, advanced PDFs, codec-heavy videos, and niche media formats.
 - The downloaded copy remains in `Downloads`, so you can reopen it later even if the remote source goes offline.
 
@@ -454,7 +454,7 @@ These sections are intentionally more varied than the core reference blocks belo
 2. Enter the remote .m3u address. Tap **Import**.
 3. All stations from the file appear in the list.
 
-**Download the curated FastMediaSorter catalog:**
+**Download the curated Fast Media Sorter & Organizer catalog:**
 
 1. Open **Settings > Extensions** (or the Welcome onboarding Streams row).
 2. Tap **Download** next to the Streams catalog entry.
@@ -1137,7 +1137,7 @@ Automatically translate text from images, PDF, and text files: **Tesseract** rea
 **Quick Path**
 
 1. Go to your Android Home Screen, long-press, and select **Widgets**.
-2. Drag a **FastMediaSorter** widget (like 1×1 Quick Voice Recorder or Camera OCR) to your screen.
+2. Drag a **Fast Media Sorter & Organizer** widget (like 1×1 Quick Voice Recorder or Camera OCR) to your screen.
 3. Configure the destination folder and capture settings, then tap **Save**.
 4. Use the widget to execute tasks in one tap directly from your Home Screen.
 
@@ -1160,12 +1160,12 @@ Automatically translate text from images, PDF, and text files: **Tesseract** rea
 
 ## How to Use the App as Your Home Screen
 
-FastMediaSorter can take over your device's home screen and show its own desktop instead - your folders, a clock, the weather, your apps, and a taskbar along one edge. If you have ever used a Windows desktop it will feel familiar: things stay where you put them, and a Start button opens the menu. This is called launcher mode, and it ships in the **Standard** and **noLegal** builds only.
+Fast Media Sorter & Organizer can take over your device's home screen and show its own desktop instead - your folders, a clock, the weather, your apps, and a taskbar along one edge. If you have ever used a Windows desktop it will feel familiar: things stay where you put them, and a Start button opens the menu. This is called launcher mode, and it ships in the **Standard** and **noLegal** builds only.
 
 **Turning it on:**
 
 1. Open **Settings → General** and turn on **Make this app the home screen**.
-2. Android asks you to confirm. On Android 10 and newer it is a single question - "Allow FastMediaSorter to be your Home app?" - so just allow it. On older versions the classic choice appears the next time you press Home: pick FastMediaSorter and tap **Always**, or **Just once** if you only want to try it for now.
+2. Android asks you to confirm. On Android 10 and newer it is a single question - "Allow Fast Media Sorter & Organizer to be your Home app?" - so just allow it. On older versions the classic choice appears the next time you press Home: pick Fast Media Sorter & Organizer and tap **Always**, or **Just once** if you only want to try it for now.
 3. Press Home. The desktop appears, already filled with about a dozen useful things - a clock, the weather, your folders, a search box - so day one is not an empty grid.
 
 On a brand-new install there is a shortcut: tick **Use as home screen** on the first welcome page. That does not interrupt the setup with a system dialog - Android's confirmation comes up the first time you open **Settings → General** afterwards.
@@ -1184,7 +1184,7 @@ On a brand-new install there is a shortcut: tick **Use as home screen** on the f
 
 - The taskbar sits along the bottom edge and holds the Start button, the apps you used recently, the ones you pinned, and a small tray with the clock, battery, network and SIM signal.
 - Prefer it along the top? **Settings → General → System launcher settings → Taskbar → Taskbar position** switches between **Bottom** and **Top**. The Start menu follows the bar and drops down from above when the bar is up there.
-- The Start button opens the menu: open FastMediaSorter, your resources, add a resource, Android settings, app settings, launcher settings, edit desktop contents, and at the end restart, power off and **Exit launcher mode**. Restart and power off only work if your device lets an ordinary app do that - on most phones they will simply do nothing.
+- The Start button opens the menu: open Fast Media Sorter & Organizer, your resources, add a resource, Android settings, app settings, launcher settings, edit desktop contents, and at the end restart, power off and **Exit launcher mode**. Restart and power off only work if your device lets an ordinary app do that - on most phones they will simply do nothing.
 
 **Your apps:** the app grid groups apps into sections, each with a small header. Tap a header to collapse a section you rarely open; collapsed headers tuck in next to each other, so the desktop gets shorter instead of leaving gaps. A fresh desktop splits the apps it seeds in two: a **Google** section for the Google apps you already have installed, and an **Apps** section for your own - messengers, games and whatever else you put on the device. No app lands in both. Long-press any app in the list for **Put on desktop** and **Pin to taskbar**.
 
@@ -1208,13 +1208,13 @@ On a brand-new install there is a shortcut: tick **Use as home screen** on the f
 
 Your desktop layout is kept either way, so switching the mode back on brings it back exactly as you left it.
 
-**One honest warning.** A few devices refuse to remember the choice. Some cheap aftermarket car radios and other built-in Android boxes force their factory home screen back every time they start up, whatever you picked. That is the device's own firmware overriding you, not a fault in the app, and no app can work around it. If yours behaves that way, pick FastMediaSorter as the home app again after a restart - and if it still will not stick, that device simply does not allow it.
+**One honest warning.** A few devices refuse to remember the choice. Some cheap aftermarket car radios and other built-in Android boxes force their factory home screen back every time they start up, whatever you picked. That is the device's own firmware overriding you, not a fault in the app, and no app can work around it. If yours behaves that way, pick Fast Media Sorter & Organizer as the home app again after a restart - and if it still will not stick, that device simply does not allow it.
 
 ---
 
 ## How to Use FMS on Android TV Box
 
-FastMediaSorter runs on any Android TV box or set-top box (Xiaomi Mi Box, Nvidia Shield, Amazon Fire TV, generic Android boxes). No touchscreen required - the app is fully operable via TV remote or Bluetooth keyboard.
+Fast Media Sorter & Organizer runs on any Android TV box or set-top box (Xiaomi Mi Box, Nvidia Shield, Amazon Fire TV, generic Android boxes). No touchscreen required - the app is fully operable via TV remote or Bluetooth keyboard.
 
 **What you need:**
 
@@ -1420,11 +1420,11 @@ New captures use the `prefix_yyMMdd_HHmmss` pattern. The stable prefixes are `ph
 
 ## How to Receive Files Shared from Another App
 
-Any app's share sheet can send files to FastMediaSorter, which then copies them where you want.
+Any app's share sheet can send files to Fast Media Sorter & Organizer, which then copies them where you want.
 
 **Steps:**
 
-1. In the other app, share the file or files and pick **FastMediaSorter**.
+1. In the other app, share the file or files and pick **Fast Media Sorter & Organizer**.
 2. Choose the destination folder in the receive screen.
 3. Start the copy.
 

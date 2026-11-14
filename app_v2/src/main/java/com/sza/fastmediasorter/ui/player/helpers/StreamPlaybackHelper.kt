@@ -167,11 +167,7 @@ internal suspend fun VideoPlayerManager.playStreamVideo(requestedPath: String, p
             .setMinPlaybackSpeed(1.0f)
             .setMaxPlaybackSpeed(1.0f)
             .build()
-        val mediaItem = MediaItem.Builder()
-            .setUri(uri)
-            .setLiveConfiguration(liveConfiguration)
-            .build()
-        player.setMediaItem(mediaItem)
+        player.setMediaItem(MediaItem.Builder().setUri(uri).setLiveConfiguration(liveConfiguration).build())
     }
     // S1144 (ADR-4/ADR-6): seat the channel's remembered track languages before prepare so the first
     // track selection already honours them; null leaves the global default in charge. This function is
@@ -191,6 +187,10 @@ internal suspend fun VideoPlayerManager.playStreamVideo(requestedPath: String, p
     )
     // S1127: open the time-to-first-frame window exactly at prepare, so TTFF excludes setup work above.
     diagnostics.onPrepared()
+    // A user Retry from the unavailable dialog lands here through playVideo, so this is the one place a
+    // new first connection begins; the watchdog's re-anchor and the error ladder re-prepare inside a session.
+    streamStallRule.beginPlaybackSession()
+    Timber.d("S4596: playStreamVideo opens a new first connection")
     player.prepare()
     player.playWhenReady = playWhenReady
     Timber.i("VideoPlayerManager.playStreamVideo: prepared %s (rtsp=%s)", path, isRtsp)

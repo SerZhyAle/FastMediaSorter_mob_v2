@@ -452,12 +452,25 @@ class ImportStreamBroadcastUseCaseTest {
     fun importOverwritesATypeTheUserChoseInTheEditDialog() = runTest {
         importUseCase(serializer.serialize(watchDto(LIVE_URL, mode = "AUDIO_ONLY")))
         val typed = requireNotNull(dao.getByUrl(LIVE_URL))
-        repo.updateUserFields(typed.id, typed.url, typed.title, "VIDEO")
+        repo.updateUserFields(typed.id, typed.url, typed.title, "VIDEO", typed.category)
 
         val result = importUseCase(serializer.serialize(watchDto(LIVE_URL, mode = "AUDIO_ONLY")))
 
         assertEquals(ImportStreamBroadcastUseCase.ImportResult.Updated, result)
         assertEquals("AUDIO", dao.getByUrl(LIVE_URL)?.mediaKind)
+    }
+
+    @Test
+    fun importThatRefreshesTheKind_keepsTheCategoryTheUserTyped() = runTest {
+        importUseCase(serializer.serialize(watchDto(LIVE_URL, mode = "AUDIO_ONLY")))
+        val typed = requireNotNull(dao.getByUrl(LIVE_URL))
+        repo.updateUserFields(typed.id, typed.url, typed.title, "VIDEO", "Cameras")
+
+        importUseCase(serializer.serialize(watchDto(LIVE_URL, mode = "AUDIO_ONLY")))
+
+        val after = requireNotNull(dao.getByUrl(LIVE_URL))
+        assertEquals("AUDIO", after.mediaKind)
+        assertEquals("Cameras", after.category)
     }
 
     @Test
@@ -486,6 +499,80 @@ class ImportStreamBroadcastUseCaseTest {
         assertEquals(ImportStreamBroadcastUseCase.ImportResult.Duplicate, result)
         assertEquals("VIDEO", dao.getByUrl(LIVE_URL)?.mediaKind)
     }
+
+    @Test
+    fun listingImport_bindsTheRowToItsEntry() = runTest {
+        val dto = watchDto(FIRST_URL, endpoints = exchangeEndpoints(FIRST_BROADCAST))
+
+        val result = importUseCase(serializer.serialize(dto), listing = binding(FIRST_BROADCAST))
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Success, result)
+        val row = requireNotNull(dao.getByUrl(FIRST_URL))
+        assertEquals(ENTRY_A, row.exchangeEntryId)
+        assertEquals(FIRST_BROADCAST, row.exchangeBroadcastId)
+    }
+
+    @Test
+    fun restartedSource_rebindsItsOneRowToTheNewBroadcast() = runTest {
+        importUseCase(
+            serializer.serialize(watchDto(FIRST_URL, endpoints = exchangeEndpoints(FIRST_BROADCAST))),
+            listing = binding(FIRST_BROADCAST),
+        )
+        val before = requireNotNull(dao.getByUrl(FIRST_URL))
+
+        val result = importUseCase(
+            serializer.serialize(watchDto(SECOND_URL, endpoints = exchangeEndpoints(SECOND_BROADCAST))),
+            listing = binding(SECOND_BROADCAST),
+        )
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Updated, result)
+        val after = requireNotNull(dao.getBySourceDeviceId(WATCH_ID))
+        assertEquals(before.id, after.id)
+        assertEquals(SECOND_BROADCAST, after.exchangeBroadcastId)
+        assertEquals(ENTRY_A, after.exchangeEntryId)
+    }
+
+    @Test
+    fun handImport_keepsTheBindingAlreadyStored() = runTest {
+        val dto = watchDto(FIRST_URL, endpoints = exchangeEndpoints(FIRST_BROADCAST))
+        importUseCase(serializer.serialize(dto), listing = binding(FIRST_BROADCAST))
+
+        importUseCase(serializer.serialize(dto))
+
+        val row = requireNotNull(dao.getByUrl(FIRST_URL))
+        assertEquals(ENTRY_A, row.exchangeEntryId)
+        assertEquals(FIRST_BROADCAST, row.exchangeBroadcastId)
+    }
+
+    @Test
+    fun handImport_bindsNothing() = runTest {
+        importUseCase(serializer.serialize(watchDto(FIRST_URL, endpoints = exchangeEndpoints(FIRST_BROADCAST))))
+
+        val row = requireNotNull(dao.getByUrl(FIRST_URL))
+        assertNull(row.exchangeEntryId)
+        assertNull(row.exchangeBroadcastId)
+    }
+
+    @Test
+    fun addressHeldByAnotherSource_isNeverMerged() = runTest {
+        importUseCase(serializer.serialize(watchDto(FIRST_URL, endpoints = exchangeEndpoints(FIRST_BROADCAST))))
+        val held = requireNotNull(dao.getByUrl(FIRST_URL))
+        val other = watchDto(
+            FIRST_URL,
+            sourceId = OTHER_SOURCE_ID,
+            title = "Other phone",
+            endpoints = exchangeEndpoints(SECOND_BROADCAST),
+        )
+
+        val result = importUseCase(serializer.serialize(other), listing = binding(SECOND_BROADCAST))
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Duplicate, result)
+        val after = requireNotNull(dao.getByUrl(FIRST_URL))
+        assertEquals(held, after)
+        assertNull(dao.getBySourceDeviceId(OTHER_SOURCE_ID))
+    }
+
+    private fun binding(broadcastId: String) = ImportStreamBroadcastUseCase.ListingBinding(ENTRY_A, broadcastId)
 
     private fun exchangeEndpoints(broadcastId: String) = listOf(
         BroadcastEndpointDto(url = FIRST_URL, transport = "HTTP"),
@@ -529,5 +616,9 @@ class ImportStreamBroadcastUseCaseTest {
         const val LIVE_URL = "http://192.168.1.77:41000/live"
         const val RTSP_URL = "rtsp://192.168.1.77:8554/live"
         const val FINGERPRINT = "SHA256:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU"
+        const val ENTRY_A = "exchange.example.org:8443|alice"
+        const val FIRST_BROADCAST = "AbCdEfGh12"
+        const val SECOND_BROADCAST = "ZyXwVuTs98"
+        const val OTHER_SOURCE_ID = "0b2c4d6e-8f10-4a2b-9d1c-3c4d5e6f7a80"
     }
 }

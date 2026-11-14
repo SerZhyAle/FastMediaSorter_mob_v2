@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Backup Agendado da Câmera para o PC - FastMediaSorter v2"
+title: "Backup Agendado da Câmera para o PC - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-camera-backup-pt.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -21,7 +21,7 @@ Copie automaticamente as novas fotos da câmera do seu celular para o seu comput
 
 - Celular e PC conectados ao **mesmo Wi-Fi de casa** (mesmo roteador)
 - Uma pasta no seu PC onde as fotos serão salvas (ex.: `C:\PhoneBackup`)
-- FastMediaSorter instalado em uma edição com fontes de rede (**Standard**, Photos, Legacy, VR, noLegal)
+- Fast Media Sorter & Organizer instalado em uma edição com fontes de rede (**Standard**, Photos, Legacy, VR, noLegal)
 
 > **Não sabe qual edição você tem?** Abra **Configurações** <img src="../icons/doc/ic_settings.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> → **Informações do sistema**. A linha **Edição** informa a edição (Standard / Lite / etc.).
 
@@ -43,7 +43,7 @@ No **Windows:**
 
 ## Passo 2 - Conecte o App à Pasta do Seu PC
 
-Agora informe ao FastMediaSorter para onde enviar as fotos.
+Agora informe ao Fast Media Sorter & Organizer para onde enviar as fotos.
 
 > **O que é SMB?** É simplesmente a forma como o Windows compartilha pastas pelo Wi-Fi de casa. Você não precisa entender os detalhes - só siga os passos.
 
@@ -94,7 +94,7 @@ Preencha cada campo:
 | **Agendamento** | Quando executar | `Daily at 02:00` - executa enquanto você dorme |
 | **Executar apenas no Wi-Fi** | Ative esta opção | Evita que o backup use seus dados móveis por acidente |
 
-> **O que é "Fotos da Câmera"?** É uma pasta virtual especial que o FastMediaSorter cria automaticamente. Ela sempre mostra todas as fotos tiradas pela sua câmera - mesmo que estejam armazenadas em pastas diferentes no seu celular. Prefira sempre essa opção em vez de escolher um caminho manual.
+> **O que é "Fotos da Câmera"?** É uma pasta virtual especial que o Fast Media Sorter & Organizer cria automaticamente. Ela sempre mostra todas as fotos tiradas pela sua câmera - mesmo que estejam armazenadas em pastas diferentes no seu celular. Prefira sempre essa opção em vez de escolher um caminho manual.
 
 ![Adicionar Agendamento - Origem: Fotos da Câmera, Operação: Copiar, Destino: SMB](screenshots/screenshot-cb-step5.png)
 
@@ -154,7 +154,7 @@ Seu PC recebe fotos novas toda manhã. Você nunca precisa pensar nisso.
 
 | Problema | O que tentar |
 |---------|------------|
-| O agendamento não roda à noite | Vá para **Configurações do Android → Apps → FastMediaSorter → Bateria** → defina como **Sem restrições** |
+| O agendamento não roda à noite | Vá para **Configurações do Android → Apps → Fast Media Sorter & Organizer → Bateria** → defina como **Sem restrições** |
 | Erro "Destino inacessível" | Seu celular precisa estar no Wi-Fi na hora do backup. Se o Wi-Fi estava desligado às 2h, o backup é pulado e tentado novamente automaticamente na noite seguinte |
 | Algumas fotos não foram salvas no backup | Use o recurso virtual **"Fotos da Câmera"** como origem - ele captura fotos de todas as pastas de câmera no seu celular |
 | Arquivos duplicados aparecendo no PC | Confirme que a Operação está definida como **"Copiar (ignorar existentes)"**, não "Copiar (sobrescrever)" |

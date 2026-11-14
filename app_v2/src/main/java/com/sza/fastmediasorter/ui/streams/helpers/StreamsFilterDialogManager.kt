@@ -191,6 +191,7 @@ class StreamsFilterDialogManager(
         StreamsViewModel.MediaKindFilter.AUDIO -> binding.btnMediaAudio.id
         StreamsViewModel.MediaKindFilter.VIDEO -> binding.btnMediaVideo.id
         StreamsViewModel.MediaKindFilter.OWN -> binding.btnMediaOwn.id
+        StreamsViewModel.MediaKindFilter.RECENT -> binding.btnMediaRecent.id
         StreamsViewModel.MediaKindFilter.ALL -> binding.btnMediaAll.id
     }
 
@@ -201,6 +202,7 @@ class StreamsFilterDialogManager(
         binding.btnMediaAudio.id -> StreamsViewModel.MediaKindFilter.AUDIO
         binding.btnMediaVideo.id -> StreamsViewModel.MediaKindFilter.VIDEO
         binding.btnMediaOwn.id -> StreamsViewModel.MediaKindFilter.OWN
+        binding.btnMediaRecent.id -> StreamsViewModel.MediaKindFilter.RECENT
         else -> StreamsViewModel.MediaKindFilter.ALL
     }
 

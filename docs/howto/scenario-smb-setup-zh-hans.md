@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "连接到 NAS / Windows 共享（SMB）- FastMediaSorter v2"
+title: "连接到 NAS / Windows 共享（SMB）- Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-smb-setup-zh-hans.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -13,7 +13,7 @@ permalink: /docs/howto/scenario-smb-setup-zh-hans.html
 
 SMB（也叫 Windows 文件共享或 CIFS）可以让您浏览家里电脑、笔记本或 NAS 设备上的文件，就像它们就在您手机上一样 - 无需数据线，无需 USB，只需 Wi-Fi。
 
-> **通俗解释：** 想象您的电脑在家庭 Wi-Fi 上有一块公共布告栏。家里的任何设备都能读取这块布告栏。FastMediaSorter 会连接到这块“布告栏”（也就是您共享的文件夹），让您像浏览手机本地存储一样浏览这些文件。没有任何内容会被提前复制或下载 - 文件都是按需打开的。
+> **通俗解释：** 想象您的电脑在家庭 Wi-Fi 上有一块公共布告栏。家里的任何设备都能读取这块布告栏。Fast Media Sorter & Organizer 会连接到这块“布告栏”（也就是您共享的文件夹），让您像浏览手机本地存储一样浏览这些文件。没有任何内容会被提前复制或下载 - 文件都是按需打开的。
 
 ---
 
@@ -67,12 +67,14 @@ IP 地址就是您电脑在 Wi-Fi 网络中的“家庭地址”。您需要它�
 
 ---
 
-## 第 3 步 - 打开 FastMediaSorter 并点击“+”
+<a id="第-3-步---打开-fastmediasorter-并点击"></a>
+
+## 第 3 步 - 打开 Fast Media Sorter & Organizer 并点击“+”
 
 1. 打开应用
 2. 在**主屏幕**上，点击顶部工具栏中的**“添加” <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** 按钮
 
-![FastMediaSorter 主屏幕 - 顶部工具栏中高亮显示的添加按钮，可见 SMB 选项卡](screenshots/screenshot-smb-step3.png)
+![Fast Media Sorter & Organizer 主屏幕 - 顶部工具栏中高亮显示的添加按钮，可见 SMB 选项卡](screenshots/screenshot-smb-step3.png)
 
 ---
 
@@ -147,7 +149,7 @@ IP 地址就是您电脑在 Wi-Fi 网络中的“家庭地址”。您需要它�
 
 点击它即可浏览其中的内容 - 照片、视频和其他文件会像任何本地文件夹一样以缩略图形式显示。
 
-![FastMediaSorter 主屏幕 - 新的“Common” SMB 资源卡片（smb://192.168.1.100/Common），高亮显示网络文件夹 SMB 标记](screenshots/screenshot-smb-step8.png)
+![Fast Media Sorter & Organizer 主屏幕 - 新的“Common” SMB 资源卡片（smb://192.168.1.100/Common），高亮显示网络文件夹 SMB 标记](screenshots/screenshot-smb-step8.png)
 
 ---
 

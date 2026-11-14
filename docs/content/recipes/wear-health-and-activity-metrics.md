@@ -12,7 +12,7 @@ availability_note: Motion Monitor's movement sensors and System information's En
 recipe_number: "05"
 canonical_url: documentation/wear/health-and-activity-metrics.html
 why: |
-  Your watch already sits against your skin all day with a heart-rate sensor and an accelerometer built in. FastMediaSorter reads what they are seeing and shows it to you in plain numbers - a quick check, not a full fitness suite - and says so honestly whenever a sensor cannot answer.
+  Your watch already sits against your skin all day with a heart-rate sensor and an accelerometer built in. Fast Media Sorter & Organizer reads what they are seeing and shows it to you in plain numbers - a quick check, not a full fitness suite - and says so honestly whenever a sensor cannot answer.
 
   These readings are for general awareness only. They are not a medical device, they do not diagnose or treat anything, and they are no substitute for a doctor or a purpose-built health device.
 ingredients:

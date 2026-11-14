@@ -57,6 +57,8 @@ class ObserveLiveBroadcastSourcesUseCase @Inject constructor(
             addedAt = System.currentTimeMillis(),
             sourceDeviceId = dto.sourceId,
             broadcastEndpoints = endpoints,
+            exchangeEntryId = item.entryKey.takeIf { it.isNotEmpty() },
+            exchangeBroadcastId = item.broadcastId,
         )
     }
 

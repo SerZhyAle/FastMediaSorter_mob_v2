@@ -11,11 +11,11 @@ availability_note: Chromecast - Standard, noLegal, Lite and Legacy; Live Broadca
 recipe_number: "04"
 canonical_url: documentation/player/casting-and-broadcast.html
 why: |
-  A phone screen is great in your hand and small for a room full of people. This recipe covers the two ways FastMediaSorter sends what is on your phone somewhere else.
+  A phone screen is great in your hand and small for a room full of people. This recipe covers the two ways Fast Media Sorter & Organizer sends what is on your phone somewhere else.
 
   **Chromecast** plays the video you are watching on a TV. The phone becomes the remote control. **Live Broadcast** goes the other way round: your phone's microphone, or its camera and microphone, become a live channel that other people open on their own devices - a baby monitor, a talk in the next room, a view of the garden.
 ingredients:
-  - "Chromecast: FastMediaSorter in the Standard, noLegal, Lite or Legacy [edition](term:edition), and a [Chromecast](term:chromecast) or a TV with Chromecast built in on the same Wi-Fi network as the phone."
+  - "Chromecast: Fast Media Sorter & Organizer in the Standard, noLegal, Lite or Legacy [edition](term:edition), and a [Chromecast](term:chromecast) or a TV with Chromecast built in on the same Wi-Fi network as the phone."
   - "Live Broadcast: the Standard, noLegal or Legacy edition. On the same Wi-Fi network the people who watch connect to the phone directly; from another network they connect through your [exchange server](../../docs/media-exchange-portal/exchange-server.html)."
   - "Live Broadcast asks for access to the microphone, to the camera when you send a picture, and to notifications so the broadcast keeps running while the screen is off. See [understanding app permissions](page:getting-started.permissions-guide)."
 steps:
@@ -79,7 +79,7 @@ steps:
       - **Export File** - saves a small file that describes the broadcast.
       - **Send to** - sends the link through any messenger or mail app.
 
-      Another phone with FastMediaSorter scans the QR code to add the broadcast as a channel - see [live streams](page:streams.live-stream-playback). **Send to watch** sends it to your paired watch. The **How to watch this** link opens a page that explains to the other person, in their language, how to open the broadcast on an Android phone, a Wear OS watch or a Windows computer.
+      Another phone with Fast Media Sorter & Organizer scans the QR code to add the broadcast as a channel - see [live streams](page:streams.live-stream-playback). **Send to watch** sends it to your paired watch. The **How to watch this** link opens a page that explains to the other person, in their language, how to open the broadcast on an Android phone, a Wear OS watch or a Windows computer.
 
       The broadcast is published under your phone's name, so listeners know whose it is. You can change it in the broadcast settings with **Broadcast title**.
     image_bookmark:
@@ -101,7 +101,7 @@ steps:
     id: feedback
     title: When the sound starts to howl
     text: |
-      If someone listens to the broadcast out loud in the same room, their speaker can feed back into your microphone and the sound grows into a howl. FastMediaSorter notices this and turns the microphone down until the howl stops, then slowly gives the volume back. While it holds the sound down, the screen says: "Sound turned down: a listener's speaker is feeding back into the microphone. Move the listening device away or lower its volume." So a quieter broadcast does not mean the microphone is broken.
+      If someone listens to the broadcast out loud in the same room, their speaker can feed back into your microphone and the sound grows into a howl. Fast Media Sorter & Organizer notices this and turns the microphone down until the howl stops, then slowly gives the volume back. While it holds the sound down, the screen says: "Sound turned down: a listener's speaker is feeding back into the microphone. Move the listening device away or lower its volume." So a quieter broadcast does not mean the microphone is broken.
 
       This protection is called **Feedback guard**. It is on by default; you can turn it off in the broadcast settings.
 outcome: |

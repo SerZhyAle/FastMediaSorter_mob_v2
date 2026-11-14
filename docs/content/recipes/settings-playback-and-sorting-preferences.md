@@ -11,9 +11,9 @@ availability_note: All editions - launcher mode and the quick-access panel's pro
 recipe_number: "03"
 canonical_url: documentation/settings/playback-and-sorting-preferences.html
 why: |
-  The everyday defaults matter more than any single feature: whether the screen stays lit while you are actually looking at something, whether the battery is respected when it runs low, whether FastMediaSorter answers when another app hands it a file, and how quickly you reach your [programs](term:program) and resources. This page covers the [Settings](term:settings) rows that shape that everyday behavior.
+  The everyday defaults matter more than any single feature: whether the screen stays lit while you are actually looking at something, whether the battery is respected when it runs low, whether Fast Media Sorter & Organizer answers when another app hands it a file, and how quickly you reach your [programs](term:program) and resources. This page covers the [Settings](term:settings) rows that shape that everyday behavior.
 ingredients:
-  - "FastMediaSorter, any edition, with **Settings** open. See [Finding your way around Settings](page:settings.settings-overview-and-search) if this is your first visit."
+  - "Fast Media Sorter & Organizer, any edition, with **Settings** open. See [Finding your way around Settings](page:settings.settings-overview-and-search) if this is your first visit."
 steps:
   - number: 1
     id: screen-and-rotation
@@ -49,7 +49,7 @@ steps:
     text: |
       **Enable Picture-in-Picture** appears in the Streams settings group as well as in the playback section - one setting shown twice, so flipping it in either place changes the other immediately, and playback behaves the same for a stream as for a local file. It is hidden, on either device generation, below Android 12.
 
-      **Set as default**, in **Destinations**, opens the Default app dialog, where buttons register FastMediaSorter as the device's handler for images, audio, video and documents - only the buttons for capabilities your edition actually has are shown.
+      **Set as default**, in **Destinations**, opens the Default app dialog, where buttons register Fast Media Sorter & Organizer as the device's handler for images, audio, video and documents - only the buttons for capabilities your edition actually has are shown.
     image_bookmark:
       shot_id: settings.playback-pip-and-default-apps
       device_profile: phone
@@ -134,10 +134,10 @@ steps:
       shot_id: settings.playback-one-program-registry
       device_profile: phone
       screen_state: launcher-app-icon-long-press-shortcuts
-      alt: The long-press shortcut menu on the FastMediaSorter app icon showing recently used programs and resources ranked by recency
+      alt: The long-press shortcut menu on the Fast Media Sorter & Organizer app icon showing recently used programs and resources ranked by recency
       caption: "One program list, reflected everywhere it appears."
       title: "Screenshot: App-icon shortcuts"
-      desc: Android home screen, long-press menu on the FastMediaSorter icon, recent programs and resources listed as dynamic shortcuts.
+      desc: Android home screen, long-press menu on the Fast Media Sorter & Organizer icon, recent programs and resources listed as dynamic shortcuts.
 outcome: |
   The everyday behavior stays predictable: the screen stays lit where you need it and lets go where you do not, the battery is respected automatically, the app answers when handed a file, the launcher and its exit button behave the way you set them up, and every program you have switched on shows up the same way wherever you reach for it.
 tips:

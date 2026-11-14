@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "ڈاؤن لوڈ آرگنائزر (کوئیک سورٹ) - FastMediaSorter v2"
+title: "ڈاؤن لوڈ آرگنائزر (کوئیک سورٹ) - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-download-organizer-ur.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -11,7 +11,7 @@ permalink: /docs/howto/scenario-download-organizer-ur.html
 
 > **سطح:** ابتدائی &bull; **فلیور:** Any (Standard, Lite, Photos, Legacy, VR, noLegal)
 
-**کوئیک سورٹ** FastMediaSorter کی خاص خصوصیت ہے: اپنے فولڈرز ایک بار سیٹ اپ کریں، پھر صرف ایک نمبر ٹیپ کر کے سینکڑوں فائلیں ترتیب دیں۔ نہ ڈریگ اینڈ ڈراپ، نہ مینوز۔ بس **1**، **2**، یا **3** ٹیپ کریں - اور فائل درست جگہ چلی جاتی ہے۔
+**کوئیک سورٹ** Fast Media Sorter & Organizer کی خاص خصوصیت ہے: اپنے فولڈرز ایک بار سیٹ اپ کریں، پھر صرف ایک نمبر ٹیپ کر کے سینکڑوں فائلیں ترتیب دیں۔ نہ ڈریگ اینڈ ڈراپ، نہ مینوز۔ بس **1**، **2**، یا **3** ٹیپ کریں - اور فائل درست جگہ چلی جاتی ہے۔
 
 **حقیقی مثال:** آپ کے ڈاؤن لوڈز فولڈر میں 200 فائلیں ہیں - اسکرین شاٹس، دفتری دستاویزات، خاندانی تصاویر، میمز، رسیدیں۔ کوئیک سورٹ کے ساتھ آپ تمام 200 کو تقریباً 5 منٹ میں ترتیب دے سکتے ہیں۔ اس کے بغیر - نیک خواہشات۔
 
@@ -38,7 +38,7 @@ permalink: /docs/howto/scenario-download-organizer-ur.html
 
 > **Downloads فولڈر وہ جگہ ہے جہاں آپ کا براؤزر، Telegram، WhatsApp اور دیگر ایپس فائلیں محفوظ کرتی ہیں۔** یہ عام طور پر کسی بھی فون کی سب سے بے ترتیب جگہ ہوتی ہے۔
 
-![FastMediaSorter مین اسکرین - Downloads ریسورس کارڈ شامل کر دیا گیا، Local بیج نظر آ رہا ہے](screenshots/screenshot-dl-step1.png)
+![Fast Media Sorter & Organizer مین اسکرین - Downloads ریسورس کارڈ شامل کر دیا گیا، Local بیج نظر آ رہا ہے](screenshots/screenshot-dl-step1.png)
 
 ---
 
@@ -52,12 +52,12 @@ permalink: /docs/howto/scenario-download-organizer-ur.html
 - **Keep** - وہ چیزیں جو طویل مدت تک محفوظ کرنے کے قابل ہیں
 - **Trash** - جانچنے کے بعد حذف کی جانے والی فائلیں
 
-**آپ یہ فولڈرز FastMediaSorter کے اندر ہی بنا سکتے ہیں:**
+**آپ یہ فولڈرز Fast Media Sorter & Organizer کے اندر ہی بنا سکتے ہیں:**
 1. Downloads ریسورس کھولیں
 2. **مینو** <img src="../icons/doc/ic_more_vert.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> بٹن پر ٹیپ کریں → **Create folder**
 3. فولڈر کا نام ٹائپ کریں → **OK** پر ٹیپ کریں
 
-یا فولڈرز اپنے فون کے عام فائل مینیجر میں بنائیں - وہ خودکار طور پر FastMediaSorter میں ظاہر ہو جائیں گے۔
+یا فولڈرز اپنے فون کے عام فائل مینیجر میں بنائیں - وہ خودکار طور پر Fast Media Sorter & Organizer میں ظاہر ہو جائیں گے۔
 
 ---
 

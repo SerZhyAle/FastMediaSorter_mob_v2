@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Watch a Live Broadcast - FastMediaSorter v2"
+title: "Watch a Live Broadcast - Fast Media Sorter & Organizer"
 permalink: /docs/howto/watch-broadcast.html
 ---
 <sub class="doc-stamp">26.11.14 02:48</sub>
@@ -11,7 +11,7 @@ permalink: /docs/howto/watch-broadcast.html
 
 [Русский](watch-broadcast-ru.md) | [Українська](watch-broadcast-uk.md)
 
-Someone is broadcasting from their phone or their watch with FastMediaSorter and sent you the address. This page shows how to open it on another Android phone, on a Wear OS watch, and on a Windows PC.
+Someone is broadcasting from their phone or their watch with Fast Media Sorter & Organizer and sent you the address. This page shows how to open it on another Android phone, on a Wear OS watch, and on a Windows PC.
 
 ---
 
@@ -27,13 +27,13 @@ The broadcaster can hand the broadcast over in three ways, and all three carry t
 
 ---
 
-## On Another Android Phone (FastMediaSorter)
+## On Another Android Phone (Fast Media Sorter & Organizer) {#on-another-android-phone-fastmediasorter}
 
-1. Install FastMediaSorter on your phone if it is not there yet.
+1. Install Fast Media Sorter & Organizer on your phone if it is not there yet.
 2. Use whichever of the three the broadcaster sent you:
    - **Link:** tap it. The app opens and the broadcast is added to your Streams list. If the app is not installed, the link opens a web page offering to install it first.
-   - **QR code:** in FastMediaSorter open **Streams**, tap the scan button and point the camera at the code on the broadcaster's screen.
-   - **File:** tap the `.fmsbcast` file in your messenger or file manager and choose FastMediaSorter to open it.
+   - **QR code:** in Fast Media Sorter & Organizer open **Streams**, tap the scan button and point the camera at the code on the broadcaster's screen.
+   - **File:** tap the `.fmsbcast` file in your messenger or file manager and choose Fast Media Sorter & Organizer to open it.
 3. The broadcast appears in the Streams list. Tap it to start listening or watching.
 
 > If nothing plays, check that you are on the same Wi-Fi as the broadcaster, or that the broadcast goes through an exchange server, and that their broadcast is still running - the address stops working the moment they stop it.

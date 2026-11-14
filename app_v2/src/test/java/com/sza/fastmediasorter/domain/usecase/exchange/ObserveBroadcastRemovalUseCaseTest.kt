@@ -12,12 +12,14 @@ import org.junit.Test
 
 class ObserveBroadcastRemovalUseCaseTest {
 
-    private fun states(vararg listings: ExchangeDeviceBroadcasts): List<Boolean> {
+    private fun states(vararg listings: ExchangeDeviceBroadcasts): List<Boolean> = boundStates(null, *listings)
+
+    private fun boundStates(entryKey: String?, vararg listings: ExchangeDeviceBroadcasts): List<Boolean> {
         var states = emptyList<Boolean>()
         runTest {
             val directory = mockk<ObserveAccountBroadcastsUseCase>()
             every { directory() } returns flowOf(*listings)
-            states = ObserveBroadcastRemovalUseCase(directory)(ID).toList()
+            states = ObserveBroadcastRemovalUseCase(directory)(ID, entryKey).toList()
         }
         return states
     }
@@ -47,15 +49,49 @@ class ObserveBroadcastRemovalUseCaseTest {
         assertEquals(listOf(false, true, false), states(listing(ID), listing(), listing(ID, OTHER)))
     }
 
-    private fun listing(vararg ids: String, pending: Boolean = false, incomplete: Boolean = false) =
-        ExchangeDeviceBroadcasts(
-            items = ids.map { ExchangeDeviceBroadcast(it, "phone", "title", "VIDEO_AUDIO", true, "{}") },
-            pending = pending,
-            incomplete = incomplete,
-        )
+    @Test
+    fun boundWatch_readsItsEntryWhileAnotherIsPending() {
+        val listed = listing(ID, entry = ENTRY_A, listed = setOf(ENTRY_A), pending = true)
+        val removed = listing(entry = ENTRY_A, listed = setOf(ENTRY_A), pending = true)
+
+        assertEquals(listOf(false, true), boundStates(ENTRY_A, listed, removed))
+    }
+
+    @Test
+    fun boundWatch_ignoresAListingItsEntryDidNotAnswer() {
+        val listed = listing(ID, entry = ENTRY_A, listed = setOf(ENTRY_A))
+        val ownEntryLost = listing(entry = ENTRY_B, listed = setOf(ENTRY_B), incomplete = true)
+
+        assertEquals(listOf(false), boundStates(ENTRY_A, listed, ownEntryLost))
+    }
+
+    @Test
+    fun boundWatch_anotherEntryListingTheSameIdIsNotItsChannel() {
+        val listed = listing(ID, entry = ENTRY_A, listed = setOf(ENTRY_A, ENTRY_B))
+        val onlyTheOther = listing(ID, entry = ENTRY_B, listed = setOf(ENTRY_A, ENTRY_B))
+
+        assertEquals(listOf(false, true), boundStates(ENTRY_A, listed, onlyTheOther))
+    }
+
+    private fun listing(
+        vararg ids: String,
+        pending: Boolean = false,
+        incomplete: Boolean = false,
+        entry: String = "",
+        listed: Set<String> = emptySet(),
+    ) = ExchangeDeviceBroadcasts(
+        items = ids.map {
+            ExchangeDeviceBroadcast(it, "phone", "title", "VIDEO_AUDIO", true, "{}", entryKey = entry)
+        },
+        pending = pending,
+        incomplete = incomplete,
+        listedSources = listed,
+    )
 
     private companion object {
         const val ID = "broadcast-a"
         const val OTHER = "broadcast-b"
+        const val ENTRY_A = "exchange-a.example.org:8443|alice"
+        const val ENTRY_B = "exchange-b.example.org:8443|alice"
     }
 }

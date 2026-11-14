@@ -36,8 +36,19 @@ class WearOpenOnPhoneRepositoryImpl @Inject constructor(
     override suspend fun requestOpen(request: WearOpenOnPhoneRequest): WearOpenOnPhoneOutcome? =
         withContext(Dispatchers.IO) {
             val nodes = connectedNodes()
-            if (nodes.isEmpty()) null else awaitAnswer(nodes, request)
+            if (nodes.isEmpty()) null else guardedAwaitAnswer(nodes, request)
         }
+
+    /**
+     * The contract says null means nothing answered, so a failure of the listener registration, the
+     * serialisation or the send path is that same answer - callers do not catch around this call.
+     */
+    private suspend fun guardedAwaitAnswer(
+        nodes: List<Node>,
+        request: WearOpenOnPhoneRequest
+    ): WearOpenOnPhoneOutcome? = runCatching { awaitAnswer(nodes, request) }
+        .onFailure { it.warnUnlessCancellation("Open on phone: request failed") }
+        .getOrNull()
 
     private suspend fun awaitAnswer(
         nodes: List<Node>,

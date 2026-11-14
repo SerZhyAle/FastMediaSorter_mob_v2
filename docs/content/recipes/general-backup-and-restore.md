@@ -2,7 +2,7 @@
 page_id: general.backup-and-restore
 title: Backing Up and Restoring Settings - What Travels, What Stays and How to Find It
 nav_title: Backing up and restoring settings
-description: What exactly a FastMediaSorter backup carries, the few settings it leaves behind on purpose, how a backup made by an older version restores, and where to find every backup, export and import button.
+description: What exactly a Fast Media Sorter & Organizer backup carries, the few settings it leaves behind on purpose, how a backup made by an older version restores, and where to find every backup, export and import button.
 category: "General, Keyboard & TV"
 category_slug: general
 ticket: S2963
@@ -13,9 +13,9 @@ canonical_url: documentation/general/backup-and-restore.html
 why: |
   A backup is only worth something if it gives you back what you had. You spent time on the [color theme](term:color-theme), the screenshot gestures, the swipe commands of the [file browser](term:file-browser), the [launcher](term:launcher) desktop and a dozen [streams](term:stream) - and after a new phone or a reset you want all of it back, not half of it.
 
-  This page tells you exactly what a FastMediaSorter backup keeps, the handful of things it leaves behind on purpose and why, and what happens when you restore a backup made months ago by an older version of the app.
+  This page tells you exactly what a Fast Media Sorter & Organizer backup keeps, the handful of things it leaves behind on purpose and why, and what happens when you restore a backup made months ago by an older version of the app.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition), with **[Settings](term:settings)** open on the **General** tab."
+  - "Fast Media Sorter & Organizer in any [edition](term:edition), with **[Settings](term:settings)** open on the **General** tab."
   - "For the Google Drive backup: the Standard, noLegal, Photos, Legacy or VR edition and a Google account connected in the app."
   - "For a backup to a file: a place to keep the file - a folder on the phone, a memory card or a [cloud storage](term:cloud-storage) folder."
 steps:
@@ -89,7 +89,7 @@ steps:
     id: restore-older
     title: Restore a backup made by an older version
     text: |
-      A backup made months ago, by an older version of FastMediaSorter, still restores. Settings that did not exist when it was made are simply not in the file - and for each of them the app keeps whatever your phone already has, instead of silently resetting it.
+      A backup made months ago, by an older version of Fast Media Sorter & Organizer, still restores. Settings that did not exist when it was made are simply not in the file - and for each of them the app keeps whatever your phone already has, instead of silently resetting it.
 
       When the file has no value for a setting that it should have had, the app uses exactly the default a fresh install uses. Before, some settings could come back different from a fresh install - text recognition and translation switched on, [picture-in-picture](page:player.pip-and-background-play) switched off, the [trash](term:trash) switched on, or launcher values the app no longer ships. That no longer happens.
 

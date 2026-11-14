@@ -68,7 +68,9 @@ appId: com.sza.fastmediasorter.debug
           visibilityPercentage: 10
           timeout: 8000
       - tapOn:
-          id: "com.sza.fastmediasorter.debug:id/rowResourceOpsInOverflowMenu"
+          id: "com.sza.fastmediasorter.debug:id/str_checkbox"
+          childOf:
+            id: "com.sza.fastmediasorter.debug:id/rowResourceOpsInOverflowMenu"
       - runFlow: ../../_shared/go_home.yaml
       - tapOn:
           text: "Локальные"

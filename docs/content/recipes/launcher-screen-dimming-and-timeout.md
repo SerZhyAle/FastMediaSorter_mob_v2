@@ -12,7 +12,7 @@ canonical_url: documentation/launcher/screen-dimming-and-timeout.html
 why: |
   A tablet left as a kitchen photo frame, a car head unit that should never go dark, or a phone on the nightstand you would rather not have glowing all night: the desktop's own screen timeout decides which of these you get, without you having to remember to lock the device yourself every time.
 ingredients:
-  - "FastMediaSorter in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition), with the [launcher](term:launcher) [desktop](term:desktop) open - see [Your launcher desktop](page:launcher.desktop-grid-and-icons)."
+  - "Fast Media Sorter & Organizer in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition), with the [launcher](term:launcher) [desktop](term:desktop) open - see [Your launcher desktop](page:launcher.desktop-grid-and-icons)."
 steps:
   - number: 1
     id: set-timeout

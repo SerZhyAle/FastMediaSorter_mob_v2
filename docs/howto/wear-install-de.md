@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "FastMedia auf Ihrer Uhr einrichten - FastMediaSorter v2"
+title: "FastMedia auf Ihrer Uhr einrichten - Fast Media Sorter & Organizer"
 permalink: /docs/howto/wear-install-de.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -13,14 +13,14 @@ permalink: /docs/howto/wear-install-de.html
 
 > **Zwei Versionen.** Die Version aus Google Play ist eine kleine Erstveröffentlichung: Taschenrechner, Stoppuhr, Minispiel, Einstellungen und die Programme-Kachel. Musik, Fotos, Netzwerkfreigaben und Handy-Funktionen gibt es nur in der Vollversion, einem direkten APK-Download von [Downloads](../DOWNLOADS.md).
 
-FastMedia Wear ist die Uhr-Hälfte von FastMediaSorter. Sobald sie an Ihrem Handgelenk sitzt, können Sie Musik direkt von der Uhr abspielen und Fotos ansehen, auf Ordner zugreifen, die Ihr gekoppeltes Handy freigibt, und Netzwerkfreigaben öffnen, mit denen sich die Uhr selbstständig verbindet. Diese Seite bringt sie zur Installation und Kopplung.
+FastMedia Wear ist die Uhr-Hälfte von Fast Media Sorter & Organizer. Sobald sie an Ihrem Handgelenk sitzt, können Sie Musik direkt von der Uhr abspielen und Fotos ansehen, auf Ordner zugreifen, die Ihr gekoppeltes Handy freigibt, und Netzwerkfreigaben öffnen, mit denen sich die Uhr selbstständig verbindet. Diese Seite bringt sie zur Installation und Kopplung.
 
 ---
 
 ## Was Sie benötigen
 
 - Eine Smartwatch mit **Wear OS 3.0** oder neuer
-- Ein Android-Handy mit installiertem FastMediaSorter, mit dem die Uhr bereits in den Systemeinstellungen gekoppelt ist
+- Ein Android-Handy mit installiertem Fast Media Sorter & Organizer, mit dem die Uhr bereits in den Systemeinstellungen gekoppelt ist
 - Eine Wi-Fi- oder Mobilfunkverbindung auf der Uhr oder auf dem gekoppelten Handy für den Download
 
 ---
@@ -83,7 +83,7 @@ Nutzen Sie diesen Weg, wenn Ihre Uhr keinen Zugriff auf den Play Store hat. Sie 
 
 Die Handy-Seite ist ausgeschaltet, bis Sie angeben, dass Sie eine Uhr besitzen.
 
-1. Öffnen Sie FastMediaSorter auf dem Handy.
+1. Öffnen Sie Fast Media Sorter & Organizer auf dem Handy.
 2. Gehen Sie zu **Einstellungen** und öffnen Sie den Reiter **Verwaltung**.
 3. Suchen Sie die Gruppe **Wear OS** und klappen Sie sie auf.
 4. Aktivieren Sie das Kontrollkästchen **Wear-Begleiter**.
@@ -122,7 +122,7 @@ Das Watchface ist eine eigene, kostenlose App und wird deshalb separat installie
 2. Tippen Sie auf **Installieren** und warten Sie, bis der Download abgeschlossen ist.
 3. Halten Sie das aktuelle Watchface gedrückt, suchen Sie **FastMediaSorter Watch Face** in der Auswahl und tippen Sie darauf.
 
-> Das Watchface zeigt eine große Uhrzeit, das Datum, Wellen und driftende Partikel, Akkubalken und bis zu acht runde Buttons für FastMediaSorter-Kurzbefehle oder andere Uhrdaten. Die Buttons erscheinen zusammen mit der FastMediaSorter Uhr-App.
+> Das Watchface zeigt eine große Uhrzeit, das Datum, Wellen und driftende Partikel, Akkubalken und bis zu acht runde Buttons für Fast Media Sorter & Organizer-Kurzbefehle oder andere Uhrdaten. Die Buttons erscheinen zusammen mit der Fast Media Sorter & Organizer Uhr-App.
 
 ---
 

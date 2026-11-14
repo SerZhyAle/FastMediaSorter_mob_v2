@@ -13,8 +13,8 @@ why: |
 
   Ті самі кроки працюють і для власних [віджетів](term:widget) застосунку, які можуть жити на [робочому столі](term:desktop) лаунчера так само, як і на [домашньому екрані](term:home-screen) Android.
 ingredients:
-  - "FastMediaSorter у [редакції Standard](term:standard-edition) або [редакції noLegal](term:nolegal-edition), з увімкненим робочим столом [лаунчера](term:launcher) - див. [Ваш робочий стіл лаунчера](page:launcher.desktop-grid-and-icons)."
-  - "Для віджетів застосунку на робочому столі: FastMediaSorter встановлений як домашній екран пристрою."
+  - "Fast Media Sorter & Organizer у [редакції Standard](term:standard-edition) або [редакції noLegal](term:nolegal-edition), з увімкненим робочим столом [лаунчера](term:launcher) - див. [Ваш робочий стіл лаунчера](page:launcher.desktop-grid-and-icons)."
+  - "Для віджетів застосунку на робочому столі: Fast Media Sorter & Organizer встановлений як домашній екран пристрою."
 steps:
   - number: 1
     id: add-gadget
@@ -38,7 +38,7 @@ steps:
 
       Деякі віджети потребують попереднього налаштування. **Випадковий кадр** запитує, з якого [ресурсу](term:resource) брати фото, а **Швидка зйомка** - в яку папку зберігати. Клітинка з'являється лише після підтвердження; якщо ви скасуєте, нічого не з'явиться і нічого не залишиться.
 
-      Віджет на робочому столі й той самий віджет на іншому домашньому екрані зберігають власні налаштування - дві фоторамки можуть показувати два різні альбоми. Видалення клітинки також забуває її налаштування. Усі віджети описані в [Віджетах FastMediaSorter для вашого домашнього екрана](page:launcher.home-screen-widgets).
+      Віджет на робочому столі й той самий віджет на іншому домашньому екрані зберігають власні налаштування - дві фоторамки можуть показувати два різні альбоми. Видалення клітинки також забуває її налаштування. Усі віджети описані в [Віджетах Fast Media Sorter & Organizer для вашого домашнього екрана](page:launcher.home-screen-widgets).
     image_bookmark:
       shot_id: launcher.widgets-add-from-settings
       device_profile: phone
@@ -96,7 +96,7 @@ next_recipes:
     badge: Лаунчер
     badge_type: docs
     description: Що показує кожен ґаджет - годинники, погода, карта, датчики, стан пристрою та перекладач.
-  - title: Віджети FastMediaSorter для вашого домашнього екрана
+  - title: Віджети Fast Media Sorter & Organizer для вашого домашнього екрана
     url: page:launcher.home-screen-widgets
     badge: Лаунчер
     badge_type: docs

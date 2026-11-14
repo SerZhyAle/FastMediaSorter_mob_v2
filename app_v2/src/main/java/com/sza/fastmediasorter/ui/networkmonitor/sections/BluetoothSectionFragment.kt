@@ -23,7 +23,7 @@ import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
- * S1433: the Bluetooth subscreen - adapter state, the radio switch, the connected and paired frames, and
+ * S1433: the Bluetooth subscreen - adapter state, the radio row, the connected and paired frames, and
  * one chart for a device the user picked.
  *
  * There is no scan action anywhere on this screen and no discovery call behind it. Research artifact 02
@@ -62,8 +62,7 @@ class BluetoothSectionFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         radioBinder = RadioToggleBinder(
-            switch = binding.bluetoothRadioSwitch,
-            reasonView = binding.bluetoothRadioReason,
+            row = binding.bluetoothRadioRow,
             onToggleRequested = viewModel::onRadioToggleRequested,
         )
         chartBinder = SignalChartBinder(

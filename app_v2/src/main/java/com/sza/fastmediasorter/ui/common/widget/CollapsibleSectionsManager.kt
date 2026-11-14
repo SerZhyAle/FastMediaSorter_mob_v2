@@ -83,6 +83,8 @@ class CollapsibleSectionsManager(
                     TransitionManager.beginDelayedTransition(parent, buildBodyTransition())
                 }
             }
+            // COLLAPSIBLE-GROUP section 4 rule 5: focus inside a body that is about to hide goes to its header first.
+            if (!isExpanded && container.hasFocus()) header.requestFocus()
             container.isVisible = isExpanded
             if (persistState) {
                 store.setExpanded(key, isExpanded)

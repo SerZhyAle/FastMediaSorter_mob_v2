@@ -1,12 +1,12 @@
-<sub class="doc-stamp">26.10.18 17:45</sub>
+<sub class="doc-stamp">26.11.14 13:36</sub>
 
 # Pointer - `ICON-RENDER`
 
 | | |
 | --- | --- |
 | **Id** | `ICON-RENDER` |
-| **Version** | 0.24, draft. Owner: this product |
-| **Home** | `iconography/README.md` sections 3 and 10 in the shared contracts catalog |
+| **Version** | 0.25, draft. Owner: this product |
+| **Home** | `iconography/README.md` sections 3, 10 and 25 in the shared contracts catalog |
 | **Role here** | owner and reference implementation - phone, launcher, watch, documentation and the website |
 
 ## What this repository must do to stay conformant
@@ -25,6 +25,11 @@
 - Every edition's launcher icon is adaptive and has a monochrome layer.
 - The `state.warning` day tone is `#EF6C00` with a white on-plate colour (section 10 item D); the
   `warning_color` resource carries it and the exporter reads it from there.
+- A sibling set draws a glyph on every member or on none (0.25, section 25): one level of a menu, the group headers of
+  one page, the rows of one group, list, picker or sheet, one level of a rail. A submenu, a toolbar and its overflow
+  menu, and a header and its rows are separate sets; a missing external picture shows its `ICON-EXTERNAL` stand-in; a
+  row-level "no glyph" allowance of another contract holds only where the whole set carries none. New and reworked
+  surfaces conform at once; this product's own mixed sets are its dated migration under S4570.
 - The deviations currently open are recorded as exceptions in the catalog's registry.
 
 ## Where it lives here

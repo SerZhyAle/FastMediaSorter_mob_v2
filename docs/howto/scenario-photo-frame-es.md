@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Marco de Fotos Digital en Tablet - FastMediaSorter v2"
+title: "Marco de Fotos Digital en Tablet - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-photo-frame-es.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -47,7 +47,7 @@ Elige dónde viven tus fotos:
 2. Toca **Iniciar sesión** → completa la autenticación en el navegador
 3. Selecciona la carpeta con tus fotos → **Listo**
 
-![Pantalla principal de FastMediaSorter - tarjetas de recurso de fotos visibles después de agregar una carpeta de fotos](screenshots/screenshot-pf-step1.png)
+![Pantalla principal de Fast Media Sorter & Organizer - tarjetas de recurso de fotos visibles después de agregar una carpeta de fotos](screenshots/screenshot-pf-step1.png)
 
 ---
 
@@ -123,12 +123,12 @@ Configuración de Android → Pantalla → Tiempo de espera de pantalla → esta
 Este paso es por conveniencia: ¿quieres iniciar el marco de fotos instantáneamente cuando tomas la tablet - sin abrir la app y navegar?
 
 1. Mantén presionada tu pantalla de inicio → toca **Widgets**
-2. Busca **FastMediaSorter** en la lista de widgets
+2. Busca **Fast Media Sorter & Organizer** en la lista de widgets
 3. Arrastra el widget **"Acceso Directo a Recurso"** a tu pantalla de inicio
 4. Cuando se te solicite, selecciona tu recurso de fotos
 5. Toca el widget en cualquier momento → la presentación se inicia al instante
 
-![Pantalla de inicio de Android con widgets de acceso directo a recursos de FastMediaSorter colocados](screenshots/screenshot-pf-step6.png)
+![Pantalla de inicio de Android con widgets de acceso directo a recursos de Fast Media Sorter & Organizer colocados](screenshots/screenshot-pf-step6.png)
 
 ---
 

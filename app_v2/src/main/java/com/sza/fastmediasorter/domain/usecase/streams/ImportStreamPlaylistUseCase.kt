@@ -46,12 +46,21 @@ class ImportStreamPlaylistUseCase @Inject constructor(
             return@withContext ImportResult.UnsupportedFormat
         }
 
-        val entries = try {
-            acceptedEntries(parser.parse(body))
+        // USER-PLAYLIST rule 3: a file with an `#EXT-X-` line is a media manifest, not a list of channels.
+        // The parser would return it as an empty list, which the user could not tell from a blank file.
+        if (parser.isHlsManifest(body)) {
+            Timber.w("Stream playlist import refused: HLS manifest at %s", listUrl)
+            return@withContext ImportResult.HlsManifest
+        }
+
+        val parsed = try {
+            parser.parse(body)
         } catch (e: Exception) {
             Timber.w(e, "Stream playlist import failed: parse error for %s", listUrl)
             return@withContext ImportResult.Failure(e.message ?: "parse error")
         }
+        val entries = acceptedEntries(parsed)
+        val skipped = parsed.size - entries.size
 
         if (entries.isEmpty()) return@withContext ImportResult.Empty
 
@@ -59,7 +68,7 @@ class ImportStreamPlaylistUseCase @Inject constructor(
         val sources = entries.map { entry ->
             StreamSourceEntity(
                 id = UUID.randomUUID().toString(),
-                url = entry.url,
+                url = StreamUrlNormalizer.normalize(entry.url),
                 title = entry.title,
                 mediaKind = classifier.classify(entry.url),
                 sourceOrigin = "IMPORTED",
@@ -70,14 +79,15 @@ class ImportStreamPlaylistUseCase @Inject constructor(
         val inserted = repository.addAllIgnoringDuplicates(sources)
         // Counts the sources this import actually added (duplicates ignored), accumulated all-time.
         statsSink.record(StatsEvent.PlaylistImported(count = inserted.toLong()))
-        ImportResult.Success(inserted)
+        ImportResult.Success(inserted, duplicate = sources.size - inserted, skipped = skipped)
     }
 
     /**
      * STREAM-BANK 2.4 SB-A8 / SB-A11: the parser takes any non-comment line for a URL, so a line with an
      * unlaunchable scheme or no host is dropped here, and two spellings of one stream collapse to the
-     * first. The first spelling is kept verbatim because a stream path is often case-sensitive; stored
-     * rows are never touched, the repository's insert-ignore keeps them.
+     * first. USER-PLAYLIST rule 4 keys a channel by its normalized address, so the row stores that
+     * spelling; [StreamUrlNormalizer] folds only scheme, host and default port, never the path, which is
+     * often case-sensitive. Stored rows are never touched, the repository's insert-ignore keeps them.
      */
     private fun acceptedEntries(parsed: List<ParsedStreamEntry>): List<ParsedStreamEntry> {
         val valid = parsed.filter { classifier.isSupportedScheme(it.url) && hasHost(it.url) }
@@ -161,8 +171,13 @@ class ImportStreamPlaylistUseCase @Inject constructor(
     }
 
     sealed interface ImportResult {
-        data class Success(val inserted: Int) : ImportResult
+        /**
+         * [duplicate] counts accepted addresses the catalog already held, [skipped] counts lines dropped
+         * before the write: an invalid address, or a second spelling of one inside the same file.
+         */
+        data class Success(val inserted: Int, val duplicate: Int = 0, val skipped: Int = 0) : ImportResult
         data object Empty : ImportResult
+        data object HlsManifest : ImportResult
         data object UnsupportedFormat : ImportResult
         data class Failure(val reason: String) : ImportResult
     }

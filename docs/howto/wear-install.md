@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Put FastMedia on Your Watch - FastMediaSorter v2"
+title: "Put FastMedia on Your Watch - Fast Media Sorter & Organizer"
 permalink: /docs/howto/wear-install.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -11,14 +11,14 @@ permalink: /docs/howto/wear-install.html
 
 > **Two versions.** The version from Google Play is a small first release: Calculator, Stopwatch, Mini-game, Settings and the Programs tile. Music, photos, network shares and phone features are in the full version only, a direct APK download from [Downloads](../DOWNLOADS.md).
 
-FastMedia Wear is the watch half of FastMediaSorter. Once it is on your wrist you can play music and view photos straight from the watch, reach folders shared by your paired phone, and open network shares the watch connects to on its own. This page gets it installed and paired.
+FastMedia Wear is the watch half of Fast Media Sorter & Organizer. Once it is on your wrist you can play music and view photos straight from the watch, reach folders shared by your paired phone, and open network shares the watch connects to on its own. This page gets it installed and paired.
 
 ---
 
 ## What You Will Need
 
 - A smartwatch running **Wear OS 3.0** or newer
-- An Android phone with FastMediaSorter installed and the watch already paired to it in the system settings
+- An Android phone with Fast Media Sorter & Organizer installed and the watch already paired to it in the system settings
 - A Wi-Fi or mobile connection on the watch, or on the phone it is paired with, for the download
 
 ---
@@ -83,7 +83,7 @@ work through the internet alone.
 
 The phone side is switched off until you say you own a watch.
 
-1. Open FastMediaSorter on the phone.
+1. Open Fast Media Sorter & Organizer on the phone.
 2. Go to **Settings** and open the **Management** tab.
 3. Find the **Wear OS** group and expand it.
 4. Turn the **Wear companion** checkbox on.
@@ -122,7 +122,7 @@ The watch face is a separate, free app, so it is installed on its own. It needs 
 2. Tap **Install** and wait for the download to finish.
 3. Press and hold the current watch face, find **FastMediaSorter Watch Face** in the picker and tap it.
 
-> The face shows a large time, the date, waves and drifting particles, battery bars and up to eight round buttons for FastMediaSorter shortcuts or other watch data. The buttons appear together with the FastMediaSorter watch app.
+> The face shows a large time, the date, waves and drifting particles, battery bars and up to eight round buttons for Fast Media Sorter & Organizer shortcuts or other watch data. The buttons appear together with the Fast Media Sorter & Organizer watch app.
 
 ---
 
@@ -131,7 +131,7 @@ The watch face is a separate, free app, so it is installed on its own. It needs 
 - **The watch app does not appear in the Play Store.** Confirm the watch runs Wear OS 3.0 or newer. Older watches use a different app model and are not supported.
 - **The Wear OS group is missing from the phone settings.** The build you are running does not carry the watch bridge.
 - **The Phone section on the watch is empty.** Nothing is selected in the companion window, or the watch and the phone have lost their pairing - check the pairing in the system settings first.
-- **Resources, Phone and Phone camera are missing from the watch home screen.** They appear only while a phone with FastMediaSorter is connected, and a short line under the home rows says which of the two is missing: "Connect your phone" or "Install FastMediaSorter on your phone". Resources also stays when at least one network resource is saved on the watch itself, because the watch reaches it without the phone. To install the phone app, answer the offer the watch shows once, or open **Settings - About - Install FastMediaSorter on phone** on the watch - the store opens on the phone.
+- **Resources, Phone and Phone camera are missing from the watch home screen.** They appear only while a phone with Fast Media Sorter & Organizer is connected, and a short line under the home rows says which of the two is missing: "Connect your phone" or "Install Fast Media Sorter & Organizer on your phone". Resources also stays when at least one network resource is saved on the watch itself, because the watch reaches it without the phone. To install the phone app, answer the offer the watch shows once, or open **Settings - About - Install Fast Media Sorter & Organizer on phone** on the watch - the store opens on the phone.
 - **Playback stutters over the phone connection.** Bluetooth between watch and phone is narrow. For long listening, transfer the files to the watch or connect the watch to a network share directly.
 
 ---

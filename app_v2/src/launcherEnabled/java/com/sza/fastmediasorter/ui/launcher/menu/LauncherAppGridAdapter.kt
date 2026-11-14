@@ -4,7 +4,6 @@ import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -14,6 +13,7 @@ import com.sza.fastmediasorter.databinding.ItemLauncherAppCategoryTileBinding
 import com.sza.fastmediasorter.databinding.ItemLauncherAppGridCellBinding
 import com.sza.fastmediasorter.databinding.ItemLauncherAppGroupHeaderBinding
 import com.sza.fastmediasorter.databinding.ItemLauncherAppGroupTileBinding
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleMarker
 import com.sza.fastmediasorter.ui.common.widget.MediaItemThumbnailBinder
 import java.io.File
 
@@ -187,20 +187,22 @@ class LauncherAppGridAdapter(
         fun bind(group: LauncherAppGroupSection) {
             binding.groupTitle.text = group.title
             binding.groupCount.text = if (group.isPreview) "" else group.apps.size.toString()
-            binding.groupIndicator.rotation = if (group.isExpanded) EXPANDED_ROTATION else 0f
-            binding.root.contentDescription = if (group.isCategory) {
+            CollapsibleMarker.apply(binding.groupIndicator, group.isExpanded)
+            val caption = if (group.isCategory) {
                 "${group.title}, ${group.apps.size}"
             } else {
                 group.title.ifBlank { binding.root.context.getString(R.string.launcher_menu_all_apps) }
             }
+            CollapsibleMarker.describe(binding.root, caption, group.isExpanded)
             binding.root.isActivated = group.isReorderTarget
-            if (group.isReorderTarget) {
-                binding.root.setBackgroundColor(
-                    MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorSecondaryContainer)
-                )
+            // The resting fill is what sets the header apart from the app cells (COLLAPSIBLE-GROUP section 3
+            // rule 1); the ripple lives in the layout's foreground, so replacing the background keeps it.
+            val fillAttr = if (group.isReorderTarget) {
+                com.google.android.material.R.attr.colorSecondaryContainer
             } else {
-                binding.root.setBackgroundResource(selectableBackgroundOf(binding.root))
+                com.google.android.material.R.attr.colorSurfaceVariant
             }
+            binding.root.setBackgroundColor(MaterialColors.getColor(binding.root, fillAttr))
             binding.root.setOnClickListener { onGroupToggle(group.key) }
             binding.root.setOnLongClickListener { onGroupLongClick(group.key) }
         }
@@ -231,18 +233,8 @@ class LauncherAppGridAdapter(
             }
             binding.groupTitle.text = group.title
             binding.groupCount.text = group.apps.size.toString()
-            binding.groupIndicator.rotation = if (group.isExpanded) EXPANDED_ROTATION else 0f
-            binding.root.contentDescription = "${group.title}, ${group.apps.size}"
-            ViewCompat.setStateDescription(
-                binding.root,
-                binding.root.context.getString(
-                    if (group.isExpanded) {
-                        R.string.collapsible_section_state_expanded
-                    } else {
-                        R.string.collapsible_section_state_collapsed
-                    },
-                ),
-            )
+            CollapsibleMarker.apply(binding.groupIndicator, group.isExpanded)
+            CollapsibleMarker.describe(binding.root, "${group.title}, ${group.apps.size}", group.isExpanded)
             binding.root.isActivated = group.isReorderTarget
             if (group.isReorderTarget) {
                 binding.root.setBackgroundColor(
@@ -281,8 +273,8 @@ class LauncherAppGridAdapter(
             }
             binding.groupTitle.setTextColor(MaterialColors.getColor(binding.groupTitle, titleColor))
             binding.groupCount.text = group.apps.size.toString()
-            binding.groupIndicator.rotation = if (group.isExpanded) EXPANDED_ROTATION else 0f
-            binding.root.contentDescription = group.title
+            CollapsibleMarker.apply(binding.groupIndicator, group.isExpanded)
+            CollapsibleMarker.describe(binding.root, group.title, group.isExpanded)
             binding.root.setOnClickListener { onGroupToggle(group.key) }
         }
     }
@@ -326,7 +318,6 @@ class LauncherAppGridAdapter(
         const val VIEW_TYPE_GROUP_TILE = 1
         const val VIEW_TYPE_APP = 2
         const val VIEW_TYPE_CATEGORY_TILE = 3
-        const val EXPANDED_ROTATION = 180f
         const val SYMBOL_GROUP = "#"
 
         val VOWEL_GROUPS = setOf(

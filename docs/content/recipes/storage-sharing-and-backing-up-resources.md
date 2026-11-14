@@ -13,7 +13,7 @@ canonical_url: documentation/storage/sharing-and-backing-up-resources.html
 why: |
   You spent an evening adding the shared folders of the home computer, the NAS and the cloud, with all their passwords. Now your partner wants the same list on their phone, or you are getting a new phone yourself. Typing everything again is the last thing you want.
 
-  FastMediaSorter can pack your [resources](term:resource) into a file, read them back on another phone, and keep a full backup of resources, [Favorites](term:favorites) and settings in your Google Drive.
+  Fast Media Sorter & Organizer can pack your [resources](term:resource) into a file, read them back on another phone, and keep a full backup of resources, [Favorites](term:favorites) and settings in your Google Drive.
 ingredients:
   - "Exporting and importing resources to a file, and the Google Drive backup: the Standard, noLegal, Photos, Legacy and VR [editions](term:edition)."
   - "Importing a ready configuration from the [Windows companion](term:windows-companion): the Standard edition."
@@ -58,7 +58,7 @@ steps:
     text: |
       *Standard edition only.*
 
-      The FastMediaSorter [Windows companion](term:windows-companion) can prepare a complete resource on your computer - the shared folder, the account, the kinds of files, even a PIN - and hand it to the phone as a small `.fmscfg` file or as a barcode on the screen.
+      The Fast Media Sorter & Organizer [Windows companion](term:windows-companion) can prepare a complete resource on your computer - the shared folder, the account, the kinds of files, even a PIN - and hand it to the phone as a small `.fmscfg` file or as a barcode on the screen.
 
       On the phone tap **Add** in the resource list. Under **Import a ready configuration** tap **Import from file** and pick the `.fmscfg` file, or tap **Import by barcode** and point the camera at the barcode on the computer screen. The resource arrives fully set up. Files from older versions of the companion still import; a file from a newer version than the app understands is refused, and nothing changes.
     image_bookmark:

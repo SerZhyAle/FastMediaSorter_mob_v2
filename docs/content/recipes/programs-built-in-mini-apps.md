@@ -2,7 +2,7 @@
 page_id: programs.built-in-mini-apps
 title: Built-in Programs - Switching Them On, the Lights, the Mirror and the SOS Signal
 nav_title: Built-in programs, lights, mirror and SOS
-description: How to switch on the small programs that come with FastMediaSorter and where to open them, and how to use the three flashlights, the lit mirror and the SOS distress signal.
+description: How to switch on the small programs that come with Fast Media Sorter & Organizer and where to open them, and how to use the three flashlights, the lit mirror and the SOS distress signal.
 category: "Programs, Statistics and Diagnostics"
 category_slug: programs
 ticket: S2961
@@ -11,11 +11,11 @@ availability_note: All editions; the notification-shade flashlight and the water
 recipe_number: "01"
 canonical_url: documentation/programs/built-in-mini-apps.html
 why: |
-  FastMediaSorter carries a few small [programs](term:program) of its own: a calculator, a stopwatch, a mirror, three kinds of flashlight, an SOS signal and more. None of them needs a separate app, and none of them is in your way - every one is off until you switch it on.
+  Fast Media Sorter & Organizer carries a few small [programs](term:program) of its own: a calculator, a stopwatch, a mirror, three kinds of flashlight, an SOS signal and more. None of them needs a separate app, and none of them is in your way - every one is off until you switch it on.
 
   A dark stairwell, a quick look at your face before a video call, hands wet in the rain, a lost path in the mountains at dusk - that is what the lights, the mirror and the SOS signal on this page are for.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition) - see [The seven editions of FastMediaSorter](page:flavors.overview-and-comparison)."
+  - "Fast Media Sorter & Organizer in any [edition](term:edition) - see [The seven editions of Fast Media Sorter & Organizer](page:flavors.overview-and-comparison)."
   - "For the camera flashlight and the water flashlight: a phone with a camera flash. For the mirror: a front camera."
   - "For the SOS signal on the watch as well: a paired [watch](term:watch) with FastMedia Wear, in the Standard or noLegal edition - see [Installing on Wear OS and pairing with the phone](page:wear.installation-and-pairing)."
 steps:
@@ -52,7 +52,7 @@ steps:
       - the programs menu, behind the three-dots button (**More actions**) in the command bar of the [resource list](term:resource-list);
       - the [programs panel](term:programs-panel), a bar above the resource list that shows the same programs as buttons. Turn on **Programs panel** in **Settings**, **General** - the three-dots button then gives its place to the panel. The panel's own menu has **Configure panel**, **Collapse panel** and **Hide panel**;
       - the [launcher](term:launcher) [desktop](term:desktop), in the Standard and noLegal editions - see [Your launcher desktop](page:launcher.desktop-grid-and-icons);
-      - for the front flashlight, the water flashlight and the stopwatch, a one-cell [widget](term:widget) for your home screen - see [FastMediaSorter widgets for your home screen](page:launcher.home-screen-widgets).
+      - for the front flashlight, the water flashlight and the stopwatch, a one-cell [widget](term:widget) for your home screen - see [Fast Media Sorter & Organizer widgets for your home screen](page:launcher.home-screen-widgets).
     image_bookmark:
       shot_id: programs.programs-menu
       device_profile: phone
@@ -110,7 +110,7 @@ steps:
       shot_id: programs.shade-flashlight
       device_profile: phone
       screen_state: notification-shade-flashlight-entry
-      alt: The Android notification shade pulled down, with the FastMediaSorter entry Tap to switch the light on
+      alt: The Android notification shade pulled down, with the Fast Media Sorter & Organizer entry Tap to switch the light on
       caption: "The flashlight entry in the shade."
       title: "Screenshot: Flashlight in the shade"
       desc: Notification shade expanded, flashlight entry visible, light off, portrait.
@@ -176,7 +176,7 @@ next_recipes:
     badge: Programs
     badge_type: docs
     description: See how many files you sorted, viewed and freed.
-  - title: FastMediaSorter widgets for your home screen
+  - title: Fast Media Sorter & Organizer widgets for your home screen
     url: page:launcher.home-screen-widgets
     badge: Launcher
     badge_type: docs
@@ -185,4 +185,4 @@ next_recipes:
 
 <sub class="doc-stamp">26.10.07 01:10</sub>
 
-FastMediaSorter comes with a set of small [programs](term:program) you switch on only if you want them. This page shows where to switch them on, where to open them, and how to use the front flashlight, the water flashlight, the flashlight in the notification shade, the lit mirror and the SOS emergency signal.
+Fast Media Sorter & Organizer comes with a set of small [programs](term:program) you switch on only if you want them. This page shows where to switch them on, where to open them, and how to use the front flashlight, the water flashlight, the flashlight in the notification shade, the lit mirror and the SOS emergency signal.

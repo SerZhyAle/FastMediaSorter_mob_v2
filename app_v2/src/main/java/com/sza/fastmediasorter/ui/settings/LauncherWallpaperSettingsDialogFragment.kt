@@ -25,7 +25,7 @@ import javax.inject.Inject
 
 /**
  * S2730: the desktop wallpaper's own screen, split out of the single row it used to occupy inside
- * [LauncherSettingsDialogFragment].
+ * [LauncherSettingsFragment].
  *
  * A full-screen dialog rather than a section of `SettingsActivity`: that activity is shared with every
  * build variant, while the wallpaper exists only where the launcher source set is mounted, and the

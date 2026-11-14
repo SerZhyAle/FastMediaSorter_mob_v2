@@ -9,7 +9,7 @@ permalink: /docs/TROUBLESHOOTING-de.html
 
 # 🔧 Leitfaden zur Problembehebung
 
-Aktueller Leitfaden zur Problembehebung für FastMediaSorter v2. Nutze das maßgebliche Varianten-Raster in [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md), wenn das Problem vom gewählten Build-Pfad abhängt (Standard, Lite, Photos, Legacy oder XR / noLegal).
+Aktueller Leitfaden zur Problembehebung für Fast Media Sorter & Organizer. Nutze das maßgebliche Varianten-Raster in [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md), wenn das Problem vom gewählten Build-Pfad abhängt (Standard, Lite, Photos, Legacy oder XR / noLegal).
 
 ---
 
@@ -53,7 +53,7 @@ Aktueller Leitfaden zur Problembehebung für FastMediaSorter v2. Nutze das maßg
 ### ❌ "Google Drive-Anmeldung fehlgeschlagen"
 
 **Lösung:**
-1. App-Daten löschen: Einstellungen → Apps → FastMediaSorter → Daten löschen
+1. App-Daten löschen: Einstellungen → Apps → Fast Media Sorter & Organizer → Daten löschen
 2. App neu installieren
 3. Google-Kontoeinstellungen → Sicherheit → Drittanbieter-Apps prüfen
 
@@ -63,7 +63,7 @@ Aktueller Leitfaden zur Problembehebung für FastMediaSorter v2. Nutze das maßg
 
 **Lösung:**
 1. Microsoft-Kontostatus prüfen
-2. App-Daten löschen: Einstellungen → Apps → FastMediaSorter → Daten löschen
+2. App-Daten löschen: Einstellungen → Apps → Fast Media Sorter & Organizer → Daten löschen
 3. Microsoft-Kontoeinstellungen → Datenschutz → Apps und Dienste prüfen
 
 ---
@@ -72,7 +72,7 @@ Aktueller Leitfaden zur Problembehebung für FastMediaSorter v2. Nutze das maßg
 
 **Lösung:**
 1. Dropbox-Kontostatus prüfen
-2. App-Daten löschen: Einstellungen → Apps → FastMediaSorter → Daten löschen
+2. App-Daten löschen: Einstellungen → Apps → Fast Media Sorter & Organizer → Daten löschen
 3. Dropbox-Kontoeinstellungen → Sicherheit → Verbundene Apps prüfen
 
 ---
@@ -182,7 +182,7 @@ Dies nutzt die Funktion *Sekundärer Player*, um nicht unterstützte Codecs an a
 ### ❌ "App stürzt beim Start ab"
 
 **Lösung:**
-1. App-Cache leeren: Einstellungen → Apps → FastMediaSorter → Cache leeren
+1. App-Cache leeren: Einstellungen → Apps → Fast Media Sorter & Organizer → Cache leeren
 2. Falls das Problem bestehen bleibt: App-Daten löschen (⚠️ Einstellungen gehen verloren)
 3. App als letzten Ausweg neu installieren
 

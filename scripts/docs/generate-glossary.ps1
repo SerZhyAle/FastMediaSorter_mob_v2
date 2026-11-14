@@ -345,7 +345,7 @@ layout: null
                     </div>
                 </div>
 
-                <a href="${p}../index.html" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="${p}../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <a href="${p}../index.html" title="Fast Media Sorter &amp; Organizer Home" class="doc-header-home"><img src="${p}../apple-touch-icon.png" alt="Fast Media Sorter &amp; Organizer icon" class="doc-app-icon"></a>
                 <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
             </nav>
         </div>

@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "راديو الإنترنت والبث - FastMediaSorter v2"
+title: "راديو الإنترنت والبث - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-internet-radio-ar.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -11,7 +11,7 @@ permalink: /docs/howto/scenario-internet-radio-ar.html
 
 > **المستوى:** مبتدئ - **الوقت:** ~10 دقائق - **الإصدار:** Standard وLegacy وVR وnoLegal (البث غير متوفر في Lite وPhotos)
 
-يتضمن FastMediaSorter شاشة بث مخصصة لمصادر الصوت والفيديو عبر الإنترنت. أضف أي رابط راديو إنترنت، أو استورد قائمة تشغيل ‎.m3u، أو تصفح كتالوج محطات منسّق - دون الحاجة لتطبيق راديو منفصل. يعمل بشكل رائع على وحدات رأس السيارة العاملة بنظام Android، ومشغلات الصوت، والهواتف، والأجهزة اللوحية.
+يتضمن Fast Media Sorter & Organizer شاشة بث مخصصة لمصادر الصوت والفيديو عبر الإنترنت. أضف أي رابط راديو إنترنت، أو استورد قائمة تشغيل ‎.m3u، أو تصفح كتالوج محطات منسّق - دون الحاجة لتطبيق راديو منفصل. يعمل بشكل رائع على وحدات رأس السيارة العاملة بنظام Android، ومشغلات الصوت، والهواتف، والأجهزة اللوحية.
 
 > **يحلّ محل:** تطبيق منفصل لراديو الإنترنت أو لتشغيل البث.
 
@@ -20,7 +20,7 @@ permalink: /docs/howto/scenario-internet-radio-ar.html
 ## ما ستحتاجه
 
 - جهاز Android متصل بالشبكة (بيانات جوال أو Wi-Fi)
-- FastMediaSorter بإصدار Standard أو Legacy أو VR أو noLegal (شاشة البث غير موجودة في Lite وPhotos)
+- Fast Media Sorter & Organizer بإصدار Standard أو Legacy أو VR أو noLegal (شاشة البث غير موجودة في Lite وPhotos)
 - رابط بث، أو ملف/رابط قائمة تشغيل ‎.m3u، أو الكتالوج المدمج المنسّق
 
 ---

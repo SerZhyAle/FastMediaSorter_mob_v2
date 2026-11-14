@@ -368,6 +368,10 @@ class MyDevicesViewModel @Inject constructor(
         viewModelScope.launch { accounts.setAutoAttach(entry, enabled) }
     }
 
+    fun setSyncNotes(entry: DeviceExchangeAccountEntry, enabled: Boolean) {
+        viewModelScope.launch { accounts.setSyncNotes(entry, enabled) }
+    }
+
     fun remove(entry: DeviceExchangeAccountEntry) {
         viewModelScope.launch {
             val text = when (accounts.remove(entry)) {

@@ -10,6 +10,8 @@ data class ExchangeDeviceBroadcast(
     val descriptorJson: String,
     /** Why the record's box did not open here (item CI): the row shows it and the broadcast is never played. */
     val sealNotice: ExchangeMessage? = null,
+    /** The identity of the account entry whose directory listed it (item BJ); only that entry may end it. */
+    val entryKey: String = "",
 ) {
     override fun toString(): String = "ExchangeDeviceBroadcast(mode=$mode, playable=$playable, sealNotice=$sealNotice)"
 }
@@ -21,4 +23,6 @@ data class ExchangeDeviceBroadcasts(
     val pending: Boolean,
     /** Some store could not be read, so the list may be incomplete. */
     val incomplete: Boolean,
+    /** The stores that answered with a complete directory this time; an entry outside it proves no removal. */
+    val listedSources: Set<String> = emptySet(),
 )

@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.wear.data.exchange
 import com.sza.fastmediasorter.data.security.e2e.E2eBytes
 import com.sza.fastmediasorter.wear.domain.model.WearBroadcastPlayback
 import com.sza.fastmediasorter.wear.domain.model.WearBroadcastPlayback.Reason
+import com.sza.fastmediasorter.wear.domain.model.WearBroadcastRoute
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -97,9 +98,10 @@ class SocketWearLanEndpointProbe internal constructor(
 
 /**
  * Turns one directory record into what a player opens (contract DEVICE-EXCHANGE 7.7 and 23 items CH and CI,
- * LIVE-BROADCAST item M). The endpoints are tried in the producer's order, LAN first and then the relay, and
- * every call starts at the top again because a reconnect must (7.7). A LAN endpoint is passed over unless it answers
- * its first request, so a phone that accepts connections and serves nothing sends the watch on to the relay.
+ * LIVE-BROADCAST item M). The endpoints are tried in the producer's order, LAN first and then the relay; a
+ * player walks on from a failed endpoint, and a reconnect starts at the top again because 7.7 requires it. A LAN
+ * endpoint is passed over unless it answers its first request, so a phone that accepts connections and serves
+ * nothing sends the watch on to the relay.
  *
  * A protected broadcast is answered only on the relay, with the Basic header the pinning proxy adds inside TLS:
  * the watch does not run Digest on the LAN endpoints and never plays one without the challenge, and the password
@@ -112,7 +114,16 @@ class WearBroadcastPlaybackResolver @Inject constructor(
     private val probe: WearLanEndpointProbe,
 ) {
 
-    suspend fun resolve(record: WearDirectoryBroadcast): WearBroadcastPlayback = withContext(Dispatchers.IO) {
+    /**
+     * Resolves [record] from the playable endpoint at [startAt]; a player whose endpoint failed passes the index after
+     * it, a reconnect passes 0 (S4610). Past the last endpoint the broadcast is unreachable.
+     */
+    suspend fun resolve(record: WearDirectoryBroadcast, startAt: Int = 0): WearBroadcastPlayback =
+        withContext(Dispatchers.IO) {
+            resolveNow(record, startAt)
+        }
+
+    private fun resolveNow(record: WearDirectoryBroadcast, startAt: Int): WearBroadcastPlayback {
         val schema = WearBroadcastEndpoints.schemaVersion(record.descriptor)
         if (schema > WearBroadcastEndpoints.SUPPORTED_SCHEMA_VERSION) {
             Timber.w(
@@ -120,23 +131,28 @@ class WearBroadcastPlaybackResolver @Inject constructor(
                     "(format-unsupported)",
                 schema,
             )
-            return@withContext WearBroadcastPlayback.Unavailable(Reason.FORMAT_UNSUPPORTED)
+            return WearBroadcastPlayback.Unavailable(Reason.FORMAT_UNSUPPORTED)
         }
         val all = WearBroadcastEndpoints.parse(record.broadcastId, record.descriptor, record.mode)
         val playable = all.filter { WearBroadcastEndpoints.isPlayableMode(it.mode ?: record.mode) }
-        when {
+        return when {
             all.isEmpty() -> WearBroadcastPlayback.Unavailable(Reason.NO_ENDPOINT)
             playable.isEmpty() -> WearBroadcastPlayback.Unavailable(Reason.MODE)
-            else -> pick(record, playable)
+            else -> pick(record, playable, startAt)
         }
     }
 
-    private fun pick(record: WearDirectoryBroadcast, endpoints: List<WearBroadcastEndpoint>): WearBroadcastPlayback {
+    private fun pick(
+        record: WearDirectoryBroadcast,
+        endpoints: List<WearBroadcastEndpoint>,
+        startAt: Int,
+    ): WearBroadcastPlayback {
         val isProtected = WearBroadcastEndpoints.isProtected(record.descriptor)
-        val playback = endpoints.firstNotNullOfOrNull { endpoint ->
-            when (endpoint) {
-                is WearBroadcastEndpoint.Lan -> lan(record, endpoint, isProtected)
-                is WearBroadcastEndpoint.Relay -> relay(record, endpoint, isProtected)
+        val playback = endpoints.indices.drop(startAt.coerceAtLeast(0)).firstNotNullOfOrNull { index ->
+            val route = WearBroadcastRoute(record, index)
+            when (val endpoint = endpoints[index]) {
+                is WearBroadcastEndpoint.Lan -> lan(route, endpoint, isProtected)
+                is WearBroadcastEndpoint.Relay -> relay(route, endpoint, isProtected)
             }
         }
         val missing = if (isProtected) Reason.PROTECTED else Reason.UNREACHABLE
@@ -144,28 +160,28 @@ class WearBroadcastPlaybackResolver @Inject constructor(
     }
 
     private fun lan(
-        record: WearDirectoryBroadcast,
+        route: WearBroadcastRoute,
         endpoint: WearBroadcastEndpoint.Lan,
         isProtected: Boolean,
     ): WearBroadcastPlayback? {
         val serving = !isProtected && probe.answers(endpoint)
         return if (serving) {
-            playable(record, endpoint, endpoint.url)
+            playable(route, endpoint, endpoint.url)
         } else {
             null
         }
     }
 
-    private fun relay(record: WearDirectoryBroadcast, endpoint: WearBroadcastEndpoint.Relay, isProtected: Boolean) =
-        if (isProtected && record.credentials == null) {
+    private fun relay(route: WearBroadcastRoute, endpoint: WearBroadcastEndpoint.Relay, isProtected: Boolean) =
+        if (isProtected && route.record.credentials == null) {
             // The challenge cannot be answered, and an unauthenticated request would be refused anyway (item M).
             WearBroadcastPlayback.Unavailable(Reason.PROTECTED)
         } else {
-            openRelay(record, endpoint, record.credentials?.takeIf { isProtected })
+            openRelay(route, endpoint, route.record.credentials?.takeIf { isProtected })
         }
 
     private fun openRelay(
-        record: WearDirectoryBroadcast,
+        route: WearBroadcastRoute,
         endpoint: WearBroadcastEndpoint.Relay,
         credentials: WearBroadcastCredentials?,
     ): WearBroadcastPlayback = try {
@@ -177,14 +193,19 @@ class WearBroadcastPlaybackResolver @Inject constructor(
         } else {
             bridges.openSealed(endpoint, groupKey, header)
         }
-        playable(record, endpoint, url)
+        playable(route, endpoint, url)
     } catch (e: IOException) {
         Timber.w("WearBroadcastPlaybackResolver: no loopback bridge - %s", e.javaClass.simpleName)
         WearBroadcastPlayback.Unavailable(Reason.UNREACHABLE)
     }
 
-    private fun playable(record: WearDirectoryBroadcast, endpoint: WearBroadcastEndpoint, url: String) =
-        WearBroadcastPlayback.Playable(url, record.title, WearBroadcastEndpoints.isVideo(endpoint.mode ?: record.mode))
+    private fun playable(route: WearBroadcastRoute, endpoint: WearBroadcastEndpoint, url: String) =
+        WearBroadcastPlayback.Playable(
+            url = url,
+            title = route.record.title,
+            isVideo = WearBroadcastEndpoints.isVideo(endpoint.mode ?: route.record.mode),
+            route = route,
+        )
 
     private fun basicHeader(credentials: WearBroadcastCredentials): String {
         val pair = "${credentials.user}:${credentials.password}".toByteArray(Charsets.UTF_8)

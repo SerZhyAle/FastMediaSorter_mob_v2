@@ -64,14 +64,14 @@ layout: null
           "@type": "HowToStep",
           "position": 1,
           "name": "See channels come to life in grid view",
-          "text": "Switch Streams to grid view and video channels start filling in with a real picture: a frame captured from the live feed itself, refreshed while you browse. FastMediaSorter keeps that frame on the phone, so the next time you open Streams the channel already shows it instead of a blank tile while a fresh one is captured in the background. Every tile in the grid fills in at once when the screen opens, rather than one picture trickling in after another while you wait.",
+          "text": "Switch Streams to grid view and video channels start filling in with a real picture: a frame captured from the live feed itself, refreshed while you browse. Fast Media Sorter \u0026 Organizer keeps that frame on the phone, so the next time you open Streams the channel already shows it instead of a blank tile while a fresh one is captured in the background. Every tile in the grid fills in at once when the screen opens, rather than one picture trickling in after another while you wait.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-pictures-and-badges.html#live-tiles"
         },
         {
           "@type": "HowToStep",
           "position": 2,
-          "name": "How FastMediaSorter picks a picture when there is no live frame",
-          "text": "Not every channel has a frame to show - radio has no picture at all, and a video channel only gets one after it has been reachable. For those, FastMediaSorter tries a fixed order of pictures, stopping at the first one it can supply: 1. A tile from the downloadable Channel preview atlas - a still picture for a video channel, shown before you have watched it even once. 2. The channel\u0027s own station logo, from the downloadable Station logos pack - this is the only picture a radio station can get, since it has no video to capture from. 3. A small favicon - the site icon for that channel, bundled with the channel catalog itself, no separate download needed. 4. The channel\u0027s country flag, when none of the above is available. 5. A plain audio or video icon, when even the country is unknown. So a logo means the station has its own artwork in the pack; a flag means FastMediaSorter knows the channel\u0027s country but has no picture for it; a plain icon means neither is available yet. Every tier keeps trying quietly in the background, so a tile that starts as a flag can still turn into a proper logo moments later.",
+          "name": "How Fast Media Sorter \u0026 Organizer picks a picture when there is no live frame",
+          "text": "Not every channel has a frame to show - radio has no picture at all, and a video channel only gets one after it has been reachable. For those, Fast Media Sorter \u0026 Organizer tries a fixed order of pictures, stopping at the first one it can supply: 1. A tile from the downloadable Channel preview atlas - a still picture for a video channel, shown before you have watched it even once. 2. The channel\u0027s own station logo, from the downloadable Station logos pack - this is the only picture a radio station can get, since it has no video to capture from. 3. A small favicon - the site icon for that channel, bundled with the channel catalog itself, no separate download needed. 4. The channel\u0027s country flag, when none of the above is available. 5. A plain audio or video icon, when even the country is unknown. So a logo means the station has its own artwork in the pack; a flag means Fast Media Sorter \u0026 Organizer knows the channel\u0027s country but has no picture for it; a plain icon means neither is available yet. Every tier keeps trying quietly in the background, so a tile that starts as a flag can still turn into a proper logo moments later.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-pictures-and-badges.html#picture-order"
         },
         {
@@ -99,14 +99,14 @@ layout: null
           "@type": "HowToStep",
           "position": 6,
           "name": "Get the channel pictures and station logos",
-          "text": "The Channel preview atlas and Station logos are downloadable picture packs, not part of the app itself - they are extensions, like the channel catalog they ride along with. After a catalog refresh finds new channels, FastMediaSorter offers each pack by name, states its download size in megabytes up front, and lets you say Download or Later. New pictures reach an installed pack as soon as they are published on the server - you do not have to wait for an app update to see them. If the pack you already have is out of date, the next catalog refresh offers a smaller update instead of the whole pack again. You can also manage both packs by hand any time from the Downloadable Extensions screen - see Downloadable extensions for how to install, update and delete them there.",
+          "text": "The Channel preview atlas and Station logos are downloadable picture packs, not part of the app itself - they are extensions, like the channel catalog they ride along with. After a catalog refresh finds new channels, Fast Media Sorter \u0026 Organizer offers each pack by name, states its download size in megabytes up front, and lets you say Download or Later. New pictures reach an installed pack as soon as they are published on the server - you do not have to wait for an app update to see them. If the pack you already have is out of date, the next catalog refresh offers a smaller update instead of the whole pack again. You can also manage both packs by hand any time from the Downloadable Extensions screen - see Downloadable extensions for how to install, update and delete them there.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-pictures-and-badges.html#download-picture-packs"
         },
         {
           "@type": "HowToStep",
           "position": 7,
           "name": "Thumbnails keep themselves fresh",
-          "text": "Watching a video channel updates its own tile: the frame you were just looking at becomes its thumbnail, so the grid shows what you actually saw last, not an older capture. This works whether you stop by pressing Back or by leaving the fullscreen player. An unreachable channel is not hammered with repeated capture attempts - FastMediaSorter backs off and tries it less often instead, and a status change repaints only the dot, so scrolling the grid never flickers. None of this needs a network connection to stay calm: with no connectivity the grid simply waits rather than timing out every visible tile, and previews pick back up on their own once the connection returns. The pictures themselves are kept in a small on-disk cache with its own size budget, cleared out automatically as needed - there is nothing to configure or clean up by hand.",
+          "text": "Watching a video channel updates its own tile: the frame you were just looking at becomes its thumbnail, so the grid shows what you actually saw last, not an older capture. This works whether you stop by pressing Back or by leaving the fullscreen player. An unreachable channel is not hammered with repeated capture attempts - Fast Media Sorter \u0026 Organizer backs off and tries it less often instead, and a status change repaints only the dot, so scrolling the grid never flickers. None of this needs a network connection to stay calm: with no connectivity the grid simply waits rather than timing out every visible tile, and previews pick back up on their own once the connection returns. The pictures themselves are kept in a small on-disk cache with its own size budget, cleared out automatically as needed - there is nothing to configure or clean up by hand.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-pictures-and-badges.html#thumbnails-stay-fresh"
         }
       ]
@@ -184,7 +184,7 @@ layout: null
                     </div>
                 </div>
 
-                <a href="../../index.html" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <a href="../../index.html" title="Fast Media Sorter &amp; Organizer Home" class="doc-header-home"><img src="../../apple-touch-icon.png" alt="Fast Media Sorter &amp; Organizer icon" class="doc-app-icon"></a>
                 <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Theme</span></button>
             </nav>
         </div>
@@ -439,7 +439,7 @@ layout: null
                 </p>
 
                 <h2 id="why">Why You'll Love This</h2>
-                        <p>Radio and TV <span class="doc-link-term" data-term="channel">channels</span> do not come with a photo attached the way a video file does, so FastMediaSorter has to find or capture a picture for each one - a live frame, the station's own logo, a small site icon, or failing all of that, just a flag or a generic symbol. None of this is random: every tile always shows something, and what it shows tells you a little about that channel before you even press play.</p>
+                        <p>Radio and TV <span class="doc-link-term" data-term="channel">channels</span> do not come with a photo attached the way a video file does, so Fast Media Sorter & Organizer has to find or capture a picture for each one - a live frame, the station's own logo, a small site icon, or failing all of that, just a flag or a generic symbol. None of this is random: every tile always shows something, and what it shows tells you a little about that channel before you even press play.</p>
                         <p>The same channels also carry two kinds of small labels: a play-status dot that remembers whether a channel worked last time, and an access badge that warns you a channel might not play from where you are. Knowing what these mean saves you a wasted tap on a channel that is unlikely to work.</p>
 
                 <!-- Prerequisite Card -->
@@ -449,7 +449,7 @@ layout: null
                         <span>Before You Begin: Ingredients &amp; Prerequisites</span>
                     </div>
                     <ul class="doc-prereq-list">
-                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> FastMediaSorter installed in the Standard, noLegal, Legacy or VR <span class="doc-link-term" data-term="edition">edition</span>. Streams and everything on this page is absent from Lite, Photos and FOSS.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Fast Media Sorter & Organizer installed in the Standard, noLegal, Legacy or VR <span class="doc-link-term" data-term="edition">edition</span>. Streams and everything on this page is absent from Lite, Photos and FOSS.</li>
                         <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> The <span class="doc-link-term" data-term="streams-screen">Streams</span> screen open, with some channels in it - your own or from the <span class="doc-link-term" data-term="catalog">catalog</span>. See <a href="channel-catalog-browsing.html" class="doc-link">Browsing internet stream channels</a> for how the catalog fills the list.</li>
                         <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> An internet connection the first time you want the picture packs - after that, everything on this page works from what is already on the phone.</li>
                     </ul>
@@ -462,7 +462,7 @@ layout: null
                         <h2 class="doc-step-title">See channels come to life in grid view</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>Switch <span class="doc-link-term" data-term="streams-screen">Streams</span> to <span class="doc-link-term" data-term="grid-view">grid view</span> and video channels start filling in with a real picture: a frame captured from the live feed itself, refreshed while you browse. FastMediaSorter keeps that frame on the phone, so the next time you open Streams the channel already shows it instead of a blank tile while a fresh one is captured in the background.</p>
+                        <p>Switch <span class="doc-link-term" data-term="streams-screen">Streams</span> to <span class="doc-link-term" data-term="grid-view">grid view</span> and video channels start filling in with a real picture: a frame captured from the live feed itself, refreshed while you browse. Fast Media Sorter & Organizer keeps that frame on the phone, so the next time you open Streams the channel already shows it instead of a blank tile while a fresh one is captured in the background.</p>
                         <p>Every tile in the grid fills in at once when the screen opens, rather than one picture trickling in after another while you wait.</p>
                         <figure class="doc-figure" data-shot-id="streams.channel-grid">
                             <img src="../assets/images/streams/channel-grid.png" alt="The Streams grid view with several video channel tiles showing live captured frames and station logos" class="doc-screenshot" loading="lazy" />
@@ -475,12 +475,12 @@ layout: null
                 <div class="doc-step" id="picture-order">
                     <div class="doc-step-header">
                         <span class="doc-step-badge">2</span>
-                        <h2 class="doc-step-title">How FastMediaSorter picks a picture when there is no live frame</h2>
+                        <h2 class="doc-step-title">How Fast Media Sorter & Organizer picks a picture when there is no live frame</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>Not every channel has a frame to show - radio has no picture at all, and a video channel only gets one after it has been reachable. For those, FastMediaSorter tries a fixed order of pictures, stopping at the first one it can supply:</p>
+                        <p>Not every channel has a frame to show - radio has no picture at all, and a video channel only gets one after it has been reachable. For those, Fast Media Sorter & Organizer tries a fixed order of pictures, stopping at the first one it can supply:</p>
                         <ol><li>A tile from the downloadable <strong>Channel preview atlas</strong> - a still picture for a video channel, shown before you have watched it even once.</li><li>The channel's own <strong>station logo</strong>, from the downloadable <strong>Station logos</strong> pack - this is the only picture a radio station can get, since it has no video to capture from.</li><li>A small <strong>favicon</strong> - the site icon for that channel, bundled with the channel catalog itself, no separate download needed.</li><li>The channel's <strong>country flag</strong>, when none of the above is available.</li><li>A plain audio or video icon, when even the country is unknown.</li></ol>
-                        <p>So a logo means the station has its own artwork in the pack; a flag means FastMediaSorter knows the channel's country but has no picture for it; a plain icon means neither is available yet. Every tier keeps trying quietly in the background, so a tile that starts as a flag can still turn into a proper logo moments later.</p>
+                        <p>So a logo means the station has its own artwork in the pack; a flag means Fast Media Sorter & Organizer knows the channel's country but has no picture for it; a plain icon means neither is available yet. Every tier keeps trying quietly in the background, so a tile that starts as a flag can still turn into a proper logo moments later.</p>
                         <figure class="doc-figure" data-shot-id="streams.channel-picture-tiers">
                             <img src="../assets/images/streams/channel-picture-tiers.png" alt="Streams grid tiles side by side showing a station logo, a small favicon, a country flag and a plain audio icon for channels with no captured frame" class="doc-screenshot" loading="lazy" />
                             <figcaption>Four channels, four fallback pictures - logo, favicon, flag, plain icon.</figcaption>
@@ -555,7 +555,7 @@ layout: null
                         <h2 class="doc-step-title">Get the channel pictures and station logos</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>The <strong>Channel preview atlas</strong> and <strong>Station logos</strong> are downloadable picture packs, not part of the app itself - they are <span class="doc-link-term" data-term="extension">extensions</span>, like the channel catalog they ride along with. After a catalog refresh finds new channels, FastMediaSorter offers each pack by name, states its download size in megabytes up front, and lets you say <strong>Download</strong> or <strong>Later</strong>.</p>
+                        <p>The <strong>Channel preview atlas</strong> and <strong>Station logos</strong> are downloadable picture packs, not part of the app itself - they are <span class="doc-link-term" data-term="extension">extensions</span>, like the channel catalog they ride along with. After a catalog refresh finds new channels, Fast Media Sorter & Organizer offers each pack by name, states its download size in megabytes up front, and lets you say <strong>Download</strong> or <strong>Later</strong>.</p>
                         <p>New pictures reach an installed pack as soon as they are published on the server - you do not have to wait for an app update to see them. If the pack you already have is out of date, the next catalog refresh offers a smaller update instead of the whole pack again.</p>
                         <p>You can also manage both packs by hand any time from the Downloadable Extensions screen - see <a href="../flavors/extensions-and-plugins.html" class="doc-link">Downloadable extensions</a> for how to install, update and delete them there.</p>
                         <figure class="doc-figure" data-shot-id="streams.channel-pictures-download-prompt">
@@ -573,7 +573,7 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>Watching a video channel updates its own tile: the frame you were just looking at becomes its thumbnail, so the grid shows what you actually saw last, not an older capture. This works whether you stop by pressing Back or by leaving the fullscreen player.</p>
-                        <p>An unreachable channel is not hammered with repeated capture attempts - FastMediaSorter backs off and tries it less often instead, and a status change repaints only the dot, so scrolling the grid never flickers. None of this needs a network connection to stay calm: with no connectivity the grid simply waits rather than timing out every visible tile, and previews pick back up on their own once the connection returns.</p>
+                        <p>An unreachable channel is not hammered with repeated capture attempts - Fast Media Sorter & Organizer backs off and tries it less often instead, and a status change repaints only the dot, so scrolling the grid never flickers. None of this needs a network connection to stay calm: with no connectivity the grid simply waits rather than timing out every visible tile, and previews pick back up on their own once the connection returns.</p>
                         <p>The pictures themselves are kept in a small on-disk cache with its own size budget, cleared out automatically as needed - there is nothing to configure or clean up by hand.</p>
                         <div class="doc-img-bookmark"
                              data-shot-id="streams.player-viewed-frame-thumbnail"
@@ -639,7 +639,7 @@ layout: null
                     <ul class="doc-toc-list">
                         <li><a href="#why" class="doc-toc-link">Why You'll Love This</a></li>
                         <li><a href="#live-tiles" class="doc-toc-link">1. See channels come to life in grid view</a></li>
-                        <li><a href="#picture-order" class="doc-toc-link">2. How FastMediaSorter picks a picture when there is no live frame</a></li>
+                        <li><a href="#picture-order" class="doc-toc-link">2. How Fast Media Sorter & Organizer picks a picture when there is no live frame</a></li>
                         <li><a href="#list-view-icons" class="doc-toc-link">3. Favicons and flags in list view</a></li>
                         <li><a href="#status-dot-and-menu" class="doc-toc-link">4. Read the grid tile's status dot and open its menu</a></li>
                         <li><a href="#access-badges" class="doc-toc-link">5. Understand the region and access badges</a></li>

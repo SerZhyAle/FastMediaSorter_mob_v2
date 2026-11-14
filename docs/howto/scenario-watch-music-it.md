@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Ascolta musica sul tuo orologio - FastMediaSorter v2"
+title: "Ascolta musica sul tuo orologio - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-watch-music-it.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -13,14 +13,14 @@ permalink: /docs/howto/scenario-watch-music-it.html
 
 > **Solo versione completa** - questa guida non è implementata nella versione distribuita tramite Google Play. Si applica alla versione completa, un download diretto dell'APK da [Download](../DOWNLOADS.md).
 
-FastMediaSorter ti permette di sfogliare e riprodurre la tua raccolta musicale direttamente dal tuo smartwatch Wear OS. Puoi trasmettere brani condivisi dal telefono abbinato oppure riprodurre file audio locali archiviati sull'orologio, con copertine, riproduzione casuale, controllo del volume dalla ghiera rotante, riproduzione in background che sopravvive all'uscita dall'app, e una modalità a schermo spento che mantiene la musica in corso con il display scuro.
+Fast Media Sorter & Organizer ti permette di sfogliare e riprodurre la tua raccolta musicale direttamente dal tuo smartwatch Wear OS. Puoi trasmettere brani condivisi dal telefono abbinato oppure riprodurre file audio locali archiviati sull'orologio, con copertine, riproduzione casuale, controllo del volume dalla ghiera rotante, riproduzione in background che sopravvive all'uscita dall'app, e una modalità a schermo spento che mantiene la musica in corso con il display scuro.
 
 ---
 
 ## Cosa ti serve
 
 - Uno smartwatch con **Wear OS 2.0** o successivo con FastMedia Wear installato
-- Un telefono Android con FastMediaSorter in esecuzione (se trasmetti musica dal telefono)
+- Un telefono Android con Fast Media Sorter & Organizer in esecuzione (se trasmetti musica dal telefono)
 - File musicali (MP3, FLAC, AAC, OGG) sul telefono o trasferiti sulla memoria dell'orologio
 - Cuffie Bluetooth o l'altoparlante dell'orologio per l'uscita audio
 
@@ -103,7 +103,7 @@ Ci sono due modi diversi per continuare ad ascoltare, e rispondono a due domande
 
 | Problema | Cosa provare |
 |---------|------------|
-| La sezione Telefono dice "Telefono non connesso" | Assicurati che il Bluetooth sia attivo su entrambi i dispositivi e che FastMediaSorter sia installato sul tuo telefono |
+| La sezione Telefono dice "Telefono non connesso" | Assicurati che il Bluetooth sia attivo su entrambi i dispositivi e che Fast Media Sorter & Organizer sia installato sul tuo telefono |
 | Nessun file musicale compare in Locale | Copia file MP3 o FLAC nella memoria interna dell'orologio, oppure usa la sezione Telefono per riprodurre dal telefono |
 | L'audio si ferma quando lasci l'app | Attiva **Continua a riprodurre in background** nelle impostazioni dell'orologio, e consenti le notifiche - il servizio di riproduzione ne ha bisogno per restare attivo |
 | Manca la copertina | Connettiti al Wi-Fi per scaricare la copertina online, oppure assicurati che i tuoi file audio contengano una copertina ID3 incorporata |

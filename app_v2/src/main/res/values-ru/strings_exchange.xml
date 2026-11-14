@@ -369,4 +369,13 @@
     <string name="broadcast_exchange_line_failed">Сервер обмена %1$s: %2$s</string>
     <string name="broadcast_exchange_line_local_only">Доступно только в этой сети. Добавьте сервер обмена в «Моих устройствах»</string>
     <string name="broadcast_exchange_line_guest_only">Доступно только в этой сети: гостевая учётная запись не может вести трансляцию через сервер обмена</string>
+    <string name="exchange_devices_menu_sync_notes">Синхронизировать заметки через сервер обмена</string>
+    <string name="exchange_sync_notes_consent_title">Синхронизировать заметки через этот сервер?</string>
+    <string name="exchange_sync_notes_consent_message">Заметки шифруются только для ваших собственных устройств. Тот, кто управляет сервером, видит лишь их количество, размеры и время. Если выключить синхронизацию, ничего не удалится.</string>
+    <string name="exchange_sync_notes_consent_confirm">Синхронизировать</string>
+    <string name="broadcast_drive_line_announcing">Через Google Drive: трансляция анонсируется вашим устройствам</string>
+    <string name="broadcast_drive_line_announced">Через Google Drive: трансляция анонсирована вашим устройствам</string>
+    <string name="broadcast_drive_line_sign_in">Через Google Drive: не анонсирована. Снова войдите в Google Drive в настройках</string>
+    <string name="broadcast_drive_line_unreachable">Через Google Drive: не анонсирована, Google Drive не отвечает. Повторяем попытку</string>
+    <string name="broadcast_drive_line_guest">Через Google Drive: не анонсирована, гостевой аккаунт ничего не анонсирует</string>
 </resources>

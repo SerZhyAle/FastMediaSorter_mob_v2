@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Lettore musicale per auto (autoradio Android) - FastMediaSorter v2"
+title: "Lettore musicale per auto (autoradio Android) - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-car-music-it.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -11,7 +11,7 @@ permalink: /docs/howto/scenario-car-music-it.html
 
 > **Livello:** Principiante &bull; **Durata:** ~10 minuti &bull; **Edizione:** Standard, Legacy, VR, noLegal (Lite riproduce audio locale ma non ha riproduzione in background né Stream; Photos non ha audio)
 
-FastMediaSorter funziona benissimo come lettore musicale per auto su autoradio Android - accesso immediato all'intera raccolta musicale su scheda SD o chiavetta USB, con supporto integrato ai pulsanti del volante.
+Fast Media Sorter & Organizer funziona benissimo come lettore musicale per auto su autoradio Android - accesso immediato all'intera raccolta musicale su scheda SD o chiavetta USB, con supporto integrato ai pulsanti del volante.
 
 > **Cos'è un'autoradio Android?** È uno stereo per auto con schermo touch che esegue Android - come il tuo telefono, ma installato nel cruscotto. Questa guida funziona anche su un normale telefono o tablet montato in auto.
 
@@ -91,7 +91,7 @@ Tutto qui. Una volta attivato, l'app si registra come un vero e proprio lettore 
 
 Premi **Avanti** o **Indietro** sul volante.
 
-**Funzionano automaticamente - non serve alcuna configurazione.** FastMediaSorter risponde a tutti i pulsanti multimediali Android standard.
+**Funzionano automaticamente - non serve alcuna configurazione.** Fast Media Sorter & Organizer risponde a tutti i pulsanti multimediali Android standard.
 
 > **I pulsanti non funzionano?** Alcune autoradio più vecchie inviano segnali non standard. Prova ad andare su **Impostazioni Android → Accessibilità** e cerca un'opzione "ricevitore pulsanti multimediali". Se non aiuta, usa invece le zone touch sullo schermo (bordo sinistro/destro dello schermo) - funzionano perfettamente.
 
@@ -107,7 +107,7 @@ Se la tua musica è distribuita su più cartelle (ad es. alcune sulla scheda SD,
 
 Ora tutti i tuoi brani da tutte le posizioni compaiono insieme in un unico elenco.
 
-![Schermata principale di FastMediaSorter - card della risorsa virtuale Tutta la musica visibile](screenshots/screenshot-car-step6.png)
+![Schermata principale di Fast Media Sorter & Organizer - card della risorsa virtuale Tutta la musica visibile](screenshots/screenshot-car-step6.png)
 
 ---
 
@@ -116,7 +116,7 @@ Ora tutti i tuoi brani da tutte le posizioni compaiono insieme in un unico elenc
 Perfetto per quando vuoi solo salire in auto e toccare un pulsante per avviare la musica:
 
 1. Tieni premuto uno spazio vuoto sulla schermata Home → tocca **Widget**
-2. Trova **FastMediaSorter** nell'elenco → trascina il widget **"Scorciatoia risorsa"** sulla schermata Home
+2. Trova **Fast Media Sorter & Organizer** nell'elenco → trascina il widget **"Scorciatoia risorsa"** sulla schermata Home
 3. Quando richiesto, seleziona la tua risorsa musicale
 4. Fatto - tocca il widget in qualsiasi momento e la musica parte immediatamente
 

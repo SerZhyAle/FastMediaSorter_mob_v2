@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Copia de Seguridad Programada de la Cámara al PC - FastMediaSorter v2"
+title: "Copia de Seguridad Programada de la Cámara al PC - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-camera-backup-es.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -21,7 +21,7 @@ Copia automáticamente las fotos nuevas de la cámara de tu teléfono a tu compu
 
 - Teléfono y PC conectados al **mismo Wi-Fi de casa** (mismo router)
 - Una carpeta en tu PC donde se guardarán las fotos (por ejemplo `C:\PhoneBackup`)
-- FastMediaSorter instalado en una edición con fuentes de red (**Standard**, Photos, Legacy, VR, noLegal)
+- Fast Media Sorter & Organizer instalado en una edición con fuentes de red (**Standard**, Photos, Legacy, VR, noLegal)
 
 > **¿No sabes qué edición tienes?** Abre **Configuración** <img src="../icons/doc/ic_settings.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> → **Información del sistema**. La fila **Edición** indica la variante (Standard / Lite / etc.).
 
@@ -43,7 +43,7 @@ En **Windows:**
 
 ## Paso 2 - Conecta la App a la Carpeta de tu PC
 
-Ahora dile a FastMediaSorter a dónde enviar las fotos.
+Ahora dile a Fast Media Sorter & Organizer a dónde enviar las fotos.
 
 > **¿Qué es SMB?** Es simplemente la forma en que Windows comparte carpetas por el Wi-Fi de casa. No necesitas entender los detalles - solo sigue los pasos.
 
@@ -94,7 +94,7 @@ Completa cada campo:
 | **Horario** | Cuándo ejecutarse | `Diario a las 02:00` - se ejecuta mientras duermes |
 | **Ejecutar solo con Wi-Fi** | Actívalo | Evita que el respaldo use tus datos móviles por accidente |
 
-> **¿Qué es "Fotos de la Cámara"?** Es una carpeta virtual especial que FastMediaSorter crea automáticamente. Siempre muestra todas las fotos tomadas por tu cámara - incluso si están almacenadas en diferentes carpetas del teléfono. Prefiere siempre esta opción en lugar de elegir una ruta manual.
+> **¿Qué es "Fotos de la Cámara"?** Es una carpeta virtual especial que Fast Media Sorter & Organizer crea automáticamente. Siempre muestra todas las fotos tomadas por tu cámara - incluso si están almacenadas en diferentes carpetas del teléfono. Prefiere siempre esta opción en lugar de elegir una ruta manual.
 
 ![Agregar Horario - Origen: Fotos de la Cámara, Operación: Copiar, Destino: SMB](screenshots/screenshot-cb-step5.png)
 
@@ -154,7 +154,7 @@ Tu PC recibe fotos nuevas cada mañana. Nunca tienes que pensar en ello.
 
 | Problema | Qué intentar |
 |---------|------------|
-| El horario no se ejecuta de noche | Ve a **Configuración de Android → Apps → FastMediaSorter → Batería** → establece en **Sin restricciones** |
+| El horario no se ejecuta de noche | Ve a **Configuración de Android → Apps → Fast Media Sorter & Organizer → Batería** → establece en **Sin restricciones** |
 | Error "Destino no accesible" | Tu teléfono debe estar en Wi-Fi a la hora del respaldo. Si el Wi-Fi estaba apagado a las 2 AM, el respaldo se omite y se reintenta automáticamente la noche siguiente |
 | Algunas fotos no se respaldaron | Usa el recurso virtual **"Fotos de la Cámara"** como origen - captura fotos de todas las carpetas de cámara en tu teléfono |
 | Aparecen archivos duplicados en el PC | Asegúrate de que la Operación esté configurada como **"Copiar (omitir existentes)"**, no "Copiar (sobrescribir)" |

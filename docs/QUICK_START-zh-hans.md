@@ -1,13 +1,15 @@
 ---
 layout: doc
-title: "🚀 Quick Start Guide - FastMediaSorter v2"
+title: "🚀 Quick Start Guide - Fast Media Sorter & Organizer"
 permalink: /docs/QUICK_START-zh-hans.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
-# 🚀 快速上手指南 - FastMediaSorter v2
+<a id="-快速上手指南---fastmediasorter-v2"></a>
+
+# 🚀 快速上手指南 - Fast Media Sorter & Organizer
 
 *5 分钟快速上手！适合初学者的简明指南。*
 
@@ -15,7 +17,7 @@ permalink: /docs/QUICK_START-zh-hans.html
 
 ## 选择你的版本 📱
 
-FastMediaSorter v2 提供**面向日常手机和平板的五个版本** - Standard、Lite、Photos、Legacy、FOSS - 再加上**两个头显与旁加载版本**，VR 和 noLegal。共七个版本；确切的功能对照表由构建自动生成，见 [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md)。选择最适合你需求的一个：
+Fast Media Sorter & Organizer 提供**面向日常手机和平板的五个版本** - Standard、Lite、Photos、Legacy、FOSS - 再加上**两个头显与旁加载版本**，VR 和 noLegal。共七个版本；确切的功能对照表由构建自动生成，见 [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md)。选择最适合你需求的一个：
 
 | 版本 | 适合人群 | 主要特性 |
 |--------|----------|--------------|
@@ -204,7 +206,7 @@ FastMediaSorter v2 提供**面向日常手机和平板的五个版本** - Standa
 
 ### 链接自动下载
 
-- 在任意浏览器或聊天应用中，通过 Android 分享面板将 `http(s)` 链接分享给 FastMediaSorter
+- 在任意浏览器或聊天应用中，通过 Android 分享面板将 `http(s)` 链接分享给 Fast Media Sorter & Organizer
 - 应用会自动下载该媒体文件并保存到你选定的资源
 
 ### 网络直播流（电台与 IPTV）
@@ -212,13 +214,13 @@ FastMediaSorter v2 提供**面向日常手机和平板的五个版本** - Standa
 - 从主窗口下拉菜单打开 **Streams**（或在首次出现时通过 **Settings > Media > Streams**）。
 - 点按工具栏末端的 **⋮**：**Add stream** 用于添加电台网址（http/https mp3/aac、HLS .m3u8、RTSP），或 **Import from URL** 用于导入 `.m3u` 播放列表。
 - 搜索框旁的 **Video**、**Audio** 和 **Own** 按钮会拆分列表：Video 和 Audio 显示该类型的目录及已导入频道，Own 显示你通过网址添加的所有频道。再次点按已点亮的按钮可显示全部频道。
-- 从 **Extensions** 界面下载 FastMediaSorter 精选电台目录，获得一个可搜索、可按主题和语言筛选的库。
+- 从 **Extensions** 界面下载 Fast Media Sorter & Organizer 精选电台目录，获得一个可搜索、可按主题和语言筛选的库。
 - 电台通过底部常驻栏内嵌播放 - 电台列表保持可见。视频/RTSP 流在全屏播放器中打开；返回键回到列表。
 - **适用于 Standard、Legacy、noLegal 和 VR。Lite 和 Photos 中完全没有 Streams 界面 - 那里没有任何协议可用，因为根本没有入口。**
 
 ### 主屏幕小组件
 
-FastMediaSorter v2 提供多种主屏幕小组件。长按主屏幕 → Widgets → FastMediaSorter 即可浏览。主要包括：
+Fast Media Sorter & Organizer 提供多种主屏幕小组件。长按主屏幕 → Widgets → Fast Media Sorter & Organizer 即可浏览。主要包括：
 
 - **Resource Shortcut** - 点按即可立即打开任意一个资源
 - **Continue Reading** - 直接启动应用并进入幻灯片放映模式

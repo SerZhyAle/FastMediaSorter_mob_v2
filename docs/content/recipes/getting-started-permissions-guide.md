@@ -2,7 +2,7 @@
 page_id: getting-started.permissions-guide
 title: Understanding App Permissions
 nav_title: App permissions explained
-description: What each permission FastMediaSorter can ask for actually unlocks, how to grant one permission at a time or all of them at once, and how to change your mind later in Android's own settings.
+description: What each permission Fast Media Sorter & Organizer can ask for actually unlocks, how to grant one permission at a time or all of them at once, and how to change your mind later in Android's own settings.
 category: Getting Started
 category_slug: getting-started
 ticket: S2946
@@ -10,11 +10,11 @@ availability: all
 recipe_number: "02"
 canonical_url: documentation/getting-started/permissions-guide.html
 why: |
-  FastMediaSorter only sees and touches what Android lets it. Every [permission](term:permission) it can ask for exists because some feature needs it - reading your photos, opening a shared folder over the network, writing a geotag into a picture you just took. Nothing is requested "just in case".
+  Fast Media Sorter & Organizer only sees and touches what Android lets it. Every [permission](term:permission) it can ask for exists because some feature needs it - reading your photos, opening a shared folder over the network, writing a geotag into a picture you just took. Nothing is requested "just in case".
 
   You already met a short version of this list on the welcome screen when you first opened the app. This page is the full picture: every permission this edition can ask for, in plain words, in one place, with a way to grant them one at a time or all together.
 ingredients:
-  - "FastMediaSorter installed, in any [edition](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR or FOSS. The exact list of rows differs a little by edition - a permission only appears if this build can actually use it."
+  - "Fast Media Sorter & Organizer installed, in any [edition](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR or FOSS. The exact list of rows differs a little by edition - a permission only appears if this build can actually use it."
   - "A few rows only appear from certain Android versions onward - each one names the version it needs, so there is nothing to look up."
 steps:
   - number: 1
@@ -36,12 +36,12 @@ steps:
     id: grant-one
     title: Grant one permission at a time
     text: |
-      Tap any row that is not yet granted. Most rows show Android's own request dialog right there - tap **Allow** and you are back on the list. A few permissions cannot be granted this way at all: Android insists on a dedicated screen for them, for example **Full storage management** or **Display over other apps**. For those, tapping the row opens that screen; make your choice there and press Back to return to FastMediaSorter.
+      Tap any row that is not yet granted. Most rows show Android's own request dialog right there - tap **Allow** and you are back on the list. A few permissions cannot be granted this way at all: Android insists on a dedicated screen for them, for example **Full storage management** or **Display over other apps**. For those, tapping the row opens that screen; make your choice there and press Back to return to Fast Media Sorter & Organizer.
     image_bookmark:
       shot_id: getting-started.permissions-dialog
       device_profile: phone
       screen_state: permissions-dialog
-      alt: The Android system permission prompt asking to allow FastMediaSorter access to photos and media on the device
+      alt: The Android system permission prompt asking to allow Fast Media Sorter & Organizer access to photos and media on the device
       caption: "The system's own request dialog for one permission."
       title: "Screenshot: Android permission prompt"
       desc: Android's storage/media permission dialog shown over the app, Allow and Deny buttons visible.
@@ -90,15 +90,15 @@ steps:
     id: open-app-settings
     title: Change a decision later
     text: |
-      Tap **Open App Settings** to jump straight to Android's own application details screen for FastMediaSorter. That is the only place to grant a permission Android has stopped asking about in-app - typically one you denied twice in a row - and it is also where you go to revoke something you granted earlier.
+      Tap **Open App Settings** to jump straight to Android's own application details screen for Fast Media Sorter & Organizer. That is the only place to grant a permission Android has stopped asking about in-app - typically one you denied twice in a row - and it is also where you go to revoke something you granted earlier.
     image_bookmark:
       shot_id: getting-started.main-screen-permissions-open-settings
       device_profile: phone
       screen_state: android-app-settings-screen
-      alt: The Android application details screen for FastMediaSorter with the Permissions entry visible
+      alt: The Android application details screen for Fast Media Sorter & Organizer with the Permissions entry visible
       caption: "Android's own app settings screen."
       title: "Screenshot: App settings, opened from the permissions page"
-      desc: System app-info screen for FastMediaSorter, Permissions row visible.
+      desc: System app-info screen for Fast Media Sorter & Organizer, Permissions row visible.
 outcome: |
   You know what every permission this edition can ask for is actually for, you can grant them one at a time or all in one pass, and you know exactly where to go in Android when you want to revisit a choice later.
 tips:
@@ -126,4 +126,4 @@ next_recipes:
 
 <sub class="doc-stamp">26.10.07 03:42</sub>
 
-FastMediaSorter only asks for the permissions a feature actually needs, explains each one in the same plain words everywhere it is asked, and lets you grant them one at a time or all at once from **Settings, General, Permissions & Access** - with Android's own app settings always one tap away for changing your mind later.
+Fast Media Sorter & Organizer only asks for the permissions a feature actually needs, explains each one in the same plain words everywhere it is asked, and lets you grant them one at a time or all at once from **Settings, General, Permissions & Access** - with Android's own app settings always one tap away for changing your mind later.

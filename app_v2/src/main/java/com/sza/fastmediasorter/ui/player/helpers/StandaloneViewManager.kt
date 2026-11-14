@@ -28,6 +28,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.core.clipboard.copyTextToClipboard
+import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
 import com.sza.fastmediasorter.data.cloud.DropboxClient
@@ -235,17 +236,23 @@ class StandaloneViewManager(
 
     // S0908: kept so releaseVideoPlayer() can remove this exact instance before release().
     private var videoErrorListener: Player.Listener? = null
-    private val playbackControlPrefs =
+
+    // The saved hue and brightness seed the effect chain before the first frame, so the first load of
+    // this file (and the directory lookup on a fresh Activity context) cannot be deferred off-main.
+    private val playbackControlPrefs = StrictModeHelper.allowDiskReads {
         activity.getSharedPreferences(PlaybackControlPreferences.PREFS_NAME, Context.MODE_PRIVATE)
-    private val videoColorProcessor = VideoColorProcessor(
-        initialHueDegrees = playbackControlPrefs.getFloat(PlaybackControlPreferences.KEY_HUE_DEGREES, 0f),
-        initialBrightnessAdjustment = brightnessProgressToAdjustment(
-            playbackControlPrefs.getInt(
-                PlaybackControlPreferences.KEY_BRIGHTNESS_PERCENT,
-                DEFAULT_BRIGHTNESS_PROGRESS
+    }
+    private val videoColorProcessor = StrictModeHelper.allowDiskReads {
+        VideoColorProcessor(
+            initialHueDegrees = playbackControlPrefs.getFloat(PlaybackControlPreferences.KEY_HUE_DEGREES, 0f),
+            initialBrightnessAdjustment = brightnessProgressToAdjustment(
+                playbackControlPrefs.getInt(
+                    PlaybackControlPreferences.KEY_BRIGHTNESS_PERCENT,
+                    DEFAULT_BRIGHTNESS_PROGRESS
+                )
             )
         )
-    )
+    }
     private var videoPositionSaveJob: Job? = null
     private var lastSavedPosition: Long = -1L
     private var currentVideoFilePath: String? = null

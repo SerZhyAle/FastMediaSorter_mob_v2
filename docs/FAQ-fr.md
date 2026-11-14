@@ -17,11 +17,11 @@ lang: fr
 
 ## Questions générales
 
-### Qu'est-ce que FastMediaSorter ?
-FastMediaSorter réunit lecture multimédia et gestion de fichiers locaux, réseau et cloud. Lanceur, flux et liaison montre dépendent de l'édition. L'accès exige vos autorisations ; remplacer l'accueil nécessite votre choix explicite dans Android.
+### Qu'est-ce que Fast Media Sorter & Organizer ? {#quest-ce-que-fastmediasorter-}
+Fast Media Sorter & Organizer réunit lecture multimédia et gestion de fichiers locaux, réseau et cloud. Lanceur, flux et liaison montre dépendent de l'édition. L'accès exige vos autorisations ; remplacer l'accueil nécessite votre choix explicite dans Android.
 
 ### Est-ce gratuit ?
-Oui ! FastMediaSorter v2 est totalement gratuit et open source.
+Oui ! Fast Media Sorter & Organizer est totalement gratuit et open source.
 
 ### De quelle version d'Android ai-je besoin ?
 Les minima du code actuel figurent ci-dessous. L'immersion VR/XR nécessite aussi un casque/runtime compatible ; **noLegal n'est pas réservée aux casques**. Une variante du code ne garantit pas un APK publié.
@@ -39,10 +39,10 @@ Les minima du code actuel figurent ci-dessous. L'immersion VR/XR nécessite auss
 Les fichiers locaux n'ont pas besoin d'internet. SMB/SFTP/FTP sur LAN demandent un réseau accessible, pas internet public. Cloud et flux internet exigent internet ; disponibilité selon l'édition.
 
 ### L'application a-t-elle des widgets ?
-Oui ! FastMediaSorter v2 propose une variété de widgets d'écran d'accueil - trouvez-les via un appui long sur l'écran d'accueil → Widgets → FastMediaSorter. Ils incluent des raccourcis de ressources, des lanceurs de diaporama, et plus encore.
+Oui ! Fast Media Sorter & Organizer propose une variété de widgets d'écran d'accueil - trouvez-les via un appui long sur l'écran d'accueil → Widgets → Fast Media Sorter & Organizer. Ils incluent des raccourcis de ressources, des lanceurs de diaporama, et plus encore.
 
 ### L'application peut-elle remplacer mon écran d'accueil ?
-Dans **Standard/noLegal** : **Paramètres → Général → Fenêtre de démarrage principale → Écran d'accueil de l'appareil**, puis choisir FastMediaSorter comme accueil Android. Le **Bureau comme fenêtre principale** ne remplace pas le lanceur système.
+Dans **Standard/noLegal** : **Paramètres → Général → Fenêtre de démarrage principale → Écran d'accueil de l'appareil**, puis choisir Fast Media Sorter & Organizer comme accueil Android. Le **Bureau comme fenêtre principale** ne remplace pas le lanceur système.
 
 [Matrice des fonctions (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 
@@ -293,7 +293,7 @@ Standard, noLegal, Legacy, VR, XR et FOSS prennent en charge l'audio persistant 
 
 ## Flux Internet
 
-### FastMediaSorter lit-il la radio Internet ?
+### Fast Media Sorter & Organizer lit-il la radio Internet ? {#fastmediasorter-lit-il-la-radio-internet-}
 **Flux** prend en charge radio HTTP(S)/ICY, HLS/DASH et RTSP selon source/codec. Disponible dans **Standard, noLegal, Legacy, VR, XR**, pas **Lite, Photos, FOSS**. Une URL ne contourne pas incompatibilités ou DRM.
 
 [Matrice des fonctions (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
@@ -305,7 +305,7 @@ Touchez **Flux** dans le menu déroulant de la fenêtre principale (visible lors
 Sur l'écran Flux, touchez **⋮** à l'extrémité de la barre d'outils, choisissez **Ajouter un flux** et collez l'URL de la station. Touchez Enregistrer. La station apparaît immédiatement dans la liste.
 
 ### Puis-je importer une playlist ?
-Oui - touchez **⋮ > Importer depuis une URL** et saisissez une adresse `.m3u` distante. Le même menu contient **Mettre à jour le catalogue FastMediaSorter** pour la liste sélectionnée (avec des puces de thème et de langue), également disponible depuis **Paramètres > Extensions** ou l'écran d'accueil de bienvenue.
+Oui - touchez **⋮ > Importer depuis une URL** et saisissez une adresse `.m3u` distante. Le même menu contient **Mettre à jour le catalogue Fast Media Sorter & Organizer** pour la liste sélectionnée (avec des puces de thème et de langue), également disponible depuis **Paramètres > Extensions** ou l'écran d'accueil de bienvenue.
 
 ### Un flux ne joue pas - que faire ?
 Si un flux échoue, une boîte de dialogue apparaît avec les options **Réessayer**, **Supprimer** et **Annuler**. Les redirections 301 inter-protocoles sont gérées automatiquement. Si l'hôte est mort ou très lent, l'import du catalogue expire rapidement plutôt que de rester bloqué.
@@ -323,7 +323,9 @@ Oui, pour les flux vidéo - touchez **Cast** dans le lecteur et choisissez un Ch
 
 ## Wear OS
 
-### FastMediaSorter fonctionne-t-il sur les montres connectées Wear OS ?
+<a id="fastmediasorter-fonctionne-t-il-sur-les-montres-connectées-wear-os-"></a>
+
+### Fast Media Sorter & Organizer fonctionne-t-il sur les montres connectées Wear OS ?
 L'**app Wear OS** séparée exige au moins API 28 ; APK sur la montre. Liaison téléphone : **Standard/noLegal**, identifiants/signatures compatibles. Le **cadran WFF v4** séparé nécessite Wear OS 6 / API 36.
 
 [Matrice des fonctions (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)

@@ -16,6 +16,7 @@
 #
 # NOT a place to park a ticket that genuinely should carry a probe. If the ticket changed Kotlin,
 # add the probe instead.
+S4619  Migration carrier for five shared UI contracts; no Kotlin touched by this ticket, so no Timber probe can exist. The remaining roll-up waits on the device verdicts of its slices S4604, S4621..S4628, each of which carries its own probe.
 S4531  Watch-face resource only (watchface/src/main/res/raw/watchface.xml); no Kotlin flow touched, so no Timber probe can exist. Verification is visual: the rendered face shows the frame around the watch battery bar at 100% and at partial charge, the heavier charging contour, and no bar in ambient.
 S4535  Public website accessibility, routing and subject indexes only; no Kotlin flow touched, so no Timber probe can exist. Verification is visual and interactive check of task paths, scenario headings and client-side index filter in a browser.
 #S4371  Registry exception device passes for code already in the tree (S3414, S3434, S4124, S4129); no Kotlin touched by this ticket, so no Timber probe can exist. Verification is on-device observation on 120 Hz phone, Galaxy Watch, live RTSP listener, and Google Drive account.
@@ -134,3 +135,4 @@ S4415  Website and its scripts only (docs.css image width rule, the media exchan
 S4244  Owner-attended joint run of every exchange program on two networks; the agent work is the final-run checklist in the spec, no Kotlin touched, so no source probe can instrument it. The check is the owner running spec section 4 on his stand and recording each result.
 S4203  Release milestone over six products and the contracts catalog; it owns no code - every FMS_A child carries its own probe or row, and the milestone acceptance is the owner-attended S4244 joint run in two networks, judged against spec section 11.
 S1655  Verification-only ticket: the vr store build walked on an emulator; no Kotlin touched, so no Timber probe can exist. Evidence is the install, the three immersive entry points and logcat matched against the filters of the spec section 2.
+S4625  XML resources and docs only (settings title row dimens/layout, phone size-profile record); no .kt touched, so no source probe can instrument it. The check is the emulator measurement of the portrait settings title row in ordinary and compact mode and the UI-SIZING section 4 evidence for docs/ui/PHONE_SIZE_PROFILE.md.

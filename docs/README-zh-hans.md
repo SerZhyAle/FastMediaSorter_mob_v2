@@ -1,13 +1,13 @@
 ---
 layout: doc
-title: "FastMediaSorter v2"
+title: "Fast Media Sorter & Organizer"
 permalink: /docs/README-zh-hans.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="zh-Hans" dir="ltr" markdown="1">
 
-# FastMediaSorter v2 🚀
+# Fast Media Sorter & Organizer 🚀 {#fastmediasorter-v2-}
 
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.2.10-purple?style=flat-square&logo=kotlin)
 ![Android](https://img.shields.io/badge/Platform-Android-green?style=flat-square&logo=android)
@@ -21,7 +21,7 @@ permalink: /docs/README-zh-hans.html
 
 ## 关于项目
 
-**FastMediaSorter v2** 是一款面向 Android 设备的完整外壳。它接管主屏幕、播放你的媒体、打开直播流、启动你的应用、与手表通信、监控设备状态，并管理你拥有的每一个文件 - 无论是在本地文件夹、网络驱动器（SMB、SFTP、FTP），还是云存储（Google Drive、OneDrive、Dropbox）中。
+**Fast Media Sorter & Organizer** 是一款面向 Android 设备的完整外壳。它接管主屏幕、播放你的媒体、打开直播流、启动你的应用、与手表通信、监控设备状态，并管理你拥有的每一个文件 - 无论是在本地文件夹、网络驱动器（SMB、SFTP、FTP），还是云存储（Google Drive、OneDrive、Dropbox）中。
 
 它建立在八大支柱之上：设备外壳、媒体播放器、直播流、应用启动、替代系统自带应用、手表伴侣、设备监控，以及完整的文件管理器。整理来自所有这些来源的文件正是这款应用的起点，也依然是其余一切的基石 - 但它已不再是应用的全部。
 
@@ -63,7 +63,7 @@ permalink: /docs/README-zh-hans.html
 
 ## 版本 🎯 {#editions-}
 
-FastMediaSorter v2 提供**七个版本** - 面向日常手机和平板的五个版本（Standard、Lite、Photos、Legacy、FOSS），再加上两个头显与旁加载版本 VR 和 noLegal。权威的功能对照表由构建自动生成，见 [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md)：
+Fast Media Sorter & Organizer 提供**七个版本** - 面向日常手机和平板的五个版本（Standard、Lite、Photos、Legacy、FOSS），再加上两个头显与旁加载版本 VR 和 noLegal。权威的功能对照表由构建自动生成，见 [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md)：
 
 | 版本 | 说明 | 备注 |
 |--------|-------------|-------|
@@ -140,9 +140,9 @@ FastMediaSorter v2 提供**七个版本** - 面向日常手机和平板的五个
 - 🖥️ **网络与云支持：** 处理网络驱动器（SMB，支持自动网络扫描）、SFTP 服务器、FTP 以及云存储（Google Drive、Dropbox、OneDrive）上的文件。
 - 🖼️ **灵活的查看方式：** 以可自定义的网格或详细列表形式显示文件，并为大型合集（1000+ 文件）提供分页支持。
 - ▶️ **内置播放器：** 无需离开应用即可播放视频和音频、查看图片和 GIF。支持幻灯片放映和全屏缩放。
-- 🧩 **默认播放器集成：** 可选的播放开关让 FastMediaSorter 充当系统的媒体处理程序，响应打开/分享意图（ACTION_VIEW / ACTION_SEND），并将硬件媒体按键的唤醒事件转发给音频播放服务。
+- 🧩 **默认播放器集成：** 可选的播放开关让 Fast Media Sorter & Organizer 充当系统的媒体处理程序，响应打开/分享意图（ACTION_VIEW / ACTION_SEND），并将硬件媒体按键的唤醒事件转发给音频播放服务。
 - 🎛️ **硬件按键支持：** 方向盘控制、耳机按键和物理媒体键（播放/暂停、下一首、上一首）均通过后台音频服务得到完整支持 - 无需触碰屏幕。
-- 📻 **网络直播流（Streams 界面）：** 直接在专属的 Streams 界面播放网络电台（http/https，支持 ICY 正在播放信息的 Icecast/Shoutcast）、HLS/DASH 流和 RTSP 来源。可手动添加网址、导入 `.m3u` 播放列表，或下载 FastMediaSorter 精选目录。可将收藏置顶；按分类和语言筛选。内嵌音频播放：电台通过底部常驻迷你控制条在列表中播放，列表本身仍可滚动。视频和 RTSP 在全屏播放器中打开。适用于 Standard、Legacy、VR 和 noLegal；Lite 和 Photos 中不提供。
+- 📻 **网络直播流（Streams 界面）：** 直接在专属的 Streams 界面播放网络电台（http/https，支持 ICY 正在播放信息的 Icecast/Shoutcast）、HLS/DASH 流和 RTSP 来源。可手动添加网址、导入 `.m3u` 播放列表，或下载 Fast Media Sorter & Organizer 精选目录。可将收藏置顶；按分类和语言筛选。内嵌音频播放：电台通过底部常驻迷你控制条在列表中播放，列表本身仍可滚动。视频和 RTSP 在全屏播放器中打开。适用于 Standard、Legacy、VR 和 noLegal；Lite 和 Photos 中不提供。
 - 🎵 **歌词支持：** 查看当前播放曲目的歌词。使用 `api.lyrics.ovh` 根据元数据（艺术家/标题）自动搜索，若失败则回退到解析文件名。
 - 🎶 **幻灯片背景音乐：** 在图片幻灯片放映期间播放背景音乐。可选择任意音频资源作为音乐来源，支持随机播放曲目、音量控制和曲目名称显示。点按曲目名称即可跳到另一首随机曲目。与网络和云文件无缝配合。
 - ✏️ **图片编辑：** 旋转、翻转、应用滤镜（灰度、复古棕褐、负片），调整亮度/对比度/饱和度 - 本地和网络文件均适用。
@@ -165,7 +165,7 @@ FastMediaSorter v2 提供**七个版本** - 面向日常手机和平板的五个
 - ⬇️ **流媒体缓存下载：** 在播放前或播放中将网络文件下载到本地缓存，并显示实时进度对话框。之后可选择清理提示以回收存储空间。
 - 🔊 **DTS/DTS-HD 音频：** DTS 和 DTS-HD 音轨通过定制的 FFmpeg 构建以软件方式解码 - 无需特殊硬件。
 - 🎨 **视频色彩与亮度：** 使用 Media3 GPU 效果实时调整色相和亮度。设置在本次会话中的各个视频文件之间保持不变。
-- 📤 **分享到 FastMediaSorter：** 通过标准的 Android 分享面板接收来自任意应用的文件，一键复制到选定的资源。
+- 📤 **分享到 Fast Media Sorter & Organizer：** 通过标准的 Android 分享面板接收来自任意应用的文件，一键复制到选定的资源。
 - 📷 **浏览界面中的相机拍摄：** 使用设备相机拍照，直接保存到当前资源 - 本地或网络 - 无需离开应用。
 - 🔗 **链接自动下载：** 通过 Android 分享面板将任意 http(s) 链接分享给应用；媒体文件会被自动下载并保存到选定的资源。
 - 👁️ **单眼 3D 模式：** 将立体内容（SBS/OU）裁剪为单眼画面，便于在平面屏幕上舒适观看；视频和图片均适用。
@@ -175,7 +175,7 @@ FastMediaSorter v2 提供**七个版本** - 面向日常手机和平板的五个
 
 ## 支持的媒体格式 🎞️ {#supported-media-formats-}
 
-FastMediaSorter v2 支持广泛的格式：
+Fast Media Sorter & Organizer 支持广泛的格式：
 
 - **图片：** JPG、JPEG、PNG、GIF、BMP、WEBP、HEIC、HEIF
 - **视频：** MP4、MKV、MOV、WMV、FLV、WEBM、M4V、3GP、MPG、MPEG
@@ -185,7 +185,7 @@ FastMediaSorter v2 支持广泛的格式：
 
 ## 使用场景 💡 {#usage-scenarios-}
 
-以下是 FastMediaSorter v2 可以帮到你的几种方式：
+以下是 Fast Media Sorter & Organizer 可以帮到你的几种方式：
 
 ### 1. 📸 整理相机照片
 
@@ -219,7 +219,7 @@ FastMediaSorter v2 支持广泛的格式：
 
 直接在手机或 VR 头显上观看存储在电脑或云端的喜爱剧集。无需等待复制，也不用担心空间不够。只需按下播放，下一集就会自动开始。
 
-**VR 头显使用场景** - FastMediaSorter 可在基于 Android 的 VR 头显（Meta Quest、Pico 等）上原生运行，无需任何修改：
+**VR 头显使用场景** - Fast Media Sorter & Organizer 可在基于 Android 的 VR 头显（Meta Quest、Pico 等）上原生运行，无需任何修改：
 
 - **🎬 巨幕虚拟影院：** 打开来自家中 NAS 或云存储的视频，在一整面墙大小的虚拟屏幕上观看。无需把几个 GB 的文件复制到头显上 - 应用通过你的家庭网络直接串流播放。一集结束后，下一集会自动开始。
 - **🎵 沉浸式音乐播放器：** 在 VR 环境中启动你的音乐收藏。后台音频服务能让音乐持续播放，即使你在应用之间切换或打开 VR 主屏幕。头显上的硬件按键（播放/暂停、下一曲）无需触碰手柄即可使用。
@@ -231,13 +231,13 @@ FastMediaSorter v2 支持广泛的格式：
 
 ### 10. 🚗 车载安卓主机上的音乐
 
-在你搭载 Android 系统的车载音响或主机上安装 FastMediaSorter。添加 U 盘或 SD 卡上的音乐文件夹 - 或直接使用内置的 **All Music** 虚拟资源，零配置立即访问你的全部收藏。方向盘控制、音量旋钮等硬件媒体按键通过后台音频服务无缝配合：播放/暂停、下一首/上一首，全程无需触碰屏幕。应用会记住播放位置，并在启动时自动恢复。
+在你搭载 Android 系统的车载音响或主机上安装 Fast Media Sorter & Organizer。添加 U 盘或 SD 卡上的音乐文件夹 - 或直接使用内置的 **All Music** 虚拟资源，零配置立即访问你的全部收藏。方向盘控制、音量旋钮等硬件媒体按键通过后台音频服务无缝配合：播放/暂停、下一首/上一首，全程无需触碰屏幕。应用会记住播放位置，并在启动时自动恢复。
 
 启用 **Streams** 界面后，同一台车机还能直接通过移动数据或 Wi-Fi 播放网络电台 - 无需另装电台应用。添加任意电台网址，或从 Extensions 界面导入精选电台目录。常驻迷你控制条会显示当前的 ICY 曲目名称，同时电台列表保持可见。
 
 ### 11. 📺 Android TV 盒子上的媒体中心
 
-在任意 Android TV 盒子（小米盒子、Nvidia Shield、Amazon Fire TV，或普通的 Android 盒子）上安装 FastMediaSorter。通过 SMB 连接家中的 NAS、添加 Google Drive 或 Dropbox，或插入 U 盘 - 这一切都在一个应用中完成。用遥控器或蓝牙键盘操控整个流程：方向键移动焦点，**OK** 打开项目，**Back** 返回上一级，**Backspace** 在浏览器中上移一个文件夹。遥控器上的彩色按键映射到常用文件操作（**红色** = 删除，**绿色** = 复制，**黄色** = 移动，**蓝色** = 重命名）。在电视上开始带背景音乐的全屏幻灯片放映，或切换到带专辑封面和歌词的音频播放。全程无需触摸屏。
+在任意 Android TV 盒子（小米盒子、Nvidia Shield、Amazon Fire TV，或普通的 Android 盒子）上安装 Fast Media Sorter & Organizer。通过 SMB 连接家中的 NAS、添加 Google Drive 或 Dropbox，或插入 U 盘 - 这一切都在一个应用中完成。用遥控器或蓝牙键盘操控整个流程：方向键移动焦点，**OK** 打开项目，**Back** 返回上一级，**Backspace** 在浏览器中上移一个文件夹。遥控器上的彩色按键映射到常用文件操作（**红色** = 删除，**绿色** = 复制，**黄色** = 移动，**蓝色** = 重命名）。在电视上开始带背景音乐的全屏幻灯片放映，或切换到带专辑封面和歌词的音频播放。全程无需触摸屏。
 
 ## 文档 📚 {#documentation-}
 
@@ -303,7 +303,7 @@ FastMediaSorter v2 支持广泛的格式：
 
 ## Wear OS 伴侣 ⌚ {#wear-os-companion-}
 
-FastMediaSorter 包含一个功能完整的 Wear OS 独立应用和手机伴侣端，专为智能手表的形态设计。
+Fast Media Sorter & Organizer 包含一个功能完整的 Wear OS 独立应用和手机伴侣端，专为智能手表的形态设计。
 
 - 浏览和播放来自配对手机、手表自身存储，以及手表通过 Wi-Fi 直接访问的 SMB/FTP/SFTP 共享中的文件夹和收藏
 - 云端资源留在手机端 - 手表本身没有云客户端；只有当你在手机上用 "Send to.." 功能发送时，云端文件才会到达手表
@@ -313,7 +313,7 @@ FastMediaSorter 包含一个功能完整的 Wear OS 独立应用和手机伴侣�
 
 媒体播放、网络共享和文件传输功能包含在手表应用的完整版本中（直接安装的 APK）。Google Play 版本是较小的首个版本 - 提供计算器、秒表、迷你游戏和设置；各版本具体拥有哪些功能，参见 [Wear OS 门户](wear/index.md)。
 
-另有一款独立的免费表盘，适用于 Wear OS 6 及更高版本：[FastMediaSorter Watch Face](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface)。它显示大号时间、日期、波浪和飘动的粒子、电量条，以及最多八个圆形按钮，可用于 FastMediaSorter 快捷方式或其他手表数据；这些按钮会随 FastMediaSorter 手表应用一起出现。请直接在手表上通过 Google Play 安装（搜索 FastMediaSorter），或在手机应用的 Wear 设置中打开它在手表上的页面。
+另有一款独立的免费表盘，适用于 Wear OS 6 及更高版本：[FastMediaSorter Watch Face](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface)。它显示大号时间、日期、波浪和飘动的粒子、电量条，以及最多八个圆形按钮，可用于 Fast Media Sorter & Organizer 快捷方式或其他手表数据；这些按钮会随 Fast Media Sorter & Organizer 手表应用一起出现。请直接在手表上通过 Google Play 安装（搜索 FastMediaSorter），或在手机应用的 Wear 设置中打开它在手表上的页面。
 
 Wear OS 文档：
 
@@ -360,7 +360,7 @@ Wear OS 文档：
 
 ## 测试 🧪 {#testing-}
 
-FastMediaSorter v2 使用 **Maestro** 进行端到端测试，以确保应用的质量和可靠性。
+Fast Media Sorter & Organizer 使用 **Maestro** 进行端到端测试，以确保应用的质量和可靠性。
 
 ### 快速运行测试
 

@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.29 05:03</sub>
+<sub class="doc-stamp">26.11.14 15:51</sub>
 
 # Pointer - `INPUT-PARITY`
 
 | | |
 | --- | --- |
 | **Id** | `INPUT-PARITY` |
-| **Version** | 0.6, draft. Owner: shared, one steward per device column |
+| **Version** | 0.7, draft. Owner: shared, one steward per device column |
 | **Home** | `input-controls/README.md` in the shared contracts catalog |
 | **Role here** | steward of the touch, gamepad and TV remote / D-pad columns |
 
@@ -19,6 +19,16 @@
 - Focus moved by D-pad or gamepad stays visible (rule 2).
 - No system button is bound: gamepad `Guide`, the remote's `Home`, the system back gesture keep their
   platform meaning (rule 3).
+- A touch-locked screen (0.7, section 3.3, items K and L) - a full-screen state that keeps running while touch cannot
+  be trusted - is named in the registry row, is ended or changed by no touch, and is left only by a non-touch input:
+  its hardware button held 1500 ms, or three hardware events inside 2000 ms, or the platform's task-lock exit. Its
+  exit is the one action exempt from section 3.2 rules 1 and 3, a permanent supported variant and not an exception.
+  The water flashlight (`WaterFlashlightActivity`, `WaterFlashlightLockdownManager`) is this product's touch-locked
+  screen and a permanent supported variant, named in the registry row. Its exit is `WaterFlashlightExitGate`: one of
+  the six hardware exit keys held 1500 ms, or three presses of them with the third at most 2000 ms after the first,
+  read against item K.3 from the code and not run. `Back` is deliberately not an exit event (under gesture navigation
+  it arrives from a swipe across the glass, which K.2 forbids from ending the screen), so the gate is stricter than
+  K.3's "platform's back". Item K.4 (help and listing wording, `ask: off`) is a separate read.
 - The deviations currently open are recorded as exceptions in the catalog's registry. The 0.4 `VIEWER-KEYBOARD.md`
   player defaults ship in `default_bindings.json` and `PlayerKeyboardHandler` (S4363); the rows still open
   (`G`, `N`, `F4`, frame step, A-B loop, the standalone hosts) are implemented by S4373 and await device

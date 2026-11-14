@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.apps.systeminfo
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -9,10 +10,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
@@ -24,11 +28,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -57,6 +67,8 @@ import com.sza.fastmediasorter.wear.ui.common.WearSettingsItem
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsRow
 import com.sza.fastmediasorter.wear.ui.common.packSettingsRows
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
+import com.sza.fastmediasorter.wear.util.GridColumnFit
+import timber.log.Timber
 
 /**
  * The key this screen's list position and its open sections are remembered under (S2543, S2806).
@@ -71,10 +83,15 @@ private const val SYSTEM_INFO_FIELDS_KEY = "apps/systeminfo/fields"
 private const val TWO_COLUMN_MIN_SCREEN_WIDTH_DP = 225
 
 private val TITLE_BOTTOM_PADDING = 8.dp
-private val SECTION_TOP_PADDING = 14.dp
-private val SECTION_TITLE_BOTTOM_PADDING = 10.dp
+private val HEADER_MARKER_SIZE = 16.dp
+private val HEADER_MARKER_GAP = 8.dp
 private val ROW_VERTICAL_PADDING = 4.dp
-private val CHIP_GAP = 4.dp
+
+// The marker's corners as fractions of its square: a triangle half as deep as it is wide, centred in the box.
+private const val MARKER_NEAR = 0.25f
+private const val MARKER_MID = 0.5f
+private const val MARKER_FAR = 0.75f
+private val CHIP_GAP = 8.dp
 private val CHIP_CORNER = 4.dp
 private val CHIP_HORIZONTAL_PADDING = 8.dp
 private val CHIP_VERTICAL_PADDING = 6.dp
@@ -424,25 +441,41 @@ private fun SectionChipCloud(sections: List<WearSystemInfoSection>, onToggle: (I
  * Rectangular rather than the stadium shape of a Wear chip, and drawn as a plain surface rather than
  * with `CompactChip`: a chip stretches to a minimum width that would leave four of these looking like
  * four equal buttons, which is the layout the cloud exists to replace.
+ *
+ * The product draws this header itself, so it keeps the COLLAPSIBLE-GROUP geometry like [SectionTitle]
+ * does (S4632): the closed-state marker leads the caption, 8 dp before it, and one `clickable` over the
+ * whole chip is at least the 48 dp touch baseline high and wide, so the surface a finger can hit is not
+ * the caption's few dp. A caption that wraps grows the chip instead of clipping.
+ *
+ * The size floor and the clickable are applied before the padding so the padding is part of the touch
+ * target.
  */
 @Composable
 private fun SectionChip(titleRes: Int, hiddenCount: Int, onToggle: () -> Unit) {
     val title = stringResource(titleRes)
     val hint = stringResource(R.string.system_info_expand_hint)
-    Box(
+    val color = MaterialTheme.colors.primary
+    Row(
         modifier = Modifier
+            .heightIn(min = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp)
+            .widthIn(min = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp)
             .clip(RoundedCornerShape(CHIP_CORNER))
             .background(MaterialTheme.colors.surface)
-            .clickable(onClick = onToggle)
+            .clickable(role = Role.Button) {
+                Timber.d("S4632: system info collapsed chip toggled")
+                onToggle()
+            }
             .padding(horizontal = CHIP_HORIZONTAL_PADDING, vertical = CHIP_VERTICAL_PADDING)
-            .semantics { contentDescription = "$title. $hint" }
+            .semantics { contentDescription = "$title. $hint" },
+        horizontalArrangement = Arrangement.spacedBy(HEADER_MARKER_GAP),
+        verticalAlignment = Alignment.CenterVertically
     ) {
+        GroupStateMarker(open = false, color = color)
         Text(
             text = "$title ($hiddenCount)",
             style = MaterialTheme.typography.caption2,
-            color = MaterialTheme.colors.primary,
-            maxLines = 1,
-            textAlign = TextAlign.Center
+            color = color,
+            textAlign = TextAlign.Start
         )
     }
 }
@@ -454,8 +487,13 @@ private fun SectionChip(titleRes: Int, hiddenCount: Int, onToggle: () -> Unit) {
  * list of empty headings and gives no reason to open any particular one. The count is written as a
  * bare number in brackets, so the thirteen declared locales need no new string for it.
  *
- * The clickable is applied before the padding so the padding is part of the touch target - a heading
- * is one line of caption text, which on its own is well under a comfortable target on a watch.
+ * The product draws this header itself, so it keeps the COLLAPSIBLE-GROUP geometry that a toolkit
+ * component would be excused from (S4628): the state marker leads the caption at the reading-start side
+ * of the item the list already insets from the glass, and one `clickable` over the whole row - marker,
+ * caption and the empty space beside it - is at least the 48 dp touch baseline high. A caption that
+ * wraps grows the row instead of clipping.
+ *
+ * The clickable is applied before the padding so the padding is part of the touch target.
  */
 @Composable
 private fun SectionTitle(titleRes: Int, hiddenCount: Int?, open: Boolean, onToggle: () -> Unit) {
@@ -463,17 +501,70 @@ private fun SectionTitle(titleRes: Int, hiddenCount: Int?, open: Boolean, onTogg
     val hint = stringResource(
         if (open) R.string.system_info_collapse_hint else R.string.system_info_expand_hint
     )
-    Text(
-        text = if (hiddenCount == null) title else "$title ($hiddenCount)",
-        style = MaterialTheme.typography.title3,
-        color = MaterialTheme.colors.primary,
+    val color = MaterialTheme.colors.primary
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onToggle)
-            .padding(top = SECTION_TOP_PADDING, bottom = SECTION_TITLE_BOTTOM_PADDING)
+            .heightIn(min = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp)
+            .clickable(role = Role.Button) {
+                Timber.d("S4628: system info group header toggled, open=$open")
+                onToggle()
+            }
+            .padding(vertical = ROW_VERTICAL_PADDING)
             .semantics { contentDescription = "$title. $hint" },
-        textAlign = TextAlign.Center
-    )
+        horizontalArrangement = Arrangement.spacedBy(HEADER_MARKER_GAP),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        GroupStateMarker(open = open, color = color)
+        Text(
+            text = if (hiddenCount == null) title else "$title ($hiddenCount)",
+            style = MaterialTheme.typography.title3.copy(fontWeight = FontWeight.Bold),
+            color = color,
+            modifier = Modifier.weight(1f),
+            textAlign = TextAlign.Start
+        )
+    }
+}
+
+/**
+ * The state marker of a group header: a filled triangle, down when the group is open and toward the
+ * reading end when it is closed, so left in a right-to-left layout (COLLAPSIBLE-GROUP section 3 rule 2).
+ *
+ * Drawn as a vector at its real size rather than typed as an arrow character, which a font or the bidi
+ * engine may substitute. It is decoration for a screen reader: the row's description already names the
+ * state through the expand or collapse hint.
+ */
+@Composable
+private fun GroupStateMarker(open: Boolean, color: Color) {
+    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+    Canvas(modifier = Modifier.size(HEADER_MARKER_SIZE)) {
+        drawPath(path = markerPath(open = open, rtl = rtl), color = color)
+    }
+}
+
+private fun DrawScope.markerPath(open: Boolean, rtl: Boolean): Path {
+    val width = size.width
+    val height = size.height
+    return Path().apply {
+        when {
+            open -> {
+                moveTo(0f, height * MARKER_NEAR)
+                lineTo(width, height * MARKER_NEAR)
+                lineTo(width * MARKER_MID, height * MARKER_FAR)
+            }
+            rtl -> {
+                moveTo(width * MARKER_FAR, 0f)
+                lineTo(width * MARKER_FAR, height)
+                lineTo(width * MARKER_NEAR, height * MARKER_MID)
+            }
+            else -> {
+                moveTo(width * MARKER_NEAR, 0f)
+                lineTo(width * MARKER_NEAR, height)
+                lineTo(width * MARKER_FAR, height * MARKER_MID)
+            }
+        }
+        close()
+    }
 }
 
 @Composable

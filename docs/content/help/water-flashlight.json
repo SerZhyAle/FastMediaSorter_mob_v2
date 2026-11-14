@@ -18,11 +18,11 @@
   "locales": {
     "en": {
       "title": "Water flashlight",
-      "purpose": "The water flashlight lights the camera flash and the whole screen at full brightness together, then locks the screen against touch. It is made for wet hands - rain, a shower - where a touch screen presses itself. You leave it with a volume button, never by touching the glass.",
+      "purpose": "The water flashlight lights the camera flash and the whole screen at full brightness together, then locks the screen against touch. It is made for wet hands - rain, a shower - where a touch screen presses itself. You leave it by holding a volume button or pressing it three times, never by touching the glass.",
       "steps": [
         "Open Water flashlight from the programs menu, the programs panel or a home-screen widget. If it is not offered, switch it on first in Settings, on the Management tab, in the group Additional programs and scenarios. The camera flash and the screen (1) light up together at once.",
         "From this moment the screen is locked. Only the time (2) and the reminder (3) are shown, and touching the glass does nothing: wet fingers or drops cannot close, dim or press anything. The hint Locked. Use the buttons (3) means the volume buttons (4).",
-        "To switch the light off, press a volume button (4): volume up, volume down or mute. The screen closes when you let go of the key, and the volume does not change.",
+        "To switch the light off, hold a volume button (4) - volume up, volume down or mute - for one and a half seconds, or press volume buttons three times within two seconds. A single press does nothing, and the volume does not change.",
         "The screen stays awake for as long as the light is on, so you do not need to touch the phone to keep it lit.",
         "If you leave another way (5) - the power button or a system gesture - the flash goes out as well, so it never keeps burning in a pocket. Do not rely on a gesture in water: drops can trigger it and the light disappears."
       ],
@@ -48,8 +48,8 @@
         },
         "volume-buttons": {
           "name": "Volume buttons",
-          "summary": "The way out: press a volume button and the light goes out.",
-          "details": "Volume up, volume down and mute close the screen and put out the flash. The screen closes when you release the key, and that press is swallowed, so the volume of your music or calls does not change. The camera key, the button on a headset and the play/pause media key do the same on devices that have them.\n\nThe Back button is deliberately not one of the exit keys: with gesture navigation Back arrives from a swipe across the glass, and wet glass makes such swipes by itself. A device with no volume buttons has to use the other ways out below.",
+          "summary": "The way out: hold a volume button for 1.5 seconds, or press it three times within 2 seconds.",
+          "details": "Holding volume up, volume down or mute for at least 1.5 seconds closes the screen and puts out the flash. So do three presses of these buttons, the third no later than 2 seconds after the first. One press or a shorter hold does nothing, so a key brushed in a pocket or a bag cannot put the light out. Every press is swallowed, so the volume of your music or calls does not change. The camera key, the button on a headset and the play/pause media key work the same way on devices that have them.\n\nThe Back button is deliberately not one of the exit keys: with gesture navigation Back arrives from a swipe across the glass, and wet glass makes such swipes by itself. A device with no volume buttons has to use the other ways out below.",
           "shortcut": "Volume up / Volume down / Mute"
         },
         "other-exits": {
@@ -61,11 +61,11 @@
     },
     "ru": {
       "title": "Водный фонарь",
-      "purpose": "Водный фонарь зажигает вспышку камеры и весь экран на полную яркость, а затем запирает экран от касаний. Он сделан для мокрых рук - в дождь или под душем, - когда сенсор нажимает сам себя. Выходят из него кнопкой громкости, а не касанием стекла.",
+      "purpose": "Водный фонарь зажигает вспышку камеры и весь экран на полную яркость, а затем запирает экран от касаний. Он сделан для мокрых рук - в дождь или под душем, - когда сенсор нажимает сам себя. Выходят из него удержанием кнопки громкости или тремя нажатиями, а не касанием стекла.",
       "steps": [
         "Откройте «Водный фонарь» из меню программ, с панели программ или виджетом на домашнем экране. Если его там нет, сначала включите его в «Настройках», на вкладке «Управление», в группе «Дополнительные программы и сценарии». Вспышка камеры и экран (1) загорятся одновременно.",
         "С этого момента экран заперт. На нём видны только время (2) и напоминание (3), а касания стекла ничего не делают: мокрые пальцы и капли не могут ни закрыть, ни притушить, ни нажать что-либо. Подсказка «Заблокировано. Используйте кнопки» (3) означает кнопки громкости (4).",
-        "Чтобы выключить свет, нажмите кнопку громкости (4): громкость вверх, громкость вниз или «без звука». Экран закроется, когда вы отпустите клавишу, а громкость не изменится.",
+        "Чтобы выключить свет, удерживайте кнопку громкости (4) - громкость вверх, громкость вниз или «без звука» - полторы секунды либо нажмите кнопки громкости три раза за две секунды. Одиночное нажатие ничего не делает, а громкость не меняется.",
         "Экран не гаснет, пока свет включён, так что трогать телефон, чтобы он продолжал светить, не нужно.",
         "Если вы выйдете другим способом (5) - кнопкой питания или системным жестом, - вспышка тоже погаснет, и в кармане она гореть не останется. В воде на жест не рассчитывайте: капли могут его вызвать, и свет пропадёт."
       ],
@@ -91,8 +91,8 @@
         },
         "volume-buttons": {
           "name": "Кнопки громкости",
-          "summary": "Выход: нажмите кнопку громкости - и свет погаснет.",
-          "details": "«Громкость вверх», «громкость вниз» и «без звука» закрывают экран и гасят вспышку. Экран закрывается, когда вы отпускаете клавишу, а само нажатие поглощается, так что громкость музыки или звонка не меняется. Клавиша камеры, кнопка на гарнитуре и медиаклавиша «пуск/пауза» делают то же самое на устройствах, где они есть.\n\nКнопка «Назад» намеренно не входит в число клавиш выхода: при навигации жестами «назад» приходит от свайпа по стеклу, а мокрое стекло само даёт такие свайпы. Если на устройстве нет кнопок громкости, придётся воспользоваться другими способами выхода, описанными ниже.",
+          "summary": "Выход: удерживайте кнопку громкости 1,5 секунды или нажмите её три раза за 2 секунды.",
+          "details": "Удержание «громкости вверх», «громкости вниз» или «без звука» не меньше 1,5 секунды закрывает экран и гасит вспышку. То же делают три нажатия этих кнопок, если третье пришло не позже чем через 2 секунды после первого. Одно нажатие или более короткое удержание ничего не делают, поэтому клавиша, задетая в кармане или сумке, не погасит свет. Каждое нажатие поглощается, так что громкость музыки или звонка не меняется. Клавиша камеры, кнопка на гарнитуре и медиаклавиша «пуск/пауза» работают так же на устройствах, где они есть.\n\nКнопка «Назад» намеренно не входит в число клавиш выхода: при навигации жестами «назад» приходит от свайпа по стеклу, а мокрое стекло само даёт такие свайпы. Если на устройстве нет кнопок громкости, придётся воспользоваться другими способами выхода, описанными ниже.",
           "shortcut": "Volume up / Volume down / Mute"
         },
         "other-exits": {
@@ -104,11 +104,11 @@
     },
     "uk": {
       "title": "Водний ліхтар",
-      "purpose": "Водний ліхтар запалює спалах камери та весь екран на повну яскравість, а потім замикає екран від дотиків. Він зроблений для мокрих рук - під дощем чи в душі, - коли сенсор натискає сам себе. Виходять із нього кнопкою гучності, а не дотиком до скла.",
+      "purpose": "Водний ліхтар запалює спалах камери та весь екран на повну яскравість, а потім замикає екран від дотиків. Він зроблений для мокрих рук - під дощем чи в душі, - коли сенсор натискає сам себе. Виходять із нього утриманням кнопки гучності або трьома натисканнями, а не дотиком до скла.",
       "steps": [
         "Відкрийте «Водний ліхтар» з меню програм, із панелі програм або віджетом на домашньому екрані. Якщо його там немає, спершу ввімкніть його в «Налаштуваннях», на вкладці «Управління», у групі «Додаткові програми та сценарії». Спалах камери й екран (1) засвітяться одночасно.",
         "Відтоді екран замкнений. На ньому видно лише час (2) і нагадування (3), а дотики до скла нічого не роблять: мокрі пальці й краплі не можуть ні закрити, ні притьмарити, ні натиснути щось. Підказка «Заблоковано. Використовуйте кнопки» (3) означає кнопки гучності (4).",
-        "Щоб вимкнути світло, натисніть кнопку гучності (4): гучність угору, гучність униз або «без звуку». Екран закриється, коли ви відпустите клавішу, а гучність не зміниться.",
+        "Щоб вимкнути світло, утримуйте кнопку гучності (4) - гучність угору, гучність униз або «без звуку» - півтори секунди або натисніть кнопки гучності тричі за дві секунди. Одиночне натискання нічого не робить, а гучність не змінюється.",
         "Екран не гасне, поки світло ввімкнено, тож торкатися телефона, щоб він і далі світив, не потрібно.",
         "Якщо ви вийдете іншим способом (5) - кнопкою живлення чи системним жестом, - спалах теж згасне, і в кишені він горіти не залишиться. У воді на жест не розраховуйте: краплі можуть його викликати, і світло зникне."
       ],
@@ -134,8 +134,8 @@
         },
         "volume-buttons": {
           "name": "Кнопки гучності",
-          "summary": "Вихід: натисніть кнопку гучності - і світло згасне.",
-          "details": "«Гучність угору», «гучність униз» і «без звуку» закривають екран і гасять спалах. Екран закривається, коли ви відпускаєте клавішу, а саме натискання поглинається, тож гучність музики чи дзвінка не змінюється. Клавіша камери, кнопка на гарнітурі та медіаклавіша «пуск/пауза» роблять те саме на пристроях, де вони є.\n\nКнопка «Назад» навмисно не входить до клавіш виходу: за навігації жестами «назад» надходить від свайпу по склу, а мокре скло саме дає такі свайпи. Якщо на пристрої немає кнопок гучності, доведеться скористатися іншими способами виходу, описаними нижче.",
+          "summary": "Вихід: утримуйте кнопку гучності 1,5 секунди або натисніть її тричі за 2 секунди.",
+          "details": "Утримання «гучності угору», «гучності униз» або «без звуку» щонайменше 1,5 секунди закриває екран і гасить спалах. Те саме роблять три натискання цих кнопок, якщо третє надійшло не пізніше ніж через 2 секунди після першого. Одне натискання або коротше утримання нічого не роблять, тож клавіша, зачеплена в кишені чи сумці, не погасить світло. Кожне натискання поглинається, тож гучність музики чи дзвінка не змінюється. Клавіша камери, кнопка на гарнітурі та медіаклавіша «пуск/пауза» працюють так само на пристроях, де вони є.\n\nКнопка «Назад» навмисно не входить до клавіш виходу: за навігації жестами «назад» надходить від свайпу по склу, а мокре скло саме дає такі свайпи. Якщо на пристрої немає кнопок гучності, доведеться скористатися іншими способами виходу, описаними нижче.",
           "shortcut": "Volume up / Volume down / Mute"
         },
         "other-exits": {

@@ -1,16 +1,16 @@
 ---
 layout: doc
-title: "What FastMediaSorter Replaces"
+title: "What Fast Media Sorter & Organizer Replaces"
 permalink: /docs/REPLACES.html
 ---
 
 <sub class="doc-stamp">26.10.15 19:27</sub>
 
-# What FastMediaSorter Replaces
+# What Fast Media Sorter & Organizer Replaces
 
 *Last updated: 2026-10-09*
 
-FastMediaSorter is a complete shell for an Android device - device shell, media player, live streams, app launching, a replacement for stock apps, a companion on the watch, device monitoring and a full file manager in one app. That one app covers what normally takes a dozen separate tools.
+Fast Media Sorter & Organizer is a complete shell for an Android device - device shell, media player, live streams, app launching, a replacement for stock apps, a companion on the watch, device monitoring and a full file manager in one app. That one app covers what normally takes a dozen separate tools.
 
 ## Home Screen & Apps
 - **Launcher** (stock launcher) - the app becomes the home screen: a desktop of gadgets and widgets, a taskbar along the edge you prefer, weather, clock and sensor cells, and a desktop that locks itself. *(Standard / noLegal)*

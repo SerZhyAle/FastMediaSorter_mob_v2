@@ -367,4 +367,13 @@
     <string name="broadcast_exchange_line_failed">Exchange server %1$s: %2$s</string>
     <string name="broadcast_exchange_line_local_only">Reachable on this network only. Add an exchange server in My devices</string>
     <string name="broadcast_exchange_line_guest_only">Reachable on this network only: a guest account cannot broadcast through the exchange server</string>
+    <string name="exchange_devices_menu_sync_notes">Sync notes through the exchange server</string>
+    <string name="exchange_sync_notes_consent_title">Sync notes through this server?</string>
+    <string name="exchange_sync_notes_consent_message">Your notes are encrypted for your own devices only. Whoever runs the server sees only how many notes there are, their sizes and times. Turning this off deletes nothing.</string>
+    <string name="exchange_sync_notes_consent_confirm">Sync notes</string>
+    <string name="broadcast_drive_line_announcing">Via Google Drive: announcing the broadcast to your devices</string>
+    <string name="broadcast_drive_line_announced">Via Google Drive: the broadcast is announced to your devices</string>
+    <string name="broadcast_drive_line_sign_in">Via Google Drive: not announced. Sign in to Google Drive again in Settings</string>
+    <string name="broadcast_drive_line_unreachable">Via Google Drive: not announced, Google Drive does not answer. Trying again</string>
+    <string name="broadcast_drive_line_guest">Via Google Drive: not announced, a guest account announces nothing</string>
 </resources>

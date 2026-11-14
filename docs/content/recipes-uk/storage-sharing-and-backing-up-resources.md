@@ -12,7 +12,7 @@ canonical_url: documentation/storage/sharing-and-backing-up-resources-uk.html
 why: |
   Ви витратили цілий вечір, додаючи спільні папки домашнього комп'ютера, NAS і хмари з усіма їхніми паролями. Тепер той самий список потрібен на телефоні партнера, або ви самі переходите на новий телефон. Набирати все заново - останнє, чого хочеться.
 
-  FastMediaSorter уміє пакувати ваші [ресурси](term:resource) у файл, зчитувати їх на іншому телефоні й зберігати повну резервну копію ресурсів, [Обраного](term:favorites) і налаштувань у вашому Google Drive.
+  Fast Media Sorter & Organizer уміє пакувати ваші [ресурси](term:resource) у файл, зчитувати їх на іншому телефоні й зберігати повну резервну копію ресурсів, [Обраного](term:favorites) і налаштувань у вашому Google Drive.
 ingredients:
   - "Експорт та імпорт ресурсів у файл, а також резервне копіювання в Google Drive: [редакції](term:edition) Standard, noLegal, Photos, Legacy і VR."
   - "Імпорт готової конфігурації з [Fast Media Sorter & Sharing for Windows](term:windows-companion): редакція Standard."

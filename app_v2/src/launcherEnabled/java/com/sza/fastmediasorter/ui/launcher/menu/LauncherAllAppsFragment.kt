@@ -92,11 +92,11 @@ class LauncherAllAppsFragment : DialogFragment() {
 
     private var latestApps: List<InstalledApp> = emptyList()
     private var latestCatalog: AppCategoryCatalog = AppCategoryCatalog.EMPTY
-    private val expandedGroupKeys = mutableSetOf<String>()
 
     private val stateManager by lazy {
         LauncherAllAppsStateManager(requireContext().getSharedPreferences(STATE_PREFERENCES, Context.MODE_PRIVATE))
     }
+    private val expandedGroupKeys by lazy { stateManager.expandedGroupKeys().toMutableSet() }
     private val expandedCategoryKeys by lazy { stateManager.expandedKeys().toMutableSet() }
     private var catalogReady = false
     private var restorePending = true
@@ -352,6 +352,7 @@ class LauncherAllAppsFragment : DialogFragment() {
      */
     private fun expandFullAppList() {
         if (expandedGroupKeys.add(LauncherAlphabeticalAppGroupManager.KEY_PREVIEW)) {
+            stateManager.saveExpandedGroupKeys(expandedGroupKeys)
             renderGroups()
         }
     }
@@ -441,11 +442,14 @@ class LauncherAllAppsFragment : DialogFragment() {
     }
 
     private fun toggleGroup(key: String) {
+        Timber.d("S4626: launcher menu group toggled key=$key")
         val category = LauncherCategoryAppGroupManager.isCategoryKey(key)
         val keys = if (category) expandedCategoryKeys else expandedGroupKeys
         if (!keys.add(key)) keys.remove(key)
         if (category) {
             stateManager.saveExpandedKeys(keys)
+        } else {
+            stateManager.saveExpandedGroupKeys(keys)
         }
         renderGroups()
     }

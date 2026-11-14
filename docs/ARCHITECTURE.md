@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.12 03:04</sub>
+<sub class="doc-stamp">26.11.14 23:25</sub>
 
 # FastMediaSorter v2: Architecture & Flow
 
@@ -114,9 +114,10 @@ Mechanical gate: the `caption-value-split` rule in `scripts/quality/lib/source-m
 
 Every toggle/switch or checkbox control that carries a description **must** follow one of the two canonical row patterns below. Mixing the patterns or using ad-hoc sizes is prohibited.
 
-### Pattern A - Switch/Toggle row (settings fragments)
+### Pattern A - Boolean option row (settings fragments)
 
-Canonical row layout is `title + helper` inline on the top line, with the
+Canonical row layout (contract `BOOLEAN-OPTION` 2.1) is a square checkbox at
+reading start, then `title + helper` inline on the top line, with the
 subtitle directly under the title. Prefer the reusable `SettingsToggleRow`
 compound view (see "Reusable component" below) over hand-built `LinearLayout`s -
 the raw XML below is included for reference and one-off exceptions only.
@@ -124,12 +125,12 @@ the raw XML below is included for reference and one-off exceptions only.
 ```xml
 <LinearLayout
     android:orientation="horizontal"
-    android:gravity="center_vertical"
-    android:minHeight="@dimen/button_height">
+    android:gravity="top">
 
-    <!-- 1. Trigger control (leftmost) - canonical on/off class is Material3 MaterialSwitch -->
-    <com.google.android.material.materialswitch.MaterialSwitch
-        android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+    <!-- 1. Trigger control (reading start) - canonical on/off class is Material3 MaterialCheckBox,
+         aligned with the first heading line, not the centre of a long explanation -->
+    <com.google.android.material.checkbox.MaterialCheckBox
+        android:layout_gravity="top" />
 
     <!-- 2. Text group (fills remaining width) -->
     <LinearLayout
@@ -169,7 +170,8 @@ the raw XML below is included for reference and one-off exceptions only.
 **Rules:**
 - Main label → `@dimen/toggler_title_text_size` (14sp). NEVER hardcode sp values.
 - Subtitle → `@dimen/toggler_desc_text_size` (12sp). Always exactly 2sp below the title.
-- On/off trigger class → Material3 `com.google.android.material.materialswitch.MaterialSwitch` (the single canonical switch class). Never `SwitchMaterial`/`SwitchCompat` for an on/off setting.
+- On/off trigger class → Material3 `com.google.android.material.checkbox.MaterialCheckBox` at reading start (`BOOLEAN-OPTION` 2.1 section 1). Never a sliding switch (`MaterialSwitch`/`SwitchMaterial`/`SwitchCompat`) for an on/off setting.
+- Activation (`BOOLEAN-OPTION` 2.1 section 3): a tap or click on the checkbox, the title or the leading glyph toggles once; the subtitle, gaps, background and help never toggle. The row is the single focus stop - Space, Enter and D-pad centre toggle it - and is exposed to accessibility services as one named checkbox with the subtitle as hint.
 - Help icon (`ic_help_outline_24`) → **inline immediately after the title**; a weighted spacer fills the rest of the title line so the icon stays next to the label and is **never pinned to the right edge**. Opens the tooltip dialog; hidden when no help payload is configured.
 - The row's right edge is the **optional trailing action slot** (rule below), not the help icon - do not move the helper there.
 - Trailing action slot is **optional** and reserved for exceptional rows that genuinely need a second action; the default row has no trailing widget.
@@ -179,19 +181,19 @@ the raw XML below is included for reference and one-off exceptions only.
 
 The canonical implementation is `com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow`
 (compound view) backed by `view_settings_toggle_row.xml`. It embeds the canonical
-Material3 `MaterialSwitch`, so wrapping a control in this component is the single
+Material3 `MaterialCheckBox`, so wrapping a control in this component is the single
 recommended form for every new on/off toggle - in settings fragments, forms, AND
-dialogs. New switch rows MUST use this component instead of hand-rolled
+dialogs. New on/off rows MUST use this component instead of hand-rolled
 `MaterialSwitch + TextView + ImageButton` triplets. The component encapsulates
 title, subtitle, helper visibility, tooltip wiring, and the optional trailing
 action slot. Hand-built rows are technical debt and must be migrated when
 adjacent code is touched.
 
-Any on/off switch that must stay **outside** `SettingsToggleRow` (e.g. a dense
+Any on/off control that must stay **outside** `SettingsToggleRow` (e.g. a dense
 list-item row where the full toggle row would break the layout) MUST be a
-`com.google.android.material.materialswitch.MaterialSwitch`; it inherits the
-project `materialSwitchStyle` (`themes.xml`) so it matches the switch rendered
-inside the component.
+`com.google.android.material.checkbox.MaterialCheckBox`, never a sliding switch; a form
+checkbox row uses `FormCheckboxRow` (Pattern B). The scheduled-operation card is the one
+documented bare checkbox (S4623).
 
 #### Selection/value row (`SettingsSelectionRow`)
 
@@ -229,7 +231,11 @@ The canonical implementation is `com.sza.fastmediasorter.ui.common.widget.FormCh
 `setSubtitle(null)` / an empty `app:fcr_subtitle` hides the subtitle view without breaking row
 layout, so this component is the single canonical form for every checkbox row - with or without a
 subtitle, including a short fixed-choice grid (e.g. a media-type filter row) laid out with
-`layout_weight`/`layout_columnWeight`. A raw `MaterialCheckBox` outside this component (S2193
+`layout_weight`/`layout_columnWeight`. Activation follows `BOOLEAN-OPTION` 2.1 section 3 exactly as
+Pattern A does (S4623): a tap or click on the checkbox or the title toggles once, the subtitle, gaps and
+background never toggle, Space/Enter/D-pad centre toggle the focused row, and accessibility services see
+one named checkbox with the subtitle as hint. A bare `MaterialCheckBox` carries its caption in its own
+`android:text` - never in a sibling `TextView`, which would be an inert caption. A raw `MaterialCheckBox` outside this component (S2193
 inventory: 17 file entries, mostly a duplicated media-type filter set with no shared style) is
 technical debt, migrated opportunistically per the same policy as Pattern A - not a required
 rework whenever the debt is merely noticed.
@@ -279,7 +285,7 @@ Rules:
 - Settings surfaces use the `Widget.FastMediaSorter.SettingsButton.*` variants - they inherit the family and only adjust text size/style. Do not fork a new settings button style.
 - Colors come from the theme (`?attr/color*`) and the family's shape appearance - never hardcode hex on a button (Rule 19). Use `?attr/`/`@color/`.
 - Keep `res/layout/` and `res/layout-land/` in sync (Rule 11); preserve ≥48dp touch target and D-pad/TV focus (Rule 16).
-- Compact elements (global): when "Compact elements" is on (`AppSettings.useCompactElements`, default on), unified buttons on a surface that participates in compact mode must shrink with the rest of that surface. Compact scaling is applied per-surface (layout swap such as `custom_player_controls` <-> `custom_player_controls_large`, or a `*SmallControls`/`*CompactElements` manager driven by the setting), not by a single global theme switch - a new compact-aware surface wires its own scaling. EXEMPT: the S0538 dialog action pair keeps its large fixed size even in compact mode (its whole purpose is to stay unmissable).
+- Compact elements (global): when "Compact elements" is on (`AppSettings.useCompactElements`, default off), unified buttons on a surface that participates in compact mode must shrink with the rest of that surface. Compact scaling is applied per-surface (layout swap such as `custom_player_controls` <-> `custom_player_controls_large`, or a `*SmallControls`/`*CompactElements` manager driven by the setting), not by a single global theme switch - a new compact-aware surface wires its own scaling. EXEMPT: the S0538 dialog action pair keeps its large fixed size even in compact mode (its whole purpose is to stay unmissable). A compact target never goes below the declared compact floor of `docs/ui/PHONE_SIZE_PROFILE.md` (24 by 24 dp, `UI-SIZING` rule 4).
 - Exempt by design (do not migrate to this family): player/media `ImageButton` borderless controls, reserved ExoPlayer `@id/exo_*` controls, and the intentionally dark camera/viewfinder surfaces. Exempt from **this** family, not from having a named style: since S3250 the player overlay icons carry `Widget.FastMediaSorter.Button.Icon.Overlay`, which is declared `parent=""` precisely because it dresses an `ImageButton` and must not inherit the `MaterialButton` background contract.
 - A new role that none of the five covers is added as a new `Widget.FastMediaSorter.Button.*` style here, not as an ad-hoc layout style.
 
@@ -404,6 +410,7 @@ Dedicated screen for internet audio/video/RTSP sources. Architectural boundaries
 - **Catalog import**: `ImportStreamCatalogUseCase` enforces a connect+read timeout; fails fast on dead/slow-trickle host instead of blocking indefinitely.
 - **Flavor scope**: standard/legacy/noLegal/vr - HLS, DASH VOD, RTSP, progressive HTTP/ICY (`SUPPORT_STREAMS=true`); lite/photos/foss - feature absent, no entry point (`SUPPORT_STREAMS=false`, lite hidden by S0575; foss carries no streaming stack because it ships no proprietary SDKs).
 - **Public cleartext**: `android:usesCleartextTraffic` allowed for internet radio (most streams are http://).
+- **Downstream port**: the streams subsystem has a downstream port. Its stream, playback and broadcast classes, tests, resources and help tooling are ported file by file into StreamsPlayer for Android, an independent product of the same family with no shared code. An edit to a ported class is carried there by hand: the port's drift check lists every file changed here since its port, so the ticket for the edit should say what it changes in behaviour. A behaviour change is amended in the shared contracts catalog first.
 
 ## Cast (Chromecast) Path
 
@@ -632,6 +639,29 @@ parameters, and one marker. `copy$default` spends the same plus the receiver.
   `StopwatchSettingsStore`.
 - `scripts/quality/assert-ctor-arg-slots.ps1` does the arithmetic and runs in every closure that changes a
   `.kt`. It reports headroom in whole properties - when it warns, group a domain, never buy back one slot.
+
+## Settings Navigation (S4621)
+
+The phone settings screen follows contract SETTINGS-NAVIGATION 2.1 section 2.
+
+- Destinations, in order: General (`ic_settings`), Media (`ic_image`), Player (`ic_play`), Management (`ic_folder`), Launcher (`ic_launcher_mode`, only where the system launcher is offered), Tools (`ic_apps`), flavor extension pages (`SettingsTabExtension.iconResId`), About (`ic_info`). `SettingsPagerAdapter.destinations` is the only ordered list; the page menu, search, help and the remembered page all read it.
+- Glyph treatment: monochrome, `?attr/colorOnSurface`, for every row, selected or not. The selected row adds a container fill, a start bar and a bold caption.
+- Breakpoint: `Configuration.isWideLayout()` (`core/orientation/WideLayout.kt`, landscape or at least 600 dp wide). Wide: a rail at reading start beside the content pane. Narrow: the item B navigation view - the page list fills the window, a destination opens its page in place, Back and Up return to the list with that destination still current.
+- `SettingsActivity` absorbs rotation, so the breakpoint is re-read in `onConfigurationChanged` and all three `activity_settings.xml` variants carry the same panes.
+- No child level: groups inside a page stay COLLAPSIBLE-GROUP blocks. The pager does not swipe; the page menu is the one way to change page.
+- State: last page and per-page scroll offset are stored by destination id (`SettingsPageStateStore`); each visit logs `SettingsNav: page=<id> visit=<first|warm> ms=<n>` (`SettingsPageTimingRecorder`).
+
+### Settings dialogs (S4622)
+
+SETTINGS-NAVIGATION 2.1 item A: a settings panel inside another screen is a destination of the one settings surface. Every settings-bearing surface outside a page is classed by one test:
+
+- Panel of a page: reached only from a row of a settings page and editing a sub-topic of that page. The page is its destination; search points to the opener row. Examples: launcher wallpaper, launcher reset, data transfer, pending transfers, edge gestures, default apps.
+- Destination: a settings editor hosted by a screen whose task is something else, or a page-sized topic with several groups even when a page row opens it. Launcher settings became the Launcher page; translation (with the OCR camera languages), calculator and stopwatch became COLLAPSIBLE-GROUP blocks of the Tools page. The host keeps a command that opens Settings at its block and re-reads the value on resume; Back returns to the host.
+- Host task: state the host's own task starts, stops or consumes - camera capture-session values, the GNSS track switch, the scheduled-operations master toggle, the feedback target folder. It stays with the host.
+- Moved editors commit each change; the Apply / Cancel pair and staged copy went with the dialog.
+- The Drive channel switches are settings of the pending-transfers queue and sit on the General page under its row; the dialog keeps the queue and its commands.
+- The edge-gesture zone strip picks which zone the one editor shows - the same choice a tap on the schema makes - so it is an object selector, not a page menu, and stays.
+- Each `SettingsDocScopeCatalog` entry carries its class in a comment.
 
 ## Wear Settings Persistence (S2050)
 

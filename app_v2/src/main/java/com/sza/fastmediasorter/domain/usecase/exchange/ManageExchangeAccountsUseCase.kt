@@ -147,6 +147,9 @@ class ManageExchangeAccountsUseCase @Inject constructor(
     suspend fun setAutoAttach(entry: DeviceExchangeAccountEntry, enabled: Boolean) =
         accounts.setAutoAttach(entry, enabled)
 
+    suspend fun setSyncNotes(entry: DeviceExchangeAccountEntry, enabled: Boolean) =
+        accounts.setSyncNotes(entry, enabled)
+
     /** The `FMSEXCH1` text the entry passes on (item AE), never carrying the login; null when it cannot. */
     fun connectionString(entry: DeviceExchangeAccountEntry): String? =
         accounts.connectionString(entry)?.let(ExchangeConnectionStringCodec::encode)
@@ -163,6 +166,9 @@ class ManageExchangeAccountsUseCase @Inject constructor(
                 receiver = receiver,
                 // 22 item BV: every build that enrolls carries the clipboard actions.
                 clipboard = true,
+                // Item AC: declared ahead of use, so turning the notes option on later needs no second enrollment;
+                // a device with it off is addressed by boxes it never reads, which loses nothing.
+                notes = mediaCapabilities.supportsDocuments,
             ),
             receiver = if (receiver) {
                 SftpRendezvousCodec.receiverBody(ExchangeCastRules.phoneReceiver(BroadcastMode.entries.map { it.name }))

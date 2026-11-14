@@ -2,13 +2,17 @@ package com.sza.fastmediasorter.ui.settings
 
 /**
  * Settings tab the search result navigates to when the user picks an entry.
- * `tabIndex` mirrors the ViewPager2 position in `SettingsActivity`.
+ * S4621: [destinationId] is the stable [SettingsDestination.id]; `SettingsActivity` resolves the pager
+ * position through the adapter, so a flavor page inserted before About cannot shift a result.
  */
-enum class SettingsSearchDestination(val tabIndex: Int) {
-    GENERAL(0),
-    MEDIA(1),
-    PLAYBACK(2),
-    OPERATIONS(3)
+enum class SettingsSearchDestination(val destinationId: String) {
+    GENERAL(SettingsDestination.GENERAL),
+    MEDIA(SettingsDestination.MEDIA),
+    PLAYBACK(SettingsDestination.PLAYBACK),
+    OPERATIONS(SettingsDestination.OPERATIONS),
+    LAUNCHER(SettingsDestination.LAUNCHER),
+    TOOLS(SettingsDestination.TOOLS),
+    ABOUT(SettingsDestination.ABOUT),
 }
 
 /**

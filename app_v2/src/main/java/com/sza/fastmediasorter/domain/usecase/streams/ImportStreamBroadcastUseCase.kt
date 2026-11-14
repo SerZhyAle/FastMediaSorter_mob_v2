@@ -19,10 +19,18 @@ class ImportStreamBroadcastUseCase @Inject constructor(
     private val passwordStore: BroadcastPasswordStore,
     private val pendingStore: BroadcastPendingStore,
 ) {
-    /** [password] is what the person typed for a protected descriptor; null keeps the one already stored. */
-    suspend operator fun invoke(rawPayload: String, password: String? = null): ImportResult =
+    /**
+     * [password] is what the person typed for a protected descriptor; null keeps the one already stored. [listing]
+     * names the account entry whose directory the broadcast was chosen from; null for every other way in, which
+     * neither writes nor clears a binding (DEVICE-EXCHANGE item BJ).
+     */
+    suspend operator fun invoke(
+        rawPayload: String,
+        password: String? = null,
+        listing: ListingBinding? = null,
+    ): ImportResult =
         when (val outcome = parser.parseDetailed(rawPayload)) {
-            is BroadcastDescriptorParser.ParseOutcome.Valid -> resolveImport(outcome.dto, password)
+            is BroadcastDescriptorParser.ParseOutcome.Valid -> resolveImport(outcome.dto, password, listing)
             BroadcastDescriptorParser.ParseOutcome.UnsupportedVersion ->
                 ImportResult.UnsupportedVersion
             BroadcastDescriptorParser.ParseOutcome.Malformed -> ImportResult.InvalidDescriptor
@@ -55,11 +63,19 @@ class ImportStreamBroadcastUseCase @Inject constructor(
      * S4247, LIVE-BROADCAST item S: a descriptor of a broadcast that has not started yet keeps a waiting row until
      * its `until`; one past it stores nothing. A live descriptor of the same row ends its wait.
      */
-    private suspend fun resolveImport(dto: BroadcastDescriptorDto, password: String?): ImportResult {
+    private suspend fun resolveImport(
+        dto: BroadcastDescriptorDto,
+        password: String?,
+        listing: ListingBinding?,
+    ): ImportResult {
         val untilMs = dto.pending?.let { it.untilMs() ?: EXPIRED }
         if (untilMs != null && untilMs <= System.currentTimeMillis()) return ImportResult.Expired
-        val result = keepRow(dto, password)
-        val streamId = if (result in KEPT_ROW) rowIdOf(dto) else null
+        val kept = keepRow(dto, password)
+        val result = kept.result
+        val streamId = kept.rowId.takeIf { result in KEPT_ROW }
+        if (streamId != null && listing != null) {
+            repository.bindExchangeBroadcast(streamId, listing.entryId, listing.broadcastId)
+        }
         return when {
             streamId == null -> result
             untilMs == null -> result.also { pendingStore.clear(streamId) }
@@ -67,35 +83,52 @@ class ImportStreamBroadcastUseCase @Inject constructor(
         }
     }
 
-    private suspend fun rowIdOf(dto: BroadcastDescriptorDto): String? =
-        dto.sourceId?.trim()?.takeIf { it.isNotEmpty() }?.let { repository.getBySourceDeviceId(it)?.id }
-            ?: repository.getByUrl(dto.url.trim())?.id
+    /** The outcome of keeping a row, and the row it kept; [rowId] is null when no row of this source was kept. */
+    private class Kept(val result: ImportResult, val rowId: String?)
 
-    private suspend fun keepRow(dto: BroadcastDescriptorDto, password: String?): ImportResult {
+    private suspend fun keepRow(dto: BroadcastDescriptorDto, password: String?): Kept {
         val offered = dto.title?.trim()?.takeIf { it.isNotEmpty() }
         val deviceId = dto.sourceId?.trim()?.takeIf { it.isNotEmpty() }
         // S4160: the whole list is kept, so a broadcast reachable through an exchange server plays outside the
         // broadcaster's LAN; a descriptor with no explicit list leaves the column null and plays its url.
         val endpoints = BroadcastEndpointCodec.encode(dto.endpoints)
-        val known = deviceId?.let { repository.getBySourceDeviceId(it) }
-            ?: endpoints?.let { repository.getByUrl(dto.url.trim()) }
+        val bySource = deviceId?.let { repository.getBySourceDeviceId(it) }
+        val byAddress = if (bySource == null) repository.getByUrl(dto.url.trim()) else null
+        // S4607: an equal address alone never merges two independently identified broadcasts - the row of another
+        // source is neither refreshed, bound nor given this descriptor's password.
+        if (byAddress != null && isHeldByAnotherSource(byAddress, deviceId)) return Kept(ImportResult.Duplicate, null)
+        val known = bySource ?: byAddress?.takeIf { endpoints != null }
         val kind = kindOf(dto.mode, dto.url)
         val result = if (known == null) {
             addNew(dto.url, offered ?: FALLBACK_TITLE, sourceDeviceId = deviceId, endpoints = endpoints, kind = kind)
         } else {
             refresh(known, Offer(dto.url, offered, endpoints), kind)
         }
-        if (result in KEPT_ROW) rememberPair(dto, known?.id, password)
-        return result
+        return keptRow(dto, result, known?.id, password)
+    }
+
+    private suspend fun keptRow(
+        dto: BroadcastDescriptorDto,
+        result: ImportResult,
+        knownId: String?,
+        password: String?,
+    ): Kept {
+        val rowId = if (result in KEPT_ROW) knownId ?: repository.getByUrl(dto.url.trim())?.id else null
+        if (rowId != null) rememberPair(dto, rowId, password)
+        return Kept(result, rowId)
+    }
+
+    private fun isHeldByAnotherSource(row: StreamSourceEntity, deviceId: String?): Boolean {
+        val held = row.sourceDeviceId?.trim()?.takeIf { it.isNotEmpty() }
+        return held != null && deviceId != null && held != deviceId
     }
 
     /**
      * LIVE-BROADCAST item M: the row of a protected descriptor keeps its pair in the secret store - the user from
      * `auth` and the password typed once. A new link user (a renewed broadcast) drops a password typed for the old one.
      */
-    private suspend fun rememberPair(dto: BroadcastDescriptorDto, knownId: String?, typed: String?) {
+    private suspend fun rememberPair(dto: BroadcastDescriptorDto, streamId: String, typed: String?) {
         val auth = dto.auth?.takeIf { it.isPasswordV1 } ?: return
-        val streamId = knownId ?: repository.getByUrl(dto.url.trim())?.id ?: return
         // Item BF: an own broadcast's record carries the account pair, which answers with no question.
         val own = dto.credentials
         val user = own?.user ?: auth.user
@@ -151,6 +184,8 @@ class ImportStreamBroadcastUseCase @Inject constructor(
                 url = trimmed,
                 title = offer.title.takeIf { renamed } ?: known.title,
                 mediaKind = rekind,
+                // S4606: a label the user typed belongs to them, not to the broadcaster.
+                category = known.category,
             )
         }
         val changed = moved || renamed || rerouted
@@ -182,6 +217,9 @@ class ImportStreamBroadcastUseCase @Inject constructor(
             AddResult.Duplicate -> ImportResult.Duplicate
             AddResult.InvalidUrl -> ImportResult.InvalidUrl
         }
+
+    /** S4607: the account entry (its identity) whose directory listed the chosen broadcast, and that broadcast. */
+    data class ListingBinding(val entryId: String, val broadcastId: String)
 
     sealed interface ImportResult {
         data object Success : ImportResult

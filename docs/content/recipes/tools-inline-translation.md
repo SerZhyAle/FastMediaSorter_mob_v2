@@ -10,11 +10,11 @@ availability: ENABLE_TRANSLATION
 recipe_number: "02"
 canonical_url: documentation/tools/inline-translation.html
 why: |
-  Once words are on the screen - recognized from a photo, printed on a PDF page, or sitting in an EPUB chapter - FastMediaSorter can turn them into your own language right there, using Google's on-device [ML Kit](term:ocr) translation. The internet is needed only to download each language model once from Google; the text you translate is translated on the phone and is never sent anywhere.
+  Once words are on the screen - recognized from a photo, printed on a PDF page, or sitting in an EPUB chapter - Fast Media Sorter & Organizer can turn them into your own language right there, using Google's on-device [ML Kit](term:ocr) translation. The internet is needed only to download each language model once from Google; the text you translate is translated on the phone and is never sent anywhere.
 
   Two different starting points feed the same translator: a picture goes through [OCR](term:ocr) first so there is text to translate, while a PDF page, an EPUB chapter or a text file is already text and skips straight to translation.
 ingredients:
-  - "FastMediaSorter in an [edition](term:edition) with translation: Standard, noLegal, Legacy or VR. The Lite, Photos and FOSS editions do not translate text."
+  - "Fast Media Sorter & Organizer in an [edition](term:edition) with translation: Standard, noLegal, Legacy or VR. The Lite, Photos and FOSS editions do not translate text."
   - "**Enable Translation** switched on in **Settings** - or on the setup wizard's functionality page. The first time, this downloads the **Translation Module** extension; see [first launch and setup](page:getting-started.welcome-and-setup) and [downloadable extensions](page:flavors.extensions-and-plugins)."
   - "To translate a picture: the **OCR Engines** extension too, since a photo or a scan has to be read before it can be translated - see [recognizing text on pictures](page:tools.ocr-text-recognition)."
   - "Something to translate: a picture open in the [image viewer](term:image-viewer) - see [viewing photos and gestures](page:images.viewer-and-gestures) - a PDF page, an EPUB chapter, or a text file."
@@ -72,7 +72,7 @@ steps:
     id: fast-second-time
     title: Why the second translation is instant
     text: |
-      The first time you pick a new target language, FastMediaSorter downloads its translation model in the background as soon as you choose it, not while you are waiting for a result - you may briefly see "Downloading translation model.." and then "Translation model ready.". A failed download shows "Couldn't download the translation model. Try again." with a **Retry** button.
+      The first time you pick a new target language, Fast Media Sorter & Organizer downloads its translation model in the background as soon as you choose it, not while you are waiting for a result - you may briefly see "Downloading translation model.." and then "Translation model ready.". A failed download shows "Couldn't download the translation model. Try again." with a **Retry** button.
 
       A page or a picture you translate once stays translated in memory for the rest of the session: reopen the same page and the translation is already there, with no repeat recognition and no repeat download.
     image_bookmark:

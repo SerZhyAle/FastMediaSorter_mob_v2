@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.11.12 03:28</sub>
+<sub class="doc-stamp">26.11.14 13:36</sub>
 
 # Pointer - `HARNESS-PROFILE`
 
 | | |
 | --- | --- |
 | **Id** | `HARNESS-PROFILE` |
-| **Version** | 0.16, draft. Owner: the canon (sza-unified-rules) |
+| **Version** | 0.17, draft. Owner: the canon (sza-unified-rules) |
 | **Home** | `rule-adoption/README.md` section 3 in the shared contracts catalog |
 | **Role here** | adopter - configures the shipped harness through `.sza-profile.json` |
 
@@ -17,6 +17,8 @@
 - `commands.compileCheck` (rule 11) is the one compile command an unattended pass runs; `runner.effortByModel` (rule 12)
   is optional and not declared here, because each runner instance takes its effort from
   `.claude/runner/model-effort.json` through its own `argsTemplate`.
+- The optional `extraction` block (0.17, rule 13) names a derived product's port ledger, scope file and source
+  product; this product is not derived from another, declares none, and no profile has to change.
 
 ## Where it lives here
 

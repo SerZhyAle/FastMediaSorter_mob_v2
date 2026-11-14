@@ -13,9 +13,9 @@ canonical_url: documentation/player/pip-and-background-play.html
 why: |
   A message arrives in the middle of a film. You want to answer it without losing your place, and ideally without stopping the picture. Picture-in-picture shrinks the video into a small window that floats over everything else, so you can reply, check a map or look up the actor and keep watching.
 
-  The same page explains what happens to the sound when you leave the player, and how FastMediaSorter shares the stage with other apps that want to play sound.
+  The same page explains what happens to the sound when you leave the player, and how Fast Media Sorter & Organizer shares the stage with other apps that want to play sound.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition) that plays video: Standard, noLegal, Lite, Legacy, VR or FOSS."
+  - "Fast Media Sorter & Organizer in any [edition](term:edition) that plays video: Standard, noLegal, Lite, Legacy, VR or FOSS."
   - "For picture-in-picture: Android 12 or newer, and a phone or tablet whose maker allows floating windows."
   - "For the watch step: a [Wear OS](term:wear-os) [watch](term:watch) paired with the phone, and the Standard or noLegal edition."
 steps:
@@ -34,7 +34,7 @@ steps:
       - tap it once to see **Play** and **Pause**;
       - tap the expand icon in the window to return to the full player - the buttons and panels come back exactly as you left them.
 
-      Picture-in-picture works for videos opened from your resources, for [streams](term:stream) opened from the [launcher](term:launcher) home screen, and for videos another app asked FastMediaSorter to play. If your phone refuses a floating window here, the app says "Picture-in-picture is not available here" instead of doing nothing.
+      Picture-in-picture works for videos opened from your resources, for [streams](term:stream) opened from the [launcher](term:launcher) home screen, and for videos another app asked Fast Media Sorter & Organizer to play. If your phone refuses a floating window here, the app says "Picture-in-picture is not available here" instead of doing nothing.
     image_bookmark:
       shot_id: player.pip-window
       device_profile: phone
@@ -42,7 +42,7 @@ steps:
       alt: A video playing in a small picture-in-picture window over the Android home screen
       caption: "The video keeps playing in a small window while you use other apps."
       title: "Screenshot: Picture-in-picture window"
-      desc: Home screen with the FastMediaSorter video in a PiP window in the bottom-right corner.
+      desc: Home screen with the Fast Media Sorter & Organizer video in a PiP window in the bottom-right corner.
   - number: 3
     id: leave-player
     title: Decide what happens to the sound when you leave
@@ -57,7 +57,7 @@ steps:
     id: other-apps
     title: Share the sound with other apps
     text: |
-      FastMediaSorter behaves politely when another app needs the speaker. A navigation voice or a short notification makes it quieter for a moment; a phone call or another music app pauses it. This applies everywhere the app plays sound: the player, music during a [slideshow](term:slideshow), sounds in the file browser and streams. It also keeps playing when you use two apps side by side in split screen and close the other one - see [split-screen and foldable devices](page:general.multi-window-and-foldables).
+      Fast Media Sorter & Organizer behaves politely when another app needs the speaker. A navigation voice or a short notification makes it quieter for a moment; a phone call or another music app pauses it. This applies everywhere the app plays sound: the player, music during a [slideshow](term:slideshow), sounds in the file browser and streams. It also keeps playing when you use two apps side by side in split screen and close the other one - see [split-screen and foldable devices](page:general.multi-window-and-foldables).
   - number: 5
     id: watch
     title: The phone player and your watch

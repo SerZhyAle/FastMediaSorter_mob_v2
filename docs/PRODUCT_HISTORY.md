@@ -7,7 +7,7 @@ lang: en
 
 <sub class="doc-stamp">26.10.15 19:27</sub>
 
-# FastMediaSorter v2 - Product History
+# Fast Media Sorter & Organizer - Product History
 
 **Snapshot Date**: September 13, 2026
 **Audience**: Developer / product owner
@@ -34,7 +34,7 @@ Important limitation:
 
 ## 2. High-Level Product Arc
 
-FastMediaSorter as a whole evolved across three eras:
+Fast Media Sorter & Organizer as a whole evolved across three eras:
 
 - a long Windows lineage,
 - a first Android generation,
@@ -56,7 +56,7 @@ The current Android v2 product has grown into a broad media-management platform 
 | Period | Milestone | Confidence |
 |:--|:--|:--|
 | ~1999 | Very early Windows file sorter in the Visual Basic era. Owner recalls a Visual Basic 4-based first sorter around 1999. | Owner-provided |
-| 2013 | **FastMediaSorter** appears as a Windows / VB.NET product. Owner dates this line to 2013 on `.VB NET 4.5`. | Owner-provided |
+| 2013 | **Fast Media Sorter & Organizer** appears as a Windows / VB.NET product. Owner dates this line to 2013 on `.VB NET 4.5`. | Owner-provided |
 | 2025-05 (approx.) | First Android version appears. Owner states the first Android app existed around **May 2025** and was not published. | Owner-provided |
 | 2025-09 (approx.) | Current Android **v2** development begins. Owner states this branch has been under development since **September 2025**. | Owner-provided |
 
@@ -102,7 +102,7 @@ These do not prove the first day of v2, but they do prove that the app already e
 Before the current structured repo process, the product had already passed through:
 
 - a Windows lineage beginning in the Visual Basic era,
-- a VB.NET Windows FastMediaSorter line by 2013,
+- a VB.NET Windows Fast Media Sorter & Organizer line by 2013,
 - a first Android attempt around May 2025,
 - and the start of the Android v2 effort around September 2025.
 
@@ -163,7 +163,7 @@ This phase contains completed capabilities as well as ongoing broadcast and Wear
 As of September 13, 2026, the repository shows a product that has moved through these stages:
 
 1. Windows file-sorting utility lineage,
-2. Windows FastMediaSorter product line,
+2. Windows Fast Media Sorter & Organizer product line,
 3. first Android generation,
 4. Android v2 rewrite / expansion,
 5. multi-surface Android product,
@@ -176,7 +176,7 @@ As of September 13, 2026, the repository shows a product that has moved through 
 The best current historical reading is:
 
 - the product family starts in the Windows world, likely as early as **1999** in the Visual Basic era;
-- the named **FastMediaSorter** Windows line dates to about **2013** in **VB.NET 4.5**;
+- the named **Fast Media Sorter & Organizer** Windows line dates to about **2013** in **VB.NET 4.5**;
 - the first Android generation existed around **May 2025** and was not published;
 - the current Android **v2** effort has been running since about **September 2025**;
 - by **March 2026**, the project switched into the current ticketed / process-driven development model;

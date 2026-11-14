@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- S4626: the state triangle leads the caption row; the tile grid is a recorded structural variant of the
+     group header (collapsed headers packed in a grid). Mirrored in layout-land/. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/groupHeaderRoot"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -26,31 +29,36 @@
         <ImageView android:id="@+id/icon4" android:layout_width="24dp" android:layout_height="24dp" />
     </GridLayout>
 
-    <TextView
-        android:id="@+id/groupTitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:maxLines="2"
-        android:ellipsize="end"
-        android:textColor="?attr/colorOnSurface"
-        android:textStyle="bold" />
-
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal">
-        <TextView
-            android:id="@+id/groupCount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="?attr/colorOnSurfaceVariant" />
+
         <ImageView
             android:id="@+id/groupIndicator"
-            android:layout_width="@dimen/icon_size_tiny"
-            android:layout_height="@dimen/icon_size_tiny"
+            android:layout_width="@dimen/icon_size_button"
+            android:layout_height="@dimen/icon_size_button"
             android:importantForAccessibility="no"
-            android:src="@drawable/ic_expand_more" />
+            app:srcCompat="@drawable/ic_arrow_drop_down"
+            app:tint="?attr/colorOnSurfaceVariant" />
+
+        <TextView
+            android:id="@+id/groupTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:maxLines="2"
+            android:textColor="?attr/colorOnSurface"
+            android:textStyle="bold" />
+
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/groupCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="?attr/colorOnSurfaceVariant" />
 </LinearLayout>

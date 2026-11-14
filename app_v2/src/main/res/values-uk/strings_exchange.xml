@@ -369,4 +369,13 @@
     <string name="broadcast_exchange_line_failed">Сервер обміну %1$s: %2$s</string>
     <string name="broadcast_exchange_line_local_only">Доступно лише в цій мережі. Додайте сервер обміну в «Моїх пристроях»</string>
     <string name="broadcast_exchange_line_guest_only">Доступно лише в цій мережі: гостьовий обліковий запис не може транслювати через сервер обміну</string>
+    <string name="exchange_devices_menu_sync_notes">Синхронізувати нотатки через сервер обміну</string>
+    <string name="exchange_sync_notes_consent_title">Синхронізувати нотатки через цей сервер?</string>
+    <string name="exchange_sync_notes_consent_message">Нотатки шифруються лише для ваших власних пристроїв. Той, хто керує сервером, бачить лише їхню кількість, розміри й час. Якщо вимкнути синхронізацію, нічого не видалиться.</string>
+    <string name="exchange_sync_notes_consent_confirm">Синхронізувати</string>
+    <string name="broadcast_drive_line_announcing">Через Google Drive: трансляція анонсується вашим пристроям</string>
+    <string name="broadcast_drive_line_announced">Через Google Drive: трансляцію анонсовано вашим пристроям</string>
+    <string name="broadcast_drive_line_sign_in">Через Google Drive: не анонсовано. Знову увійдіть у Google Drive у налаштуваннях</string>
+    <string name="broadcast_drive_line_unreachable">Через Google Drive: не анонсовано, Google Drive не відповідає. Повторюємо спробу</string>
+    <string name="broadcast_drive_line_guest">Через Google Drive: не анонсовано, гостьовий обліковий запис нічого не анонсує</string>
 </resources>

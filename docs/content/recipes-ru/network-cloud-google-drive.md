@@ -12,7 +12,7 @@ canonical_url: documentation/network/cloud-google-drive-ru.html
 why: |
   Значительная часть вашей фотоколлекции уже хранится на Google Диске, и гораздо удобнее просматривать ее в том же привычном приложении, что и локальные медиафайлы, без лишних переключений. Достаточно войти один раз - и папки с Диска откроются в списке ресурсов. Кроме того, та же самая авторизация позволяет автоматически создавать резервные копии настроек и передавать файлы между телефоном и планшетом через ваш персональный раздел на Диске.
 ingredients:
-  - "FastMediaSorter в [редакции](term:edition) Standard, noLegal, Photos, Legacy или VR (кроме Lite и FOSS). См. рецепт [Обзор и сравнение семи редакций](page:flavors.overview-and-comparison)."
+  - "Fast Media Sorter & Organizer в [редакции](term:edition) Standard, noLegal, Photos, Legacy или VR (кроме Lite и FOSS). См. рецепт [Обзор и сравнение семи редакций](page:flavors.overview-and-comparison)."
   - "Учетная запись Google и установленный веб-браузер для отображения стандартного окна входа."
 steps:
   - number: 1

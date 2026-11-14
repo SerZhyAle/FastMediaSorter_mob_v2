@@ -93,7 +93,6 @@
     <string name="settings_all_files_profile_confirm_message">Этот профиль включает режим файлового менеджера и создаст отсутствующий ресурс «Все файлы». Продолжить?</string>
     <string name="settings_reset_settings_failed">Не получилось сбросить настройки. Попробуйте ещё раз.</string>
     <string name="settings_reset_smb_failed">Не получилось сбросить SMB-подключения. Попробуйте ещё раз.</string>
-    <string name="settings_saved">Настройки сохранены</string>
     <string name="settings_search_close">Закрыть поиск по настройкам</string>
     <string name="settings_search_hint">Поиск в настройках</string>
     <string name="settings_search_no_results">Совпадений не найдено</string>
@@ -277,7 +276,7 @@
     <string name="setting_mic_recording_destination_default_recordings">По умолчанию: папка Recordings (Music на Android 11 и ниже)</string>
     <string name="setting_screen_recording_destination_default_movies">По умолчанию: папка Movies</string>
     <string name="drive_channel_enabled_title">Файлы через Google Drive</string>
-    <string name="drive_channel_enabled_subtitle">Отправлять и получать файлы между своими устройствами через ваш Google Drive, без сервера обмена</string>
+    <string name="drive_channel_enabled_subtitle">Отправлять и получать файлы между своими устройствами через ваш Google Drive и анонсировать им ваши трансляции, без сервера обмена</string>
     <string name="drive_channel_background_title">Проверять через Google Drive в фоне</string>
     <string name="drive_channel_background_subtitle">Каждые 15 минут, чтобы другие ваши устройства могли открыть общие папки этого телефона, пока приложение закрыто</string>
     <string name="drive_channel_row_from">От %1$s</string>
@@ -302,4 +301,19 @@
     <string name="drive_channel_send_waiting_any">Ждёт, пока одно из ваших устройств получит его через Google Drive.</string>
     <string name="drive_channel_consent_required">Google Drive ещё не выдал приложению его собственную папку. Разрешите её, чтобы передавать файлы между устройствами. Ничего не удалено.</string>
     <string name="drive_channel_consent_allow">Разрешить</string>
+    <string name="settings_tab_about">О приложении</string>
+    <string name="settings_about_description">Просмотр, воспроизведение и сортировка фото, видео, музыки и документов - на устройстве, в сетевых папках и в облаке.</string>
+    <string name="settings_about_group_help">Справка и документация</string>
+    <string name="settings_about_group_legal">Правовая информация</string>
+    <string name="settings_about_group_support">Поддержка и диагностика</string>
+    <string name="settings_about_group_get_app">Получить приложение</string>
+    <string name="settings_about_group_related">Связанные продукты</string>
+    <string name="settings_about_group_device">Это устройство</string>
+    <string name="settings_about_support">Написать в поддержку</string>
+    <string name="settings_about_export_diagnostics">Экспорт диагностики</string>
+    <string name="settings_about_site">Официальный сайт</string>
+    <string name="settings_about_downloads">Загрузки и обновления</string>
+    <string name="settings_about_repository">Репозиторий исходного кода</string>
+    <string name="settings_about_companion_home">Приложение-компаньон для ПК</string>
+    <string name="settings_rail_current_page">Текущая страница</string>
 </resources>

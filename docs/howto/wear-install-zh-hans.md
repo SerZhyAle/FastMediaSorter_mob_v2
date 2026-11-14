@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "在手表上安装 FastMedia - FastMediaSorter v2"
+title: "在手表上安装 FastMedia - Fast Media Sorter & Organizer"
 permalink: /docs/howto/wear-install-zh-hans.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -13,14 +13,14 @@ permalink: /docs/howto/wear-install-zh-hans.html
 
 > **两个版本。** Google Play 上的版本是一个精简的首发版本：计算器、秒表、迷你游戏、设置和程序图块。音乐、照片、网络共享和手机联动功能仅在完整版中提供，需要从[下载页面](../DOWNLOADS.md)直接下载 APK。
 
-FastMedia Wear 是 FastMediaSorter 在手表端的对应部分。安装到手表后，您可以直接在手表上播放音乐、查看照片，访问配对手机共享的文件夹，还可以让手表自行连接网络共享。本页将带您完成安装和配对。
+FastMedia Wear 是 Fast Media Sorter & Organizer 在手表端的对应部分。安装到手表后，您可以直接在手表上播放音乐、查看照片，访问配对手机共享的文件夹，还可以让手表自行连接网络共享。本页将带您完成安装和配对。
 
 ---
 
 ## 你需要准备什么
 
 - 一块运行 **Wear OS 3.0** 或更高版本的智能手表
-- 一部已安装 FastMediaSorter，并已在系统设置中与手表完成配对的 Android 手机
+- 一部已安装 Fast Media Sorter & Organizer，并已在系统设置中与手表完成配对的 Android 手机
 - 手表本身、或与之配对的手机具有 Wi-Fi 或移动网络连接，用于下载
 
 ---
@@ -77,7 +77,7 @@ FastMedia Wear 是 FastMediaSorter 在手表端的对应部分。安装到手表
 
 在您确认拥有一块手表之前，手机端的这一功能默认是关闭的。
 
-1. 在手机上打开 FastMediaSorter。
+1. 在手机上打开 Fast Media Sorter & Organizer。
 2. 进入**设置**，打开**管理**选项卡。
 3. 找到 **Wear OS** 分组并展开它。
 4. 打开 **Wear 伴侣**复选框。
@@ -116,7 +116,7 @@ FastMedia Wear 是 FastMediaSorter 在手表端的对应部分。安装到手表
 2. 点击**安装**并等待下载完成。
 3. 长按当前表盘，在选择列表中找到 **FastMediaSorter Watch Face** 并点击。
 
-> 表盘显示大号时间、日期、波浪和飘动的粒子、电量条，以及最多八个圆形按钮，可用于 FastMediaSorter 快捷方式或其他手表数据。这些按钮会随 FastMediaSorter 手表应用一起出现。
+> 表盘显示大号时间、日期、波浪和飘动的粒子、电量条，以及最多八个圆形按钮，可用于 Fast Media Sorter & Organizer 快捷方式或其他手表数据。这些按钮会随 Fast Media Sorter & Organizer 手表应用一起出现。
 
 ---
 

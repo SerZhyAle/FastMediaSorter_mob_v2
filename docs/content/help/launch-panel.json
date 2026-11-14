@@ -21,7 +21,7 @@
   "locales": {
     "en": {
       "title": "Quick launch",
-      "purpose": "Quick launch is a pop-up grid of fifteen tiles that opens over whatever you are doing. One tap starts an app, a tool of FastMediaSorter, one of your resources or an Android settings screen, and the panel closes.",
+      "purpose": "Quick launch is a pop-up grid of fifteen tiles that opens over whatever you are doing. One tap starts an app, a tool of Fast Media Sorter & Organizer, one of your resources or an Android settings screen, and the panel closes.",
       "steps": [
         "Open the panel in one of three ways: the Quick Settings tile (7), an edge swipe (8) or the Programs menu (9).",
         "Tap a tile (5) to start what it points to. The panel closes by itself, so you land straight in the app or screen you picked.",
@@ -51,12 +51,12 @@
         "tiles": {
           "name": "Tile grid",
           "summary": "Fifteen fixed places for your shortcuts.",
-          "details": "The grid always has fifteen places: three columns in a narrow window and five in a wide one. You cannot add more places, but any of them can be filled, replaced, moved or emptied in Edit panel.\n\nThe first time the panel opens, the app fills it in for you: FastMediaSorter first, then its own tools that exist in your edition, one of your resources and the Android settings, with the last few places left free for your own apps."
+          "details": "The grid always has fifteen places: three columns in a narrow window and five in a wide one. You cannot add more places, but any of them can be filled, replaced, moved or emptied in Edit panel.\n\nThe first time the panel opens, the app fills it in for you: Fast Media Sorter & Organizer first, then its own tools that exist in your edition, one of your resources and the Android settings, with the last few places left free for your own apps."
         },
         "tile": {
           "name": "Tile",
           "summary": "Starts the app, tool, resource or settings screen it shows.",
-          "details": "Tap a tile and the panel launches its target, then closes. A tile can point to an Android app, a FastMediaSorter tool such as the calculator, the mini-game, Streams or Favorites, one of your resources (it opens in the file browser) or an Android settings screen. If a tool is switched off in Settings, the tile opens the matching setting, where there is one, instead of doing nothing. A Wi-Fi or Bluetooth tile switches the radio right away in editions that can do it, and otherwise opens the matching Android screen. If a tile points to an app that has been removed, nothing opens and the panel just closes."
+          "details": "Tap a tile and the panel launches its target, then closes. A tile can point to an Android app, a Fast Media Sorter & Organizer tool such as the calculator, the mini-game, Streams or Favorites, one of your resources (it opens in the file browser) or an Android settings screen. If a tool is switched off in Settings, the tile opens the matching setting, where there is one, instead of doing nothing. A Wi-Fi or Bluetooth tile switches the radio right away in editions that can do it, and otherwise opens the matching Android screen. If a tile points to an app that has been removed, nothing opens and the panel just closes."
         },
         "empty-slot": {
           "summary": "A free place waiting for your shortcut.",
@@ -81,7 +81,7 @@
     },
     "ru": {
       "title": "Быстрый запуск",
-      "purpose": "Быстрый запуск - это всплывающая сетка из пятнадцати плиток, которая открывается поверх того, чем вы заняты. Одно нажатие запускает приложение, инструмент FastMediaSorter, один из ваших ресурсов или экран настроек Android, и панель закрывается.",
+      "purpose": "Быстрый запуск - это всплывающая сетка из пятнадцати плиток, которая открывается поверх того, чем вы заняты. Одно нажатие запускает приложение, инструмент Fast Media Sorter & Organizer, один из ваших ресурсов или экран настроек Android, и панель закрывается.",
       "steps": [
         "Откройте панель одним из трёх способов: плиткой быстрых настроек (7), жестом от края экрана (8) или через меню программ (9).",
         "Нажмите плитку (5), чтобы запустить то, на что она указывает. Панель закроется сама, и вы сразу окажетесь в выбранном приложении или на нужном экране.",
@@ -111,12 +111,12 @@
         "tiles": {
           "name": "Сетка плиток",
           "summary": "Пятнадцать постоянных мест для ваших ярлыков.",
-          "details": "В сетке всегда пятнадцать мест: три столбца в узком окне и пять в широком. Добавить места нельзя, но любое можно занять, заменить, переместить или освободить в экране «Редактировать панель».\n\nПри первом открытии панели приложение заполняет её само: сначала FastMediaSorter, затем его собственные инструменты, которые есть в вашей редакции, один из ваших ресурсов и настройки Android, а последние несколько мест остаются свободными для ваших приложений."
+          "details": "В сетке всегда пятнадцать мест: три столбца в узком окне и пять в широком. Добавить места нельзя, но любое можно занять, заменить, переместить или освободить в экране «Редактировать панель».\n\nПри первом открытии панели приложение заполняет её само: сначала Fast Media Sorter & Organizer, затем его собственные инструменты, которые есть в вашей редакции, один из ваших ресурсов и настройки Android, а последние несколько мест остаются свободными для ваших приложений."
         },
         "tile": {
           "name": "Плитка",
           "summary": "Запускает приложение, инструмент, ресурс или экран настроек, который на ней показан.",
-          "details": "Нажмите плитку, и панель запустит её цель, а затем закроется. Плитка может указывать на приложение Android, инструмент FastMediaSorter - например, калькулятор, мини-игру, «Потоки» или «Избранное», - на один из ваших ресурсов (он откроется в браузере файлов) или на экран настроек Android. Если инструмент выключен в настройках, плитка откроет соответствующую настройку, если она есть, вместо того, чтобы ничего не делать. Плитка Wi-Fi или Bluetooth сразу переключает связь в редакциях, где это возможно, а иначе открывает нужный экран Android. Если плитка указывает на удалённое приложение, ничего не откроется, а панель просто закроется."
+          "details": "Нажмите плитку, и панель запустит её цель, а затем закроется. Плитка может указывать на приложение Android, инструмент Fast Media Sorter & Organizer - например, калькулятор, мини-игру, «Потоки» или «Избранное», - на один из ваших ресурсов (он откроется в браузере файлов) или на экран настроек Android. Если инструмент выключен в настройках, плитка откроет соответствующую настройку, если она есть, вместо того, чтобы ничего не делать. Плитка Wi-Fi или Bluetooth сразу переключает связь в редакциях, где это возможно, а иначе открывает нужный экран Android. Если плитка указывает на удалённое приложение, ничего не откроется, а панель просто закроется."
         },
         "empty-slot": {
           "summary": "Свободное место, которое ждёт вашего ярлыка.",
@@ -141,7 +141,7 @@
     },
     "uk": {
       "title": "Швидкий запуск",
-      "purpose": "Швидкий запуск - це спливаюча сітка з п’ятнадцяти плиток, що відкривається поверх того, чим ви зайняті. Одне натискання запускає застосунок, інструмент FastMediaSorter, один із ваших ресурсів або екран налаштувань Android, і панель закривається.",
+      "purpose": "Швидкий запуск - це спливаюча сітка з п’ятнадцяти плиток, що відкривається поверх того, чим ви зайняті. Одне натискання запускає застосунок, інструмент Fast Media Sorter & Organizer, один із ваших ресурсів або екран налаштувань Android, і панель закривається.",
       "steps": [
         "Відкрийте панель одним із трьох способів: плиткою швидких налаштувань (7), жестом від краю екрана (8) або через меню програм (9).",
         "Натисніть плитку (5), щоб запустити те, на що вона вказує. Панель закриється сама, і ви одразу опинитеся у вибраному застосунку чи на потрібному екрані.",
@@ -171,12 +171,12 @@
         "tiles": {
           "name": "Сітка плиток",
           "summary": "П’ятнадцять сталих місць для ваших ярликів.",
-          "details": "У сітці завжди п’ятнадцять місць: три стовпці у вузькому вікні та п’ять у широкому. Додати місця не можна, але будь-яке можна зайняти, замінити, перемістити чи звільнити в екрані «Редагувати панель».\n\nПід час першого відкриття панелі застосунок заповнює її сам: спершу FastMediaSorter, потім його власні інструменти, що є у вашій редакції, один із ваших ресурсів і налаштування Android, а кілька останніх місць лишаються вільними для ваших застосунків."
+          "details": "У сітці завжди п’ятнадцять місць: три стовпці у вузькому вікні та п’ять у широкому. Додати місця не можна, але будь-яке можна зайняти, замінити, перемістити чи звільнити в екрані «Редагувати панель».\n\nПід час першого відкриття панелі застосунок заповнює її сам: спершу Fast Media Sorter & Organizer, потім його власні інструменти, що є у вашій редакції, один із ваших ресурсів і налаштування Android, а кілька останніх місць лишаються вільними для ваших застосунків."
         },
         "tile": {
           "name": "Плитка",
           "summary": "Запускає застосунок, інструмент, ресурс чи екран налаштувань, що на ній показано.",
-          "details": "Натисніть плитку, і панель запустить її ціль, а потім закриється. Плитка може вказувати на застосунок Android, інструмент FastMediaSorter - наприклад, калькулятор, міні-гру, «Потоки» чи «Обране», - на один із ваших ресурсів (він відкриється в браузері файлів) або на екран налаштувань Android. Якщо інструмент вимкнено в налаштуваннях, плитка відкриє відповідне налаштування, якщо воно є, замість того щоб нічого не робити. Плитка Wi-Fi чи Bluetooth одразу перемикає зв’язок у редакціях, де це можливо, а інакше відкриває потрібний екран Android. Якщо плитка вказує на вилучений застосунок, нічого не відкриється, а панель просто закриється."
+          "details": "Натисніть плитку, і панель запустить її ціль, а потім закриється. Плитка може вказувати на застосунок Android, інструмент Fast Media Sorter & Organizer - наприклад, калькулятор, міні-гру, «Потоки» чи «Обране», - на один із ваших ресурсів (він відкриється в браузері файлів) або на екран налаштувань Android. Якщо інструмент вимкнено в налаштуваннях, плитка відкриє відповідне налаштування, якщо воно є, замість того щоб нічого не робити. Плитка Wi-Fi чи Bluetooth одразу перемикає зв’язок у редакціях, де це можливо, а інакше відкриває потрібний екран Android. Якщо плитка вказує на вилучений застосунок, нічого не відкриється, а панель просто закриється."
         },
         "empty-slot": {
           "summary": "Вільне місце, що чекає на ваш ярлик.",

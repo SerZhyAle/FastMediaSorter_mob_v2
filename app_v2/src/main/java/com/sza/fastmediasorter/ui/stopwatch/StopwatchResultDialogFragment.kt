@@ -34,9 +34,9 @@ import javax.inject.Inject
  * Collects a description and a note for a finished measurement and sends the result on its way
  * (strategic S1411 §2.6, phase 07).
  *
- * A DialogFragment rather than a dialog built inside the Activity, matching
- * [StopwatchSettingsDialogFragment]: §11.5 makes rotation safety an acceptance criterion for this screen,
- * and a bare AlertDialog would take the user's half-typed description down with it on the first rotation.
+ * A DialogFragment rather than a dialog built inside the Activity: §11.5 makes rotation safety an
+ * acceptance criterion for this screen, and a bare AlertDialog would take the user's half-typed
+ * description down with it on the first rotation.
  *
  * The measurement is frozen the moment the dialog opens. A running stopwatch keeps running behind it, but
  * the preview, the saved file and the shared text then describe one instant instead of three.

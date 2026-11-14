@@ -4,19 +4,20 @@ import android.content.Context
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.view.isVisible
-import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.models.TranslationFontFamily
 import com.sza.fastmediasorter.domain.models.TranslationFontSize
 import com.sza.fastmediasorter.domain.models.TranslationSessionSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.ui.dialog.TranslationSettingsDialog
+import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -28,7 +29,7 @@ import timber.log.Timber
  * Responsibilities:
  * - Initialize translation session settings from AppSettings defaults
  * - Update translation button icons with language badges (source -> target)
- * - Show translation settings dialog
+ * - Open the translation block of the Tools settings page and re-apply its result on return
  * - Apply font settings to translation overlays
  * 
  * Handles multiple translation button types:
@@ -215,13 +216,8 @@ class TranslationButtonManager(
 
     
     /**
-     * Show translation settings dialog.
-     * Allows user to configure:
-     * - Source/target languages
-     * - Google Lens overlay style (enable/disable)
-     * - Font size (AUTO, SMALL, MEDIUM, LARGE)
-     * - Font family (MONOSPACE, SANS_SERIF, SERIF)
-     * 
+     * Opens the translation settings: languages, overlay style, font size and family.
+     *
      * Silent where the build has no translation at all; explains itself where only the device class
      * is the obstacle, since that surface was reachable a moment ago on the user's other device.
      */
@@ -238,14 +234,52 @@ class TranslationButtonManager(
             Timber.d("TranslationButtonManager: translation settings unavailable - %s", support.reason)
             return
         }
-        // S0410: the dialog itself is binding-free (TranslationSettingsDialog). The in-app player
-        // still needs the saved settings applied to its active viewers/overlays, so that step is
-        // passed as the onApplied hook; standalone hosts call the dialog without one.
-        TranslationSettingsDialog.show(
-            context = context,
-            lifecycleOwner = lifecycleOwner,
-            settingsRepository = settingsRepository,
-        ) { newSessionSettings ->
+        // S4622: the settings are a block of the Tools settings page (SETTINGS-NAVIGATION 2.1 item A). The
+        // player re-applies them to its viewers and overlays when it resumes, the step the dialog's Apply did.
+        lifecycleOwner.lifecycleScope.launch {
+            pendingReturnSnapshot = snapshotOf(settingsRepository.getSettings().first())
+            val intent = SettingsActivity.openToolsSectionIntent(context, SettingsActivity.SECTION_TRANSLATION)
+            context.startActivity(intent)
+        }
+    }
+
+    /** What the Tools page can change that the open viewers render; compared on return to skip a no-op re-run. */
+    private data class TranslationSnapshot(
+        val sourceLanguage: String,
+        val targetLanguage: String,
+        val lensStyle: Boolean,
+        val fontSize: String,
+        val fontFamily: String,
+    )
+
+    private var pendingReturnSnapshot: TranslationSnapshot? = null
+
+    private fun snapshotOf(settings: AppSettings) = TranslationSnapshot(
+        sourceLanguage = settings.translationSourceLanguage,
+        targetLanguage = settings.translationTargetLanguage,
+        lensStyle = settings.translationLensStyle,
+        fontSize = settings.ocrDefaultFontSize,
+        fontFamily = settings.ocrDefaultFontFamily,
+    )
+
+    init {
+        lifecycleOwner.lifecycle.addObserver(
+            object : DefaultLifecycleObserver {
+                override fun onResume(owner: LifecycleOwner) = reapplyAfterSettingsReturn()
+            },
+        )
+    }
+
+    private fun reapplyAfterSettingsReturn() {
+        val before = pendingReturnSnapshot ?: return
+        pendingReturnSnapshot = null
+        lifecycleOwner.lifecycleScope.launch {
+            val settings = settingsRepository.getSettings().first()
+            if (snapshotOf(settings) == before) return@launch
+            val newSessionSettings = TranslationSessionSettings(
+                fontSize = enumOrDefault(settings.ocrDefaultFontSize, TranslationFontSize.AUTO),
+                fontFamily = enumOrDefault(settings.ocrDefaultFontFamily, TranslationFontFamily.DEFAULT),
+            )
             callback.setTranslationSessionSettings(newSessionSettings)
             callback.applyTextViewerFontSettings(newSessionSettings)
             callback.applyTranslationManagerFontSettings(newSessionSettings)
@@ -253,12 +287,14 @@ class TranslationButtonManager(
             when (callback.getCurrentFileType()) {
                 MediaType.IMAGE, MediaType.GIF -> callback.translateCurrentImage()
                 MediaType.PDF -> callback.forceTranslatePdf()
-                MediaType.TEXT -> { /* font settings already applied above */ }
                 MediaType.EPUB -> callback.applyEpubFontSettings(newSessionSettings)
-                else -> { /* no translation for other types */ }
+                else -> Unit
             }
         }
     }
+
+    private inline fun <reified T : Enum<T>> enumOrDefault(name: String, default: T): T =
+        enumValues<T>().firstOrNull { it.name == name } ?: default
     
     /**
      * Apply font settings to translation overlay view (Google Lens style).

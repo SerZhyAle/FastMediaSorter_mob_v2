@@ -42,15 +42,12 @@
         <!-- Disable preview on app launch - no icon/splash shown until app fully loads -->
         <item name="android:windowDisablePreview">true</item>
 
-        <!-- Default player controls layout = compact (matches AppSettings.useCompactElements default true).
-             Overridden by Theme.FastMediaSorter.LargePlayerControls applyStyle() when compact is OFF. -->
+        <!-- Base player controls layout = compact. AppSettings.useCompactElements defaults to false, so
+             Theme.FastMediaSorter.LargePlayerControls applyStyle() overrides it whenever compact is OFF. -->
         <item name="customPlayerControlsLayout">@layout/custom_player_controls</item>
 
         <!-- S0538: builder dialogs inherit the unified confirm/cancel pair via this seam. -->
         <item name="materialAlertDialogTheme">@style/ThemeOverlay.FastMediaSorter.MaterialAlertDialog</item>
-
-        <!-- S0536: every MaterialSwitch left outside SettingsToggleRow inherits one canonical look. -->
-        <item name="materialSwitchStyle">@style/Widget.FastMediaSorter.Switch</item>
     </style>
 
     <!-- S0569: custom accent themes. Applied via theme.applyStyle() in BaseActivity from
@@ -305,12 +302,6 @@
         <item name="android:textSize">@dimen/dim_clock_battery_text_size</item>
     </style>
 
-    <style name="TextAppearance.FastMediaSorter.SettingsTabConnected" parent="TextAppearance.Material3.LabelLarge">
-        <item name="android:textSize">13sp</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:letterSpacing">0</item>
-    </style>
-
     <!-- S3241: the text scale of docs/ui/PHONE_UI_COMPONENT_PATTERNS.md section 1.3. A role is chosen
          by what the text MEANS, never by how large it should look, and each one parents a Material 3
          token so a single type-scale change reaches every surface. The two styles above are the
@@ -344,10 +335,6 @@
     <style name="TextAppearance.FastMediaSorter.Welcome.TypeButton" parent="TextAppearance.Material3.LabelLarge">
         <item name="android:textSize">@dimen/welcome_player_type_button_text_size</item>
     </style>
-
-    <!-- S0536: canonical on/off switch look. Parent-only (Material3 default) - the app theme binds this
-         via materialSwitchStyle so any bare MaterialSwitch matches the one inside SettingsToggleRow. -->
-    <style name="Widget.FastMediaSorter.Switch" parent="Widget.Material3.CompoundButton.MaterialSwitch" />
 
     <!-- S4352: canonical BOOLEAN-OPTION 2.0 preference and checkbox styles -->
     <style name="Widget.FastMediaSorter.Preference.BooleanOption" parent="">
@@ -433,6 +420,22 @@
 
     <!-- Content-sized ordinary commands share BUTTONS geometry without changing unmigrated surfaces. -->
     <style name="Widget.FastMediaSorter.Button.Command" parent="Widget.FastMediaSorter.Button.Outlined">
+        <item name="cornerRadius">@dimen/token_spacing_4</item>
+        <item name="android:minWidth">@dimen/token_touch_target_min</item>
+        <item name="android:minHeight">@dimen/token_touch_target_min</item>
+        <item name="android:paddingStart">@dimen/token_spacing_16</item>
+        <item name="android:paddingEnd">@dimen/token_spacing_16</item>
+        <item name="android:singleLine">false</item>
+        <item name="android:ellipsize">none</item>
+        <item name="iconSize">@dimen/icon_size_button</item>
+        <item name="iconPadding">@dimen/token_spacing_8</item>
+        <item name="iconGravity">textStart</item>
+        <item name="android:insetTop">@dimen/dimension_zero</item>
+        <item name="android:insetBottom">@dimen/dimension_zero</item>
+    </style>
+
+    <!-- The tonal face of the content-sized command geometry above, for groups that are tonal today. -->
+    <style name="Widget.FastMediaSorter.Button.Command.Tonal" parent="Widget.FastMediaSorter.Button.Tonal">
         <item name="cornerRadius">@dimen/token_spacing_4</item>
         <item name="android:minWidth">@dimen/token_touch_target_min</item>
         <item name="android:minHeight">@dimen/token_touch_target_min</item>
@@ -882,21 +885,6 @@
         <item name="android:layout_marginTop">@dimen/margin_small</item>
         <item name="android:textSize">@dimen/text_size_small</item>
         <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
-    </style>
-
-    <style name="Widget.FastMediaSorter.NetworkMonitor.ToggleRow" parent="">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:gravity">center_vertical</item>
-        <item name="android:orientation">horizontal</item>
-    </style>
-
-    <style name="Widget.FastMediaSorter.NetworkMonitor.ToggleLabel" parent="">
-        <item name="android:layout_width">0dp</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_weight">1</item>
-        <item name="android:textSize">@dimen/text_size_normal</item>
-        <item name="android:textColor">?attr/colorOnSurface</item>
     </style>
 
     <style name="Widget.FastMediaSorter.NetworkMonitor.Chart" parent="">

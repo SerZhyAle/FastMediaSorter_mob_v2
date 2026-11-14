@@ -1210,9 +1210,9 @@
     "uk": "Вибирає список закріплених трансляцій як набір даних для вивантаження або завантаження."
   },
   "rowLanguage": {
-    "en": "Opens a searchable list of the interface languages. On a Play install the chosen language is downloaded first; if it cannot be fetched, the app keeps the language it is using.",
-    "ru": "Открывает список языков интерфейса с поиском. В сборке из Play выбранный язык сначала догружается; если загрузить не удалось, приложение остаётся на текущем языке.",
-    "uk": "Відкриває список мов інтерфейсу з пошуком. У збірці з Play вибрана мова спочатку завантажується; якщо завантажити не вдалося, застосунок залишається поточною мовою."
+    "en": "Opens a searchable list of the interface languages. On a Play install the chosen language is downloaded first; if it cannot be fetched, the app keeps the language it is using. The change takes effect at once, with no restart.",
+    "ru": "Открывает список языков интерфейса с поиском. В сборке из Play выбранный язык сначала догружается; если загрузить не удалось, приложение остаётся на текущем языке. Изменение действует сразу, без перезапуска.",
+    "uk": "Відкриває список мов інтерфейсу з пошуком. У збірці з Play вибрана мова спочатку завантажується; якщо завантажити не вдалося, застосунок залишається поточною мовою. Зміна діє одразу, без перезапуску."
   },
   "rowLauncherAllAppsSwipeDown": {
     "en": "Chooses what this swipe does on the All apps panel. The list is deliberately short: back to the desktop, expand all apps, launch a chosen app, lock the screen, or unused. Screen lock is offered only in builds that can perform it. This direction runs only at the top of the list; by default it closes the panel and returns to the desktop.",

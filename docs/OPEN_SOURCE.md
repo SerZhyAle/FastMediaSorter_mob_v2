@@ -9,7 +9,7 @@ permalink: /docs/OPEN_SOURCE.html
 
 # Open Source Notices
 
-FastMediaSorter is built on the open source components listed below. We are grateful to their authors. The list is generated from the build files, so it covers everything shipped in a build rather than a selection.
+Fast Media Sorter & Organizer is built on the open source components listed below. We are grateful to their authors. The list is generated from the build files, so it covers everything shipped in a build rather than a selection.
 
 ## Open source components
 

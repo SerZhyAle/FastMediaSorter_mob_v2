@@ -8,16 +8,15 @@ import android.view.inputmethod.EditorInfo
 import android.widget.FrameLayout
 import androidx.core.content.getSystemService
 import androidx.core.view.isVisible
-import androidx.lifecycle.findViewTreeLifecycleOwner
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailabilityAccessor
 import com.sza.fastmediasorter.databinding.GadgetLauncherTranslatorBinding
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.ui.dialog.TranslationSettingsDialog
 import com.sza.fastmediasorter.ui.player.helpers.TextTranslationFacade
 import com.sza.fastmediasorter.ui.player.helpers.TextTranslationFacadeFactory
 import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
+import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.util.showBoundToHost
 import dagger.Lazy
 import kotlinx.coroutines.CancellationException
@@ -25,7 +24,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -184,8 +185,12 @@ private class TranslatorGadgetView(
 
     override suspend fun CoroutineScope.onActive() {
         scope = this
-        renderPairCaption()
         try {
+            // The pair is edited on the Tools settings page while this cell sits behind it.
+            settingsRepository.get().getSettings()
+                .map { it.translationSourceLanguage to it.translationTargetLanguage }
+                .distinctUntilChanged()
+                .collect { renderPairCaption() }
             awaitCancellation()
         } finally {
             scope = null
@@ -227,21 +232,16 @@ private class TranslatorGadgetView(
     }
 
     /**
-     * The caption opens the dialog where the pair lives and where the translation engine gets
-     * enabled - the surface a pair-less or engine-less cell was missing. Applying settings there
-     * drops the session swap, so what the user just saved is what runs next.
+     * The caption opens the translation block of the Tools settings page, where the pair lives (S4622).
+     * Opening it drops the session swap, so what the user saves there is what runs next; the caption
+     * follows the stored pair through [onActive].
      */
     private fun openLanguageSettings() {
-        val owner = findViewTreeLifecycleOwner() ?: return
-        TranslationSettingsDialog.show(
-            context = context,
-            lifecycleOwner = owner,
-            settingsRepository = settingsRepository.get(),
-        ) {
-            forcedSource = null
-            forcedTarget = null
-            scope?.launch { renderPairCaption() }
-        }
+        forcedSource = null
+        forcedTarget = null
+        context.startActivity(
+            SettingsActivity.openToolsSectionIntent(context, SettingsActivity.SECTION_TRANSLATION),
+        )
     }
 
     private fun clipboardText(): String {

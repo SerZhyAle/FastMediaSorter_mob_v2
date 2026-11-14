@@ -4,6 +4,7 @@ import android.content.Context
 import android.widget.Toast
 import androidx.media3.common.Player
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
 import com.sza.fastmediasorter.ui.player.PlaybackControlPreferences
@@ -59,13 +60,15 @@ class PlaybackOrderManager(private val activity: PlayerActivity) {
         val currentState = activity.viewModel.state.value
         val resourceId = currentState.resource?.id
         val mediaType = currentState.currentFile?.type
-        val prefs = prefs()
-        if (resourceId != null) {
-            PlaybackControlPreferences.saveMode(prefs, resourceId, mediaType, newMode)
-        } else {
-            prefs.edit()
-                .putString(PlaybackControlPreferences.globalKeyFor(mediaType), newMode.toPrefsString())
-                .apply()
+        StrictModeHelper.allowDiskReads {
+            val prefs = prefs()
+            if (resourceId != null) {
+                PlaybackControlPreferences.saveMode(prefs, resourceId, mediaType, newMode)
+            } else {
+                prefs.edit()
+                    .putString(PlaybackControlPreferences.globalKeyFor(mediaType), newMode.toPrefsString())
+                    .apply()
+            }
         }
         applyToActivePlayer(newMode)
         activity.exoPlayerControlsManager.updatePlaybackOrderButtonState()
@@ -98,18 +101,22 @@ class PlaybackOrderManager(private val activity: PlayerActivity) {
 
     // The override is one-shot: it is consumed from the Intent so a later re-entry into the same
     // resource resolves from preferences instead of replaying the caller's choice.
-    private fun resolveMode(resourceId: Long, mediaType: MediaType): PlaybackOrderMode {
-        val prefs = prefs()
-        val extraKey = PlaybackControlPreferences.EXTRA_PLAYBACK_ORDER_OVERRIDE
-        val overrideMode = activity.intent.getStringExtra(extraKey)?.let(PlaybackOrderMode::fromPrefsString)
-        if (overrideMode == null) {
-            return PlaybackControlPreferences.loadMode(prefs, resourceId, mediaType)
+    private fun resolveMode(resourceId: Long, mediaType: MediaType): PlaybackOrderMode =
+        StrictModeHelper.allowDiskReads {
+            val prefs = prefs()
+            val extraKey = PlaybackControlPreferences.EXTRA_PLAYBACK_ORDER_OVERRIDE
+            val overrideMode = activity.intent.getStringExtra(extraKey)?.let(PlaybackOrderMode::fromPrefsString)
+            if (overrideMode == null) {
+                PlaybackControlPreferences.loadMode(prefs, resourceId, mediaType)
+            } else {
+                PlaybackControlPreferences.saveMode(prefs, resourceId, mediaType, overrideMode)
+                activity.intent.removeExtra(extraKey)
+                overrideMode
+            }
         }
-        PlaybackControlPreferences.saveMode(prefs, resourceId, mediaType, overrideMode)
-        activity.intent.removeExtra(extraKey)
-        return overrideMode
-    }
 
+    // Callers wrap every use in allowDiskReads: the first access on a fresh Activity context stats the
+    // prefs directory and waits for the XML load, and syncForCurrentResource needs the mode in the same pass.
     private fun prefs() =
         activity.getSharedPreferences(PlaybackControlPreferences.PREFS_NAME, Context.MODE_PRIVATE)
 }

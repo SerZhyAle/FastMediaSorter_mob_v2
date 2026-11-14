@@ -123,7 +123,7 @@ $recipes = @{
     'settings-media'      = @{ Component = $settingsComponent; Tab = 1; FirstFrameOnly = $true }
     'settings-playback'   = @{ Component = $settingsComponent; Tab = 2; FirstFrameOnly = $true }
     'settings-operations' = @{ Component = $settingsComponent; Tab = 3; FirstFrameOnly = $true }
-    'welcome'             = @{ Component = $settingsComponent; Tab = 0; TapIdScrolling = 'btnOpenWelcome'; FirstFrameOnly = $true }
+    'welcome'             = @{ Component = $settingsComponent; Destination = 'about'; TapIdScrolling = 'btnOpenWelcome'; FirstFrameOnly = $true }
     # The browser and the player are reached through the main screen: the seeded virtual "All Videos"
     # resource row is tapped by its label (a string key, resolved per locale), and the player by the name of
     # a two-minute loop of the seeded video, which the run publishes first (the seeded clip itself lasts six
@@ -166,7 +166,7 @@ $slice3 = @{
                                 Steps = @(@{ ExpandSection = 'headerAuthorization'; Reveals = 'row_saved_authorizations' }, @{ TapIdScrolling = 'row_saved_authorizations' }) }
     'keybinding-remap'     = @{ Component = $settingsComponent; Tab = 3; TapIdScrolling = 'rowControlsKeybindings'; Expect = 'KeybindingRemapActivity' }
     'scheduled-operations' = @{ Component = $mainComponent; Steps = $programsMenu + @(@{ TapLabelKey = 'widget_scheduled_tasks_label' }); Expect = 'ScheduledOperationsActivity' }
-    'system-info'          = @{ Component = $settingsComponent; Tab = 0; TapIdScrolling = 'btnSystemInfo'; Expect = 'SystemInfoActivity' }
+    'system-info'          = @{ Component = $settingsComponent; Destination = 'about'; TapIdScrolling = 'btnSystemInfo'; Expect = 'SystemInfoActivity' }
     'launch-panel'         = @{ Component = $mainComponent; Steps = $programsMenu + @(@{ TapLabelKey = 'app_launch_panel_title' }); Expect = 'AppLaunchPanelActivity' }
     'launch-panel-edit'    = @{ Component = $mainComponent; Steps = $programsMenu + @(@{ TapLabelKey = 'app_launch_panel_title' }, @{ TapId = 'btnEditPanel' }); Expect = 'EditAppLaunchPanelActivity' }
     'mirror'               = @{ Component = $mainComponent; Steps = $programsMenu + @(@{ TapLabelKey = 'mirror_title' }); Expect = 'MirrorActivity' }
@@ -311,6 +311,7 @@ function Open-Surface([string]$HelpId, $Recipe, [string]$Locale) {
     Invoke-DeviceShell "settings put system user_rotation $(if ($Recipe.Landscape) { 1 } else { 0 })" | Out-Null
     $start = "am start -n $Package/$($Recipe.Component)"
     if ($null -ne $Recipe.Tab) { $start += " --ei extra_initial_tab $($Recipe.Tab)" }
+    if ($null -ne $Recipe.Destination) { $start += " --es extra_initial_destination $($Recipe.Destination)" }
     Invoke-DeviceShell $start | Out-Null
     Start-Sleep -Seconds $SettleSeconds
     if ($Recipe.OpenResourceLabelKey) {

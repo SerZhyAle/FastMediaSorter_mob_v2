@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.CompoundButton
 import android.widget.EditText
+import androidx.core.view.doOnLayout
 import androidx.fragment.app.Fragment
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
@@ -33,6 +34,19 @@ abstract class BaseSettingsFragment : Fragment() {
         // S4394: the subclass body below this call has not run yet, so registrations report their
         // restored state through the manager's aggregate callback rather than this first read.
         (activity as? SettingsActivity)?.onSettingsPageViewReady()
+        restoreRememberedScroll(view)
+    }
+
+    // S4621: the viewport is restored only after the first layout, when the content height is known;
+    // scrolling an unmeasured view would clamp the offset to zero.
+    private fun restoreRememberedScroll(view: View) {
+        val offset = (activity as? SettingsActivity)?.rememberedScrollOffset(this) ?: 0
+        if (offset > 0) view.doOnLayout { it.scrollTo(0, offset) }
+    }
+
+    override fun onPause() {
+        view?.let { root -> (activity as? SettingsActivity)?.rememberScrollOffset(this, root.scrollY) }
+        super.onPause()
     }
 
     /**

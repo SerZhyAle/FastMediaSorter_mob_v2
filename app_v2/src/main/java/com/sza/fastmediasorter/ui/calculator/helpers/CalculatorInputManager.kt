@@ -356,7 +356,7 @@ class CalculatorInputManager(
         }
     }
 
-    /** Re-reads the settings written by the calculator settings dialog and redraws with them. */
+    /** Re-reads the settings written by the calculator block of the Tools settings page and redraws with them. */
     fun reloadSettings() {
         settings = settingsStore.load()
         keypadModeManager.applyDisplayTextSize(settings.displayTextSizeSp)

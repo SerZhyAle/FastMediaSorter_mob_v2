@@ -15,7 +15,7 @@ why: |
 
   Copies and moves work between any two places the app knows: the phone, a memory card, a [network folder](term:network-folder), an FTP or SFTP server and [cloud storage](term:cloud-storage). Deleted files go to the [trash](term:trash) first, where the phone allows it, so a mistake is not the end of the world.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition). Lite copies and moves between folders on this device and memory cards; FOSS also to and from network folders and servers; Standard, noLegal, Photos, Legacy and VR also to and from the cloud. The Photos edition works with pictures."
+  - "Fast Media Sorter & Organizer in any [edition](term:edition). Lite copies and moves between folders on this device and memory cards; FOSS also to and from network folders and servers; Standard, noLegal, Photos, Legacy and VR also to and from the cloud. The Photos edition works with pictures."
   - "A [resource](term:resource) open in the file browser. Move, rename and delete need a resource the app can write to."
 steps:
   - number: 1

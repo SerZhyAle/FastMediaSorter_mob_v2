@@ -19,7 +19,7 @@
   "locales": {
     "en": {
       "title": "Statistics",
-      "purpose": "Statistics shows what FastMediaSorter has done for you: files sorted, space freed, time spent in the player and more. The numbers are counted on your device and nothing is sent anywhere automatically - you decide whether to share a summary with the author.",
+      "purpose": "Statistics shows what Fast Media Sorter & Organizer has done for you: files sorted, space freed, time spent in the player and more. The numbers are counted on your device and nothing is sent anywhere automatically - you decide whether to share a summary with the author.",
       "steps": [
         "Open Statistics from Settings, on the General tab: the row appears under the Statistics collection switch while collection is on.",
         "On a new install the screen starts with a short note (1). The numbers fill in as you sort, view and capture files.",
@@ -76,7 +76,7 @@
     },
     "ru": {
       "title": "Статистика",
-      "purpose": "Статистика показывает, что FastMediaSorter сделал для вас: сколько файлов отсортировано, сколько места освобождено, сколько времени вы провели в плеере и многое другое. Числа считаются на вашем устройстве, и ничего не отправляется автоматически - делиться ли сводкой с автором, решаете вы.",
+      "purpose": "Статистика показывает, что Fast Media Sorter & Organizer сделал для вас: сколько файлов отсортировано, сколько места освобождено, сколько времени вы провели в плеере и многое другое. Числа считаются на вашем устройстве, и ничего не отправляется автоматически - делиться ли сводкой с автором, решаете вы.",
       "steps": [
         "Откройте «Статистику» в настройках, на вкладке «Общие»: строка появляется под переключателем «Сбор статистики», пока сбор включён.",
         "После новой установки экран начинается с короткого сообщения (1). Числа заполняются по мере того, как вы сортируете, просматриваете и снимаете файлы.",
@@ -133,7 +133,7 @@
     },
     "uk": {
       "title": "Статистика",
-      "purpose": "Статистика показує, що FastMediaSorter зробив для вас: скільки файлів відсортовано, скільки місця звільнено, скільки часу ви провели в плеєрі та багато іншого. Числа рахуються на вашому пристрої, і нічого не надсилається автоматично - чи ділитися зведенням з автором, вирішуєте ви.",
+      "purpose": "Статистика показує, що Fast Media Sorter & Organizer зробив для вас: скільки файлів відсортовано, скільки місця звільнено, скільки часу ви провели в плеєрі та багато іншого. Числа рахуються на вашому пристрої, і нічого не надсилається автоматично - чи ділитися зведенням з автором, вирішуєте ви.",
       "steps": [
         "Відкрийте «Статистику» в налаштуваннях, на вкладці «Загальні»: рядок з’являється під перемикачем «Збір статистики», поки збір увімкнено.",
         "Після нового встановлення екран починається з короткого повідомлення (1). Числа заповнюються в міру того, як ви сортуєте, переглядаєте та знімаєте файли.",

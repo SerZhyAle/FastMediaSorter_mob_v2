@@ -213,7 +213,7 @@
     <string name="backup_account">Cuenta: %s</string>
     <string name="google_sign_in_cancelled">Se canceló el inicio de sesión con Google</string>
     <string name="battery_optimization_hint_title">Aviso de optimización de batería</string>
-    <string name="battery_optimization_hint_message">La optimización de batería puede impedir la reproducción de audio en segundo plano. Desactiva la optimización de batería para FastMediaSorter en los ajustes del sistema para un audio en segundo plano fiable.</string>
+    <string name="battery_optimization_hint_message">La optimización de batería puede impedir la reproducción de audio en segundo plano. Desactiva la optimización de batería para Fast Media Sorter &amp; Organizer en los ajustes del sistema para un audio en segundo plano fiable.</string>
     <string name="no_internet_connection">Sin conexión a internet. Inténtalo de nuevo más tarde.</string>
     <string name="restart_required_title">Reinicio necesario</string>
     <string name="restart_required_message">Se han importado los ajustes. Reinicia la aplicación para aplicar los cambios.</string>
@@ -414,7 +414,6 @@
     <string name="connection_test_success_title">Prueba de conexión - Éxito</string>
     <string name="connection_test_failed_title">Prueba de conexión - Error</string>
     <string name="restart_app_title">Reiniciar aplicación</string>
-    <string name="restart_app_message">Para aplicar el nuevo idioma (%1$s), la aplicación debe reiniciarse. ¿Continuar?</string>
     <string name="restart_app_cache_message">Para aplicar el nuevo tamaño de caché (%1$d MB), la aplicación debe reiniciarse. ¿Continuar?</string>
     <string name="restart_app_compact_elements_message">Para aplicar el nuevo tamaño de los controles del reproductor, la aplicación debe reiniciarse. ¿Continuar?</string>
     <string name="restart">Reiniciar</string>
@@ -1253,7 +1252,7 @@
     <string name="shortcut_slideshow_short">Presentación de diapositivas</string>
     <string name="shortcut_slideshow_long">Iniciar presentación de diapositivas</string>
     <string name="confirm_delete_standalone">¿Eliminar \"%1$s\"?</string>
-    <string name="open_in_fms">Abrir en FastMediaSorter</string>
+    <string name="open_in_fms">Abrir en Fast Media Sorter &amp; Organizer</string>
     <string name="cd_add_to_favorites">Agregar a favoritos</string>
     <string name="cd_remove_from_favorites">Eliminar de favoritos</string>
     <string name="tile_audio_label">Audio FMS</string>
@@ -1525,13 +1524,13 @@
     <string name="browse_transfer_notif_title_permission_required">Se requiere permiso</string>
     <string name="browse_transfer_notif_text_preparing">Preparando..</string>
     <string name="browse_transfer_notif_text_progress">%1$d%% - %2$s</string>
-    <string name="browse_transfer_notif_text_failed">Abre FastMediaSorter para ver los detalles</string>
-    <string name="browse_transfer_notif_text_auth_required">Abre FastMediaSorter para iniciar sesión y continuar</string>
-    <string name="browse_transfer_notif_text_permission_required">Abre FastMediaSorter para conceder el permiso y volver a intentarlo</string>
+    <string name="browse_transfer_notif_text_failed">Abre Fast Media Sorter &amp; Organizer para ver los detalles</string>
+    <string name="browse_transfer_notif_text_auth_required">Abre Fast Media Sorter &amp; Organizer para iniciar sesión y continuar</string>
+    <string name="browse_transfer_notif_text_permission_required">Abre Fast Media Sorter &amp; Organizer para conceder el permiso y volver a intentarlo</string>
     <string name="browse_transfer_notif_action_cancel">Cancelar</string>
     <string name="midi_playback_failed">No se pudo reproducir este archivo MIDI. Intente con otra copia o pase a la siguiente pista.</string>
     <string name="tooltip_calculator_title">Calculadora</string>
-    <string name="tooltip_calculator_message">Añade una calculadora básica al menú principal y activa el widget de la calculadora. La calculadora se queda dentro de FastMediaSorter.</string>
+    <string name="tooltip_calculator_message">Añade una calculadora básica al menú principal y activa el widget de la calculadora. La calculadora se queda dentro de Fast Media Sorter &amp; Organizer.</string>
     <string name="profile_picker_title">Elige tu perfil de dispositivo</string>
     <string name="profile_picker_select">Seleccionar</string>
     <string name="system_info_copy_full_report">Copiar informe completo</string>
@@ -1636,7 +1635,7 @@
     <string name="cache_size_installed_toast">Caché configurada: %1$d MB</string>
     <string name="welcome_enable_all">Habilitar todo</string>
     <string name="welcome_enable_all_content_description">Habilitar todo y finalizar la configuración.</string>
-    <string name="default_player_choose_in_settings">En la configuración del sistema, seleccione FastMediaSorter como la aplicación predeterminada para este tipo.</string>
+    <string name="default_player_choose_in_settings">En la configuración del sistema, seleccione Fast Media Sorter &amp; Organizer como la aplicación predeterminada para este tipo.</string>
     <string name="s0413_audio_track_skipped">Se omitió \"%1$s\": este archivo no se puede reproducir.</string>
     <string name="s0413_audio_queue_unplayable">Aquí no se podía jugar a nada.</string>
     <string name="settings_remote_sources_title">Recursos remotos (SMB/(S)FTP/Nube)</string>
@@ -1654,8 +1653,8 @@
     <string name="settings_remote_source_cloud_help_message">Abra archivos guardados en la nube - Google Drive, OneDrive y Dropbox. Conecte una cuenta para explorar sus carpetas de la nube dentro de la propia aplicación.</string>
     <string name="settings_remote_source_disable_confirm_title">¿Ocultar estas carpetas?</string>
     <string name="settings_remote_source_disable_confirm_message">Las carpetas de esta fuente se ocultarán, no se eliminarán. Sus recursos guardados se conservan y reaparecen cuando vuelva a activar la fuente.</string>
-    <string name="screenshot_accessibility_service_description">Permite que FastMediaSorter haga capturas de pantalla con un gesto en el borde y las guarde, sin un diálogo en cada captura. Esto abarca solo las capturas de pantalla - la grabación de vídeo de la pantalla va aparte y pide permiso a Android al inicio de cada grabación.</string>
-    <string name="screenshot_accessibility_permission_rationale">Para hacer capturas de pantalla con el gesto en el borde, activa el servicio de accesibilidad de FastMediaSorter:\n\n1. Toca Abrir ajustes y luego activa FastMediaSorter en la lista de accesibilidad.\n2. Si aparece Controlado por un ajuste restringido o Se ha denegado el acceso a la aplicación: abre esta aplicación en Información de la aplicación, toca el menú (3 puntos), elige Permitir ajustes restringidos, confirma, vuelve atrás y actívalo.\n\nSi no puedes activarlo, toca Método antiguo para usar una versión que pide permiso en cada captura.</string>
+    <string name="screenshot_accessibility_service_description">Permite que Fast Media Sorter &amp; Organizer haga capturas de pantalla con un gesto en el borde y las guarde, sin un diálogo en cada captura. Esto abarca solo las capturas de pantalla - la grabación de vídeo de la pantalla va aparte y pide permiso a Android al inicio de cada grabación.</string>
+    <string name="screenshot_accessibility_permission_rationale">Para hacer capturas de pantalla con el gesto en el borde, activa el servicio de accesibilidad de Fast Media Sorter &amp; Organizer:\n\n1. Toca Abrir ajustes y luego activa Fast Media Sorter &amp; Organizer en la lista de accesibilidad.\n2. Si aparece Controlado por un ajuste restringido o Se ha denegado el acceso a la aplicación: abre esta aplicación en Información de la aplicación, toca el menú (3 puntos), elige Permitir ajustes restringidos, confirma, vuelve atrás y actívalo.\n\nSi no puedes activarlo, toca Método antiguo para usar una versión que pide permiso en cada captura.</string>
     <string name="screen_capture_rate_limited">La captura de pantalla fue demasiado rápida, inténtalo de nuevo.</string>
     <string name="screenshot_gesture_permission_dialog_title">Activar gestos de pantalla</string>
     <string name="screenshot_gesture_open_settings">Abrir ajustes</string>
@@ -1771,7 +1770,7 @@
     <string name="statistics_privacy_note">Estos datos se quedan en tu dispositivo. El resumen se lo envías tú al autor, desde tu propia aplicación de correo.</string>
     <string name="statistics_send_to_author">Enviar al autor</string>
     <string name="statistics_export">Exportar</string>
-    <string name="statistics_email_subject">Estadísticas de FastMediaSorter</string>
+    <string name="statistics_email_subject">Estadísticas de Fast Media Sorter &amp; Organizer</string>
     <string name="statistics_no_email_app">Ninguna aplicación puede enviar esto - instala una aplicación de correo o de compartir e inténtalo de nuevo.</string>
     <string name="statistics_report_all_time">Totales acumulados</string>
     <string name="statistics_report_section_summary">Resumen</string>
@@ -1782,7 +1781,7 @@
     <string name="statistics_report_tech_android">Android</string>
     <string name="statistics_report_unknown">desconocido</string>
     <string name="error_dialog_report_to_author">Enviar el informe de fallos al autor por correo</string>
-    <string name="crash_report_email_subject">Informe de fallos de FastMediaSorter</string>
+    <string name="crash_report_email_subject">Informe de fallos de Fast Media Sorter &amp; Organizer</string>
     <string name="crash_report_email_body_intro">Por favor, describa qué estaba haciendo cuando ocurrió el problema. Los detalles técnicos y el registro de la aplicación se adjuntan a continuación.</string>
     <string name="crash_prompt_title">¿Enviar informe de error?</string>
     <string name="crash_prompt_message">La aplicación se cerró inesperadamente la última vez. ¿Podrías enviar un informe de error con el registro de la aplicación al autor?</string>
@@ -1895,7 +1894,7 @@
     <string name="app_launch_panel_action_move">Mover</string>
     <string name="app_launch_panel_action_replace">Sustituir</string>
     <string name="app_launch_panel_action_remove">Quitar</string>
-    <string name="app_launch_panel_own_app_label">FastMediaSorter</string>
+    <string name="app_launch_panel_own_app_label">Fast Media Sorter &amp; Organizer</string>
     <string name="app_picker_title">Elija una aplicación</string>
     <string name="app_launch_panel_title">Inicio rápido</string>
     <string name="app_launch_panel_edit_action">Editar</string>
@@ -1930,8 +1929,8 @@
     <string name="app_launch_panel_add_chooser_title">Añadir al panel</string>
     <string name="app_launch_panel_path_external_app">Aplicación de Android</string>
     <string name="app_launch_panel_path_os_part">Ajustes del sistema Android</string>
-    <string name="app_launch_panel_path_app_feature">Función de FastMediaSorter</string>
-    <string name="app_launch_panel_path_app_resource">Recurso de FastMediaSorter</string>
+    <string name="app_launch_panel_path_app_feature">Función de Fast Media Sorter &amp; Organizer</string>
+    <string name="app_launch_panel_path_app_resource">Recurso de Fast Media Sorter &amp; Organizer</string>
     <string name="app_launch_panel_picker_feature_title">Elija una función</string>
     <string name="app_launch_panel_picker_os_title">Elija un ajuste del sistema Android</string>
     <string name="app_launch_panel_picker_resource_title">Elija un recurso</string>
@@ -2020,7 +2019,7 @@
     <string name="screen_recording_card_title">Pantalla de grabación</string>
     <string name="screen_recording_stop">Detener la grabación</string>
     <string name="screen_recording_disclosure_title">Grabación de vídeo de la pantalla</string>
-    <string name="screen_recording_disclosure_message">FastMediaSorter grabará todo lo que se muestre en tu pantalla, incluyendo otras aplicaciones, en un archivo de vídeo con audio del micrófono hasta que lo detengas. La grabación continúa en segundo plano. Android te preguntará si deseas grabar esta aplicación o la pantalla completa al inicio de cada grabación, y este paso no se puede omitir.</string>
+    <string name="screen_recording_disclosure_message">Fast Media Sorter &amp; Organizer grabará todo lo que se muestre en tu pantalla, incluyendo otras aplicaciones, en un archivo de vídeo con audio del micrófono hasta que lo detengas. La grabación continúa en segundo plano. Android te preguntará si deseas grabar esta aplicación o la pantalla completa al inicio de cada grabación, y este paso no se puede omitir.</string>
     <string name="screen_recording_disclosure_start">Comienza la grabación</string>
     <string name="screen_recording_saved">Grabación de pantalla guardada: %1$s</string>
     <string name="screen_recording_error">No se pudo guardar la grabación de pantalla.</string>
@@ -2103,7 +2102,7 @@
     <string name="edge_gesture_general_group_title">Configuración general de gestos</string>
     <string name="edge_gesture_schema_content_description">Mapa de gestos de borde: toque una dirección de zona para asignar una acción.</string>
     <string name="companion_qr_share_title">Escanea para añadir el recurso</string>
-    <string name="companion_qr_share_hint">En FastMediaSorter: Añadir recurso -&gt; Escanear QR</string>
+    <string name="companion_qr_share_hint">En Fast Media Sorter &amp; Organizer: Añadir recurso -&gt; Escanear QR</string>
     <string name="companion_qr_share_no_password_note">No incluye contraseña - el destinatario la introduce al importar.</string>
     <string name="companion_qr_share_encode_failed">No se pudo generar el código QR.</string>
     <string name="sftp_share_show_qr_action">Mostrar código QR</string>
@@ -2123,7 +2122,7 @@
     <string name="gesture_action_explain_send_to_recipients">Captura la pantalla y la envía a los destinatarios que elijas.</string>
     <string name="gesture_action_explain_share">Captura la pantalla y abre el menú de compartir del sistema.</string>
     <string name="gesture_action_explain_crop_and_share">Captura la pantalla, te deja recortarla y luego comparte el resultado.</string>
-    <string name="gesture_action_explain_open_app">Abre la aplicación que elijas para este gesto. Si no eliges ninguna, abre FastMediaSorter.</string>
+    <string name="gesture_action_explain_open_app">Abre la aplicación que elijas para este gesto. Si no eliges ninguna, abre Fast Media Sorter &amp; Organizer.</string>
     <string name="gesture_action_explain_open_panel">Abre el panel de acceso rápido.</string>
     <string name="gesture_action_explain_launch_camera">Abre la cámara integrada en la aplicación.</string>
     <string name="gesture_action_explain_take_photo">Hace una foto con la cámara de la aplicación y la guarda.</string>
@@ -2197,7 +2196,7 @@
     <string name="launcher_home_mode_play">reproducir</string>
     <string name="launcher_home_cell_with_mode">%1$s, %2$s</string>
     <string name="launcher_taskbar_start">Inicio</string>
-    <string name="launcher_menu_open_app">Abrir FastMediaSorter</string>
+    <string name="launcher_menu_open_app">Abrir Fast Media Sorter &amp; Organizer</string>
     <string name="launcher_menu_resources">Mis recursos</string>
     <string name="launcher_menu_all_apps">Todas las apps</string>
     <string name="launcher_menu_android_settings">Ajustes de Android</string>
@@ -2289,8 +2288,6 @@
     <string name="settings_streams_smart_buffering_summary">Mayor margen inicial y reconexiones silenciosas cuando la conexión es inestable</string>
     <string name="streams_section_pinned">Fijadas</string>
     <string name="streams_section_main">Canales</string>
-    <string name="streams_section_expand">Expandir sección</string>
-    <string name="streams_section_collapse">Contraer sección</string>
     <string name="ext_channel_preview_atlas_title">Atlas de vistas previas de canales</string>
     <string name="ext_channel_preview_atlas_desc">Muestra una vista previa de los canales de vídeo en el modo de cuadrícula antes de verlos por primera vez.</string>
     <string name="streams_atlas_prompt_message">¿Descargar las vistas previas para que los canales de vídeo muestren una imagen antes de reproducirlos?</string>
@@ -2426,7 +2423,7 @@
     <string name="launcher_tray_sim_signal_none">SIM %1$d, sin servicio</string>
     <string name="launcher_now_playing_other_apps">Mostrar la música de otras apps</string>
     <string name="launcher_now_playing_access_title">Mostrar música de otras apps</string>
-    <string name="launcher_now_playing_access_message">FastMediaSorter lee la sesión multimedia de la app que esté reproduciendo - el título de la pista, el artista y el estado de reproducción - para que este widget pueda mostrarlo y controlar la reproducción. Android llama a este permiso acceso a notificaciones, pero la app no lee ninguna notificación, solo la sesión multimedia. Lo concedes en una pantalla de ajustes de Android y puedes retirarlo allí en cualquier momento.</string>
+    <string name="launcher_now_playing_access_message">Fast Media Sorter &amp; Organizer lee la sesión multimedia de la app que esté reproduciendo - el título de la pista, el artista y el estado de reproducción - para que este widget pueda mostrarlo y controlar la reproducción. Android llama a este permiso acceso a notificaciones, pero la app no lee ninguna notificación, solo la sesión multimedia. Lo concedes en una pantalla de ajustes de Android y puedes retirarlo allí en cualquier momento.</string>
     <string name="perm_title_notification_listener">Acceso a notificaciones</string>
     <string name="perm_desc_notification_listener">Permite que el widget Reproduciendo ahora del escritorio del launcher muestre y controle lo que reproducen otras aplicaciones. La aplicación solo lee las sesiones multimedia, nunca el contenido de las notificaciones. Opcional - se concede desde una pantalla de ajustes de Android.</string>
     <string name="perm_title_write_external_storage">Guardado en el almacenamiento del dispositivo</string>
@@ -2908,7 +2905,7 @@
     <string name="wear_log_report_channel_name">Registros del reloj</string>
     <string name="wear_log_report_notification_title">Registros del reloj recibidos</string>
     <string name="wear_log_report_notification_text">Toca para enviarlos al desarrollador</string>
-    <string name="wear_log_report_email_subject">Registros del reloj de FastMediaSorter</string>
+    <string name="wear_log_report_email_subject">Registros del reloj de Fast Media Sorter &amp; Organizer</string>
     <string name="wear_log_report_email_body">El archivo contiene los registros tanto del reloj como del teléfono.</string>
     <string name="settings_unused_credentials_title">Credenciales no usadas</string>
     <string name="settings_unused_credentials_button">Credenciales no usadas - %1$d</string>
@@ -3024,7 +3021,6 @@
     <string name="ext_vlc_engine_desc">Reproduce archivos de vídeo e imágenes de disco que el reproductor integrado no puede abrir. Descarga única de aproximadamente 44 MB.</string>
     <string name="calculator_display_content_description">Resultado. Toque para copiar, mantenga presionado para pegar un número</string>
     <string name="calculator_action_settings">Configuración de la calculadora</string>
-    <string name="calculator_settings_title">Configuración de la calculadora</string>
     <string name="calculator_settings_group_thousands">Dígitos del grupo</string>
     <string name="calculator_settings_group_thousands_summary">Pon una coma entre cada tres dígitos, a ambos lados del punto decimal.</string>
     <string name="calculator_settings_text_size">Tamaño del resultado</string>
@@ -3151,7 +3147,7 @@
     <string name="welcome_enable_all_explainer_step_permissions_title">Permitir acceso</string>
     <string name="welcome_enable_all_explainer_step_permissions_body">Android muestra su propia solicitud. Toca Permitir. Algunos tipos de acceso abren una página de ajustes aparte - activa el interruptor allí y pulsa Atrás.</string>
     <string name="welcome_enable_all_explainer_step_default_app_title">Elige la app para tus archivos</string>
-    <string name="welcome_enable_all_explainer_step_default_app_body">Se abrirá uno de tus propios archivos para que Android pregunte qué app debe manejarlo. Esto es normal. Elige FastMediaSorter, toca Siempre y luego pulsa Atrás para volver aquí.</string>
+    <string name="welcome_enable_all_explainer_step_default_app_body">Se abrirá uno de tus propios archivos para que Android pregunte qué app debe manejarlo. Esto es normal. Elige Fast Media Sorter &amp; Organizer, toca Siempre y luego pulsa Atrás para volver aquí.</string>
     <string name="welcome_enable_all_explainer_step_back_title">Atrás te trae de vuelta aquí</string>
     <string name="welcome_enable_all_explainer_step_back_body">Toda pantalla que no sea nuestra se abandona con Atrás. No se pierde nada - la configuración continúa donde se detuvo.</string>
     <string name="welcome_enable_all_explainer_continue">Entendido, empezar</string>
@@ -3306,7 +3302,7 @@
     <string name="widget_water_flashlight_label">Linterna de agua</string>
     <string name="widget_water_flashlight_description">Enciende el flash y la pantalla y bloquea la pantalla: solo un botón la cierra</string>
     <string name="tooltip_stopwatch_title">Cronómetro</string>
-    <string name="tooltip_stopwatch_message">Añade un cronómetro al menú principal. Mide una carrera o varias seguidas, para hasta cuatro participantes a la vez, y guarda el resultado dentro de FastMediaSorter.</string>
+    <string name="tooltip_stopwatch_message">Añade un cronómetro al menú principal. Mide una carrera o varias seguidas, para hasta cuatro participantes a la vez, y guarda el resultado dentro de Fast Media Sorter &amp; Organizer.</string>
     <string name="stopwatch_volume_label">Volumen de la música</string>
     <string name="stopwatch_settings_title">Ajustes del cronómetro</string>
     <string name="stopwatch_settings_participants">Participantes</string>
@@ -3361,7 +3357,7 @@
     <string name="wear_listen_caption_idle">Escucha lo que oye el micrófono del reloj. El reloj te pedirá confirmación.</string>
     <string name="wear_listen_caption_waiting">Esperando tu confirmación en el reloj..</string>
     <string name="wear_listen_caption_listening">Escuchando el reloj.</string>
-    <string name="wear_listen_refusal_not_asked">El reloj no pudo preguntarte: activa sus notificaciones para FastMediaSorter.</string>
+    <string name="wear_listen_refusal_not_asked">El reloj no pudo preguntarte: activa sus notificaciones para Fast Media Sorter &amp; Organizer.</string>
     <string name="wear_listen_refusal_declined">Rechazaste la solicitud en el reloj.</string>
     <string name="wear_listen_refusal_expired">Nadie respondió en el reloj a tiempo.</string>
     <string name="wear_listen_refusal_capture_failed">El reloj no pudo abrir su micrófono.</string>
@@ -3575,7 +3571,7 @@
     <string name="wear_system_info_channel_name">Información del sistema del reloj</string>
     <string name="wear_system_info_notification_title">Informe del reloj recibido</string>
     <string name="wear_system_info_notification_text">Toca para abrir o enviar el informe</string>
-    <string name="wear_system_info_share_subject">Información del sistema del reloj de FastMediaSorter</string>
+    <string name="wear_system_info_share_subject">Información del sistema del reloj de Fast Media Sorter &amp; Organizer</string>
     <string name="wear_clipboard_channel_name">Portapapeles del reloj</string>
     <string name="wear_clipboard_notification_title">Texto del reloj</string>
     <string name="wear_clipboard_notification_text">Ahora está en el portapapeles de este teléfono</string>
@@ -3721,8 +3717,8 @@
     <string name="settings_sftp_server_apply_hint">Apaga y vuelve a encender el servidor para aplicar el cambio</string>
     <string name="settings_sftp_server_show_qr">Mostrar código de emparejamiento</string>
     <string name="settings_sftp_server_hide_qr">Ocultar código de emparejamiento</string>
-    <string name="settings_sftp_server_qr_description">Código de emparejamiento: escanéalo en FastMediaSorter en otro dispositivo</string>
-    <string name="add_resource_sftp_pairing_invalid">Este código no es un código de emparejamiento completo de FastMediaSorter - vuelve a mostrarlo en el teléfono servidor y escanéalo de nuevo</string>
+    <string name="settings_sftp_server_qr_description">Código de emparejamiento: escanéalo en Fast Media Sorter &amp; Organizer en otro dispositivo</string>
+    <string name="add_resource_sftp_pairing_invalid">Este código no es un código de emparejamiento completo de Fast Media Sorter &amp; Organizer - vuelve a mostrarlo en el teléfono servidor y escanéalo de nuevo</string>
     <string name="add_resource_sftp_pairing_filled">Datos de conexión completados a partir del código de emparejamiento - revísalos y guarda</string>
     <string name="add_resource_sftp_pairing_name">Servidor del dispositivo %1$s</string>
     <string name="filedo_password_remember_leak">Cualquiera que tenga este teléfono desbloqueado puede abrir, sin escribirla, todos los archivos .fd-sec para los que sirva esta contraseña.</string>
@@ -3828,8 +3824,8 @@
     <string name="wear_watchface_hint">Hay una esfera de FastMediaSorter para tu reloj.</string>
     <string name="wear_watchface_hint_action">Obtenerla</string>
     <string name="wear_install_offer_title">Hay un reloj conectado</string>
-    <string name="wear_install_offer_message">%1$s está conectado a este teléfono. Instala FastMediaSorter en el reloj para abrir tus archivos desde la muñeca y obtén la esfera de FastMediaSorter.</string>
-    <string name="wear_install_offer_message_face_only">FastMediaSorter ya está en %1$s. ¿Quieres obtener también la esfera de FastMediaSorter?</string>
+    <string name="wear_install_offer_message">%1$s está conectado a este teléfono. Instala Fast Media Sorter &amp; Organizer en el reloj para abrir tus archivos desde la muñeca y obtén la esfera de Fast Media Sorter &amp; Organizer.</string>
+    <string name="wear_install_offer_message_face_only">Fast Media Sorter &amp; Organizer ya está en %1$s. ¿Quieres obtener también la esfera de Fast Media Sorter &amp; Organizer?</string>
     <string name="wear_install_offer_app">Instalar en el reloj</string>
     <string name="wear_install_offer_face">Esfera</string>
     <string name="wear_install_offer_app_no_watch">No hay ningún reloj conectado - se abre aquí la página de la app del reloj.</string>
@@ -3846,7 +3842,7 @@
     <string name="wear_stream_pins_push_no_watch">Ningún reloj al alcance</string>
     <string name="wear_stream_pins_push_failed">La lista no llegó al reloj. Inténtalo de nuevo.</string>
     <string name="wear_stream_pins_picker_title">Fijar un canal para el reloj</string>
-    <string name="welcome_default_player_hint_side">Toca uno de los botones: aparecerá un cuadro de diálogo. Elige FastMediaSorter y toca <b>Siempre</b>.</string>
+    <string name="welcome_default_player_hint_side">Toca uno de los botones: aparecerá un cuadro de diálogo. Elige Fast Media Sorter &amp; Organizer y toca <b>Siempre</b>.</string>
     <string name="host_key_repin_warning_format">No se cargó nada, por tu seguridad. Actualiza la huella digital solo si confías en esta red. Esto actualizará la huella digital de %1$d recurso(s) que comparten esta dirección.</string>
     <string name="host_key_repin_confirm">Actualizar huella digital</string>
     <string name="host_key_repin_done">Huella digital actualizada</string>
@@ -4028,7 +4024,6 @@
     <string name="broadcast_control_group_share">Enlace y uso compartido</string>
     <string name="msg_transfer_same_folder_refused">Esta ya es la carpeta del archivo. Elige un destino diferente.</string>
     <string name="settings_collapse_all">Contraer todo</string>
-    <string name="settings_category_about_app">Todo sobre esta aplicación</string>
     <string name="broadcast_control_preview_toggle_cd">Imagen de la emisión. Toca para mostrar u ocultar los controles</string>
     <string name="broadcast_link_password_title">Contraseña del enlace</string>
     <string name="broadcast_link_password_mode_auto">Automática</string>

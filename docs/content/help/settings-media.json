@@ -102,8 +102,8 @@
           "details": "Tracks from the resource you choose play in random order during image and GIF slideshows. Pick a resource that holds your music; the picker appears when the option is on."
         },
         "default-image-viewer": {
-          "summary": "Makes FastMediaSorter the app that opens your images.",
-          "details": "Android shows its own dialog: pick FastMediaSorter and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there."
+          "summary": "Makes Fast Media Sorter & Organizer the app that opens your images.",
+          "details": "Android shows its own dialog: pick Fast Media Sorter & Organizer and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there."
         },
         "support-video": {
           "summary": "Lets the app play video.",
@@ -122,8 +122,8 @@
           "details": "When you extract a frame from a video, it also goes to the clipboard, ready to paste."
         },
         "default-video-player": {
-          "summary": "Makes FastMediaSorter the app that plays your videos.",
-          "details": "Android shows its own dialog: pick FastMediaSorter and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there."
+          "summary": "Makes Fast Media Sorter & Organizer the app that plays your videos.",
+          "details": "Android shows its own dialog: pick Fast Media Sorter & Organizer and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there."
         },
         "support-audio": {
           "summary": "Lets the app play audio.",
@@ -142,8 +142,8 @@
           "details": "Pick a plain black background, a music note with pulse rings, breathing bars, waves and particles, or a visualization video."
         },
         "default-audio-player": {
-          "summary": "Makes FastMediaSorter the app that plays your music.",
-          "details": "Android shows its own dialog: pick FastMediaSorter and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there."
+          "summary": "Makes Fast Media Sorter & Organizer the app that plays your music.",
+          "details": "Android shows its own dialog: pick Fast Media Sorter & Organizer and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there."
         },
         "support-text": {
           "summary": "Lets the app open plain text files.",
@@ -159,11 +159,11 @@
         },
         "support-office": {
           "summary": "Opens Office documents with another app.",
-          "details": "DOC, DOCX, RTF and ODT open in an external app, not in FastMediaSorter itself."
+          "details": "DOC, DOCX, RTF and ODT open in an external app, not in Fast Media Sorter & Organizer itself."
         },
         "default-docs-viewer": {
-          "summary": "Makes FastMediaSorter the app that opens your documents.",
-          "details": "Android shows its own dialog: pick FastMediaSorter and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there."
+          "summary": "Makes Fast Media Sorter & Organizer the app that opens your documents.",
+          "details": "Android shows its own dialog: pick Fast Media Sorter & Organizer and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there."
         },
         "enable-ocr": {
           "summary": "Turns on text recognition for images and PDFs.",
@@ -304,8 +304,8 @@
           "details": "Во время показа изображений и GIF играют треки из выбранного ресурса в случайном порядке. Выберите ресурс с вашей музыкой; выбор появляется, когда параметр включён."
         },
         "default-image-viewer": {
-          "summary": "Назначает FastMediaSorter приложением для открытия изображений.",
-          "details": "Android покажет свой диалог: выберите FastMediaSorter и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть."
+          "summary": "Назначает Fast Media Sorter & Organizer приложением для открытия изображений.",
+          "details": "Android покажет свой диалог: выберите Fast Media Sorter & Organizer и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть."
         },
         "support-video": {
           "summary": "Позволяет приложению воспроизводить видео.",
@@ -324,8 +324,8 @@
           "details": "Когда вы извлекаете кадр из видео, он ещё и попадает в буфер обмена - его можно сразу вставить."
         },
         "default-video-player": {
-          "summary": "Назначает FastMediaSorter приложением для воспроизведения видео.",
-          "details": "Android покажет свой диалог: выберите FastMediaSorter и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть."
+          "summary": "Назначает Fast Media Sorter & Organizer приложением для воспроизведения видео.",
+          "details": "Android покажет свой диалог: выберите Fast Media Sorter & Organizer и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть."
         },
         "support-audio": {
           "summary": "Позволяет приложению воспроизводить аудио.",
@@ -344,8 +344,8 @@
           "details": "Можно оставить чёрный фон или выбрать ноту с пульсирующими кольцами, дышащие столбики, волны и частицы либо видеовизуализацию."
         },
         "default-audio-player": {
-          "summary": "Назначает FastMediaSorter приложением для воспроизведения музыки.",
-          "details": "Android покажет свой диалог: выберите FastMediaSorter и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть."
+          "summary": "Назначает Fast Media Sorter & Organizer приложением для воспроизведения музыки.",
+          "details": "Android покажет свой диалог: выберите Fast Media Sorter & Organizer и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть."
         },
         "support-text": {
           "summary": "Позволяет приложению открывать текстовые файлы.",
@@ -361,11 +361,11 @@
         },
         "support-office": {
           "summary": "Открывает офисные документы в другом приложении.",
-          "details": "DOC, DOCX, RTF и ODT открываются во внешнем приложении, а не в самом FastMediaSorter."
+          "details": "DOC, DOCX, RTF и ODT открываются во внешнем приложении, а не в самом Fast Media Sorter & Organizer."
         },
         "default-docs-viewer": {
-          "summary": "Назначает FastMediaSorter приложением для открытия документов.",
-          "details": "Android покажет свой диалог: выберите FastMediaSorter и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть."
+          "summary": "Назначает Fast Media Sorter & Organizer приложением для открытия документов.",
+          "details": "Android покажет свой диалог: выберите Fast Media Sorter & Organizer и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть."
         },
         "enable-ocr": {
           "summary": "Включает распознавание текста на изображениях и в PDF.",
@@ -506,8 +506,8 @@
           "details": "Під час показу зображень і GIF грають треки з вибраного ресурсу у випадковому порядку. Виберіть ресурс зі своєю музикою; вибір з’являється, коли параметр увімкнено."
         },
         "default-image-viewer": {
-          "summary": "Призначає FastMediaSorter застосунком для відкривання зображень.",
-          "details": "Android покаже власне діалогове вікно: виберіть FastMediaSorter і натисніть «Завжди». Це не назавжди: вибір зберігається в налаштуваннях самого Android, і там його можна повернути."
+          "summary": "Призначає Fast Media Sorter & Organizer застосунком для відкривання зображень.",
+          "details": "Android покаже власне діалогове вікно: виберіть Fast Media Sorter & Organizer і натисніть «Завжди». Це не назавжди: вибір зберігається в налаштуваннях самого Android, і там його можна повернути."
         },
         "support-video": {
           "summary": "Дозволяє застосунку відтворювати відео.",
@@ -526,8 +526,8 @@
           "details": "Коли ви добуваєте кадр із відео, він ще й потрапляє у буфер обміну - його можна одразу вставити."
         },
         "default-video-player": {
-          "summary": "Призначає FastMediaSorter застосунком для відтворення відео.",
-          "details": "Android покаже власне діалогове вікно: виберіть FastMediaSorter і натисніть «Завжди». Це не назавжди: вибір зберігається в налаштуваннях самого Android, і там його можна повернути."
+          "summary": "Призначає Fast Media Sorter & Organizer застосунком для відтворення відео.",
+          "details": "Android покаже власне діалогове вікно: виберіть Fast Media Sorter & Organizer і натисніть «Завжди». Це не назавжди: вибір зберігається в налаштуваннях самого Android, і там його можна повернути."
         },
         "support-audio": {
           "summary": "Дозволяє застосунку відтворювати аудіо.",
@@ -546,8 +546,8 @@
           "details": "Можна залишити чорний фон або обрати ноту з пульсуючими кільцями, дихаючі стовпчики, хвилі та частинки чи відеовізуалізацію."
         },
         "default-audio-player": {
-          "summary": "Призначає FastMediaSorter застосунком для відтворення музики.",
-          "details": "Android покаже власне діалогове вікно: виберіть FastMediaSorter і натисніть «Завжди». Це не назавжди: вибір зберігається в налаштуваннях самого Android, і там його можна повернути."
+          "summary": "Призначає Fast Media Sorter & Organizer застосунком для відтворення музики.",
+          "details": "Android покаже власне діалогове вікно: виберіть Fast Media Sorter & Organizer і натисніть «Завжди». Це не назавжди: вибір зберігається в налаштуваннях самого Android, і там його можна повернути."
         },
         "support-text": {
           "summary": "Дозволяє застосунку відкривати текстові файли.",
@@ -563,11 +563,11 @@
         },
         "support-office": {
           "summary": "Відкриває офісні документи у іншому застосунку.",
-          "details": "DOC, DOCX, RTF і ODT відкриваються у зовнішньому застосунку, а не в самому FastMediaSorter."
+          "details": "DOC, DOCX, RTF і ODT відкриваються у зовнішньому застосунку, а не в самому Fast Media Sorter & Organizer."
         },
         "default-docs-viewer": {
-          "summary": "Призначає FastMediaSorter застосунком для відкривання документів.",
-          "details": "Android покаже власне діалогове вікно: виберіть FastMediaSorter і натисніть «Завжди». Це не назавжди: вибір зберігається в налаштуваннях самого Android, і там його можна повернути."
+          "summary": "Призначає Fast Media Sorter & Organizer застосунком для відкривання документів.",
+          "details": "Android покаже власне діалогове вікно: виберіть Fast Media Sorter & Organizer і натисніть «Завжди». Це не назавжди: вибір зберігається в налаштуваннях самого Android, і там його можна повернути."
         },
         "enable-ocr": {
           "summary": "Вмикає розпізнавання тексту на зображеннях і в PDF.",

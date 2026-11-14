@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "在手表上收听音乐 - FastMediaSorter v2"
+title: "在手表上收听音乐 - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-watch-music-zh-hans.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -13,14 +13,14 @@ permalink: /docs/howto/scenario-watch-music-zh-hans.html
 
 > **仅限完整版** - 本指南不适用于通过 Google Play 分发的版本，而是适用于从[下载页面](../DOWNLOADS.md)直接下载 APK 的完整版本。
 
-FastMediaSorter 让您可以直接在 Wear OS 智能手表上浏览并播放您的音乐收藏。您可以串流播放配对手机中共享的曲目，也可以播放存放在手表本身的本地音频文件，并支持专辑封面、随机播放、旋转表圈音量控制、离开应用后仍能继续播放的后台播放，以及在熄屏状态下继续播放音乐的息屏模式。
+Fast Media Sorter & Organizer 让您可以直接在 Wear OS 智能手表上浏览并播放您的音乐收藏。您可以串流播放配对手机中共享的曲目，也可以播放存放在手表本身的本地音频文件，并支持专辑封面、随机播放、旋转表圈音量控制、离开应用后仍能继续播放的后台播放，以及在熄屏状态下继续播放音乐的息屏模式。
 
 ---
 
 ## 你需要准备什么
 
 - 一块运行 **Wear OS 2.0** 或更高版本、已安装 FastMedia Wear 的智能手表
-- 一部运行 FastMediaSorter 的 Android 手机（如果要从手机串流音乐）
+- 一部运行 Fast Media Sorter & Organizer 的 Android 手机（如果要从手机串流音乐）
 - 存放在手机上或已传输到手表存储中的音乐文件（MP3、FLAC、AAC、OGG）
 - 用于音频输出的蓝牙耳机或手表扬声器
 
@@ -103,7 +103,7 @@ FastMediaSorter 让您可以直接在 Wear OS 智能手表上浏览并播放您�
 
 | 问题 | 解决方法 |
 |---------|------------|
-| “手机”区域显示“手机未连接” | 确认两台设备都已开启蓝牙，并且手机上已安装 FastMediaSorter |
+| “手机”区域显示“手机未连接” | 确认两台设备都已开启蓝牙，并且手机上已安装 Fast Media Sorter & Organizer |
 | “本地”下没有显示任何音乐文件 | 将 MP3 或 FLAC 文件复制到手表内部存储，或使用“手机”区域从手机播放 |
 | 离开应用后音频停止 | 在手表设置中开启**在后台继续播放**，并允许通知 - 播放服务需要通知权限才能持续运行 |
 | 缺少专辑封面 | 连接 Wi-Fi 以获取在线封面，或确认您的音频文件中包含内嵌的 ID3 封面 |

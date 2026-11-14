@@ -7,7 +7,7 @@ permalink: /docs/ICON_LEGEND-ru.html
 
 # Легенда значков
 
-Это настоящие значки интерфейса FastMediaSorter, и рядом с каждым - точная подпись, которую он показывает на экране.
+Это настоящие значки интерфейса Fast Media Sorter & Organizer, и рядом с каждым - точная подпись, которую он показывает на экране.
 
 ## Навигация по программам
 
@@ -83,7 +83,7 @@ permalink: /docs/ICON_LEGEND-ru.html
 
 | Значок | Значение |
 |---|---|
-| <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Всё об этом приложении |
+| <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Info |
 | <img src="icons/svg/ic_apps.svg" alt="ic_apps" width="24" height="24"> | Дополнительные программы и сценарии |
 | <img src="icons/svg/ic_cloud_upload.svg" alt="ic_cloud_upload" width="24" height="24"> | Резервные копии, восстановление и экспорт |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Аудио, обложки и фоновые визуализации |

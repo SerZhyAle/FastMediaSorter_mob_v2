@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "NAS / Windows শেয়ারের সাথে সংযুক্ত করুন (SMB) - FastMediaSorter v2"
+title: "NAS / Windows শেয়ারের সাথে সংযুক্ত করুন (SMB) - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-smb-setup-bn.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -13,7 +13,7 @@ permalink: /docs/howto/scenario-smb-setup-bn.html
 
 SMB (যাকে Windows File Sharing বা CIFS-ও বলা হয়) আপনাকে আপনার বাড়ির পিসি, ল্যাপটপ, বা NAS ডিভাইসের ফাইল ঠিক ফোনে থাকার মতো করে ব্রাউজ করতে দেয় - কোনো তার নেই, কোনো USB নেই, শুধু Wi-Fi।
 
-> **সহজ ভাষায় ব্যাখ্যা:** ধরুন আপনার পিসিতে আপনার বাড়ির Wi-Fi-তে একটা পাবলিক নোটিশ বোর্ড আছে। বাড়ির যেকোনো ডিভাইস ওই বোর্ড থেকে পড়তে পারে। FastMediaSorter ওই "বোর্ডের" (আপনার শেয়ার করা ফোল্ডারের) সাথে সংযুক্ত হয় এবং আপনার ফোনে সরাসরি সংরক্ষিত থাকার মতো করে ফাইল ব্রাউজ করতে দেয়। আগে থেকে কিছুই কপি বা ডাউনলোড হয় না - ফাইলগুলো চাহিদামতো খোলে।
+> **সহজ ভাষায় ব্যাখ্যা:** ধরুন আপনার পিসিতে আপনার বাড়ির Wi-Fi-তে একটা পাবলিক নোটিশ বোর্ড আছে। বাড়ির যেকোনো ডিভাইস ওই বোর্ড থেকে পড়তে পারে। Fast Media Sorter & Organizer ওই "বোর্ডের" (আপনার শেয়ার করা ফোল্ডারের) সাথে সংযুক্ত হয় এবং আপনার ফোনে সরাসরি সংরক্ষিত থাকার মতো করে ফাইল ব্রাউজ করতে দেয়। আগে থেকে কিছুই কপি বা ডাউনলোড হয় না - ফাইলগুলো চাহিদামতো খোলে।
 
 ---
 
@@ -67,12 +67,14 @@ IP ঠিকানাটা হলো আপনার Wi-Fi নেটওয়�
 
 ---
 
-## ধাপ ৩ - FastMediaSorter খুলুন এবং "+" ট্যাপ করুন
+<a id="ধাপ-৩---fastmediasorter-খুলুন-এবং--ট্যাপ-করুন"></a>
+
+## ধাপ ৩ - Fast Media Sorter & Organizer খুলুন এবং "+" ট্যাপ করুন
 
 1. অ্যাপ খুলুন
 2. **মূল স্ক্রিনে**, উপরের টুলবারে **"Add" <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> বাটনে** ট্যাপ করুন
 
-![FastMediaSorter মূল স্ক্রিন - উপরের টুলবারে হাইলাইট করা Add বাটন, SMB ট্যাব দৃশ্যমান](screenshots/screenshot-smb-step3.png)
+![Fast Media Sorter & Organizer মূল স্ক্রিন - উপরের টুলবারে হাইলাইট করা Add বাটন, SMB ট্যাব দৃশ্যমান](screenshots/screenshot-smb-step3.png)
 
 ---
 
@@ -147,7 +149,7 @@ IP ঠিকানাটা হলো আপনার Wi-Fi নেটওয়�
 
 এর কনটেন্ট ব্রাউজ করতে এতে ট্যাপ করুন - ছবি, ভিডিও এবং অন্যান্য ফাইল যেকোনো স্থানীয় ফোল্ডারের মতোই থাম্বনেইল হিসেবে দেখা যাবে।
 
-![FastMediaSorter মূল স্ক্রিন - হাইলাইট করা Network folder SMB ব্যাজসহ নতুন "Common" SMB রিসোর্স কার্ড (smb://192.168.1.100/Common)](screenshots/screenshot-smb-step8.png)
+![Fast Media Sorter & Organizer মূল স্ক্রিন - হাইলাইট করা Network folder SMB ব্যাজসহ নতুন "Common" SMB রিসোর্স কার্ড (smb://192.168.1.100/Common)](screenshots/screenshot-smb-step8.png)
 
 ---
 

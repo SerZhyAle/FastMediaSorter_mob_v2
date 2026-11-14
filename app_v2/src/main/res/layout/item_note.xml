@@ -43,6 +43,15 @@
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceLabelSmall"
             android:textColor="?attr/colorOnSurfaceVariant" />
+
+        <TextView
+            android:id="@+id/noteTooLarge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/notes_sync_too_large"
+            android:textAppearance="?attr/textAppearanceLabelSmall"
+            android:textColor="?attr/colorError"
+            android:visibility="gone" />
     </LinearLayout>
 
     <ImageButton

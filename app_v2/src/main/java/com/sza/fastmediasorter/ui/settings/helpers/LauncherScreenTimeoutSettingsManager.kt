@@ -3,11 +3,11 @@ package com.sza.fastmediasorter.ui.settings.helpers
 import android.text.InputType
 import android.widget.FrameLayout
 import androidx.annotation.StringRes
-import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.Fragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.databinding.DialogLauncherSettingsBinding
+import com.sza.fastmediasorter.databinding.FragmentSettingsLauncherBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
 import com.sza.fastmediasorter.util.showBoundTo
@@ -24,8 +24,8 @@ import com.sza.fastmediasorter.util.showBoundTo
  * screen - and a caption that named only the first would be read as a defect wherever the second happens.
  */
 class LauncherScreenTimeoutSettingsManager(
-    private val host: DialogFragment,
-    private val binding: DialogLauncherSettingsBinding,
+    private val host: Fragment,
+    private val binding: FragmentSettingsLauncherBinding,
     private val currentSettings: () -> AppSettings,
     private val isUpdating: () -> Boolean,
     private val systemActionsAvailable: Boolean,

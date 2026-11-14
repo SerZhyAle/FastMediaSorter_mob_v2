@@ -38,6 +38,11 @@ data class DeviceExchangeAccountEntry(
      * with no prompt. Null without a pin, and on a pin saved before this build until a matching connect fills it.
      */
     val pinnedKey: String? = null,
+    /**
+     * The device syncs its notes through this entry (DEVICE-EXCHANGE 1.13 item FK): off by default, the person's
+     * own act on each device, and on at most one entry, since notes are never merged across two servers.
+     */
+    val syncNotes: Boolean = false,
 ) {
 
     /** Host lower-cased, port and login compared case-insensitively (5.1); the device token is kept under it. */
@@ -65,16 +70,26 @@ data class DeviceExchangeAccountEntry(
     val serverSeals: Boolean
         get() = features?.contains(FEATURE_SEALED) == true
 
+    /**
+     * Whether the notes sync may use this entry (DEVICE-EXCHANGE 1.13 item FI): never a `guest` account, and only a
+     * server that lists both `notes` and `sealed`, since notes never travel in clear (item FK).
+     */
+    val takesPartInNotes: Boolean
+        get() = accountKind != ACCOUNT_KIND_GUEST &&
+            features?.let { FEATURE_NOTES in it && FEATURE_SEALED in it } == true
+
     // DIAGNOSTIC-REPORT section 10: host, login and pin are private; the generated form would print all three.
     override fun toString(): String =
         "DeviceExchangeAccountEntry(host=$REDACTED, port=$port, login=$REDACTED, deviceId=$deviceId, " +
             "pinnedCertificate=${pinnedCertificate?.let { REDACTED }}, autoAttach=$autoAttach, " +
             "publicEndpoint=${publicEndpoint?.let { REDACTED }}, outgoing=$outgoing, pinCapable=$pinCapable, " +
-            "features=$features, accountKind=$accountKind, pinnedKey=${pinnedKey?.let { REDACTED }})"
+            "features=$features, accountKind=$accountKind, pinnedKey=${pinnedKey?.let { REDACTED }}, " +
+            "syncNotes=$syncNotes)"
 
     companion object {
         const val FEATURE_CLIPBOARD = "clipboard"
         const val FEATURE_SEALED = "sealed"
+        const val FEATURE_NOTES = "notes"
         const val ACCOUNT_KIND_MEMBER = "member"
         const val ACCOUNT_KIND_GUEST = "guest"
 
@@ -149,6 +164,9 @@ data class DeviceExchangeEnrollment(
         /** Sends and receives clipboard values (22 item BV); tells the account's other devices who takes part. */
         const val ROLE_CLIPBOARD = "clipboard"
 
+        /** Syncs the account's notes (item FI); only devices holding it are a note box's recipients. */
+        const val ROLE_NOTES = "notes"
+
         /**
          * Every role this product may take on an entry, declared at `enroll` ahead of use (item AC), so making the
          * entry the outgoing one later needs no second enrollment and no password.
@@ -158,6 +176,7 @@ data class DeviceExchangeEnrollment(
             broadcaster: Boolean,
             receiver: Boolean = false,
             clipboard: Boolean = false,
+            notes: Boolean = false,
         ): List<String> =
             listOfNotNull(
                 ROLE_RESOURCE_CONSUMER,
@@ -165,6 +184,7 @@ data class DeviceExchangeEnrollment(
                 ROLE_BROADCASTER.takeIf { broadcaster },
                 ROLE_RECEIVER.takeIf { receiver },
                 ROLE_CLIPBOARD.takeIf { clipboard },
+                ROLE_NOTES.takeIf { notes },
             )
     }
 }

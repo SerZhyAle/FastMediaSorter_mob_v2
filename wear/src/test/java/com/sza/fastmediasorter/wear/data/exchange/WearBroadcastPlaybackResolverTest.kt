@@ -380,6 +380,35 @@ class WearBroadcastPlaybackResolverTest {
         }
     }
 
+    @Test
+    fun `a walk from the endpoint after a failed LAN one reaches the relay and names its index`() {
+        val record = record(descriptor = LAN_AND_RELAY, mode = "AUDIO_ONLY")
+
+        val first = resolve(record) as WearBroadcastPlayback.Playable
+        val next = runBlocking { resolver.resolve(record, startAt = 1) } as WearBroadcastPlayback.Playable
+
+        assertEquals(0, first.route?.endpointIndex)
+        assertEquals(1, next.route?.endpointIndex)
+        assertTrue(next.url.startsWith("http://127.0.0.1:"))
+    }
+
+    @Test
+    fun `a walk past the last endpoint is unreachable`() {
+        val record = record(descriptor = LAN_AND_RELAY, mode = "AUDIO_ONLY")
+
+        val playback = runBlocking { resolver.resolve(record, startAt = 2) }
+
+        assertEquals(WearBroadcastPlayback.Unavailable(Reason.UNREACHABLE), playback)
+    }
+
+    @Test
+    fun `a route never prints the broadcast id`() {
+        val playable = resolve(record(descriptor = LAN_AND_RELAY, mode = "AUDIO_ONLY")) as
+            WearBroadcastPlayback.Playable
+
+        assertFalse(playable.route.toString().contains("b1"))
+    }
+
     private fun resolve(record: WearDirectoryBroadcast): WearBroadcastPlayback =
         runBlocking { resolver.resolve(record) }
 

@@ -14,6 +14,12 @@ interface DeliverableDownloadRunner {
      */
     fun enqueue(set: DeliverableSet, force: Boolean = false)
 
+    /**
+     * Stops the download of [set] if one is queued or running. Removing a payload calls this first: a job
+     * that outlived its screen would otherwise promote its files over the empty slot.
+     */
+    fun cancel(set: DeliverableSet)
+
     /** Returns a flow tracking the download progress of a [DeliverableSet]. */
     fun progressOf(set: DeliverableSet): Flow<DownloadProgress>
 }

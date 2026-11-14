@@ -1,13 +1,13 @@
 ---
 layout: doc
-title: "FastMediaSorter v2"
+title: "Fast Media Sorter & Organizer"
 permalink: /docs/README-pt.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="pt" dir="ltr" markdown="1">
 
-# FastMediaSorter v2 🚀
+# Fast Media Sorter & Organizer 🚀 {#fastmediasorter-v2-}
 
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.2.10-purple?style=flat-square&logo=kotlin)
 ![Android](https://img.shields.io/badge/Platform-Android-green?style=flat-square&logo=android)
@@ -21,7 +21,7 @@ Instalando o APK diretamente? O Android avisa sobre um pacote que nunca viu ante
 
 ## Sobre o Projeto
 
-**FastMediaSorter v2** é um shell completo para um dispositivo Android. Ele assume a tela inicial, reproduz suas mídias, abre transmissões ao vivo, inicia seus aplicativos, conversa com seu relógio, monitora o dispositivo e gerencia todos os arquivos que você possui - em pastas locais, em unidades de rede (SMB, SFTP, FTP) e em armazenamento na nuvem (Google Drive, OneDrive, Dropbox).
+**Fast Media Sorter & Organizer** é um shell completo para um dispositivo Android. Ele assume a tela inicial, reproduz suas mídias, abre transmissões ao vivo, inicia seus aplicativos, conversa com seu relógio, monitora o dispositivo e gerencia todos os arquivos que você possui - em pastas locais, em unidades de rede (SMB, SFTP, FTP) e em armazenamento na nuvem (Google Drive, OneDrive, Dropbox).
 
 Ele é construído sobre oito pilares: shell de dispositivo, player de mídia, transmissões ao vivo, inicialização de aplicativos, um substituto para os aplicativos padrão, um companion no relógio, monitoramento do dispositivo e um gerenciador de arquivos completo. Organizar arquivos entre todas essas fontes foi onde o aplicativo começou, e ainda é a base sobre a qual o restante foi construído - mas não é mais tudo o que ele faz.
 
@@ -63,7 +63,7 @@ Recursos incluem:
 
 ## Edições 🎯 {#editions-}
 
-O FastMediaSorter v2 é lançado em **sete edições** - cinco para celulares e tablets do dia a dia (Standard, Lite, Photos, Legacy, FOSS) mais duas versões para headset e sideload, VR e noLegal. A grade canônica de recursos é gerada a partir do build em [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md):
+O Fast Media Sorter & Organizer é lançado em **sete edições** - cinco para celulares e tablets do dia a dia (Standard, Lite, Photos, Legacy, FOSS) mais duas versões para headset e sideload, VR e noLegal. A grade canônica de recursos é gerada a partir do build em [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md):
 
 | Edição | Descrição | Notas |
 |--------|-------------|-------|
@@ -140,9 +140,9 @@ Imagens em tamanho completo:
 - 🖥️ **Suporte a Rede e Nuvem:** Trabalhe com arquivos em suas unidades de rede (SMB com varredura automática de rede), servidores SFTP, FTP e em armazenamento na nuvem (Google Drive, Dropbox, OneDrive).
 - 🖼️ **Visualização Flexível:** Exiba arquivos em uma grade personalizável ou em lista detalhada, com suporte a paginação para coleções grandes (mais de 1000 arquivos).
 - ▶️ **Player Integrado:** Reprodução de vídeo e áudio, visualização de imagens e GIFs sem sair do app. Compatível com slideshow e zoom em tela cheia.
-- 🧩 **Integração como Player Padrão:** Opções de reprodução permitem que o FastMediaSorter atue como manipulador de mídia do sistema para intents de abertura/compartilhamento (ACTION_VIEW / ACTION_SEND), além de encaminhar eventos de ativação dos botões físicos de mídia para o serviço de reprodução de áudio.
+- 🧩 **Integração como Player Padrão:** Opções de reprodução permitem que o Fast Media Sorter & Organizer atue como manipulador de mídia do sistema para intents de abertura/compartilhamento (ACTION_VIEW / ACTION_SEND), além de encaminhar eventos de ativação dos botões físicos de mídia para o serviço de reprodução de áudio.
 - 🎛️ **Suporte a Botões Físicos:** Controles do volante, botões de fone de ouvido e teclas físicas de mídia (Reproduzir/Pausar, Próxima, Anterior) são totalmente suportados pelo serviço de áudio em segundo plano - sem necessidade de interação com a tela.
-- 📻 **Transmissões de Internet (tela Streams):** Reproduza rádio pela internet (http/https, Icecast/Shoutcast com informações ICY de reprodução atual), transmissões HLS/DASH e fontes RTSP diretamente de uma tela dedicada de Streams. Adicione URLs manualmente, importe uma playlist `.m3u` ou baixe um catálogo selecionado do FastMediaSorter. Fixe favoritos no topo; filtre por categoria e idioma. Áudio embutido: o rádio toca a partir da lista por meio de um mini-controle fixo na parte inferior, enquanto a lista permanece rolável. Vídeo e RTSP abrem no player em tela cheia. Disponível em Standard, Legacy, VR e noLegal; ausente em Lite e Photos.
+- 📻 **Transmissões de Internet (tela Streams):** Reproduza rádio pela internet (http/https, Icecast/Shoutcast com informações ICY de reprodução atual), transmissões HLS/DASH e fontes RTSP diretamente de uma tela dedicada de Streams. Adicione URLs manualmente, importe uma playlist `.m3u` ou baixe um catálogo selecionado do Fast Media Sorter & Organizer. Fixe favoritos no topo; filtre por categoria e idioma. Áudio embutido: o rádio toca a partir da lista por meio de um mini-controle fixo na parte inferior, enquanto a lista permanece rolável. Vídeo e RTSP abrem no player em tela cheia. Disponível em Standard, Legacy, VR e noLegal; ausente em Lite e Photos.
 - 🎵 **Suporte a Letras de Músicas:** Veja a letra da música que está tocando no momento. A busca é feita automaticamente por metadados (Artista/Título) usando `api.lyrics.ovh`, com alternativa por análise do nome do arquivo.
 - 🎶 **Música de Fundo no Slideshow:** Toque música de fundo durante slideshows de imagens. Selecione qualquer recurso de áudio como fonte de música, com reprodução aleatória de faixas, controle de volume e exibição do nome da faixa. Toque no nome da faixa para pular para outra faixa aleatória. Funciona perfeitamente com arquivos de rede e da nuvem.
 - ✏️ **Edição de Imagens:** Gire, inverta, aplique filtros (escala de cinza, sépia, negativo), ajuste brilho/contraste/saturação - tanto para arquivos locais quanto de rede.
@@ -165,7 +165,7 @@ Imagens em tamanho completo:
 - ⬇️ **Descarregamento de Transmissão:** Baixe um arquivo de rede para o cache local com uma caixa de progresso em tempo real antes ou durante a reprodução. Um aviso opcional de limpeza recupera o espaço de armazenamento depois.
 - 🔊 **Áudio DTS/DTS-HD:** Faixas de áudio DTS e DTS-HD são decodificadas por software por meio de uma versão personalizada do FFmpeg - sem necessidade de hardware especial.
 - 🎨 **Cor e Brilho do Vídeo:** Ajuste Matiz e Brilho em tempo real usando efeitos de GPU do Media3. As configurações permanecem entre arquivos de vídeo durante a sessão.
-- 📤 **Compartilhar com o FastMediaSorter:** Receba arquivos de qualquer app pela folha de compartilhamento padrão do Android e copie-os para um recurso selecionado com um único toque.
+- 📤 **Compartilhar com o Fast Media Sorter & Organizer:** Receba arquivos de qualquer app pela folha de compartilhamento padrão do Android e copie-os para um recurso selecionado com um único toque.
 - 📷 **Captura de Câmera na Navegação:** Tire uma foto com a câmera do dispositivo e salve-a diretamente no recurso atual - local ou de rede - sem sair do app.
 - 🔗 **Download Automático por Link:** Compartilhe qualquer URL http(s) com o app pela folha de compartilhamento do Android; o arquivo de mídia é baixado e salvo automaticamente em um recurso selecionado.
 - 👁️ **Modo 3D de Olho Único:** Recorte conteúdo estéreo (SBS/OU) para um único olho, para uma visualização confortável em telas planas; funciona tanto para vídeo quanto para imagens.
@@ -175,7 +175,7 @@ Imagens em tamanho completo:
 
 ## Formatos de Mídia Suportados 🎞️ {#supported-media-formats-}
 
-O FastMediaSorter v2 é compatível com uma ampla variedade de formatos:
+O Fast Media Sorter & Organizer é compatível com uma ampla variedade de formatos:
 
 - **Imagens:** JPG, JPEG, PNG, GIF, BMP, WEBP, HEIC, HEIF
 - **Vídeo:** MP4, MKV, MOV, WMV, FLV, WEBM, M4V, 3GP, MPG, MPEG
@@ -185,7 +185,7 @@ O FastMediaSorter v2 é compatível com uma ampla variedade de formatos:
 
 ## Cenários de Uso 💡 {#usage-scenarios-}
 
-Aqui estão algumas maneiras pelas quais o FastMediaSorter v2 pode ajudar você:
+Aqui estão algumas maneiras pelas quais o Fast Media Sorter & Organizer pode ajudar você:
 
 ### 1. 📸 Organizando Fotos da Câmera
 
@@ -219,7 +219,7 @@ Transforme qualquer **tablet** Android em um lindo porta-retrato digital sempre 
 
 Assista às suas séries favoritas armazenadas no seu PC ou na nuvem diretamente no seu telefone ou headset de VR. Sem precisar esperar a cópia terminar ou se preocupar com espaço livre. Basta apertar o play, e o próximo episódio começará automaticamente.
 
-**Casos de Uso em Headset de VR** - O FastMediaSorter roda nativamente em headsets de VR baseados em Android (Meta Quest, Pico e similares) sem nenhuma modificação:
+**Casos de Uso em Headset de VR** - O Fast Media Sorter & Organizer roda nativamente em headsets de VR baseados em Android (Meta Quest, Pico e similares) sem nenhuma modificação:
 
 - **🎬 Cinema Virtual Gigante**: Abra um vídeo do seu NAS doméstico ou do armazenamento na nuvem e assista em uma tela virtual do tamanho de uma parede inteira. Sem precisar copiar arquivos de vários gigabytes para o headset - o app transmite diretamente pela sua rede doméstica. Quando um episódio termina, o próximo começa automaticamente.
 - **🎵 Player de Música Imersivo**: Inicie sua coleção de músicas no ambiente de VR. O serviço de áudio em segundo plano mantém a música tocando mesmo ao alternar entre apps ou abrir a tela inicial de VR. Os botões físicos do headset (play/pause, próxima faixa) funcionam sem tocar no controle.
@@ -231,13 +231,13 @@ Pasta de Downloads bagunçada? Abra-a no painel de fontes, configure botões de 
 
 ### 10. 🚗 Música no Carro com Central Multimídia Android
 
-Instale o FastMediaSorter na sua central multimídia ou rádio automotivo com Android. Adicione pastas de música de um pendrive USB ou cartão SD - ou use o recurso virtual integrado **Toda a Música** para acessar instantaneamente toda a sua coleção sem nenhuma configuração. Os botões físicos de mídia (controles do volante, botões de volume) funcionam perfeitamente pelo serviço de áudio em segundo plano: play/pause, próxima/anterior faixa, tudo sem tocar na tela. O app lembra a posição de reprodução e retoma automaticamente na inicialização.
+Instale o Fast Media Sorter & Organizer na sua central multimídia ou rádio automotivo com Android. Adicione pastas de música de um pendrive USB ou cartão SD - ou use o recurso virtual integrado **Toda a Música** para acessar instantaneamente toda a sua coleção sem nenhuma configuração. Os botões físicos de mídia (controles do volante, botões de volume) funcionam perfeitamente pelo serviço de áudio em segundo plano: play/pause, próxima/anterior faixa, tudo sem tocar na tela. O app lembra a posição de reprodução e retoma automaticamente na inicialização.
 
 Com a tela **Streams** ativada, a mesma central multimídia também toca estações de rádio pela internet diretamente via dados móveis ou Wi-Fi - sem precisar de um app de rádio separado. Adicione qualquer URL de rádio, ou importe um catálogo de estações selecionado a partir da tela Extensions. O mini-controle fixo mostra o nome da faixa ICY atual enquanto a lista de estações permanece visível.
 
 ### 11. 📺 Central de Mídia em uma Android TV Box
 
-Instale o FastMediaSorter em qualquer Android TV box (Xiaomi Mi Box, Nvidia Shield, Amazon Fire TV ou uma box Android genérica). Conecte-se a um NAS doméstico via SMB, adicione Google Drive ou Dropbox, ou conecte um pendrive USB - tudo em um único app. Controle todo o fluxo com um controle remoto ou teclado Bluetooth: o D-pad move o foco, **OK** abre os itens, **Back** volta ao nível anterior e **Backspace** sobe uma pasta no navegador. Os botões coloridos do controle remoto correspondem a ações comuns de arquivo (**Vermelho** = Excluir, **Verde** = Copiar, **Amarelo** = Mover, **Azul** = Renomear). Inicie um slideshow em tela cheia com música de fundo na TV, ou mude para a reprodução de áudio com capa do álbum e letras. Nenhuma tela sensível ao toque é necessária.
+Instale o Fast Media Sorter & Organizer em qualquer Android TV box (Xiaomi Mi Box, Nvidia Shield, Amazon Fire TV ou uma box Android genérica). Conecte-se a um NAS doméstico via SMB, adicione Google Drive ou Dropbox, ou conecte um pendrive USB - tudo em um único app. Controle todo o fluxo com um controle remoto ou teclado Bluetooth: o D-pad move o foco, **OK** abre os itens, **Back** volta ao nível anterior e **Backspace** sobe uma pasta no navegador. Os botões coloridos do controle remoto correspondem a ações comuns de arquivo (**Vermelho** = Excluir, **Verde** = Copiar, **Amarelo** = Mover, **Azul** = Renomear). Inicie um slideshow em tela cheia com música de fundo na TV, ou mude para a reprodução de áudio com capa do álbum e letras. Nenhuma tela sensível ao toque é necessária.
 
 ## Documentação 📚 {#documentation-}
 
@@ -303,7 +303,7 @@ Guias detalhados estão disponíveis em vários idiomas:
 
 ## Companion Wear OS ⌚ {#wear-os-companion-}
 
-O FastMediaSorter inclui um app Wear OS independente e completo, além de um companion para o telefone, projetado para o formato de smartwatches.
+O Fast Media Sorter & Organizer inclui um app Wear OS independente e completo, além de um companion para o telefone, projetado para o formato de smartwatches.
 
 - Navegue e reproduza pastas e favoritos do telefone pareado, do armazenamento próprio do relógio e de compartilhamentos SMB/FTP/SFTP que o relógio acessa diretamente pelo Wi-Fi
 - Recursos na nuvem permanecem no telefone - o relógio não tem cliente de nuvem próprio; um arquivo da nuvem só chega até ele quando você o envia do telefone com "Enviar para.."
@@ -313,7 +313,7 @@ O FastMediaSorter inclui um app Wear OS independente e completo, além de um com
 
 Mídia, compartilhamentos de rede e transferência de arquivos estão na versão completa do app do relógio (APK direto). A versão da Google Play é um pequeno primeiro lançamento - calculadora, cronômetro, minijogo e configurações; o [portal do Wear OS](wear/index.md) indica o que cada versão tem.
 
-Há também um mostrador de relógio separado e gratuito para Wear OS 6 e versões mais recentes: [FastMediaSorter Watch Face](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface). Ele mostra a hora em tamanho grande, a data, ondas e partículas à deriva, barras de bateria e até oito botões redondos para atalhos do FastMediaSorter ou outros dados do relógio; os botões aparecem junto com o app do FastMediaSorter para o relógio. Instale-o pela Google Play no próprio relógio (procure por FastMediaSorter) ou abra a página dele no relógio pelas configurações do Wear no app do telefone.
+Há também um mostrador de relógio separado e gratuito para Wear OS 6 e versões mais recentes: [FastMediaSorter Watch Face](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface). Ele mostra a hora em tamanho grande, a data, ondas e partículas à deriva, barras de bateria e até oito botões redondos para atalhos do Fast Media Sorter & Organizer ou outros dados do relógio; os botões aparecem junto com o app do Fast Media Sorter & Organizer para o relógio. Instale-o pela Google Play no próprio relógio (procure por FastMediaSorter) ou abra a página dele no relógio pelas configurações do Wear no app do telefone.
 
 Documentação do Wear OS:
 
@@ -360,7 +360,7 @@ Após cada build bem-sucedido, o arquivo APK gerado é copiado automaticamente p
 
 ## Testes 🧪 {#testing-}
 
-O FastMediaSorter v2 usa o **Maestro** para testes de ponta a ponta, garantindo a qualidade e a confiabilidade do app.
+O Fast Media Sorter & Organizer usa o **Maestro** para testes de ponta a ponta, garantindo a qualidade e a confiabilidade do app.
 
 ### Execução Rápida de Testes
 

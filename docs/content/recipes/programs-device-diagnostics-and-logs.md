@@ -15,7 +15,7 @@ why: |
 
   Neither is sent anywhere by itself. You create the file, you look at it if you like, and you decide where it goes.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition) - see [The seven editions of FastMediaSorter](page:flavors.overview-and-comparison)."
+  - "Fast Media Sorter & Organizer in any [edition](term:edition) - see [The seven editions of Fast Media Sorter & Organizer](page:flavors.overview-and-comparison)."
   - "An app that can send a file - email, a messenger or cloud storage - if you want to send a report."
   - "For the watch report: a paired [watch](term:watch) with FastMedia Wear - see [Installing on Wear OS and pairing with the phone](page:wear.installation-and-pairing)."
 steps:
@@ -125,4 +125,4 @@ next_recipes:
 
 <sub class="doc-stamp">26.10.07 01:10</sub>
 
-Two tools help when something in FastMediaSorter does not work as it should: the **System information** report about your phone and the app, and the **debug log** of what the app was doing. This page shows how to open, read, copy, save and send both, and how to read the exact build from the version number.
+Two tools help when something in Fast Media Sorter & Organizer does not work as it should: the **System information** report about your phone and the app, and the **debug log** of what the app was doing. This page shows how to open, read, copy, save and send both, and how to read the exact build from the version number.

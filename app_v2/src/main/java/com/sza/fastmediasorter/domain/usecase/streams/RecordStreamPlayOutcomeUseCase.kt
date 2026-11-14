@@ -75,6 +75,15 @@ class RecordStreamPlayOutcomeUseCase @Inject constructor(
          * two copies are what let the terminal dialog drift away from the probe path.
          */
         fun isChannelAttributableFailure(hasNetwork: Boolean): Boolean = hasNetwork
+
+        /**
+         * STREAM-BANK 2.8 (document 05 section 16): whether a probe or grid-capture result may be written to the
+         * status bullet. A reachable result is always conclusive; a failure is only when a transport is still up,
+         * so the device's own outage never replaces a stored OK.
+         */
+        fun isProbeResultWritable(reachable: Boolean, hasNetwork: Boolean): Boolean =
+            reachable || isChannelAttributableFailure(hasNetwork)
+
         // Mirrors StreamMediaKindClassifier's stored kind; AUDIO -> ViewKind.AUDIO, RTSP/VIDEO -> VIDEO.
         private const val MEDIA_KIND_AUDIO = "AUDIO"
     }

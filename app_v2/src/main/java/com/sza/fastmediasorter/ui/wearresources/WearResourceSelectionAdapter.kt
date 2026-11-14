@@ -89,12 +89,9 @@ class WearResourceSelectionAdapter(
 
         fun bind(header: WearResourceAdapterItem.Header) {
             val title = binding.root.context.getString(header.titleRes)
-            binding.tvHeaderTitle.text = "$title (${header.count})"
-            val iconRes = if (header.isExpanded) R.drawable.ic_expand_less else R.drawable.ic_expand_more
-            binding.ivExpandIndicator.setImageResource(iconRes)
-            binding.headerRoot.setOnClickListener {
-                onCategoryToggle(header.category)
-            }
+            binding.headerRoot.setTitle("$title (${header.count})")
+            binding.headerRoot.setExpanded(header.isExpanded, notify = false)
+            binding.headerRoot.setOnExpandedChangeListener { onCategoryToggle(header.category) }
         }
     }
 

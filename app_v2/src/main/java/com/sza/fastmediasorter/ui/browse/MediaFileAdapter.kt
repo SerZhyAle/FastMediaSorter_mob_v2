@@ -47,6 +47,7 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.ui.browse.helpers.BrowseItemOperation
 import com.sza.fastmediasorter.ui.browse.helpers.BrowseItemOperationPolicy
 import com.sza.fastmediasorter.ui.browse.managers.BrowseApkTileBadgeBinder
+import com.sza.fastmediasorter.ui.common.RowTouchTarget
 import com.sza.fastmediasorter.ui.common.recycler.notifyChangedRuns
 import com.sza.fastmediasorter.ui.common.widget.MediaItemThumbnailBinder
 import com.sza.fastmediasorter.util.BinaryFileThumbnailGenerator
@@ -326,6 +327,8 @@ class MediaFileAdapter(
         private const val PAYLOAD_SELECTION = "payload_selection"
         private const val PAYLOAD_AUDIO_METADATA = MediaFileDiffCallback.PAYLOAD_AUDIO_METADATA
         private const val AUDIO_ONLY_THUMBNAIL_DP = 48
+        private const val ACTION_GLYPH_ORDINARY_DP = 28
+        private const val ACTION_GLYPH_COMPACT_DP = 20
 
         private const val COMPACT_CAPTION_SP = 11f
         private const val NORMAL_CAPTION_SP = 13f
@@ -539,6 +542,7 @@ class MediaFileAdapter(
         private val actionButtons by lazy {
             listOf(
                 binding.btnFavorite,
+                binding.btnOverflowMenu,
                 binding.btnCopyItem,
                 binding.btnMoveItem,
                 binding.btnRenameItem,
@@ -568,6 +572,7 @@ class MediaFileAdapter(
         }
 
         init {
+            Timber.d("S4631: list row action targets compact=$useCompactElements")
             val getFile: () -> MediaFile? = ::getItemByPosition
             binding.ivThumbnail.bindFileTypeClick(getFile)
             binding.root.bindFileTypeClick(getFile)
@@ -762,16 +767,14 @@ class MediaFileAdapter(
                     root.setPaddingRelative(p8, p2, p12, p2)
                 }
 
-                // Scale action buttons: compact = 24dp (0.75× normal), normal = 32dp
-                // 16dp was too small - icon area was only ~4dp with 6dp XML padding
-                val btnSizePx = if (useCompactElements) {
-                    (24 * root.resources.displayMetrics.density).toInt()
-                } else {
-                    (32 * root.resources.displayMetrics.density).toInt()
-                }
+                // UI-SIZING 1.2 rule 4: ordinary mode keeps a 48dp hit target around the 28dp glyph the old 32dp
+                // button drew; compact keeps the declared 24dp floor (16dp was too small - the glyph area was ~4dp).
+                val btnSizePx = RowTouchTarget.targetPx(root.resources, useCompactElements)
+                val btnGlyphDp = if (useCompactElements) ACTION_GLYPH_COMPACT_DP else ACTION_GLYPH_ORDINARY_DP
+                val btnPaddingPx = RowTouchTarget.glyphPaddingPx(root.resources, useCompactElements, btnGlyphDp)
                 for (btn in actionButtons) {
-                    btn.layoutParams.width = btnSizePx
-                    btn.layoutParams.height = btnSizePx
+                    RowTouchTarget.resize(btn, btnSizePx)
+                    btn.setPadding(btnPaddingPx, btnPaddingPx, btnPaddingPx, btnPaddingPx)
                 }
 
                 // Checkbox visibility/state + selection background color (shared with PAYLOAD_SELECTION partial rebind)

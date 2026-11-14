@@ -14,7 +14,7 @@ why: |
 
   A slideshow is only a way of looking. It never creates a video and never changes your files.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition). In the Photos edition the slideshow shows pictures only, because that edition does not play video or audio."
+  - "Fast Media Sorter & Organizer in any [edition](term:edition). In the Photos edition the slideshow shows pictures only, because that edition does not play video or audio."
   - "A [resource](term:resource) with photos, for example a folder on this device or a [network folder](term:network-folder) on your home computer."
   - "Optional: a second resource with music, if you want background music."
 steps:

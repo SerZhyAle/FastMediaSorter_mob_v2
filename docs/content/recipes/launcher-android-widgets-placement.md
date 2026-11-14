@@ -14,8 +14,8 @@ why: |
 
   The same steps work for the app's own [widgets](term:widget), which can live on the launcher [desktop](term:desktop) as well as on the Android [home screen](term:home-screen).
 ingredients:
-  - "FastMediaSorter in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition), with the [launcher](term:launcher) desktop switched on - see [Your launcher desktop](page:launcher.desktop-grid-and-icons)."
-  - "For the app's widgets on the desktop: FastMediaSorter set as the device home screen."
+  - "Fast Media Sorter & Organizer in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition), with the [launcher](term:launcher) desktop switched on - see [Your launcher desktop](page:launcher.desktop-grid-and-icons)."
+  - "For the app's widgets on the desktop: Fast Media Sorter & Organizer set as the device home screen."
 steps:
   - number: 1
     id: add-gadget
@@ -39,7 +39,7 @@ steps:
 
       Some widgets need to be set up first. **Random Photo Frame** asks which [resource](term:resource) to take photos from, and **Quick capture** asks which folder to save to. The square is placed only after you confirm; if you cancel, nothing is placed and nothing is left behind.
 
-      A widget on the desktop and the same widget on another home screen keep their own settings - two photo frames can show two different albums. Removing a square also forgets its settings. All widgets are described in [FastMediaSorter widgets for your home screen](page:launcher.home-screen-widgets).
+      A widget on the desktop and the same widget on another home screen keep their own settings - two photo frames can show two different albums. Removing a square also forgets its settings. All widgets are described in [Fast Media Sorter & Organizer widgets for your home screen](page:launcher.home-screen-widgets).
     image_bookmark:
       shot_id: launcher.widgets-add-from-settings
       device_profile: phone
@@ -97,7 +97,7 @@ next_recipes:
     badge: Launcher
     badge_type: docs
     description: What each gadget shows - clocks, weather, map, sensors, device status and the translator.
-  - title: FastMediaSorter widgets for your home screen
+  - title: Fast Media Sorter & Organizer widgets for your home screen
     url: page:launcher.home-screen-widgets
     badge: Launcher
     badge_type: docs

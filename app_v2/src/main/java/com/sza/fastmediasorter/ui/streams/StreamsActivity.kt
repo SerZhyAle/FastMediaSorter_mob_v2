@@ -42,6 +42,7 @@ import com.sza.fastmediasorter.domain.usecase.streams.PinnedStreamMove
 import com.sza.fastmediasorter.ui.common.help.HelpOpenManager
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.helpers.AudioExitAction
@@ -499,6 +500,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             scope = lifecycleScope,
             // S0700: a reachability probe updates the status bullet (green/amber, never red) and is not a play.
             onStatus = { id, ok -> viewModel.recordStreamProbeOutcome(id, ok) },
+            hasNetwork = { viewModel.hasNetworkForStream },
         )
     }
 
@@ -533,6 +535,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                 miniControl = binding.streamMiniControl,
                 titleView = binding.tvMiniTitle,
                 playStopButton = binding.btnMiniPlayStop,
+                dismissButton = binding.btnMiniStop,
             ),
             audioController = AudioServiceController(this),
             callbacks = StreamInlineAudioCallbacks(
@@ -554,10 +557,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                 onBroadcastStopped = { source, signal ->
                     broadcastEnd.onStopped(this, source.url, signal, broadcastEndHost)
                 },
-                onSuccess = {
-                    viewModel.recordStreamPlaySuccess(it.id)
-                    broadcastEnd.onPlaying(this, it.url, broadcastEndHost)
-                },
+                onSuccess = { viewModel.recordStreamPlaySuccess(it.id) },
+                onPlaybackStarted = { broadcastEnd.onPlaying(this, it.url, broadcastEndHost) },
                 // S1142: mirror the live now-playing track onto the active channel's grid tile. The id
                 // comes from the manager itself - reading it back via inlineAudio here crashed on the
                 // init-time emit (the lateinit is not yet assigned while the constructor runs).
@@ -621,24 +622,31 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             onStreamOutcome = { id, ok -> viewModel.recordStreamProbeOutcome(id, ok) },
         )
 
+        // S4626: one shared manager remembers the three section headers (COLLAPSIBLE-GROUP section 4 rule 7).
+        val collapsibleSections = CollapsibleSectionsManager(this)
         sectionsManager = StreamsSectionsManager(
+            sections = collapsibleSections,
             pinnedSection = binding.streamsPinnedSection,
             pinnedHeader = binding.streamsPinnedHeader,
-            pinnedChevron = binding.ivPinnedChevron,
+            pinnedBody = binding.streamsPinnedBody,
             mainSection = binding.streamsMainSection,
             mainHeader = binding.streamsMainHeader,
-            mainChevron = binding.ivMainChevron,
+            mainBody = binding.streamsMainBody,
             pinnedGridMode = pinnedGridModeManager,
             mainGridMode = gridModeManager,
         )
+        collapsibleSections.register(
+            binding.streamsDevicesHeader,
+            binding.streamsDevicesBody,
+            KEY_SECTION_DEVICES,
+            defaultExpanded = false,
+            onExpandedChanged = deviceBroadcastsViewModel::setExpanded,
+        )
         deviceBroadcasts = StreamDeviceBroadcastsManager(
             section = binding.streamsDevicesSection,
-            header = binding.streamsDevicesHeader,
-            chevron = binding.ivDevicesChevron,
             status = binding.tvDevicesStatus,
             list = binding.streamsDevicesList,
             portalLink = binding.btnDevicesPortal,
-            onToggle = deviceBroadcastsViewModel::toggle,
             onChosen = deviceBroadcastsViewModel::onBroadcastChosen,
             onPortalLink = {
                 MediaExchangePortalLinks.open(this, MediaExchangePortalLinks.Page.BROADCAST_RECEIVE)
@@ -719,6 +727,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             videoButton = binding.btnMediaKindVideo,
             audioButton = binding.btnMediaKindAudio,
             ownButton = binding.btnMediaKindOwn,
+            recentButton = binding.btnMediaKindRecent,
             onKindSelected = { kind ->
                 cancelHealthProbe()
                 viewModel.onMediaKindFilter(kind)
@@ -959,7 +968,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         }
         // S1502: the status bullet travels beside the list, not inside it - a finished probe repaints
         // the affected rows only, instead of re-emitting the catalog through the filter/sort pass.
-        collectOnLifecycle(deviceBroadcastsViewModel.available) { deviceBroadcasts.setAvailable(it) }
+        collectOnLifecycle(deviceBroadcastsViewModel.available) { showDeviceBroadcastsSection(it) }
         collectOnLifecycle(deviceBroadcastsViewModel.state) { deviceBroadcasts.render(it) }
         collectOnLifecycle(deviceBroadcastsViewModel.messages) { messageRes ->
             Toast.makeText(this, messageRes, Toast.LENGTH_LONG).show()
@@ -1065,6 +1074,13 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * S2896/S2991: dynamic D-pad focus routing ensures banner buttons are reachable via D-pad up from controls
      * and content (empty list / section headers) below, and that down from banner targets content in landscape.
      */
+    // S4626: the broadcasts section is a second topic beside pinned and main, which decides whether the main header
+    // is a wrapper over a single topic.
+    private fun showDeviceBroadcastsSection(available: Boolean) {
+        deviceBroadcasts.setAvailable(available)
+        sectionsManager.setSiblingTopicVisible(available)
+    }
+
     private fun updateCatalogBannerFocus(bannerVisible: Boolean) {
         val upTargetId = if (bannerVisible) R.id.btnCatalogBannerAction else R.id.toolbar
         val sortUpTargetId = if (bannerVisible) R.id.btnCatalogBannerDismiss else R.id.toolbar
@@ -1076,8 +1092,10 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         binding.btnSort.nextFocusUpId = sortUpTargetId
 
         binding.btnEmptyAddUrl.nextFocusUpId = if (bannerVisible) upTargetId else R.id.etSearch
-        binding.streamsPinnedHeader.nextFocusUpId = if (bannerVisible) upTargetId else R.id.btnFilter
-        binding.streamsMainHeader.nextFocusUpId = if (bannerVisible) upTargetId else R.id.streamsPinnedHeader
+        binding.streamsPinnedHeader.setHeaderNextFocusUpId(if (bannerVisible) upTargetId else R.id.btnFilter)
+        binding.streamsMainHeader.setHeaderNextFocusUpId(
+            if (bannerVisible) upTargetId else R.id.streamsPinnedHeader,
+        )
 
         val banner = catalogBanner
         if (bannerVisible && banner != null) {
@@ -1115,6 +1133,13 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         viewModel.refreshLiveBroadcasts()
         val visible = visibleSources()
         if (visible.isEmpty()) return
+        // STREAM-BANK 2.8: the sweep and the grid frame refresh need one active transport; with none, probing
+        // would only time out per row and write the outage over the person's verified marks.
+        if (!viewModel.hasNetworkForStream) {
+            Timber.d("S4617: refresh refused, no transport")
+            Toast.makeText(this, R.string.streams_error_no_network, Toast.LENGTH_SHORT).show()
+            return
+        }
         Toast.makeText(this, R.string.streams_refresh_probing, Toast.LENGTH_SHORT).show()
         if (latestState.displayMode == DisplayMode.GRID && ::sectionsManager.isInitialized) {
             // Grid: the frame capture both renders the thumbnail and reports the VIDEO tile's status, so only
@@ -1441,6 +1466,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             if (isImport) R.string.streams_import_url_hint else R.string.streams_add_url_hint
         )
         dialogBinding.tilTitle.isVisible = !isImport
+        // S4606: like the title, a category names one channel; an import adds a whole playlist.
+        dialogBinding.tilCategory.isVisible = !isImport
         // S1144: an import pulls in a whole playlist, so there is no single channel to attach a track
         // preference to - the rows are shown for a manual add only.
         dialogBinding.trackPreferenceContainer.isVisible = !isImport
@@ -1458,7 +1485,11 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                 if (isImport) {
                     viewModel.onImport(url)
                 } else {
-                    viewModel.onAdd(url, dialogBinding.etTitle.text?.toString())
+                    viewModel.onAdd(
+                        url,
+                        dialogBinding.etTitle.text?.toString(),
+                        dialogBinding.etCategory.text?.toString(),
+                    )
                     if (url.isNotEmpty()) writeTrackPreference(url)
                 }
             }
@@ -1495,8 +1526,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         callbacks = StreamEditDialog.Callbacks(
             readTrackPreference = viewModel::readTrackPreference,
             writeTrackPreference = viewModel::writeTrackPreference,
-            onEdit = { edited, url, title, kindOverride ->
-                viewModel.onEdit(edited, url, title, kindOverride)
+            onEdit = { edited, url, title, kindOverride, category ->
+                viewModel.onEdit(edited, url, title, kindOverride, category)
             },
         ),
     )
@@ -1731,6 +1762,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     }
 
     companion object {
+        private const val KEY_SECTION_DEVICES = "streams__devices"
         private const val BROADCAST_LINK_HOST = "import"
         private const val BROADCAST_LINK_PAYLOAD = "payload"
         private const val BROADCAST_LINK_SCHEME = "fmsbcast"

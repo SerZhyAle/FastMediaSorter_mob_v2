@@ -97,7 +97,6 @@
     <string name="settings_all_files_profile_confirm_message">يفعّل هذا الملف التعريفي وضع مدير الملفات وسيُنشئ مصدر \"كل الملفات\" الناقص. المتابعة؟</string>
     <string name="settings_reset_settings_failed">تعذّرت إعادة ضبط الإعدادات. حاول مرة أخرى.</string>
     <string name="settings_reset_smb_failed">تعذّرت إعادة ضبط اتصالات SMB. حاول مرة أخرى.</string>
-    <string name="settings_saved">حُفظت الإعدادات</string>
     <string name="settings_search_close">إغلاق البحث في الإعدادات</string>
     <string name="settings_search_hint">ابحث في الإعدادات</string>
     <string name="settings_search_no_results">لم يُعثر على إعدادات</string>

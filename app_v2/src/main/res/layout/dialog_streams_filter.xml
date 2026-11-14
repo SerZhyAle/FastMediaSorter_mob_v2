@@ -7,7 +7,7 @@
     android:padding="@dimen/padding_normal">
 
     <!-- Media kind sits at the very top as the primary facet; no separate "Type" heading.
-         Four equal segments leave ~83dp each on a 411dp portrait phone; the M3 outlined 24dp
+         Five equal segments leave ~69dp each on a 411dp portrait phone; the M3 outlined 24dp
          side padding would ellipsize "Own"/"Власні", so the segments use a narrow padding. -->
     <com.google.android.material.button.MaterialButtonToggleGroup
         android:id="@+id/toggleMediaKind"
@@ -55,6 +55,16 @@
             android:paddingStart="@dimen/padding_small"
             android:paddingEnd="@dimen/padding_small"
             android:text="@string/streams_filter_media_own" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnMediaRecent"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:paddingStart="@dimen/padding_small"
+            android:paddingEnd="@dimen/padding_small"
+            android:text="@string/streams_filter_media_recent" />
     </com.google.android.material.button.MaterialButtonToggleGroup>
 
     <!-- Curated collection: a full-width row above the facets, because a collection is the broadest

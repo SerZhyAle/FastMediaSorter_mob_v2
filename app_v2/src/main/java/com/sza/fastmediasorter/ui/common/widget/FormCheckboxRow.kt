@@ -3,11 +3,15 @@ package com.sza.fastmediasorter.ui.common.widget
 import android.content.Context
 import android.util.AttributeSet
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.core.content.res.use
+import androidx.core.view.AccessibilityDelegateCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import com.google.android.material.checkbox.MaterialCheckBox
 import com.sza.fastmediasorter.R
 
@@ -18,8 +22,11 @@ import com.sza.fastmediasorter.R
  * Replaces the repeated `checkbox + subtitle + optional help` structures duplicated across
  * Add Resource and Resource Editor scanning sections (S0567 survey item 5).
  *
- * Modelled on [SettingsToggleRow] (Pattern B): the whole row is a single focus stop, tapping
- * anywhere toggles the checkbox, and the help icon chrome is the shared [HelpRowDelegate].
+ * Modelled on [SettingsToggleRow] (Pattern B): the whole row is a single focus stop, and the help
+ * icon chrome is the shared [HelpRowDelegate]. A tap or click on the checkbox or the title toggles
+ * the value once; the subtitle (explanation), gaps and background never toggle, while Space, Enter
+ * and D-pad centre toggle the focused row. Accessibility services see one named checkbox with the
+ * subtitle as its hint (BOOLEAN-OPTION 2.1 section 3).
  * Public XML attributes use the `fcr_` prefix (see `attrs.xml`).
  */
 class FormCheckboxRow @JvmOverloads constructor(
@@ -65,6 +72,7 @@ class FormCheckboxRow @JvmOverloads constructor(
         help = HelpRowDelegate(findViewById(R.id.fcr_iconHelp), "FormCheckboxRow")
 
         bindRowClicks()
+        bindAccessibility()
         applyAttributes(attrs, defStyleAttr)
         help.syncVisibility()
     }
@@ -145,16 +153,45 @@ class FormCheckboxRow @JvmOverloads constructor(
         alpha = if (enabled) 1f else 0.5f
     }
 
+    /**
+     * A touch no child consumed - the subtitle, the gaps, the background - must not toggle
+     * (BOOLEAN-OPTION 2.1 section 3 rule 1). The row stays clickable only for the key and
+     * accessibility-click paths, which reach [performClick] without a touch event.
+     */
+    @Suppress("ClickableViewAccessibility")
+    override fun onTouchEvent(event: MotionEvent): Boolean = false
+
     private fun bindRowClicks() {
-        setOnClickListener {
-            if (!isEnabled) return@setOnClickListener
-            checkBox.isChecked = !checkBox.isChecked
+        val toggle = OnClickListener {
+            if (isEnabled) checkBox.isChecked = !checkBox.isChecked
         }
+        setOnClickListener(toggle)
+        titleView.setOnClickListener(toggle)
+        // The checkbox toggles itself natively on a tap, so it gets no second handler (one toggle per tap).
         // The native CheckedChangeListener fires for both programmatic and user-driven changes;
         // setCheckedSilently temporarily detaches it to suppress programmatic notifications.
         checkBox.setOnCheckedChangeListener { _, value ->
+            timber.log.Timber.d("S4623: form checkbox row toggled from checkbox, caption or key")
             checkedChangeListener?.invoke(value)
         }
+    }
+
+    private fun bindAccessibility() {
+        ViewCompat.setAccessibilityDelegate(
+            this,
+            object : AccessibilityDelegateCompat() {
+                override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
+                    super.onInitializeAccessibilityNodeInfo(host, info)
+                    info.className = CHECKBOX_CLASS_NAME
+                    info.isCheckable = true
+                    info.isChecked = checkBox.isChecked
+                    val explanation = subtitleView.text
+                    if (subtitleView.visibility == View.VISIBLE && !explanation.isNullOrBlank()) {
+                        info.hintText = explanation
+                    }
+                }
+            },
+        )
     }
 
     private fun applyAttributes(attrs: AttributeSet?, defStyleAttr: Int) {
@@ -169,5 +206,9 @@ class FormCheckboxRow @JvmOverloads constructor(
             help.applyInitialVisibility(typedArray.getBoolean(R.styleable.FormCheckboxRow_fcr_showHelp, false))
             checkBox.isChecked = typedArray.getBoolean(R.styleable.FormCheckboxRow_fcr_checked, false)
         }
+    }
+
+    private companion object {
+        const val CHECKBOX_CLASS_NAME = "android.widget.CheckBox"
     }
 }

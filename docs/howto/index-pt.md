@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Guias Passo a Passo - FastMediaSorter v2"
+title: "Guias Passo a Passo - Fast Media Sorter & Organizer"
 permalink: /docs/howto/index-pt.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>

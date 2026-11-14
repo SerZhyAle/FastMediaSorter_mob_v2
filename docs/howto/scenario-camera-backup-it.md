@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Backup fotografico pianificato sul PC - FastMediaSorter v2"
+title: "Backup fotografico pianificato sul PC - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-camera-backup-it.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -21,7 +21,7 @@ Copia automaticamente le nuove foto della fotocamera del telefono sul tuo comput
 
 - Telefono e PC collegati alla **stessa rete Wi-Fi di casa** (stesso router)
 - Una cartella sul PC dove salvare le foto (ad es. `C:\PhoneBackup`)
-- FastMediaSorter installato in un'edizione con fonti di rete (**Standard**, Photos, Legacy, VR, noLegal)
+- Fast Media Sorter & Organizer installato in un'edizione con fonti di rete (**Standard**, Photos, Legacy, VR, noLegal)
 
 > **Non sei sicuro di quale edizione hai?** Apri **Impostazioni** <img src="../icons/doc/ic_settings.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> → **Informazioni di sistema**. La riga **Edizione** indica la variante (Standard / Lite / ecc.).
 
@@ -43,7 +43,7 @@ Su **Windows:**
 
 ## Passo 2 - Collega l'app alla cartella del tuo PC
 
-Ora indica a FastMediaSorter dove inviare le foto.
+Ora indica a Fast Media Sorter & Organizer dove inviare le foto.
 
 > **Cos'è SMB?** È semplicemente il modo in cui Windows condivide le cartelle sulla Wi-Fi di casa. Non serve capirne i dettagli - basta seguire i passaggi.
 
@@ -94,7 +94,7 @@ Compila ogni campo:
 | **Pianificazione** | Quando eseguire | `Ogni giorno alle 02:00` - viene eseguita mentre dormi |
 | **Esegui solo su Wi-Fi** | Attiva questa opzione | Impedisce che il backup usi accidentalmente i dati mobili |
 
-> **Cosa sono le "Foto fotocamera"?** È una cartella virtuale speciale che FastMediaSorter crea automaticamente. Mostra sempre tutte le foto scattate dalla tua fotocamera, anche se sono archiviate in cartelle diverse sul telefono. Preferisci sempre questa opzione a un percorso manuale.
+> **Cosa sono le "Foto fotocamera"?** È una cartella virtuale speciale che Fast Media Sorter & Organizer crea automaticamente. Mostra sempre tutte le foto scattate dalla tua fotocamera, anche se sono archiviate in cartelle diverse sul telefono. Preferisci sempre questa opzione a un percorso manuale.
 
 ![Aggiungi pianificazione - Origine: Foto fotocamera, Operazione: Copia, Destinazione: SMB](screenshots/screenshot-cb-step5.png)
 
@@ -154,7 +154,7 @@ Il tuo PC riceve nuove foto ogni mattina. Non devi mai pensarci.
 
 | Problema | Cosa provare |
 |---------|------------|
-| La pianificazione non viene eseguita di notte | Vai su **Impostazioni Android → App → FastMediaSorter → Batteria** → imposta su **Nessuna restrizione** |
+| La pianificazione non viene eseguita di notte | Vai su **Impostazioni Android → App → Fast Media Sorter & Organizer → Batteria** → imposta su **Nessuna restrizione** |
 | Errore "Destinazione non raggiungibile" | Il telefono deve essere connesso al Wi-Fi all'ora del backup. Se il Wi-Fi era spento alle 2 del mattino, il backup viene saltato e riprovato automaticamente la notte successiva |
 | Alcune foto non sono state salvate nel backup | Usa la risorsa virtuale **"Foto fotocamera"** come origine - cattura le foto da tutte le cartelle della fotocamera sul telefono |
 | Compaiono file duplicati sul PC | Assicurati che l'Operazione sia impostata su **"Copia (salta esistenti)"**, non su "Copia (sovrascrivi)" |

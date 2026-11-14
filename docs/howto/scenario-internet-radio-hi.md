@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "इंटरनेट रेडियो और स्ट्रीम - FastMediaSorter v2"
+title: "इंटरनेट रेडियो और स्ट्रीम - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-internet-radio-hi.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -11,7 +11,7 @@ permalink: /docs/howto/scenario-internet-radio-hi.html
 
 > **लेवल:** शुरुआती - **समय:** ~10 मिनट - **एडिशन:** Standard, Legacy, VR, noLegal (Streams Lite और Photos में नहीं है)
 
-FastMediaSorter में इंटरनेट ऑडियो और वीडियो सोर्स के लिए एक समर्पित Streams स्क्रीन है. कोई भी इंटरनेट रेडियो URL जोड़ें, एक .m3u प्लेलिस्ट इम्पोर्ट करें, या एक क्यूरेटेड स्टेशन कैटलॉग ब्राउज़ करें - किसी अलग रेडियो ऐप की ज़रूरत नहीं. Android कार हेड यूनिट, ऑडियो प्लेयर, फोन और टैबलेट पर बेहतरीन काम करता है.
+Fast Media Sorter & Organizer में इंटरनेट ऑडियो और वीडियो सोर्स के लिए एक समर्पित Streams स्क्रीन है. कोई भी इंटरनेट रेडियो URL जोड़ें, एक .m3u प्लेलिस्ट इम्पोर्ट करें, या एक क्यूरेटेड स्टेशन कैटलॉग ब्राउज़ करें - किसी अलग रेडियो ऐप की ज़रूरत नहीं. Android कार हेड यूनिट, ऑडियो प्लेयर, फोन और टैबलेट पर बेहतरीन काम करता है.
 
 > **इसकी जगह लेता है:** इंटरनेट रेडियो या स्ट्रीम चलाने का अलग ऐप.
 
@@ -20,7 +20,7 @@ FastMediaSorter में इंटरनेट ऑडियो और वीड
 ## आपको क्या चाहिए होगा
 
 - नेटवर्क कनेक्शन (मोबाइल डेटा या Wi-Fi) वाला Android डिवाइस
-- FastMediaSorter Standard, Legacy, VR, या noLegal (Streams स्क्रीन Lite और Photos में नहीं है)
+- Fast Media Sorter & Organizer Standard, Legacy, VR, या noLegal (Streams स्क्रीन Lite और Photos में नहीं है)
 - एक स्ट्रीम URL, .m3u प्लेलिस्ट फ़ाइल या URL, या बना-बनाया क्यूरेटेड कैटलॉग
 
 ---

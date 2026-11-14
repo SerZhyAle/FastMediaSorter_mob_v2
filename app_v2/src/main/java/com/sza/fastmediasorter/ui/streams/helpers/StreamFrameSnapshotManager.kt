@@ -71,6 +71,7 @@ class StreamFrameSnapshotManager(
      * S0700: invoked on the main thread with the capture outcome for a captureable VIDEO stream - true when
      * a frame was decoded (reachable), false on timeout/error. Lets the grid refresh derive the green/red
      * status from the same decode that produces the thumbnail, instead of a separate reachability probe.
+     * Not invoked for a failure that landed with no network (STREAM-BANK 2.8, document 05 section 16).
      */
     var onOutcome: (url: String, ok: Boolean) -> Unit = { _, _ -> }
 
@@ -180,7 +181,13 @@ class StreamFrameSnapshotManager(
                 recordCaptureOutcome(url, bitmap != null)
                 withContext(Dispatchers.Main) {
                     if (bitmap != null) onCaptured(url)
-                    onOutcome(url, bitmap != null)
+                    // STREAM-BANK 2.8: a capture that failed after the transport was lost says nothing about the
+                    // channel, so the status bullet is not told.
+                    if (RecordStreamPlayOutcomeUseCase.isProbeResultWritable(bitmap != null, hasNetwork())) {
+                        onOutcome(url, bitmap != null)
+                    } else {
+                        Timber.d("S4617: capture failed after transport lost, outcome not reported")
+                    }
                 }
             }
             synchronized(inFlight) { inFlight.add(job) }

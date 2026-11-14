@@ -14,7 +14,7 @@ why: |
 
   Both grow with you: the Start panel can be made taller as your pinned row fills up, and All apps stays fast to open and fast to search even with a hundred apps on the device.
 ingredients:
-  - "FastMediaSorter in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition), with the [launcher](term:launcher) turned on - see [Your launcher desktop](page:launcher.desktop-grid-and-icons)."
+  - "Fast Media Sorter & Organizer in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition), with the [launcher](term:launcher) turned on - see [Your launcher desktop](page:launcher.desktop-grid-and-icons)."
   - "The taskbar visible - see [Using the desktop dock and taskbar](page:launcher.taskbar-and-dock)."
 steps:
   - number: 1
@@ -38,7 +38,7 @@ steps:
     text: |
       Tap the **All apps** icon button next to Start, or swipe up on empty desktop space while the desktop sits at the top of its scroll. The list opens from a cache the launcher keeps current on its own - through every install, update and removal - so it is ready even right after a restart.
 
-      You can also assign **All apps** to an edge gesture or select it when editing the quick-launch panel. After opening FastMediaSorter, long-press its app icon to find the **All apps** shortcut and drag it to your home screen if your launcher supports shortcuts. These entries work without making FastMediaSorter your default home app.
+      You can also assign **All apps** to an edge gesture or select it when editing the quick-launch panel. After opening Fast Media Sorter & Organizer, long-press its app icon to find the **All apps** shortcut and drag it to your home screen if your launcher supports shortcuts. These entries work without making Fast Media Sorter & Organizer your default home app.
     image_bookmark:
       shot_id: launcher.all-apps-entry-point
       device_profile: phone

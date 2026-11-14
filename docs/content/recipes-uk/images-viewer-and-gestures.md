@@ -13,7 +13,7 @@ why: |
 
   Ніщо на цій сторінці не змінює ваші файли. Масштабування, тимчасовий поворот фото та пауза анімації змінюють лише те, що ви бачите зараз.
 ingredients:
-  - "Встановлений FastMediaSorter. Перегляд зображень є частиною кожної [редакції](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR і FOSS."
+  - "Встановлений Fast Media Sorter & Organizer. Перегляд зображень є частиною кожної [редакції](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR і FOSS."
   - "Принаймні один [ресурс](term:resource) із зображеннями, наприклад колекція [Усі зображення](term:all-images) або додана вами папка."
   - "Для фото HEIC і HEIF (формат, який багато телефонів використовують для знімків камери): Android 9 або новіший. Для зображень AVIF: Android 12 або новіший."
 steps:
@@ -28,7 +28,7 @@ steps:
       shot_id: images.viewer-fullscreen-photo
       device_profile: phone
       screen_state: image-viewer-fullscreen
-      alt: Горизонтальне фото відкрито на весь екран у перегляді зображень FastMediaSorter із прихованою панеллю команд
+      alt: Горизонтальне фото відкрито на весь екран у перегляді зображень Fast Media Sorter & Organizer із прихованою панеллю команд
       caption: "Фото відкрито на весь екран у перегляді зображень."
       title: "Знімок екрана: фото на весь екран"
       desc: Локальне фото відкрито в плеєрі, панелі приховані, телефон у портретній орієнтації.

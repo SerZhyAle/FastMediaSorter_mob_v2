@@ -26,4 +26,5 @@
     <string name="s0157_dismissed_label">Not authorized (you declined)</string>
     <string name="s0157_last_used_never">not yet used</string>
     <string name="s0157_last_used_fmt">last used %1$s</string>
+    <string name="s4581_pick_account_add_new">+ Add account</string>
 </resources>

@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "टैबलेट पर डिजिटल फोटो फ्रेम - FastMediaSorter v2"
+title: "टैबलेट पर डिजिटल फोटो फ्रेम - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-photo-frame-hi.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -47,7 +47,7 @@ permalink: /docs/howto/scenario-photo-frame-hi.html
 2. **Sign in** टैप करें → ब्राउज़र में ऑथेंटिकेशन पूरा करें
 3. अपनी फ़ोटो वाला फ़ोल्डर चुनें → **Done**
 
-![FastMediaSorter main screen - photo resource cards visible after adding a photo folder](screenshots/screenshot-pf-step1.png)
+![Fast Media Sorter & Organizer main screen - photo resource cards visible after adding a photo folder](screenshots/screenshot-pf-step1.png)
 
 ---
 
@@ -123,12 +123,12 @@ Android Settings → Display → Screen timeout → **"Never"** (या अध�
 यह चरण सुविधा के लिए है: टैबलेट उठाते ही फोटो फ्रेम तुरंत शुरू करना चाहते हैं - बिना ऐप खोले और नेविगेट किए?
 
 1. अपनी होम स्क्रीन को लॉन्ग-प्रेस करें → **Widgets** टैप करें
-2. विजेट लिस्ट में **FastMediaSorter** ढूंढें
+2. विजेट लिस्ट में **Fast Media Sorter & Organizer** ढूंढें
 3. **"Resource Shortcut"** विजेट को अपनी होम स्क्रीन पर खींचें
 4. पूछे जाने पर, अपना फोटो रिसोर्स चुनें
 5. कभी भी विजेट टैप करें → स्लाइडशो तुरंत शुरू हो जाता है
 
-![Android home screen with FastMediaSorter resource shortcut widgets placed](screenshots/screenshot-pf-step6.png)
+![Android home screen with Fast Media Sorter & Organizer resource shortcut widgets placed](screenshots/screenshot-pf-step6.png)
 
 ---
 

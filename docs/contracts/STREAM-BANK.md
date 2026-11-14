@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.29 05:03</sub>
+<sub class="doc-stamp">26.11.14 17:19</sub>
 
 # Pointer - `STREAM-BANK`
 
 | | |
 | --- | --- |
 | **Id** | `STREAM-BANK` |
-| **Version** | 2.5, active. Owner: this product |
+| **Version** | 2.8, active. Owner: this product |
 | **Home** | `stream-catalog/README.md` in the shared contracts catalog |
 | **Role here** | producer (the publish script) and consumer (the phone and watch importers) |
 
@@ -27,6 +27,17 @@
   (rule 10, item E).
 - Bounds-check every atlas index and degrade to no-thumbnail; derive sheet geometry from the image
   (rules 8, 9).
+- First connection (2.6, `06` section 6.1): a stream that has not reached READY since it was prepared surfaces the
+  section 5.4 dialog at the first 15 s buffering-without-ready timeout and spends no watchdog recovery; the section 6
+  budget applies after the first READY only, and a user Retry is a new prepare. The phone's `StreamStallWatchdog`
+  bounds the first connection as section 6.1 requires.
+- Live stream closed by its server (2.7, `06` section 2.4): a live radio stream that its server closes cleanly, after
+  it has played and while it is live or of unknown duration, is reconnected with the section 5.2 ladder; a
+  known-duration item that ends is a finished track and a broadcast is outside the rule. S4598 carries it.
+- Offline health sweep and grid frame capture (2.8, `05` sections 9.2 and 16): "Check channels" needs one active
+  transport and, started with none, shows the no-network toast and probes nothing; a probe or a grid frame capture
+  that fails after the device lost its transport is not written, and the sweep ends there, so a stored OK is never
+  replaced by the device's own outage. A failure while a transport is up is still written UNKNOWN. S4617 carries it.
 - A change to a column, an asset name or an atlas ceiling is agreed in the catalog first.
 
 ## Where it lives here
@@ -41,5 +52,8 @@
   `app_v2/.../core/streams/FaviconAtlasSlicer.kt`, `app_v2/.../data/delivery/ArtworkManifestClient.kt`,
   `app_v2/.../ui/streams/StreamSourceAdapter.kt`,
   `app_v2/.../ui/dialog/helpers/StreamPropertiesFormatter.kt`.
+- Phone probe and capture (2.8): `app_v2/.../ui/streams/helpers/StreamHealthProbeManager.kt`,
+  `app_v2/.../ui/streams/helpers/StreamFrameSnapshotManager.kt`, the refresh action in
+  `app_v2/.../ui/streams/StreamsActivity.kt`, and the write rule `RecordStreamPlayOutcomeUseCase.isProbeResultWritable`.
 - Watch consumer: `wear/.../domain/usecase/ImportWearStreamCatalogUseCase.kt`,
   `wear/.../data/repository/WearStreamCatalogCsvParser.kt`.

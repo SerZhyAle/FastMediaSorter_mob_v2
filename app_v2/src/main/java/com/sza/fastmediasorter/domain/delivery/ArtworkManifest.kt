@@ -48,4 +48,13 @@ interface ArtworkManifestSource {
 
     /** Total download size for [set] in bytes, or null when the manifest cannot supply it. */
     suspend fun sizeOf(set: DeliverableSet): Long?
+
+    /**
+     * Drops the remembered manifest so the next [stampOf] / [sizeOf] reads what the mirror serves now.
+     *
+     * Called when the user explicitly refreshes the stream catalog: the manifest is otherwise kept for
+     * the process, so a republish made after the first read stayed invisible to the offer that
+     * follows the refresh. Never called per list repaint - that path is the reason the cache exists.
+     */
+    fun invalidate()
 }

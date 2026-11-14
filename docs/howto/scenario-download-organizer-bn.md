@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "ডাউনলোড অর্গানাইজার (কুইক সর্ট) - FastMediaSorter v2"
+title: "ডাউনলোড অর্গানাইজার (কুইক সর্ট) - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-download-organizer-bn.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -11,7 +11,7 @@ permalink: /docs/howto/scenario-download-organizer-bn.html
 
 > **স্তর:** শিক্ষানবিস &bull; **ফ্লেভার:** যেকোনো (Standard, Lite, Photos, Legacy, VR, noLegal)
 
-**Quick Sort** হলো FastMediaSorter-এর সেরা ফিচার: একবার আপনার ফোল্ডার সেট করুন, তারপর শুধু একটা নম্বরে ট্যাপ করে শত শত ফাইল সাজান। কোনো ড্র্যাগ-অ্যান্ড-ড্রপ নেই। কোনো মেনু নেই। শুধু **1**, **2**, বা **3** ট্যাপ করুন - এবং ফাইলটা সঠিক জায়গায় চলে যায়।
+**Quick Sort** হলো Fast Media Sorter & Organizer-এর সেরা ফিচার: একবার আপনার ফোল্ডার সেট করুন, তারপর শুধু একটা নম্বরে ট্যাপ করে শত শত ফাইল সাজান। কোনো ড্র্যাগ-অ্যান্ড-ড্রপ নেই। কোনো মেনু নেই। শুধু **1**, **2**, বা **3** ট্যাপ করুন - এবং ফাইলটা সঠিক জায়গায় চলে যায়।
 
 **বাস্তব উদাহরণ:** আপনার Downloads ফোল্ডারে ২০০টা ফাইল আছে - স্ক্রিনশট, কাজের ডকুমেন্ট, পারিবারিক ছবি, মিম, রসিদ। Quick Sort দিয়ে আপনি প্রায় ৫ মিনিটে সব ২০০টা সাজাতে পারেন। এটা ছাড়া - শুভকামনা।
 
@@ -38,7 +38,7 @@ permalink: /docs/howto/scenario-download-organizer-bn.html
 
 > **Downloads ফোল্ডারটাই সেই জায়গা যেখানে আপনার ব্রাউজার, Telegram, WhatsApp এবং অন্যান্য অ্যাপ ফাইল সংরক্ষণ করে।** এটাই সাধারণত যেকোনো ফোনের সবচেয়ে অগোছালো জায়গা।
 
-![FastMediaSorter মূল স্ক্রিন - Downloads রিসোর্স কার্ড যোগ করা হয়েছে, Local ব্যাজ দৃশ্যমান](screenshots/screenshot-dl-step1.png)
+![Fast Media Sorter & Organizer মূল স্ক্রিন - Downloads রিসোর্স কার্ড যোগ করা হয়েছে, Local ব্যাজ দৃশ্যমান](screenshots/screenshot-dl-step1.png)
 
 ---
 
@@ -52,12 +52,12 @@ Quick Sort সেট করার আগে, আপনি কোন কোন �
 - **Keep** - দীর্ঘমেয়াদে সংরক্ষণ করার মতো জিনিস
 - **Trash** - পর্যালোচনার পর মুছে ফেলার ফাইল
 
-**আপনি এই ফোল্ডারগুলো সরাসরি FastMediaSorter-এর ভেতরেই তৈরি করতে পারেন:**
+**আপনি এই ফোল্ডারগুলো সরাসরি Fast Media Sorter & Organizer-এর ভেতরেই তৈরি করতে পারেন:**
 1. Downloads রিসোর্স খুলুন
 2. **মেনু <img src="../icons/doc/ic_more_vert.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> বাটনে ট্যাপ করুন** → **Create folder**
 3. ফোল্ডারের নাম টাইপ করুন → **OK** ট্যাপ করুন
 
-অথবা আপনার ফোনের সাধারণ ফাইল ম্যানেজারে ফোল্ডারগুলো তৈরি করুন - সেগুলো স্বয়ংক্রিয়ভাবে FastMediaSorter-এ দেখা যাবে।
+অথবা আপনার ফোনের সাধারণ ফাইল ম্যানেজারে ফোল্ডারগুলো তৈরি করুন - সেগুলো স্বয়ংক্রিয়ভাবে Fast Media Sorter & Organizer-এ দেখা যাবে।
 
 ---
 

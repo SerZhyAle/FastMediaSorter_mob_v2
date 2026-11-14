@@ -261,7 +261,7 @@
     <string name="backup_account">Account: %s</string>
     <string name="google_sign_in_cancelled">Google sign-in was canceled</string>
     <string name="battery_optimization_hint_title">Battery Optimization Warning</string>
-    <string name="battery_optimization_hint_message">Battery optimization may prevent background audio playback. Disable battery optimization for FastMediaSorter in system settings for reliable background audio.</string>
+    <string name="battery_optimization_hint_message">Battery optimization may prevent background audio playback. Disable battery optimization for Fast Media Sorter &amp; Organizer in system settings for reliable background audio.</string>
     <string name="no_internet_connection">No internet connection. Try again later.</string>
     <string name="restart_required_title">Restart Required</string>
     <string name="restart_required_message">Settings have been imported. Please restart the app to apply changes.</string>
@@ -490,7 +490,6 @@
 
     <!-- Language Change -->
     <string name="restart_app_title">Restart Application</string>
-    <string name="restart_app_message">To apply the new language (%1$s), the application needs to restart. Continue?</string>
     <string name="restart_app_cache_message">To apply the new cache size (%1$d MB), the application needs to restart. Continue?</string>
     <string name="restart_app_compact_elements_message">To apply the new player controls size, the application needs to restart. Continue?</string>
     <string name="restart">Restart</string>
@@ -1569,7 +1568,7 @@
 
     <!-- Standalone Player File Operations -->
     <string name="confirm_delete_standalone">Delete \"%1$s\"?</string>
-    <string name="open_in_fms">Open in FastMediaSorter</string>
+    <string name="open_in_fms">Open in Fast Media Sorter &amp; Organizer</string>
     <string name="cd_add_to_favorites">Add to favorites</string>
     <string name="cd_remove_from_favorites">Remove from favorites</string>
 
@@ -1964,13 +1963,13 @@
     <string name="browse_transfer_notif_title_permission_required">Permission required</string>
     <string name="browse_transfer_notif_text_preparing">Preparing..</string>
     <string name="browse_transfer_notif_text_progress">%1$d%% - %2$s</string>
-    <string name="browse_transfer_notif_text_failed">Open FastMediaSorter for details</string>
-    <string name="browse_transfer_notif_text_auth_required">Open FastMediaSorter to sign in and continue</string>
-    <string name="browse_transfer_notif_text_permission_required">Open FastMediaSorter to grant permission and retry</string>
+    <string name="browse_transfer_notif_text_failed">Open Fast Media Sorter &amp; Organizer for details</string>
+    <string name="browse_transfer_notif_text_auth_required">Open Fast Media Sorter &amp; Organizer to sign in and continue</string>
+    <string name="browse_transfer_notif_text_permission_required">Open Fast Media Sorter &amp; Organizer to grant permission and retry</string>
     <string name="browse_transfer_notif_action_cancel">Cancel</string>
     <string name="midi_playback_failed">Couldn\'t play this MIDI file. Try another copy or skip to the next track.</string>
     <string name="tooltip_calculator_title">Calculator</string>
-    <string name="tooltip_calculator_message">Adds a basic calculator to the main menu and enables the calculator widget. The calculator stays inside FastMediaSorter.</string>
+    <string name="tooltip_calculator_message">Adds a basic calculator to the main menu and enables the calculator widget. The calculator stays inside Fast Media Sorter &amp; Organizer.</string>
 
     <!-- Device Profile Onboarding (S0327) -->
     <string name="profile_picker_title">Choose your device profile</string>
@@ -2081,7 +2080,7 @@
     <string name="cache_size_installed_toast">Cache set: %1$d MB</string>
     <string name="welcome_enable_all">Enable all</string>
     <string name="welcome_enable_all_content_description">Enable everything and finish setup</string>
-    <string name="default_player_choose_in_settings">In system settings, choose FastMediaSorter as the default app for this type.</string>
+    <string name="default_player_choose_in_settings">In system settings, choose Fast Media Sorter &amp; Organizer as the default app for this type.</string>
     <string name="s0413_audio_track_skipped">Skipped \"%1$s\" - this file cannot be played.</string>
     <string name="s0413_audio_queue_unplayable">Nothing here could be played.</string>
     <string name="settings_remote_sources_title">Remote resources (SMB/(S)FTP/Cloud)</string>
@@ -2099,8 +2098,8 @@
     <string name="settings_remote_source_cloud_help_message">Open files in cloud storage - Google Drive, OneDrive, and Dropbox. Connect an account to browse your cloud folders right inside the app.</string>
     <string name="settings_remote_source_disable_confirm_title">Hide these folders?</string>
     <string name="settings_remote_source_disable_confirm_message">The folders for this source will be hidden, not deleted. Your saved resources stay and reappear when you turn the source back on.</string>
-    <string name="screenshot_accessibility_service_description">Lets FastMediaSorter take screenshots with an edge gesture and save them, with no per-shot dialog. This covers screenshots only - screen video recording is separate and asks Android for permission at the start of every recording.</string>
-    <string name="screenshot_accessibility_permission_rationale">To take screenshots with the edge gesture, turn on the FastMediaSorter accessibility service:\n\n1. Tap Open settings, then enable FastMediaSorter in the accessibility list.\n2. If it shows Controlled by restricted setting or App was denied access: open this app in App info, tap the menu (3 dots), choose Allow restricted settings, confirm, then go back and enable it.\n\nIf you cannot enable it, tap Old method to use a version that asks for permission on every shot.</string>
+    <string name="screenshot_accessibility_service_description">Lets Fast Media Sorter &amp; Organizer take screenshots with an edge gesture and save them, with no per-shot dialog. This covers screenshots only - screen video recording is separate and asks Android for permission at the start of every recording.</string>
+    <string name="screenshot_accessibility_permission_rationale">To take screenshots with the edge gesture, turn on the Fast Media Sorter &amp; Organizer accessibility service:\n\n1. Tap Open settings, then enable Fast Media Sorter &amp; Organizer in the accessibility list.\n2. If it shows Controlled by restricted setting or App was denied access: open this app in App info, tap the menu (3 dots), choose Allow restricted settings, confirm, then go back and enable it.\n\nIf you cannot enable it, tap Old method to use a version that asks for permission on every shot.</string>
     <string name="screen_capture_rate_limited">Screenshot was too fast, try again</string>
     <string name="screenshot_gesture_permission_dialog_title">Enable screen gestures</string>
     <string name="screenshot_gesture_open_settings">Open settings</string>
@@ -2217,7 +2216,7 @@
     <string name="statistics_privacy_note">This data stays on your device. You send the summary to the author yourself, from your own email app.</string>
     <string name="statistics_send_to_author">Send to author</string>
     <string name="statistics_export">Export</string>
-    <string name="statistics_email_subject">FastMediaSorter statistics</string>
+    <string name="statistics_email_subject">Fast Media Sorter &amp; Organizer statistics</string>
     <string name="statistics_no_email_app">No app can send this - install a mail or sharing app and try again.</string>
     <string name="statistics_report_all_time">All-time totals</string>
     <string name="statistics_report_section_summary">Summary</string>
@@ -2228,7 +2227,7 @@
     <string name="statistics_report_tech_android">Android</string>
     <string name="statistics_report_unknown">unknown</string>
     <string name="error_dialog_report_to_author">Email crash report to author</string>
-    <string name="crash_report_email_subject">FastMediaSorter crash report</string>
+    <string name="crash_report_email_subject">Fast Media Sorter &amp; Organizer crash report</string>
     <string name="crash_report_email_body_intro">Please describe what you were doing when the problem occurred. Technical details and the app log are attached below.</string>
     <string name="crash_prompt_title">Send crash report?</string>
     <string name="crash_prompt_message">The app closed unexpectedly last time. Send a crash report with the app log to the author?</string>
@@ -2341,7 +2340,7 @@
     <string name="app_launch_panel_action_move">Move</string>
     <string name="app_launch_panel_action_replace">Replace</string>
     <string name="app_launch_panel_action_remove">Remove</string>
-    <string name="app_launch_panel_own_app_label">FastMediaSorter</string>
+    <string name="app_launch_panel_own_app_label">Fast Media Sorter &amp; Organizer</string>
     <string name="app_picker_title">Choose an app</string>
     <string name="app_launch_panel_title">Quick launch</string>
     <string name="app_launch_panel_edit_action">Edit</string>
@@ -2376,8 +2375,8 @@
     <string name="app_launch_panel_add_chooser_title">Add to panel</string>
     <string name="app_launch_panel_path_external_app">Android app</string>
     <string name="app_launch_panel_path_os_part">Android OS settings</string>
-    <string name="app_launch_panel_path_app_feature">FastMediaSorter feature</string>
-    <string name="app_launch_panel_path_app_resource">FastMediaSorter resource</string>
+    <string name="app_launch_panel_path_app_feature">Fast Media Sorter &amp; Organizer feature</string>
+    <string name="app_launch_panel_path_app_resource">Fast Media Sorter &amp; Organizer resource</string>
     <string name="app_launch_panel_picker_feature_title">Choose a feature</string>
     <string name="app_launch_panel_picker_os_title">Choose Android OS setting</string>
     <string name="app_launch_panel_picker_resource_title">Choose a resource</string>
@@ -2466,7 +2465,7 @@
     <string name="screen_recording_card_title">Recording screen</string>
     <string name="screen_recording_stop">Stop recording</string>
     <string name="screen_recording_disclosure_title">Screen video recording</string>
-    <string name="screen_recording_disclosure_message">FastMediaSorter will record everything shown on your screen, including other apps, to a video file with microphone audio until you stop it. Recording continues in the background. Android asks you to choose this app or the entire screen at the start of every recording, and this step cannot be skipped.</string>
+    <string name="screen_recording_disclosure_message">Fast Media Sorter &amp; Organizer will record everything shown on your screen, including other apps, to a video file with microphone audio until you stop it. Recording continues in the background. Android asks you to choose this app or the entire screen at the start of every recording, and this step cannot be skipped.</string>
     <string name="screen_recording_disclosure_start">Start recording</string>
     <string name="screen_recording_saved">Screen recording saved: %1$s</string>
     <string name="screen_recording_error">Could not save the screen recording.</string>
@@ -2549,7 +2548,7 @@
     <string name="edge_gesture_general_group_title">General gesture settings</string>
     <string name="edge_gesture_schema_content_description">Edge gesture map: tap a zone direction to assign an action</string>
     <string name="companion_qr_share_title">Scan to add the resource</string>
-    <string name="companion_qr_share_hint">In FastMediaSorter: Add resource -&gt; Scan QR</string>
+    <string name="companion_qr_share_hint">In Fast Media Sorter &amp; Organizer: Add resource -&gt; Scan QR</string>
     <string name="companion_qr_share_no_password_note">No password included - the recipient enters it when importing.</string>
     <string name="companion_qr_share_encode_failed">Could not generate the QR code.</string>
     <string name="sftp_share_show_qr_action">Show QR</string>
@@ -2569,7 +2568,7 @@
     <string name="gesture_action_explain_send_to_recipients">Captures the screen and sends it to your chosen recipients.</string>
     <string name="gesture_action_explain_share">Captures the screen and opens the system share sheet.</string>
     <string name="gesture_action_explain_crop_and_share">Captures the screen, lets you crop it, then shares the result.</string>
-    <string name="gesture_action_explain_open_app">Opens the app you pick for this gesture. With no app picked, opens FastMediaSorter.</string>
+    <string name="gesture_action_explain_open_app">Opens the app you pick for this gesture. With no app picked, opens Fast Media Sorter &amp; Organizer.</string>
     <string name="gesture_action_explain_open_panel">Opens the quick-access panel.</string>
     <string name="gesture_action_explain_launch_camera">Opens the in-app camera.</string>
     <string name="gesture_action_explain_take_photo">Takes a photo with the in-app camera and saves it.</string>
@@ -2648,7 +2647,7 @@
     <string name="launcher_home_mode_play">play</string>
     <string name="launcher_home_cell_with_mode">%1$s, %2$s</string>
     <string name="launcher_taskbar_start">Start</string>
-    <string name="launcher_menu_open_app">Open FastMediaSorter</string>
+    <string name="launcher_menu_open_app">Open Fast Media Sorter &amp; Organizer</string>
     <string name="launcher_menu_resources">My resources</string>
     <string name="launcher_menu_all_apps">All apps</string>
     <string name="launcher_menu_android_settings">Android settings</string>
@@ -2740,8 +2739,6 @@
     <string name="settings_streams_smart_buffering_summary">Bigger start-up cushion and quiet reconnects when the connection is shaky</string>
     <string name="streams_section_pinned">Pinned</string>
     <string name="streams_section_main">Channels</string>
-    <string name="streams_section_expand">Expand section</string>
-    <string name="streams_section_collapse">Collapse section</string>
     <string name="ext_channel_preview_atlas_title">Channel preview atlas</string>
     <string name="ext_channel_preview_atlas_desc">Shows a preview for video channels in grid mode before your first watch.</string>
     <string name="streams_atlas_prompt_message">Download channel previews so video channels show a picture before you play them?</string>
@@ -2877,7 +2874,7 @@
     <string name="launcher_tray_sim_signal_none">SIM %1$d, no service</string>
     <string name="launcher_now_playing_other_apps">Show other apps\' music</string>
     <string name="launcher_now_playing_access_title">Show music from other apps</string>
-    <string name="launcher_now_playing_access_message">FastMediaSorter reads the media session of whatever app is playing - the track title, the artist and the play state - so this gadget can show it and control playback. Android calls this permission notification access, but the app reads no notifications, only the media session. You grant it on an Android settings screen and can withdraw it there at any time.</string>
+    <string name="launcher_now_playing_access_message">Fast Media Sorter &amp; Organizer reads the media session of whatever app is playing - the track title, the artist and the play state - so this gadget can show it and control playback. Android calls this permission notification access, but the app reads no notifications, only the media session. You grant it on an Android settings screen and can withdraw it there at any time.</string>
     <string name="perm_title_notification_listener">Notification access</string>
     <string name="perm_desc_notification_listener">Lets the Now Playing gadget on the launcher desktop show and control what other apps are playing. The app reads media sessions only, never the content of notifications. Optional - granted on an Android settings screen.</string>
     <string name="perm_title_write_external_storage">Saving to device storage</string>
@@ -3374,7 +3371,7 @@
     <string name="wear_log_report_channel_name">Watch logs</string>
     <string name="wear_log_report_notification_title">Watch logs received</string>
     <string name="wear_log_report_notification_text">Tap to send them to the developer</string>
-    <string name="wear_log_report_email_subject">FastMediaSorter watch logs</string>
+    <string name="wear_log_report_email_subject">Fast Media Sorter &amp; Organizer watch logs</string>
     <string name="wear_log_report_email_body">The archive holds the logs of both the watch and the phone.</string>
     <string name="settings_unused_credentials_title">Unused credentials</string>
     <string name="settings_unused_credentials_button">Unused credentials - %1$d</string>
@@ -3492,7 +3489,6 @@
     <string name="ext_vlc_engine_desc">Plays video files and disc images the built-in player cannot open. One-time download of about 44 MB.</string>
     <string name="calculator_display_content_description">Result. Tap to copy, long-press to paste a number</string>
     <string name="calculator_action_settings">Calculator settings</string>
-    <string name="calculator_settings_title">Calculator settings</string>
     <string name="calculator_settings_group_thousands">Group digits</string>
     <string name="calculator_settings_group_thousands_summary">Put a comma between every three digits, on both sides of the decimal point</string>
     <string name="calculator_settings_text_size">Result size</string>
@@ -3623,7 +3619,7 @@
     <string name="welcome_enable_all_explainer_step_permissions_title">Allow access</string>
     <string name="welcome_enable_all_explainer_step_permissions_body">Android shows its own request. Tap Allow. Some kinds of access open a separate settings page instead - turn the switch on there and press Back.</string>
     <string name="welcome_enable_all_explainer_step_default_app_title">Choose the app for your files</string>
-    <string name="welcome_enable_all_explainer_step_default_app_body">One of your own files opens so Android can ask which app should handle it. This is expected. Pick FastMediaSorter, tap Always, then press Back to return here.</string>
+    <string name="welcome_enable_all_explainer_step_default_app_body">One of your own files opens so Android can ask which app should handle it. This is expected. Pick Fast Media Sorter &amp; Organizer, tap Always, then press Back to return here.</string>
     <string name="welcome_enable_all_explainer_step_back_title">Back returns you here</string>
     <string name="welcome_enable_all_explainer_step_back_body">Every screen that is not ours is left with Back. Nothing is lost - setup continues where it stopped.</string>
     <string name="welcome_enable_all_explainer_continue">Got it, start</string>
@@ -3790,7 +3786,7 @@
     <string name="widget_water_flashlight_label">Water flashlight</string>
     <string name="widget_water_flashlight_description">Lights the flash and the screen and locks the screen - only a button closes it</string>
     <string name="tooltip_stopwatch_title">Stopwatch</string>
-    <string name="tooltip_stopwatch_message">Adds a stopwatch to the main menu. Measures one run or several in a row, for up to four participants at once, and keeps the result inside FastMediaSorter.</string>
+    <string name="tooltip_stopwatch_message">Adds a stopwatch to the main menu. Measures one run or several in a row, for up to four participants at once, and keeps the result inside Fast Media Sorter &amp; Organizer.</string>
     <string name="stopwatch_volume_label">Music volume</string>
     <string name="stopwatch_settings_title">Stopwatch settings</string>
     <string name="stopwatch_settings_participants">Participants</string>
@@ -3846,7 +3842,7 @@
     <string name="wear_listen_caption_idle">Hear what the watch microphone hears. The watch will ask you to confirm.</string>
     <string name="wear_listen_caption_waiting">Waiting for you to confirm on the watch..</string>
     <string name="wear_listen_caption_listening">Listening to the watch.</string>
-    <string name="wear_listen_refusal_not_asked">The watch could not ask you: turn its notifications on for FastMediaSorter.</string>
+    <string name="wear_listen_refusal_not_asked">The watch could not ask you: turn its notifications on for Fast Media Sorter &amp; Organizer.</string>
     <string name="wear_listen_refusal_declined">You declined the request on the watch.</string>
     <string name="wear_listen_refusal_expired">Nobody answered on the watch in time.</string>
     <string name="wear_listen_refusal_capture_failed">The watch could not open its microphone.</string>
@@ -4076,7 +4072,7 @@
     <string name="wear_system_info_channel_name">Watch system information</string>
     <string name="wear_system_info_notification_title">Watch report received</string>
     <string name="wear_system_info_notification_text">Tap to open or send the report</string>
-    <string name="wear_system_info_share_subject">FastMediaSorter watch system information</string>
+    <string name="wear_system_info_share_subject">Fast Media Sorter &amp; Organizer watch system information</string>
     <string name="wear_clipboard_channel_name">Watch clipboard</string>
     <string name="wear_clipboard_notification_title">Text from the watch</string>
     <string name="wear_clipboard_notification_text">It is on this phone\'s clipboard now</string>
@@ -4224,8 +4220,8 @@
     <string name="settings_sftp_server_apply_hint">Turn the server off and on again to apply the change</string>
     <string name="settings_sftp_server_show_qr">Show pairing code</string>
     <string name="settings_sftp_server_hide_qr">Hide pairing code</string>
-    <string name="settings_sftp_server_qr_description">Pairing code: scan it in FastMediaSorter on another device</string>
-    <string name="add_resource_sftp_pairing_invalid">This code is not a complete FastMediaSorter pairing code - show it again on the server phone and rescan</string>
+    <string name="settings_sftp_server_qr_description">Pairing code: scan it in Fast Media Sorter &amp; Organizer on another device</string>
+    <string name="add_resource_sftp_pairing_invalid">This code is not a complete Fast Media Sorter &amp; Organizer pairing code - show it again on the server phone and rescan</string>
     <string name="add_resource_sftp_pairing_filled">Connection details filled in from the pairing code - check them and save</string>
     <string name="add_resource_sftp_pairing_name">Device server %1$s</string>
     <string name="filedo_password_remember_leak">Anyone holding this phone unlocked can open, without typing it, every .fd-sec file this password fits.</string>
@@ -4336,8 +4332,8 @@
     <string name="wear_watchface_hint">There is a FastMediaSorter watch face for your watch.</string>
     <string name="wear_watchface_hint_action">Get it</string>
     <string name="wear_install_offer_title">A watch is connected</string>
-    <string name="wear_install_offer_message">%1$s is connected to this phone. Install FastMediaSorter on the watch to open your media right from the wrist, and get the FastMediaSorter watch face.</string>
-    <string name="wear_install_offer_message_face_only">FastMediaSorter is already on %1$s. Get the FastMediaSorter watch face too?</string>
+    <string name="wear_install_offer_message">%1$s is connected to this phone. Install Fast Media Sorter &amp; Organizer on the watch to open your media right from the wrist, and get the FastMediaSorter watch face.</string>
+    <string name="wear_install_offer_message_face_only">Fast Media Sorter &amp; Organizer is already on %1$s. Get the FastMediaSorter watch face too?</string>
     <string name="wear_install_offer_app">Install on watch</string>
     <string name="wear_install_offer_face">Watch face</string>
     <string name="wear_install_offer_app_no_watch">No watch connected - opening the watch app page here instead.</string>
@@ -4354,7 +4350,7 @@
     <string name="wear_stream_pins_push_no_watch">No watch within reach</string>
     <string name="wear_stream_pins_push_failed">The list did not reach the watch. Try again.</string>
     <string name="wear_stream_pins_picker_title">Pin a channel for the watch</string>
-    <string name="welcome_default_player_hint_side">Tap one of the buttons - a dialog will appear. Select FastMediaSorter and tap <b>Always</b>.</string>
+    <string name="welcome_default_player_hint_side">Tap one of the buttons - a dialog will appear. Select Fast Media Sorter &amp; Organizer and tap <b>Always</b>.</string>
     <string name="host_key_repin_warning_format">Nothing was loaded, to keep you safe. Update the fingerprint only if you trust this network. This will update the fingerprint on %1$d resource(s) sharing this address.</string>
     <string name="host_key_repin_confirm">Update fingerprint</string>
     <string name="host_key_repin_done">Fingerprint updated</string>
@@ -4556,7 +4552,6 @@
     <string name="broadcast_control_group_share">Link and sharing</string>
     <string name="msg_transfer_same_folder_refused">This is already the file\'s folder. Pick a different destination.</string>
     <string name="settings_collapse_all">Collapse all</string>
-    <string name="settings_category_about_app">All about this application</string>
     <string name="broadcast_control_preview_toggle_cd">Broadcast picture. Tap to show or hide the controls</string>
     <string name="broadcast_link_password_title">Link password</string>
     <string name="broadcast_link_password_mode_auto">Automatic</string>
@@ -4726,4 +4721,24 @@
     <string name="feedback_state_failed">Refused by the computer: %1$s</string>
     <string name="feedback_queued">Also queued for the folder on the computer</string>
     <string name="feedback_stage_failed">The feedback could not be saved: %1$s</string>
+    <string name="notes_sync_now">Sync now</string>
+    <string name="notes_sync_status_syncing">Syncing..</string>
+    <string name="notes_sync_status_synced">Synced with %1$s</string>
+    <string name="notes_sync_status_failed">Notes could not be synced. They stay on this device.</string>
+    <string name="notes_sync_too_large">Too large to sync</string>
+    <string name="notes_sync_conflict">This note was changed on another device at the same time. Both versions are kept.</string>
+    <string name="notes_sync_limit_reached">This server keeps no more notes for this account. Delete some notes, or ask whoever runs the server.</string>
+    <string name="streams_error_playlist_hls_manifest">This address is an HLS manifest, not a playlist of streams.</string>
+    <string name="streams_category_hint">Category (optional)</string>
+    <string name="s4609_broadcast_stopped_text">Playback has stopped. Open Streams to see why.</string>
+    <string name="streams_filter_media_recent">Recent</string>
+    <string name="streams_media_filter_recent">Show recently played streams only</string>
+    <string name="streams_pause">Pause</string>
+    <string name="streams_resume">Resume</string>
+    <string name="streams_paused">Paused</string>
+    <string name="settings_tab_tools">Tools</string>
+    <string name="settings_tools_group_translation">Translation</string>
+    <string name="settings_tools_group_calculator">Calculator</string>
+    <string name="settings_tools_group_stopwatch">Stopwatch</string>
+    <string name="settings_tab_launcher">Launcher</string>
 </resources>

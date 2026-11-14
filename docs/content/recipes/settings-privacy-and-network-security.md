@@ -13,7 +13,7 @@ canonical_url: documentation/settings/privacy-and-network-security.html
 why: |
   A phone remembers more than you'd think on your own behalf - the sites it kept you signed into, the network passwords a deleted [resource](term:resource) left behind, the exact reason the last screen crashed. This page is about staying on top of that: seeing who's still signed in and clearing what's gone stale, keeping a password field off the Recents preview, and sending a report that actually helps - without digging through logs by hand.
 ingredients:
-  - "FastMediaSorter, any edition, with **Settings** open. See [Finding your way around Settings](page:settings.settings-overview-and-search) if this is your first visit."
+  - "Fast Media Sorter & Organizer, any edition, with **Settings** open. See [Finding your way around Settings](page:settings.settings-overview-and-search) if this is your first visit."
 steps:
   - number: 1
     id: saved-authorizations

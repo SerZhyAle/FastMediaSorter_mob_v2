@@ -48,6 +48,15 @@ object SettingsSearchTabMapping {
         ),
         R.layout.fragment_settings_destinations to TabAssignment(
             SettingsSearchDestination.OPERATIONS, "destinations"
+        ),
+        R.layout.fragment_settings_launcher to TabAssignment(
+            SettingsSearchDestination.LAUNCHER, "launcher"
+        ),
+        R.layout.fragment_settings_tools to TabAssignment(
+            SettingsSearchDestination.TOOLS, "tools"
+        ),
+        R.layout.fragment_settings_about to TabAssignment(
+            SettingsSearchDestination.ABOUT, "about"
         )
     )
 

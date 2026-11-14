@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.29 05:03</sub>
+<sub class="doc-stamp">26.11.14 13:36</sub>
 
 # Pointer - `DOC-INTERNAL-QUALITY`
 
 | | |
 | --- | --- |
 | **Id** | `DOC-INTERNAL-QUALITY` |
-| **Version** | 0.12, draft; wire carrier: file tree layout and check invariants. Owner: this product |
+| **Version** | 0.13, draft; wire carrier: file tree layout and check invariants. Owner: this product |
 | **Home** | `documentation-quality/README.md` section 2, in the shared contracts catalog |
 | **Role here** | owner and reference implementation |
 
@@ -13,6 +13,9 @@
 
 - Maintain a machine-readable document registry (`docs/DOCUMENT_REGISTRY.jsonl`) with product areas, change triggers, and source/render roles.
 - Keep the tracked registry forker-facing only: it indexes documents a fresh clone can open; the gitignored internal corpus (`GEMINI.md`, `.claude/**`, `docs/DEVICE_FLEET.md`, the noLegal showcases) is registered in the local `dev/DOCUMENT_REGISTRY.jsonl` (0.10 amendment, 2026-10-17; S4368).
+- The optional `contract` field of a registry record (0.13, item X) names the contract id and the document or section a
+  document describes; a registry without it conforms, no gate reads it, and neither `docs/DOCUMENT_REGISTRY.jsonl`
+  nor `dev/DOCUMENT_REGISTRY.jsonl` carries it.
 - Enforce reverse coverage: all maintained markdown documentation must be registered or listed as an explicit exclusion.
 - Keep cross-links and anchors valid across all documentation files.
 - Synchronize derived documentation (settings reference, script cheatsheets, icon legend) with code changes.

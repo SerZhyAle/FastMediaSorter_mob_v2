@@ -24,7 +24,7 @@ import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
- * S1433: the Wi-Fi subscreen - the radio switch, the connected network, the active link and the RSSI chart.
+ * S1433: the Wi-Fi subscreen - the radio row, the connected network, the active link and the RSSI chart.
  *
  * Holds no repository and no radio contract of its own: everything arrives through [WifiSectionViewModel],
  * which is what keeps a domain dependency out of a screen class (CLAUDE.md Rule 3).
@@ -63,8 +63,7 @@ class WifiSectionFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         radioBinder = RadioToggleBinder(
-            switch = binding.wifiRadioSwitch,
-            reasonView = binding.wifiRadioReason,
+            row = binding.wifiRadioRow,
             onToggleRequested = viewModel::onRadioToggleRequested,
         )
         chartBinder = SignalChartBinder(

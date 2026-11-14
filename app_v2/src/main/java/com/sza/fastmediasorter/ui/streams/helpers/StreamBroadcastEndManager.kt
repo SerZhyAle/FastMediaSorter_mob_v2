@@ -57,10 +57,11 @@ class StreamBroadcastEndManager @Inject constructor(
         val id = session.broadcastId
         if (playedUrl != playingUrl) {
             playingUrl = playedUrl
+            Timber.d("S4607: inline removal watch, bound to an entry=${session.entryKey != null}")
             hold.reset()
             removalWatch?.cancel()
             removalWatch = id?.let {
-                owner.collectOnLifecycle(observeRemoval(it)) { removed ->
+                owner.collectOnLifecycle(observeRemoval(it, session.entryKey)) { removed ->
                     val readNow = hold.onDirectory(removed)
                     if (readNow) {
                         onStopped(owner, playedUrl, BroadcastStopSignal.DirectoryRemoved, host)

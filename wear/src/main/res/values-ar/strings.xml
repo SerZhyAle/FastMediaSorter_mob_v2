@@ -99,7 +99,7 @@
     <string name="phone_resource_loading">جارٍ التحميل من هاتفك..</string>
     <string name="phone_resource_retry">إعادة المحاولة</string>
     <string name="phone_resource_empty">ليس لدى هاتفك ما يعرضه هنا. افتح مجلدًا آخر أو أعد المحاولة.</string>
-    <string name="phone_resource_unavailable">لا يستجيب FastMediaSorter على هاتفك. افتحه هناك، وأبقِ الهاتف قريبًا.</string>
+    <string name="phone_resource_unavailable">لا يستجيب Fast Media Sorter &amp; Organizer على هاتفك. افتحه هناك، وأبقِ الهاتف قريبًا.</string>
     <string name="phone_resource_access_denied">هاتفك لا يشارك هذا المجلد مع الساعة.</string>
     <string name="phone_resource_unsupported">لا يمكن للساعة فتح هذا النوع من الملفات.</string>
     <string name="phone_resource_transfer_rejected">هذا الملف كبير جدًا لإرساله إلى الساعة.</string>
@@ -383,9 +383,9 @@
     <string name="phone_resource_no_resource_for_type">لم يتم إعداد أي مورد هاتف لاستيعاب هذا النوع.</string>
     <string name="wear_folder_load_more">عرض المزيد</string>
     <string name="wear_file_op_outcome_needs_consent">لم يتم تأكيده - لم يتغير شيء</string>
-    <string name="wear_sync_no_phone_paired">لا يوجد هاتف متصل. اقرن هاتفك وثبّت FastMediaSorter عليه.</string>
+    <string name="wear_sync_no_phone_paired">لا يوجد هاتف متصل. اقرن هاتفك وثبّت Fast Media Sorter &amp; Organizer عليه.</string>
     <string name="wear_sync_request_failed">تعذّر سؤال الهاتف. حاول مرة أخرى.</string>
-    <string name="phone_resource_not_paired">لا يوجد هاتف متصل بهذه الساعة. اقرن هاتفًا وثبّت FastMediaSorter عليه.</string>
+    <string name="phone_resource_not_paired">لا يوجد هاتف متصل بهذه الساعة. اقرن هاتفًا وثبّت Fast Media Sorter &amp; Organizer عليه.</string>
     <string name="wear_streams_sort_most_used">الأكثر استخدامًا</string>
     <string name="streams_rubric_general">عام</string>
     <string name="streams_rubric_news">أخبار</string>
@@ -767,7 +767,7 @@
     <string name="wear_cast_phone_busy">لم يستجب هاتفك - تأكد من وجوده بالقرب منك</string>
     <string name="wear_cast_not_castable">يمكن فقط عرض البث والملفات من مصدر الهاتف على TV</string>
     <string name="wear_stream_stalled">توقّف البث عن الإرسال. تم إيقاف التشغيل لتوفير البطارية.</string>
-    <string name="phone_resource_companion_disabled">مفتاح رفيق الساعة معطّل على هاتفك. فعّله في إعدادات FastMediaSorter، ثم أعد المحاولة.</string>
+    <string name="phone_resource_companion_disabled">مفتاح رفيق الساعة معطّل على هاتفك. فعّله في إعدادات Fast Media Sorter &amp; Organizer، ثم أعد المحاولة.</string>
     <string name="wear_tourist_app">سائح</string>
     <string name="wear_tourist_metric_speed">السرعة</string>
     <string name="wear_tourist_metric_altitude">الارتفاع</string>
@@ -938,12 +938,12 @@
     <string name="about_watch_face_caption">لنظام Wear OS 6 والإصدارات الأحدث</string>
     <string name="about_watch_face_no_store">لا يتوفر Google Play على هذه الساعة</string>
     <string name="wear_companion_hint_connect">وصّل هاتفك لعرض الموارد والهاتف</string>
-    <string name="wear_companion_hint_install">ثبّت FastMediaSorter على هاتفك لعرض الموارد والهاتف</string>
-    <string name="wear_companion_offer_title">FastMediaSorter غير موجود على هاتفك</string>
+    <string name="wear_companion_hint_install">ثبّت Fast Media Sorter &amp; Organizer على هاتفك لعرض الموارد والهاتف</string>
+    <string name="wear_companion_offer_title">Fast Media Sorter &amp; Organizer غير موجود على هاتفك</string>
     <string name="wear_companion_offer_message">ثبّته لتصفّح الهاتف وموارده من الساعة</string>
     <string name="wear_companion_offer_install">تثبيت</string>
     <string name="wear_companion_offer_later">ليس الآن</string>
-    <string name="wear_companion_install_row">تثبيت FastMediaSorter على الهاتف</string>
+    <string name="wear_companion_install_row">تثبيت Fast Media Sorter &amp; Organizer على الهاتف</string>
     <string name="wear_tourist_metric_pressure">الضغط</string>
     <string name="wear_tourist_metric_baro_altitude">الارتفاع البارومتري</string>
     <string name="wear_tourist_metric_elevation_gain_loss">الصعود</string>

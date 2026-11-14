@@ -43,11 +43,13 @@ class ObserveDeviceBroadcastsUseCase @Inject constructor(
                         playable = listed.playable && listed.record.sealIssue == null,
                         descriptorJson = listed.record.descriptorJson,
                         sealNotice = listed.record.sealIssue?.message,
+                        entryKey = device.sourceKey,
                     )
                 }
             }.sortedWith(compareBy({ it.deviceName.orEmpty().lowercase() }, { it.title.orEmpty().lowercase() })),
             pending = listing.pending,
             incomplete = listing.unreachableSources.isNotEmpty(),
+            listedSources = listing.listedSources,
         )
     }
 }

@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "होम सिनेमा और VR स्ट्रीमिंग - FastMediaSorter v2"
+title: "होम सिनेमा और VR स्ट्रीमिंग - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-home-cinema-hi.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -21,7 +21,7 @@ permalink: /docs/howto/scenario-home-cinema-hi.html
 
 - फोन / टैबलेट / VR हेडसेट आपके पीसी के साथ **एक ही घरेलू Wi-Fi नेटवर्क** पर
 - आपके **पीसी या NAS** (स्टोरेज वाला आपका राउटर बॉक्स) पर वीडियो
-- FastMediaSorter इंस्टॉल किया हुआ
+- Fast Media Sorter & Organizer इंस्टॉल किया हुआ
 
 ---
 
@@ -39,7 +39,9 @@ permalink: /docs/howto/scenario-home-cinema-hi.html
 
 ---
 
-## चरण 2 - FastMediaSorter में वीडियो फ़ोल्डर जोड़ें
+<a id="चरण-2---fastmediasorter-में-वीडियो-फ़ोल्डर-जोड़ें"></a>
+
+## चरण 2 - Fast Media Sorter & Organizer में वीडियो फ़ोल्डर जोड़ें
 
 1. ऐप खोलें → **Add <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** टैप करें → **"Network folder (SMB)"**
 2. **"Scan Network"** टैप करें - ऐप उपलब्ध पीसी के लिए आपके घरेलू नेटवर्क को स्कैन करता है
@@ -104,7 +106,7 @@ permalink: /docs/howto/scenario-home-cinema-hi.html
 
 > **यह सेक्शन उन लोगों के लिए है जिनके पास VR हेडसेट है (जैसे Meta Quest 2/3 या Pico 4).** अगर आपके पास नहीं है, तो यह चरण छोड़ दें.
 
-Android-आधारित VR हेडसेट FastMediaSorter चला सकते हैं. इसे साइडलोडिंग के ज़रिए इंस्टॉल करें:
+Android-आधारित VR हेडसेट Fast Media Sorter & Organizer चला सकते हैं. इसे साइडलोडिंग के ज़रिए इंस्टॉल करें:
 1. [Downloads पेज](../DOWNLOADS.md) से APK डाउनलोड करें
 2. अपने हेडसेट पर, Developer settings में **"Install from unknown sources"** ऑन करें
 3. SideQuest से या सीधे ADB के ज़रिए APK इंस्टॉल करें
@@ -115,7 +117,7 @@ Android-आधारित VR हेडसेट FastMediaSorter चला स�
 - एपिसोड के बीच स्वाइप करने के लिए **थंबस्टिक** इस्तेमाल करें (अगर आपका हेडसेट मीडिया बटन मैप करता है)
 - सामान्य 2D फ़िल्मों और सीरीज़ के लिए - तुरंत काम करता है, कोई अतिरिक्त सेटअप नहीं
 
-> **VR सिनेमा अनुभव के लिए:** आप लॉन्चर के रूप में एक समर्पित VR सिनेमा ऐप इस्तेमाल कर सकते हैं, और फिर फ़ाइल प्रबंधन के लिए "Open with FastMediaSorter" चुन सकते हैं. FastMediaSorter फ़ाइल ब्राउज़िंग संभालता है; VR सिनेमा ऐप इमर्सिव 360° डिस्प्ले संभालता है.
+> **VR सिनेमा अनुभव के लिए:** आप लॉन्चर के रूप में एक समर्पित VR सिनेमा ऐप इस्तेमाल कर सकते हैं, और फिर फ़ाइल प्रबंधन के लिए "Open with Fast Media Sorter & Organizer" चुन सकते हैं. Fast Media Sorter & Organizer फ़ाइल ब्राउज़िंग संभालता है; VR सिनेमा ऐप इमर्सिव 360° डिस्प्ले संभालता है.
 
 ---
 

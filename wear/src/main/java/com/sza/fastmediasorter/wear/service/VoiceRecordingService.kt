@@ -43,12 +43,14 @@ import com.sza.fastmediasorter.wear.domain.usecase.GetWatchDisplayNameUseCase
 import com.sza.fastmediasorter.wear.service.helpers.LiveAudioLanServer
 import com.sza.fastmediasorter.wear.service.helpers.VoiceRecordingSessionManager
 import com.sza.fastmediasorter.wear.ui.listen.ListenRequestActivity
+import com.sza.fastmediasorter.wear.util.warnUnlessCancellation
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -139,6 +141,9 @@ class VoiceRecordingService : Service() {
     /** Copies the server's human listener count into the broadcast holder while a broadcast serves. */
     private var lanListenersJob: Job? = null
 
+    /** The broadcast opener, kept so a Stop or a second Start arriving while it runs can see it. */
+    private var openingJob: Job? = null
+
     /** Held only while a broadcast or a listening session is serving audio; never for a voice note. */
     private var sessionWakeLock: PowerManager.WakeLock? = null
 
@@ -186,7 +191,7 @@ class VoiceRecordingService : Service() {
                 START_REDELIVER_INTENT
             }
             ACTION_STOP_BROADCAST -> {
-                serviceScope.launch { stopBroadcastSession() }
+                serviceScope.launch { stopBroadcastAfterOpening() }
                 START_NOT_STICKY
             }
             ACTION_STOP -> {
@@ -375,7 +380,9 @@ class VoiceRecordingService : Service() {
      * this path adds a reason to hold the microphone, never a new way to hold it.
      */
     private fun handleStartBroadcast() {
-        if (sessionManager.isSessionOpen) {
+        // isSessionOpen turns true only once the recorder exists, so the opener is checked as well:
+        // a second Start inside the network and capture steps would otherwise launch a second opener.
+        if (sessionManager.isSessionOpen || openingJob?.isActive == true) {
             Timber.i("Ignoring a broadcast start: the microphone session is already open")
             return
         }
@@ -383,7 +390,38 @@ class VoiceRecordingService : Service() {
         ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, foregroundServiceType())
         acquireSessionWakeLock()
         broadcastSession.publish(WearBroadcastSessionState.Starting)
-        serviceScope.launch { openBroadcastSession() }
+        openingJob = serviceScope.launch { openBroadcastGuarded() }
+    }
+
+    /**
+     * The opener runs as a bare launch on a scope with no handler, so an exception from the bind or
+     * the capture would take the process down mid-start with the lease, the wake lock and the
+     * foreground notification still held. Every failure ends on the same path a refused start takes.
+     */
+    @Suppress("TooGenericExceptionCaught")
+    private suspend fun openBroadcastGuarded() {
+        try {
+            openBroadcastSession()
+        } catch (e: Exception) {
+            e.warnUnlessCancellation("Microphone broadcast failed to start")
+            lanServer.stop()
+            stopLanListenerCount()
+            // stop() rather than release(): it also ends the ticker and publishes the recorder state
+            // Idle, so a capture that started before the bind failed does not leave a stale Recording.
+            sessionManager.stop()
+            failBroadcast(WearBroadcastFailure.CAPTURE_FAILED)
+        }
+    }
+
+    /**
+     * A Stop tapped while the opener still runs must not interleave with it: the opener owns the
+     * lease, the recorder and the server it is about to bind, and a stop that ran first would be
+     * undone by the opener finishing afterwards. Cancelled and joined, then the normal stop.
+     */
+    private suspend fun stopBroadcastAfterOpening() {
+        openingJob?.cancelAndJoin()
+        openingJob = null
+        stopBroadcastSession()
     }
 
     /**

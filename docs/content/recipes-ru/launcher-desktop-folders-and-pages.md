@@ -13,7 +13,7 @@ why: |
 
   Все настройки на этой странице меняют только визуальную компоновку элементов: ни одно приложение, папка или файл при перемещении не удаляются.
 ingredients:
-  - "FastMediaSorter в [редакции Standard](term:standard-edition) или [noLegal](term:nolegal-edition) со включенным рабочим столом [лаунчера](term:launcher) (см. [Рабочий стол лаунчера](page:launcher.desktop-grid-and-icons))."
+  - "Fast Media Sorter & Organizer в [редакции Standard](term:standard-edition) или [noLegal](term:nolegal-edition) со включенным рабочим столом [лаунчера](term:launcher) (см. [Рабочий стол лаунчера](page:launcher.desktop-grid-and-icons))."
   - "Несколько значков или гаджетов на [рабочем столе](term:desktop) для компоновки."
 steps:
   - number: 1

@@ -1,12 +1,12 @@
 ---
 layout: doc
-title: "What's New in FastMediaSorter v2"
+title: "What's New in Fast Media Sorter & Organizer"
 permalink: /docs/WHATS_NEW.html
 ---
 
 <sub class="doc-stamp">26.10.29 21:45</sub>
 
-# What's New in FastMediaSorter v2
+# What's New in Fast Media Sorter & Organizer {#whats-new-in-fastmediasorter-v2}
 
 **Current release: 2.61.1121.756** (November 2026)
 
@@ -757,7 +757,7 @@ Note: the step-counter desktop tile ships only in the sideload build for now.
 
 ## What's New
 
-- **Launcher mode** - use FastMediaSorter as your device home screen.
+- **Launcher mode** - use Fast Media Sorter & Organizer as your device home screen.
 - **HEIC, HEIF & AVIF** - open modern phone photo formats.
 - **Archives & disk images** - handle them from Open-with and Share.
 - **Bigger edge-gesture catalog** - more actions in a grouped picker.
@@ -812,7 +812,7 @@ Note: the step-counter desktop tile ships only in the sideload build for now.
 - **Windows Companion** - discover, pair, and import shared folders and SFTP access from a desktop companion app.
 - **Shared-folder resources** - import a companion-shared folder as writable, or share/import SFTP access as a file.
 - **Companion config import** - schema-v2 config keeps working with older app versions too.
-- **Sharing receivers** - Messenger, Viber, and short-video social apps can share straight into FastMediaSorter.
+- **Sharing receivers** - Messenger, Viber, and short-video social apps can share straight into Fast Media Sorter & Organizer.
 - **Screenshot OCR** - crop and translate text directly from a screenshot.
 - **Screen Capture edge gestures** - configurable swipe zones across all four screen edges.
 - **Quick-launch panel** - close button, camera/video gesture actions, and search-filter on long picker lists.
@@ -1530,7 +1530,7 @@ Note: the step-counter desktop tile ships only in the sideload build for now.
 
 ## Share / Receive Files
 
-- **"Share to FastMediaSorter"** - the app now receives files via the Android Share sheet and offers to copy them to a selected resource
+- **"Share to Fast Media Sorter & Organizer"** - the app now receives files via the Android Share sheet and offers to copy them to a selected resource
 
 ---
 

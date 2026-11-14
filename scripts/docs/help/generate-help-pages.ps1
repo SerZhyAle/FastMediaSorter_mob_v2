@@ -11,6 +11,9 @@
     - the UI strings (app_v2/src/main/res/values[-<locale>]/strings*.xml): an element's name is the value of
       @string/<labelKey>, so a renamed button is renamed in its help by the same edit (rule 13);
     - docs/docs-pages-manifest.jsonl for `pageId` links into the site;
+    - docs/termbase.jsonl and scripts/docs/lib/termbase-definitions-<locale>.json for the Terms section of the help index:
+      every record whose `platforms` carries `phone`, named by `canonical_en` / `locales.<l>` and defined by
+      `definition_en` / the `def` of the locale's definition file;
     - app_v2/src/main/assets/help/img/<help-id>-<locale>-light.webp (optional -dark.webp): a screenshot section is
       written only for a page whose light image exists, and the image is copied to the portal.
 
@@ -44,6 +47,16 @@
     unchanged inputs and the same -Date is byte-identical. Pages carry no script, no remote font and no URL
     outside an <a href>; the generator checks that on every page it renders.
 
+    The help index also carries the subject index (DOC-EXTERNAL-QUALITY rule 1): every page title and element name of
+    the locale, sorted by its alphabet, each linking the pages that carry it. It is rendered from the sources, so no
+    list is kept by hand. After it comes the Terms section, the glossary of the same rule: one entry per phone term of the
+    term base, sorted the same way. A locale with no definition file falls back to English with a note; a locale with one
+    must name and define every term.
+
+    With -Check nothing is written: every page, css file and portal image copy is compared with the file on disk, and
+    a differing file, a missing file or a page no source renders is a finding. The footer date is left out of the
+    comparison, because pages are regenerated selectively (-HelpIds) and one page set therefore carries several dates.
+
 .PARAMETER RepoRoot
     Repository root. Default: three levels above this script's folder.
 
@@ -73,19 +86,28 @@
 .PARAMETER OutPortal
     Folder receiving the portal copies, help.css and img/. Default: <RepoRoot>/documentation/help.
 
+.PARAMETER Check
+    Write nothing; compare what would be written with the disk. -HelpIds is ignored: the whole set is compared.
+
 .EXAMPLE
     pwsh -NoProfile -File scripts/docs/help/generate-help-pages.ps1
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/docs/help/generate-help-pages.ps1 -Date 2026-10-16 -Locales en,ru,uk
 
+.EXAMPLE
+    pwsh -NoProfile -File scripts/docs/help/generate-help-pages.ps1 -Check
+
 .NOTES
     Exit codes:
-      0 - pages written (or already up to date)
+      0 - pages written (or already up to date); with -Check, the disk equals the sources
       1 - source error: a mapped help id has no source file, a source is invalid or lacks a locale, a labelKey is
-          missing from the English strings, a related target does not resolve, or a rendered page breaks the
-          offline rules
-      2 - input not found: the help map, the page manifest, the English string folder or help.css
+          missing from the English strings, a related target does not resolve, a phone term has no name or definition
+          in a locale that has a definition file, or a rendered page breaks the offline rules; with -Check also a file
+          that differs, is missing or has no source
+      2 - input not found: the help map, the page manifest, the term base, the English string folder or help.css
+    The last line on stdout is `generate-help-pages: PASS (..)`, and with -Check `generate-help-pages: FAIL (..)`
+    when the disk is out of step.
 #>
 [CmdletBinding()]
 param(
@@ -98,7 +120,8 @@ param(
     [string]$MapPath = '',
     [string]$ImageRoot = '',
     [string]$OutAssets = '',
-    [string]$OutPortal = ''
+    [string]$OutPortal = '',
+    [switch]$Check
 )
 
 Set-StrictMode -Version Latest
@@ -117,19 +140,19 @@ $script:Ui = @{
     en = @{
         Help = 'Help'; Purpose = 'What this is for'; Order = 'In this order'; Elements = 'The elements'
         Related = 'Related'; Index = 'Help index'; Undo = 'Undo'; Shortcut = 'Shortcut'
-        Support = 'Ask a question or report a problem'
+        Support = 'Ask a question or report a problem'; Subjects = 'Subject index'; Terms = 'Terms'
         KindScreen = 'Screen'; KindGuide = 'Guide'; KindLink = 'Link'
     }
     ru = @{
         Help = 'Справка'; Purpose = 'Для чего этот экран'; Order = 'Порядок действий'; Elements = 'Элементы'
         Related = 'Связанное'; Index = 'Оглавление справки'; Undo = 'Отмена'; Shortcut = 'Сочетание клавиш'
-        Support = 'Задать вопрос или сообщить о проблеме'
+        Support = 'Задать вопрос или сообщить о проблеме'; Subjects = 'Предметный указатель'; Terms = 'Термины'
         KindScreen = 'Экран'; KindGuide = 'Руководство'; KindLink = 'Ссылка'
     }
     uk = @{
         Help = 'Довідка'; Purpose = 'Для чого цей екран'; Order = 'Порядок дій'; Elements = 'Елементи'
         Related = 'Пов''язане'; Index = 'Зміст довідки'; Undo = 'Скасування'; Shortcut = 'Сполучення клавіш'
-        Support = 'Поставити запитання або повідомити про проблему'
+        Support = 'Поставити запитання або повідомити про проблему'; Subjects = 'Предметний покажчик'; Terms = 'Терміни'
         KindScreen = 'Екран'; KindGuide = 'Посібник'; KindLink = 'Посилання'
     }
 }
@@ -142,6 +165,7 @@ $script:Titles = @{}
 $script:PageIds = @()
 $script:Manifest = @{}
 $script:ImageCopies = [ordered]@{}
+$script:Terms = @()
 $script:Cfg = $null
 
 # ---------- small helpers ----------
@@ -267,6 +291,8 @@ function Initialize-Config {
         ResRoot      = Join-Path $root 'app_v2/src/main/res'
         Gradle       = Join-Path $root 'app_v2/build.gradle.kts'
         PageManifest = Join-Path $root 'docs/docs-pages-manifest.jsonl'
+        Termbase     = Join-Path $root 'docs/termbase.jsonl'
+        TermDefs     = Join-Path $root 'scripts/docs/lib'
         CssSource    = Join-Path $PSScriptRoot 'help.css'
     }
 }
@@ -359,6 +385,43 @@ function Import-PageManifest {
         if (-not $line.Trim()) { continue }
         $row = $line | ConvertFrom-Json
         $script:Manifest[[string](Get-Prop $row 'page_id')] = $row
+    }
+}
+
+function Import-Termbase {
+    # The help is the phone app's help, so a term that exists only on the watch or in the headset is not listed.
+    $terms = [System.Collections.Generic.List[object]]::new()
+    foreach ($line in Get-Content -LiteralPath $script:Cfg.Termbase -Encoding UTF8) {
+        if (-not $line.Trim()) { continue }
+        try { $row = $line | ConvertFrom-Json } catch { Add-Problem "term base: a line is not JSON: $($_.Exception.Message)"; continue }
+        if (@(Get-Prop $row 'platforms') -notcontains 'phone') { continue }
+        $terms.Add($row)
+    }
+    $definitions = @{}
+    foreach ($locale in $script:Cfg.Locales) {
+        if ($locale -eq $script:SourceLocale) { continue }
+        $path = Join-Path $script:Cfg.TermDefs "termbase-definitions-$locale.json"
+        if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+            $null = $script:Notes.Add("no term definitions for '$locale' ($path): the Terms section falls back to $($script:SourceLocale)")
+            continue
+        }
+        $definitions[$locale] = Read-JsonFile $path
+    }
+    $script:Terms = foreach ($row in $terms) {
+        $id = [string](Get-Prop $row 'id')
+        $names = @{}; $defs = @{}
+        foreach ($locale in $script:Cfg.Locales) {
+            if ($locale -eq $script:SourceLocale -or -not $definitions.ContainsKey($locale)) {
+                $names[$locale] = [string](Get-Prop $row 'canonical_en')
+                $defs[$locale] = [string](Get-Prop $row 'definition_en')
+            } else {
+                $names[$locale] = [string](Get-Prop (Get-Prop $row 'locales') $locale)
+                $defs[$locale] = [string](Get-Prop (Get-Prop $definitions[$locale] $id) 'def')
+            }
+            if (-not $names[$locale]) { Add-Problem "term base: '$id' has no name in $locale" }
+            if (-not $defs[$locale]) { Add-Problem "term base: '$id' has no definition in $locale" }
+        }
+        [pscustomobject]@{ Id = $id; Names = $names; Definitions = $defs }
     }
 }
 
@@ -677,8 +740,82 @@ function New-HelpPageBody {
     return $body.ToArray()
 }
 
+function Get-SortKey {
+    # Sorts Latin before Cyrillic and Cyrillic by the alphabets of ru and uk (ordinal order puts the letters they do not
+    # share after the last letter). No culture is read, so a Windows and a Linux run write the same page.
+    param([string]$Text)
+    $alphabet = 'абвгґдеёєжзиіїйклмнопрстуфхцчшщъыьэюя'
+    $key = [System.Text.StringBuilder]::new()
+    foreach ($char in $Text.ToLowerInvariant().ToCharArray()) {
+        $at = $alphabet.IndexOf($char)
+        if ($at -ge 0) { $null = $key.Append([char](0x3000 + $at)) } else { $null = $key.Append($char) }
+    }
+    return $key.ToString()
+}
+
+function New-SubjectIndexHtml {
+    # Every page title and element name of the locale, once, linking each page that carries it once.
+    param($Sources, [string]$Locale, [string]$Target, $Ui)
+    $subjects = @{}
+    $note = {
+        param([string]$Name, [string]$PageId, [string]$Href, [string]$PageTitle)
+        $key = Get-SortKey $Name
+        if (-not $subjects.ContainsKey($key)) { $subjects[$key] = [pscustomobject]@{ Name = $Name; Links = [ordered]@{} } }
+        if (-not $subjects[$key].Links.Contains($PageId)) { $subjects[$key].Links[$PageId] = [pscustomobject]@{ Href = $Href; Title = $PageTitle } }
+    }
+    foreach ($id in $script:PageIds) {
+        $source = $Sources[$id]
+        $pageTitle = Get-PageTitle $id $Locale
+        if (-not $pageTitle) { continue }
+        $pageHref = Get-PageHref $id $Locale $Target
+        & $note $pageTitle $id $pageHref $pageTitle
+        $entries = Get-Prop (Get-Prop (Get-Prop $source 'locales') $Locale) 'elements'
+        foreach ($element in @(Get-Prop $source 'elements')) {
+            $elementId = [string](Get-Prop $element 'id')
+            $entry = Get-Prop $entries $elementId
+            if ($null -eq $entry) { continue }
+            $name = Resolve-ElementName -Element $element -HelpId $id -Locale $Locale -Entry $entry
+            if ($name) { & $note $name $id "$pageHref#$elementId" $pageTitle }
+        }
+    }
+    $lines = [System.Collections.Generic.List[string]]::new()
+    $lines.Add("<h2 id=`"subjects`">$(ConvertTo-HtmlText $Ui.Subjects)</h2>")
+    $lines.Add('<ul class="subjects">')
+    [string[]]$keys = @($subjects.Keys)
+    [Array]::Sort($keys, [StringComparer]::Ordinal)
+    foreach ($key in $keys) {
+        $subject = $subjects[$key]
+        $links = foreach ($link in $subject.Links.Values) { "<a href=`"$($link.Href)`">$(ConvertTo-HtmlText $link.Title)</a>" }
+        $lines.Add("<li><b>$(ConvertTo-HtmlText $subject.Name)</b> $($links -join ', ')</li>")
+    }
+    $lines.Add('</ul>')
+    return $lines.ToArray()
+}
+
+function New-TermsHtml {
+    # The glossary of DOC-EXTERNAL-QUALITY rule 1. A name starts with a capital only where the term base writes one.
+    param([string]$Locale, $Ui)
+    $rows = @{}
+    foreach ($term in $script:Terms) {
+        $name = ConvertTo-OneLine $term.Names[$Locale]
+        # The id breaks a tie, so two terms that share a name in one locale keep a stable order.
+        $key = (Get-SortKey $name) + [char]0 + $term.Id
+        $rows[$key] = [pscustomobject]@{ Id = $term.Id; Name = $name; Definition = ConvertTo-OneLine $term.Definitions[$Locale] }
+    }
+    [string[]]$keys = @($rows.Keys)
+    [Array]::Sort($keys, [StringComparer]::Ordinal)
+    $lines = [System.Collections.Generic.List[string]]::new()
+    $lines.Add("<h2 id=`"terms`">$(ConvertTo-HtmlText $Ui.Terms)</h2>")
+    $lines.Add('<dl class="terms">')
+    foreach ($row in @($keys | ForEach-Object { $rows[$_] })) {
+        $lines.Add("<dt id=`"term-$($row.Id)`">$(ConvertTo-HtmlText $row.Name)</dt><dd>$(ConvertTo-HtmlText $row.Definition)</dd>")
+    }
+    $lines.Add('</dl>')
+    return $lines.ToArray()
+}
+
 function New-IndexPageBody {
-    param($Source, [string]$Locale, [string]$Target, [string]$ProductName, [string]$Version)
+    param($Source, $Sources, [string]$Locale, [string]$Target, [string]$ProductName, [string]$Version)
     $ui = Get-Ui $Locale
     $block = Get-Prop (Get-Prop $Source 'locales') $Locale
     $title = ConvertTo-OneLine ([string](Get-Prop $block 'title'))
@@ -694,6 +831,8 @@ function New-IndexPageBody {
         $body.Add("<li><a href=`"$(Get-PageHref $id $Locale $Target)`"><b>$(ConvertTo-HtmlText $pageTitle)</b></a></li>")
     }
     $body.Add('</ul>')
+    foreach ($line in (New-SubjectIndexHtml -Sources $Sources -Locale $Locale -Target $Target -Ui $ui)) { $body.Add($line) }
+    foreach ($line in (New-TermsHtml -Locale $Locale -Ui $ui)) { $body.Add($line) }
     foreach ($line in (New-FooterHtml -Locale $Locale -Target $Target -Ui $ui -ProductName $ProductName -Version $Version)) { $body.Add($line) }
     return $body.ToArray()
 }
@@ -745,11 +884,58 @@ function Sync-RegistryHelpExclusions {
     return $helpPaths.Count
 }
 
+# ---------- check ----------
+
+function ConvertTo-DateNeutral {
+    # The footer date is a fact of the last generation of that page, so it never decides a -Check verdict.
+    param([string]$Text)
+    return [regex]::Replace($Text.Replace("`r`n", "`n"), '(<footer class="help-foot">\s*<span>[^<]*, )\d{4}-\d{2}-\d{2}(</span>)', '${1}0000-00-00${2}')
+}
+
+function Invoke-DiskCheck {
+    # -Check: nothing is written. A file that differs from its render, a render with no file, and a page file no
+    # source renders are the findings.
+    param([Parameter(Mandatory)]$Outputs)
+    $findings = [System.Collections.Generic.List[string]]::new()
+    $utf8 = [System.Text.UTF8Encoding]::new($false)
+    $relativeTo = { param($path) [System.IO.Path]::GetRelativePath($script:Cfg.Root, $path).Replace('\', '/') }
+    foreach ($output in $Outputs) {
+        if (-not (Test-Path -LiteralPath $output.Path -PathType Leaf)) { $findings.Add("MISSING-FILE $(& $relativeTo $output.Path) is not on disk"); continue }
+        $onDisk = [System.IO.File]::ReadAllText($output.Path, $utf8)
+        if ((ConvertTo-DateNeutral $onDisk) -cne (ConvertTo-DateNeutral $output.Text)) {
+            $findings.Add("STALE-FILE $(& $relativeTo $output.Path) differs from what its sources render to")
+        }
+    }
+    foreach ($destination in $script:ImageCopies.Keys) {
+        if (-not (Test-Path -LiteralPath $destination -PathType Leaf)) { $findings.Add("MISSING-FILE $(& $relativeTo $destination) is not on disk"); continue }
+        if ((Get-FileHash -LiteralPath $script:ImageCopies[$destination]).Hash -ne (Get-FileHash -LiteralPath $destination).Hash) {
+            $findings.Add("STALE-FILE $(& $relativeTo $destination) differs from its screenshot")
+        }
+    }
+    $expected = [System.Collections.Generic.HashSet[string]]::new(
+        [string[]]@($Outputs | ForEach-Object { [System.IO.Path]::GetFullPath($_.Path) }), [StringComparer]::OrdinalIgnoreCase)
+    $folders = @($script:Cfg.Locales | ForEach-Object { Join-Path $script:Cfg.OutAssets $_ }) + @($script:Cfg.OutPortal)
+    foreach ($folder in $folders) {
+        if (-not (Test-Path -LiteralPath $folder -PathType Container)) { continue }
+        foreach ($file in Get-ChildItem -LiteralPath $folder -File -Filter '*.html') {
+            if (-not $expected.Contains($file.FullName)) { $findings.Add("ORPHAN-FILE $(& $relativeTo $file.FullName) has no source") }
+        }
+    }
+    foreach ($note in $script:Notes) { Write-Host "note: $note" }
+    foreach ($finding in $findings) { Write-Host $finding }
+    if ($findings.Count -gt 0) {
+        Write-Host "generate-help-pages: FAIL ($($findings.Count) file(s) out of step; run scripts/docs/help/generate-help-pages.ps1)"
+        return 1
+    }
+    Write-Host "generate-help-pages: PASS (checked=$(@($Outputs).Count + $script:ImageCopies.Count) pages=$($script:PageIds.Count) locales=$($script:Cfg.Locales -join ','))"
+    return 0
+}
+
 # ---------- main ----------
 
 function Invoke-Main {
     Initialize-Config
-    $missing = @($script:Cfg.MapPath, $script:Cfg.PageManifest, $script:Cfg.CssSource,
+    $missing = @($script:Cfg.MapPath, $script:Cfg.PageManifest, $script:Cfg.CssSource, $script:Cfg.Termbase,
         (Join-Path $script:Cfg.ResRoot 'values')) | Where-Object { -not (Test-Path -LiteralPath $_) }
     if ($missing) {
         foreach ($path in $missing) { Write-Problem "input not found: $path" }
@@ -761,7 +947,7 @@ function Invoke-Main {
     $script:PageIds = Get-HelpMapPages $map
     $selectedIds = @($HelpIds | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } |
         Where-Object { $_ } | Select-Object -Unique)
-    $writeAll = $selectedIds.Count -eq 0
+    $writeAll = $selectedIds.Count -eq 0 -or $Check.IsPresent
     $unknownIds = @($selectedIds | Where-Object { $_ -ne 'index' -and $_ -notin $script:PageIds })
     if ($unknownIds.Count -gt 0) {
         Write-Problem "unknown help ids: $($unknownIds -join ', ')"
@@ -772,6 +958,7 @@ function Invoke-Main {
     $sources = [ordered]@{}
     foreach ($id in $script:PageIds) { $sources[$id] = Read-HelpSource -Id $id }
     $indexSource = Read-HelpSource -Id 'index' -IsIndex
+    Import-Termbase
     if ($script:Problems.Count -gt 0) {
         foreach ($problem in $script:Problems) { Write-Problem $problem }
         return 1
@@ -794,7 +981,7 @@ function Invoke-Main {
                     $outputs.Add([pscustomobject]@{ Path = $path; Text = $html })
                 }
             }
-            $body = New-IndexPageBody -Source $indexSource -Locale $locale -Target $target -ProductName $productName -Version $version
+            $body = New-IndexPageBody -Source $indexSource -Sources $sources -Locale $locale -Target $target -ProductName $productName -Version $version
             $path = Get-OutputPath 'index' $locale $target
             $html = New-PageHtml -Locale $locale -Target $target -DocTitle (Get-PageTitle 'index' $locale) -Main $body
             Test-PageRules -Path $path -Html $html
@@ -811,6 +998,8 @@ function Invoke-Main {
     $css = (Get-Content -LiteralPath $script:Cfg.CssSource -Raw -Encoding UTF8).Replace("`r`n", "`n").TrimEnd() + "`n"
     $outputs.Add([pscustomobject]@{ Path = Join-Path $script:Cfg.OutAssets 'help.css'; Text = $css })
     $outputs.Add([pscustomobject]@{ Path = Join-Path $script:Cfg.OutPortal 'help.css'; Text = $css })
+
+    if ($Check) { return Invoke-DiskCheck -Outputs $outputs }
 
     $written = 0
     foreach ($output in $outputs) { if (Write-TextFile -Path $output.Path -Text $output.Text) { $written++ } }

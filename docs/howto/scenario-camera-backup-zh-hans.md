@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "定时相机备份到电脑 - FastMediaSorter v2"
+title: "定时相机备份到电脑 - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-camera-backup-zh-hans.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -21,7 +21,7 @@ permalink: /docs/howto/scenario-camera-backup-zh-hans.html
 
 - 手机和电脑连接到**同一个家庭 Wi-Fi**（同一台路由器）
 - 电脑上用于保存照片的文件夹（例如 `C:\PhoneBackup`）
-- 已安装带有网络资源功能的 FastMediaSorter 版本（**Standard**、Photos、Legacy、VR、noLegal）
+- 已安装带有网络资源功能的 Fast Media Sorter & Organizer 版本（**Standard**、Photos、Legacy、VR、noLegal）
 
 > **不确定自己用的是哪个版本？** 打开**设置** <img src="../icons/doc/ic_settings.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> → **系统信息**。**版本**一行会显示具体的版本名称（Standard / Lite 等）。
 
@@ -43,7 +43,7 @@ permalink: /docs/howto/scenario-camera-backup-zh-hans.html
 
 ## 第 2 步 - 将应用连接到电脑文件夹
 
-现在告诉 FastMediaSorter 照片应该发送到哪里。
+现在告诉 Fast Media Sorter & Organizer 照片应该发送到哪里。
 
 > **什么是 SMB？** 它只是 Windows 在家庭 Wi-Fi 上共享文件夹的一种方式。您不需要了解技术细节 - 按照步骤操作即可。
 
@@ -94,7 +94,7 @@ permalink: /docs/howto/scenario-camera-backup-zh-hans.html
 | **计划** | 运行时间 | `每天 02:00` - 在您睡觉时运行 |
 | **仅在 Wi-Fi 下运行** | 打开此开关 | 防止备份意外使用您的移动数据 |
 
-> **什么是“相机照片”？** 这是 FastMediaSorter 自动创建的一个特殊虚拟文件夹，始终显示相机拍摄的所有照片 - 即使它们分散存放在手机的不同文件夹中。请优先使用它，而不是手动选择路径。
+> **什么是“相机照片”？** 这是 Fast Media Sorter & Organizer 自动创建的一个特殊虚拟文件夹，始终显示相机拍摄的所有照片 - 即使它们分散存放在手机的不同文件夹中。请优先使用它，而不是手动选择路径。
 
 ![添加定时任务 - 来源：相机照片，操作：复制，目标：SMB](screenshots/screenshot-cb-step5.png)
 
@@ -154,7 +154,7 @@ permalink: /docs/howto/scenario-camera-backup-zh-hans.html
 
 | 问题 | 解决方法 |
 |---------|------------|
-| 定时任务在夜间不运行 | 进入 **Android 设置 → 应用 → FastMediaSorter → 电池** → 设置为**不受限制** |
+| 定时任务在夜间不运行 | 进入 **Android 设置 → 应用 → Fast Media Sorter & Organizer → 电池** → 设置为**不受限制** |
 | 出现“无法访问目标”错误 | 备份时手机必须连接 Wi-Fi。如果凌晨 2 点 Wi-Fi 处于关闭状态，本次备份会被跳过，并在第二天晚上自动重试 |
 | 部分照片未被备份 | 使用**“相机照片”**虚拟资源作为来源 - 它能捕获手机上所有相机文件夹中的照片 |
 | 电脑上出现重复文件 | 确保操作设置为**“复制（跳过已存在）”**，而不是“复制（覆盖）” |

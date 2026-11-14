@@ -14,7 +14,7 @@ why: |
 
   This page covers the taskbar itself - where it sits, what you can pin to it, and what a long press on one of its buttons offers - plus the quick-launch dock that opens from it.
 ingredients:
-  - "FastMediaSorter in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition), with the [launcher](term:launcher) turned on - see [Your launcher desktop](page:launcher.desktop-grid-and-icons)."
+  - "Fast Media Sorter & Organizer in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition), with the [launcher](term:launcher) turned on - see [Your launcher desktop](page:launcher.desktop-grid-and-icons)."
   - "A few [apps](term:app) or [programs](term:program) worth keeping one tap away."
 steps:
   - number: 1
@@ -53,7 +53,7 @@ steps:
     text: |
       The **Start** button on the taskbar opens the Start menu - see [The Start menu and the full app list](page:launcher.start-menu-and-all-apps) for what is on it.
 
-      Tapping the FastMediaSorter app icon itself depends on one setting: **Settings**, **General**, **Primary startup window**, with **Device home screen**, **Desktop as primary window** or **Resource list** to choose from - the same choice the [welcome wizard](term:welcome-wizard) offers on first install, and it can be changed later at any time. Whenever the app is not set as your device's actual home screen, tapping its icon opens the [resource list](term:resource-list) with your files and folders directly, instead of a second copy of the desktop.
+      Tapping the Fast Media Sorter & Organizer app icon itself depends on one setting: **Settings**, **General**, **Primary startup window**, with **Device home screen**, **Desktop as primary window** or **Resource list** to choose from - the same choice the [welcome wizard](term:welcome-wizard) offers on first install, and it can be changed later at any time. Whenever the app is not set as your device's actual home screen, tapping its icon opens the [resource list](term:resource-list) with your files and folders directly, instead of a second copy of the desktop.
 
       And from anywhere the taskbar or desktop sent you, the system Back button brings you straight back to the desktop rather than leaving you stranded in whatever screen you reached.
   - number: 4

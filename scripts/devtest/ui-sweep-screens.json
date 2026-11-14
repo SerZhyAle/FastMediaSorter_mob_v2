@@ -850,7 +850,7 @@
       "expect": "Exposure",
       "expectRes": "camera_setting_exposure",
       "backAfter": 0,
-      "note": "The `camera` settings section is covered here. It is not reachable from the Settings entry point: CameraSettingsDialogFragment has exactly one call site, the gear button on the capture screen. camera_settings_title is NOT the marker - it is the content description of that same gear button on the host screen. The section's second layout, dialog_camera_ocr_settings, belongs to CameraOcrTranslateActivity, which is excluded no-static-marker; the section stays covered by this entry."
+      "note": "The `camera` settings section is covered here. It is not reachable from the Settings entry point: CameraSettingsDialogFragment has exactly one call site, the gear button on the capture screen. camera_settings_title is NOT the marker - it is the content description of that same gear button on the host screen."
     }
   ],
   "excluded": [

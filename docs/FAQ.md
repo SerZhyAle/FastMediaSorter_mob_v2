@@ -15,11 +15,11 @@ lang: en
 
 ## General Questions
 
-### What is FastMediaSorter?
-FastMediaSorter combines media playback and file management for local, network and cloud resources. Launcher, Streams and watch integration depend on the edition. File access requires your permissions; replacing the home screen requires your explicit choice in Android.
+### What is Fast Media Sorter & Organizer? {#what-is-fastmediasorter}
+Fast Media Sorter & Organizer combines media playback and file management for local, network and cloud resources. Launcher, Streams and watch integration depend on the edition. File access requires your permissions; replacing the home screen requires your explicit choice in Android.
 
 ### Is it free?
-Yes! FastMediaSorter v2 is completely free and open-source.
+Yes! Fast Media Sorter & Organizer is completely free and open-source.
 
 ### What Android version do I need?
 Minimum installation versions in the current source configuration are listed below. A compatible headset/runtime is additionally needed for immersive VR/XR use; **noLegal is not restricted to headsets**. A source variant does not guarantee a published APK.
@@ -37,10 +37,10 @@ Minimum installation versions in the current source configuration are listed bel
 Local files do not need internet. SMB/SFTP/FTP on your LAN need a reachable network, not public internet. Cloud services and internet streams need internet; feature availability depends on the edition.
 
 ### Does the app have widgets?
-Yes! FastMediaSorter v2 ships a variety of home-screen widgets - find them via long-press on the home screen → Widgets → FastMediaSorter. They include resource shortcuts, slideshow launchers, and more.
+Yes! Fast Media Sorter & Organizer ships a variety of home-screen widgets - find them via long-press on the home screen → Widgets → Fast Media Sorter & Organizer. They include resource shortcuts, slideshow launchers, and more.
 
 ### Can the app replace my home screen?
-In **Standard** and **noLegal**, open **Settings → General → Primary startup window**, pick **Device home screen**, then choose FastMediaSorter as Android's Home app. **Desktop as primary window** opens the desktop without replacing your system launcher.
+In **Standard** and **noLegal**, open **Settings → General → Primary startup window**, pick **Device home screen**, then choose Fast Media Sorter & Organizer as Android's Home app. **Desktop as primary window** opens the desktop without replacing your system launcher.
 
 [Edition capability matrix (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 
@@ -227,7 +227,7 @@ Main menu → **"Favorites"** tab
 ## Security & Privacy
 
 ### Can I password-protect folders?
-A resource **PIN** restricts access through the app's UI. It does **not encrypt files** or prevent another app or an authorized server user from opening them. Use device/storage encryption for protection outside FastMediaSorter.
+A resource **PIN** restricts access through the app's UI. It does **not encrypt files** or prevent another app or an authorized server user from opening them. Use device/storage encryption for protection outside Fast Media Sorter & Organizer.
 
 ### Is my data collected?
 The app does not automatically send usage statistics to the author. Optional statistics stay local unless you export or send them. Cloud sign-in, streams and weather contact the providers you choose; those services receive the requests needed for the feature. See the privacy policy for details.
@@ -294,7 +294,7 @@ Slideshow music needs audio support. Standard, noLegal, Legacy, VR, XR and FOSS 
 
 ## Internet Streams
 
-### Does FastMediaSorter play internet radio?
+### Does Fast Media Sorter & Organizer play internet radio? {#does-fastmediasorter-play-internet-radio}
 The **Streams** screen supports HTTP(S) radio with ICY metadata, HLS/DASH and RTSP sources, subject to source and codec compatibility. It is available in **Standard, noLegal, Legacy, VR and XR**, not **Lite, Photos or FOSS**. Unsupported services and DRM are not made playable just by pasting a URL.
 
 [Edition capability matrix (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
@@ -306,7 +306,7 @@ Tap **Streams** in the main window dropdown (visible when Streams is enabled). Y
 In the Streams screen, tap **⋮** at the end of the toolbar, choose **Add stream** and paste the station URL. Tap Save. The station appears in the list immediately.
 
 ### Can I import a playlist?
-Yes - tap **⋮ > Import from URL** and enter a remote `.m3u` address. The same menu holds **Update FastMediaSorter catalog** for the curated list (with topic and language chips), which is also available from **Settings > Extensions** or the Welcome onboarding screen.
+Yes - tap **⋮ > Import from URL** and enter a remote `.m3u` address. The same menu holds **Update Fast Media Sorter & Organizer catalog** for the curated list (with topic and language chips), which is also available from **Settings > Extensions** or the Welcome onboarding screen.
 
 ### A stream is not playing - what do I do?
 If a stream fails, a dialog appears with **Retry**, **Remove**, and **Cancel** options. Cross-protocol 301 redirects are handled automatically. If the host is dead or very slow, the catalog import times out quickly rather than hanging.
@@ -324,7 +324,7 @@ Yes, for video streams - tap **Cast** in the player and pick a Chromecast on the
 
 ## Wear OS
 
-### Does FastMediaSorter work on Wear OS smartwatches?
+### Does Fast Media Sorter & Organizer work on Wear OS smartwatches? {#does-fastmediasorter-work-on-wear-os-smartwatches}
 There is a separate **Wear OS app** (minimum API 28). Install its APK on the watch, not the phone. Phone companion support is currently in **Standard/noLegal** and requires compatible package identities/signatures. The separate **WFF v4 watch face** requires Wear OS 6 / API 36.
 
 [Edition capability matrix (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)

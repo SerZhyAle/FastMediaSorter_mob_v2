@@ -51,7 +51,7 @@
         "Switch on the network sources you plan to use (10, 11, 12). The page is left out when the edition has none of them.",
         "On the capabilities page, turn on what you need (15 to 23) - audio, video, documents, text recognition, translation, streams, gestures. Optional parts download right there.",
         "On the permissions page, press Grant All (25) to go through the requests one by one. A permission you skip stays off, and you can come back to it later.",
-        "If your edition offers it, make FastMediaSorter the default app for audio, video, images and documents (28 to 31).",
+        "If your edition offers it, make Fast Media Sorter & Organizer the default app for audio, video, images and documents (28 to 31).",
         "Press Finish (4) to close the wizard. Previous (1) steps back, Enable all (2) on the first page does the whole setup in one go, and Help (5) opens this page."
       ],
       "groups": [
@@ -175,20 +175,20 @@
           "details": "Each row says what the permission is for and has its own button to grant it or open the matching settings. Opting out means leaving a permission off; nothing is hidden from you."
         },
         "default-audio": {
-          "summary": "Makes FastMediaSorter the app that plays your audio files.",
-          "details": "Android shows its own dialog: pick FastMediaSorter and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there."
+          "summary": "Makes Fast Media Sorter & Organizer the app that plays your audio files.",
+          "details": "Android shows its own dialog: pick Fast Media Sorter & Organizer and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there."
         },
         "default-video": {
-          "summary": "Makes FastMediaSorter the app that plays your videos.",
-          "details": "Android shows its own dialog: pick FastMediaSorter and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there."
+          "summary": "Makes Fast Media Sorter & Organizer the app that plays your videos.",
+          "details": "Android shows its own dialog: pick Fast Media Sorter & Organizer and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there."
         },
         "default-images": {
-          "summary": "Makes FastMediaSorter the app that opens your images.",
-          "details": "Android shows its own dialog: pick FastMediaSorter and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there."
+          "summary": "Makes Fast Media Sorter & Organizer the app that opens your images.",
+          "details": "Android shows its own dialog: pick Fast Media Sorter & Organizer and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there."
         },
         "default-docs": {
-          "summary": "Makes FastMediaSorter the app that opens your documents.",
-          "details": "Android shows its own dialog: pick FastMediaSorter and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there."
+          "summary": "Makes Fast Media Sorter & Organizer the app that opens your documents.",
+          "details": "Android shows its own dialog: pick Fast Media Sorter & Organizer and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there."
         }
       }
     },
@@ -201,7 +201,7 @@
         "Включите сетевые источники, которыми собираетесь пользоваться (10, 11, 12). Если в версии приложения их нет, эта страница пропускается.",
         "На странице возможностей включите нужное (с 15 по 23): аудио, видео, документы, распознавание текста, перевод, трансляции, жесты. Необязательные части загружаются прямо там.",
         "На странице разрешений нажмите «Выдать все» (25), чтобы пройти запросы по очереди. Пропущенное разрешение остаётся выключенным, и к нему можно вернуться позже.",
-        "Если версия приложения это предлагает, сделайте FastMediaSorter приложением по умолчанию для аудио, видео, изображений и документов (с 28 по 31).",
+        "Если версия приложения это предлагает, сделайте Fast Media Sorter & Organizer приложением по умолчанию для аудио, видео, изображений и документов (с 28 по 31).",
         "«Готово» (4) закрывает мастер. «Назад» (1) возвращает на страницу, «Включить всё» (2) на первой странице выполняет всю настройку за один раз, а «Справка» (5) открывает эту страницу."
       ],
       "groups": [
@@ -325,20 +325,20 @@
           "details": "У каждой строки есть пояснение, зачем нужно разрешение, и своя кнопка: выдать его или открыть нужные настройки. Отказ - это просто невыданное разрешение; ничего не скрыто."
         },
         "default-audio": {
-          "summary": "Назначает FastMediaSorter приложением для воспроизведения аудио.",
-          "details": "Android покажет свой диалог: выберите FastMediaSorter и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть."
+          "summary": "Назначает Fast Media Sorter & Organizer приложением для воспроизведения аудио.",
+          "details": "Android покажет свой диалог: выберите Fast Media Sorter & Organizer и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть."
         },
         "default-video": {
-          "summary": "Назначает FastMediaSorter приложением для воспроизведения видео.",
-          "details": "Android покажет свой диалог: выберите FastMediaSorter и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть."
+          "summary": "Назначает Fast Media Sorter & Organizer приложением для воспроизведения видео.",
+          "details": "Android покажет свой диалог: выберите Fast Media Sorter & Organizer и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть."
         },
         "default-images": {
-          "summary": "Назначает FastMediaSorter приложением для открытия изображений.",
-          "details": "Android покажет свой диалог: выберите FastMediaSorter и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть."
+          "summary": "Назначает Fast Media Sorter & Organizer приложением для открытия изображений.",
+          "details": "Android покажет свой диалог: выберите Fast Media Sorter & Organizer и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть."
         },
         "default-docs": {
-          "summary": "Назначает FastMediaSorter приложением для открытия документов.",
-          "details": "Android покажет свой диалог: выберите FastMediaSorter и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть."
+          "summary": "Назначает Fast Media Sorter & Organizer приложением для открытия документов.",
+          "details": "Android покажет свой диалог: выберите Fast Media Sorter & Organizer и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть."
         }
       }
     },
@@ -351,7 +351,7 @@
         "Увімкніть мережеві джерела, якими збираєтеся користуватися (10, 11, 12). Якщо у версії застосунку їх немає, ця сторінка пропускається.",
         "На сторінці можливостей увімкніть потрібне (з 15 по 23): аудіо, відео, документи, розпізнавання тексту, переклад, трансляції, жести. Необов’язкові частини завантажуються просто там.",
         "На сторінці дозволів натисніть «Надати всі» (25), щоб пройти запити по черзі. Пропущений дозвіл лишається вимкненим, і до нього можна повернутися пізніше.",
-        "Якщо версія застосунку це пропонує, зробіть FastMediaSorter застосунком за замовчуванням для аудіо, відео, зображень і документів (з 28 по 31).",
+        "Якщо версія застосунку це пропонує, зробіть Fast Media Sorter & Organizer застосунком за замовчуванням для аудіо, відео, зображень і документів (з 28 по 31).",
         "«Готово» (4) закриває майстер. «Назад» (1) повертає на сторінку, «Увімкнути все» (2) на першій сторінці виконує все налаштування за один раз, а «Довідка» (5) відкриває цю сторінку."
       ],
       "groups": [
@@ -475,20 +475,20 @@
           "details": "У кожного рядка є пояснення, навіщо потрібен дозвіл, і своя кнопка: надати його або відкрити потрібні налаштування. Відмова - це просто ненаданий дозвіл; нічого не приховано."
         },
         "default-audio": {
-          "summary": "Призначає FastMediaSorter застосунком для відтворення аудіо.",
-          "details": "Android покаже власне діалогове вікно: виберіть FastMediaSorter і натисніть «Завжди». Це не назавжди: вибір зберігається в налаштуваннях самого Android, і там його можна повернути."
+          "summary": "Призначає Fast Media Sorter & Organizer застосунком для відтворення аудіо.",
+          "details": "Android покаже власне діалогове вікно: виберіть Fast Media Sorter & Organizer і натисніть «Завжди». Це не назавжди: вибір зберігається в налаштуваннях самого Android, і там його можна повернути."
         },
         "default-video": {
-          "summary": "Призначає FastMediaSorter застосунком для відтворення відео.",
-          "details": "Android покаже власне діалогове вікно: виберіть FastMediaSorter і натисніть «Завжди». Це не назавжди: вибір зберігається в налаштуваннях самого Android, і там його можна повернути."
+          "summary": "Призначає Fast Media Sorter & Organizer застосунком для відтворення відео.",
+          "details": "Android покаже власне діалогове вікно: виберіть Fast Media Sorter & Organizer і натисніть «Завжди». Це не назавжди: вибір зберігається в налаштуваннях самого Android, і там його можна повернути."
         },
         "default-images": {
-          "summary": "Призначає FastMediaSorter застосунком для відкривання зображень.",
-          "details": "Android покаже власне діалогове вікно: виберіть FastMediaSorter і натисніть «Завжди». Це не назавжди: вибір зберігається в налаштуваннях самого Android, і там його можна повернути."
+          "summary": "Призначає Fast Media Sorter & Organizer застосунком для відкривання зображень.",
+          "details": "Android покаже власне діалогове вікно: виберіть Fast Media Sorter & Organizer і натисніть «Завжди». Це не назавжди: вибір зберігається в налаштуваннях самого Android, і там його можна повернути."
         },
         "default-docs": {
-          "summary": "Призначає FastMediaSorter застосунком для відкривання документів.",
-          "details": "Android покаже власне діалогове вікно: виберіть FastMediaSorter і натисніть «Завжди». Це не назавжди: вибір зберігається в налаштуваннях самого Android, і там його можна повернути."
+          "summary": "Призначає Fast Media Sorter & Organizer застосунком для відкривання документів.",
+          "details": "Android покаже власне діалогове вікно: виберіть Fast Media Sorter & Organizer і натисніть «Завжди». Це не назавжди: вибір зберігається в налаштуваннях самого Android, і там його можна повернути."
         }
       }
     }

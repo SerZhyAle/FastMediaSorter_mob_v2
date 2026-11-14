@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.core.network.NetworkContextAnalyzer
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.settings.StreamsSessionStore
 import com.sza.fastmediasorter.data.repository.streams.StreamFramePersistentStore
+import com.sza.fastmediasorter.domain.delivery.ArtworkManifestSource
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import com.sza.fastmediasorter.domain.model.BroadcastStartState
@@ -143,6 +144,9 @@ class StreamsViewModel @Inject constructor(
     private val resolveStreamCatalogOffer: ResolveStreamCatalogOfferUseCase,
     // S4247: asks a waiting row's relay for its broadcast's start while the wait dialog is shown.
     private val watchBroadcastStartUseCase: dagger.Lazy<WatchBroadcastStartUseCase>,
+    // S4616: an explicit catalog refresh drops the process-long artwork manifest cache, so the atlas
+    // offer that follows it judges the mirror as it is now and not as it was at the first read.
+    private val artworkManifest: ArtworkManifestSource,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(StreamsUiState())
@@ -399,9 +403,12 @@ class StreamsViewModel @Inject constructor(
      * S1147: add a manual channel. Invalid-url and duplicate-url surface a one-shot message; success
      * stays silent (Room re-renders the list). The duplicate guard replaces the former unhandled
      * SQLiteConstraintException crash when the url already exists.
+     *
+     * S4606: [category] is the free-text label typed in the dialog; the use case trims it and stores blank as null.
      */
-    fun onAdd(url: String, title: String?) = viewModelScope.launch {
-        when (addStreamSource(url, title)) {
+    fun onAdd(url: String, title: String?, category: String?) = viewModelScope.launch {
+        Timber.d("S4606: onAdd categoryTyped=${!category.isNullOrBlank()}")
+        when (addStreamSource(url, title, category = category)) {
             AddStreamSourceUseCase.AddResult.InvalidUrl ->
                 _events.send(StreamsEvent.Message(R.string.streams_error_invalid_url))
             AddStreamSourceUseCase.AddResult.Duplicate ->
@@ -414,10 +421,19 @@ class StreamsViewModel @Inject constructor(
      * S0660/S1145: persist an in-place edit of a manual channel. [mediaKindOverride] carries an explicit
      * type (null = auto-derive). Invalid-url and duplicate-url surface a one-shot message; success and
      * not-editable stay silent (the list re-renders itself via Room on success).
+     *
+     * S4606: [category] is the whole category field of the dialog - blank clears the stored label.
      */
-    fun onEdit(source: StreamSourceEntity, url: String, title: String?, mediaKindOverride: String? = null) =
+    fun onEdit(
+        source: StreamSourceEntity,
+        url: String,
+        title: String?,
+        mediaKindOverride: String? = null,
+        category: String?,
+    ) =
         viewModelScope.launch {
-            when (updateStreamSource(source, url, title, mediaKindOverride)) {
+            Timber.d("S4606: onEdit categoryTyped=${!category.isNullOrBlank()}")
+            when (updateStreamSource(source, url, title, mediaKindOverride, category)) {
                 UpdateStreamSourceUseCase.UpdateResult.InvalidUrl ->
                     _events.send(StreamsEvent.Message(R.string.streams_error_invalid_url))
                 UpdateStreamSourceUseCase.UpdateResult.Duplicate ->
@@ -488,6 +504,8 @@ class StreamsViewModel @Inject constructor(
                 _events.send(StreamsEvent.ImportFinished(result.inserted))
             ImportStreamPlaylistUseCase.ImportResult.Empty ->
                 _events.send(StreamsEvent.ImportFinished(0))
+            ImportStreamPlaylistUseCase.ImportResult.HlsManifest ->
+                _events.send(StreamsEvent.Message(R.string.streams_error_playlist_hls_manifest))
             ImportStreamPlaylistUseCase.ImportResult.UnsupportedFormat ->
                 _events.send(StreamsEvent.Message(R.string.streams_error_playlist_json_unsupported))
             is ImportStreamPlaylistUseCase.ImportResult.Failure ->
@@ -514,6 +532,8 @@ class StreamsViewModel @Inject constructor(
                 is ImportStreamCatalogUseCase.CatalogImportResult.Success -> {
                     // S0659: advance the refresh throttle on a completed sync so the policy back-offs apply.
                     sessionStore.writeCatalogRefreshAt(System.currentTimeMillis())
+                    // Before the event, never after: the Activity answers it by opening the atlas offers.
+                    artworkManifest.invalidate()
                     _events.send(StreamsEvent.CatalogUpdated(result.added, result.updated, result.removed))
                 }
                 ImportStreamCatalogUseCase.CatalogImportResult.Empty -> {
@@ -614,6 +634,7 @@ class StreamsViewModel @Inject constructor(
      * Both entry points run it so a single-facet change cannot drift away from the dialog path.
      */
     private fun afterFilterApplied(previousKind: MediaKindFilter, newKind: MediaKindFilter) {
+        Timber.d("S4613: category $previousKind -> $newKind")
         applyVideoFilterDisplayMode(previousKind, newKind)
         persistSession()
     }
@@ -891,17 +912,18 @@ class StreamsViewModel @Inject constructor(
             // S1502: the query is trimmed but NOT lowercased - matching folds case per comparison instead,
             // so neither side allocates a lowercased copy per catalog row on every keystroke.
             val query = filter.query.trim()
-            val matched = sources.filter { source -> matchesFacets(source, filter, query) }
-            val secondary: Comparator<StreamSourceEntity> = if (filter.collectionOrderApplied) {
-                curatorOrder(filter.collectionMemberOrder)
-            } else {
-                when (filter.sort) {
-                    SortMode.NAME -> compareBy(String.CASE_INSENSITIVE_ORDER) { it.title }
-                    SortMode.TOPIC -> compareBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { topicLabel(it.topic) }
-                    SortMode.LANGUAGE -> compareBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { it.language }
-                    SortMode.COUNTRY -> compareBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { it.country }
-                    SortMode.RECENT -> compareByDescending { it.addedAt }
-                }
+            // S4614: the free-text half reads the rubric label of every row on each keystroke, and the label
+            // is a Resources lookup. Memoised per pass so each distinct topic is resolved once, not once per row.
+            val labelCache = HashMap<String?, String?>()
+            val labelOf: (String?) -> String? = { topic -> labelCache.getOrPut(topic) { topicLabel(topic) } }
+            val matched = sources.filter { source -> matchesFacets(source, filter, query, labelOf) }
+            // S4613: the Recent category is itself an ordering - a "played lately" list sorted by name
+            // would hide the one property it exists to show - so it outranks the sort mode and the
+            // curator's order for as long as it is active.
+            val secondary: Comparator<StreamSourceEntity> = when {
+                filter.mediaKind == MediaKindFilter.RECENT -> lastPlayedOrder()
+                filter.collectionOrderApplied -> curatorOrder(filter.collectionMemberOrder)
+                else -> sortModeOrder(filter.sort, topicLabel)
             }
             // S0938: pinned rows keep their manual order (the incoming list is already sortIndex-ordered
             // within pinned by the DAO), so the reorder menu commands are visible here; only the unpinned
@@ -919,8 +941,9 @@ class StreamsViewModel @Inject constructor(
             source: StreamSourceEntity,
             filter: StreamsFilter,
             query: String,
+            labelOf: (String?) -> String?,
         ): Boolean {
-            val queryHit = matchesQuery(source, query)
+            val queryHit = matchesQuery(source, query, labelOf)
             val categoryHit = filter.category == null || source.category == filter.category
             val languageHit = filter.language == null ||
                 source.language.tokens().any { it.equals(filter.language, ignoreCase = true) }
@@ -947,6 +970,7 @@ class StreamsViewModel @Inject constructor(
                 MediaKindFilter.VIDEO ->
                     !isManual && !isLive && (source.mediaKind == "VIDEO" || source.mediaKind == "RTSP")
                 MediaKindFilter.OWN -> isManual || isLive
+                MediaKindFilter.RECENT -> !isLive && source.lastPlayedAt != null
             }
         }
 
@@ -956,10 +980,16 @@ class StreamsViewModel @Inject constructor(
          * pre-trimmed but in the user's original case - it is the same for every row, and each
          * comparison folds case itself rather than allocating a lowercased copy of the row.
          */
-        private fun matchesQuery(source: StreamSourceEntity, query: String): Boolean =
+        private fun matchesQuery(
+            source: StreamSourceEntity,
+            query: String,
+            labelOf: (String?) -> String?,
+        ): Boolean =
             query.isEmpty() ||
                 source.title.contains(query, ignoreCase = true) ||
                 source.topic?.contains(query, ignoreCase = true) == true ||
+                // S4614: a reader of the localized list types the rubric word the row shows, not the catalog id.
+                labelOf(source.topic)?.contains(query, ignoreCase = true) == true ||
                 source.language?.contains(query, ignoreCase = true) == true
 
         /**
@@ -977,6 +1007,22 @@ class StreamsViewModel @Inject constructor(
          */
         private fun curatorOrder(memberOrder: Map<String, Int>): Comparator<StreamSourceEntity> =
             compareBy<StreamSourceEntity> { memberOrder[it.url] ?: Int.MAX_VALUE }
+                .thenBy(String.CASE_INSENSITIVE_ORDER) { it.title }
+
+        private fun sortModeOrder(
+            sort: SortMode,
+            topicLabel: (String?) -> String?,
+        ): Comparator<StreamSourceEntity> = when (sort) {
+            SortMode.NAME -> compareBy(String.CASE_INSENSITIVE_ORDER) { it.title }
+            SortMode.TOPIC -> compareBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { topicLabel(it.topic) }
+            SortMode.LANGUAGE -> compareBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { it.language }
+            SortMode.COUNTRY -> compareBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { it.country }
+            SortMode.RECENT -> compareByDescending { it.addedAt }
+        }
+
+        /** S4613: newest play first, ties by name; the category has already dropped unstamped rows. */
+        private fun lastPlayedOrder(): Comparator<StreamSourceEntity> =
+            compareByDescending<StreamSourceEntity> { it.lastPlayedAt }
                 .thenBy(String.CASE_INSENSITIVE_ORDER) { it.title }
 
         internal fun facetsOf(sources: List<StreamSourceEntity>): StreamsFacets {
@@ -1060,7 +1106,7 @@ class StreamsViewModel @Inject constructor(
     enum class SortMode { NAME, TOPIC, LANGUAGE, COUNTRY, RECENT }
 
     /** Category facet: media buckets exclude manual rows; OWN contains every manual row regardless of kind. */
-    enum class MediaKindFilter { ALL, AUDIO, VIDEO, OWN }
+    enum class MediaKindFilter { ALL, AUDIO, VIDEO, OWN, RECENT }
 
     sealed interface StreamsEvent {
         data class Message(@StringRes val messageResId: Int) : StreamsEvent

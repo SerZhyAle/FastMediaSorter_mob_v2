@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Metti FastMedia sul tuo orologio - FastMediaSorter v2"
+title: "Metti FastMedia sul tuo orologio - Fast Media Sorter & Organizer"
 permalink: /docs/howto/wear-install-it.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -13,14 +13,14 @@ permalink: /docs/howto/wear-install-it.html
 
 > **Due versioni.** La versione da Google Play è una piccola prima release: Calcolatrice, Cronometro, Mini-gioco, Impostazioni e il riquadro Programmi. Musica, foto, condivisioni di rete e funzioni del telefono sono presenti solo nella versione completa, un download diretto dell'APK da [Download](../DOWNLOADS.md).
 
-FastMedia Wear è la metà per orologio di FastMediaSorter. Una volta al polso puoi riprodurre musica e vedere foto direttamente dall'orologio, raggiungere le cartelle condivise dal tuo telefono abbinato, e aprire condivisioni di rete a cui l'orologio si collega da solo. Questa pagina ti guida nell'installazione e nell'abbinamento.
+FastMedia Wear è la metà per orologio di Fast Media Sorter & Organizer. Una volta al polso puoi riprodurre musica e vedere foto direttamente dall'orologio, raggiungere le cartelle condivise dal tuo telefono abbinato, e aprire condivisioni di rete a cui l'orologio si collega da solo. Questa pagina ti guida nell'installazione e nell'abbinamento.
 
 ---
 
 ## Cosa ti serve
 
 - Uno smartwatch con **Wear OS 3.0** o successivo
-- Un telefono Android con FastMediaSorter installato e l'orologio già abbinato ad esso nelle impostazioni di sistema
+- Un telefono Android con Fast Media Sorter & Organizer installato e l'orologio già abbinato ad esso nelle impostazioni di sistema
 - Una connessione Wi-Fi o dati mobili sull'orologio, o sul telefono a cui è abbinato, per il download
 
 ---
@@ -85,7 +85,7 @@ funziona solo tramite internet.
 
 Il lato telefono è disattivato finché non dichiari di possedere un orologio.
 
-1. Apri FastMediaSorter sul telefono.
+1. Apri Fast Media Sorter & Organizer sul telefono.
 2. Vai su **Impostazioni** e apri la scheda **Gestione**.
 3. Trova il gruppo **Wear OS** ed espandilo.
 4. Attiva la casella **Companion Wear**.
@@ -124,7 +124,7 @@ Il quadrante è un'app separata e gratuita, quindi si installa a parte. Richiede
 2. Tocca **Installa** e attendi che il download finisca.
 3. Tieni premuto il quadrante attuale, trova **FastMediaSorter Watch Face** nel selettore e toccalo.
 
-> Il quadrante mostra l'ora in grande, la data, onde e particelle alla deriva, barre della batteria e fino a otto pulsanti rotondi per le scorciatoie di FastMediaSorter o altri dati dell'orologio. I pulsanti compaiono insieme all'app FastMediaSorter per l'orologio.
+> Il quadrante mostra l'ora in grande, la data, onde e particelle alla deriva, barre della batteria e fino a otto pulsanti rotondi per le scorciatoie di Fast Media Sorter & Organizer o altri dati dell'orologio. I pulsanti compaiono insieme all'app Fast Media Sorter & Organizer per l'orologio.
 
 ---
 

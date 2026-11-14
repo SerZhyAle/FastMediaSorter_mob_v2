@@ -1,10 +1,10 @@
 package com.sza.fastmediasorter.ui.settings.helpers
 
 import androidx.core.view.isVisible
-import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.databinding.DialogLauncherSettingsBinding
+import com.sza.fastmediasorter.databinding.FragmentSettingsLauncherBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeAction
 import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeDirection
@@ -18,8 +18,8 @@ import kotlinx.coroutines.launch
 
 /** Owns the desktop-swipe row family while the dialog remains its lifecycle host. */
 class LauncherDesktopSwipeSettingsManager(
-    private val host: DialogFragment,
-    private val binding: DialogLauncherSettingsBinding,
+    private val host: Fragment,
+    private val binding: FragmentSettingsLauncherBinding,
     private val currentSettings: () -> AppSettings,
     private val updateSettings: ((AppSettings) -> AppSettings) -> Unit,
     private val picker: LauncherDesktopSwipeActionPickerManager,

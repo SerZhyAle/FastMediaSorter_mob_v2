@@ -28,8 +28,8 @@ import dagger.hilt.android.AndroidEntryPoint
  * A dialog rather than a settings section, like the neighbouring data-transfer surfaces: the list
  * only exists while a transfer is pending and has nothing to persist between visits.
  *
- * S4231: also the home of the Drive channel switches, this device's own sends still waiting, and the
- * delete action for any packet (strategic 3.4).
+ * S4231: also this device's own sends still waiting and the delete action for any packet (strategic
+ * 3.4). S4622: the Drive channel switches are settings and live on the General page instead.
  */
 @AndroidEntryPoint
 class CrossDevicePacketListDialogFragment : DialogFragment() {
@@ -56,8 +56,6 @@ class CrossDevicePacketListDialogFragment : DialogFragment() {
         binding.btnCrossDevicePacketsClose.setOnClickListener { dismiss() }
         binding.btnCrossDeviceRemoveExpired.setOnClickListener { viewModel.removeExpiredPackets() }
         binding.btnCrossDeviceSendSettings.setOnClickListener { viewModel.sendSettings() }
-        binding.rowDriveChannelEnabled.setOnCheckedChangeListener(viewModel::setChannelEnabled)
-        binding.rowDriveChannelBackground.setOnCheckedChangeListener(viewModel::setBackgroundPoll)
         binding.btnDriveChannelPortal.setOnClickListener {
             MediaExchangePortalLinks.open(requireActivity(), MediaExchangePortalLinks.Page.FOLDERS_GOOGLE_DRIVE)
         }
@@ -68,11 +66,6 @@ class CrossDevicePacketListDialogFragment : DialogFragment() {
         binding.listCrossDevicePackets.layoutManager = LinearLayoutManager(requireContext())
         binding.listCrossDevicePackets.adapter = adapter
         collectOnLifecycle(viewModel.state) { state -> render(state) }
-        collectOnLifecycle(viewModel.channelEnabled) { enabled ->
-            binding.rowDriveChannelEnabled.setCheckedSilently(enabled)
-            binding.rowDriveChannelBackground.isEnabled = enabled
-        }
-        collectOnLifecycle(viewModel.backgroundPoll) { binding.rowDriveChannelBackground.setCheckedSilently(it) }
         collectOnLifecycle(viewModel.pollState, block = ::renderPollState)
         viewModel.refresh()
     }

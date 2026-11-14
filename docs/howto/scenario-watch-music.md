@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Listen to Music on Your Watch - FastMediaSorter v2"
+title: "Listen to Music on Your Watch - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-watch-music.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -11,14 +11,14 @@ permalink: /docs/howto/scenario-watch-music.html
 
 > **Full version only** - this guide is not implemented in the version distributed through Google Play. It applies to the full version, a direct APK download from [Downloads](../DOWNLOADS.md).
 
-FastMediaSorter lets you browse and play your music collection directly from your Wear OS smartwatch. You can stream tracks shared from your paired phone or play local audio files stored on the watch, with cover artwork, shuffle, rotary bezel volume control, background playback that survives leaving the app, and a screen-off mode that keeps the music going with the display dark.
+Fast Media Sorter & Organizer lets you browse and play your music collection directly from your Wear OS smartwatch. You can stream tracks shared from your paired phone or play local audio files stored on the watch, with cover artwork, shuffle, rotary bezel volume control, background playback that survives leaving the app, and a screen-off mode that keeps the music going with the display dark.
 
 ---
 
 ## What You Will Need
 
 - A smartwatch running **Wear OS 2.0** or newer with FastMedia Wear installed
-- An Android phone running FastMediaSorter (if streaming music from your phone)
+- An Android phone running Fast Media Sorter & Organizer (if streaming music from your phone)
 - Music files (MP3, FLAC, AAC, OGG) on your phone or transferred to your watch storage
 - Bluetooth headphones or watch speaker for audio output
 
@@ -101,7 +101,7 @@ There are two different ways to keep listening, and they answer two different qu
 
 | Problem | What to try |
 |---------|------------|
-| Phone section says "Phone not connected" | Make sure Bluetooth is enabled on both devices and FastMediaSorter is installed on your phone |
+| Phone section says "Phone not connected" | Make sure Bluetooth is enabled on both devices and Fast Media Sorter & Organizer is installed on your phone |
 | No music files appear under Local | Copy MP3 or FLAC files to your watch internal storage or use the Phone section to play from your phone |
 | Audio stops when you leave the app | Turn on **Keep playing in background** in the watch settings, and allow notifications - the playback service needs them to stay alive |
 | Cover art is missing | Connect to Wi-Fi to fetch online artwork, or ensure your audio files contain embedded ID3 cover art |

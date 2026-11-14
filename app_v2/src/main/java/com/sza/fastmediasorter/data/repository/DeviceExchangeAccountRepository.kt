@@ -66,6 +66,14 @@ class DeviceExchangeAccountRepository @Inject constructor(
     /** Makes [entry] the one outgoing entry; leaving the previous one as a producer is the caller's first step. */
     suspend fun setOutgoing(entry: DeviceExchangeAccountEntry) = store.setOutgoing(entry.identity)
 
+    /** The one entry the notes sync uses (DEVICE-EXCHANGE 1.13 item FK); null while the option is off everywhere. */
+    fun notesEntry(): Flow<DeviceExchangeAccountEntry?> =
+        store.entries.map { held -> held.firstOrNull { it.syncNotes } }
+
+    /** On moves the option to [entry] from every other one; off clears it there and deletes nothing (item FK). */
+    suspend fun setSyncNotes(entry: DeviceExchangeAccountEntry, enabled: Boolean) =
+        store.setSyncNotes(entry.identity, enabled)
+
     /**
      * Enrolls [login] at [endpoint]. The same identity again re-enrolls the held entry with its `deviceId`, which
      * rotates its token (7.2); a new identity gets a fresh `deviceId`, regenerated once on `id-collision` (AD 3).

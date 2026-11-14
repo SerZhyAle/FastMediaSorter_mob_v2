@@ -38,7 +38,7 @@ SMB allows your Wear OS watch to access files from:
 **Add network connections in the phone app. They sync to your watch automatically.** This is the normal
 way to create one in the `noLegal` build.
 
-1. **On your phone**, open FastMediaSorter.
+1. **On your phone**, open Fast Media Sorter & Organizer.
 2. Go to **Resources**.
 3. Tap **+ Add Network Source**.
 4. Fill in the server, share, user and password with the phone keyboard.
@@ -72,7 +72,7 @@ Password: your_password
 
 **Steps:**
 
-1. On the phone, open FastMediaSorter -> **Resources** -> **+ Add Network Source**
+1. On the phone, open Fast Media Sorter & Organizer -> **Resources** -> **+ Add Network Source**
 2. Server: `192.168.1.50`
 3. Share: `media`
 4. User: `admin`, Password: your password
@@ -94,7 +94,7 @@ Password: (leave empty)
 
 **Steps:**
 
-1. On the phone, open FastMediaSorter -> **Resources** -> **+ Add Network Source**
+1. On the phone, open Fast Media Sorter & Organizer -> **Resources** -> **+ Add Network Source**
 2. Server: `192.168.1.100`
 3. Share: `MyVideos`
 4. Leave user and password empty
@@ -165,7 +165,7 @@ This works for every connection your phone sent to the watch.
 This is the primary route, described in full at the top of this page. In short:
 
 1. **On your phone:**
-   - Open main FastMediaSorter app
+   - Open main Fast Media Sorter & Organizer app
    - Go to Resources
    - Tap "+ Add Network Source"
    - Fill in details easily with phone keyboard

@@ -8,7 +8,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.streams.StreamsViewModel.MediaKindFilter
 
 /**
- * S1473/S3061: the inline video/audio/own category trigger beside the streams search field.
+ * S1473/S3061/S4613: the inline video/audio/own/recent category trigger beside the streams search field.
  *
  * The lit icon is the active category, all neutral means no filter, and tapping the lit icon clears
  * it. The group holds no state of its own; it renders the shared filter state so it cannot disagree
@@ -22,6 +22,7 @@ class StreamsMediaKindTriggerManager(
     private val videoButton: ImageButton,
     private val audioButton: ImageButton,
     private val ownButton: ImageButton,
+    private val recentButton: ImageButton,
     private val onKindSelected: (MediaKindFilter) -> Unit,
 ) {
     private var landscape: Boolean = false
@@ -31,6 +32,7 @@ class StreamsMediaKindTriggerManager(
         videoButton.setOnClickListener { onKindSelected(toggled(MediaKindFilter.VIDEO)) }
         audioButton.setOnClickListener { onKindSelected(toggled(MediaKindFilter.AUDIO)) }
         ownButton.setOnClickListener { onKindSelected(toggled(MediaKindFilter.OWN)) }
+        recentButton.setOnClickListener { onKindSelected(toggled(MediaKindFilter.RECENT)) }
     }
 
     fun render(mediaKind: MediaKindFilter, isLandscape: Boolean = landscape) {
@@ -39,6 +41,7 @@ class StreamsMediaKindTriggerManager(
         paint(videoButton, mediaKind == MediaKindFilter.VIDEO, R.string.streams_media_filter_video)
         paint(audioButton, mediaKind == MediaKindFilter.AUDIO, R.string.streams_media_filter_audio)
         paint(ownButton, mediaKind == MediaKindFilter.OWN, R.string.streams_media_filter_own)
+        paint(recentButton, mediaKind == MediaKindFilter.RECENT, R.string.streams_media_filter_recent)
     }
 
     private fun toggled(tapped: MediaKindFilter): MediaKindFilter =

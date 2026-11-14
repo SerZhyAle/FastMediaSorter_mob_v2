@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "اسمارٹ واچ کو NAS اور PC شیئرز سے جوڑیں - FastMediaSorter v2"
+title: "اسمارٹ واچ کو NAS اور PC شیئرز سے جوڑیں - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-watch-network-ur.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -13,7 +13,7 @@ permalink: /docs/howto/scenario-watch-network-ur.html
 
 > **صرف مکمل ورژن** - یہ رہنما Google Play کے ذریعے تقسیم کیے گئے ورژن میں شامل نہیں ہے۔ یہ مکمل ورژن پر لاگو ہوتا ہے، [Downloads](../DOWNLOADS.md) سے براہ راست APK ڈاؤن لوڈ۔
 
-Wear OS پر FastMediaSorter Wi-Fi پر براہ راست آپ کے گھریلو نیٹ ورک اسٹوریج (NAS، PC شیئرڈ فولڈرز، FTP، یا SFTP سرورز) سے جڑتا ہے۔ آپ ریموٹ فائلیں براؤز کر سکتے ہیں، بلوٹوتھ ہیڈ فونز پر میوزک اسٹریم کر سکتے ہیں، اور اپنے فون کے بغیر اپنے پسندیدہ فولڈرز سنک کر سکتے ہیں۔
+Wear OS پر Fast Media Sorter & Organizer Wi-Fi پر براہ راست آپ کے گھریلو نیٹ ورک اسٹوریج (NAS، PC شیئرڈ فولڈرز، FTP، یا SFTP سرورز) سے جڑتا ہے۔ آپ ریموٹ فائلیں براؤز کر سکتے ہیں، بلوٹوتھ ہیڈ فونز پر میوزک اسٹریم کر سکتے ہیں، اور اپنے فون کے بغیر اپنے پسندیدہ فولڈرز سنک کر سکتے ہیں۔
 
 > **نیٹ ورک شیئرز سے نئے ہیں؟** اگر آپ نے ابھی تک اپنے PC یا NAS پر شیئرڈ فولڈر سیٹ اپ نہیں کیا، تو پہلے ہمارا [NAS / ونڈوز شیئر سے جڑیں (SMB)](scenario-smb-setup-ur.md) رہنما دیکھیں۔
 
@@ -36,7 +36,7 @@ Wear OS پر FastMediaSorter Wi-Fi پر براہ راست آپ کے گھریلو
 
 ![Wear OS پر Resources اسکرین](screenshots/screenshot-wear-network-step1.png)
 
-> **Sync from Phone شارٹ کٹ:** اگر آپ نے پہلے ہی اپنے Android فون پر FastMediaSorter میں اپنے SMB یا SFTP شیئرز شامل کیے ہیں، تو تمام کنکشن ترتیبات کو ایک ٹیپ سے اپنی واچ میں درآمد کرنے کے لیے **Sync from Phone** پر ٹیپ کریں۔
+> **Sync from Phone شارٹ کٹ:** اگر آپ نے پہلے ہی اپنے Android فون پر Fast Media Sorter & Organizer میں اپنے SMB یا SFTP شیئرز شامل کیے ہیں، تو تمام کنکشن ترتیبات کو ایک ٹیپ سے اپنی واچ میں درآمد کرنے کے لیے **Sync from Phone** پر ٹیپ کریں۔
 
 ---
 

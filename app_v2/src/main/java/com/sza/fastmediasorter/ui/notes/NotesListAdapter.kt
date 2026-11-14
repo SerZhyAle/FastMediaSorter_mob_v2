@@ -9,12 +9,21 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.databinding.ItemNoteBinding
 import com.sza.fastmediasorter.domain.usecase.notes.NoteSummary
+import java.io.File
 
 /** S4568: rows of the Notes list - caption, date, excerpt and the per-row actions button. */
 class NotesListAdapter(
     private val onOpen: (NoteSummary) -> Unit,
     private val onMore: (NoteSummary, View) -> Unit,
 ) : ListAdapter<NoteSummary, NotesListAdapter.NoteViewHolder>(DIFF) {
+
+    /** File names of the notes above the sync payload limit (S4572); each such row carries the mark. */
+    var tooLarge: Set<String> = emptySet()
+        set(value) {
+            if (field == value) return
+            field = value
+            notifyItemRangeChanged(0, itemCount)
+        }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteViewHolder =
         NoteViewHolder(ItemNoteBinding.inflate(LayoutInflater.from(parent.context), parent, false))
@@ -33,6 +42,8 @@ class NotesListAdapter(
                 note.modifiedAt,
                 DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME or DateUtils.FORMAT_ABBREV_MONTH,
             )
+            binding.noteTooLarge.visibility =
+                if (File(note.path).name in tooLarge) View.VISIBLE else View.GONE
             binding.root.setOnClickListener { onOpen(note) }
             binding.root.setOnLongClickListener {
                 onMore(note, it)

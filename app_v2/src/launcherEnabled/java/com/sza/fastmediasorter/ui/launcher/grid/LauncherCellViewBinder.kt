@@ -24,6 +24,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleMarker
 import com.sza.fastmediasorter.ui.icon.RecyclableIconTint
 import kotlin.math.roundToInt
 
@@ -652,8 +653,7 @@ class LauncherCellViewBinder(
         // S1664: set, never animated. [bind] rebuilds every cell view on each emission, so there is no
         // previous chevron to turn - it is inflated fresh and simply arrives already at its state. An
         // animation here would play on a view the user has not seen yet, on every unrelated rebind.
-        binding.sectionChevron.rotation =
-            if (collapsed) COLLAPSED_CHEVRON_ROTATION else EXPANDED_CHEVRON_ROTATION
+        CollapsibleMarker.apply(binding.sectionChevron, expanded = !collapsed)
         applyBackdropAlpha(binding.sectionTitle.parent as View, backdropAlpha)
         ViewCompat.setAccessibilityHeading(binding.root, true)
         binding.root.setOnClickListener { onSectionClick(item) }
@@ -824,15 +824,6 @@ class LauncherCellViewBinder(
 
         /** Room to grow while editing - the desktop scrolls, so this is not a ceiling. */
         private const val SPARE_EDIT_ROWS = 2
-
-        /**
-         * S1664: the same two angles [CollapsibleSectionHeader] turns its chevron between, so a folded
-         * desktop section and a folded settings group read identically. Duplicated rather than imported
-         * because that view is a `src/main` widget with its own private constants, and the desktop
-         * header is not built on it - see the layout's own note.
-         */
-        private const val EXPANDED_CHEVRON_ROTATION = 0f
-        private const val COLLAPSED_CHEVRON_ROTATION = -90f
 
         /** S4475: granularity of the section title's autosize range, one sp keeps the step list short. */
         private const val TITLE_AUTOSIZE_STEP_SP = 1

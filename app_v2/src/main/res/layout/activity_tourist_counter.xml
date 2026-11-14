@@ -50,18 +50,32 @@
                 android:textColor="?attr/colorOnSurfaceVariant"
                 tools:text="@string/tourist_counter_start_label" />
 
-            <LinearLayout
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_large"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:layout_marginTop="@dimen/margin_large">
+
+                <androidx.constraintlayout.helper.widget.Flow
+                    android:id="@+id/flowCounterSteps"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    app:constraint_referenced_ids="btnMinusOne,btnPlusOne"
+                    app:flow_wrapMode="chain"
+                    app:flow_horizontalStyle="packed"
+                    app:flow_horizontalBias="0"
+                    app:flow_verticalAlign="top"
+                    app:flow_horizontalGap="@dimen/token_spacing_8"
+                    app:flow_verticalGap="@dimen/token_spacing_8"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnMinusOne"
-                    style="@style/Widget.FastMediaSorter.Button.Tonal"
-                    android:layout_width="@dimen/tourist_counter_minus_width"
-                    android:layout_height="wrap_content"
+                    style="@style/Widget.FastMediaSorter.Button.Command.Tonal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/tourist_counter_plus_height"
                     android:contentDescription="@string/tourist_counter_minus_one_description"
                     android:focusable="true"
                     android:nextFocusRight="@id/btnPlusOne"
@@ -70,10 +84,8 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnPlusOne"
                     style="@style/Widget.FastMediaSorter.Button.Filled"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="@dimen/tourist_counter_plus_height"
-                    android:layout_marginStart="@dimen/margin_normal"
-                    android:layout_weight="1"
                     android:contentDescription="@string/tourist_counter_plus_one_description"
                     android:focusable="true"
                     android:nextFocusLeft="@id/btnMinusOne"
@@ -82,7 +94,7 @@
 
                     <requestFocus />
                 </com.google.android.material.button.MaterialButton>
-            </LinearLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
             <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                 android:id="@+id/switchExtraSteps"
@@ -101,31 +113,43 @@
                 android:visibility="gone"
                 tools:visibility="visible" />
 
-            <LinearLayout
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_normal"
-                android:orientation="horizontal">
+                android:layout_marginTop="@dimen/margin_normal">
+
+                <androidx.constraintlayout.helper.widget.Flow
+                    android:id="@+id/flowCounterValueActions"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    app:constraint_referenced_ids="btnStartValue,btnReset"
+                    app:flow_wrapMode="chain"
+                    app:flow_horizontalStyle="packed"
+                    app:flow_horizontalBias="0"
+                    app:flow_verticalAlign="top"
+                    app:flow_horizontalGap="@dimen/token_spacing_8"
+                    app:flow_verticalGap="@dimen/token_spacing_8"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnStartValue"
-                    style="@style/Widget.FastMediaSorter.Button.Outlined"
-                    android:layout_width="0dp"
+                    style="@style/Widget.FastMediaSorter.Button.Command"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:focusable="true"
                     android:text="@string/tourist_counter_set_start" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnReset"
-                    style="@style/Widget.FastMediaSorter.Button.Outlined"
-                    android:layout_width="0dp"
+                    style="@style/Widget.FastMediaSorter.Button.Command"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/margin_normal"
-                    android:layout_weight="1"
                     android:focusable="true"
                     android:text="@string/tourist_counter_reset" />
-            </LinearLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
             <include
                 android:id="@+id/history"

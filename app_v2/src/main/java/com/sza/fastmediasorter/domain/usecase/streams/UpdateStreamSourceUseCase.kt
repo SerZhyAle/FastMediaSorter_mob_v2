@@ -13,6 +13,10 @@ import javax.inject.Inject
  * keeps the S0660 behaviour of re-deriving the kind from the url (so an unchanged rtsp url stays RTSP).
  * The edit dialog drives the unique-`url` write path directly, so a url that already belongs to
  * another stream is rejected as [UpdateResult.Duplicate] rather than crashing on the unique index.
+ *
+ * S4606: [category] is the user's free-text list label, stored trimmed; a blank value clears it. The edit
+ * dialog always submits the whole field, so a missing parameter is not "keep" - it has no default, and a
+ * caller that forgets it fails to compile instead of wiping the label.
  */
 class UpdateStreamSourceUseCase @Inject constructor(
     private val repository: StreamSourceRepository,
@@ -23,14 +27,11 @@ class UpdateStreamSourceUseCase @Inject constructor(
         url: String,
         title: String?,
         mediaKindOverride: String? = null,
+        category: String?,
     ): UpdateResult {
-        if (source.sourceOrigin != "MANUAL") return UpdateResult.NotEditable
-
         val trimmedUrl = url.trim()
-        if (!classifier.isSupportedScheme(trimmedUrl)) return UpdateResult.InvalidUrl
-
-        val existing = repository.getByUrl(trimmedUrl)
-        if (existing != null && existing.id != source.id) return UpdateResult.Duplicate
+        val rejection = rejectionFor(source, trimmedUrl)
+        if (rejection != null) return rejection
 
         val resolvedTitle = title?.trim()?.takeIf { it.isNotEmpty() } ?: source.title
         val resolvedKind = mediaKindOverride ?: classifier.classify(trimmedUrl)
@@ -39,9 +40,20 @@ class UpdateStreamSourceUseCase @Inject constructor(
             url = trimmedUrl,
             title = resolvedTitle,
             mediaKind = resolvedKind,
+            category = category?.trim()?.takeIf { it.isNotEmpty() },
         )
         return UpdateResult.Success
     }
+
+    private suspend fun rejectionFor(source: StreamSourceEntity, trimmedUrl: String): UpdateResult? = when {
+        source.sourceOrigin != "MANUAL" -> UpdateResult.NotEditable
+        !classifier.isSupportedScheme(trimmedUrl) -> UpdateResult.InvalidUrl
+        isOwnedByAnother(source, trimmedUrl) -> UpdateResult.Duplicate
+        else -> null
+    }
+
+    private suspend fun isOwnedByAnother(source: StreamSourceEntity, trimmedUrl: String): Boolean =
+        repository.getByUrl(trimmedUrl)?.let { it.id != source.id } == true
 
     sealed interface UpdateResult {
         data object Success : UpdateResult

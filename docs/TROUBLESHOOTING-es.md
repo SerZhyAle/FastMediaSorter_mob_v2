@@ -9,7 +9,7 @@ permalink: /docs/TROUBLESHOOTING-es.html
 
 # 🔧 Guía de solución de problemas
 
-Guía de solución de problemas actual para FastMediaSorter v2. Usa la cuadrícula canónica de variantes en [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) cuando el problema dependa de la ruta de compilación elegida (Standard, Lite, Photos, Legacy o XR / noLegal).
+Guía de solución de problemas actual para Fast Media Sorter & Organizer. Usa la cuadrícula canónica de variantes en [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) cuando el problema dependa de la ruta de compilación elegida (Standard, Lite, Photos, Legacy o XR / noLegal).
 
 ---
 
@@ -53,7 +53,7 @@ Guía de solución de problemas actual para FastMediaSorter v2. Usa la cuadrícu
 ### ❌ "Fallo al iniciar sesión en Google Drive"
 
 **Solución:**
-1. Borra los datos de la app: Ajustes → Aplicaciones → FastMediaSorter → Borrar datos
+1. Borra los datos de la app: Ajustes → Aplicaciones → Fast Media Sorter & Organizer → Borrar datos
 2. Reinstala la app
 3. Revisa los ajustes de tu cuenta de Google → Seguridad → Apps de terceros
 
@@ -63,7 +63,7 @@ Guía de solución de problemas actual para FastMediaSorter v2. Usa la cuadrícu
 
 **Solución:**
 1. Comprueba el estado de tu cuenta de Microsoft
-2. Borra los datos de la app: Ajustes → Aplicaciones → FastMediaSorter → Borrar datos
+2. Borra los datos de la app: Ajustes → Aplicaciones → Fast Media Sorter & Organizer → Borrar datos
 3. Revisa los ajustes de tu cuenta de Microsoft → Privacidad → Apps y servicios
 
 ---
@@ -72,7 +72,7 @@ Guía de solución de problemas actual para FastMediaSorter v2. Usa la cuadrícu
 
 **Solución:**
 1. Comprueba el estado de tu cuenta de Dropbox
-2. Borra los datos de la app: Ajustes → Aplicaciones → FastMediaSorter → Borrar datos
+2. Borra los datos de la app: Ajustes → Aplicaciones → Fast Media Sorter & Organizer → Borrar datos
 3. Revisa los ajustes de tu cuenta de Dropbox → Seguridad → Apps conectadas
 
 ---
@@ -182,7 +182,7 @@ Esto usa la función *Reproductor secundario* para delegar los códecs no compat
 ### ❌ "La app se bloquea al iniciarse"
 
 **Solución:**
-1. Borra la caché de la app: Ajustes → Aplicaciones → FastMediaSorter → Borrar caché
+1. Borra la caché de la app: Ajustes → Aplicaciones → Fast Media Sorter & Organizer → Borrar caché
 2. Si persiste: borra los datos de la app (⚠️ se pierden los ajustes)
 3. Reinstala la app como último recurso
 

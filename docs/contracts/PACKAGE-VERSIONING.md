@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.29 05:03</sub>
+<sub class="doc-stamp">26.11.14 13:36</sub>
 
 # Pointer - `PACKAGE-VERSIONING`
 
 | | |
 | --- | --- |
 | **Id** | `PACKAGE-VERSIONING` |
-| **Version** | 0.6, draft. Owner: this product |
+| **Version** | 0.8, draft. Owner: this product |
 | **Home** | `package-versioning/README.md` in the shared contracts catalog |
 | **Role here** | owner and reference implementation (the version stamps of the phone app, the watch app and the watch face) |
 
@@ -17,6 +17,9 @@
 - Keep the checked-in constants as non-releasable sentinels: nothing writes them, and they never reach a store, a sideload page or an update feed (rule 7).
 - Release every family from one pin; an edition on a clock of its own, if one is ever declared, writes the E1
   declaration in its registry row first (0.5, section 8).
+- 0.7 and 0.8 register the DeviceInfo Android and Filler Android families in the band table (rule 3) with no change to
+  rules 1-8; the bands of this product's families above are unchanged, and the registered bands of another product
+  are read from the catalog, never copied here.
 - Never repeat and never lower a versionCode within one application id; an out-of-scheme installed build is replaced by uninstall or a strictly greater code, recorded as a dated registry exception (rule 4).
 
 ## Where it lives here

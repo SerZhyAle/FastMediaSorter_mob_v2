@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- S4626: COLLAPSIBLE-GROUP header - state triangle first in the row (turned by CollapsibleMarker), a
+     colour fill that sets the header apart from the app cells below it, the ripple as a foreground so a
+     reorder highlight that replaces the background does not remove it. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/groupHeaderRoot"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/selectableItemBackground"
+    android:background="?attr/colorSurfaceVariant"
     android:clickable="true"
     android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
     android:gravity="center_vertical"
     android:orientation="horizontal"
     android:paddingStart="@dimen/margin_small"
@@ -15,10 +20,12 @@
 
     <ImageView
         android:id="@+id/groupIndicator"
-        android:layout_width="@dimen/icon_size_button"
-        android:layout_height="@dimen/icon_size_button"
+        android:layout_width="@dimen/settings_help_icon_size"
+        android:layout_height="@dimen/settings_help_icon_size"
+        android:layout_marginEnd="@dimen/margin_small"
         android:importantForAccessibility="no"
-        android:src="@drawable/ic_expand_more" />
+        app:srcCompat="@drawable/ic_arrow_drop_down"
+        app:tint="?attr/colorOnSurfaceVariant" />
 
     <TextView
         android:id="@+id/groupTitle"

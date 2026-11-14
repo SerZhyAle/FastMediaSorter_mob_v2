@@ -28,6 +28,7 @@ import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.databinding.ActivityBroadcastControlBinding
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SendStreamToWatchUseCase
+import com.sza.fastmediasorter.domain.usecase.broadcast.ObserveDriveBroadcastPublishStateUseCase
 import com.sza.fastmediasorter.domain.usecase.broadcast.ObserveExchangeBroadcastPublishStateUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.BuildWatchBroadcastHandoffUseCase
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
@@ -55,6 +56,7 @@ class BroadcastControlManager @Inject constructor(
     private val buildWatchBroadcastHandoff: Lazy<BuildWatchBroadcastHandoffUseCase>,
     private val settingsPanelManager: BroadcastSettingsPanelManager,
     private val observeExchangeState: Lazy<ObserveExchangeBroadcastPublishStateUseCase>,
+    private val observeDriveState: Lazy<ObserveDriveBroadcastPublishStateUseCase>,
     private val preparedLinks: BroadcastPreparedLinksManager,
     private val preparedStartGuard: BroadcastPreparedStartGuard,
 ) {
@@ -72,6 +74,7 @@ class BroadcastControlManager @Inject constructor(
     private val landscapeVideo = BroadcastLandscapeVideoManager()
 
     private val exchangeStatus = BroadcastExchangeStatusManager()
+    private val driveStatus = BroadcastDriveStatusManager()
 
     /**
      * The mode a live switch is re-opening the session in, null while nothing switches. Until that mode
@@ -163,6 +166,11 @@ class BroadcastControlManager @Inject constructor(
                 launch {
                     observeExchangeState.get()().collect { state ->
                         exchangeStatus.render(activity, binding.tvExchangeServerStatus, state)
+                    }
+                }
+                launch {
+                    observeDriveState.get()().collect { state ->
+                        driveStatus.render(binding.tvDriveAnnounceStatus, state)
                     }
                 }
                 launch {
@@ -433,6 +441,7 @@ class BroadcastControlManager @Inject constructor(
         activity: AppCompatActivity,
         binding: ActivityBroadcastControlBinding
     ) {
+        BroadcastCaptionWidthManager.reserve(binding)
         binding.btnToggleCamera.setOnClickListener {
             controller.toggleCamera()
         }

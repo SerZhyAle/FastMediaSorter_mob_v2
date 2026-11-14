@@ -14,7 +14,7 @@ why: |
 
   Nothing on this page changes your files. Zooming, turning a photo for a moment and pausing an animation only change what you see right now.
 ingredients:
-  - "FastMediaSorter installed. The image viewer is part of every [edition](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR and FOSS."
+  - "Fast Media Sorter & Organizer installed. The image viewer is part of every [edition](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR and FOSS."
   - "At least one [resource](term:resource) with pictures in it, for example the [All Images](term:all-images) collection or a folder you added yourself."
   - "For HEIC and HEIF photos (the format many phones use for camera shots): Android 9 or newer. For AVIF pictures: Android 12 or newer."
 steps:
@@ -29,7 +29,7 @@ steps:
       shot_id: images.viewer-fullscreen-photo
       device_profile: phone
       screen_state: image-viewer-fullscreen
-      alt: A landscape photo opened full screen in the FastMediaSorter image viewer with the command panel hidden
+      alt: A landscape photo opened full screen in the Fast Media Sorter & Organizer image viewer with the command panel hidden
       caption: "A photo opened full screen in the image viewer."
       title: "Screenshot: Photo full screen"
       desc: A local photo open in the player, no panels shown, phone portrait.

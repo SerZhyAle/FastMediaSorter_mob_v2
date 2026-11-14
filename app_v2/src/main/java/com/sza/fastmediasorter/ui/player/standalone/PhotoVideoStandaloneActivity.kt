@@ -803,10 +803,12 @@ class PhotoVideoStandaloneActivity :
                         true
                     }
                     R.id.menu_image_text_settings -> {
-                        com.sza.fastmediasorter.ui.dialog.TranslationSettingsDialog.show(
-                            context = this,
-                            lifecycleOwner = this,
-                            settingsRepository = standaloneHostFactory.settingsRepository,
+                        // S4622: the translation settings are a block of the Tools settings page.
+                        startActivity(
+                            com.sza.fastmediasorter.ui.settings.SettingsActivity.openToolsSectionIntent(
+                                this,
+                                com.sza.fastmediasorter.ui.settings.SettingsActivity.SECTION_TRANSLATION,
+                            ),
                         )
                         true
                     }

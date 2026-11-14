@@ -14,7 +14,7 @@ why: |
 
   The same place also holds a few tools for animated GIF, WebP and APNG pictures: make an animation faster or slower, keep its first frame as a normal picture, or take it apart frame by frame.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR or FOSS."
+  - "Fast Media Sorter & Organizer in any [edition](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR or FOSS."
   - "A picture you are allowed to change. Pictures in a folder the app can only read are saved as a new file in your Downloads folder instead."
   - "Pictures in a [network folder](term:network-folder) can be edited too, in the editions that can open network folders (all except Lite)."
   - "For cutting animated WebP or APNG pictures into frames: Android 9 or newer. GIF files work on any Android version."

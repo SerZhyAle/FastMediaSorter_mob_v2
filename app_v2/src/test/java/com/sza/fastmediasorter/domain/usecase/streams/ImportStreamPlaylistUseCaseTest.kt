@@ -91,11 +91,56 @@ class ImportStreamPlaylistUseCaseTest {
 
         val result = useCaseServing(playlist)(PLAYLIST_URL)
 
-        assertEquals(ImportStreamPlaylistUseCase.ImportResult.Success(2), result)
+        assertEquals(ImportStreamPlaylistUseCase.ImportResult.Success(2, duplicate = 0, skipped = 4), result)
         assertEquals(
             listOf("http://radio.example/one", "http://radio.example/two"),
             written.captured.map { it.url }
         )
+    }
+
+    @Test
+    fun `the normalized spelling is stored and rows the catalog already held are counted as duplicates`() = runTest {
+        val written = slot<List<StreamSourceEntity>>()
+        coEvery { repository.addAllIgnoringDuplicates(capture(written)) } returns 1
+        val playlist = """
+            #EXTM3U
+            #EXTINF:-1,First title
+            HTTP://Radio.Example:80/live
+            #EXTINF:-1,Second title
+            http://radio.example/live
+            ftp://radio.example/live
+            https://radio.example/Live
+        """.trimIndent().toByteArray()
+
+        val result = useCaseServing(playlist)(PLAYLIST_URL)
+
+        assertEquals(ImportStreamPlaylistUseCase.ImportResult.Success(1, duplicate = 1, skipped = 2), result)
+        assertEquals(
+            "scheme, host and default port are folded, the case of the path is kept",
+            listOf("http://radio.example/live", "https://radio.example/Live"),
+            written.captured.map { it.url }
+        )
+        assertEquals("First title", written.captured.first().title)
+    }
+
+    @Test
+    fun `an HLS manifest is refused whole and writes nothing`() = runTest {
+        val manifest = "#EXTM3U\n#EXT-X-TARGETDURATION:10\nhttps://radio.example/segment.ts\n".toByteArray()
+
+        val result = useCaseServing(manifest)(PLAYLIST_URL)
+
+        assertEquals(ImportStreamPlaylistUseCase.ImportResult.HlsManifest, result)
+        coVerify(exactly = 0) { repository.addAllIgnoringDuplicates(any()) }
+    }
+
+    @Test
+    fun `an entry URL ending m3u8 inside a playlist is an entry, not a manifest`() = runTest {
+        coEvery { repository.addAllIgnoringDuplicates(any()) } answers { firstArg<List<*>>().size }
+        val playlist = "#EXTM3U\n#EXTINF:-1,News #EXT-X-VERSION\nhttps://radio.example/news.m3u8\n".toByteArray()
+
+        val result = useCaseServing(playlist)(PLAYLIST_URL)
+
+        assertEquals(ImportStreamPlaylistUseCase.ImportResult.Success(1), result)
     }
 
     @Test

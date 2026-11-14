@@ -15,7 +15,7 @@ why: |
 
   The same works for short videos and for voice notes, and a home-screen widget records a voice note with one tap without opening the app at all.
 ingredients:
-  - "FastMediaSorter in the Standard, noLegal, Legacy or VR [edition](term:edition). The Quick Recorder widget exists in the Standard and Legacy editions."
+  - "Fast Media Sorter & Organizer in the Standard, noLegal, Legacy or VR [edition](term:edition). The Quick Recorder widget exists in the Standard and Legacy editions."
   - "Permission to use the camera, and for voice notes the microphone. The app asks when you first use them."
   - "A [resource](term:resource) you can write to, or nothing at all - without a chosen place, photos go to the phone's camera folder and voice notes to Downloads."
 steps:
@@ -77,14 +77,14 @@ steps:
     text: |
       *Standard and Legacy editions.*
 
-      Add the **Quick Recorder** [widget](term:widget) to your Android home screen: long-press an empty spot, choose **Widgets**, find FastMediaSorter and drag **Quick Recorder** out. Its description says it all: "Tap to start a voice recording; tap again to stop and save".
+      Add the **Quick Recorder** [widget](term:widget) to your Android home screen: long-press an empty spot, choose **Widgets**, find Fast Media Sorter & Organizer and drag **Quick Recorder** out. Its description says it all: "Tap to start a voice recording; tap again to stop and save".
 
       While it records, a notification "Recording.." with a **Stop** button stays at the top of the screen. Stop from the widget or from the notification. The note is saved into the place chosen under **Voice recorder** in Settings, or into the phone's audio folder, and you see "Recording saved to ..".
     image_bookmark:
       shot_id: storage.quick-recorder-widget
       device_profile: phone
       screen_state: home-screen-quick-recorder-widget
-      alt: The Android home screen with the FastMediaSorter Quick Recorder widget, recording in progress and the Recording notification at the top
+      alt: The Android home screen with the Fast Media Sorter & Organizer Quick Recorder widget, recording in progress and the Recording notification at the top
       caption: "The Quick Recorder widget while recording."
       title: "Screenshot: Quick Recorder widget"
       desc: Home screen with the Quick Recorder widget placed, a recording running.

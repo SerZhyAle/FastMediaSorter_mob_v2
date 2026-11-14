@@ -72,7 +72,7 @@ class RestoreFromGoogleDriveUseCaseTest {
         // mocked here. Returning the language the payload carries keeps every case below a no-op.
         mockkObject(LocaleHelper)
         every { LocaleHelper.getLanguage(any()) } returns "en"
-        every { LocaleHelper.saveLanguage(any(), any()) } just Runs
+        every { LocaleHelper.applyLanguageLive(any(), any()) } just Runs
         coEvery { db.withTransaction(any<suspend () -> Any?>()) } answers {
             runBlocking { secondArg<suspend () -> Any?>().invoke() }
         }

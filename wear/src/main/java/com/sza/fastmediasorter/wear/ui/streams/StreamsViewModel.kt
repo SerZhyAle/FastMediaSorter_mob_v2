@@ -66,6 +66,12 @@ class StreamsViewModel @Inject constructor(
     private val faviconSlicer = WearFaviconAtlasSlicer { faviconAtlasStore.atlasFile() }
 
     /**
+     * S4611: set by the first catalogue emission of this screen. Read and written only inside the single
+     * [observeCatalog] collector, so it needs no synchronisation.
+     */
+    private var initialCatalogObserved = false
+
+    /**
      * S2149: everything the projection reads, as one value.
      *
      * Collapsing the inputs into a single flow is what allows exactly one consumer: before this, each
@@ -204,6 +210,12 @@ class StreamsViewModel @Inject constructor(
 
     private suspend fun observeCatalog() {
         repository.observeChannels().collect { channels ->
+            // S4611: only this screen's first emission decides whether a download is owed. The guard used to
+            // read `isLoading` as well, which stays true until the debounced projection lands, so a first
+            // empty emission inside that pause started nothing and the screen rested empty; and it let every
+            // later empty emission after a failed import start another download.
+            val firstEmission = !initialCatalogObserved
+            initialCatalogObserved = true
             // S1954: re-read the marks with the catalogue rather than per row. This is the only
             // point where the set can have changed without this screen being rebuilt.
             val pinned = loadPinnedStreamIds()
@@ -226,7 +238,7 @@ class StreamsViewModel @Inject constructor(
                 it.copy(channels = channels, pinnedIdentities = pinned, usageByIdentity = usage)
             }
             dropVanishedLanguageSelection(languages)
-            if (channels.isEmpty() && !_uiState.value.isLoading && !_uiState.value.isRefreshing) {
+            if (firstEmission && channels.isEmpty()) {
                 refreshCatalog(isInitial = true)
             }
         }

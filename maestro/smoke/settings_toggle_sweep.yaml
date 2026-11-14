@@ -2,8 +2,9 @@ appId: com.sza.fastmediasorter.debug
 ---
 # Test: settings toggle robustness sweep - flip real toggles and walk every tab without a crash.
 # Oracle (robustness): after each toggle press and each tab switch the settings title still
-#   renders and no crash-report prompt appears. Toggle rows are tapped by their stable row id
-#   (SettingsToggleRow shares an inner str_switch, so the ROW id is the reliable handle).
+#   renders and no crash-report prompt appears. Toggle rows are tapped on their inner str_checkbox,
+#   scoped by childOf the row id (str_checkbox is shared, and a tap on the row centre lands in the
+#   text cell, which does not toggle - BOOLEAN-OPTION 2.1 section 3).
 # Scope note: only the General tab's rows are pressed by id (confirmed on-screen). Media /
 #   Playback / Operations are walked (switch + scroll) to catch inflation/listener crashes;
 #   extend with their row ids once confirmed via Maestro Studio on device.
@@ -54,7 +55,9 @@ appId: com.sza.fastmediasorter.debug
     visibilityPercentage: 10
     timeout: 8000
 - tapOn:
-    id: "com.sza.fastmediasorter.debug:id/rowEnableFavorites"
+    id: "com.sza.fastmediasorter.debug:id/str_checkbox"
+    childOf:
+      id: "com.sza.fastmediasorter.debug:id/rowEnableFavorites"
 - waitForAnimationToEnd
 - scrollUntilVisible:
     element:
@@ -62,7 +65,9 @@ appId: com.sza.fastmediasorter.debug
     visibilityPercentage: 10
     timeout: 8000
 - tapOn:
-    id: "com.sza.fastmediasorter.debug:id/rowEnableFavorites"
+    id: "com.sza.fastmediasorter.debug:id/str_checkbox"
+    childOf:
+      id: "com.sza.fastmediasorter.debug:id/rowEnableFavorites"
 - waitForAnimationToEnd
 - scrollUntilVisible:
     element:
@@ -70,7 +75,9 @@ appId: com.sza.fastmediasorter.debug
     visibilityPercentage: 10
     timeout: 8000
 - tapOn:
-    id: "com.sza.fastmediasorter.debug:id/rowAllowSeparateWindow"
+    id: "com.sza.fastmediasorter.debug:id/str_checkbox"
+    childOf:
+      id: "com.sza.fastmediasorter.debug:id/rowAllowSeparateWindow"
 - waitForAnimationToEnd
 - scrollUntilVisible:
     element:
@@ -78,7 +85,9 @@ appId: com.sza.fastmediasorter.debug
     visibilityPercentage: 10
     timeout: 8000
 - tapOn:
-    id: "com.sza.fastmediasorter.debug:id/rowAllowSeparateWindow"
+    id: "com.sza.fastmediasorter.debug:id/str_checkbox"
+    childOf:
+      id: "com.sza.fastmediasorter.debug:id/rowAllowSeparateWindow"
 - waitForAnimationToEnd
 - assertVisible:
     id: "com.sza.fastmediasorter.debug:id/titleText"

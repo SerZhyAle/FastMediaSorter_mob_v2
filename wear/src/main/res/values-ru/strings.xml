@@ -117,7 +117,7 @@
     <string name="phone_resource_loading">Загрузка с телефона..</string>
     <string name="phone_resource_retry">Повторить попытку</string>
     <string name="phone_resource_empty">Здесь нечего показать. Откройте другую папку или повторите.</string>
-    <string name="phone_resource_unavailable">FastMediaSorter не отвечает на телефоне. Откройте его там и держите телефон рядом.</string>
+    <string name="phone_resource_unavailable">Fast Media Sorter &amp; Organizer не отвечает на телефоне. Откройте его там и держите телефон рядом.</string>
     <string name="phone_resource_access_denied">Телефон не открывает эту папку для часов.</string>
     <string name="phone_resource_unsupported">Часы не умеют открывать такие файлы.</string>
     <string name="phone_resource_transfer_rejected">Файл слишком большой для передачи на часы.</string>
@@ -409,9 +409,9 @@
     <string name="phone_resource_no_resource_for_type">Ни один ресурс телефона не настроен на этот тип.</string>
     <string name="wear_folder_load_more">Показать ещё</string>
     <string name="wear_file_op_outcome_needs_consent">Не подтверждено - ничего не изменилось</string>
-    <string name="wear_sync_no_phone_paired">Телефон не подключён. Свяжите его с часами и установите на него FastMediaSorter.</string>
+    <string name="wear_sync_no_phone_paired">Телефон не подключён. Свяжите его с часами и установите на него Fast Media Sorter &amp; Organizer.</string>
     <string name="wear_sync_request_failed">Не удалось обратиться к телефону. Попробуйте ещё раз.</string>
-    <string name="phone_resource_not_paired">К часам не подключён телефон. Свяжите его и установите на него FastMediaSorter.</string>
+    <string name="phone_resource_not_paired">К часам не подключён телефон. Свяжите его и установите на него Fast Media Sorter &amp; Organizer.</string>
     <string name="wear_streams_sort_most_used">По частоте</string>
     <!-- S2146: mirrored verbatim from :app_v2 (S1477). Declared in wear-mirrored-strings.psd1. -->
     <string name="streams_rubric_general">Разное</string>
@@ -805,7 +805,7 @@
     <string name="wear_cast_phone_busy">Телефон не ответил - проверьте, что он рядом</string>
     <string name="wear_cast_not_castable">На телевизоре можно показать только трансляции и файлы из источников телефона</string>
     <string name="wear_stream_stalled">Трансляция перестала передавать данные. Воспроизведение остановлено, чтобы не сажать батарею.</string>
-    <string name="phone_resource_companion_disabled">На телефоне выключен Wear-компаньон. Включите его в настройках FastMediaSorter и повторите.</string>
+    <string name="phone_resource_companion_disabled">На телефоне выключен Wear-компаньон. Включите его в настройках Fast Media Sorter &amp; Organizer и повторите.</string>
 
     <!-- S3007: Tourist sub-program on Wear OS -->
     <string name="wear_tourist_app">Турист</string>
@@ -985,12 +985,12 @@
     <string name="about_watch_face_caption">Для Wear OS 6 и новее</string>
     <string name="about_watch_face_no_store">На часах нет Google Play</string>
     <string name="wear_companion_hint_connect">Подключите телефон, чтобы увидеть Ресурсы и Телефон</string>
-    <string name="wear_companion_hint_install">Установите FastMediaSorter на телефон, чтобы увидеть Ресурсы и Телефон</string>
-    <string name="wear_companion_offer_title">На телефоне нет FastMediaSorter</string>
+    <string name="wear_companion_hint_install">Установите Fast Media Sorter &amp; Organizer на телефон, чтобы увидеть Ресурсы и Телефон</string>
+    <string name="wear_companion_offer_title">На телефоне нет Fast Media Sorter &amp; Organizer</string>
     <string name="wear_companion_offer_message">Установите его, чтобы просматривать телефон и его ресурсы с часов</string>
     <string name="wear_companion_offer_install">Установить</string>
     <string name="wear_companion_offer_later">Не сейчас</string>
-    <string name="wear_companion_install_row">Установить FastMediaSorter на телефон</string>
+    <string name="wear_companion_install_row">Установить Fast Media Sorter &amp; Organizer на телефон</string>
     <string name="wear_tourist_metric_pressure">Давление</string>
     <string name="wear_tourist_metric_baro_altitude">Высота по барометру</string>
     <string name="wear_tourist_metric_elevation_gain_loss">Набор высоты</string>

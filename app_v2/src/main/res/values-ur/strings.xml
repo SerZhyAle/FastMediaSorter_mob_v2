@@ -212,7 +212,7 @@
     <string name="backup_account">اکاؤنٹ: %s</string>
     <string name="google_sign_in_cancelled">گوگل سائن ان منسوخ کر دیا گیا</string>
     <string name="battery_optimization_hint_title">بیٹری آپٹیمائزیشن وارننگ</string>
-    <string name="battery_optimization_hint_message">بیٹری آپٹیمائزیشن پس منظر میں آڈیو چلنے میں رکاوٹ ڈال سکتی ہے۔ قابلِ بھروسہ پس منظر آڈیو کے لیے سسٹم کی ترتیبات میں FastMediaSorter کے لیے بیٹری آپٹیمائزیشن غیر فعال کریں۔</string>
+    <string name="battery_optimization_hint_message">بیٹری آپٹیمائزیشن پس منظر میں آڈیو چلنے میں رکاوٹ ڈال سکتی ہے۔ قابلِ بھروسہ پس منظر آڈیو کے لیے سسٹم کی ترتیبات میں Fast Media Sorter &amp; Organizer کے لیے بیٹری آپٹیمائزیشن غیر فعال کریں۔</string>
     <string name="no_internet_connection">انٹرنیٹ کنکشن نہیں ہے۔ بعد میں دوبارہ کوشش کریں۔</string>
     <string name="restart_required_title">دوبارہ شروع کرنا ضروری ہے</string>
     <string name="restart_required_message">ترتیبات درآمد کر لی گئی ہیں۔ تبدیلیاں لاگو کرنے کے لیے براہ کرم ایپ دوبارہ شروع کریں۔</string>
@@ -413,7 +413,6 @@
     <string name="connection_test_success_title">کنکشن ٹیسٹ - کامیاب</string>
     <string name="connection_test_failed_title">کنکشن ٹیسٹ - ناکام</string>
     <string name="restart_app_title">ایپلیکیشن دوبارہ شروع کریں</string>
-    <string name="restart_app_message">نئی زبان (%1$s) لاگو کرنے کے لیے، ایپلیکیشن کو دوبارہ شروع کرنا ہوگا۔ جاری رکھیں؟</string>
     <string name="restart_app_cache_message">نیا کیش سائز (%1$d MB) لاگو کرنے کے لیے، ایپلیکیشن کو دوبارہ شروع کرنا ہوگا۔ جاری رکھیں؟</string>
     <string name="restart_app_compact_elements_message">پلیئر کنٹرولز کا نیا سائز لاگو کرنے کے لیے، ایپلیکیشن کو دوبارہ شروع کرنا ہوگا۔ جاری رکھیں؟</string>
     <string name="restart">دوبارہ شروع کریں</string>
@@ -1249,7 +1248,7 @@
     <string name="shortcut_slideshow_short">سلائیڈ شو</string>
     <string name="shortcut_slideshow_long">سلائیڈ شو شروع کریں۔</string>
     <string name="confirm_delete_standalone">\"%1$s\" کو حذف کریں؟</string>
-    <string name="open_in_fms">FastMediaSorter میں کھولیں۔</string>
+    <string name="open_in_fms">Fast Media Sorter &amp; Organizer میں کھولیں۔</string>
     <string name="cd_add_to_favorites">پسندیدہ میں شامل کریں۔</string>
     <string name="cd_remove_from_favorites">پسندیدہ سے ہٹا دیں۔</string>
     <string name="tile_audio_label">ایف ایم ایس آڈیو</string>
@@ -1520,13 +1519,13 @@
     <string name="browse_transfer_notif_title_permission_required">اجازت درکار ہے</string>
     <string name="browse_transfer_notif_text_preparing">تیار ہو رہا ہے..</string>
     <string name="browse_transfer_notif_text_progress">%1$d%% - %2$s</string>
-    <string name="browse_transfer_notif_text_failed">تفصیلات کے لیے FastMediaSorter کھولیں</string>
-    <string name="browse_transfer_notif_text_auth_required">سائن ان کر کے جاری رکھنے کے لیے FastMediaSorter کھولیں</string>
-    <string name="browse_transfer_notif_text_permission_required">اجازت دے کر دوبارہ کوشش کرنے کے لیے FastMediaSorter کھولیں</string>
+    <string name="browse_transfer_notif_text_failed">تفصیلات کے لیے Fast Media Sorter &amp; Organizer کھولیں</string>
+    <string name="browse_transfer_notif_text_auth_required">سائن ان کر کے جاری رکھنے کے لیے Fast Media Sorter &amp; Organizer کھولیں</string>
+    <string name="browse_transfer_notif_text_permission_required">اجازت دے کر دوبارہ کوشش کرنے کے لیے Fast Media Sorter &amp; Organizer کھولیں</string>
     <string name="browse_transfer_notif_action_cancel">منسوخ کریں</string>
     <string name="midi_playback_failed">اس MIDI فائل کو نہیں چلایا جا سکا۔ دوسری کاپی آزمائیں یا اگلے ٹریک پر جائیں۔</string>
     <string name="tooltip_calculator_title">کیلکولیٹر</string>
-    <string name="tooltip_calculator_message">مرکزی مینو میں ایک بنیادی کیلکولیٹر شامل کرتا ہے اور کیلکولیٹر ویجٹ فعال کرتا ہے۔ کیلکولیٹر FastMediaSorter کے اندر ہی رہتا ہے۔</string>
+    <string name="tooltip_calculator_message">مرکزی مینو میں ایک بنیادی کیلکولیٹر شامل کرتا ہے اور کیلکولیٹر ویجٹ فعال کرتا ہے۔ کیلکولیٹر Fast Media Sorter &amp; Organizer کے اندر ہی رہتا ہے۔</string>
     <string name="profile_picker_title">اپنے آلہ کا پروفائل منتخب کریں۔</string>
     <string name="profile_picker_select">منتخب کریں۔</string>
     <string name="system_info_copy_full_report">مکمل رپورٹ کاپی کریں۔</string>
@@ -1632,7 +1631,7 @@
     <string name="cache_size_installed_toast">کیشے سیٹ: %1$d MB</string>
     <string name="welcome_enable_all">سبھی کو فعال کریں۔</string>
     <string name="welcome_enable_all_content_description">ہر چیز کو فعال کریں اور سیٹ اپ مکمل کریں۔</string>
-    <string name="default_player_choose_in_settings">سسٹم کی ترتیبات میں، اس قسم کے لیے FastMediaSorter کو بطور ڈیفالٹ ایپ منتخب کریں۔</string>
+    <string name="default_player_choose_in_settings">سسٹم کی ترتیبات میں، اس قسم کے لیے Fast Media Sorter &amp; Organizer کو بطور ڈیفالٹ ایپ منتخب کریں۔</string>
     <string name="s0413_audio_track_skipped">\"%1$s\" کو چھوڑ دیا گیا - یہ فائل چلائی نہیں جا سکتی۔</string>
     <string name="s0413_audio_queue_unplayable">یہاں کچھ نہیں کھیلا جا سکتا تھا۔</string>
     <string name="settings_remote_sources_title">دور دراز ذرائع (SMB/(S)FTP/کلاؤڈ)</string>
@@ -1650,8 +1649,8 @@
     <string name="settings_remote_source_cloud_help_message">کلاؤڈ اسٹوریج میں فائلیں کھولیں - Google Drive، OneDrive اور Dropbox۔ اکاؤنٹ جوڑیں تاکہ اپنے کلاؤڈ فولڈر ایپ کے اندر ہی براؤز کر سکیں۔</string>
     <string name="settings_remote_source_disable_confirm_title">یہ فولڈر چھپا دیں؟</string>
     <string name="settings_remote_source_disable_confirm_message">اس ماخذ کے فولڈر چھپ جائیں گے، حذف نہیں ہوں گے۔ آپ کے محفوظ کردہ ذرائع باقی رہتے ہیں اور ماخذ دوبارہ آن کرنے پر پھر ظاہر ہو جاتے ہیں۔</string>
-    <string name="screenshot_accessibility_service_description">FastMediaSorter کو کنارے کے اشارے سے اسکرین شاٹ لینے اور محفوظ کرنے دیتا ہے، ہر شاٹ کے لیے ڈائیلاگ کے بغیر۔ یہ صرف اسکرین شاٹس پر لاگو ہوتا ہے - اسکرین ویڈیو ریکارڈنگ الگ ہے اور ہر ریکارڈنگ کے آغاز پر Android سے اجازت مانگتی ہے۔</string>
-    <string name="screenshot_accessibility_permission_rationale">کنارے کے اشارے سے اسکرین شاٹ لینے کے لیے FastMediaSorter کی رسائی سروس آن کریں:\n\n1. ترتیبات کھولیں پر ٹیپ کریں، پھر رسائی کی فہرست میں FastMediaSorter کو فعال کریں۔\n2. اگر Controlled by restricted setting یا App was denied access دکھائی دے: اس ایپ کو App info میں کھولیں، مینو (3 نقطے) پر ٹیپ کریں، Allow restricted settings منتخب کریں، تصدیق کریں، پھر واپس جا کر اسے فعال کریں۔\n\nاگر آپ اسے فعال نہ کر سکیں تو پرانا طریقہ پر ٹیپ کریں تاکہ وہ نسخہ استعمال ہو جو ہر شاٹ پر اجازت مانگتا ہے۔</string>
+    <string name="screenshot_accessibility_service_description">Fast Media Sorter &amp; Organizer کو کنارے کے اشارے سے اسکرین شاٹ لینے اور محفوظ کرنے دیتا ہے، ہر شاٹ کے لیے ڈائیلاگ کے بغیر۔ یہ صرف اسکرین شاٹس پر لاگو ہوتا ہے - اسکرین ویڈیو ریکارڈنگ الگ ہے اور ہر ریکارڈنگ کے آغاز پر Android سے اجازت مانگتی ہے۔</string>
+    <string name="screenshot_accessibility_permission_rationale">کنارے کے اشارے سے اسکرین شاٹ لینے کے لیے Fast Media Sorter &amp; Organizer کی رسائی سروس آن کریں:\n\n1. ترتیبات کھولیں پر ٹیپ کریں، پھر رسائی کی فہرست میں Fast Media Sorter &amp; Organizer کو فعال کریں۔\n2. اگر Controlled by restricted setting یا App was denied access دکھائی دے: اس ایپ کو App info میں کھولیں، مینو (3 نقطے) پر ٹیپ کریں، Allow restricted settings منتخب کریں، تصدیق کریں، پھر واپس جا کر اسے فعال کریں۔\n\nاگر آپ اسے فعال نہ کر سکیں تو پرانا طریقہ پر ٹیپ کریں تاکہ وہ نسخہ استعمال ہو جو ہر شاٹ پر اجازت مانگتا ہے۔</string>
     <string name="screen_capture_rate_limited">اسکرین شاٹ بہت تیز تھا، دوبارہ کوشش کریں۔</string>
     <string name="screenshot_gesture_permission_dialog_title">اسکرین اشارے فعال کریں</string>
     <string name="screenshot_gesture_open_settings">ترتیبات کھولیں</string>
@@ -1767,7 +1766,7 @@
     <string name="statistics_privacy_note">یہ ڈیٹا آپ کے آلے پر ہی رہتا ہے۔ خلاصہ آپ خود اپنی ای میل ایپ سے مصنف کو بھیجتے ہیں۔</string>
     <string name="statistics_send_to_author">مصنف کو بھیجیں</string>
     <string name="statistics_export">برآمد کریں</string>
-    <string name="statistics_email_subject">FastMediaSorter کے شماریات</string>
+    <string name="statistics_email_subject">Fast Media Sorter &amp; Organizer کے شماریات</string>
     <string name="statistics_no_email_app">کوئی ایپ اسے بھیج نہیں سکتی - میل یا شیئرنگ ایپ انسٹال کر کے دوبارہ کوشش کریں۔</string>
     <string name="statistics_report_all_time">کل وقتی میزان</string>
     <string name="statistics_report_section_summary">خلاصہ</string>
@@ -1778,7 +1777,7 @@
     <string name="statistics_report_tech_android">اینڈرائیڈ</string>
     <string name="statistics_report_unknown">نامعلوم</string>
     <string name="error_dialog_report_to_author">کریش رپورٹ مصنف کو ای میل کریں</string>
-    <string name="crash_report_email_subject">FastMediaSorter کریش رپورٹ</string>
+    <string name="crash_report_email_subject">Fast Media Sorter &amp; Organizer کریش رپورٹ</string>
     <string name="crash_report_email_body_intro">براہ کرم بیان کریں کہ جب مسئلہ پیش آیا تو آپ کیا کر رہے تھے۔ تکنیکی تفصیلات اور ایپ لاگ ذیل میں منسلک ہیں۔</string>
     <string name="crash_prompt_title">کریش رپورٹ بھیجیں؟</string>
     <string name="crash_prompt_message">ایپ پچھلی بار غیر متوقع طور پر بند ہوگئی۔ ایپ لاگ کے ساتھ کریش رپورٹ مصنف کو بھیجیں؟</string>
@@ -1891,7 +1890,7 @@
     <string name="app_launch_panel_action_move">منتقل کریں</string>
     <string name="app_launch_panel_action_replace">تبدیل کریں</string>
     <string name="app_launch_panel_action_remove">ہٹائیں</string>
-    <string name="app_launch_panel_own_app_label">FastMediaSorter</string>
+    <string name="app_launch_panel_own_app_label">Fast Media Sorter &amp; Organizer</string>
     <string name="app_picker_title">ایپ چنیں</string>
     <string name="app_launch_panel_title">فوری آغاز</string>
     <string name="app_launch_panel_edit_action">ترمیم</string>
@@ -1926,8 +1925,8 @@
     <string name="app_launch_panel_add_chooser_title">پینل میں شامل کریں</string>
     <string name="app_launch_panel_path_external_app">Android ایپ</string>
     <string name="app_launch_panel_path_os_part">Android OS کی ترتیبات</string>
-    <string name="app_launch_panel_path_app_feature">FastMediaSorter کی خصوصیت</string>
-    <string name="app_launch_panel_path_app_resource">FastMediaSorter کا ذریعہ</string>
+    <string name="app_launch_panel_path_app_feature">Fast Media Sorter &amp; Organizer کی خصوصیت</string>
+    <string name="app_launch_panel_path_app_resource">Fast Media Sorter &amp; Organizer کا ذریعہ</string>
     <string name="app_launch_panel_picker_feature_title">خصوصیت چنیں</string>
     <string name="app_launch_panel_picker_os_title">Android OS کی ترتیب چنیں</string>
     <string name="app_launch_panel_picker_resource_title">ذریعہ چنیں</string>
@@ -2016,7 +2015,7 @@
     <string name="screen_recording_card_title">ریکارڈنگ اسکرین</string>
     <string name="screen_recording_stop">ریکارڈنگ بند کرو</string>
     <string name="screen_recording_disclosure_title">اسکرین ویڈیو ریکارڈنگ</string>
-    <string name="screen_recording_disclosure_message">FastMediaSorter آپ کی اسکرین پر دکھائی جانے والی ہر چیز کو ریکارڈ کرے گا، بشمول دیگر ایپس، مائیکروفون آڈیو والی ویڈیو فائل میں جب تک آپ اسے روک نہیں دیتے۔ پس منظر میں ریکارڈنگ جاری ہے۔ اینڈروئیڈ آپ سے ہر ریکارڈنگ کے آغاز پر اس ایپ یا پوری اسکرین کو منتخب کرنے کو کہتا ہے، اور اس قدم کو چھوڑا نہیں جا سکتا۔</string>
+    <string name="screen_recording_disclosure_message">Fast Media Sorter &amp; Organizer آپ کی اسکرین پر دکھائی جانے والی ہر چیز کو ریکارڈ کرے گا، بشمول دیگر ایپس، مائیکروفون آڈیو والی ویڈیو فائل میں جب تک آپ اسے روک نہیں دیتے۔ پس منظر میں ریکارڈنگ جاری ہے۔ اینڈروئیڈ آپ سے ہر ریکارڈنگ کے آغاز پر اس ایپ یا پوری اسکرین کو منتخب کرنے کو کہتا ہے، اور اس قدم کو چھوڑا نہیں جا سکتا۔</string>
     <string name="screen_recording_disclosure_start">ریکارڈنگ شروع کریں۔</string>
     <string name="screen_recording_saved">اسکرین ریکارڈنگ محفوظ ہو گئی: %1$s</string>
     <string name="screen_recording_error">اسکرین ریکارڈنگ کو محفوظ نہیں کیا جا سکا۔</string>
@@ -2099,7 +2098,7 @@
     <string name="edge_gesture_general_group_title">عام اشارے کی ترتیبات</string>
     <string name="edge_gesture_schema_content_description">کنارے کے اشارے کا نقشہ: کارروائی تفویض کرنے کے لیے زون کی سمت کو تھپتھپائیں۔</string>
     <string name="companion_qr_share_title">وسیلہ شامل کرنے کے لیے اسکین کریں</string>
-    <string name="companion_qr_share_hint">FastMediaSorter میں: وسیلہ شامل کریں -&gt; QR اسکین کریں</string>
+    <string name="companion_qr_share_hint">Fast Media Sorter &amp; Organizer میں: وسیلہ شامل کریں -&gt; QR اسکین کریں</string>
     <string name="companion_qr_share_no_password_note">پاس ورڈ شامل نہیں - وصول کنندہ درآمد کرتے وقت اسے درج کرتا ہے۔</string>
     <string name="companion_qr_share_encode_failed">QR کوڈ تیار نہیں ہو سکا۔</string>
     <string name="sftp_share_show_qr_action">QR دکھائیں۔</string>
@@ -2119,7 +2118,7 @@
     <string name="gesture_action_explain_send_to_recipients">اسکرین کیپچر کر کے اسے آپ کے منتخب کردہ وصول کنندگان کو بھیجتا ہے۔</string>
     <string name="gesture_action_explain_share">اسکرین کیپچر کر کے سسٹم کی شیئر شیٹ کھولتا ہے۔</string>
     <string name="gesture_action_explain_crop_and_share">اسکرین کیپچر کرتا ہے، آپ کو اسے کاٹنے دیتا ہے، پھر نتیجہ شیئر کرتا ہے۔</string>
-    <string name="gesture_action_explain_open_app">اس اشارے کے لیے منتخب کردہ ایپ کھولتا ہے۔ کوئی ایپ منتخب نہ ہو تو FastMediaSorter کھولتا ہے۔</string>
+    <string name="gesture_action_explain_open_app">اس اشارے کے لیے منتخب کردہ ایپ کھولتا ہے۔ کوئی ایپ منتخب نہ ہو تو Fast Media Sorter &amp; Organizer کھولتا ہے۔</string>
     <string name="gesture_action_explain_open_panel">فوری رسائی پینل کھولتا ہے۔</string>
     <string name="gesture_action_explain_launch_camera">ایپ کے اندر کا کیمرہ کھولتا ہے۔</string>
     <string name="gesture_action_explain_take_photo">ایپ کے اندر کے کیمرے سے تصویر لے کر محفوظ کرتا ہے۔</string>
@@ -2193,7 +2192,7 @@
     <string name="launcher_home_mode_play">پلے</string>
     <string name="launcher_home_cell_with_mode">%1$s، %2$s</string>
     <string name="launcher_taskbar_start">اسٹارٹ</string>
-    <string name="launcher_menu_open_app">FastMediaSorter کھولیں</string>
+    <string name="launcher_menu_open_app">Fast Media Sorter &amp; Organizer کھولیں</string>
     <string name="launcher_menu_resources">میرے وسائل</string>
     <string name="launcher_menu_all_apps">تمام ایپس</string>
     <string name="launcher_menu_android_settings">اینڈرائیڈ کی سیٹنگز</string>
@@ -2285,8 +2284,6 @@
     <string name="settings_streams_smart_buffering_summary">کنکشن غیر مستحکم ہو تو آغاز میں بڑا بفر اور خاموشی سے دوبارہ جڑنا</string>
     <string name="streams_section_pinned">پن شدہ</string>
     <string name="streams_section_main">چینلز</string>
-    <string name="streams_section_expand">سیکشن پھیلائیں</string>
-    <string name="streams_section_collapse">سیکشن سمیٹیں</string>
     <string name="ext_channel_preview_atlas_title">چینل کے پیش منظر کا اٹلس</string>
     <string name="ext_channel_preview_atlas_desc">آپ کے پہلی بار دیکھنے سے پہلے گرڈ موڈ میں ویڈیو چینلز کا پیش منظر دکھاتا ہے۔</string>
     <string name="streams_atlas_prompt_message">چینل کے پیش منظر ڈاؤن لوڈ کریں تاکہ ویڈیو چینلز چلانے سے پہلے تصویر دکھائیں؟</string>
@@ -2422,7 +2419,7 @@
     <string name="launcher_tray_sim_signal_none">SIM %1$d، سروس نہیں</string>
     <string name="launcher_now_playing_other_apps">دوسری ایپس کا میوزک دکھائیں</string>
     <string name="launcher_now_playing_access_title">دوسری ایپس کا میوزک دکھائیں</string>
-    <string name="launcher_now_playing_access_message">FastMediaSorter جو بھی ایپ چل رہی ہو اس کا میڈیا سیشن پڑھتا ہے - ٹریک کا عنوان، فنکار اور پلے کی حالت - تاکہ یہ گیجٹ اسے دکھا سکے اور پلے بیک کنٹرول کر سکے۔ اینڈرائیڈ اس اجازت کو نوٹیفیکیشن رسائی کہتا ہے، لیکن ایپ کوئی نوٹیفیکیشن نہیں پڑھتی، صرف میڈیا سیشن پڑھتی ہے۔ آپ یہ اجازت اینڈرائیڈ کی سیٹنگز کی اسکرین پر دیتے ہیں اور اسے کسی بھی وقت وہاں سے واپس لے سکتے ہیں۔</string>
+    <string name="launcher_now_playing_access_message">Fast Media Sorter &amp; Organizer جو بھی ایپ چل رہی ہو اس کا میڈیا سیشن پڑھتا ہے - ٹریک کا عنوان، فنکار اور پلے کی حالت - تاکہ یہ گیجٹ اسے دکھا سکے اور پلے بیک کنٹرول کر سکے۔ اینڈرائیڈ اس اجازت کو نوٹیفیکیشن رسائی کہتا ہے، لیکن ایپ کوئی نوٹیفیکیشن نہیں پڑھتی، صرف میڈیا سیشن پڑھتی ہے۔ آپ یہ اجازت اینڈرائیڈ کی سیٹنگز کی اسکرین پر دیتے ہیں اور اسے کسی بھی وقت وہاں سے واپس لے سکتے ہیں۔</string>
     <string name="perm_title_notification_listener">نوٹیفیکیشن رسائی</string>
     <string name="perm_desc_notification_listener">لانچر ڈیسک ٹاپ کے \'اب چل رہا ہے\' گیجٹ کو دوسری ایپس میں چل رہے میڈیا کو دکھانے اور کنٹرول کرنے کے قابل بناتا ہے۔ ایپ صرف میڈیا سیشن پڑھتی ہے، نوٹیفیکیشنز کا مواد کبھی نہیں۔ اختیاری - اینڈرائیڈ کی سیٹنگز اسکرین پر دی جاتی ہے۔</string>
     <string name="perm_title_write_external_storage">آلے کے اسٹوریج میں محفوظ کرنا</string>
@@ -2904,7 +2901,7 @@
     <string name="wear_log_report_channel_name">واچ لاگز</string>
     <string name="wear_log_report_notification_title">واچ لاگز موصول ہو گئے</string>
     <string name="wear_log_report_notification_text">انہیں ڈویلپر کو بھیجنے کے لیے ٹیپ کریں</string>
-    <string name="wear_log_report_email_subject">FastMediaSorter واچ لاگز</string>
+    <string name="wear_log_report_email_subject">Fast Media Sorter &amp; Organizer واچ لاگز</string>
     <string name="wear_log_report_email_body">آرکائیو میں واچ اور فون دونوں کے لاگز موجود ہیں۔</string>
     <string name="settings_unused_credentials_title">غیر استعمال شدہ کریڈینشلز</string>
     <string name="settings_unused_credentials_button">غیر استعمال شدہ کریڈینشلز - %1$d</string>
@@ -3020,7 +3017,6 @@
     <string name="ext_vlc_engine_desc">ایسی ویڈیو فائلیں اور ڈسک امیجز چلاتا ہے جو بلٹ اِن پلیئر نہیں کھول سکتا۔ تقریباً 44 MB کا ایک بار کا ڈاؤن لوڈ۔</string>
     <string name="calculator_display_content_description">نتیجہ۔ کاپی کرنے کے لیے ٹیپ کریں، نمبر پیسٹ کرنے کے لیے دیر تک دبائیں</string>
     <string name="calculator_action_settings">کیلکولیٹر کی ترتیبات</string>
-    <string name="calculator_settings_title">کیلکولیٹر کی ترتیبات</string>
     <string name="calculator_settings_group_thousands">ہندسوں کو گروپ کریں</string>
     <string name="calculator_settings_group_thousands_summary">اعشاریہ کے دونوں طرف ہر تین ہندسوں کے درمیان کوما لگائیں</string>
     <string name="calculator_settings_text_size">نتیجے کا سائز</string>
@@ -3147,7 +3143,7 @@
     <string name="welcome_enable_all_explainer_step_permissions_title">رسائی کی اجازت دیں</string>
     <string name="welcome_enable_all_explainer_step_permissions_body">Android اپنی درخواست دکھاتا ہے۔ اجازت دیں پر تھپتھپائیں۔ کچھ قسم کی رسائی اس کے بجائے ایک الگ سیٹنگز صفحہ کھولتی ہیں - وہاں سوئچ آن کریں اور واپس دبائیں۔</string>
     <string name="welcome_enable_all_explainer_step_default_app_title">اپنی فائلوں کے لیے ایپ منتخب کریں</string>
-    <string name="welcome_enable_all_explainer_step_default_app_body">آپ کی اپنی ایک فائل کھلتی ہے تاکہ Android پوچھ سکے کہ اسے کون سی ایپ سنبھالے۔ یہ متوقع ہے۔ FastMediaSorter منتخب کریں، ہمیشہ پر تھپتھپائیں، پھر یہاں واپس آنے کے لیے واپس دبائیں۔</string>
+    <string name="welcome_enable_all_explainer_step_default_app_body">آپ کی اپنی ایک فائل کھلتی ہے تاکہ Android پوچھ سکے کہ اسے کون سی ایپ سنبھالے۔ یہ متوقع ہے۔ Fast Media Sorter &amp; Organizer منتخب کریں، ہمیشہ پر تھپتھپائیں، پھر یہاں واپس آنے کے لیے واپس دبائیں۔</string>
     <string name="welcome_enable_all_explainer_step_back_title">واپس آپ کو یہاں لے آتا ہے</string>
     <string name="welcome_enable_all_explainer_step_back_body">ہر وہ اسکرین جو ہماری نہیں، اسے واپس سے چھوڑا جاتا ہے۔ کچھ ضائع نہیں ہوتا - ترتیب وہیں سے جاری رہتی ہے جہاں رکی تھی۔</string>
     <string name="welcome_enable_all_explainer_continue">سمجھ گیا، شروع کریں</string>
@@ -3302,7 +3298,7 @@
     <string name="widget_water_flashlight_label">واٹر ٹارچ</string>
     <string name="widget_water_flashlight_description">فلیش اور اسکرین جلاتا ہے اور اسکرین مقفل کرتا ہے - صرف ایک بٹن اسے بند کرتا ہے</string>
     <string name="tooltip_stopwatch_title">سٹاپ واچ</string>
-    <string name="tooltip_stopwatch_message">مرکزی مینو میں سٹاپ واچ شامل کرتا ہے۔ ایک دوڑ یا کئی پے در پے ماپتا ہے، بیک وقت چار شرکاء تک، اور نتیجہ FastMediaSorter کے اندر رکھتا ہے۔</string>
+    <string name="tooltip_stopwatch_message">مرکزی مینو میں سٹاپ واچ شامل کرتا ہے۔ ایک دوڑ یا کئی پے در پے ماپتا ہے، بیک وقت چار شرکاء تک، اور نتیجہ Fast Media Sorter &amp; Organizer کے اندر رکھتا ہے۔</string>
     <string name="stopwatch_volume_label">موسیقی کی آواز</string>
     <string name="stopwatch_settings_title">سٹاپ واچ کی ترتیبات</string>
     <string name="stopwatch_settings_participants">شرکاء</string>
@@ -3357,7 +3353,7 @@
     <string name="wear_listen_caption_idle">وہ سنیں جو گھڑی کا مائیکروفون سنتا ہے. گھڑی آپ سے تصدیق کے لیے کہے گی.</string>
     <string name="wear_listen_caption_waiting">گھڑی پر آپ کی تصدیق کا انتظار ہے..</string>
     <string name="wear_listen_caption_listening">گھڑی سنی جا رہی ہے.</string>
-    <string name="wear_listen_refusal_not_asked">گھڑی آپ سے پوچھ نہیں سکی: FastMediaSorter کے لیے اس کے نوٹیفیکیشنز آن کریں.</string>
+    <string name="wear_listen_refusal_not_asked">گھڑی آپ سے پوچھ نہیں سکی: Fast Media Sorter &amp; Organizer کے لیے اس کے نوٹیفیکیشنز آن کریں.</string>
     <string name="wear_listen_refusal_declined">آپ نے گھڑی پر درخواست مسترد کر دی.</string>
     <string name="wear_listen_refusal_expired">وقت پر گھڑی پر کسی نے جواب نہیں دیا.</string>
     <string name="wear_listen_refusal_capture_failed">گھڑی اپنا مائیکروفون نہیں کھول سکی.</string>
@@ -3571,7 +3567,7 @@
     <string name="wear_system_info_channel_name">گھڑی کی سسٹم معلومات</string>
     <string name="wear_system_info_notification_title">گھڑی کی رپورٹ موصول ہوئی</string>
     <string name="wear_system_info_notification_text">رپورٹ کھولنے یا بھیجنے کے لیے تھپتھپائیں</string>
-    <string name="wear_system_info_share_subject">FastMediaSorter گھڑی کی سسٹم معلومات</string>
+    <string name="wear_system_info_share_subject">Fast Media Sorter &amp; Organizer گھڑی کی سسٹم معلومات</string>
     <string name="wear_clipboard_channel_name">گھڑی کا کلپ بورڈ</string>
     <string name="wear_clipboard_notification_title">گھڑی سے متن</string>
     <string name="wear_clipboard_notification_text">یہ اب اس فون کے کلپ بورڈ پر ہے</string>
@@ -3717,8 +3713,8 @@
     <string name="settings_sftp_server_apply_hint">تبدیلی لاگو کرنے کے لیے سرور کو بند کر کے دوبارہ آن کریں</string>
     <string name="settings_sftp_server_show_qr">پیئرنگ کوڈ دکھائیں</string>
     <string name="settings_sftp_server_hide_qr">پیئرنگ کوڈ چھپائیں</string>
-    <string name="settings_sftp_server_qr_description">پیئرنگ کوڈ: اسے دوسرے آلے پر FastMediaSorter میں اسکین کریں</string>
-    <string name="add_resource_sftp_pairing_invalid">یہ کوڈ FastMediaSorter کا مکمل پیئرنگ کوڈ نہیں ہے - اسے سرور والے فون پر دوبارہ دکھائیں اور دوبارہ اسکین کریں</string>
+    <string name="settings_sftp_server_qr_description">پیئرنگ کوڈ: اسے دوسرے آلے پر Fast Media Sorter &amp; Organizer میں اسکین کریں</string>
+    <string name="add_resource_sftp_pairing_invalid">یہ کوڈ Fast Media Sorter &amp; Organizer کا مکمل پیئرنگ کوڈ نہیں ہے - اسے سرور والے فون پر دوبارہ دکھائیں اور دوبارہ اسکین کریں</string>
     <string name="add_resource_sftp_pairing_filled">کنکشن کی تفصیلات پیئرنگ کوڈ سے بھر دی گئی ہیں - انہیں چیک کریں اور محفوظ کریں</string>
     <string name="add_resource_sftp_pairing_name">ڈیوائس سرور %1$s</string>
     <string name="filedo_password_remember_leak">جس کے پاس بھی یہ فون کھلی حالت میں ہو، وہ ٹائپ کیے بغیر ہر اس .fd-sec فائل کو کھول سکتا ہے جس پر یہ پاس ورڈ لاگو ہوتا ہے۔</string>
@@ -3825,8 +3821,8 @@
     <string name="wear_watchface_hint">آپ کی گھڑی کے لیے ایک FastMediaSorter واچ فیس موجود ہے۔</string>
     <string name="wear_watchface_hint_action">حاصل کریں</string>
     <string name="wear_install_offer_title">ایک گھڑی منسلک ہے</string>
-    <string name="wear_install_offer_message">%1$s اس فون سے منسلک ہے۔ اپنی کلائی سے ہی میڈیا کھولنے کے لیے گھڑی پر FastMediaSorter انسٹال کریں، اور FastMediaSorter واچ فیس حاصل کریں۔</string>
-    <string name="wear_install_offer_message_face_only">FastMediaSorter پہلے سے %1$s پر موجود ہے۔ کیا FastMediaSorter واچ فیس بھی حاصل کرنا چاہتے ہیں؟</string>
+    <string name="wear_install_offer_message">%1$s اس فون سے منسلک ہے۔ اپنی کلائی سے ہی میڈیا کھولنے کے لیے گھڑی پر Fast Media Sorter &amp; Organizer انسٹال کریں، اور Fast Media Sorter &amp; Organizer واچ فیس حاصل کریں۔</string>
+    <string name="wear_install_offer_message_face_only">Fast Media Sorter &amp; Organizer پہلے سے %1$s پر موجود ہے۔ کیا Fast Media Sorter &amp; Organizer واچ فیس بھی حاصل کرنا چاہتے ہیں؟</string>
     <string name="wear_install_offer_app">گھڑی پر انسٹال کریں</string>
     <string name="wear_install_offer_face">واچ فیس</string>
     <string name="wear_install_offer_app_no_watch">کوئی گھڑی منسلک نہیں - اس کے بجائے گھڑی کی ایپ کا صفحہ یہیں کھل رہا ہے۔</string>
@@ -3843,7 +3839,7 @@
     <string name="wear_stream_pins_push_no_watch">قریب کوئی گھڑی نہیں</string>
     <string name="wear_stream_pins_push_failed">فہرست گھڑی تک نہیں پہنچی۔ دوبارہ کوشش کریں۔</string>
     <string name="wear_stream_pins_picker_title">گھڑی کے لیے چینل پن کریں</string>
-    <string name="welcome_default_player_hint_side">کسی ایک بٹن کو ٹیپ کریں - ایک ڈائیلاگ ظاہر ہوگا۔ FastMediaSorter منتخب کریں اور <b>ہمیشہ</b> کو ٹیپ کریں۔</string>
+    <string name="welcome_default_player_hint_side">کسی ایک بٹن کو ٹیپ کریں - ایک ڈائیلاگ ظاہر ہوگا۔ Fast Media Sorter &amp; Organizer منتخب کریں اور <b>ہمیشہ</b> کو ٹیپ کریں۔</string>
     <string name="host_key_repin_warning_format">آپ کی حفاظت کے لیے کچھ بھی لوڈ نہیں کیا گیا۔ فنگر پرنٹ صرف تب اپ ڈیٹ کریں جب آپ اس نیٹ ورک پر بھروسا کرتے ہوں۔ اس سے اس پتے کو شیئر کرنے والے %1$d وسائل کا فنگر پرنٹ اپ ڈیٹ ہو جائے گا۔</string>
     <string name="host_key_repin_confirm">فنگر پرنٹ اپ ڈیٹ کریں</string>
     <string name="host_key_repin_done">فنگر پرنٹ اپ ڈیٹ ہو گیا</string>
@@ -4028,7 +4024,6 @@
     <string name="broadcast_control_group_share">لنک اور شیئرنگ</string>
     <string name="msg_transfer_same_folder_refused">یہ پہلے ہی فائل کا فولڈر ہے۔ کوئی دوسری منزل چنیں۔</string>
     <string name="settings_collapse_all">سب سمیٹیں</string>
-    <string name="settings_category_about_app">اس ایپ کے بارے میں سب کچھ</string>
     <string name="broadcast_control_preview_toggle_cd">نشریے کی تصویر۔ کنٹرولز دکھانے یا چھپانے کے لیے ٹیپ کریں</string>
     <string name="broadcast_link_password_title">لنک کا پاس ورڈ</string>
     <string name="broadcast_link_password_mode_auto">خودکار</string>

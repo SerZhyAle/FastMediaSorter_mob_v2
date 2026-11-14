@@ -11,11 +11,11 @@ availability_note: All editions; the Sources section only in editions with netwo
 recipe_number: "04"
 canonical_url: documentation/programs/usage-statistics.html
 why: |
-  After a few weeks of sorting it is nice to see the result: how many files you put in order, how many gigabytes the deletions gave back, how many hours of video and music you played. FastMediaSorter counts all of this on your phone and shows it on one screen.
+  After a few weeks of sorting it is nice to see the result: how many files you put in order, how many gigabytes the deletions gave back, how many hours of video and music you played. Fast Media Sorter & Organizer counts all of this on your phone and shows it on one screen.
 
   The numbers never leave the device by themselves. If you want to help the author understand how the app is used, you send the summary yourself, from your own email app, and you see every line of it before it goes.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition) - see [The seven editions of FastMediaSorter](page:flavors.overview-and-comparison)."
+  - "Fast Media Sorter & Organizer in any [edition](term:edition) - see [The seven editions of Fast Media Sorter & Organizer](page:flavors.overview-and-comparison)."
   - "Some time spent in the app - a new install shows **No activity yet. Your stats will fill in as you sort, view and capture files.**"
   - "For **Send to author**: an email app on the phone. For **Export**: any app that can save or send a file."
 steps:
@@ -89,7 +89,7 @@ steps:
     text: |
       At the bottom the screen reminds you: **This data stays on your device. You send the summary to the author yourself, from your own email app.** Two buttons build the same short text report - the totals, the app version, the [edition](term:edition), the phone model and the Android version, and nothing that identifies you:
 
-      - **Send to author** opens your email app with the author's address, the subject **FastMediaSorter statistics** and the report attached. Read it, and send it only if you want to. If no app can send it, the app says **No app can send this - install a mail or sharing app and try again.**
+      - **Send to author** opens your email app with the author's address, the subject **Fast Media Sorter & Organizer statistics** and the report attached. Read it, and send it only if you want to. If no app can send it, the app says **No app can send this - install a mail or sharing app and try again.**
       - **Export** opens the Android share menu with the same report as a text file, so you can save it to a folder or send it anywhere.
 outcome: |
   You know how much work the app has done for you - files sorted, space freed, hours played - and you decide yourself whether anyone else ever sees those numbers.
@@ -118,4 +118,4 @@ next_recipes:
 
 <sub class="doc-stamp">26.10.07 01:10</sub>
 
-FastMediaSorter keeps a private tally of what you do with it: files sorted and deleted, photos taken, videos watched, documents read. This page shows where to switch the tally on or off, how to read the Statistics screen, and how to save the summary or send it to the author yourself.
+Fast Media Sorter & Organizer keeps a private tally of what you do with it: files sorted and deleted, photos taken, videos watched, documents read. This page shows where to switch the tally on or off, how to read the Statistics screen, and how to save the summary or send it to the author yourself.

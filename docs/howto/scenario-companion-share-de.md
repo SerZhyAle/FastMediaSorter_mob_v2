@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Öffnen Sie die Ordner Ihres PCs durch Scannen eines einzigen Codes - FastMediaSorter v2"
+title: "Öffnen Sie die Ordner Ihres PCs durch Scannen eines einzigen Codes - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-companion-share-de.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -56,7 +56,7 @@ Der „Begleiter“ ist eine integrierte Funktion von **[Fast Media Sorter & Sha
 
 ## Schritt 2, Methode A - Den Code scannen (am schnellsten)
 
-1. Öffnen Sie FastMediaSorter und tippen Sie auf dem Hauptbildschirm auf die Schaltfläche **Hinzufügen <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">**.
+1. Öffnen Sie Fast Media Sorter & Organizer und tippen Sie auf dem Hauptbildschirm auf die Schaltfläche **Hinzufügen <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">**.
 2. Tippen Sie auf **„Per Barcode importieren“** - sie befindet sich neben den vier Ressourcentyp-Karten (Lokal, SMB, SFTP/FTP, Cloud) und in der Kopfzeile des SFTP-Formulars.
 3. Die Kamera öffnet sich mit dem Hinweis *„Richten Sie die Kamera auf den QR-Code des Begleiters“*. Halten Sie das Handy vor den QR-Code auf Ihrem PC. In einem dunklen Raum tippen Sie auf **Taschenlampe**.
 4. Eine Bestätigung erscheint - *„Zugriff importieren - Die SFTP-Ressource .. mit N Ordner(n) hinzufügen?“*. Tippen Sie auf **Importieren**.
@@ -115,7 +115,7 @@ Die freigegebenen Ordner verhalten sich wie jede andere Ressource in der App. Zu
 | Kein Eintrag „Per Barcode importieren“ | Das Gerät hat keine Kamera, oder es handelt sich um eine VR-Version. Verwenden Sie [Methode B - Die Datei importieren](#step-2-method-b---import-the-file) |
 | Die Kamera meldet, dass Zugriff benötigt wird | Erteilen Sie bei Aufforderung die Kameraberechtigung - sie wird nur für den Scan verwendet |
 | „Diese Datei ist keine gültige Begleiter-Konfiguration“ | Der Code oder die Datei stammt nicht vom Windows-Begleiter. Exportieren Sie sie erneut aus dem Reiter **Freigabe** |
-| „Von einer neueren Begleiter-Version erstellt“ | Aktualisieren Sie FastMediaSorter auf dem Handy, oder exportieren Sie erneut mit einer passenden Begleiter-Version |
+| „Von einer neueren Begleiter-Version erstellt“ | Aktualisieren Sie Fast Media Sorter & Organizer auf dem Handy, oder exportieren Sie erneut mit einer passenden Begleiter-Version |
 | Ressource hinzugefügt, aber Ordner sind leer | Stellen Sie sicher, dass der PC-Helfer noch läuft. Im **gleichen Wi-Fi** findet die App den PC von selbst; schlägt es weiterhin fehl, zeigt die App, was zu prüfen ist |
 | Funktioniert über Wi-Fi, aber nicht mit mobilen Daten | Um den PC aus einem anderen Netzwerk zu erreichen, muss er aus dem Internet erreichbar sein - richten Sie Portweiterleitung oder IPv6 in den **Freigabe**-Einstellungen des Begleiters ein. Ohne das funktioniert die Freigabe nur im gleichen Wi-Fi |
 

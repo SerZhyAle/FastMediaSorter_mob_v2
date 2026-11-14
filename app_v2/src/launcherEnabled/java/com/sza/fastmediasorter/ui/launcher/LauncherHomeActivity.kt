@@ -76,7 +76,6 @@ import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayCallbacks
 import com.sza.fastmediasorter.ui.main.helpers.ResourceVrCinemaLaunchManager
 import com.sza.fastmediasorter.ui.player.helpers.BlackScreenOverlayManager
 import com.sza.fastmediasorter.ui.player.helpers.SystemBarsManager
-import com.sza.fastmediasorter.ui.settings.LauncherSettingsDialogFragment
 import com.sza.fastmediasorter.ui.settings.LauncherWallpaperSettingsDialogFragment
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.util.showBoundToHost
@@ -878,12 +877,12 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     }
 
     /**
-     * The one place this screen opens the launcher settings dialog - the Start-menu row, the desktop cell
-     * and the quick menu all come through here, so the three cannot drift into three different dialogs.
+     * The one place this screen opens the launcher settings - the Start-menu row, the desktop cell
+     * and the quick menu all come through here, so the three cannot drift apart. S4622: they are the
+     * Launcher page of Settings now, opened in its own task like every other settings route here.
      */
     private fun showLauncherSettings() {
-        LauncherSettingsDialogFragment.newInstance()
-            .show(supportFragmentManager, LauncherSettingsDialogFragment.TAG)
+        startActivity(inOwnTask(SettingsActivity.openLauncherPageIntent(this)))
     }
 
     /**

@@ -15,9 +15,12 @@ import java.util.EnumMap
 /**
  * S0988: decodes a companion QR payload from CameraX frames with the pure-JVM ZXing core.
  *
- * First successful decode fires [onDecoded] exactly once; later frames are ignored so a still-bound
- * camera cannot re-emit and cause a double import. The Y (luminance) plane alone is enough for QR,
- * so no colour conversion is done - the analyzer stays cheap on its dedicated executor.
+ * A text fires [onDecoded] exactly once, after the same text decodes in two consecutive frames; later
+ * frames are ignored so a still-bound camera cannot re-emit and cause a double import. A frame that
+ * decodes nothing, or something else, restarts the confirmation, and a text longer than
+ * [MAX_PAYLOAD_LENGTH] is never one of ours (a QR symbol holds under 3 KiB), so it is dropped unread.
+ * The Y (luminance) plane alone is enough for QR, so no colour conversion is done - the analyzer stays
+ * cheap on its dedicated executor, which is also why [candidate] needs no synchronisation.
  */
 class QrCodeAnalyzer(
     private val onDecoded: (String) -> Unit
@@ -34,20 +37,32 @@ class QrCodeAnalyzer(
     @Volatile
     private var decoded = false
 
+    private var candidate: String? = null
+
     override fun analyze(image: ImageProxy) {
         if (decoded || image.format != ImageFormat.YUV_420_888) {
+            candidate = null
             image.close()
             return
         }
         try {
-            val text = decode(image)
-            if (text != null && !decoded) {
-                decoded = true
-                onDecoded(text)
-            }
+            accept(decode(image))
         } finally {
             reader.reset()
             image.close()
+        }
+    }
+
+    /** The double-read and length guard, apart from the camera so it can be exercised without a frame. */
+    internal fun accept(text: String?) {
+        if (decoded) return
+        if (text.isNullOrEmpty() || text.length > MAX_PAYLOAD_LENGTH) {
+            candidate = null
+        } else if (text == candidate) {
+            decoded = true
+            onDecoded(text)
+        } else {
+            candidate = text
         }
     }
 
@@ -70,5 +85,9 @@ class QrCodeAnalyzer(
         } catch (e: NotFoundException) {
             null
         }
+    }
+
+    companion object {
+        const val MAX_PAYLOAD_LENGTH = 4096
     }
 }

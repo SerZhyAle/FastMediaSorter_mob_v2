@@ -14,7 +14,7 @@ why: |
 
   The same gesture family also gets you a plain camera video or a quick voice note in one move, without opening the camera app or a recorder screen first.
 ingredients:
-  - "FastMediaSorter in the Standard or noLegal [edition](term:edition). Screen recording is not part of the Lite, Photos, Legacy, VR or FOSS editions."
+  - "Fast Media Sorter & Organizer in the Standard or noLegal [edition](term:edition). Screen recording is not part of the Lite, Photos, Legacy, VR or FOSS editions."
   - "The microphone permission for the sound track, and Android's own screen-recording consent at the start of every recording - this step can never be skipped, on either edition."
   - "On Android 13 and newer, the notifications permission, so the recording's controls have somewhere to live."
 steps:
@@ -35,7 +35,7 @@ steps:
     id: start-recording
     title: Start recording from the Programs menu
     text: |
-      Open the Programs menu and tap **Screen video recording**. A one-time notice, **"Screen video recording"**, explains what is about to happen: "FastMediaSorter will record everything shown on your screen, including other apps, to a video file with microphone audio until you stop it. Recording continues in the background." Tap **Start recording**, then choose what to share with Android's own screen-recording prompt - this step cannot be skipped, and it appears at the start of every recording, not only the first.
+      Open the Programs menu and tap **Screen video recording**. A one-time notice, **"Screen video recording"**, explains what is about to happen: "Fast Media Sorter & Organizer will record everything shown on your screen, including other apps, to a video file with microphone audio until you stop it. Recording continues in the background." Tap **Start recording**, then choose what to share with Android's own screen-recording prompt - this step cannot be skipped, and it appears at the start of every recording, not only the first.
     image_bookmark:
       shot_id: capture.screen-recording-disclosure
       device_profile: phone
@@ -48,13 +48,13 @@ steps:
     id: control-while-recording
     title: Pause, resume or stop
     text: |
-      While FastMediaSorter is the app in front, a small pill sits in the corner of the screen with a running timer, a pause/resume button and a stop button. Switch to another app and the pill disappears - the recording keeps running in the background - and control moves to the **"Recording screen"** notification, which carries its own **Pause recording** / **Resume recording** and **Stop** actions. Either way finishes and saves the same file.
+      While Fast Media Sorter & Organizer is the app in front, a small pill sits in the corner of the screen with a running timer, a pause/resume button and a stop button. Switch to another app and the pill disappears - the recording keeps running in the background - and control moves to the **"Recording screen"** notification, which carries its own **Pause recording** / **Resume recording** and **Stop** actions. Either way finishes and saves the same file.
     image_bookmark:
       shot_id: getting-started.main-screen-recording-indicator
       device_profile: phone
       screen_state: main-screen-recording-indicator
       alt: The recording indicator pill in the corner of the resource list showing a running timer and stop button
-      caption: "The recording indicator while FastMediaSorter is in front."
+      caption: "The recording indicator while Fast Media Sorter & Organizer is in front."
       title: "Screenshot: Recording indicator"
       desc: Resource list, recording indicator pill in the corner, timer running.
   - number: 4
@@ -71,7 +71,7 @@ steps:
     id: quick-voice-note
     title: A quick voice note, the same way
     text: |
-      **Start audio recording** toggles the quick voice recorder on and off with one gesture, no screen to open. While it runs, a small floating pill with a timer and a **Stop** button sits on top of whatever app is in front, so you never lose track of it - stop it from that pill, from its notification, or by repeating the gesture. This floating pill belongs to the quick voice recorder only: screen recording, above, always shows its controls in the corner card while FastMediaSorter is in front, or in its notification once you switch away.
+      **Start audio recording** toggles the quick voice recorder on and off with one gesture, no screen to open. While it runs, a small floating pill with a timer and a **Stop** button sits on top of whatever app is in front, so you never lose track of it - stop it from that pill, from its notification, or by repeating the gesture. This floating pill belongs to the quick voice recorder only: screen recording, above, always shows its controls in the corner card while Fast Media Sorter & Organizer is in front, or in its notification once you switch away.
     image_bookmark:
       shot_id: capture.quick-recorder-overlay-pill
       device_profile: phone
@@ -83,7 +83,7 @@ steps:
 outcome: |
   A screen recording with your voice over it, started from the Programs menu or a single swipe, controllable from a corner pill, its notification, or by repeating the gesture - plus a one-swipe camera video and a one-swipe voice note for everything short of the whole screen.
 tips:
-  - "**The consent step is not a bug.** Android requires its own prompt at the start of every screen recording, in every app that offers the feature - FastMediaSorter cannot remove or shorten it."
+  - "**The consent step is not a bug.** Android requires its own prompt at the start of every screen recording, in every app that offers the feature - Fast Media Sorter & Organizer cannot remove or shorten it."
   - "**One card, two jobs.** The corner card with pause/resume/stop is shared between screen recording and the in-app **Voice recording** menu item; only the widget- or gesture-started quick voice recorder gets the floating pill that follows you between apps."
   - "**One tap from the home screen.** The Quick Recorder widget starts the same quick voice recording without opening the app at all - see [Taking photos, videos and voice notes straight into a folder](page:storage.capture-to-destination)."
 next_recipes:

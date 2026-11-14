@@ -10,11 +10,11 @@ availability: SUPPORT_DOCUMENTS
 recipe_number: "03"
 canonical_url: documentation/documents/text-code-editor.html
 why: |
-  A shopping list, a note with a Wi-Fi password, a README from a download, a log file from a router - plain text files are everywhere. In FastMediaSorter you can open them with one tap, read them comfortably and fix a line or two without looking for another app.
+  A shopping list, a note with a Wi-Fi password, a README from a download, a log file from a router - plain text files are everywhere. In Fast Media Sorter & Organizer you can open them with one tap, read them comfortably and fix a line or two without looking for another app.
 
   The same place is a small notebook: create a [text note](term:text-note) right in a folder, write it, save it - on the phone, on your home computer or in the cloud.
 ingredients:
-  - "FastMediaSorter in an [edition](term:edition) with the [reader](term:reader): Standard, noLegal, Legacy, VR or FOSS. The Lite and Photos editions do not open text files."
+  - "Fast Media Sorter & Organizer in an [edition](term:edition) with the [reader](term:reader): Standard, noLegal, Legacy, VR or FOSS. The Lite and Photos editions do not open text files."
   - "**Support text files (.txt, .md, .log, .json, .xml)** switched on in **Settings**, the **Media** tab, **Documents**."
   - "A text file up to 100 MB: `.txt`, `.md`, `.log`, `.json`, `.xml`, `.csv`, `.conf`, `.ini`, `.properties`, `.yml` or `.yaml` - on this device, in a [network folder](term:network-folder) or in [cloud storage](term:cloud-storage)."
   - "To change a file: a folder you are allowed to write to."
@@ -26,7 +26,7 @@ steps:
     text: |
       In the [file browser](term:file-browser) tap the text file. It opens in the reader as plain, easy-to-read text. A very long file is shown in parts: swipe up and down on the text to go to the next or the previous part.
 
-      Text files from other apps open too: choose FastMediaSorter in the **Open with** list, and the file opens in a separate window with the same tools. A file handed over by another app can be read there, but only a file stored in an ordinary folder you can write to can also be changed.
+      Text files from other apps open too: choose Fast Media Sorter & Organizer in the **Open with** list, and the file opens in a separate window with the same tools. A file handed over by another app can be read there, but only a file stored in an ordinary folder you can write to can also be changed.
     image_bookmark:
       shot_id: documents.text-viewer
       device_profile: phone

@@ -11,9 +11,9 @@ availability_note: All editions - color theme, custom accents, language, Big But
 recipe_number: "02"
 canonical_url: documentation/settings/display-and-appearance.html
 why: |
-  The right look is not the same for everyone: a dark [color theme](term:color-theme) at night, a bold accent by day, big controls on a car dashboard, a compact list on a small screen, your own language everywhere including on a locale that writes its own digits. FastMediaSorter keeps all of it in a handful of [Settings](term:settings) rows instead of scattering it across screens.
+  The right look is not the same for everyone: a dark [color theme](term:color-theme) at night, a bold accent by day, big controls on a car dashboard, a compact list on a small screen, your own language everywhere including on a locale that writes its own digits. Fast Media Sorter & Organizer keeps all of it in a handful of [Settings](term:settings) rows instead of scattering it across screens.
 ingredients:
-  - "FastMediaSorter, any edition, with **Settings**, the **General** group, open. See [Finding your way around Settings](page:settings.settings-overview-and-search) if you have not opened it before."
+  - "Fast Media Sorter & Organizer, any edition, with **Settings**, the **General** group, open. See [Finding your way around Settings](page:settings.settings-overview-and-search) if you have not opened it before."
   - "Optional: a paired [watch](term:watch) to see the appearance settings that reach it."
 steps:
   - number: 1
@@ -72,15 +72,15 @@ steps:
     id: icons
     title: Icons that match your wallpaper and stay recognizable
     text: |
-      On Android 13 and newer, turning on the system's own **Themed icons** option - outside FastMediaSorter, in the device's own wallpaper and style settings - recolors the app icon to match your wallpaper the same way the built-in system apps do; below Android 13 the icon stays as it is. Everywhere an icon needs a color instead of just a shape - app shortcuts, the quick-access panel's program, resource and OS tiles - it sits on a flat circle of its own hue, the program's accent or the source's color, instead of a bare glyph on a plain white disc, so the same glyph reads consistently across every surface it appears on.
+      On Android 13 and newer, turning on the system's own **Themed icons** option - outside Fast Media Sorter & Organizer, in the device's own wallpaper and style settings - recolors the app icon to match your wallpaper the same way the built-in system apps do; below Android 13 the icon stays as it is. Everywhere an icon needs a color instead of just a shape - app shortcuts, the quick-access panel's program, resource and OS tiles - it sits on a flat circle of its own hue, the program's accent or the source's color, instead of a bare glyph on a plain white disc, so the same glyph reads consistently across every surface it appears on.
     image_bookmark:
       shot_id: settings.appearance-themed-and-decorated-icons
       device_profile: phone
       screen_state: home-screen-themed-app-icon
-      alt: The FastMediaSorter app icon recolored to match the device wallpaper next to a set of decorated app-shortcut icons on colored circles
+      alt: The Fast Media Sorter & Organizer app icon recolored to match the device wallpaper next to a set of decorated app-shortcut icons on colored circles
       caption: "A themed app icon, and decorated shortcut icons."
       title: "Screenshot: Themed and decorated icons"
-      desc: Android home screen with the themed FastMediaSorter icon and a long-press shortcut menu showing decorated colored-circle icons.
+      desc: Android home screen with the themed Fast Media Sorter & Organizer icon and a long-press shortcut menu showing decorated colored-circle icons.
   - number: 6
     id: units
     title: One unit system for the whole app, phone and watch
@@ -146,4 +146,4 @@ next_recipes:
 
 <sub class="doc-stamp">26.10.07 01:10</sub>
 
-A theme, a language and a size that fit you make every other screen easier to use, and FastMediaSorter keeps all three in [Settings](term:settings), **General**, together with the icon and unit choices that follow from them. This page covers picking a [color theme](term:color-theme) or an accent, reading the app in your own language, switching button size, turning decorative motion off, themed icons, the app-wide unit system, color-coded panels and how the same look carries over to the [watch](term:watch).
+A theme, a language and a size that fit you make every other screen easier to use, and Fast Media Sorter & Organizer keeps all three in [Settings](term:settings), **General**, together with the icon and unit choices that follow from them. This page covers picking a [color theme](term:color-theme) or an accent, reading the app in your own language, switching button size, turning decorative motion off, themed icons, the app-wide unit system, color-coded panels and how the same look carries over to the [watch](term:watch).

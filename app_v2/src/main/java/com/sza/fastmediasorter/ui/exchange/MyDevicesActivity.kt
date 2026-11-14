@@ -124,6 +124,10 @@ class MyDevicesActivity : BaseActivity<ActivityMyDevicesBinding>() {
         popup.menu.findItem(R.id.action_exchange_make_outgoing).isVisible = !entry.outgoing
         popup.menu.findItem(R.id.action_exchange_connect_watch).isVisible = mediaCapabilities.supportsWearCompanion
         popup.menu.findItem(R.id.action_exchange_auto_attach).isChecked = entry.autoAttach
+        popup.menu.findItem(R.id.action_exchange_sync_notes).apply {
+            isVisible = mediaCapabilities.supportsDocuments && entry.mayProduce
+            isChecked = entry.syncNotes
+        }
         popup.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.action_exchange_edit_address -> dialogs.showEditAddress(entry)
@@ -133,6 +137,7 @@ class MyDevicesActivity : BaseActivity<ActivityMyDevicesBinding>() {
                 R.id.action_exchange_administer -> startActivity(ExchangeServerAdminActivity.createIntent(this, entry))
                 R.id.action_exchange_standard_settings -> standardSettingsDialogs.show(entry)
                 R.id.action_exchange_auto_attach -> viewModel.setAutoAttach(entry, !entry.autoAttach)
+                R.id.action_exchange_sync_notes -> dialogs.toggleSyncNotes(entry)
                 R.id.action_exchange_sign_in_again -> signInAgain(entry)
                 R.id.action_exchange_change_password -> accountDialogs.showChangePassword(entry)
                 R.id.action_exchange_remove -> dialogs.confirmRemove(entry)

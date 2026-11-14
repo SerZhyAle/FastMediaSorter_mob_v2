@@ -99,6 +99,23 @@ class StreamSourceCatalogMergeTest {
     }
 
     @Test
+    fun playlistImport_preservesExistingNormalizedUrlAndKeepsCaseSensitivePaths() = runTest {
+        repo.add(manualEntry("manual-1", "HTTP://Radio.Example:80/live"))
+
+        val inserted = repo.addAllIgnoringDuplicates(
+            listOf(
+                manualEntry("imported-1", "http://radio.example/live").copy(sourceOrigin = "IMPORTED"),
+                manualEntry("imported-2", "http://radio.example/Live").copy(sourceOrigin = "IMPORTED")
+            )
+        )
+
+        assertEquals(1, inserted)
+        assertEquals("My channel", dao.getById("manual-1")!!.title)
+        assertNull(dao.getById("imported-1"))
+        assertNotNull(dao.getById("imported-2"))
+    }
+
+    @Test
     fun mergeCatalog_prunedChannelReturns_keepsPinPositionAndOutcome() = runTest {
         repo.mergeCatalog(listOf(catalogEntry(0), catalogEntry(1)))
         repo.pinToTop("cat-1")

@@ -101,10 +101,12 @@ class PayloadIntegrityVerifier @Inject constructor() {
         }
     }
 
-    private companion object {
-        const val BUFFER_SIZE = 8192
+    companion object {
+        private const val BUFFER_SIZE = 8192
+
         // Sanity ceiling for hash-less pure-resource files (e.g. audio-viz videos are ~1-2 MB each);
-        // far above any real delivered resource, only guards against an oversized substitution.
+        // far above any real delivered resource, only guards against an oversized substitution. Public
+        // so the downloader stops the stream at the same line instead of filling filesDir first.
         const val MAX_UNVERIFIED_RESOURCE_BYTES = 64L * 1024 * 1024
     }
 }

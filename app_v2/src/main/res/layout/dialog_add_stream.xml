@@ -53,6 +53,25 @@
             android:layout_height="wrap_content"
             android:inputType="textCapSentences"
             android:maxLines="1"
+            android:imeOptions="actionNext|flagNoExtractUi" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- S4606: the user's own free-text category for the channel; shown for a manual add and an edit, hidden
+         for a playlist import like the title above. It is the last typed field, so it owns the Done action. -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilCategory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:hint="@string/streams_category_hint"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etCategory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textCapSentences"
+            android:maxLines="1"
             android:imeOptions="actionDone|flagNoExtractUi" />
     </com.google.android.material.textfield.TextInputLayout>
 

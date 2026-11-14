@@ -7,8 +7,13 @@
     - every <activity> of app_v2/src/main/AndroidManifest.xml (aliases are not activities), minus the
       explicit exclusion list below;
     - every Kotlin class under app_v2/src/main/java that extends DialogFragment, BottomSheetDialogFragment,
-      AppCompatDialogFragment or the project's BaseAppBottomSheet.
-    Surface id = the class simple name. Flavor-only manifests are not read yet: a flavor surface joins the
+      AppCompatDialogFragment or the project's BaseAppBottomSheet;
+    - every layout file dialog_*.xml and fragment_*.xml under app_v2/src/main/res/layout*, unless a file that
+      declares one of the dialog classes above names it (by binding class or R.layout): a dialog built from a
+      layout by a plain object, or a fragment screen with no dialog class of its own, is otherwise invisible.
+      sheet_*.xml layouts belong to the sheet classes and are never listed.
+    Surface id = the class simple name for an activity or a dialog class, the layout file name for a layout.
+    Flavor-only manifests are not read yet: a flavor surface joins the
     map when its slice is written.
 
     The gate scripts/quality/assert-help-map.ps1 dot-sources this file and calls Get-HelpSurfaces, so the
@@ -58,11 +63,17 @@ $script:HelpSurfaceExclusions = @(
     'PrintDispatchActivity'                 # routes a print request, no own UI
 )
 
+function ConvertTo-BindingName {
+    param([Parameter(Mandatory)][string]$LayoutName)
+    return (($LayoutName -split '_' | ForEach-Object { if ($_) { $_.Substring(0, 1).ToUpperInvariant() + $_.Substring(1) } }) -join '') + 'Binding'
+}
+
 function Get-HelpSurfaces {
     param([Parameter(Mandatory)][string]$Root)
 
     $manifest = Join-Path $Root 'app_v2/src/main/AndroidManifest.xml'
     $javaRoot = Join-Path $Root 'app_v2/src/main/java'
+    $resRoot = Join-Path $Root 'app_v2/src/main/res'
     if (-not (Test-Path -LiteralPath $manifest) -or -not (Test-Path -LiteralPath $javaRoot)) {
         throw "help surfaces: source not found under $Root"
     }
@@ -80,15 +91,40 @@ function Get-HelpSurfaces {
     }
 
     $dialogPattern = '(?m)^\s*(?:(?:open|abstract|internal|private)\s+)*class\s+(\w+)[^{\n]*?:\s*(?:DialogFragment|BottomSheetDialogFragment|AppCompatDialogFragment|BaseAppBottomSheet)\b'
-    Get-ChildItem -LiteralPath $javaRoot -Recurse -Filter '*.kt' -File | ForEach-Object {
-        $text = [IO.File]::ReadAllText($_.FullName)
+    # Texts of the files that declare a dialog class: a layout one of them names is that class's surface.
+    $classTexts = [System.Collections.Generic.List[string]]::new()
+    foreach ($file in Get-ChildItem -LiteralPath $javaRoot -Recurse -Filter '*.kt' -File) {
+        $text = [IO.File]::ReadAllText($file.FullName)
+        $declares = $false
         foreach ($m in [regex]::Matches($text, $dialogPattern)) {
             $id = $m.Groups[1].Value
             if ($text -match "abstract\s+class\s+$id\b") { continue }
+            $declares = $true
             if ($seen.Add($id)) {
-                $rel = [IO.Path]::GetRelativePath($Root, $_.FullName).Replace('\', '/')
+                $rel = [IO.Path]::GetRelativePath($Root, $file.FullName).Replace('\', '/')
                 $surfaces.Add([pscustomobject]@{ id = $id; kind = 'dialog'; source = $rel })
             }
+        }
+        if ($declares) { $classTexts.Add($text) }
+    }
+
+    if (Test-Path -LiteralPath $resRoot -PathType Container) {
+        # layout-land and the other qualifiers repeat a name; the first folder in name order is the source.
+        $layoutFiles = Get-ChildItem -LiteralPath $resRoot -Directory -Filter 'layout*' | Sort-Object Name |
+            ForEach-Object { Get-ChildItem -LiteralPath $_.FullName -Filter '*.xml' -File } |
+            Where-Object { $_.BaseName -match '^(dialog|fragment)_' }
+        foreach ($layout in $layoutFiles) {
+            $name = $layout.BaseName
+            if ($seen.Contains($name)) { continue }
+            $binding = ConvertTo-BindingName $name
+            $covered = $false
+            foreach ($text in $classTexts) {
+                if ($text.Contains($binding) -or $text.Contains("R.layout.$name")) { $covered = $true; break }
+            }
+            if ($covered) { continue }
+            $null = $seen.Add($name)
+            $rel = [IO.Path]::GetRelativePath($Root, $layout.FullName).Replace('\', '/')
+            $surfaces.Add([pscustomobject]@{ id = $name; kind = 'layout'; source = $rel })
         }
     }
 

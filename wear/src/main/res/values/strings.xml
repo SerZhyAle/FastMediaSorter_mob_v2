@@ -117,7 +117,7 @@
     <string name="phone_resource_loading">Loading from your phone..</string>
     <string name="phone_resource_retry">Retry</string>
     <string name="phone_resource_empty">Your phone has nothing to show here. Open another folder or retry.</string>
-    <string name="phone_resource_unavailable">FastMediaSorter is not answering on your phone. Open it there, and keep the phone nearby.</string>
+    <string name="phone_resource_unavailable">Fast Media Sorter &amp; Organizer is not answering on your phone. Open it there, and keep the phone nearby.</string>
     <string name="phone_resource_access_denied">Your phone does not share this folder with the watch.</string>
     <string name="phone_resource_unsupported">The watch cannot open this kind of file.</string>
     <string name="phone_resource_transfer_rejected">This file is too large to send to the watch.</string>
@@ -409,9 +409,9 @@
     <string name="phone_resource_no_resource_for_type">No phone resource is set up to hold this type.</string>
     <string name="wear_folder_load_more">Show more</string>
     <string name="wear_file_op_outcome_needs_consent">Not confirmed - nothing changed</string>
-    <string name="wear_sync_no_phone_paired">No phone is connected. Pair your phone and install FastMediaSorter on it.</string>
+    <string name="wear_sync_no_phone_paired">No phone is connected. Pair your phone and install Fast Media Sorter &amp; Organizer on it.</string>
     <string name="wear_sync_request_failed">Could not ask the phone. Try again.</string>
-    <string name="phone_resource_not_paired">No phone is connected to this watch. Pair one and install FastMediaSorter on it.</string>
+    <string name="phone_resource_not_paired">No phone is connected to this watch. Pair one and install Fast Media Sorter &amp; Organizer on it.</string>
     <string name="wear_streams_sort_most_used">Most used</string>
     <!-- S2146: mirrored verbatim from :app_v2 (S1477). Declared in wear-mirrored-strings.psd1. -->
     <string name="streams_rubric_general">General</string>
@@ -805,7 +805,7 @@
     <string name="wear_cast_phone_busy">Your phone did not answer - check that it is nearby</string>
     <string name="wear_cast_not_castable">Only streams and files from a phone source can be shown on a TV</string>
     <string name="wear_stream_stalled">The stream stopped sending. Playback was stopped to save the battery.</string>
-    <string name="phone_resource_companion_disabled">The Wear Companion switch is off on your phone. Turn it on in FastMediaSorter settings, then retry.</string>
+    <string name="phone_resource_companion_disabled">The Wear Companion switch is off on your phone. Turn it on in Fast Media Sorter &amp; Organizer settings, then retry.</string>
 
     <!-- S3007: Tourist sub-program on Wear OS -->
     <string name="wear_tourist_app">Tourist</string>
@@ -983,12 +983,12 @@
     <string name="about_watch_face_caption">For Wear OS 6 and newer</string>
     <string name="about_watch_face_no_store">No Google Play on this watch</string>
     <string name="wear_companion_hint_connect">Connect your phone to see Resources and Phone</string>
-    <string name="wear_companion_hint_install">Install FastMediaSorter on your phone to see Resources and Phone</string>
-    <string name="wear_companion_offer_title">FastMediaSorter is not on your phone</string>
+    <string name="wear_companion_hint_install">Install Fast Media Sorter &amp; Organizer on your phone to see Resources and Phone</string>
+    <string name="wear_companion_offer_title">Fast Media Sorter &amp; Organizer is not on your phone</string>
     <string name="wear_companion_offer_message">Install it to browse the phone and its resources from the watch</string>
     <string name="wear_companion_offer_install">Install</string>
     <string name="wear_companion_offer_later">Not now</string>
-    <string name="wear_companion_install_row">Install FastMediaSorter on phone</string>
+    <string name="wear_companion_install_row">Install Fast Media Sorter &amp; Organizer on phone</string>
     <string name="wear_tourist_metric_pressure">Pressure</string>
     <string name="wear_tourist_metric_baro_altitude">Barometric altitude</string>
     <string name="wear_tourist_metric_elevation_gain_loss">Ascent</string>

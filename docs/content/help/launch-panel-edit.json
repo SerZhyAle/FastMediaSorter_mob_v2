@@ -25,10 +25,10 @@
   "locales": {
     "en": {
       "title": "Edit panel",
-      "purpose": "Choose what the Quick launch panel shows. The panel has fifteen fixed places; here you fill each one with an app, a tool of FastMediaSorter, one of your resources or an Android settings screen, and you can swap them around or clear them.",
+      "purpose": "Choose what the Quick launch panel shows. The panel has fifteen fixed places; here you fill each one with an app, a tool of Fast Media Sorter & Organizer, one of your resources or an Android settings screen, and you can swap them around or clear them.",
       "steps": [
         "You get here from the Edit button of the Quick launch panel, by tapping a free place on it, or from the edge gesture settings. The grid (3) shows the panel as it is now.",
-        "Tap a free place (5) or any tile (4). The Add to panel window (9) asks what kind of shortcut you want: an Android app, a FastMediaSorter feature, a FastMediaSorter resource or an Android setting.",
+        "Tap a free place (5) or any tile (4). The Add to panel window (9) asks what kind of shortcut you want: an Android app, a Fast Media Sorter & Organizer feature, a Fast Media Sorter & Organizer resource or an Android setting.",
         "A list of that kind opens (11 to 14). Tap the item you want and it goes into the place at once. A short list has no search field; a long one gets it (10).",
         "To change a tile that is already there, long-press it: Move (6) swaps it with another place, Replace (7) opens the same kind choice again, Remove (8) empties the place.",
         "Reset panel (2) puts the factory set back after you confirm. Back (1) leaves the screen - every change is saved as you make it."
@@ -46,7 +46,7 @@
         },
         "reset": {
           "summary": "Puts the panel back to the set it had after installation.",
-          "details": "The app asks Reset panel? and explains that the panel returns to the default set of apps and shortcuts created at install. Nothing changes until you confirm. The factory set is FastMediaSorter first, then its own tools that exist in your edition, one of your resources and Android Settings, with the last places left free.",
+          "details": "The app asks Reset panel? and explains that the panel returns to the default set of apps and shortcuts created at install. Nothing changes until you confirm. The factory set is Fast Media Sorter & Organizer first, then its own tools that exist in your edition, one of your resources and Android Settings, with the last places left free.",
           "undo": "All your own tiles are lost and the factory set returns. To get a tile back, add it again."
         },
         "tiles": {
@@ -65,7 +65,7 @@
         },
         "add-chooser": {
           "summary": "Asks what kind of shortcut should go into this place.",
-          "details": "A short list with four choices: Android app, FastMediaSorter feature, FastMediaSorter resource and Android OS settings. Each opens its own list. Cancel closes the window and changes nothing. The same window opens for Replace."
+          "details": "A short list with four choices: Android app, Fast Media Sorter & Organizer feature, Fast Media Sorter & Organizer resource and Android OS settings. Each opens its own list. Cancel closes the window and changes nothing. The same window opens for Replace."
         },
         "move": {
           "summary": "Moves a tile to another place.",
@@ -89,7 +89,7 @@
           "details": "Shows the apps installed on this phone that can be launched, sorted by name and each with its own icon. Tap one and it goes into the place. If you later remove that app from the phone, its tile opens nothing."
         },
         "feature-picker": {
-          "summary": "Lists tools and screens of FastMediaSorter itself.",
+          "summary": "Lists tools and screens of Fast Media Sorter & Organizer itself.",
           "details": "Shows what exists in your edition, for example the calculator, the stopwatch, the network monitor, the mini-game, Streams and Favorites; the tools come first and the rest follow. A tool that is switched off in Settings stays in the list with the note Off - tap to turn on; as a tile it opens the matching setting instead of the tool. Features that are not part of your edition are not listed."
         },
         "os-picker": {
@@ -104,10 +104,10 @@
     },
     "ru": {
       "title": "Редактировать панель",
-      "purpose": "Выберите, что показывает панель «Быстрый запуск». На панели пятнадцать постоянных мест; здесь вы заполняете каждое приложением, инструментом FastMediaSorter, одним из ваших ресурсов или экраном настроек Android, а также можете менять плитки местами и очищать их.",
+      "purpose": "Выберите, что показывает панель «Быстрый запуск». На панели пятнадцать постоянных мест; здесь вы заполняете каждое приложением, инструментом Fast Media Sorter & Organizer, одним из ваших ресурсов или экраном настроек Android, а также можете менять плитки местами и очищать их.",
       "steps": [
         "Сюда попадают кнопкой «Изменить» на панели «Быстрый запуск», нажатием на свободное место на ней или из настроек жестов края экрана. Сетка (3) показывает панель в её нынешнем виде.",
-        "Нажмите свободное место (5) или любую плитку (4). Окно «Добавить на панель» (9) спросит, какой ярлык нужен: приложение, функция FastMediaSorter, ресурс FastMediaSorter или настройка Android.",
+        "Нажмите свободное место (5) или любую плитку (4). Окно «Добавить на панель» (9) спросит, какой ярлык нужен: приложение, функция Fast Media Sorter & Organizer, ресурс Fast Media Sorter & Organizer или настройка Android.",
         "Откроется список выбранного вида (11-14). Нажмите нужный пункт, и он сразу встанет на место. В коротком списке поля поиска нет, в длинном оно появляется (10).",
         "Чтобы изменить уже стоящую плитку, нажмите на неё и удерживайте: «Переместить» (6) меняет её местами с другим местом, «Заменить» (7) снова открывает выбор вида, «Удалить» (8) освобождает место.",
         "«Сброс панели» (2) после подтверждения возвращает стандартный набор. «Назад» (1) закрывает экран - каждое изменение сохраняется сразу."
@@ -125,7 +125,7 @@
         },
         "reset": {
           "summary": "Возвращает панель к набору, который был после установки.",
-          "details": "Приложение спрашивает «Сбросить панель?» и поясняет, что панель вернётся к набору программ и ярлыков по умолчанию, как после установки. Пока вы не подтвердите, ничего не меняется. Стандартный набор - это сначала FastMediaSorter, затем его собственные инструменты, которые есть в вашей редакции, один из ваших ресурсов и настройки Android, а последние места остаются свободными.",
+          "details": "Приложение спрашивает «Сбросить панель?» и поясняет, что панель вернётся к набору программ и ярлыков по умолчанию, как после установки. Пока вы не подтвердите, ничего не меняется. Стандартный набор - это сначала Fast Media Sorter & Organizer, затем его собственные инструменты, которые есть в вашей редакции, один из ваших ресурсов и настройки Android, а последние места остаются свободными.",
           "undo": "Все ваши плитки пропадают, и возвращается стандартный набор. Чтобы вернуть плитку, добавьте её снова."
         },
         "tiles": {
@@ -144,7 +144,7 @@
         },
         "add-chooser": {
           "summary": "Спрашивает, какой ярлык поставить на это место.",
-          "details": "Короткий список из четырёх вариантов: «Приложение», «Функция FastMediaSorter», «Ресурс FastMediaSorter» и «Настройки ОС Андроид». У каждого свой список. «Отмена» закрывает окно, ничего не меняя. То же окно открывается и при «Заменить»."
+          "details": "Короткий список из четырёх вариантов: «Приложение», «Функция Fast Media Sorter & Organizer», «Ресурс Fast Media Sorter & Organizer» и «Настройки ОС Андроид». У каждого свой список. «Отмена» закрывает окно, ничего не меняя. То же окно открывается и при «Заменить»."
         },
         "move": {
           "summary": "Переносит плитку на другое место.",
@@ -168,7 +168,7 @@
           "details": "Показывает установленные на телефоне приложения, которые можно запустить, по алфавиту и каждое со своим значком. Нажмите одно, и оно встанет на место. Если потом удалить это приложение с телефона, его плитка ничего не откроет."
         },
         "feature-picker": {
-          "summary": "Список инструментов и экранов самого FastMediaSorter.",
+          "summary": "Список инструментов и экранов самого Fast Media Sorter & Organizer.",
           "details": "Показывает то, что есть в вашей редакции, например калькулятор, секундомер, сетевой монитор, мини-игру, «Потоки» и «Избранное»; сначала идут инструменты, затем остальное. Инструмент, выключенный в настройках, остаётся в списке с пометкой «Выключено - нажмите, чтобы включить»; плитка с ним открывает соответствующую настройку вместо инструмента. Функции, которых нет в вашей редакции, в списке не показываются."
         },
         "os-picker": {
@@ -183,10 +183,10 @@
     },
     "uk": {
       "title": "Редагувати панель",
-      "purpose": "Виберіть, що показує панель «Швидкий запуск». На панелі п’ятнадцять сталих місць; тут ви заповнюєте кожне застосунком, інструментом FastMediaSorter, одним із ваших ресурсів або екраном налаштувань Android, а також можете міняти плитки місцями й очищати їх.",
+      "purpose": "Виберіть, що показує панель «Швидкий запуск». На панелі п’ятнадцять сталих місць; тут ви заповнюєте кожне застосунком, інструментом Fast Media Sorter & Organizer, одним із ваших ресурсів або екраном налаштувань Android, а також можете міняти плитки місцями й очищати їх.",
       "steps": [
         "Сюди потрапляють кнопкою «Змінити» на панелі «Швидкий запуск», натисканням на вільне місце на ній або з налаштувань жестів краю екрана. Сітка (3) показує панель у її теперішньому вигляді.",
-        "Натисніть вільне місце (5) або будь-яку плитку (4). Вікно «Додати на панель» (9) запитає, який ярлик потрібен: застосунок, функція FastMediaSorter, ресурс FastMediaSorter чи налаштування Android.",
+        "Натисніть вільне місце (5) або будь-яку плитку (4). Вікно «Додати на панель» (9) запитає, який ярлик потрібен: застосунок, функція Fast Media Sorter & Organizer, ресурс Fast Media Sorter & Organizer чи налаштування Android.",
         "Відкриється список вибраного виду (11-14). Натисніть потрібний пункт, і він одразу стане на місце. У короткому списку поля пошуку немає, у довгому воно з’являється (10).",
         "Щоб змінити плитку, що вже стоїть, натисніть на неї й утримуйте: «Перемістити» (6) міняє її місцями з іншим місцем, «Замінити» (7) знову відкриває вибір виду, «Видалити» (8) звільняє місце.",
         "«Скидання панелі» (2) після підтвердження повертає типовий набір. «Назад» (1) закриває екран - кожна зміна зберігається одразу."
@@ -204,7 +204,7 @@
         },
         "reset": {
           "summary": "Повертає панель до набору, який був після встановлення.",
-          "details": "Застосунок питає «Скинути панель?» і пояснює, що панель повернеться до типового набору програм і ярликів, як після встановлення. Доки ви не підтвердите, нічого не змінюється. Типовий набір - це спершу FastMediaSorter, потім його власні інструменти, що є у вашій редакції, один із ваших ресурсів і налаштування Android, а останні місця лишаються вільними.",
+          "details": "Застосунок питає «Скинути панель?» і пояснює, що панель повернеться до типового набору програм і ярликів, як після встановлення. Доки ви не підтвердите, нічого не змінюється. Типовий набір - це спершу Fast Media Sorter & Organizer, потім його власні інструменти, що є у вашій редакції, один із ваших ресурсів і налаштування Android, а останні місця лишаються вільними.",
           "undo": "Усі ваші плитки зникають, і повертається типовий набір. Щоб повернути плитку, додайте її знову."
         },
         "tiles": {
@@ -223,7 +223,7 @@
         },
         "add-chooser": {
           "summary": "Питає, який ярлик поставити на це місце.",
-          "details": "Короткий список із чотирьох варіантів: «Застосунок», «Функція FastMediaSorter», «Ресурс FastMediaSorter» і «Налаштування ОС Андроїд». У кожного свій список. «Скасувати» закриває вікно, нічого не змінюючи. Те саме вікно відкривається й під час «Замінити»."
+          "details": "Короткий список із чотирьох варіантів: «Застосунок», «Функція Fast Media Sorter & Organizer», «Ресурс Fast Media Sorter & Organizer» і «Налаштування ОС Андроїд». У кожного свій список. «Скасувати» закриває вікно, нічого не змінюючи. Те саме вікно відкривається й під час «Замінити»."
         },
         "move": {
           "summary": "Переносить плитку на інше місце.",
@@ -247,7 +247,7 @@
           "details": "Показує встановлені на телефоні застосунки, які можна запустити, за абеткою й кожен зі своїм значком. Натисніть один, і він стане на місце. Якщо потім видалити цей застосунок з телефона, його плитка нічого не відкриє."
         },
         "feature-picker": {
-          "summary": "Список інструментів і екранів самого FastMediaSorter.",
+          "summary": "Список інструментів і екранів самого Fast Media Sorter & Organizer.",
           "details": "Показує те, що є у вашій редакції, наприклад калькулятор, секундомір, мережевий монітор, міні-гру, «Потоки» й «Обране»; спершу йдуть інструменти, потім решта. Інструмент, вимкнений у налаштуваннях, лишається в списку з позначкою «Вимкнено - натисніть, щоб увімкнути»; плитка з ним відкриває відповідне налаштування замість інструмента. Функцій, яких немає у вашій редакції, у списку не показано."
         },
         "os-picker": {

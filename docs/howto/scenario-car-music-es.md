@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Reproductor de Música en el Coche (Unidad Central Android) - FastMediaSorter v2"
+title: "Reproductor de Música en el Coche (Unidad Central Android) - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-car-music-es.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -11,7 +11,7 @@ permalink: /docs/howto/scenario-car-music-es.html
 
 > **Nivel:** Principiante &bull; **Tiempo:** ~10 minutos &bull; **Edición:** Standard, Legacy, VR, noLegal (Lite reproduce audio local pero no tiene reproducción en segundo plano ni Streams; Photos no tiene audio)
 
-FastMediaSorter funciona muy bien como reproductor de música para coche en unidades centrales Android - acceso instantáneo a toda tu colección de música en tarjeta SD o unidad USB, con soporte integrado para botones del volante.
+Fast Media Sorter & Organizer funciona muy bien como reproductor de música para coche en unidades centrales Android - acceso instantáneo a toda tu colección de música en tarjeta SD o unidad USB, con soporte integrado para botones del volante.
 
 > **¿Qué es una unidad central Android?** Es un radio de coche con pantalla táctil que ejecuta Android - como tu teléfono, pero instalado en el tablero. Esta guía también funciona en un teléfono o tablet normal montado en el coche.
 
@@ -91,7 +91,7 @@ Eso es todo. Una vez activado esto, la app se registra como un reproductor de m�
 
 Presiona **Siguiente** o **Anterior** en tu volante.
 
-**Funcionan automáticamente - no se necesita configuración.** FastMediaSorter responde a todos los botones multimedia estándar de Android.
+**Funcionan automáticamente - no se necesita configuración.** Fast Media Sorter & Organizer responde a todos los botones multimedia estándar de Android.
 
 > **¿Los botones no funcionan?** Algunas unidades centrales más antiguas envían señales no estándar. Prueba ir a **Configuración de Android → Accesibilidad** y busca una opción de "receptor de botones multimedia". Si eso no ayuda, usa las zonas táctiles en pantalla (borde izquierdo/derecho de la pantalla) en su lugar - funcionan perfectamente.
 
@@ -107,7 +107,7 @@ Si tu música está repartida en varias carpetas (por ejemplo, algo en la tarjet
 
 Ahora todas tus pistas de todas las ubicaciones aparecen juntas en una sola lista.
 
-![Pantalla principal de FastMediaSorter - tarjeta del recurso virtual Toda la Música visible](screenshots/screenshot-car-step6.png)
+![Pantalla principal de Fast Media Sorter & Organizer - tarjeta del recurso virtual Toda la Música visible](screenshots/screenshot-car-step6.png)
 
 ---
 
@@ -116,7 +116,7 @@ Ahora todas tus pistas de todas las ubicaciones aparecen juntas en una sola list
 Perfecto para cuando solo quieres subir al coche y tocar un botón para iniciar la música:
 
 1. Mantén presionado un espacio vacío en la pantalla de inicio → toca **Widgets**
-2. Busca **FastMediaSorter** en la lista → arrastra el widget **"Acceso Directo a Recurso"** a tu pantalla de inicio
+2. Busca **Fast Media Sorter & Organizer** en la lista → arrastra el widget **"Acceso Directo a Recurso"** a tu pantalla de inicio
 3. Cuando se te solicite, selecciona tu recurso de música
 4. Listo - toca el widget en cualquier momento y la música comienza de inmediato
 

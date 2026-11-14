@@ -11,7 +11,7 @@ canonical_url: documentation/launcher/status-area-and-notifications-uk.html
 why: |
   Годинник, смужки сигналу й число заряду батареї - дрібниці, але саме на них ви дивитесь не замислюючись. Ця сторінка про те, як зробити їх своїми: обрати, чи живуть вони на [панелі задач](term:taskbar), чи в системному рядку стану Android, вибрати саме ті, що показуються, і з одного погляду бачити, коли інший застосунок на щось чекає - не відкриваючи його випадково.
 ingredients:
-  - "FastMediaSorter у [редакції Standard](term:standard-edition) або [редакції noLegal](term:nolegal-edition) з увімкненим [лаунчером](term:launcher) - див. [Робочий стіл лаунчера](page:launcher.desktop-grid-and-icons)."
+  - "Fast Media Sorter & Organizer у [редакції Standard](term:standard-edition) або [редакції noLegal](term:nolegal-edition) з увімкненим [лаунчером](term:launcher) - див. [Робочий стіл лаунчера](page:launcher.desktop-grid-and-icons)."
   - "Видима панель задач - див. [Використання дока й панелі задач робочого столу](page:launcher.taskbar-and-dock)."
 steps:
   - number: 1

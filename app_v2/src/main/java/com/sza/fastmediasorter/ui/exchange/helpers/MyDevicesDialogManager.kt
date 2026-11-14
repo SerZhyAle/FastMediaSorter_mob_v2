@@ -284,6 +284,25 @@ class MyDevicesDialogManager(
         }
     }
 
+    /**
+     * DEVICE-EXCHANGE 1.13 item FK: turning the notes sync on is the person's act after the honest text, and a
+     * server that cannot seal offers no notes sync at all; turning it off needs no confirmation and deletes nothing.
+     */
+    fun toggleSyncNotes(entry: DeviceExchangeAccountEntry) {
+        when {
+            entry.syncNotes -> viewModel.setSyncNotes(entry, false)
+            !entry.serverSeals -> toast(activity.getString(R.string.exchange_failure_server_no_e2e))
+            else -> MaterialAlertDialogBuilder(activity)
+                .setTitle(R.string.exchange_sync_notes_consent_title)
+                .setMessage(R.string.exchange_sync_notes_consent_message)
+                .setPositiveButton(R.string.exchange_sync_notes_consent_confirm) { _, _ ->
+                    viewModel.setSyncNotes(entry, true)
+                }
+                .setNegativeButton(R.string.cancel, null)
+                .showBoundTo(activity)
+        }
+    }
+
     fun confirmRemove(entry: DeviceExchangeAccountEntry) {
         MaterialAlertDialogBuilder(activity, R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
             .setTitle(

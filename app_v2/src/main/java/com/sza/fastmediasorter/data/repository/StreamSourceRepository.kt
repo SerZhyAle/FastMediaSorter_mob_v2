@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.data.local.db.StreamSourceDao
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.local.db.StreamUserStateDao
 import com.sza.fastmediasorter.data.util.StreamChannelIdentity
+import com.sza.fastmediasorter.data.util.StreamUrlNormalizer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -69,14 +70,22 @@ class StreamSourceRepository @Inject constructor(
 
     suspend fun add(source: StreamSourceEntity) = dao.upsert(source.withIdentity())
 
-    /** Inserts new sources, ignoring duplicates by url; returns how many were actually inserted. */
+    /**
+     * Inserts new sources, ignoring duplicates; returns how many were actually inserted.
+     *
+     * USER-PLAYLIST rule 4: a duplicate is judged on the normalized address against every stored row, not
+     * on the exact text the unique index sees, so a re-import cannot add `HTTP://Host:80/x` beside a
+     * stored `http://host/x`. The exact-url unique index stays as the second guard.
+     */
     suspend fun addAllIgnoringDuplicates(sources: List<StreamSourceEntity>): Int =
         // One transaction like the sibling mergeCatalog (S0732): a kill mid-import must not leave a
         // half-inserted playlist that observeSources re-emits as an intermediate state.
         db.withTransaction {
+            val knownKeys = dao.allUrls().mapTo(HashSet()) { StreamUrlNormalizer.normalize(it) }
             var inserted = 0
             for (source in sources) {
-                if (dao.insertIgnore(source.withIdentity()) != -1L) inserted++
+                val isNew = knownKeys.add(StreamUrlNormalizer.normalize(source.url))
+                if (isNew && dao.insertIgnore(source.withIdentity()) != -1L) inserted++
             }
             inserted
         }
@@ -188,9 +197,13 @@ class StreamSourceRepository @Inject constructor(
             dao.unpinByIdentity(identityKey)
         }
 
-    /** S0660: in-place edit of a MANUAL channel's url/title/mediaKind (pin/sort/origin preserved). */
-    suspend fun updateUserFields(id: String, url: String, title: String, mediaKind: String) =
-        dao.updateUserFields(id, url, title, mediaKind, StreamChannelIdentity.of(url))
+    /**
+     * S0660: in-place edit of a MANUAL channel's url/title/mediaKind (pin/sort/origin preserved).
+     * S4606: [category] is the user's free-text label, null to clear; no default, so a caller that only
+     * means to change the address cannot wipe it by omission.
+     */
+    suspend fun updateUserFields(id: String, url: String, title: String, mediaKind: String, category: String?) =
+        dao.updateUserFields(id, url, title, mediaKind, category, StreamChannelIdentity.of(url))
 
     /** S0581: find the stored stream behind a playback URL (null if it is not a saved list entry). */
     suspend fun getByUrl(url: String): StreamSourceEntity? = dao.getByUrl(url)
@@ -202,6 +215,10 @@ class StreamSourceRepository @Inject constructor(
     /** S4160: replace the stored endpoint list of one broadcast row, nothing else. */
     suspend fun refreshBroadcastEndpoints(id: String, endpoints: String?) =
         dao.updateBroadcastEndpoints(id, endpoints)
+
+    /** S4607: binds a row to the account entry whose directory listed it (DEVICE-EXCHANGE item BJ). */
+    suspend fun bindExchangeBroadcast(id: String, entryId: String, broadcastId: String) =
+        dao.updateExchangeBinding(id, entryId, broadcastId)
 
     /** S2868: replace the display title of one row, nothing else. */
     suspend fun renameSource(id: String, title: String) = dao.updateTitle(id, title)

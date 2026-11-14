@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "NAS / ونڈوز شیئر (SMB) سے جڑیں - FastMediaSorter v2"
+title: "NAS / ونڈوز شیئر (SMB) سے جڑیں - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-smb-setup-ur.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -13,7 +13,7 @@ permalink: /docs/howto/scenario-smb-setup-ur.html
 
 SMB (جسے Windows File Sharing یا CIFS بھی کہتے ہیں) آپ کو اپنے گھر کے PC، لیپ ٹاپ، یا NAS ڈیوائس پر فائلیں بالکل ایسے براؤز کرنے دیتا ہے جیسے وہ آپ کے فون پر ہوں - نہ کوئی کیبل، نہ USB، بس Wi-Fi۔
 
-> **سادہ زبان میں وضاحت:** تصور کریں کہ آپ کے PC کا آپ کے گھریلو Wi-Fi پر ایک عوامی نوٹس بورڈ ہے۔ گھر کی کوئی بھی ڈیوائس اس بورڈ سے پڑھ سکتی ہے۔ FastMediaSorter اس "بورڈ" (آپ کے شیئر شدہ فولڈر) سے جڑتا ہے اور آپ کو اپنی فائلیں ایسے براؤز کرنے دیتا ہے جیسے وہ سیدھی آپ کے فون پر محفوظ ہوں۔ پہلے سے کچھ کاپی یا ڈاؤن لوڈ نہیں ہوتا - فائلیں طلب پر کھلتی ہیں۔
+> **سادہ زبان میں وضاحت:** تصور کریں کہ آپ کے PC کا آپ کے گھریلو Wi-Fi پر ایک عوامی نوٹس بورڈ ہے۔ گھر کی کوئی بھی ڈیوائس اس بورڈ سے پڑھ سکتی ہے۔ Fast Media Sorter & Organizer اس "بورڈ" (آپ کے شیئر شدہ فولڈر) سے جڑتا ہے اور آپ کو اپنی فائلیں ایسے براؤز کرنے دیتا ہے جیسے وہ سیدھی آپ کے فون پر محفوظ ہوں۔ پہلے سے کچھ کاپی یا ڈاؤن لوڈ نہیں ہوتا - فائلیں طلب پر کھلتی ہیں۔
 
 ---
 
@@ -67,12 +67,14 @@ IP ایڈریس آپ کے Wi-Fi نیٹ ورک پر آپ کے PC کا "گھر ک�
 
 ---
 
-## مرحلہ 3 - FastMediaSorter کھولیں اور "+" ٹیپ کریں
+<a id="مرحلہ-3---fastmediasorter-کھولیں-اور--ٹیپ-کریں"></a>
+
+## مرحلہ 3 - Fast Media Sorter & Organizer کھولیں اور "+" ٹیپ کریں
 
 1. ایپ کھولیں
 2. **مین اسکرین** پر، اوپر ٹول بار میں **"Add"** <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> بٹن پر ٹیپ کریں
 
-![FastMediaSorter مین اسکرین - اوپر ٹول بار میں نمایاں Add بٹن، SMB ٹیب نظر آ رہا ہے](screenshots/screenshot-smb-step3.png)
+![Fast Media Sorter & Organizer مین اسکرین - اوپر ٹول بار میں نمایاں Add بٹن، SMB ٹیب نظر آ رہا ہے](screenshots/screenshot-smb-step3.png)
 
 ---
 
@@ -147,7 +149,7 @@ IP ایڈریس آپ کے Wi-Fi نیٹ ورک پر آپ کے PC کا "گھر ک�
 
 اس کے مواد کو براؤز کرنے کے لیے اسے ٹیپ کریں - تصاویر، ویڈیوز، اور دیگر فائلیں کسی بھی مقامی فولڈر کی طرح تھمب نیلز کے طور پر ظاہر ہوتی ہیں۔
 
-![FastMediaSorter مین اسکرین - نیا "Common" SMB ریسورس کارڈ (smb://192.168.1.100/Common) نمایاں Network folder SMB بیج کے ساتھ](screenshots/screenshot-smb-step8.png)
+![Fast Media Sorter & Organizer مین اسکرین - نیا "Common" SMB ریسورس کارڈ (smb://192.168.1.100/Common) نمایاں Network folder SMB بیج کے ساتھ](screenshots/screenshot-smb-step8.png)
 
 ---
 

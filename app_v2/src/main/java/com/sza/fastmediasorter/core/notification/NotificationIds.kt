@@ -64,6 +64,9 @@ object NotificationIds {
     /** S3908: the system refused a watch-initiated SOS from the background; a tap opens the window. */
     const val SOS_START_FROM_WATCH = 4214
 
+    /** S4609: a broadcast left to the background audio service stopped; a tap opens the Streams screen. */
+    const val BROADCAST_STOPPED_IN_BACKGROUND = 4215
+
     /** Foreground notification of the shared-link download worker. */
     const val LINK_DOWNLOAD_PROGRESS = 7100
 

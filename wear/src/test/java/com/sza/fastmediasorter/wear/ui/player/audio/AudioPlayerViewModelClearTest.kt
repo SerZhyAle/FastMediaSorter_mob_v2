@@ -11,6 +11,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
+import com.sza.fastmediasorter.wear.data.network.FakeWearNetworkChannelMonitor
 import com.sza.fastmediasorter.wear.domain.playback.WearBackgroundSessionState
 import com.sza.fastmediasorter.wear.domain.repository.WearNowPlayingRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
@@ -127,6 +128,8 @@ class AudioPlayerViewModelClearTest {
                     backgroundSessionState = WearBackgroundSessionState(),
                     fileOperations = fileOperations,
                     castManager = mockk(relaxed = true),
+                    walkBroadcastEndpoints = mockk(relaxed = true),
+                    networkChannelMonitor = FakeWearNetworkChannelMonitor(),
                     applicationScope = applicationScope,
                     savedStateHandle = SavedStateHandle()
                 )

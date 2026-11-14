@@ -14,6 +14,8 @@ import javax.inject.Inject
  * - < 10 GB available: 1 GB cache
  * 
  * Returns cache size in MB.
+ *
+ * Every method reads [StatFs], which is disk access, so call them off the main thread.
  */
 class CalculateOptimalCacheSizeUseCase @Inject constructor() {
     

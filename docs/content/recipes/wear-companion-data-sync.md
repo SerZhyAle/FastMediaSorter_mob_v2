@@ -66,7 +66,7 @@ steps:
     text: |
       *Sideload version only.* You can start the same exchange from your wrist. On the watch, open **Resources** and tap **Sync from Phone**. The watch waits up to ten seconds for the phone to answer; the back gesture works the whole time, so you are never stuck on a waiting screen.
 
-      If it cannot reach the phone, the watch tells you why: "No phone is connected. Pair your phone and install FastMediaSorter on it." or "Could not ask the phone. Try again." If the phone's Wear Companion switch is off, the watch names that switch instead of blaming a missing phone.
+      If it cannot reach the phone, the watch tells you why: "No phone is connected. Pair your phone and install Fast Media Sorter & Organizer on it." or "Could not ask the phone. Try again." If the phone's Wear Companion switch is off, the watch names that switch instead of blaming a missing phone.
 
       Resources you add on the watch travel the other way too. When they reach the phone, the Wear Companion window shows **Watch resources received** - for example "2 resources from Galaxy Watch" - with **Import** and **Dismiss**.
     image_bookmark:

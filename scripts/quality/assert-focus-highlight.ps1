@@ -111,7 +111,12 @@ $containerSkip = @(
 #                            selectableItemBackground (S1565 added it; its absence here flagged a
 #                            row that has had a ripple all along).
 #   TranslationOverlayView - custom interactive canvas overlay (own onDraw), not a discrete control.
-$customFocusViews = @('SettingsToggleRow', 'SettingsSelectionRow', 'TranslationOverlayView', 'FocusMaterialCardView')
+#   CollapsibleSectionHeader - its inner headerRow carries the focus_button_background foreground; a
+#                            widget tag marked focusable (a next-focus target) hands focus to that row.
+$customFocusViews = @(
+    'SettingsToggleRow', 'SettingsSelectionRow', 'TranslationOverlayView', 'FocusMaterialCardView',
+    'CollapsibleSectionHeader'
+)
 
 # Confirmed non-targets, whitelisted by android:id. These are clickable/focusable to block touch
 # passthrough or to drive marquee scroll, NOT discrete D-pad-activatable controls; a focus stroke

@@ -50,9 +50,10 @@ class ScheduledOperationsAdapter(
             val ctx = b.root.context
 
             // Detach before isChecked: a recycled holder still carries the previous op's listener.
-            b.switchEnabled.setOnCheckedChangeListener(null)
-            b.switchEnabled.isChecked = op.isEnabled
-            b.switchEnabled.setOnCheckedChangeListener { _, _ ->
+            b.checkEnabled.setOnCheckedChangeListener(null)
+            b.checkEnabled.isChecked = op.isEnabled
+            b.checkEnabled.setOnCheckedChangeListener { _, _ ->
+                timber.log.Timber.d("S4623: scheduled operation enabled checkbox toggled")
                 onToggle(op)
             }
 

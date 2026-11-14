@@ -11,11 +11,11 @@ availability_note: All editions (details per step)
 recipe_number: "04"
 canonical_url: documentation/tools/fast-sharing-and-export.html
 why: |
-  Every app that can receive a picture or a file wants its own way in: a share button here, a copy-and-paste there, a different menu in every screen. FastMediaSorter keeps one list instead - the **Send to..** menu - and shows it from every screen where sending a file makes sense: the player, the file browser, the drawing editor.
+  Every app that can receive a picture or a file wants its own way in: a share button here, a copy-and-paste there, a different menu in every screen. Fast Media Sorter & Organizer keeps one list instead - the **Send to..** menu - and shows it from every screen where sending a file makes sense: the player, the file browser, the drawing editor.
 
   It is the app's own address book of places a file can go, not a copy of Android's system share sheet - "Other apps" is simply one more entry on the same list, next to your messenger, Google Keep, the printer and your own [resources](term:resource).
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition): the Send to.. menu itself is in all seven - Standard, noLegal, Lite, Photos, Legacy, VR and FOSS."
+  - "Fast Media Sorter & Organizer in any [edition](term:edition): the Send to.. menu itself is in all seven - Standard, noLegal, Lite, Photos, Legacy, VR and FOSS."
   - "The apps you want to send to (Telegram, WhatsApp, Instagram, Google Keep, Viber, Messenger, a short-video app) installed on this phone, for their row to appear."
   - "For sending straight to a watch: the Standard or noLegal edition with a paired Wear OS watch and its app open."
   - "For downloading a file before sending it: Standard, noLegal, Photos, Legacy or VR."
@@ -135,7 +135,7 @@ steps:
       Open the three-dots menu of an SFTP [resource](term:resource) - one you added yourself, or one shared by the [Windows companion](term:windows-companion) - and tap **Share access..**. The **Share SFTP access** window offers **Do not include the password**, then two ways to hand it over:
 
       - **Share** - creates a small access file and opens the system share sheet with it, the same way you would send any file.
-      - **Show QR** - shows a QR code on screen instead: "Scan to add the resource", with the hint "In FastMediaSorter: Add resource -> Scan QR."
+      - **Show QR** - shows a QR code on screen instead: "Scan to add the resource", with the hint "In Fast Media Sorter & Organizer: Add resource -> Scan QR."
 
       On the other phone, tap **Add** in the resource list and, under **Import a ready configuration**, tap **Import by barcode** and point the camera at the code - the resource arrives fully set up, exactly like importing a Windows companion configuration.
     image:

@@ -10,9 +10,9 @@ availability: SUPPORT_STREAMS
 recipe_number: "04"
 canonical_url: documentation/streams/favorites-and-epg.html
 why: |
-  Once you have more than a handful of channels, the ones you actually check every day get buried among the rest. FastMediaSorter gives you two separate ways to keep track of them: pinning, which is local to the Streams screen and puts a channel at the top of your own list in whatever order you choose, and [Favorites](term:favorites), the star-marked list shared across the whole app. Neither changes what a channel plays - both are just faster ways back to it.
+  Once you have more than a handful of channels, the ones you actually check every day get buried among the rest. Fast Media Sorter & Organizer gives you two separate ways to keep track of them: pinning, which is local to the Streams screen and puts a channel at the top of your own list in whatever order you choose, and [Favorites](term:favorites), the star-marked list shared across the whole app. Neither changes what a channel plays - both are just faster ways back to it.
 ingredients:
-  - "FastMediaSorter installed in the Standard, noLegal, Legacy or VR [edition](term:edition). Streams and everything on this page is absent from Lite, Photos and FOSS."
+  - "Fast Media Sorter & Organizer installed in the Standard, noLegal, Legacy or VR [edition](term:edition). Streams and everything on this page is absent from Lite, Photos and FOSS."
   - "The [Streams](term:streams-screen) screen open, with some channels in it - your own or from the [catalog](term:catalog). See [Browsing internet stream channels](page:streams.channel-catalog-browsing) for how the catalog fills the list."
   - "For the Favorites steps: Favorites turned on in Settings (**Enable Favorites**)."
 steps:
@@ -97,7 +97,7 @@ steps:
 outcome: |
   You can pin the channels you check every day to the top of Streams in the order you want, tell a pinned channel apart at a glance in either view, narrow the list down to pinned-only, and keep a separate, shared shortlist of favorite channels alongside your favorite files.
 tips:
-  - "**A channel's pin, its place in the pinned order, its favorite star and its play history all survive small address changes.** When the catalog republishes a channel under a cosmetically different address - https instead of http, a trailing slash added, the port spelled out - FastMediaSorter still recognizes it as the same channel, so none of that resets."
+  - "**A channel's pin, its place in the pinned order, its favorite star and its play history all survive small address changes.** When the catalog republishes a channel under a cosmetically different address - https instead of http, a trailing slash added, the port spelled out - Fast Media Sorter & Organizer still recognizes it as the same channel, so none of that resets."
   - "**Tapping the favorite star again never creates a second entry.** It always toggles the one Favorites entry you already have for that channel, even after an address like the above changes underneath it."
   - "**Favorites row missing from a channel's menu?** Turn on **Enable Favorites** in Settings first - the row only appears once Favorites itself is on."
   - "**Want to know why a tile looks the way it does?** Pinning and favouriting never touch a channel's picture - see [Channel Pictures, Logos and Badges](page:streams.channel-pictures-and-badges)."

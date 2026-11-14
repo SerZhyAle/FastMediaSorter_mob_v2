@@ -9,7 +9,7 @@ permalink: /docs/TROUBLESHOOTING-pt.html
 
 # 🔧 Guia de Solução de Problemas
 
-Guia atual de solução de problemas do FastMediaSorter v2. Use a grade canônica de versões em [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) quando o problema depender do caminho de build selecionado (Standard, Lite, Photos, Legacy ou XR / noLegal).
+Guia atual de solução de problemas do Fast Media Sorter & Organizer. Use a grade canônica de versões em [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) quando o problema depender do caminho de build selecionado (Standard, Lite, Photos, Legacy ou XR / noLegal).
 
 ---
 
@@ -53,7 +53,7 @@ Guia atual de solução de problemas do FastMediaSorter v2. Use a grade canônic
 ### ❌ "Falha ao entrar no Google Drive"
 
 **Solução:**
-1. Limpe os dados do app: Configurações → Apps → FastMediaSorter → Limpar Dados
+1. Limpe os dados do app: Configurações → Apps → Fast Media Sorter & Organizer → Limpar Dados
 2. Reinstale o app
 3. Verifique as configurações da conta do Google → Segurança → Apps de terceiros
 
@@ -63,7 +63,7 @@ Guia atual de solução de problemas do FastMediaSorter v2. Use a grade canônic
 
 **Solução:**
 1. Verifique o status da conta Microsoft
-2. Limpe os dados do app: Configurações → Apps → FastMediaSorter → Limpar Dados
+2. Limpe os dados do app: Configurações → Apps → Fast Media Sorter & Organizer → Limpar Dados
 3. Verifique as configurações da conta Microsoft → Privacidade → Apps e serviços
 
 ---
@@ -72,7 +72,7 @@ Guia atual de solução de problemas do FastMediaSorter v2. Use a grade canônic
 
 **Solução:**
 1. Verifique o status da conta Dropbox
-2. Limpe os dados do app: Configurações → Apps → FastMediaSorter → Limpar Dados
+2. Limpe os dados do app: Configurações → Apps → Fast Media Sorter & Organizer → Limpar Dados
 3. Verifique as configurações da conta Dropbox → Segurança → Apps conectados
 
 ---
@@ -182,7 +182,7 @@ Isso usa o recurso *Player Secundário* para repassar codecs não suportados a o
 ### ❌ "O app trava na inicialização"
 
 **Solução:**
-1. Limpe o cache do app: Configurações → Apps → FastMediaSorter → Limpar Cache
+1. Limpe o cache do app: Configurações → Apps → Fast Media Sorter & Organizer → Limpar Cache
 2. Se persistir: limpe os dados do app (⚠️ perde as configurações)
 3. Reinstale o app como último recurso
 

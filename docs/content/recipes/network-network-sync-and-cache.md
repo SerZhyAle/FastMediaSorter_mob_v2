@@ -11,9 +11,9 @@ availability_note: Background sync - Standard, noLegal, Photos, Legacy and VR, n
 recipe_number: "07"
 canonical_url: documentation/network/network-sync-and-cache.html
 why: |
-  Someone else keeps adding photos to the shared folder on the home NAS, and you would rather the file list was already current when you open it than pull down to refresh every single time. FastMediaSorter can check your network and cloud [resources](term:resource) for changes by itself, on a schedule you set, and get their thumbnails ready in the background too - so opening one feels instant.
+  Someone else keeps adding photos to the shared folder on the home NAS, and you would rather the file list was already current when you open it than pull down to refresh every single time. Fast Media Sorter & Organizer can check your network and cloud [resources](term:resource) for changes by itself, on a schedule you set, and get their thumbnails ready in the background too - so opening one feels instant.
 ingredients:
-  - "FastMediaSorter in the Standard, noLegal, Photos, Legacy or VR [edition](term:edition) for background sync - not Lite, not FOSS. See [The seven editions](page:flavors.overview-and-comparison)."
+  - "Fast Media Sorter & Organizer in the Standard, noLegal, Photos, Legacy or VR [edition](term:edition) for background sync - not Lite, not FOSS. See [The seven editions](page:flavors.overview-and-comparison)."
   - "At least one [network folder](term:network-folder) or [cloud storage](term:cloud-storage) resource already added - see [Adding network folders and cloud storage as sources](page:storage.network-and-cloud-sources)."
 steps:
   - number: 1

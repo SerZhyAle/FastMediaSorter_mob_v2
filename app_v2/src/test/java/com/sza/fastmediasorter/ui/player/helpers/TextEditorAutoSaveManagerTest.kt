@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.ui.player.helpers
 
 import android.content.Context
 import android.widget.EditText
-import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertFalse
@@ -44,7 +43,7 @@ class TextEditorAutoSaveManagerTest {
             repeat(10) {
                 manager.startAutoSave(editor, source)
                 repeat(4) { manager.forceSave(content) }
-                manager.stopAutoSave(deleteDraft = true)
+                manager.stopAutoSaveAndDeleteDraft()
             }
         }
 
@@ -52,8 +51,8 @@ class TextEditorAutoSaveManagerTest {
     }
 
     @Test
-    fun `deleteDraft removes only the requested source`() {
-        val manager = TextEditorAutoSaveManager(tempDir, TestScope())
+    fun `deleteDraft removes only the requested source`() = runTest {
+        val manager = TextEditorAutoSaveManager(tempDir, this)
         val first = "/sdcard/first.txt"
         val second = "/sdcard/second.txt"
         val firstDraft = File(tempDir, "draft_${first.hashCode().toUInt().toString(16)}.txt")

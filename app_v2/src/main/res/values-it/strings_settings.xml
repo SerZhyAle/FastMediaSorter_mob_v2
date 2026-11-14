@@ -94,7 +94,6 @@
     <string name="settings_all_files_profile_confirm_message">Questo profilo attiva la modalità gestore file e creerà la risorsa \"Tutti i file\" mancante. Continuare?</string>
     <string name="settings_reset_settings_failed">Non è stato possibile ripristinare le impostazioni. Riprova.</string>
     <string name="settings_reset_smb_failed">Non è stato possibile ripristinare le connessioni SMB. Riprova.</string>
-    <string name="settings_saved">Impostazioni salvate</string>
     <string name="settings_search_close">Chiudi la ricerca nelle impostazioni</string>
     <string name="settings_search_hint">Cerca nelle impostazioni</string>
     <string name="settings_search_no_results">Nessuna impostazione trovata</string>

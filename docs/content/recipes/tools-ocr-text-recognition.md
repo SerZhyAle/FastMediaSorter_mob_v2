@@ -10,11 +10,11 @@ availability: ocrEnabled
 recipe_number: "01"
 canonical_url: documentation/tools/ocr-text-recognition.html
 why: |
-  A shop sign in another language, a recipe photographed from a magazine, a scanned contract page, a screenshot of an error message you want to search for - printed words trapped in a picture are everywhere. FastMediaSorter reads them for you with an on-device [OCR](term:ocr) engine, so the words become text you can select, copy, search or save. Nothing is uploaded anywhere: the recognition runs on the phone itself.
+  A shop sign in another language, a recipe photographed from a magazine, a scanned contract page, a screenshot of an error message you want to search for - printed words trapped in a picture are everywhere. Fast Media Sorter & Organizer reads them for you with an on-device [OCR](term:ocr) engine, so the words become text you can select, copy, search or save. Nothing is uploaded anywhere: the recognition runs on the phone itself.
 
   The engine is [Tesseract](term:ocr), tuned here for strong Cyrillic support - so a Russian or Ukrainian sign is read as Russian or Ukrainian letters, not as the nearest-looking Latin ones.
 ingredients:
-  - "FastMediaSorter in an [edition](term:edition) with OCR: Standard, noLegal, Legacy or VR. The Lite, Photos and FOSS editions do not read text from pictures."
+  - "Fast Media Sorter & Organizer in an [edition](term:edition) with OCR: Standard, noLegal, Legacy or VR. The Lite, Photos and FOSS editions do not read text from pictures."
   - "The **OCR Engines** extension, downloaded once from **Settings**, the **General** tab, **Downloadable Extensions** - or turned on right on the setup wizard's functionality page. See [first launch and setup](page:getting-started.welcome-and-setup) and [downloadable extensions](page:flavors.extensions-and-plugins)."
   - "For better recognition of Cyrillic text: the **Russian OCR Model** or the **Ukrainian OCR Model**, downloaded the same way."
   - "A device with Android 8.0 (API 26) or newer and at least 3 GB of RAM. On an older or smaller device you will see "OCR is unavailable on this device.""

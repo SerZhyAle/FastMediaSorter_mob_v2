@@ -35,7 +35,7 @@ object StreamEditDialog {
     class Callbacks(
         val readTrackPreference: suspend (String) -> StreamTrackPreferenceUseCase.TrackPreference?,
         val writeTrackPreference: (String, String?, String?, Boolean?) -> Unit,
-        val onEdit: (StreamSourceEntity, String, String?, String?) -> Unit,
+        val onEdit: (StreamSourceEntity, String, String?, String?, String?) -> Unit,
     )
 
     /**
@@ -66,6 +66,9 @@ object StreamEditDialog {
         binding.tilTitle.isVisible = true
         binding.etUrl.setText(source.url)
         binding.etTitle.setText(source.title)
+        // S4606: the field is pre-filled with the stored label, so an untouched save writes it back unchanged.
+        binding.tilCategory.isVisible = true
+        binding.etCategory.setText(source.category)
         // S1145: the type override is edit-only.
         binding.mediaKindContainer.isVisible = true
         when (kindOptionOf(source)) {
@@ -90,7 +93,13 @@ object StreamEditDialog {
                     else -> null
                 }
                 val editedUrl = binding.etUrl.text?.toString().orEmpty().trim()
-                callbacks.onEdit(source, editedUrl, binding.etTitle.text?.toString(), kindOverride)
+                callbacks.onEdit(
+                    source,
+                    editedUrl,
+                    binding.etTitle.text?.toString(),
+                    kindOverride,
+                    binding.etCategory.text?.toString(),
+                )
                 // The preference is keyed by URL, so it follows whatever URL the row ends up with.
                 if (editedUrl.isNotEmpty()) writeTrackPreference(editedUrl)
             }

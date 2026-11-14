@@ -212,7 +212,7 @@
     <string name="backup_account">账户：%s</string>
     <string name="google_sign_in_cancelled">Google 登录已取消</string>
     <string name="battery_optimization_hint_title">电池优化警告</string>
-    <string name="battery_optimization_hint_message">电池优化可能会阻止后台音频播放。请在系统设置中为 FastMediaSorter 关闭电池优化，以确保后台音频稳定播放。</string>
+    <string name="battery_optimization_hint_message">电池优化可能会阻止后台音频播放。请在系统设置中为 Fast Media Sorter &amp; Organizer 关闭电池优化，以确保后台音频稳定播放。</string>
     <string name="no_internet_connection">没有网络连接，请稍后重试</string>
     <string name="restart_required_title">需要重启</string>
     <string name="restart_required_message">设置已导入。请重启应用以应用更改。</string>
@@ -413,7 +413,6 @@
     <string name="connection_test_success_title">连接测试 - 成功</string>
     <string name="connection_test_failed_title">连接测试 - 失败</string>
     <string name="restart_app_title">重启应用</string>
-    <string name="restart_app_message">要应用新语言（%1$s），应用需要重启。是否继续？</string>
     <string name="restart_app_cache_message">要应用新的缓存大小（%1$d MB），应用需要重启。是否继续？</string>
     <string name="restart_app_compact_elements_message">要应用新的播放器控件大小，应用需要重启。是否继续？</string>
     <string name="restart">重启</string>
@@ -1249,7 +1248,7 @@
     <string name="shortcut_slideshow_short">幻灯片</string>
     <string name="shortcut_slideshow_long">开始幻灯片放映</string>
     <string name="confirm_delete_standalone">删除“%1$s”？</string>
-    <string name="open_in_fms">在 FastMediaSorter 中打开</string>
+    <string name="open_in_fms">在 Fast Media Sorter &amp; Organizer 中打开</string>
     <string name="cd_add_to_favorites">添加到收藏夹</string>
     <string name="cd_remove_from_favorites">从收藏夹中移除</string>
     <string name="tile_audio_label">FMS Audio</string>
@@ -1519,13 +1518,13 @@
     <string name="browse_transfer_notif_title_permission_required">需要权限</string>
     <string name="browse_transfer_notif_text_preparing">正在准备..</string>
     <string name="browse_transfer_notif_text_progress">%1$d%% - %2$s</string>
-    <string name="browse_transfer_notif_text_failed">打开 FastMediaSorter 查看详情</string>
-    <string name="browse_transfer_notif_text_auth_required">打开 FastMediaSorter 登录后继续</string>
-    <string name="browse_transfer_notif_text_permission_required">打开 FastMediaSorter 授予权限后重试</string>
+    <string name="browse_transfer_notif_text_failed">打开 Fast Media Sorter &amp; Organizer 查看详情</string>
+    <string name="browse_transfer_notif_text_auth_required">打开 Fast Media Sorter &amp; Organizer 登录后继续</string>
+    <string name="browse_transfer_notif_text_permission_required">打开 Fast Media Sorter &amp; Organizer 授予权限后重试</string>
     <string name="browse_transfer_notif_action_cancel">取消</string>
     <string name="midi_playback_failed">无法播放此MIDI文件。请尝试其他副本或跳至下一曲目。</string>
     <string name="tooltip_calculator_title">计算器</string>
-    <string name="tooltip_calculator_message">在主菜单中添加一个基础计算器，并启用计算器小部件。计算器始终运行在 FastMediaSorter 内。</string>
+    <string name="tooltip_calculator_message">在主菜单中添加一个基础计算器，并启用计算器小部件。计算器始终运行在 Fast Media Sorter &amp; Organizer 内。</string>
     <string name="profile_picker_title">选择您的设备配置文件</string>
     <string name="profile_picker_select">选择</string>
     <string name="system_info_copy_full_report">完整报告副本</string>
@@ -1630,7 +1629,7 @@
     <string name="cache_size_installed_toast">缓存已设置：%1$d MB</string>
     <string name="welcome_enable_all">全部启用</string>
     <string name="welcome_enable_all_content_description">启用所有功能并完成设置</string>
-    <string name="default_player_choose_in_settings">在系统设置中，选择 FastMediaSorter 作为此类型的默认应用程序。</string>
+    <string name="default_player_choose_in_settings">在系统设置中，选择 Fast Media Sorter &amp; Organizer 作为此类型的默认应用程序。</string>
     <string name="s0413_audio_track_skipped">已跳过“%1$s” - 此文件无法播放。</string>
     <string name="s0413_audio_queue_unplayable">这里什么都玩不了。</string>
     <string name="settings_remote_sources_title">远程资源（SMB/(S)FTP/云）</string>
@@ -1648,8 +1647,8 @@
     <string name="settings_remote_source_cloud_help_message">打开云存储中的文件 - Google Drive、OneDrive 和 Dropbox。连接账户后即可在应用内直接浏览云端文件夹。</string>
     <string name="settings_remote_source_disable_confirm_title">隐藏这些文件夹吗？</string>
     <string name="settings_remote_source_disable_confirm_message">该来源的文件夹会被隐藏，而不是删除。已保存的资源仍然保留，重新开启该来源后会再次出现。</string>
-    <string name="screenshot_accessibility_service_description">让 FastMediaSorter 通过边缘手势截屏并保存，无需每次弹出对话框。此项仅用于截屏 - 录屏是独立功能，每次录制开始时都会向 Android 请求权限。</string>
-    <string name="screenshot_accessibility_permission_rationale">要使用边缘手势截屏，请开启 FastMediaSorter 无障碍服务：\n\n1. 点按“打开设置”，然后在无障碍列表中启用 FastMediaSorter。\n2. 如果显示“受限设置已阻止”或“应用被拒绝访问”：在“应用信息”中打开本应用，点按菜单（3 个点），选择“允许受限设置”，确认后返回并启用它。\n\n如果无法启用，请点按“旧方式”，改用每次截屏都请求权限的版本。</string>
+    <string name="screenshot_accessibility_service_description">让 Fast Media Sorter &amp; Organizer 通过边缘手势截屏并保存，无需每次弹出对话框。此项仅用于截屏 - 录屏是独立功能，每次录制开始时都会向 Android 请求权限。</string>
+    <string name="screenshot_accessibility_permission_rationale">要使用边缘手势截屏，请开启 Fast Media Sorter &amp; Organizer 无障碍服务：\n\n1. 点按“打开设置”，然后在无障碍列表中启用 Fast Media Sorter &amp; Organizer。\n2. 如果显示“受限设置已阻止”或“应用被拒绝访问”：在“应用信息”中打开本应用，点按菜单（3 个点），选择“允许受限设置”，确认后返回并启用它。\n\n如果无法启用，请点按“旧方式”，改用每次截屏都请求权限的版本。</string>
     <string name="screen_capture_rate_limited">截图速度太快，请重试。</string>
     <string name="screenshot_gesture_permission_dialog_title">启用屏幕手势</string>
     <string name="screenshot_gesture_open_settings">打开设置</string>
@@ -1765,7 +1764,7 @@
     <string name="statistics_privacy_note">这些数据保留在你的设备上。摘要由你自己通过你的邮件应用发送给作者。</string>
     <string name="statistics_send_to_author">发送给作者</string>
     <string name="statistics_export">导出</string>
-    <string name="statistics_email_subject">FastMediaSorter 统计</string>
+    <string name="statistics_email_subject">Fast Media Sorter &amp; Organizer 统计</string>
     <string name="statistics_no_email_app">没有应用可以发送 - 请安装邮件或分享应用后重试。</string>
     <string name="statistics_report_all_time">累计总计</string>
     <string name="statistics_report_section_summary">摘要</string>
@@ -1889,7 +1888,7 @@
     <string name="app_launch_panel_action_move">移动</string>
     <string name="app_launch_panel_action_replace">替换</string>
     <string name="app_launch_panel_action_remove">移除</string>
-    <string name="app_launch_panel_own_app_label">FastMediaSorter</string>
+    <string name="app_launch_panel_own_app_label">Fast Media Sorter &amp; Organizer</string>
     <string name="app_picker_title">选择应用</string>
     <string name="app_launch_panel_title">快速启动</string>
     <string name="app_launch_panel_edit_action">编辑</string>
@@ -1924,8 +1923,8 @@
     <string name="app_launch_panel_add_chooser_title">添加到面板</string>
     <string name="app_launch_panel_path_external_app">Android 应用</string>
     <string name="app_launch_panel_path_os_part">Android 系统设置</string>
-    <string name="app_launch_panel_path_app_feature">FastMediaSorter 功能</string>
-    <string name="app_launch_panel_path_app_resource">FastMediaSorter 资源</string>
+    <string name="app_launch_panel_path_app_feature">Fast Media Sorter &amp; Organizer 功能</string>
+    <string name="app_launch_panel_path_app_resource">Fast Media Sorter &amp; Organizer 资源</string>
     <string name="app_launch_panel_picker_feature_title">选择功能</string>
     <string name="app_launch_panel_picker_os_title">选择 Android 系统设置</string>
     <string name="app_launch_panel_picker_resource_title">选择资源</string>
@@ -2014,7 +2013,7 @@
     <string name="screen_recording_card_title">屏幕录制</string>
     <string name="screen_recording_stop">停止录制</string>
     <string name="screen_recording_disclosure_title">屏幕录像</string>
-    <string name="screen_recording_disclosure_message">FastMediaSorter 会将屏幕上显示的所有内容（包括其他应用）录制到视频文件中，并同时录制麦克风音频，直到您停止录制为止。录制会在后台持续进行。每次录制开始时，Android 系统都会询问您选择录制此应用还是整个屏幕，此步骤无法跳过。</string>
+    <string name="screen_recording_disclosure_message">Fast Media Sorter &amp; Organizer 会将屏幕上显示的所有内容（包括其他应用）录制到视频文件中，并同时录制麦克风音频，直到您停止录制为止。录制会在后台持续进行。每次录制开始时，Android 系统都会询问您选择录制此应用还是整个屏幕，此步骤无法跳过。</string>
     <string name="screen_recording_disclosure_start">开始录制</string>
     <string name="screen_recording_saved">屏幕录制已保存：%1$s</string>
     <string name="screen_recording_error">屏幕录制无法保存。</string>
@@ -2097,7 +2096,7 @@
     <string name="edge_gesture_general_group_title">通用手势设置</string>
     <string name="edge_gesture_schema_content_description">边缘手势映射：点击区域方向以分配操作</string>
     <string name="companion_qr_share_title">扫描以添加资源</string>
-    <string name="companion_qr_share_hint">在 FastMediaSorter 中：添加资源 -&gt; 扫描 QR 码</string>
+    <string name="companion_qr_share_hint">在 Fast Media Sorter &amp; Organizer 中：添加资源 -&gt; 扫描 QR 码</string>
     <string name="companion_qr_share_no_password_note">未包含密码 - 接收方在导入时输入。</string>
     <string name="companion_qr_share_encode_failed">无法生成 QR 码。</string>
     <string name="sftp_share_show_qr_action">显示二维码</string>
@@ -2117,7 +2116,7 @@
     <string name="gesture_action_explain_send_to_recipients">截取屏幕并发送给你选择的收件人。</string>
     <string name="gesture_action_explain_share">截取屏幕并打开系统分享面板。</string>
     <string name="gesture_action_explain_crop_and_share">截取屏幕，让你裁剪后再分享结果。</string>
-    <string name="gesture_action_explain_open_app">打开你为此手势选择的应用。未选择应用时，打开 FastMediaSorter。</string>
+    <string name="gesture_action_explain_open_app">打开你为此手势选择的应用。未选择应用时，打开 Fast Media Sorter &amp; Organizer。</string>
     <string name="gesture_action_explain_open_panel">打开快捷访问面板。</string>
     <string name="gesture_action_explain_launch_camera">打开应用内相机。</string>
     <string name="gesture_action_explain_take_photo">用应用内相机拍照并保存。</string>
@@ -2191,7 +2190,7 @@
     <string name="launcher_home_mode_play">播放</string>
     <string name="launcher_home_cell_with_mode">%1$s，%2$s</string>
     <string name="launcher_taskbar_start">开始</string>
-    <string name="launcher_menu_open_app">打开 FastMediaSorter</string>
+    <string name="launcher_menu_open_app">打开 Fast Media Sorter &amp; Organizer</string>
     <string name="launcher_menu_resources">我的资源</string>
     <string name="launcher_menu_all_apps">所有应用</string>
     <string name="launcher_menu_android_settings">Android 设置</string>
@@ -2283,8 +2282,6 @@
     <string name="settings_streams_smart_buffering_summary">网络不稳定时提供更大的启动缓冲，并静默重新连接</string>
     <string name="streams_section_pinned">已置顶</string>
     <string name="streams_section_main">频道</string>
-    <string name="streams_section_expand">展开分区</string>
-    <string name="streams_section_collapse">收起分区</string>
     <string name="ext_channel_preview_atlas_title">频道预览图集</string>
     <string name="ext_channel_preview_atlas_desc">在网格模式下，首次观看前为视频频道显示预览图。</string>
     <string name="streams_atlas_prompt_message">要下载频道预览图，让视频频道在播放前显示画面吗？</string>
@@ -2420,7 +2417,7 @@
     <string name="launcher_tray_sim_signal_none">SIM %1$d，无服务</string>
     <string name="launcher_now_playing_other_apps">显示其他应用的音乐</string>
     <string name="launcher_now_playing_access_title">显示来自其他应用的音乐</string>
-    <string name="launcher_now_playing_access_message">FastMediaSorter 会读取当前播放应用的媒体会话 - 包括曲目标题、艺术家和播放状态 - 以便此小组件显示信息并控制播放。Android 将此权限称为“通知使用权”，但本应用不会读取任何通知，只读取媒体会话。你可以在 Android 设置界面中授予该权限，并随时在那里撤销。</string>
+    <string name="launcher_now_playing_access_message">Fast Media Sorter &amp; Organizer 会读取当前播放应用的媒体会话 - 包括曲目标题、艺术家和播放状态 - 以便此小组件显示信息并控制播放。Android 将此权限称为“通知使用权”，但本应用不会读取任何通知，只读取媒体会话。你可以在 Android 设置界面中授予该权限，并随时在那里撤销。</string>
     <string name="perm_title_notification_listener">通知访问</string>
     <string name="perm_desc_notification_listener">让启动器桌面上的“正在播放”小组件显示并控制其他应用正在播放的内容。应用仅读取媒体会话，绝不读取通知内容。可选 - 在 Android 设置界面中授予。</string>
     <string name="perm_title_write_external_storage">保存到设备存储</string>
@@ -2899,7 +2896,7 @@
     <string name="wear_log_report_channel_name">手表日志</string>
     <string name="wear_log_report_notification_title">已收到手表日志</string>
     <string name="wear_log_report_notification_text">点击将其发送给开发者</string>
-    <string name="wear_log_report_email_subject">FastMediaSorter 手表日志</string>
+    <string name="wear_log_report_email_subject">Fast Media Sorter &amp; Organizer 手表日志</string>
     <string name="wear_log_report_email_body">该压缩包中包含手表和手机双方的日志。</string>
     <string name="settings_unused_credentials_title">未使用的凭据</string>
     <string name="settings_unused_credentials_button">未使用的凭据 - %1$d</string>
@@ -3015,7 +3012,6 @@
     <string name="ext_vlc_engine_desc">播放内置播放器无法打开的视频文件和光盘映像。一次性下载约44MB。</string>
     <string name="calculator_display_content_description">结果。点击复制，长按粘贴号码</string>
     <string name="calculator_action_settings">计算器设置</string>
-    <string name="calculator_settings_title">计算器设置</string>
     <string name="calculator_settings_group_thousands">组位数字</string>
     <string name="calculator_settings_group_thousands_summary">小数点两边每三位数字之间加一个逗号</string>
     <string name="calculator_settings_text_size">结果大小</string>
@@ -3142,7 +3138,7 @@
     <string name="welcome_enable_all_explainer_step_permissions_title">允许访问</string>
     <string name="welcome_enable_all_explainer_step_permissions_body">Android 会显示它自己的请求。点击\"允许\"。某些类型的访问会改为打开单独的设置页面 - 请在该页面打开开关，然后按\"返回\"。</string>
     <string name="welcome_enable_all_explainer_step_default_app_title">为您的文件选择应用</string>
-    <string name="welcome_enable_all_explainer_step_default_app_body">系统会打开您的一个文件，以便 Android 询问应使用哪个应用打开它。这是正常现象。请选择 FastMediaSorter，点击\"始终\"，然后按\"返回\"回到这里。</string>
+    <string name="welcome_enable_all_explainer_step_default_app_body">系统会打开您的一个文件，以便 Android 询问应使用哪个应用打开它。这是正常现象。请选择 Fast Media Sorter &amp; Organizer，点击\"始终\"，然后按\"返回\"回到这里。</string>
     <string name="welcome_enable_all_explainer_step_back_title">\"返回\"会带您回到这里</string>
     <string name="welcome_enable_all_explainer_step_back_body">凡不是本应用的界面，都可以用\"返回\"退出。不会丢失任何内容 - 设置会从中断的地方继续。</string>
     <string name="welcome_enable_all_explainer_continue">知道了，开始</string>
@@ -3297,7 +3293,7 @@
     <string name="widget_water_flashlight_label">水下手电</string>
     <string name="widget_water_flashlight_description">点亮闪光灯和屏幕并锁定屏幕 - 只有按键能退出</string>
     <string name="tooltip_stopwatch_title">秒表</string>
-    <string name="tooltip_stopwatch_message">在主菜单中加入秒表。可测量一次或连续多次，最多同时四位参与者，结果保存在 FastMediaSorter 内。</string>
+    <string name="tooltip_stopwatch_message">在主菜单中加入秒表。可测量一次或连续多次，最多同时四位参与者，结果保存在 Fast Media Sorter &amp; Organizer 内。</string>
     <string name="stopwatch_volume_label">音乐音量</string>
     <string name="stopwatch_settings_title">秒表设置</string>
     <string name="stopwatch_settings_participants">参与者</string>
@@ -3352,7 +3348,7 @@
     <string name="wear_listen_caption_idle">听手表麦克风听到的声音. 手表会请你确认.</string>
     <string name="wear_listen_caption_waiting">正在等待你在手表上确认..</string>
     <string name="wear_listen_caption_listening">正在收听手表.</string>
-    <string name="wear_listen_refusal_not_asked">手表无法向你请求: 请为 FastMediaSorter 打开它的通知.</string>
+    <string name="wear_listen_refusal_not_asked">手表无法向你请求: 请为 Fast Media Sorter &amp; Organizer 打开它的通知.</string>
     <string name="wear_listen_refusal_declined">你在手表上拒绝了该请求.</string>
     <string name="wear_listen_refusal_expired">手表上没有人及时回应.</string>
     <string name="wear_listen_refusal_capture_failed">手表无法打开其麦克风.</string>
@@ -3566,7 +3562,7 @@
     <string name="wear_system_info_channel_name">手表系统信息</string>
     <string name="wear_system_info_notification_title">已收到手表报告</string>
     <string name="wear_system_info_notification_text">点按以打开或发送报告</string>
-    <string name="wear_system_info_share_subject">FastMediaSorter 手表系统信息</string>
+    <string name="wear_system_info_share_subject">Fast Media Sorter &amp; Organizer 手表系统信息</string>
     <string name="wear_clipboard_channel_name">手表剪贴板</string>
     <string name="wear_clipboard_notification_title">来自手表的文本</string>
     <string name="wear_clipboard_notification_text">文本现已在此手机的剪贴板上</string>
@@ -3712,8 +3708,8 @@
     <string name="settings_sftp_server_apply_hint">请关闭服务器后再重新开启，以应用更改</string>
     <string name="settings_sftp_server_show_qr">显示配对码</string>
     <string name="settings_sftp_server_hide_qr">隐藏配对码</string>
-    <string name="settings_sftp_server_qr_description">配对码：请在另一台设备上的 FastMediaSorter 中扫描</string>
-    <string name="add_resource_sftp_pairing_invalid">此代码不是完整的 FastMediaSorter 配对码 - 请在服务器手机上重新显示并再次扫描</string>
+    <string name="settings_sftp_server_qr_description">配对码：请在另一台设备上的 Fast Media Sorter &amp; Organizer 中扫描</string>
+    <string name="add_resource_sftp_pairing_invalid">此代码不是完整的 Fast Media Sorter &amp; Organizer 配对码 - 请在服务器手机上重新显示并再次扫描</string>
     <string name="add_resource_sftp_pairing_filled">已根据配对码填写连接信息 - 请检查后保存</string>
     <string name="add_resource_sftp_pairing_name">设备服务器 %1$s</string>
     <string name="filedo_password_remember_leak">任何拿到这部已解锁手机的人，都可以无需输入密码，直接打开所有适用此密码的 .fd-sec 文件。</string>
@@ -3821,8 +3817,8 @@
     <string name="wear_watchface_hint">有一款适用于你的手表的 FastMediaSorter 表盘。</string>
     <string name="wear_watchface_hint_action">获取</string>
     <string name="wear_install_offer_title">已连接手表</string>
-    <string name="wear_install_offer_message">%1$s 已连接到此手机。在手表上安装 FastMediaSorter，即可直接在手腕上打开媒体，并获取 FastMediaSorter 表盘。</string>
-    <string name="wear_install_offer_message_face_only">%1$s 上已安装 FastMediaSorter。要同时获取 FastMediaSorter 表盘吗？</string>
+    <string name="wear_install_offer_message">%1$s 已连接到此手机。在手表上安装 Fast Media Sorter &amp; Organizer，即可直接在手腕上打开媒体，并获取 Fast Media Sorter &amp; Organizer 表盘。</string>
+    <string name="wear_install_offer_message_face_only">%1$s 上已安装 Fast Media Sorter &amp; Organizer。要同时获取 Fast Media Sorter &amp; Organizer 表盘吗？</string>
     <string name="wear_install_offer_app">在手表上安装</string>
     <string name="wear_install_offer_face">表盘</string>
     <string name="wear_install_offer_app_no_watch">未连接手表 - 改为在此处打开手表应用页面。</string>
@@ -3839,7 +3835,7 @@
     <string name="wear_stream_pins_push_no_watch">附近没有手表</string>
     <string name="wear_stream_pins_push_failed">列表未能到达手表。请重试。</string>
     <string name="wear_stream_pins_picker_title">为手表置顶频道</string>
-    <string name="welcome_default_player_hint_side">点按其中一个按钮 - 会弹出一个对话框。选择 FastMediaSorter，然后点按<b>始终</b>。</string>
+    <string name="welcome_default_player_hint_side">点按其中一个按钮 - 会弹出一个对话框。选择 Fast Media Sorter &amp; Organizer，然后点按<b>始终</b>。</string>
     <string name="host_key_repin_warning_format">为了你的安全，未加载任何内容。只有在你信任此网络时才更新指纹。这将更新共用此地址的 %1$d 个资源的指纹。</string>
     <string name="host_key_repin_confirm">更新指纹</string>
     <string name="host_key_repin_done">指纹已更新</string>
@@ -4024,7 +4020,6 @@
     <string name="broadcast_control_group_share">链接与共享</string>
     <string name="msg_transfer_same_folder_refused">此处已是该文件的所在文件夹。请选择其他目的地。</string>
     <string name="settings_collapse_all">全部收起</string>
-    <string name="settings_category_about_app">关于此应用</string>
     <string name="broadcast_control_preview_toggle_cd">广播画面。点按可显示或隐藏控件</string>
     <string name="broadcast_link_password_title">链接密码</string>
     <string name="broadcast_link_password_mode_auto">自动</string>

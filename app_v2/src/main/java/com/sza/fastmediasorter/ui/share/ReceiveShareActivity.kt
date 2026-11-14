@@ -292,8 +292,32 @@ class ReceiveShareActivity : AppCompatActivity() {
                 onCancelled = {
                     cleanupAndFinish()
                 },
+                onAddAccount = {
+                    Timber.i("add account requested from picker: host=%s", host)
+                    startAccountLogin(url, resource?.loginUrl ?: url)
+                },
             )
         }
+    }
+
+    /**
+     * S4581: shared by the auth offer and the account picker's add row. The fragment result carries the
+     * accountId just created, so the retry downloads with it even when the host went from N to N+1 accounts.
+     */
+    private fun startAccountLogin(url: String, loginUrl: String) {
+        supportFragmentManager.setFragmentResultListener(
+            WebViewAuthDialogFragment.RESULT_KEY,
+            this@ReceiveShareActivity,
+        ) { _, bundle ->
+            supportFragmentManager.clearFragmentResultListener(WebViewAuthDialogFragment.RESULT_KEY)
+            // S0155: use the accountId the fragment just created - avoids passing
+            // null when accounts went from 0→1 (root cause of the bug in on-device test).
+            val savedAccountId = bundle.getString(WebViewAuthDialogFragment.RESULT_ACCOUNT_ID)
+            // S0170 BUG-1: mark as auth-retry so the escalation block (and the presenter's
+            // re-auth dialog) do not fire again on the post-login NoMediaFound / SocialPreviewOnly.
+            processLinkAutoDownload(url, accountId = savedAccountId, isAuthRetry = true)
+        }
+        openAuthFlow(loginUrl, "s0157_webview_auth_offer")
     }
 
     /**
@@ -367,19 +391,7 @@ class ReceiveShareActivity : AppCompatActivity() {
                 .setCancelable(false)
                 .setPositiveButton(positiveLabelRes) { _, _ ->
                     Timber.i("auth accepted: type=%s host=%s", dialogType, host)
-                    supportFragmentManager.setFragmentResultListener(
-                        WebViewAuthDialogFragment.RESULT_KEY,
-                        this@ReceiveShareActivity,
-                    ) { _, bundle ->
-                        supportFragmentManager.clearFragmentResultListener(WebViewAuthDialogFragment.RESULT_KEY)
-                        // S0155: use the accountId the fragment just created - avoids passing
-                        // null when accounts went from 0→1 (root cause of the bug in on-device test).
-                        val savedAccountId = bundle.getString(WebViewAuthDialogFragment.RESULT_ACCOUNT_ID)
-                        // S0170 BUG-1: mark as auth-retry so the escalation block (and the presenter's
-                        // re-auth dialog) do not fire again on the post-login NoMediaFound / SocialPreviewOnly.
-                        processLinkAutoDownload(url, accountId = savedAccountId, isAuthRetry = true)
-                    }
-                    openAuthFlow(loginUrl, "s0157_webview_auth_offer")
+                    startAccountLogin(url, loginUrl)
                 }
                 .setNeutralButton(R.string.auth_offer_dialog_skip) { _, _ ->
                     Timber.i("auth dismissed (no record created): type=%s host=%s", dialogType, host)

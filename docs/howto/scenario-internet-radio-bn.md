@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "ইন্টারনেট রেডিও ও স্ট্রিম - FastMediaSorter v2"
+title: "ইন্টারনেট রেডিও ও স্ট্রিম - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-internet-radio-bn.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -11,7 +11,7 @@ permalink: /docs/howto/scenario-internet-radio-bn.html
 
 > **স্তর:** শিক্ষানবিস - **সময়:** ~১০ মিনিট - **ফ্লেভার:** Standard, Legacy, VR, noLegal (Lite এবং Photos-এ Streams নেই)
 
-FastMediaSorter-এ ইন্টারনেট অডিও ও ভিডিও সোর্সের জন্য একটা নিবেদিত Streams স্ক্রিন আছে। যেকোনো ইন্টারনেট রেডিও URL যোগ করুন, একটা .m3u প্লেলিস্ট ইমপোর্ট করুন, বা একটা কিউরেটেড স্টেশন ক্যাটালগ ব্রাউজ করুন - আলাদা কোনো রেডিও অ্যাপের দরকার নেই। অ্যান্ড্রয়েড কার হেড ইউনিট, অডিও প্লেয়ার, ফোন এবং ট্যাবলেটে দারুণভাবে কাজ করে।
+Fast Media Sorter & Organizer-এ ইন্টারনেট অডিও ও ভিডিও সোর্সের জন্য একটা নিবেদিত Streams স্ক্রিন আছে। যেকোনো ইন্টারনেট রেডিও URL যোগ করুন, একটা .m3u প্লেলিস্ট ইমপোর্ট করুন, বা একটা কিউরেটেড স্টেশন ক্যাটালগ ব্রাউজ করুন - আলাদা কোনো রেডিও অ্যাপের দরকার নেই। অ্যান্ড্রয়েড কার হেড ইউনিট, অডিও প্লেয়ার, ফোন এবং ট্যাবলেটে দারুণভাবে কাজ করে।
 
 > **প্রতিস্থাপন করে:** ইন্টারনেট রেডিও বা স্ট্রিম চালানোর আলাদা অ্যাপ।
 
@@ -20,7 +20,7 @@ FastMediaSorter-এ ইন্টারনেট অডিও ও ভিডিও
 ## আপনার যা যা লাগবে
 
 - নেটওয়ার্ক সংযোগসহ (মোবাইল ডেটা বা Wi-Fi) একটা অ্যান্ড্রয়েড ডিভাইস
-- FastMediaSorter Standard, Legacy, VR, বা noLegal (Lite এবং Photos-এ Streams স্ক্রিন নেই)
+- Fast Media Sorter & Organizer Standard, Legacy, VR, বা noLegal (Lite এবং Photos-এ Streams স্ক্রিন নেই)
 - একটা স্ট্রিম URL, .m3u প্লেলিস্ট ফাইল বা URL, বা বিল্ট-ইন কিউরেটেড ক্যাটালগ
 
 ---

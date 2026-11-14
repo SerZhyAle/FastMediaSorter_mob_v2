@@ -1,13 +1,15 @@
 ---
 layout: doc
-title: "🚀 Quick Start Guide - FastMediaSorter v2"
+title: "🚀 Quick Start Guide - Fast Media Sorter & Organizer"
 permalink: /docs/QUICK_START-de.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="de" dir="ltr" markdown="1">
 
-# 🚀 Schnellstart-Anleitung - FastMediaSorter v2
+<a id="-schnellstart-anleitung---fastmediasorter-v2"></a>
+
+# 🚀 Schnellstart-Anleitung - Fast Media Sorter & Organizer
 
 *In 5 Minuten startklar! Einfache Anleitung für Einsteiger.*
 
@@ -15,7 +17,7 @@ permalink: /docs/QUICK_START-de.html
 
 ## Wähle deine Variante 📱
 
-FastMediaSorter v2 erscheint in **fünf Varianten für Alltags-Smartphones und -Tablets** - Standard, Lite, Photos, Legacy, FOSS - sowie **zwei Headset- und Sideload-Builds**, VR und noLegal. Sieben insgesamt; das genaue Funktionsraster wird direkt aus dem Build generiert in [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md). Wähle die, die zu deinen Bedürfnissen passt:
+Fast Media Sorter & Organizer erscheint in **fünf Varianten für Alltags-Smartphones und -Tablets** - Standard, Lite, Photos, Legacy, FOSS - sowie **zwei Headset- und Sideload-Builds**, VR und noLegal. Sieben insgesamt; das genaue Funktionsraster wird direkt aus dem Build generiert in [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md). Wähle die, die zu deinen Bedürfnissen passt:
 
 | Variante | Am besten für | Hauptfunktionen |
 |--------|----------|--------------|
@@ -204,7 +206,7 @@ Tippe auf **"+"** → **Cloud-Speicher**
 
 ### Automatischer Link-Download
 
-- Teile in einem beliebigen Browser oder Messenger einen `http(s)`-Link mit FastMediaSorter über das Android-Teilen-Menü
+- Teile in einem beliebigen Browser oder Messenger einen `http(s)`-Link mit Fast Media Sorter & Organizer über das Android-Teilen-Menü
 - Die App lädt die Mediendatei herunter und speichert sie automatisch in deiner ausgewählten Ressource
 
 ### Internet-Streams (Radio & IPTV)
@@ -212,13 +214,13 @@ Tippe auf **"+"** → **Cloud-Speicher**
 - Öffne **Streams** aus dem Dropdown des Hauptfensters (oder **Einstellungen > Medien > Streams**, wenn es dort zum ersten Mal erscheint).
 - Tippe auf **⋮** am Ende der Symbolleiste: **Stream hinzufügen** für eine Radio-URL (http/https mp3/aac, HLS .m3u8, RTSP), oder **Von URL importieren** für eine `.m3u`-Playlist.
 - Die Schaltflächen **Video**, **Audio** und **Eigene** neben dem Suchfeld teilen die Liste auf: Video und Audio zeigen Katalog- und importierte Kanäle dieses Typs, Eigene zeigt jeden Kanal, den du per URL hinzugefügt hast. Tippe erneut auf die aktive Schaltfläche, um alle Kanäle anzuzeigen.
-- Lade den kuratierten FastMediaSorter-Senderkatalog vom **Extensions**-Bildschirm herunter, für eine durchsuchbare, filterbare Bibliothek mit Themen- und Sprach-Chips.
+- Lade den kuratierten Fast Media Sorter & Organizer-Senderkatalog vom **Extensions**-Bildschirm herunter, für eine durchsuchbare, filterbare Bibliothek mit Themen- und Sprach-Chips.
 - Radio spielt inline über die angeheftete untere Leiste - die Senderliste bleibt sichtbar. Video-/RTSP-Streams öffnen im Vollbild-Player; Zurück kehrt zur Liste zurück.
 - **Verfügbar in Standard, Legacy, noLegal und VR. Der Streams-Bildschirm fehlt in Lite und Photos - dort funktioniert kein Protokoll, weil es keinen Einstiegspunkt gibt.**
 
 ### Startbildschirm-Widgets
 
-FastMediaSorter v2 bringt eine Vielzahl von Startbildschirm-Widgets mit. Halte deinen Startbildschirm gedrückt → Widgets → FastMediaSorter, um sie zu durchstöbern. Highlights sind unter anderem:
+Fast Media Sorter & Organizer bringt eine Vielzahl von Startbildschirm-Widgets mit. Halte deinen Startbildschirm gedrückt → Widgets → Fast Media Sorter & Organizer, um sie zu durchstöbern. Highlights sind unter anderem:
 
 - **Ressourcen-Verknüpfung** - tippen, um sofort eine deiner Ressourcen zu öffnen
 - **Weiterlesen** - startet die App direkt im Diashow-Modus

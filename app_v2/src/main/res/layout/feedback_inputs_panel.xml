@@ -85,8 +85,9 @@
     <com.google.android.material.button.MaterialButton
         android:id="@+id/feedbackSendButton"
         style="@style/Widget.FastMediaSorter.Button.DialogConfirm"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="end"
         android:layout_margin="@dimen/margin_medium"
         android:focusable="true"
         android:text="@string/feedback_send" />

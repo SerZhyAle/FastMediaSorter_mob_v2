@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
@@ -27,6 +26,8 @@ import com.sza.fastmediasorter.ui.player.helpers.TranslationLanguageCatalog
 import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
 import com.sza.fastmediasorter.ui.player.helpers.openCalculatorForSelection
 import com.sza.fastmediasorter.ui.player.helpers.openGoogleSearch
+import com.sza.fastmediasorter.ui.settings.SettingsActivity
+import com.sza.fastmediasorter.ui.settings.SettingsActivity.Companion.SECTION_TRANSLATION
 import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -58,6 +59,9 @@ class CameraOcrTranslateActivity :
     private var cropInterfaceLang = "en"
     private var cropSourceLang = "auto"
     private var cropTargetLang = "ru"
+
+    // S4622: the settings as they stood when the Tools settings page was opened; compared on return.
+    private var settingsReturnSnapshot: CameraOcrFlowManager.LanguageSnapshot? = null
 
     private val cameraLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -134,7 +138,7 @@ class CameraOcrTranslateActivity :
         binding.btnEmptyRetry.setOnClickListener { flowManager.startCapture() }
         binding.btnClose.setOnClickListener { finish() }
         binding.btnEmptyClose.setOnClickListener { finish() }
-        binding.btnSettings.setOnClickListener { showCompactSettingsDialog() }
+        binding.btnSettings.setOnClickListener { openToolsSettings() }
         binding.btnCropConfirm.setOnClickListener {
             flowManager.onCropConfirmed(
                 binding.cropOverlay.getNormalizedRect(),
@@ -291,88 +295,20 @@ class CameraOcrTranslateActivity :
         finish()
     }
 
-    private fun showCompactSettingsDialog() {
+    // S4622: the OCR languages and OCR-only are a block of the Tools settings page, the one editor they
+    // share with the player (SETTINGS-NAVIGATION section 3 rule 2); the result is redone on return.
+    private fun openToolsSettings() {
         lifecycleScope.launch {
-            val settings = flowManagerFactory.currentSettings()
+            settingsReturnSnapshot = flowManager.currentLanguageSnapshot()
+            startActivity(SettingsActivity.openToolsSectionIntent(this@CameraOcrTranslateActivity, SECTION_TRANSLATION))
+        }
+    }
 
-            val view = LayoutInflater.from(this@CameraOcrTranslateActivity)
-                .inflate(R.layout.dialog_camera_ocr_settings, null)
-
-            // Result screen (S0361): the OCR source language is editable again. Changing it re-runs
-            // recognition over the retained (cropped) image and re-translates; changing only the
-            // target re-translates the existing recognized text without a new OCR.
-            val sourceView = view.findViewById<TextView>(R.id.spinnerSourceLanguage)
-            val targetView = view.findViewById<TextView>(R.id.spinnerTargetLanguage)
-            val cbOcrOnly = view.findViewById<com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow>(
-                R.id.cbOcrOnly
-            )
-
-            val interfaceLang = settings.language
-            var selectedSourceLang = settings.translationSourceLanguage
-            var selectedTargetLang = settings.translationTargetLanguage
-
-            fun updateSourceView() {
-                applyLanguageLabel(sourceView, selectedSourceLang, interfaceLang, R.string.translation_source_language)
-            }
-
-            fun updateTargetView() {
-                applyLanguageLabel(targetView, selectedTargetLang, interfaceLang, R.string.translation_target_language)
-            }
-
-            // Bound to this dialog instance, so - unlike the crop-step listeners - they can only be
-            // registered here: the dialog is a plain AlertDialog and is not restored after recreation.
-            listenForLanguagePick(REQ_SETTINGS_SOURCE_LANGUAGE) { code ->
-                selectedSourceLang = code
-                updateSourceView()
-            }
-            listenForLanguagePick(REQ_SETTINGS_TARGET_LANGUAGE) { code ->
-                selectedTargetLang = code
-                updateTargetView()
-            }
-
-            sourceView.setOnClickListener {
-                if (!sourceView.isEnabled) return@setOnClickListener
-                showLanguagePicker(
-                    requestKey = REQ_SETTINGS_SOURCE_LANGUAGE,
-                    selectedCode = selectedSourceLang,
-                    mode = SearchableLanguagePickerDialog.Mode.SOURCE,
-                    interfaceLanguage = interfaceLang
-                )
-            }
-
-            targetView.setOnClickListener {
-                if (!targetView.isEnabled) return@setOnClickListener
-                showLanguagePicker(
-                    requestKey = REQ_SETTINGS_TARGET_LANGUAGE,
-                    selectedCode = selectedTargetLang,
-                    mode = SearchableLanguagePickerDialog.Mode.TARGET,
-                    interfaceLanguage = interfaceLang
-                )
-            }
-
-            cbOcrOnly.isChecked = settings.cameraOcrOnly
-            updateSourceView()
-            updateTargetView()
-            // OCR-language control is usable only while the recognized image is still retained
-            // (gone after process death); disable it otherwise so re-OCR has a source to work on.
-            updateTargetLanguageEnabled(sourceView, flowManager.hasRetainedSourceImage())
-            updateTargetLanguageEnabled(targetView, settings.enableTranslation && !settings.cameraOcrOnly)
-            cbOcrOnly.setOnCheckedChangeListener { isChecked ->
-                updateTargetLanguageEnabled(targetView, settings.enableTranslation && !isChecked)
-            }
-
-            MaterialAlertDialogBuilder(this@CameraOcrTranslateActivity)
-                .setTitle(R.string.settings)
-                .setView(view)
-                .setPositiveButton(R.string.apply) { _, _ ->
-                    flowManager.applyLanguageSettings(
-                        sourceLang = selectedSourceLang,
-                        targetLang = selectedTargetLang,
-                        ocrOnly = cbOcrOnly.isChecked
-                    )
-                }
-                .setNegativeButton(R.string.cancel, null)
-                .showBoundToHost(this@CameraOcrTranslateActivity)
+    override fun onResumeWithViews() {
+        super.onResumeWithViews()
+        settingsReturnSnapshot?.let { before ->
+            settingsReturnSnapshot = null
+            flowManager.reapplyAfterSettingsReturn(before)
         }
     }
 
@@ -395,31 +331,6 @@ class CameraOcrTranslateActivity :
     private fun listenForLanguagePick(requestKey: String, onPicked: (String) -> Unit) {
         supportFragmentManager.setFragmentResultListener(requestKey, this) { _, bundle ->
             bundle.getString(SearchableLanguagePickerDialog.RESULT_LANGUAGE_CODE)?.let(onPicked)
-        }
-    }
-
-    private fun updateTargetLanguageEnabled(view: TextView, enabled: Boolean) {
-        view.isEnabled = enabled
-        view.alpha = if (enabled) 1.0f else 0.45f
-    }
-
-    private fun applyLanguageLabel(
-        view: TextView,
-        code: String,
-        interfaceLanguage: String,
-        @androidx.annotation.StringRes titleRes: Int
-    ) {
-        val displayLocale = Locale.forLanguageTag(interfaceLanguage)
-        val item = TranslationLanguageCatalog.findLanguage(code, displayLocale)
-            ?: TranslationLanguageCatalog.findLanguage("en", displayLocale)
-        if (item != null) {
-            LanguageFlagFormatter.applyLabel(view, item)
-            view.contentDescription =
-                "${getString(titleRes)}: ${LanguageFlagFormatter.plainLabel(item)}"
-        } else {
-            val fallback = code.uppercase(Locale.ROOT)
-            view.text = fallback
-            view.contentDescription = "${getString(titleRes)}: $fallback"
         }
     }
 
@@ -459,12 +370,10 @@ class CameraOcrTranslateActivity :
         /** S1042: absolute path of an app-owned source image (e.g. staged screenshot) to OCR instead of capturing. */
         const val EXTRA_SOURCE_IMAGE_PATH = "source_image_path"
 
-        // S1214: four language pickers share this Activity's FragmentManager - the crop step and the
-        // compact settings dialog apply a pick differently, so each needs its own result key.
+        // S1214: the crop step's two language pickers share this Activity's FragmentManager, so each
+        // needs its own result key.
         private const val REQ_CROP_SOURCE_LANGUAGE = "camera_ocr_crop_source_language"
         private const val REQ_CROP_TARGET_LANGUAGE = "camera_ocr_crop_target_language"
-        private const val REQ_SETTINGS_SOURCE_LANGUAGE = "camera_ocr_settings_source_language"
-        private const val REQ_SETTINGS_TARGET_LANGUAGE = "camera_ocr_settings_target_language"
 
         fun createIntent(context: Context): Intent {
             return Intent(context, CameraOcrTranslateActivity::class.java)

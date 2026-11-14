@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Écouter de la musique sur votre montre - FastMediaSorter v2"
+title: "Écouter de la musique sur votre montre - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-watch-music-fr.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -13,14 +13,14 @@ permalink: /docs/howto/scenario-watch-music-fr.html
 
 > **Version complète uniquement** - ce guide n'est pas implémenté dans la version distribuée via Google Play. Il s'applique à la version complète, un téléchargement direct de l'APK depuis [Téléchargements](../DOWNLOADS.md).
 
-FastMediaSorter vous permet de parcourir et de lire votre collection musicale directement depuis votre montre connectée Wear OS. Vous pouvez diffuser des pistes partagées depuis votre téléphone associé ou lire des fichiers audio locaux stockés sur la montre, avec pochettes d'album, lecture aléatoire, contrôle du volume par la lunette rotative, lecture en arrière-plan qui survit à la fermeture de l'application, et un mode écran éteint qui garde la musique en marche avec l'affichage sombre.
+Fast Media Sorter & Organizer vous permet de parcourir et de lire votre collection musicale directement depuis votre montre connectée Wear OS. Vous pouvez diffuser des pistes partagées depuis votre téléphone associé ou lire des fichiers audio locaux stockés sur la montre, avec pochettes d'album, lecture aléatoire, contrôle du volume par la lunette rotative, lecture en arrière-plan qui survit à la fermeture de l'application, et un mode écran éteint qui garde la musique en marche avec l'affichage sombre.
 
 ---
 
 ## Ce dont vous aurez besoin
 
 - Une montre connectée fonctionnant sous **Wear OS 2.0** ou plus récent avec FastMedia Wear installé
-- Un téléphone Android exécutant FastMediaSorter (si vous diffusez de la musique depuis votre téléphone)
+- Un téléphone Android exécutant Fast Media Sorter & Organizer (si vous diffusez de la musique depuis votre téléphone)
 - Des fichiers musicaux (MP3, FLAC, AAC, OGG) sur votre téléphone ou transférés vers le stockage de votre montre
 - Des écouteurs Bluetooth ou le haut-parleur de la montre pour la sortie audio
 
@@ -103,7 +103,7 @@ Il existe deux façons différentes de continuer à écouter, et elles réponden
 
 | Problème | Que faire |
 |---------|------------|
-| La section Téléphone indique "Téléphone non connecté" | Assurez-vous que le Bluetooth est activé sur les deux appareils et que FastMediaSorter est installé sur votre téléphone |
+| La section Téléphone indique "Téléphone non connecté" | Assurez-vous que le Bluetooth est activé sur les deux appareils et que Fast Media Sorter & Organizer est installé sur votre téléphone |
 | Aucun fichier musical n'apparaît sous Local | Copiez des fichiers MP3 ou FLAC vers le stockage interne de votre montre ou utilisez la section Téléphone pour lire depuis votre téléphone |
 | L'audio s'arrête quand vous quittez l'application | Activez **Continuer la lecture en arrière-plan** dans les paramètres de la montre, et autorisez les notifications - le service de lecture en a besoin pour rester actif |
 | La pochette est manquante | Connectez-vous au Wi-Fi pour récupérer les pochettes en ligne, ou assurez-vous que vos fichiers audio contiennent une pochette ID3 intégrée |

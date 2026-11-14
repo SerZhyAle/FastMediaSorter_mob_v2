@@ -85,10 +85,6 @@ class CameraOcrFlowManager(
         ocrOnlyActive = value
     }
 
-    /** True when the OCR'd image is still retained and can be re-recognized after an OCR-language change. */
-    fun hasRetainedSourceImage(): Boolean =
-        orientedBitmap?.isRecycled == false
-
     private fun hasResults(): Boolean =
         recognizedOriginalText.isNotEmpty() || translatedOutputText.isNotEmpty()
 
@@ -370,28 +366,36 @@ class CameraOcrFlowManager(
         }
     }
 
-    /**
-     * Persists the result-screen dialog choices (OCR source + translation target + OCR-only) as global
-     * settings. When the OCR source language changed, re-runs recognition over the retained (cropped)
-     * image with the new source language and re-translates - this lets the user fix a wrong source
-     * language or auto-detection without re-capturing. When only the target changed, re-translates the
-     * existing recognized text without a new OCR; otherwise just re-renders.
-     */
-    fun applyLanguageSettings(sourceLang: String, targetLang: String, ocrOnly: Boolean) {
-        scope.launch {
-            var previousSourceLang = sourceLang
-            var translationEnabled = false
-            settingsRepository.updateSettings { current ->
-                previousSourceLang = current.translationSourceLanguage
-                translationEnabled = current.enableTranslation
-                current.copy(
-                    translationSourceLanguage = sourceLang,
-                    translationTargetLanguage = targetLang,
-                    cameraOcrOnly = ocrOnly
-                )
-            }
+    /** S4622: the OCR languages and OCR-only as they stood when the Tools settings page was opened. */
+    data class LanguageSnapshot(val sourceLang: String, val targetLang: String, val ocrOnly: Boolean)
 
-            if (sourceLang != previousSourceLang) {
+    suspend fun currentLanguageSnapshot(): LanguageSnapshot {
+        val settings = settingsRepository.getSettings().first()
+        return LanguageSnapshot(
+            settings.translationSourceLanguage,
+            settings.translationTargetLanguage,
+            settings.cameraOcrOnly,
+        )
+    }
+
+    /**
+     * S4622: re-runs the result for what the Tools settings page changed while this screen was stopped.
+     * When the OCR source language changed, re-runs recognition over the retained (cropped) image and
+     * re-translates - this lets the user fix a wrong source language or auto-detection without
+     * re-capturing. When only the target or OCR-only changed, re-translates the existing recognized
+     * text without a new OCR; an unchanged snapshot does nothing.
+     */
+    fun reapplyAfterSettingsReturn(before: LanguageSnapshot) {
+        scope.launch {
+            val settings = settingsRepository.getSettings().first()
+            val sourceLang = settings.translationSourceLanguage
+            val targetLang = settings.translationTargetLanguage
+            val ocrOnly = settings.cameraOcrOnly
+            val translationEnabled = settings.enableTranslation
+            // Before a first result the next capture reads the settings itself; nothing is shown to redo.
+            if (!hasResults() || LanguageSnapshot(sourceLang, targetLang, ocrOnly) == before) return@launch
+
+            if (sourceLang != before.sourceLang) {
                 val bitmap = orientedBitmap
                 if (bitmap != null && !bitmap.isRecycled) {
                     // OCR language changed: re-run recognition over the retained image with the new
@@ -399,8 +403,8 @@ class CameraOcrFlowManager(
                     // re-translates per the current target / OCR-only mode.
                     runRecognition(bitmap)
                 }
-                // If the retained image is gone (process death) keep the current results; the dialog
-                // disables the OCR-language control in that state (hasRetainedSourceImage()).
+                // If the retained image is gone (process death) keep the current results: the new
+                // source language applies from the next capture.
                 return@launch
             }
 

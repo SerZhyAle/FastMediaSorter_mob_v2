@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Usa la App como tu Pantalla de Inicio - FastMediaSorter v2"
+title: "Usa la App como tu Pantalla de Inicio - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-launcher-mode-es.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -11,7 +11,7 @@ permalink: /docs/howto/scenario-launcher-mode-es.html
 
 > **Nivel:** Principiante &bull; **Edición:** Standard / noLegal
 
-FastMediaSorter puede reemplazar la pantalla de inicio de tu dispositivo con su propio escritorio - tus carpetas, un reloj, el clima, tus apps y una barra de tareas en un borde. Si alguna vez usaste un escritorio de Windows, te resultará familiar: las cosas permanecen donde las pones, y un botón Inicio abre el menú. Esto se llama **modo launcher**.
+Fast Media Sorter & Organizer puede reemplazar la pantalla de inicio de tu dispositivo con su propio escritorio - tus carpetas, un reloj, el clima, tus apps y una barra de tareas en un borde. Si alguna vez usaste un escritorio de Windows, te resultará familiar: las cosas permanecen donde las pones, y un botón Inicio abre el menú. Esto se llama **modo launcher**.
 
 **Ejemplo real:** una tablet vieja en la pared de la cocina. En lugar de una cuadrícula de iconos de apps, obtienes el reloj, el clima de hoy, la carpeta de fotos de tu NAS y un botón que inicia la radio - todo en la pantalla que muestra cuando se despierta.
 
@@ -29,7 +29,7 @@ FastMediaSorter puede reemplazar la pantalla de inicio de tu dispositivo con su 
 
 1. Abre **Configuración → General**
 2. Activa **Hacer de esta app la pantalla de inicio**
-3. Android te pide confirmar. En Android 10 y versiones más nuevas es una sola pregunta - "¿Permitir que FastMediaSorter sea tu app de Inicio?" - así que permítelo. En versiones anteriores aparece el selector clásico la próxima vez que presiones Inicio: elige FastMediaSorter y toca **Siempre**, o **Solo esta vez** para probarlo primero.
+3. Android te pide confirmar. En Android 10 y versiones más nuevas es una sola pregunta - "¿Permitir que Fast Media Sorter & Organizer sea tu app de Inicio?" - así que permítelo. En versiones anteriores aparece el selector clásico la próxima vez que presiones Inicio: elige Fast Media Sorter & Organizer y toca **Siempre**, o **Solo esta vez** para probarlo primero.
 4. Presiona **Inicio**
 
 > **¿Acabas de instalar la app?** Hay un atajo: marca **Usar como pantalla de inicio** en la primera página de bienvenida. La configuración no se interrumpe por un cuadro de diálogo del sistema - la confirmación de Android aparece la primera vez que abres **Configuración → General** después.
@@ -55,7 +55,7 @@ El escritorio no es una cuadrícula vacía el primer día. Llega con una docena 
 La barra de tareas se ubica en el borde inferior. Contiene el botón Inicio, las apps que usaste recientemente, las que fijaste, y una pequeña bandeja con el reloj, la batería, la red y la señal SIM.
 
 - **¿La prefieres en la parte superior?** **Configuración → General → Configuración del sistema del launcher → Barra de tareas → Posición de la barra de tareas** alterna entre **Inferior** y **Superior**. El menú Inicio sigue a la barra y se despliega hacia abajo desde arriba cuando la barra está ahí.
-- **El botón Inicio** abre el menú: abrir FastMediaSorter, tus recursos, agregar un recurso, configuración de Android, configuración de la app, configuración del launcher, editar el contenido del escritorio, y al final reiniciar, apagar y **Salir del modo launcher**.
+- **El botón Inicio** abre el menú: abrir Fast Media Sorter & Organizer, tus recursos, agregar un recurso, configuración de Android, configuración de la app, configuración del launcher, editar el contenido del escritorio, y al final reiniciar, apagar y **Salir del modo launcher**.
 - **Tus apps** se agrupan en secciones con pequeños encabezados. Toca un encabezado para contraer una sección que abres rara vez. Un escritorio nuevo pone tus apps de Google en una sección **Google** y tus propias apps instaladas - mensajeros, juegos y el resto - en una sección **Apps**, así el mismo ícono nunca aparece dos veces. Mantén presionada cualquier app para **Poner en el escritorio** y **Fijar en la barra de tareas**.
 
 ---
@@ -123,7 +123,7 @@ Tu diseño de escritorio se conserva de cualquier forma, así que volver a activ
 | Problema | Qué intentar |
 |---------|------------|
 | **Hacer de esta app la pantalla de inicio** falta en Configuración → General | Tu compilación no incluye el modo launcher. Viene solo en **Standard** y **noLegal** - revisa **Configuración → General → Acerca del sistema** para ver qué edición tienes |
-| El dispositivo vuelve a su propia pantalla de inicio después de reiniciar | Algunos radios de coche de terceros y cajas Android integradas fuerzan su pantalla de inicio de fábrica de vuelta en cada arranque. Eso es el firmware del dispositivo anulándote, y ninguna app puede evitarlo - elige FastMediaSorter de nuevo después de reiniciar, y si aún así no se mantiene, ese dispositivo no lo permite |
+| El dispositivo vuelve a su propia pantalla de inicio después de reiniciar | Algunos radios de coche de terceros y cajas Android integradas fuerzan su pantalla de inicio de fábrica de vuelta en cada arranque. Eso es el firmware del dispositivo anulándote, y ninguna app puede evitarlo - elige Fast Media Sorter & Organizer de nuevo después de reiniciar, y si aún así no se mantiene, ese dispositivo no lo permite |
 | Android nunca preguntó qué app de inicio usar | Presiona **Inicio** una vez - en versiones más antiguas de Android el selector aparece entonces, no en el momento en que activas el interruptor |
 | El escritorio se ve vacío después de activarlo | Presiona **Inicio** en lugar de quedarte dentro de la app - el escritorio prellenado es lo que Android muestra como pantalla de inicio |
 | Las celdas se mueven cuando no querías moverlas | Activa **Bloquear escritorio** en **Configuración → General → Configuración del sistema del launcher** |

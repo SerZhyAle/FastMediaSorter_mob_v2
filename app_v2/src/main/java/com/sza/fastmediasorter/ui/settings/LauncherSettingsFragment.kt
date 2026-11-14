@@ -1,0 +1,632 @@
+package com.sza.fastmediasorter.ui.settings
+
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.os.Bundle
+import android.provider.Settings
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.view.isVisible
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
+import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.CapabilityAvailability
+import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
+import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
+import com.sza.fastmediasorter.core.screencapture.gesture.GestureAccessibilityActions
+import com.sza.fastmediasorter.databinding.DialogLauncherResetConfirmBinding
+import com.sza.fastmediasorter.databinding.FragmentSettingsLauncherBinding
+import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
+import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.LauncherAllAppsSwipeDirection
+import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeDirection
+import com.sza.fastmediasorter.domain.usecase.panel.QueryLaunchableAppsUseCase
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
+import com.sza.fastmediasorter.ui.settings.fragments.BaseSettingsFragment
+import com.sza.fastmediasorter.ui.settings.helpers.LauncherAllAppsSwipeActionPickerManager
+import com.sza.fastmediasorter.ui.settings.helpers.LauncherAllAppsSwipeSettingsManager
+import com.sza.fastmediasorter.ui.settings.helpers.LauncherDesktopSwipeActionPickerManager
+import com.sza.fastmediasorter.ui.settings.helpers.LauncherDesktopSwipeSettingsManager
+import com.sza.fastmediasorter.ui.settings.helpers.LauncherScreenTimeoutSettingsManager
+import com.sza.fastmediasorter.ui.settings.helpers.LauncherSwipePayloadPickerManager
+import com.sza.fastmediasorter.ui.settings.helpers.ScreenshotGestureActionPickerManager
+import com.sza.fastmediasorter.util.showBoundTo
+import com.sza.fastmediasorter.utils.collectOnLifecycle
+import com.sza.fastmediasorter.utils.getEnumByName
+import com.sza.fastmediasorter.utils.putEnumName
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import timber.log.Timber
+import javax.inject.Inject
+
+/**
+ * S1088: hosts the system-launcher configuration rows (taskbar composition + grid density + change-home)
+ * that used to sit in the Operations settings "System launcher" group. The enable toggle stays in
+ * General settings. S4622: the Launcher page of Settings (SETTINGS-NAVIGATION 2.1 ADR-1, a page-sized
+ * topic is a destination), listed only where [LauncherModeContract.isAvailableInBuild] holds and opened by
+ * that toggle's neighbouring row and by the launcher Start menu. Every control applies immediately, reusing
+ * the same [SettingsViewModel] writes as the former inline block - no row logic is duplicated.
+ */
+@AndroidEntryPoint
+class LauncherSettingsFragment : BaseSettingsFragment() {
+
+    private var _binding: FragmentSettingsLauncherBinding? = null
+    private val binding get() = requireNotNull(_binding)
+
+    private val viewModel: SettingsViewModel by activityViewModels()
+
+    // S1400: page-scoped, so the reset action does not have to be threaded through the shared
+    // settings ViewModel's already-oversized constructor.
+    private val launcherViewModel: LauncherSettingsViewModel by viewModels()
+
+    @Inject
+    lateinit var launcherModeContract: LauncherModeContract
+
+    @Inject
+    lateinit var launcherRoleManager: LauncherRoleManager
+
+    @Inject
+    lateinit var gestureAccessibilityActions: Set<@JvmSuppressWildcards GestureAccessibilityActions>
+
+    @Inject
+    lateinit var capabilityAvailability: CapabilityAvailability
+
+    @Inject
+    lateinit var screenVideoRecordingControllers: Set<@JvmSuppressWildcards ScreenVideoRecordingController>
+
+    // S2256: the swipe target rows read an app's own label from the same source the edge slots use, so a
+    // row and the picker can never disagree about what an app is called.
+    @Inject
+    lateinit var queryLaunchableApps: QueryLaunchableAppsUseCase
+
+    // S1422: the shared orchestrator already owns restore, animation and persistence of section state,
+    // so this page only declares which rows belong together. Built per view like the row managers
+    // below: it keeps every registered header, so a surviving fragment must not carry the previous
+    // view's hierarchy through it (S3792).
+    private var sectionsManager: CollapsibleSectionsManager? = null
+
+    // Every row manager is released in onDestroyView: each one holds the binding, so a reference kept
+    // past the view outlives the hierarchy it renders into.
+    private var desktopSwipeSettingsManager: LauncherDesktopSwipeSettingsManager? = null
+    private var allAppsSwipeSettingsManager: LauncherAllAppsSwipeSettingsManager? = null
+    private var screenTimeoutSettingsManager: LauncherScreenTimeoutSettingsManager? = null
+
+    // S2256: the direction the swipe app picker is currently choosing for. Held here rather than in
+    // LauncherSwipePayloadPickerManager, which is rebuilt on every re-inflate, and saved because losing it
+    // mid-pick (the host process can die while the child app picker is open) would write the chosen
+    // package into no direction at all - the same trap and fix as EdgeGestureConfigDialogFragment's
+    // pendingAppSlot.
+    private var pendingSwipeAppDirection: LauncherDesktopSwipeDirection? = null
+
+    // S2304: the same trap as above, for the All apps panel slot family; saved since S3793.
+    private var pendingAllAppsSwipeDirection: LauncherAllAppsSwipeDirection? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        pendingSwipeAppDirection =
+            savedInstanceState.getEnumByName<LauncherDesktopSwipeDirection>(STATE_PENDING_SWIPE_DIRECTION)
+        pendingAllAppsSwipeDirection =
+            savedInstanceState.getEnumByName<LauncherAllAppsSwipeDirection>(STATE_PENDING_ALL_APPS_SWIPE_DIRECTION)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putEnumName(STATE_PENDING_SWIPE_DIRECTION, pendingSwipeAppDirection)
+        outState.putEnumName(STATE_PENDING_ALL_APPS_SWIPE_DIRECTION, pendingAllAppsSwipeDirection)
+    }
+
+    override fun collapsibleSections(): CollapsibleSectionsManager? = sectionsManager
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = FragmentSettingsLauncherBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        Timber.d("S4622: Launcher page bound")
+        // Defensive: the destination is never listed on a build without the launcher surface, but never
+        // leave a functional launcher UI reachable if a caller slips through the gate.
+        if (!launcherModeContract.isAvailableInBuild) {
+            binding.root.isVisible = false
+            return
+        }
+        desktopSwipeSettingsManager = LauncherDesktopSwipeSettingsManager(
+            host = this,
+            binding = binding,
+            currentSettings = { viewModel.settings.value },
+            updateSettings = viewModel::updateSettings,
+            picker = desktopSwipeActionPicker(),
+            payloadPicker = LauncherSwipePayloadPickerManager(
+                host = this,
+                currentSettings = { viewModel.settings.value },
+                updateSettings = viewModel::updateSettings,
+                pendingDirection = { pendingSwipeAppDirection },
+                setPendingDirection = { pendingSwipeAppDirection = it },
+            ),
+            queryLaunchableApps = queryLaunchableApps,
+        )
+        allAppsSwipeSettingsManager = LauncherAllAppsSwipeSettingsManager(
+            host = this,
+            binding = binding,
+            currentSettings = { viewModel.settings.value },
+            updateSettings = viewModel::updateSettings,
+            picker = LauncherAllAppsSwipeActionPickerManager(
+                systemActionsAvailable = gestureAccessibilityActions.isNotEmpty(),
+            ),
+            queryLaunchableApps = queryLaunchableApps,
+            pendingDirection = { pendingAllAppsSwipeDirection },
+            setPendingDirection = { pendingAllAppsSwipeDirection = it },
+        )
+        screenTimeoutSettingsManager = LauncherScreenTimeoutSettingsManager(
+            host = this,
+            binding = binding,
+            currentSettings = { viewModel.settings.value },
+            isUpdating = { isUpdatingFromSettings },
+            systemActionsAvailable = gestureAccessibilityActions.isNotEmpty(),
+            updateSettings = viewModel::updateSettings,
+        )
+        desktopSwipeSettingsManager?.registerAppPickerListener()
+        allAppsSwipeSettingsManager?.registerAppPickerListener()
+        val sectionsManager = CollapsibleSectionsManager(requireContext())
+        this.sectionsManager = sectionsManager
+        setupCollapsibleSections(sectionsManager)
+        setupRows()
+        observeSettings()
+    }
+
+    /** S1422/S2252: seven collapsible groups - only top bar starts expanded by default. */
+    private fun setupCollapsibleSections(sectionsManager: CollapsibleSectionsManager) {
+        sectionsManager.register(binding.headerLauncherTaskbar, binding.containerLauncherTaskbar, "launcher__taskbar")
+        sectionsManager.register(binding.headerLauncherTray, binding.containerLauncherTray, "launcher__tray")
+        sectionsManager.register(
+            binding.headerLauncherTopBar,
+            binding.containerLauncherTopBar,
+            "launcher__top_bar",
+            defaultExpanded = true,
+        )
+        sectionsManager.register(binding.headerLauncherDesktop, binding.containerLauncherDesktop, "launcher__desktop")
+        sectionsManager.register(
+            binding.headerLauncherGestures,
+            binding.containerLauncherGestures,
+            "launcher__gestures"
+        )
+        sectionsManager.register(
+            binding.headerLauncherAppearance,
+            binding.containerLauncherAppearance,
+            "launcher__appearance"
+        )
+        sectionsManager.register(binding.headerLauncherSystem, binding.containerLauncherSystem, "launcher__system")
+    }
+
+    private fun setupRows() {
+        setupPlacementRow()
+        setupTaskbarRowsRow()
+        desktopSwipeSettingsManager?.setupRows()
+        allAppsSwipeSettingsManager?.setupRows()
+        setupTaskbarVisibilityRows()
+        setupTrayRows()
+        binding.rowLauncherReplaceStatusArea.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings { latest ->
+                latest.copy(
+                    launcher = latest.launcher.copy(
+                        replaceSystemStatusArea = isChecked,
+                        // S1431: the mode has nowhere to draw without the freed band, so it is cleared
+                        // with it rather than left stored as on and unreachable (strategic risk row 6).
+                        topStatusStripMode = isChecked && latest.launcherTopStatusStripMode,
+                    ),
+                )
+            }
+        }
+        binding.rowLauncherTopStatusStrip.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings { it.withLauncher { copy(topStatusStripMode = isChecked) } }
+        }
+        binding.rowLauncherForeignNotifications.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings { it.withLauncher { copy(foreignNotificationsEnabled = isChecked) } }
+            // Turning it on without the system grant would leave a switch claiming to work, so the screen
+            // that can fix it is offered in the same gesture rather than waiting for the user to find it.
+            if (isChecked && !hasNotificationAccess()) {
+                openNotificationAccessScreen()
+            }
+        }
+        binding.btnLauncherGrantNotificationAccess.setOnClickListener { openNotificationAccessScreen() }
+        binding.rowLauncherDensity.setEntries(
+            listOf(
+                getText(R.string.launcher_settings_density_sparse),
+                getText(R.string.launcher_settings_density_default),
+                getText(R.string.launcher_settings_density_dense),
+                getText(R.string.launcher_settings_density_densest),
+            )
+        )
+        binding.rowLauncherDensity.setOnItemSelectedListener { index ->
+            if (isUpdatingFromSettings) return@setOnItemSelectedListener
+            val options = AppSettings.LAUNCHER_DENSITY_OPTIONS
+            val factor = options.getOrElse(index) { options[DENSITY_DEFAULT_INDEX] }
+            viewModel.updateSettings { it.withLauncher { copy(densityFactor = factor) } }
+        }
+        binding.rowLauncherWallpaper.setOnRowClickListener {
+            LauncherWallpaperSettingsDialogFragment.newInstance()
+                .show(parentFragmentManager, LauncherWallpaperSettingsDialogFragment.TAG)
+        }
+        binding.rowLauncherLockDesktop.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings { it.withLauncher { copy(desktopLocked = isChecked) } }
+        }
+        binding.rowLauncherDesktopDoubleTapLock.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings { it.withLauncher { copy(desktopDoubleTapLockEnabled = isChecked) } }
+        }
+        requireNotNull(screenTimeoutSettingsManager).setupRow()
+        setupWidgetBackdropAlphaRow()
+        binding.rowLauncherOpenHomeSettings.isVisible = launcherRoleManager.isHomeRoleOfferable()
+        binding.rowLauncherOpenHomeSettings.setOnClickListener {
+            val host = activity ?: return@setOnClickListener
+            launcherRoleManager.openHomeChooser(host)
+        }
+        binding.btnImportSystemShortcuts.setOnClickListener {
+            launcherViewModel.importSystemShortcuts()
+        }
+        binding.btnResetLauncher.setOnClickListener { confirmReset() }
+    }
+
+    /**
+     * S1643: which screen edge the whole taskbar is anchored to, kept out of [setupRows] for the same
+     * reason [setupTrayRows] is. Entry order follows [AppSettings.LAUNCHER_TASKBAR_PLACEMENT_OPTIONS], so
+     * the selected index is the option index and no second mapping can drift away from the first.
+     */
+    private fun setupPlacementRow() {
+        binding.rowLauncherTaskbarPlacement.setEntries(
+            listOf(
+                getText(R.string.launcher_settings_taskbar_placement_bottom),
+                getText(R.string.launcher_settings_taskbar_placement_top),
+                getText(R.string.launcher_settings_taskbar_placement_left),
+                getText(R.string.launcher_settings_taskbar_placement_right),
+            )
+        )
+        binding.rowLauncherTaskbarPlacement.setOnItemSelectedListener { index ->
+            if (isUpdatingFromSettings) return@setOnItemSelectedListener
+            val options = AppSettings.LAUNCHER_TASKBAR_PLACEMENT_OPTIONS
+            val placement = options.getOrElse(index) { AppSettings.LAUNCHER_TASKBAR_PLACEMENT_BOTTOM }
+            viewModel.updateSettings { it.withLauncher { copy(taskbarPlacement = placement) } }
+        }
+    }
+
+    /**
+     * S3131: how many rows tall the taskbar is drawn. The entries are the range itself, so the selected
+     * index plus the minimum is the value and no second mapping can drift away from the first.
+     */
+    private fun setupTaskbarRowsRow() {
+        binding.rowLauncherTaskbarRows.setEntries(
+            (AppSettings.MIN_LAUNCHER_TASKBAR_ROWS..AppSettings.MAX_LAUNCHER_TASKBAR_ROWS)
+                .map { it.toString() }
+        )
+        binding.rowLauncherTaskbarRows.setOnItemSelectedListener { index ->
+            if (isUpdatingFromSettings) return@setOnItemSelectedListener
+            val rows = index + AppSettings.MIN_LAUNCHER_TASKBAR_ROWS
+            viewModel.updateSettings { it.withLauncher { copy(taskbarRows = rows) } }
+        }
+    }
+
+    /** The three taskbar switches, which differ only in the field each one writes. */
+    private fun setupTaskbarVisibilityRows() {
+        binding.rowLauncherShowRecents.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings { it.withLauncher { copy(taskbarShowRecents = isChecked) } }
+        }
+        binding.rowLauncherShowPinned.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings { it.withLauncher { copy(taskbarShowPinned = isChecked) } }
+        }
+        binding.rowLauncherShowTray.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings { it.withLauncher { copy(taskbarShowTray = isChecked) } }
+        }
+    }
+
+    private fun setupWidgetBackdropAlphaRow() {
+        binding.rowLauncherWidgetBackdropAlpha.setEntries(
+            listOf(
+                getText(R.string.launcher_settings_widget_backdrop_alpha_0),
+                getText(R.string.launcher_settings_widget_backdrop_alpha_25),
+                getText(R.string.launcher_settings_widget_backdrop_alpha_50),
+                getText(R.string.launcher_settings_widget_backdrop_alpha_70),
+                getText(R.string.launcher_settings_widget_backdrop_alpha_85),
+                getText(R.string.launcher_settings_widget_backdrop_alpha_100),
+            )
+        )
+        binding.rowLauncherWidgetBackdropAlpha.setOnItemSelectedListener { index ->
+            if (isUpdatingFromSettings) return@setOnItemSelectedListener
+            val options = AppSettings.LAUNCHER_WIDGET_BACKDROP_ALPHA_OPTIONS
+            val alpha = options.getOrElse(index) { options[BACKDROP_ALPHA_DEFAULT_INDEX] }
+            viewModel.updateSettings { it.withLauncher { copy(widgetBackdropAlpha = alpha) } }
+        }
+    }
+
+    /** S1415: the six tray-composition rows, kept out of [setupRows] so neither function grows past its limit. */
+    private fun setupTrayRows() {
+        binding.rowLauncherTrayClock.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings { it.withLauncher { copy(trayShowClock = isChecked) } }
+        }
+        binding.rowLauncherTrayBluetooth.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings { it.withLauncher { copy(trayShowBluetooth = isChecked) } }
+        }
+        binding.rowLauncherTrayTethering.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings { it.withLauncher { copy(trayShowTethering = isChecked) } }
+        }
+        binding.rowLauncherTraySim1.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings { it.withLauncher { copy(trayShowSim1 = isChecked) } }
+        }
+        binding.rowLauncherTraySim2.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings { it.withLauncher { copy(trayShowSim2 = isChecked) } }
+        }
+        binding.rowLauncherTrayNetwork.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings { it.withLauncher { copy(trayShowNetwork = isChecked) } }
+        }
+        binding.rowLauncherTrayBattery.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings { it.withLauncher { copy(trayShowBattery = isChecked) } }
+        }
+        binding.rowLauncherTraySpeed.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings { it.withLauncher { copy(trayShowSpeed = isChecked) } }
+        }
+    }
+
+    /**
+     * S1400: every other control here applies immediately, so the one destructive action is the only
+     * one that asks first.
+     *
+     * S1886: the preselected density is a one-shot suspend read of the device profile preset, so the
+     * dialog is built inside a coroutine rather than collected - there is no stream to observe.
+     */
+    private fun confirmReset() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val presetIndex = densityIndexOf(launcherViewModel.presetDensityFactor())
+            val content = DialogLauncherResetConfirmBinding.inflate(layoutInflater)
+            content.rowResetDensity.setEntries(
+                listOf(
+                    getText(R.string.launcher_settings_density_sparse),
+                    getText(R.string.launcher_settings_density_default),
+                    getText(R.string.launcher_settings_density_dense),
+                    getText(R.string.launcher_settings_density_densest),
+                ),
+            )
+            content.rowResetDensity.setSelection(presetIndex)
+            MaterialAlertDialogBuilder(
+                requireContext(),
+                R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive,
+            )
+                .setTitle(R.string.launcher_settings_reset_title)
+                .setView(content.root)
+                .setPositiveButton(R.string.ok) { _, _ ->
+                    val index = densityIndexOrDefault(content.rowResetDensity.getSelectedIndex())
+                    launcherViewModel.resetToDefaults(AppSettings.LAUNCHER_DENSITY_OPTIONS[index])
+                }
+                .setNegativeButton(R.string.cancel, null)
+                .showBoundTo(this@LauncherSettingsFragment)
+        }
+    }
+
+    /** S1886: a preset factor outside the four-step scale falls back to the standard step. */
+    private fun densityIndexOf(factor: Float): Int =
+        densityIndexOrDefault(AppSettings.LAUNCHER_DENSITY_OPTIONS.indexOf(factor))
+
+    private fun densityIndexOrDefault(index: Int): Int =
+        if (index in AppSettings.LAUNCHER_DENSITY_OPTIONS.indices) index else DENSITY_DEFAULT_INDEX
+
+    private fun observeSettings() {
+        collectOnLifecycle(viewModel.settings) { settings ->
+            isUpdatingFromSettings = true
+            binding.rowLauncherShowRecents.setCheckedSilently(settings.launcherTaskbarShowRecents)
+            binding.rowLauncherShowPinned.setCheckedSilently(settings.launcherTaskbarShowPinned)
+            binding.rowLauncherShowTray.setCheckedSilently(settings.launcherTaskbarShowTray)
+            binding.rowLauncherTrayClock.setCheckedSilently(settings.launcherTrayShowClock)
+            binding.rowLauncherTrayBluetooth.setCheckedSilently(settings.launcherTrayShowBluetooth)
+            binding.rowLauncherTrayTethering.setCheckedSilently(settings.launcherTrayShowTethering)
+            binding.rowLauncherTraySim1.setCheckedSilently(settings.launcherTrayShowSim1)
+            binding.rowLauncherTraySim2.setCheckedSilently(settings.launcherTrayShowSim2)
+            binding.rowLauncherTrayNetwork.setCheckedSilently(settings.launcherTrayShowNetwork)
+            binding.rowLauncherTrayBattery.setCheckedSilently(settings.launcherTrayShowBattery)
+            binding.rowLauncherTraySpeed.setCheckedSilently(settings.launcherTrayShowSpeed)
+            binding.rowLauncherReplaceStatusArea.setCheckedSilently(settings.launcherReplaceSystemStatusArea)
+            binding.rowLauncherTopStatusStrip.setCheckedSilently(settings.launcherTopStatusStripMode)
+            renderTopStatusStripRows(settings)
+            binding.rowLauncherForeignNotifications.setCheckedSilently(settings.launcherForeignNotificationsEnabled)
+            renderForeignNotificationsRow(settings.launcherForeignNotificationsEnabled)
+            binding.rowLauncherTaskbarPlacement.setSelection(placementIndex(settings))
+            binding.rowLauncherTaskbarRows.setSelection(
+                settings.launcherTaskbarRows - AppSettings.MIN_LAUNCHER_TASKBAR_ROWS,
+            )
+            renderDesktopSwipeRows(settings)
+            binding.rowLauncherLockDesktop.setCheckedSilently(settings.launcherDesktopLocked)
+            binding.rowLauncherDesktopDoubleTapLock.setCheckedSilently(
+                settings.launcherDesktopDoubleTapLockEnabled,
+            )
+            val densityIndex = AppSettings.LAUNCHER_DENSITY_OPTIONS.indexOf(settings.launcherDensityFactor)
+            binding.rowLauncherDensity.setSelection(if (densityIndex >= 0) densityIndex else DENSITY_DEFAULT_INDEX)
+            // S2730: the row leads to the launcher screens screen, so it states that screen's subject -
+            // how many desktops there are - rather than the wallpaper mode it used to preview.
+            binding.rowLauncherWallpaper.setValue(settings.launcherScreenCount.toString())
+            screenTimeoutSettingsManager?.render(settings)
+            renderWidgetBackdropAlphaRow(settings)
+            isUpdatingFromSettings = false
+        }
+        collectOnLifecycle(launcherViewModel.resetResult) { succeeded ->
+            Snackbar.make(
+                binding.root,
+                if (succeeded) {
+                    R.string.launcher_settings_reset_success
+                } else {
+                    R.string.launcher_settings_reset_failed
+                },
+                Snackbar.LENGTH_LONG,
+            ).show()
+        }
+        collectOnLifecycle(launcherViewModel.importResult) { succeeded ->
+            if (succeeded) {
+                Snackbar.make(
+                    binding.root,
+                    R.string.launcher_settings_import_system_shortcuts_success,
+                    Snackbar.LENGTH_LONG,
+                ).show()
+            }
+        }
+    }
+
+    private fun renderDesktopSwipeRows(settings: AppSettings) {
+        desktopSwipeSettingsManager?.render(settings)
+        allAppsSwipeSettingsManager?.render(settings)
+    }
+
+    private fun desktopSwipeActionPicker(): LauncherDesktopSwipeActionPickerManager =
+        LauncherDesktopSwipeActionPickerManager(
+            ScreenshotGestureActionPickerManager(
+                appContext = requireContext().applicationContext,
+                capabilityAvailability = capabilityAvailability,
+                screenRecordingAvailable = screenVideoRecordingControllers.isNotEmpty(),
+                systemActionsAvailable = gestureAccessibilityActions.isNotEmpty(),
+                // S2256: left off deliberately - this surface offers the panel as its own local action,
+                // which reuses the open home task, so wrapping the shared enum route too would show the
+                // same panel twice under two different keys.
+                launcherRouteAvailable = false,
+                currentSettings = { viewModel.settings.value },
+            ),
+        )
+
+    /**
+     * S1431: the two rows the mode governs.
+     *
+     * The mode itself is offered only while the launcher owns the status area, because that band is where
+     * it draws. The tray switch below it is disabled, not removed and not rewritten, while the mode is on:
+     * strategic ADR-5 rejected removal because a vanished row never tells the user where the indicators
+     * went, and rejected rewriting the stored value so switching the mode off restores exactly what the
+     * user last chose. The subtitle is the explanation the disabled state would otherwise lack.
+     */
+    private fun renderTopStatusStripRows(settings: AppSettings) {
+        binding.rowLauncherTopStatusStrip.isEnabled = settings.launcherReplaceSystemStatusArea
+        val moved = settings.launcherTopStatusStripMode && settings.launcherReplaceSystemStatusArea
+        binding.rowLauncherShowTray.isEnabled = !moved
+        binding.rowLauncherShowTray.setSubtitle(
+            if (moved) getText(R.string.launcher_settings_tray_moved_hint) else null
+        )
+    }
+
+    /**
+     * S1465: the row has three states, not two, because the app's own switch and the system's grant are
+     * separate answers - a two-state row would read as "working" while the system silently refuses.
+     * The grant is read here on every render rather than cached, which is what makes a revocation taken in
+     * another screen visible without restarting the app (strategic §6.1).
+     */
+    private fun renderForeignNotificationsRow(isEnabled: Boolean) {
+        val granted = hasNotificationAccess()
+        binding.rowLauncherForeignNotifications.setSubtitle(
+            when {
+                !isEnabled -> R.string.launcher_settings_foreign_notifications_summary_off
+                granted -> R.string.launcher_settings_foreign_notifications_summary_on
+                else -> R.string.launcher_settings_foreign_notifications_summary_no_access
+            }
+        )
+        binding.btnLauncherGrantNotificationAccess.visibility =
+            if (isEnabled && !granted) View.VISIBLE else View.GONE
+    }
+
+    private fun hasNotificationAccess(): Boolean {
+        val context = context ?: return false
+        return context.packageName in NotificationManagerCompat.getEnabledListenerPackages(context)
+    }
+
+    /**
+     * The notification-access screen is a global list rather than a package-scoped page, which is why no
+     * `package:` uri is attached - some OEM builds refuse the scoped form (`PermissionGrantIntentFactory`).
+     */
+    private fun openNotificationAccessScreen() {
+        try {
+            startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+        } catch (screenMissing: ActivityNotFoundException) {
+            Timber.w(screenMissing, "Notification access screen is absent on this build")
+        }
+    }
+
+    /** A stored token from a newer build resolves to no entry, so the row falls back to the bottom edge. */
+    private fun placementIndex(settings: AppSettings): Int {
+        val index = AppSettings.LAUNCHER_TASKBAR_PLACEMENT_OPTIONS.indexOf(settings.launcherTaskbarPlacement)
+        return if (index >= 0) index else 0
+    }
+
+    private fun renderWidgetBackdropAlphaRow(settings: AppSettings) {
+        val options = AppSettings.LAUNCHER_WIDGET_BACKDROP_ALPHA_OPTIONS
+        val index = options.indexOfFirst {
+            kotlin.math.abs(it - settings.launcherWidgetBackdropAlpha) < OPTION_MATCH_EPSILON
+        }
+        val selected = if (index >= 0) index else BACKDROP_ALPHA_DEFAULT_INDEX
+        binding.rowLauncherWidgetBackdropAlpha.setSelection(selected)
+    }
+
+    /**
+     * The grant is changed on a system screen, so nothing in this process emits when it does - returning
+     * here is the only moment the page can learn that the answer moved.
+     */
+    override fun onResume() {
+        super.onResume()
+        if (_binding == null || !launcherModeContract.isAvailableInBuild) return
+        renderForeignNotificationsRow(viewModel.settings.value.launcherForeignNotificationsEnabled)
+    }
+
+    override fun onDestroyView() {
+        desktopSwipeSettingsManager = null
+        allAppsSwipeSettingsManager = null
+        screenTimeoutSettingsManager = null
+        // S3792: released with the view like the row managers - the manager holds every header
+        // registered into it, and a lazy instance would keep the last view's hierarchy alive.
+        sectionsManager = null
+        super.onDestroyView()
+        _binding = null
+    }
+
+    companion object {
+        // S2256: survives the same process-death-while-app-picker-is-open window pendingSwipeAppDirection guards.
+        private const val STATE_PENDING_SWIPE_DIRECTION = "pending_swipe_app_direction"
+        private const val STATE_PENDING_ALL_APPS_SWIPE_DIRECTION = "pending_all_apps_swipe_direction"
+
+        /**
+         * S2320: derived from the canonical default for the reason S2264 recorded for the alpha row -
+         * a position written as a number outlives the value it names.
+         */
+        private val DENSITY_DEFAULT_INDEX =
+            AppSettings.LAUNCHER_DENSITY_OPTIONS
+                .indexOfFirst {
+                    kotlin.math.abs(it - AppSettings.DEFAULT_LAUNCHER_DENSITY_FACTOR) < OPTION_MATCH_EPSILON
+                }
+                .coerceAtLeast(0)
+
+        // Alpha and density are stored as floats, so a row matches its option by proximity rather
+        // than by equality.
+        private const val OPTION_MATCH_EPSILON = 0.01f
+
+        /**
+         * S2264: the row's fallback for a stored alpha no option matches is derived from the canonical
+         * default rather than written as an index, because a hardcoded one outlived the default it named -
+         * S2253 moved the default to fully transparent and this constant kept pointing at 0.85f.
+         */
+        private val BACKDROP_ALPHA_DEFAULT_INDEX =
+            AppSettings.LAUNCHER_WIDGET_BACKDROP_ALPHA_OPTIONS
+                .indexOfFirst {
+                    kotlin.math.abs(it - AppSettings.DEFAULT_LAUNCHER_WIDGET_BACKDROP_ALPHA) < OPTION_MATCH_EPSILON
+                }
+                .coerceAtLeast(0)
+    }
+}

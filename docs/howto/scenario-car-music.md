@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "In-Car Music Player (Android Head Unit) - FastMediaSorter v2"
+title: "In-Car Music Player (Android Head Unit) - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-car-music.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -9,7 +9,7 @@ permalink: /docs/howto/scenario-car-music.html
 
 > **Level:** Beginner &bull; **Time:** ~10 minutes &bull; **Flavor:** Standard, Legacy, VR, noLegal (Lite plays local audio but has no background playback and no Streams; Photos has no audio)
 
-FastMediaSorter works great as a car music player on Android head units - instant access to your full music collection on SD card or USB drive, with steering wheel button support built in.
+Fast Media Sorter & Organizer works great as a car music player on Android head units - instant access to your full music collection on SD card or USB drive, with steering wheel button support built in.
 
 > **What is an Android head unit?** It's a car stereo with a touchscreen that runs Android - like your phone, but installed in the dashboard. This guide also works on a regular phone or tablet mounted in the car.
 
@@ -89,7 +89,7 @@ That's it. Once this is enabled, the app registers as a proper music player - lo
 
 Press **Next** or **Previous** on your steering wheel.
 
-**They work automatically - no setup needed.** FastMediaSorter responds to all standard Android media buttons.
+**They work automatically - no setup needed.** Fast Media Sorter & Organizer responds to all standard Android media buttons.
 
 > **Buttons don't work?** Some older head units send non-standard signals. Try going to Android **Settings → Accessibility** and look for a "media button receiver" option. If that doesn't help, use the on-screen touch zones (left/right edge of screen) instead - they work perfectly.
 
@@ -105,7 +105,7 @@ If your music is spread across multiple folders (e.g. some on SD card, some in i
 
 Now all your tracks from all locations appear together in one list.
 
-![FastMediaSorter resource list - All Music virtual resource card visible](screenshots/screenshot-car-step6.png)
+![Fast Media Sorter & Organizer resource list - All Music virtual resource card visible](screenshots/screenshot-car-step6.png)
 
 ---
 
@@ -114,7 +114,7 @@ Now all your tracks from all locations appear together in one list.
 Perfect for when you just want to get in the car and tap one button to start music:
 
 1. Long-press an empty spot on the home screen → tap **Widgets**
-2. Find **FastMediaSorter** in the list → drag the **"Resource Shortcut"** widget to your home screen
+2. Find **Fast Media Sorter & Organizer** in the list → drag the **"Resource Shortcut"** widget to your home screen
 3. When prompted, select your music resource
 4. Done - tap the widget anytime and music starts immediately
 

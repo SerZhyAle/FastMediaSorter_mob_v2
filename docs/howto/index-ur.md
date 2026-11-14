@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "قدم بہ قدم رہنما - FastMediaSorter v2"
+title: "قدم بہ قدم رہنما - Fast Media Sorter & Organizer"
 permalink: /docs/howto/index-ur.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>

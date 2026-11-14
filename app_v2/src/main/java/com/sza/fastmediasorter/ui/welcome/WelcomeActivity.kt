@@ -767,21 +767,11 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
             .show(supportFragmentManager, SearchableLanguagePickerDialog.TAG)
     }
 
-    @Suppress("DEPRECATION")
     private fun onWelcomeLanguageSelected(code: String) {
-        LocaleHelper.saveLanguage(this, code)
-        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.TIRAMISU) {
-            // API < 33: LocaleManager is unavailable - recreate Activity manually.
-            // overridePendingTransition(0, 0) called after recreate() suppresses the
-            // default enter animation of the new Activity instance.
-            // S0218: API < 33 < 34, so overrideActivityTransition (API 34+) is unreachable
-            // here; overridePendingTransition is the only valid call on this branch.
-            // @Suppress("DEPRECATION") on the function silences the unavoidable warning.
-            recreate()
-            overridePendingTransition(0, 0)
-        }
-        // API 33+: LocaleManager already called in saveLanguage() will recreate the
-        // Activity automatically with no further action needed here.
+        // S4603: below API 33 AppCompat re-creates this activity, on API 33+ the system does. Going through
+        // applyLanguageLive rather than saveLanguage plus a manual recreate keeps AppCompat's own locale in
+        // step with the stored one, which a later language change in Settings relies on.
+        LocaleHelper.applyLanguageLive(this, code)
     }
 
     private fun onWelcomeThemeSelected(mode: String) {

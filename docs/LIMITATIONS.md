@@ -8,7 +8,7 @@ permalink: /docs/LIMITATIONS.html
 
 # ⚠️ Program Limitations
 
-This document outlines the current technical constraints, functional limitations, and performance considerations of FastMediaSorter v2.
+This document outlines the current technical constraints, functional limitations, and performance considerations of Fast Media Sorter & Organizer.
 
 ---
 
@@ -35,7 +35,7 @@ This document outlines the current technical constraints, functional limitations
 - **Lite flavor:** The Streams feature is entirely absent - there is no screen and no entry point, so no protocol works there. Lite is a local-media build in general: no network sources (SMB, SFTP, FTP), no cloud storage, no documents or EPUB, no animations, and no background audio playback. Local video, images, and audio with lyrics do work.
 - **Photos flavor:** The Streams feature is entirely absent.
 - **Live HLS/DASH:** Only VOD (on-demand) HLS/DASH is supported in this release. Live-offset / live-edge HLS/DASH playback is deferred.
-- **Playlist formats:** Only `.m3u` playlist import and the curated FastMediaSorter catalog are supported. `.pls`, `.xspf`, and custom-JSON imports are deferred.
+- **Playlist formats:** Only `.m3u` playlist import and the curated Fast Media Sorter & Organizer catalog are supported. `.pls`, `.xspf`, and custom-JSON imports are deferred.
 - **Playback position:** Stream playback position is not saved or restored (dynamic source by nature).
 - **DRM:** No DRM-protected streams.
 - **Closed platforms:** YouTube, Twitch, and similar closed-platform URLs are not supported.

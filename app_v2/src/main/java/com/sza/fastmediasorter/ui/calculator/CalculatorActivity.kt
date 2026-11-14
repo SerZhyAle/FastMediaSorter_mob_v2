@@ -14,16 +14,13 @@ import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityCalculatorBinding
 import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorHistoryScaleManager
 import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorInputManager
-import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorSettings
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 
 @AndroidEntryPoint
-class CalculatorActivity :
-    BaseActivity<ActivityCalculatorBinding>(),
-    CalculatorSettingsDialogFragment.Callbacks {
+class CalculatorActivity : BaseActivity<ActivityCalculatorBinding>() {
 
     private lateinit var inputManager: CalculatorInputManager
 
@@ -116,12 +113,15 @@ class CalculatorActivity :
         }
     }
 
+    // S4622: the options live on the Tools settings page (SETTINGS-NAVIGATION 2.1 item A); the calculator
+    // keeps only the command that opens them.
     private fun showCalculatorSettings() {
-        CalculatorSettingsDialogFragment.newInstance()
-            .show(supportFragmentManager, CalculatorSettingsDialogFragment.TAG)
+        startActivity(SettingsActivity.openToolsSectionIntent(this, SettingsActivity.SECTION_CALCULATOR))
     }
 
-    override fun onCalculatorSettingsChanged(settings: CalculatorSettings) {
+    // The options are edited on the Tools page while this screen is stopped, so they are re-read on return.
+    override fun onResumeWithViews() {
+        super.onResumeWithViews()
         if (::inputManager.isInitialized) inputManager.reloadSettings()
     }
 

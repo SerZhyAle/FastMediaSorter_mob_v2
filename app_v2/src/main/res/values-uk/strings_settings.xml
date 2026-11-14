@@ -93,7 +93,6 @@
     <string name="settings_all_files_profile_confirm_message">Цей профіль вмикає режим файлового менеджера і створить відсутній ресурс «Усі файли». Продовжити?</string>
     <string name="settings_reset_settings_failed">Не вдалося скинути налаштування. Спробуйте ще раз.</string>
     <string name="settings_reset_smb_failed">Не вдалося скинути SMB-підключення. Спробуйте ще раз.</string>
-    <string name="settings_saved">Налаштування збережено</string>
     <string name="settings_search_close">Закрити пошук у налаштуваннях</string>
     <string name="settings_search_hint">Пошук у налаштуваннях</string>
     <string name="settings_search_no_results">Збігів не знайдено</string>
@@ -277,7 +276,7 @@
     <string name="setting_mic_recording_destination_default_recordings">За замовчуванням: папка Recordings (Music на Android 11 і нижче)</string>
     <string name="setting_screen_recording_destination_default_movies">За замовчуванням: папка Movies</string>
     <string name="drive_channel_enabled_title">Файли через Google Drive</string>
-    <string name="drive_channel_enabled_subtitle">Надсилати й отримувати файли між своїми пристроями через ваш Google Drive, без сервера обміну</string>
+    <string name="drive_channel_enabled_subtitle">Надсилати й отримувати файли між своїми пристроями через ваш Google Drive і анонсувати їм ваші трансляції, без сервера обміну</string>
     <string name="drive_channel_background_title">Перевіряти через Google Drive у фоні</string>
     <string name="drive_channel_background_subtitle">Кожні 15 хвилин, щоб інші ваші пристрої могли відкрити спільні теки цього телефона, поки застосунок закрито</string>
     <string name="drive_channel_row_from">Від %1$s</string>
@@ -302,4 +301,19 @@
     <string name="drive_channel_send_waiting_any">Чекає, поки один із ваших пристроїв отримає його через Google Drive.</string>
     <string name="drive_channel_consent_required">Google Drive ще не надав застосунку його власну теку. Дозвольте її, щоб передавати файли між пристроями. Нічого не видалено.</string>
     <string name="drive_channel_consent_allow">Дозволити</string>
+    <string name="settings_tab_about">Про застосунок</string>
+    <string name="settings_about_description">Перегляд, відтворення й сортування фото, відео, музики та документів - на пристрої, у мережевих папках і в хмарі.</string>
+    <string name="settings_about_group_help">Довідка та документація</string>
+    <string name="settings_about_group_legal">Правова інформація</string>
+    <string name="settings_about_group_support">Підтримка та діагностика</string>
+    <string name="settings_about_group_get_app">Отримати застосунок</string>
+    <string name="settings_about_group_related">Пов\'язані продукти</string>
+    <string name="settings_about_group_device">Цей пристрій</string>
+    <string name="settings_about_support">Написати в підтримку</string>
+    <string name="settings_about_export_diagnostics">Експорт діагностики</string>
+    <string name="settings_about_site">Офіційний сайт</string>
+    <string name="settings_about_downloads">Завантаження та оновлення</string>
+    <string name="settings_about_repository">Репозиторій вихідного коду</string>
+    <string name="settings_about_companion_home">Застосунок-компаньйон для ПК</string>
+    <string name="settings_rail_current_page">Поточна сторінка</string>
 </resources>

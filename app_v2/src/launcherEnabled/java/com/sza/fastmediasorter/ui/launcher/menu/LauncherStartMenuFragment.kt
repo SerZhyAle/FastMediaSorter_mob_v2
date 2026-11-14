@@ -33,7 +33,6 @@ import com.sza.fastmediasorter.ui.launcher.helpers.LauncherModalSurfaceManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResourceCreateManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarEdge
 import com.sza.fastmediasorter.ui.main.MainActivity
-import com.sza.fastmediasorter.ui.settings.LauncherSettingsDialogFragment
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.util.showBoundTo
 import dagger.hilt.android.AndroidEntryPoint
@@ -180,9 +179,9 @@ class LauncherStartMenuFragment : BaseAppBottomSheet() {
             dismiss()
         }
         binding.rowLauncherSettings.setOnClickListener {
-            // S1088: the launcher's own settings dialog, opened in place without leaving the launcher. It
-            // attaches to the activity FragmentManager, so dismissing this sheet does not take it down.
-            LauncherSettingsDialogFragment().show(parentFragmentManager, LauncherSettingsDialogFragment.TAG)
+            // S4622: the launcher's own settings are the Launcher page of Settings, in its own task like
+            // the plain settings row above.
+            startActivity(inOwnTask(SettingsActivity.openLauncherPageIntent(requireContext())))
             dismiss()
         }
         binding.rowEditDesktop.setOnClickListener {

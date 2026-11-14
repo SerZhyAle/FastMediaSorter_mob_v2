@@ -15,7 +15,7 @@ why: |
 
   If you haven't opened the camera yet, [Taking Quick Photos and Video Snaps](page:capture.quick-photo-capture) covers the viewfinder basics, gestures and video recording first.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition). The zoom slider and the full Camera settings dialog need Standard, Lite, Photos or Legacy."
+  - "Fast Media Sorter & Organizer in any [edition](term:edition). The zoom slider and the full Camera settings dialog need Standard, Lite, Photos or Legacy."
   - "A phone with more than one rear lens gets the most out of this page, but a single-lens phone still gets shooting profiles, aspect ratio and the hardware report."
   - "Camera permission, already covered if you've used the camera before."
 steps:

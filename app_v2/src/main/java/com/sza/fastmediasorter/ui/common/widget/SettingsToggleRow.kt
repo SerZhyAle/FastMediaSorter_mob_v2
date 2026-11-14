@@ -6,6 +6,7 @@ import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -15,17 +16,23 @@ import android.widget.TextView
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.core.content.res.use
-import com.google.android.material.materialswitch.MaterialSwitch
+import androidx.core.view.AccessibilityDelegateCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
+import com.google.android.material.checkbox.MaterialCheckBox
 import com.sza.fastmediasorter.R
 
 /**
- * Canonical reusable switch/toggle row for settings fragments and forms.
+ * Canonical reusable boolean option row for settings fragments and forms (contract BOOLEAN-OPTION 2.1).
  *
- * Layout: switch (leftmost), text group (title + helper inline, subtitle below),
+ * Layout: square checkbox at reading start, text group (title + helper inline, subtitle below),
  * optional trailing action slot for the rare row that needs a secondary action.
  *
  * The view owns visual state only - checked persistence stays outside the component.
- * Tapping anywhere on the row toggles the switch. The helper icon chrome is the shared
+ * A tap or click on the checkbox, the title or the leading glyph toggles the value once; the
+ * subtitle (explanation), gaps, background and help never toggle. The row itself stays the single
+ * focus stop: Space, Enter and D-pad centre toggle it, and accessibility services see it as one
+ * named checkbox with the subtitle as its hint. The helper icon chrome is the shared
  * [HelpRowDelegate]; it is hidden without a payload, without breaking the layout.
  *
  * Public XML attributes use the `str_` prefix (see `attrs.xml`).
@@ -38,7 +45,7 @@ class SettingsToggleRow @JvmOverloads constructor(
     defStyleAttr: Int = 0,
 ) : LinearLayout(context, attrs, defStyleAttr), HelpableRow {
 
-    private val switchView: MaterialSwitch
+    private val checkBox: MaterialCheckBox
     private val iconView: ImageView
     private val titleView: TextView
     private val subtitleView: TextView
@@ -50,12 +57,12 @@ class SettingsToggleRow @JvmOverloads constructor(
     private var checkedChangeListener: ((Boolean) -> Unit)? = null
 
     /**
-     * Current checked state of the embedded switch.
+     * Current checked state of the embedded checkbox.
      */
     var isChecked: Boolean
-        get() = switchView.isChecked
+        get() = checkBox.isChecked
         set(value) {
-            switchView.isChecked = value
+            checkBox.isChecked = value
         }
 
     /**
@@ -66,19 +73,20 @@ class SettingsToggleRow @JvmOverloads constructor(
 
     init {
         orientation = HORIZONTAL
-        gravity = android.view.Gravity.CENTER_VERTICAL
-        minimumHeight = resources.getDimensionPixelSize(R.dimen.button_height)
+        // Top, not centre: the checkbox aligns with the first heading line of a long explanation
+        // (BOOLEAN-OPTION 2.1 section 2). Content height - the checkbox touch target is the floor.
+        gravity = android.view.Gravity.TOP
         isClickable = true
         isFocusable = true
         if (background == null) {
-            // Provide the standard ripple feedback on row taps so the whole row reads as one control.
+            // Standard focus feedback so the focused row reads as one control.
             val outValue = android.util.TypedValue()
             context.theme.resolveAttribute(android.R.attr.selectableItemBackground, outValue, true)
             setBackgroundResource(outValue.resourceId)
         }
         LayoutInflater.from(context).inflate(R.layout.view_settings_toggle_row, this, true)
 
-        switchView = findViewById(R.id.str_switch)
+        checkBox = findViewById(R.id.str_checkbox)
         iconView = findViewById(R.id.str_icon)
         titleView = findViewById(R.id.str_title)
         subtitleView = findViewById(R.id.str_subtitle)
@@ -88,6 +96,7 @@ class SettingsToggleRow @JvmOverloads constructor(
         titleLineSpacer = findViewById(R.id.str_titleLineSpacer)
 
         bindRowClicks()
+        bindAccessibility()
         applyAttributes(attrs, defStyleAttr)
         help.syncVisibility()
     }
@@ -168,7 +177,7 @@ class SettingsToggleRow @JvmOverloads constructor(
     }
 
     /**
-     * Registers a listener invoked when the embedded switch changes state.
+     * Registers a listener invoked when the embedded checkbox changes state.
      * Replaces any previously registered listener.
      */
     fun setOnCheckedChangeListener(listener: ((Boolean) -> Unit)?) {
@@ -181,7 +190,7 @@ class SettingsToggleRow @JvmOverloads constructor(
     fun setCheckedSilently(value: Boolean) {
         val listener = checkedChangeListener
         checkedChangeListener = null
-        switchView.isChecked = value
+        checkBox.isChecked = value
         checkedChangeListener = listener
     }
 
@@ -190,7 +199,7 @@ class SettingsToggleRow @JvmOverloads constructor(
      */
     override fun setEnabled(enabled: Boolean) {
         super.setEnabled(enabled)
-        switchView.isEnabled = enabled
+        checkBox.isEnabled = enabled
         iconView.isEnabled = enabled
         help.setEnabled(enabled)
         titleView.isEnabled = enabled
@@ -241,16 +250,46 @@ class SettingsToggleRow @JvmOverloads constructor(
         trailingSlot.visibility = View.VISIBLE
     }
 
+    /**
+     * A touch no child consumed - the subtitle, the gaps, the background - must not toggle
+     * (BOOLEAN-OPTION 2.1 section 3 rule 1). The row stays clickable only for the key and
+     * accessibility-click paths, which reach [performClick] without a touch event.
+     */
+    @Suppress("ClickableViewAccessibility")
+    override fun onTouchEvent(event: MotionEvent): Boolean = false
+
     private fun bindRowClicks() {
-        setOnClickListener {
-            if (!isEnabled) return@setOnClickListener
-            switchView.isChecked = !switchView.isChecked
+        val toggle = OnClickListener {
+            if (isEnabled) checkBox.isChecked = !checkBox.isChecked
         }
+        setOnClickListener(toggle)
+        titleView.setOnClickListener(toggle)
+        iconView.setOnClickListener(toggle)
+        // The checkbox toggles itself natively on a tap, so it gets no second handler (one toggle per tap).
         // The native CheckedChangeListener fires for both programmatic and user-driven changes;
         // setCheckedSilently temporarily detaches it to suppress programmatic notifications.
-        switchView.setOnCheckedChangeListener { _, value ->
+        checkBox.setOnCheckedChangeListener { _, value ->
+            timber.log.Timber.d("S4604: boolean option row toggled from checkbox, caption, glyph or key")
             checkedChangeListener?.invoke(value)
         }
+    }
+
+    private fun bindAccessibility() {
+        ViewCompat.setAccessibilityDelegate(
+            this,
+            object : AccessibilityDelegateCompat() {
+                override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
+                    super.onInitializeAccessibilityNodeInfo(host, info)
+                    info.className = CHECKBOX_CLASS_NAME
+                    info.isCheckable = true
+                    info.isChecked = checkBox.isChecked
+                    val explanation = subtitleView.text
+                    if (subtitleView.visibility == View.VISIBLE && !explanation.isNullOrBlank()) {
+                        info.hintText = explanation
+                    }
+                }
+            },
+        )
     }
 
     private fun applyAttributes(attrs: AttributeSet?, defStyleAttr: Int) {
@@ -265,7 +304,7 @@ class SettingsToggleRow @JvmOverloads constructor(
             )
             help.applyInitialVisibility(typedArray.getBoolean(R.styleable.SettingsToggleRow_str_showHelp, false))
             val initiallyChecked = typedArray.getBoolean(R.styleable.SettingsToggleRow_str_checked, false)
-            switchView.isChecked = initiallyChecked
+            checkBox.isChecked = initiallyChecked
             val iconRes = typedArray.getResourceId(R.styleable.SettingsToggleRow_str_icon, 0)
             if (iconRes != 0) setIcon(iconRes)
             applyTextSize(titleView, typedArray, R.styleable.SettingsToggleRow_str_titleTextSize)
@@ -277,5 +316,9 @@ class SettingsToggleRow @JvmOverloads constructor(
         if (typedArray.hasValue(index)) {
             view.setTextSize(TypedValue.COMPLEX_UNIT_PX, typedArray.getDimension(index, view.textSize))
         }
+    }
+
+    private companion object {
+        const val CHECKBOX_CLASS_NAME = "android.widget.CheckBox"
     }
 }

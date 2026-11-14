@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Musikplayer fürs Auto (Android-Autoradio) - FastMediaSorter v2"
+title: "Musikplayer fürs Auto (Android-Autoradio) - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-car-music-de.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -11,7 +11,7 @@ permalink: /docs/howto/scenario-car-music-de.html
 
 > **Niveau:** Anfänger &bull; **Zeit:** ~10 Minuten &bull; **Edition:** Standard, Legacy, VR, noLegal (Lite spielt lokale Audiodateien ab, hat aber keine Hintergrundwiedergabe und keine Streams; Photos hat kein Audio)
 
-FastMediaSorter eignet sich hervorragend als Musikplayer fürs Auto auf Android-Autoradios - sofortiger Zugriff auf Ihre gesamte Musiksammlung auf SD-Karte oder USB-Stick, mit integrierter Unterstützung für Lenkradtasten.
+Fast Media Sorter & Organizer eignet sich hervorragend als Musikplayer fürs Auto auf Android-Autoradios - sofortiger Zugriff auf Ihre gesamte Musiksammlung auf SD-Karte oder USB-Stick, mit integrierter Unterstützung für Lenkradtasten.
 
 > **Was ist ein Android-Autoradio?** Es ist ein Autoradio mit Touchscreen, auf dem Android läuft - wie Ihr Handy, nur im Armaturenbrett eingebaut. Diese Anleitung funktioniert auch mit einem gewöhnlichen Handy oder Tablet, das im Auto montiert ist.
 
@@ -91,7 +91,7 @@ Das ist alles. Sobald dies aktiviert ist, registriert sich die App als vollwerti
 
 Drücken Sie **Weiter** oder **Zurück** an Ihrem Lenkrad.
 
-**Sie funktionieren automatisch - keine Einrichtung nötig.** FastMediaSorter reagiert auf alle standardmäßigen Android-Medientasten.
+**Sie funktionieren automatisch - keine Einrichtung nötig.** Fast Media Sorter & Organizer reagiert auf alle standardmäßigen Android-Medientasten.
 
 > **Tasten funktionieren nicht?** Einige ältere Autoradios senden nicht standardmäßige Signale. Versuchen Sie, in den Android-**Einstellungen → Barrierefreiheit** nach einer Option „Medientasten-Empfänger“ zu suchen. Hilft das nicht, verwenden Sie stattdessen die Touch-Zonen auf dem Bildschirm (linker/rechter Bildschirmrand) - sie funktionieren einwandfrei.
 
@@ -107,7 +107,7 @@ Wenn Ihre Musik über mehrere Ordner verteilt ist (z. B. teilweise auf der SD-Ka
 
 Jetzt erscheinen alle Ihre Titel aus allen Orten gemeinsam in einer Liste.
 
-![FastMediaSorter Hauptbildschirm - Karte der virtuellen Ressource „Alle Titel“ sichtbar](screenshots/screenshot-car-step6.png)
+![Fast Media Sorter & Organizer Hauptbildschirm - Karte der virtuellen Ressource „Alle Titel“ sichtbar](screenshots/screenshot-car-step6.png)
 
 ---
 
@@ -116,7 +116,7 @@ Jetzt erscheinen alle Ihre Titel aus allen Orten gemeinsam in einer Liste.
 Perfekt, wenn Sie einfach ins Auto steigen und mit einem Fingertipp die Musik starten möchten:
 
 1. Halten Sie eine leere Stelle auf dem Startbildschirm gedrückt → tippen Sie auf **Widgets**
-2. Suchen Sie **FastMediaSorter** in der Liste → ziehen Sie das Widget **„Ressourcen-Verknüpfung“** auf Ihren Startbildschirm
+2. Suchen Sie **Fast Media Sorter & Organizer** in der Liste → ziehen Sie das Widget **„Ressourcen-Verknüpfung“** auf Ihren Startbildschirm
 3. Wählen Sie bei Aufforderung Ihre Musikressource aus
 4. Fertig - tippen Sie jederzeit auf das Widget, und die Musik startet sofort
 

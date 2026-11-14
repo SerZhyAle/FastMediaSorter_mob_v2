@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "扫描一个二维码打开电脑文件夹 - FastMediaSorter v2"
+title: "扫描一个二维码打开电脑文件夹 - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-companion-share-zh-hans.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -56,7 +56,7 @@ permalink: /docs/howto/scenario-companion-share-zh-hans.html
 
 ## 第 2 步，方法 A - 扫码（最快）
 
-1. 打开 FastMediaSorter，点击主屏幕上的**添加 <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** 按钮。
+1. 打开 Fast Media Sorter & Organizer，点击主屏幕上的**添加 <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** 按钮。
 2. 点击**“通过二维码导入”** - 它位于四个资源类型卡片（本地、SMB、SFTP/FTP、云）旁边，也出现在 SFTP 表单的顶部。
 3. 摄像头会打开，并显示提示*“将摄像头对准伴侣二维码”*。把手机举到电脑上的二维码前。在光线较暗的房间里，点击**手电筒**。
 4. 会出现确认提示 - *“导入访问权限 - 添加带有 N 个文件夹的 SFTP 资源..？”*。点击**导入**。
@@ -115,7 +115,7 @@ permalink: /docs/howto/scenario-companion-share-zh-hans.html
 | 没有“通过二维码导入”选项 | 设备没有摄像头，或者是 VR 版本。请使用[方法 B - 导入文件](#step-2-method-b---import-the-file) |
 | 摄像头提示需要授权 | 出现提示时授予摄像头权限 - 该权限仅用于扫码 |
 | “此文件不是有效的伴侣配置” | 该二维码或文件不是来自 Windows 伴侣程序。请从**共享**选项卡重新导出 |
-| “由更新版本的伴侣程序创建” | 更新手机上的 FastMediaSorter，或使用匹配版本的伴侣程序重新导出 |
+| “由更新版本的伴侣程序创建” | 更新手机上的 Fast Media Sorter & Organizer，或使用匹配版本的伴侣程序重新导出 |
 | 资源已添加但文件夹为空 | 确认电脑上的辅助程序仍在运行。在**同一 Wi-Fi** 下应用会自动找到电脑；如果仍然失败，应用会提示需要检查的内容 |
 | 在 Wi-Fi 下可用，但移动数据下不行 | 要从其他网络访问电脑，电脑必须能从互联网访问到 - 请在伴侣程序的**共享**设置中配置端口转发或 IPv6。否则共享仅在同一 Wi-Fi 下可用 |
 

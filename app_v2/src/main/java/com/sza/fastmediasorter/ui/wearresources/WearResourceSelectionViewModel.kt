@@ -99,6 +99,11 @@ class WearResourceSelectionViewModel @Inject constructor(
         }
     }
 
+    /** S4626: puts the remembered expansion back before the first list is drawn. */
+    fun restoreExpandedCategories(categories: Set<ResourceCategory>) {
+        _uiState.value = _uiState.value.copy(expandedCategories = categories)
+    }
+
     /** Toggle expansion of a resource group in the UI list. */
     fun toggleCategoryExpanded(category: ResourceCategory) {
         val current = _uiState.value.expandedCategories

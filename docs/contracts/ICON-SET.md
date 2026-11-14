@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.11.11 12:54</sub>
+<sub class="doc-stamp">26.11.14 13:36</sub>
 
 # Pointer - `ICON-SET`
 
 | | |
 | --- | --- |
 | **Id** | `ICON-SET` |
-| **Version** | 0.39, draft. Owner: this product |
+| **Version** | 0.40, draft. Owner: this product |
 | **Home** | `iconography/README.md` section 2 in the shared contracts catalog |
 | **Role here** | owner and reference implementation - phone, launcher, watch, documentation and the website |
 
@@ -29,6 +29,10 @@
 - A retry control draws `action.retry` (0.33, S4255, section 18) and reads "Повторить попытку" /
   "Повторити спробу" in ru/uk; the bare "Повторить" / "Повторити" stays the name of `action.redo`.
 - The help action draws `app.help` and reads its normative name in every shipped locale (0.34).
+- Six meanings enter as `proposed` records with this product's own drawings, for its sibling-set migration under
+  `ICON-RENDER` section 25 (0.40, section 26, S4570): `view.compact`, `app.animations`, `app.units`,
+  `media.visualizer`, `view.full-resolution` and `view.halo`. Each turns `active` on the first shipped report
+  (rule 6), and no existing record's picture, name or `distinct` set changes.
 - The documentation and the site show the meaning's glyph beside its name - never an emoji, never a
   picture chosen to decorate the page.
 - The glyphs, looks, `palette.json`, `CATALOG.md` and `gallery.html` are regenerated from this

@@ -149,14 +149,11 @@
 
             <com.google.android.material.checkbox.MaterialCheckBox
                 android:id="@+id/cbFilterImage"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:minWidth="0dp"
-                android:minHeight="0dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:minHeight="0dp"
                 android:text="@string/media_type_image"
                 android:textSize="@dimen/resource_card_desc_text_size" />
 
@@ -173,14 +170,11 @@
 
             <com.google.android.material.checkbox.MaterialCheckBox
                 android:id="@+id/cbFilterVideo"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:minWidth="0dp"
-                android:minHeight="0dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:minHeight="0dp"
                 android:text="@string/media_type_video"
                 android:textSize="@dimen/resource_card_desc_text_size" />
 
@@ -206,14 +200,11 @@
 
             <com.google.android.material.checkbox.MaterialCheckBox
                 android:id="@+id/cbFilterAudio"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:minWidth="0dp"
-                android:minHeight="0dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:minHeight="0dp"
                 android:text="@string/media_type_audio"
                 android:textSize="@dimen/resource_card_desc_text_size" />
 
@@ -230,14 +221,11 @@
 
             <com.google.android.material.checkbox.MaterialCheckBox
                 android:id="@+id/cbFilterGif"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:minWidth="0dp"
-                android:minHeight="0dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:minHeight="0dp"
                 android:text="@string/media_type_gif"
                 android:textSize="@dimen/resource_card_desc_text_size" />
 
@@ -263,14 +251,11 @@
 
             <com.google.android.material.checkbox.MaterialCheckBox
                 android:id="@+id/cbFilterText"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:minWidth="0dp"
-                android:minHeight="0dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:minHeight="0dp"
                 android:text="@string/media_type_text"
                 android:textSize="@dimen/resource_card_desc_text_size" />
 
@@ -287,14 +272,11 @@
 
             <com.google.android.material.checkbox.MaterialCheckBox
                 android:id="@+id/cbFilterPdf"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:minWidth="0dp"
-                android:minHeight="0dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:minHeight="0dp"
                 android:text="@string/media_type_pdf"
                 android:textSize="@dimen/resource_card_desc_text_size" />
 
@@ -320,14 +302,11 @@
 
             <com.google.android.material.checkbox.MaterialCheckBox
                 android:id="@+id/cbFilterEpub"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:minWidth="0dp"
-                android:minHeight="0dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:minHeight="0dp"
                 android:text="@string/media_type_epub"
                 android:textSize="@dimen/resource_card_desc_text_size" />
 
@@ -344,14 +323,11 @@
 
             <com.google.android.material.checkbox.MaterialCheckBox
                 android:id="@+id/cbFilterOffice"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:minWidth="0dp"
-                android:minHeight="0dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:minHeight="0dp"
                 android:text="@string/media_type_office_documents"
                 android:textSize="@dimen/resource_card_desc_text_size" />
 

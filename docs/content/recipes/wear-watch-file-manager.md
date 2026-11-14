@@ -12,7 +12,7 @@ availability_note: The full version of the watch app (sideload only), with the p
 recipe_number: "10"
 canonical_url: documentation/wear/watch-file-manager.html
 why: |
-  A watch screen is about the size of a postage stamp, so a [file browser](term:file-browser) on it has to earn every pixel. On the watch, FastMediaSorter shows the same kinds of files in the same way wherever they live - on the watch itself, on your [phone](term:phone) or on a [network resource](term:network-resource) - and lets you do the everyday chores right there: pick a few files, send them to the phone, tidy up a name, delete what you no longer need.
+  A watch screen is about the size of a postage stamp, so a [file browser](term:file-browser) on it has to earn every pixel. On the watch, Fast Media Sorter & Organizer shows the same kinds of files in the same way wherever they live - on the watch itself, on your [phone](term:phone) or on a [network resource](term:network-resource) - and lets you do the everyday chores right there: pick a few files, send them to the phone, tidy up a name, delete what you no longer need.
 
   And when a file is simply too much for a small round screen - a PDF, a long text, an archive - one tap hands it to the phone, which opens it in the right viewer.
 ingredients:

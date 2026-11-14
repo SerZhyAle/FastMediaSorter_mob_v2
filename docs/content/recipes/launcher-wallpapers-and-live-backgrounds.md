@@ -14,7 +14,7 @@ why: |
 
   All wallpaper choices sit on one screen, each with a sentence saying what it does, and the app looks after the battery for you.
 ingredients:
-  - "FastMediaSorter in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition), with the [launcher](term:launcher) desktop open - see [Your launcher desktop](page:launcher.desktop-grid-and-icons)."
+  - "Fast Media Sorter & Organizer in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition), with the [launcher](term:launcher) desktop open - see [Your launcher desktop](page:launcher.desktop-grid-and-icons)."
   - "For your own wallpaper: a picture or an animated GIF on the device."
   - "For the camera wallpapers: a device with a camera, and your permission for the app to use it."
 steps:
@@ -122,4 +122,4 @@ next_recipes:
 
 <sub class="doc-stamp">26.10.07 01:10</sub>
 
-The launcher desktop can draw six kinds of wallpaper, from the moving waves and particles of the FastMediaSorter brand to your own photo or a live camera view. This page shows how to choose one and tune it.
+The launcher desktop can draw six kinds of wallpaper, from the moving waves and particles of the Fast Media Sorter & Organizer brand to your own photo or a live camera view. This page shows how to choose one and tune it.

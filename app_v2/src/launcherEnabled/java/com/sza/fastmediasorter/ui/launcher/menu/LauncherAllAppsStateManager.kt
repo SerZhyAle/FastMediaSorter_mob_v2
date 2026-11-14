@@ -12,6 +12,13 @@ class LauncherAllAppsStateManager(private val preferences: SharedPreferences) {
         preferences.edit().putStringSet(EXPANDED_KEYS, keys.toSet()).apply()
     }
 
+    /** Letter groups and the preview group, kept apart from the category set so each keeps its own meaning. */
+    fun expandedGroupKeys(): Set<String> = preferences.getStringSet(EXPANDED_GROUPS, emptySet()).orEmpty().toSet()
+
+    fun saveExpandedGroupKeys(keys: Set<String>) {
+        preferences.edit().putStringSet(EXPANDED_GROUPS, keys.toSet()).apply()
+    }
+
     fun anchor(): Anchor? {
         val key = preferences.getString(ANCHOR_KEY, null) ?: return null
         return Anchor(key, preferences.getInt(ANCHOR_POSITION, 0), preferences.getInt(ANCHOR_OFFSET, 0))
@@ -27,6 +34,7 @@ class LauncherAllAppsStateManager(private val preferences: SharedPreferences) {
 
     companion object {
         private const val EXPANDED_KEYS = "expanded_categories"
+        private const val EXPANDED_GROUPS = "expanded_groups"
         private const val ANCHOR_KEY = "anchor_key"
         private const val ANCHOR_POSITION = "anchor_position"
         private const val ANCHOR_OFFSET = "anchor_offset"

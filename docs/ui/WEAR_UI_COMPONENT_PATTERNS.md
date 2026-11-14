@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.18 17:06</sub>
+<sub class="doc-stamp">26.11.14 21:47</sub>
 
 # Wear UI Component Patterns and Unification Catalogue
 
@@ -7,6 +7,8 @@ Scope: The `wear` module, covering all Jetpack Compose for Wear OS screens, dial
 This document is an architectural standard, not an informal report. Every rule and contract specified below is mandatory for future changes touching the Wear OS user interface. All metrics and counts are reproducible from the codebase audit conducted during ticket S3232 (Phase 01 and Phase 02 inventories in `PLAN/S3232_research-wear-ui-component-patterns/research/`).
 
 The phone module (`app_v2`) is out of scope and governed separately by `docs/ui/PHONE_UI_COMPONENT_PATTERNS.md`.
+
+The watch profile of the shared UI contracts - which of these components are a permanent toolkit variant, which are product-drawn and which deviations are open - is recorded in `docs/ui/WEAR_SIZE_PROFILE.md`.
 
 ---
 
@@ -145,6 +147,8 @@ The module's one toggle row, shipped in S3260 - it replaced the hand-rolled `Wea
 
 A full-width row wraps its label with no line cap (S3362): one line and an ellipsis truncated the settings labels on the 192 dp review emulator, which WO-V1 fails. A `narrow` cell keeps the two-line cap.
 
+A boolean row (`radio = false`) follows `BOOLEAN-OPTION` 2.1: the checkbox glyph leads the row inside the label slot, top-aligned with the caption's first line and 8 dp before it, and the row carries `Role.Checkbox` (S4627). The toolkit's trailing control box stays empty on that row, so the chip's end padding is dropped. A radio row is a single choice outside that contract and keeps the trailing radio glyph.
+
 ```kotlin
 @Composable
 fun StandardWearToggleChip(
@@ -156,18 +160,24 @@ fun StandardWearToggleChip(
     accessibilityLabel: String = label,
     narrow: Boolean = false
 ) {
-    val toggleIcon = if (radio) {
+    val glyph = if (radio) {
         ToggleChipDefaults.radioIcon(checked)
     } else {
-        ToggleChipDefaults.switchIcon(checked)
+        ToggleChipDefaults.checkboxIcon(checked)
     }
+    val tint = if (checked) WearAppTheme.colors.toggleOn else WearAppTheme.colors.toggleOff
     ToggleChip(
         checked = checked,
         onCheckedChange = onCheckedChange,
         modifier = modifier
+            .semantics { if (!radio) role = Role.Checkbox }
             .fillMaxWidth()
             .heightIn(min = 52.dp),
         label = {
+            if (!radio) {
+                StateGlyph(glyph, tint, Modifier.align(Alignment.Top)) // 24 dp icon
+                Spacer(Modifier.width(8.dp))
+            }
             Text(
                 text = label,
                 style = MaterialTheme.typography.caption1,
@@ -175,15 +185,10 @@ fun StandardWearToggleChip(
                 overflow = TextOverflow.Ellipsis
             )
         },
-        toggleControl = {
-            Icon(
-                imageVector = toggleIcon,
-                contentDescription = null,
-                tint = if (checked) WearAppTheme.colors.toggleOn else WearAppTheme.colors.toggleOff,
-                modifier = Modifier.size(24.dp)
-            )
-        },
-        colors = ToggleChipDefaults.toggleChipColors()
+        toggleControl = { if (radio) StateGlyph(glyph, tint) },
+        colors = ToggleChipDefaults.toggleChipColors(),
+        // checkbox row: start 14, top 6, end 0, bottom 6 dp
+        contentPadding = if (radio) ToggleChipDefaults.ContentPadding else CHECKBOX_ROW_PADDING
     )
 }
 ```

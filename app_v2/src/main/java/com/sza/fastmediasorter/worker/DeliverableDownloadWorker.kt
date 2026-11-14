@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.domain.delivery.DeliverableSetDownloader
 import com.sza.fastmediasorter.domain.delivery.DownloadProgress
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 
 /**
@@ -38,14 +39,11 @@ class DeliverableDownloadWorker @AssistedInject constructor(
         context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
     override suspend fun doWork(): Result {
-        val setName = inputData.getString(KEY_DELIVERABLE_SET) ?: return Result.failure()
-        val set = try {
-            DeliverableSet.valueOf(setName)
-        } catch (e: Exception) {
-            return Result.failure()
-        }
+        val set = deliverableSetNamed(inputData.getString(KEY_DELIVERABLE_SET)) ?: return Result.failure()
 
-        if (repository.isInstalledBlocking(set)) {
+        // A forced run replaces a stale payload that is still on disk; only an unforced one may stop here.
+        val force = inputData.getBoolean(KEY_FORCE, false)
+        if (isAlreadyDone(force, repository.isInstalled(set))) {
             return Result.success()
         }
 
@@ -102,10 +100,16 @@ class DeliverableDownloadWorker @AssistedInject constructor(
                     result = Result.failure(workDataOf("reason" to progress.reason))
                 }
             }
+        } catch (e: CancellationException) {
+            // The system or the runner stopped the job: that is not a failure to report, and swallowing it
+            // would let a cancelled job finish as if it had been allowed to.
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "DeliverableDownloadWorker failed for $set")
             showFailureNotification(set)
             result = Result.failure(workDataOf("reason" to (e.message ?: "Unknown error")))
+        } finally {
+            notificationManager.cancel(notificationId(set))
         }
 
         return result
@@ -193,6 +197,13 @@ class DeliverableDownloadWorker @AssistedInject constructor(
 
     companion object {
         const val KEY_DELIVERABLE_SET = "deliverable_set"
+        const val KEY_FORCE = "deliverable_force"
         const val NOTIFICATION_CHANNEL_ID = "deliverable_download_channel"
+
+        internal fun deliverableSetNamed(name: String?): DeliverableSet? =
+            DeliverableSet.entries.firstOrNull { it.name == name }
+
+        /** True when there is nothing to fetch: a payload is present and nobody asked to replace it. */
+        internal fun isAlreadyDone(force: Boolean, installed: Boolean): Boolean = installed && !force
     }
 }

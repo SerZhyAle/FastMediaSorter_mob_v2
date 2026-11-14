@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "स्मार्टवॉच को NAS और पीसी शेयर से जोड़ें - FastMediaSorter v2"
+title: "स्मार्टवॉच को NAS और पीसी शेयर से जोड़ें - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-watch-network-hi.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -13,7 +13,7 @@ permalink: /docs/howto/scenario-watch-network-hi.html
 
 > **सिर्फ़ फुल वर्शन** - यह गाइड Google Play से मिलने वाले वर्शन में लागू नहीं है. यह फुल वर्शन पर लागू होता है, जो [Downloads](../DOWNLOADS.md) से सीधा APK डाउनलोड है.
 
-Wear OS पर FastMediaSorter Wi-Fi पर सीधे आपके होम नेटवर्क स्टोरेज (NAS, पीसी शेयर की गई फ़ोल्डर, FTP, या SFTP सर्वर) से जुड़ता है. आप रिमोट फ़ाइलें ब्राउज़ कर सकते हैं, Bluetooth हेडफ़ोन पर म्यूज़िक स्ट्रीम कर सकते हैं, और अपने फोन के बिना अपने पसंदीदा फ़ोल्डर सिंक कर सकते हैं.
+Wear OS पर Fast Media Sorter & Organizer Wi-Fi पर सीधे आपके होम नेटवर्क स्टोरेज (NAS, पीसी शेयर की गई फ़ोल्डर, FTP, या SFTP सर्वर) से जुड़ता है. आप रिमोट फ़ाइलें ब्राउज़ कर सकते हैं, Bluetooth हेडफ़ोन पर म्यूज़िक स्ट्रीम कर सकते हैं, और अपने फोन के बिना अपने पसंदीदा फ़ोल्डर सिंक कर सकते हैं.
 
 > **नेटवर्क शेयर से नए हैं?** अगर आपने अभी तक अपने पीसी या NAS पर कोई शेयर की गई फ़ोल्डर सेट नहीं की है, तो पहले हमारी [NAS / Windows शेयर (SMB) से जुड़ें](scenario-smb-setup-hi.md) गाइड से शुरू करें.
 
@@ -36,7 +36,7 @@ Wear OS पर FastMediaSorter Wi-Fi पर सीधे आपके होम 
 
 ![Resources screen on Wear OS](screenshots/screenshot-wear-network-step1.png)
 
-> **Sync from Phone शॉर्टकट:** अगर आपने पहले ही अपने Android फोन पर FastMediaSorter में अपने SMB या SFTP शेयर जोड़ रखे हैं, तो एक टैप में सभी कनेक्शन सेटिंग्स अपनी वॉच पर इम्पोर्ट करने के लिए **Sync from Phone** टैप करें.
+> **Sync from Phone शॉर्टकट:** अगर आपने पहले ही अपने Android फोन पर Fast Media Sorter & Organizer में अपने SMB या SFTP शेयर जोड़ रखे हैं, तो एक टैप में सभी कनेक्शन सेटिंग्स अपनी वॉच पर इम्पोर्ट करने के लिए **Sync from Phone** टैप करें.
 
 ---
 

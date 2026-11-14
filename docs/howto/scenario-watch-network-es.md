@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Conecta tu Smartwatch a Recursos Compartidos de NAS y PC - FastMediaSorter v2"
+title: "Conecta tu Smartwatch a Recursos Compartidos de NAS y PC - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-watch-network-es.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -13,7 +13,7 @@ permalink: /docs/howto/scenario-watch-network-es.html
 
 > **Solo versión completa** - esta guía no está implementada en la versión distribuida a través de Google Play. Aplica a la versión completa, una descarga directa de APK desde [Descargas](../DOWNLOADS.md).
 
-FastMediaSorter en Wear OS se conecta directamente al almacenamiento de tu red de casa (NAS, carpetas compartidas del PC, servidores FTP o SFTP) por Wi-Fi. Puedes explorar archivos remotos, transmitir música a audífonos Bluetooth, y sincronizar tus carpetas favoritas sin necesitar tu teléfono.
+Fast Media Sorter & Organizer en Wear OS se conecta directamente al almacenamiento de tu red de casa (NAS, carpetas compartidas del PC, servidores FTP o SFTP) por Wi-Fi. Puedes explorar archivos remotos, transmitir música a audífonos Bluetooth, y sincronizar tus carpetas favoritas sin necesitar tu teléfono.
 
 > **¿Nuevo en recursos compartidos de red?** Si aún no has configurado una carpeta compartida en tu PC o NAS, comienza primero con nuestra guía [Conectar a NAS / Recurso Compartido de Windows (SMB)](scenario-smb-setup-es.md).
 
@@ -36,7 +36,7 @@ FastMediaSorter en Wear OS se conecta directamente al almacenamiento de tu red d
 
 ![Pantalla de Recursos en Wear OS](screenshots/screenshot-wear-network-step1.png)
 
-> **Acceso directo Sincronizar desde el Teléfono:** Si ya agregaste tus recursos SMB o SFTP en FastMediaSorter en tu teléfono Android, toca **Sincronizar desde el Teléfono** para importar toda la configuración de conexión a tu reloj con un solo toque.
+> **Acceso directo Sincronizar desde el Teléfono:** Si ya agregaste tus recursos SMB o SFTP en Fast Media Sorter & Organizer en tu teléfono Android, toca **Sincronizar desde el Teléfono** para importar toda la configuración de conexión a tu reloj con un solo toque.
 
 ---
 

@@ -13,9 +13,9 @@ canonical_url: documentation/storage/file-encryption-and-security.html
 why: |
   Your children borrow the phone to watch cartoons, and you would rather they did not wander into the folder with scanned passports. Or you keep a copy of a contract on the home computer and want it unreadable to anyone who opens that computer.
 
-  FastMediaSorter has two locks for this. A [PIN](term:pin) closes a whole [resource](term:resource) inside the app. An encrypted container turns one file into a sealed `.fd-sec` file that nobody can open without the password - not in this app, not on a computer.
+  Fast Media Sorter & Organizer has two locks for this. A [PIN](term:pin) closes a whole [resource](term:resource) inside the app. An encrypted container turns one file into a sealed `.fd-sec` file that nobody can open without the password - not in this app, not on a computer.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition). Containers next to files in [cloud storage](term:cloud-storage) work in the editions that have cloud storage: Standard, noLegal, Photos, Legacy and VR."
+  - "Fast Media Sorter & Organizer in any [edition](term:edition). Containers next to files in [cloud storage](term:cloud-storage) work in the editions that have cloud storage: Standard, noLegal, Photos, Legacy and VR."
   - "For containers: a file in a folder the app can write to."
   - "Optional: the FileDO program for Windows, which opens the same `.fd-sec` containers on a computer."
 steps:
@@ -37,7 +37,7 @@ steps:
     callout:
       type: warning
       title: There is no "forgot my PIN"
-      text: "The app cannot recover a forgotten PIN. If you forget it, remove the resource and add the folder again - your files are not affected. A PIN protects the resource inside FastMediaSorter only; other apps and a computer still see the folder."
+      text: "The app cannot recover a forgotten PIN. If you forget it, remove the resource and add the folder again - your files are not affected. A PIN protects the resource inside Fast Media Sorter & Organizer only; other apps and a computer still see the folder."
   - number: 2
     id: switch-on
     title: Switch on the encryption commands

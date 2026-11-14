@@ -14,7 +14,7 @@ why: |
 
   Everything on this page changes only the layout. No app, folder or file is ever deleted by rearranging the desktop.
 ingredients:
-  - "FastMediaSorter in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition), with the [launcher](term:launcher) desktop open - see [Your launcher desktop](page:launcher.desktop-grid-and-icons)."
+  - "Fast Media Sorter & Organizer in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition), with the [launcher](term:launcher) desktop open - see [Your launcher desktop](page:launcher.desktop-grid-and-icons)."
   - "A few squares on the [desktop](term:desktop) to move around."
 steps:
   - number: 1

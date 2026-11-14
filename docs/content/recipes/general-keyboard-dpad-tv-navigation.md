@@ -2,7 +2,7 @@
 page_id: general.keyboard-dpad-tv-navigation
 title: Keyboard, D-Pad and Android TV Control - Using the App Without Touching the Screen
 nav_title: Keyboard, D-pad and TV control
-description: Running FastMediaSorter on an Android TV box with a remote, moving around with a D-pad or the arrow keys, handling every dialog from the keyboard, the default keyboard shortcuts, the mouse and its buttons, selecting many files with a sweep, and typing in text fields with a keyboard attached.
+description: Running Fast Media Sorter & Organizer on an Android TV box with a remote, moving around with a D-pad or the arrow keys, handling every dialog from the keyboard, the default keyboard shortcuts, the mouse and its buttons, selecting many files with a sweep, and typing in text fields with a keyboard attached.
 category: "General, Keyboard & TV"
 category_slug: general
 ticket: S2963
@@ -11,11 +11,11 @@ availability_note: All editions - keyboard and dialog control everywhere; the au
 recipe_number: "02"
 canonical_url: documentation/general/keyboard-dpad-tv-navigation.html
 why: |
-  Not every screen is a phone in your hand. FastMediaSorter also runs on a [TV](term:tv) box in the living room, on a [car head unit](term:car-head-unit), on a tablet with a keyboard cover and on a Chromebook with a mouse. On all of them you should be able to open a folder, look through photos and answer a question in a dialog without ever touching the glass.
+  Not every screen is a phone in your hand. Fast Media Sorter & Organizer also runs on a [TV](term:tv) box in the living room, on a [car head unit](term:car-head-unit), on a tablet with a keyboard cover and on a Chromebook with a mouse. On all of them you should be able to open a folder, look through photos and answer a question in a dialog without ever touching the glass.
 
   This page shows how: the remote and its [D-pad](term:d-pad), the keyboard and its shortcuts, and the mouse with its buttons and wheel.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition)."
+  - "Fast Media Sorter & Organizer in any [edition](term:edition)."
   - "One of these: a TV remote, a game controller, a keyboard (Bluetooth, USB or a keyboard cover) or a mouse."
   - "For the TV: an Android TV or Google TV box. The app does not need a touchscreen."
 steps:
@@ -23,17 +23,17 @@ steps:
     id: tv
     title: Start the app on a TV
     text: |
-      On an Android TV or Google TV box, FastMediaSorter appears in the TV's own app row with its own wide banner, like any app made for the big screen - no need to dig through the phone apps list. Open it with the center button of the remote.
+      On an Android TV or Google TV box, Fast Media Sorter & Organizer appears in the TV's own app row with its own wide banner, like any app made for the big screen - no need to dig through the phone apps list. Open it with the center button of the remote.
 
       A TV box needs no touchscreen, and the app does not ask for one. To make the app feel at home on the big screen from the start, pick the **TV / media box** [device profile](term:device-profile) in the [welcome wizard](term:welcome-wizard) or later in **[Settings](term:settings)** - it chooses sensible defaults for a remote.
     image_bookmark:
       shot_id: general.tv-app-row-banner
       device_profile: tv
       screen_state: tv-home-app-row-with-banner
-      alt: The Android TV home screen with the FastMediaSorter banner in the row of apps
-      caption: "FastMediaSorter in the TV's app row."
+      alt: The Android TV home screen with the Fast Media Sorter & Organizer banner in the row of apps
+      caption: "Fast Media Sorter & Organizer in the TV's app row."
       title: "Screenshot: App banner on Android TV"
-      desc: Android TV home screen, the apps row with the FastMediaSorter banner focused.
+      desc: Android TV home screen, the apps row with the Fast Media Sorter & Organizer banner focused.
   - number: 2
     id: dpad
     title: Move around with the D-pad or the arrow keys
@@ -98,7 +98,7 @@ steps:
     id: mouse
     title: Use a mouse
     text: |
-      With a mouse, FastMediaSorter behaves like software on a computer:
+      With a mouse, Fast Media Sorter & Organizer behaves like software on a computer:
 
       - **Click** selects, a **double click** opens.
       - **Right click** opens the menu of the item under the pointer.
@@ -132,7 +132,7 @@ steps:
       title: "Screenshot: Typing in landscape"
       desc: Phone in landscape, the filter dialog open with the on-screen keyboard shown and the filter text field visible above it.
 outcome: |
-  You can run FastMediaSorter from the sofa with a TV remote, from a desk with a keyboard and mouse, or from a car's D-pad: every screen starts with the selection on something useful, every dialog answers to Escape and Enter, and the most common commands have their own key.
+  You can run Fast Media Sorter & Organizer from the sofa with a TV remote, from a desk with a keyboard and mouse, or from a car's D-pad: every screen starts with the selection on something useful, every dialog answers to Escape and Enter, and the most common commands have their own key.
 tips:
   - "**Player keys:** G opens thumbnails, F4 the file list, N a file number, Y a random file, and Up/Down steps back/forward 10 files; Shift+PageUp/PageDown steps 100. R/Shift+R rotates supported media, brackets change speed, and A changes a video audio track. On video, . requests the next frame and Shift+L sets or clears A-B repeat. S accelerates a running slideshow down to 1 second; I uses random order. Collection actions also work in folder-aware separate players. Fields and modal windows keep these keys for themselves."
   - "**Lost the selection frame?** Press any arrow key once - the frame appears on the current control."
@@ -159,4 +159,4 @@ next_recipes:
 
 <sub class="doc-stamp">26.10.19 16:16</sub>
 
-A remote, a keyboard, a game controller or a mouse - FastMediaSorter answers to all of them. This page shows how to move around, answer dialogs, use the shortcuts and select files without touching the screen.
+A remote, a keyboard, a game controller or a mouse - Fast Media Sorter & Organizer answers to all of them. This page shows how to move around, answer dialogs, use the shortcuts and select files without touching the screen.

@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Mit NAS / Windows-Freigabe verbinden (SMB) - FastMediaSorter v2"
+title: "Mit NAS / Windows-Freigabe verbinden (SMB) - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-smb-setup-de.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -13,7 +13,7 @@ permalink: /docs/howto/scenario-smb-setup-de.html
 
 SMB (auch Windows-Dateifreigabe oder CIFS genannt) lässt Sie Dateien auf Ihrem Heim-PC, Laptop oder NAS-Gerät genau so durchsuchen, als wären sie auf Ihrem Handy - keine Kabel, kein USB, nur Wi-Fi.
 
-> **Einfach erklärt:** Stellen Sie sich vor, Ihr PC hat ein öffentliches Schwarzes Brett in Ihrem Heim-Wi-Fi. Jedes Gerät im Haus kann von diesem Brett lesen. FastMediaSorter verbindet sich mit diesem „Brett“ (Ihrem freigegebenen Ordner) und lässt Sie Ihre Dateien durchsuchen, als wären sie direkt auf Ihrem Handy gespeichert. Nichts wird im Voraus kopiert oder heruntergeladen - Dateien öffnen sich bei Bedarf.
+> **Einfach erklärt:** Stellen Sie sich vor, Ihr PC hat ein öffentliches Schwarzes Brett in Ihrem Heim-Wi-Fi. Jedes Gerät im Haus kann von diesem Brett lesen. Fast Media Sorter & Organizer verbindet sich mit diesem „Brett“ (Ihrem freigegebenen Ordner) und lässt Sie Ihre Dateien durchsuchen, als wären sie direkt auf Ihrem Handy gespeichert. Nichts wird im Voraus kopiert oder heruntergeladen - Dateien öffnen sich bei Bedarf.
 
 ---
 
@@ -67,12 +67,14 @@ Unter **Windows:**
 
 ---
 
-## Schritt 3 - FastMediaSorter öffnen und auf „+“ tippen
+<a id="schritt-3---fastmediasorter-öffnen-und-auf--tippen"></a>
+
+## Schritt 3 - Fast Media Sorter & Organizer öffnen und auf „+“ tippen
 
 1. Öffnen Sie die App
 2. Tippen Sie auf dem **Hauptbildschirm** auf die Schaltfläche **„Hinzufügen“ <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** in der oberen Symbolleiste
 
-![FastMediaSorter Hauptbildschirm - Schaltfläche Hinzufügen in der oberen Symbolleiste hervorgehoben, SMB-Reiter sichtbar](screenshots/screenshot-smb-step3.png)
+![Fast Media Sorter & Organizer Hauptbildschirm - Schaltfläche Hinzufügen in der oberen Symbolleiste hervorgehoben, SMB-Reiter sichtbar](screenshots/screenshot-smb-step3.png)
 
 ---
 
@@ -147,7 +149,7 @@ Tippen Sie auf **„Speichern“**. Der neue Ordner erscheint mit einem SMB-Abze
 
 Tippen Sie darauf, um seinen Inhalt zu durchsuchen - Fotos, Videos und andere Dateien erscheinen als Vorschaubilder wie jeder lokale Ordner.
 
-![FastMediaSorter Hauptbildschirm - neue SMB-Ressourcenkarte „Common“ (smb://192.168.1.100/Common) mit hervorgehobenem Netzwerkordner-SMB-Abzeichen](screenshots/screenshot-smb-step8.png)
+![Fast Media Sorter & Organizer Hauptbildschirm - neue SMB-Ressourcenkarte „Common“ (smb://192.168.1.100/Common) mit hervorgehobenem Netzwerkordner-SMB-Abzeichen](screenshots/screenshot-smb-step8.png)
 
 ---
 

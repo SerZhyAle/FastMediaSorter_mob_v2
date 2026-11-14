@@ -9,7 +9,8 @@
     reaches readers with no Android release in between, and only the author of the change knows
     which word, link, image or generated page they meant.
 
-      - docs-termbase         (S2974) forbidden synonyms in a changed page or termbase record
+      - docs-termbase         (S2974) forbidden synonyms in a changed page, help source or termbase
+                              record, and the per-locale definition files
       - docs-crosslinks       (S2945) page and root landing links against the published site (S3705)
       - docs-screenshots      (S2977) every referenced image exists and carries alt text
       - docs-search           (S2970) search index shape, sample queries, responsive stylesheet
@@ -39,7 +40,7 @@
     Sourced, never executed directly, so it declares no exit codes of its own.
 #>
 
-$runsDocsTermbase = Test-AnyChangedFile '^(docs/termbase\.jsonl|docs/content/recipes/.*\.md|documentation/.*\.md)$'
+$runsDocsTermbase = Test-AnyChangedFile '^(docs/termbase\.jsonl|docs/content/recipes/.*\.md|docs/content/help/[^/]+\.json|scripts/docs/lib/termbase-definitions-[^/]+\.json|documentation/.*\.md)$'
 $runsDocsCorpus = Test-AnyChangedFile '^(documentation/|docs/content/|docs/docs-pages-manifest\.jsonl$|index[^/]*\.html$)'
 
 $runsSiteAddresses = Test-AnyChangedFile '^(404\.html$|docs/site-redirects\.jsonl$|docs/docs-pages-manifest\.jsonl$|docs/coverage-manifest\.jsonl$|documentation/|docs/content/|scripts/docs/(generate-site-redirects|retire-docs-page)\.ps1$|scripts/docs/lib/(site|held)-addresses\.ps1$|scripts/quality/assert-site-addresses(\.ps1$|\.tests/)|docs/site-held-addresses\.jsonl$|docs/site-address-groups\.json$|_data/languages\.yml$|app_v2/src/main/java/com/sza/fastmediasorter/ui/(common/support/SupportIntentFactory|common/input/InputHelpLinkResolver|settings/helpers/GeneralSettingsLinkButtonsSetupHelper|broadcast/helpers/BroadcastShareLinkFactory)\.kt$|wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearPortalLinks\.kt$|README\.md$|docs/README[^/]*\.md$|play/listing/|fastlane/metadata/|store_assets/post\.md$|meta/listing/README\.md$)'
@@ -90,7 +91,7 @@ if ($runsDocsTermbase) {
     Invoke-Gate "docs-termbase" { Invoke-GateChild @argvDocsTermbase }
 }
 else {
-    Skip-Step "docs-termbase" "not applicable - no changed termbase, recipe or documentation/*.md page"
+    Skip-Step "docs-termbase" "not applicable - no changed termbase, definition file, help source, recipe or documentation/*.md page"
 }
 
 # S4097: fatal - SITE-STRUCTURE 0.1 rules 8, 13 and 15; the subject is a handful of small files, so it runs on its own trigger.

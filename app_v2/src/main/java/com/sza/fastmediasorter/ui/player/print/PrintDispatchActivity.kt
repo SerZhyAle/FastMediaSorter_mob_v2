@@ -99,15 +99,20 @@ class PrintDispatchActivity : AppCompatActivity() {
         outState.putBoolean(STATE_TEXT_JOB_DISPATCHED, textJobDispatched)
     }
 
-    // Guard-clause early returns on the unavailable/fallback paths - ReturnCount is intentional.
-    @Suppress("ReturnCount")
     private fun dispatchPdf() {
         val current = request ?: return finish()
         val file = File(current.filePath)
-        if (!file.exists()) {
-            showUnavailableAndFinish(current)
-            return
+        // onPostResume() runs on the main thread, and the existence check is a disk read.
+        lifecycleScope.launch {
+            if (!withContext(Dispatchers.IO) { file.exists() }) {
+                showUnavailableAndFinish(current)
+                return@launch
+            }
+            printPdfOrFallback(file, current)
         }
+    }
+
+    private fun printPdfOrFallback(file: File, current: PrintRequest) {
         val printManager = getSystemService(PrintManager::class.java)
         if (printManager == null) {
             fallbackToShareOrFail(file, current, "application/pdf")
@@ -132,20 +137,23 @@ class PrintDispatchActivity : AppCompatActivity() {
         }
     }
 
-    // Guard-clause early return on the missing-file path - ReturnCount is intentional.
-    @Suppress("ReturnCount")
     private fun dispatchText() {
+        Timber.d("S4580: dispatchText checks the file on IO")
         val current = request ?: return finish()
         val file = File(current.filePath)
-        if (!file.exists()) {
-            showUnavailableAndFinish(current)
-            return
-        }
         // S1195: the read and the escaping both scale with file size and used to run on the main
         // thread straight out of onPostResume(). lifecycleScope binds the work to the Activity, so
-        // a teardown mid-read cancels it instead of resuming into a dead WebView.
+        // a teardown mid-read cancels it instead of resuming into a dead WebView. The existence check
+        // is a disk read too, so it shares the IO block with the read.
         lifecycleScope.launch {
-            val escaped = withContext(Dispatchers.IO) { readAndEscapeForPrint(file) }
+            val (exists, escaped) = withContext(Dispatchers.IO) {
+                val present = file.exists()
+                present to if (present) readAndEscapeForPrint(file) else null
+            }
+            if (!exists) {
+                showUnavailableAndFinish(current)
+                return@launch
+            }
             if (escaped == null) {
                 fallbackToShareOrFail(file, current, "text/plain")
                 return@launch
@@ -218,20 +226,22 @@ class PrintDispatchActivity : AppCompatActivity() {
     // S0610/S0919: image print is routed here so One UI reaches PrintManager.print() from a clean
     // Activity context (BaseActivity's createConfigurationContext wrapper trips "Can print only from
     // an activity").
-    // Guard-clause early return on the missing-file path - ReturnCount is intentional.
-    @Suppress("ReturnCount")
     private fun dispatchImage() {
         val current = request ?: return finish()
         val file = File(current.filePath)
-        if (!file.exists()) {
-            showUnavailableAndFinish(current)
-            return
-        }
         // S1195: decodeFile reads and decodes the whole image; from onPostResume() that was a
         // main-thread stall proportional to file size. Same defect as the text path - the old
         // MainThreadIo rule missed it only because decodeFile is not one of the names it watches.
+        // The existence check is a disk read too, so it shares the IO block with the decode.
         lifecycleScope.launch {
-            val bitmap = withContext(Dispatchers.IO) { decodeBitmapForPrint(file) }
+            val (exists, bitmap) = withContext(Dispatchers.IO) {
+                val present = file.exists()
+                present to if (present) decodeBitmapForPrint(file) else null
+            }
+            if (!exists) {
+                showUnavailableAndFinish(current)
+                return@launch
+            }
             if (bitmap == null) {
                 fallbackToShareOrFail(file, current, "image/*")
                 return@launch

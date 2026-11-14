@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.domain.repository
 
+import com.sza.fastmediasorter.wear.domain.model.WearBroadcastRoute
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -32,6 +33,7 @@ class SelectedMediaManager @Inject constructor() {
      * @param streamUri The full URI for streaming (for network files)
      * @param sourceId Id of the network source the file was browsed from
      * @param phoneToken Browse token of the phone's original, for a copy fetched from the paired phone
+     * @param broadcastRoute The broadcast and endpoint a direct stream was resolved from, or null
      */
     fun selectFile(
         file: WearMediaFile,
@@ -39,7 +41,8 @@ class SelectedMediaManager @Inject constructor() {
         streamUri: String? = null,
         sourceId: String? = null,
         isDirectStream: Boolean = false,
-        phoneToken: String? = null
+        phoneToken: String? = null,
+        broadcastRoute: WearBroadcastRoute? = null
     ) {
         val effectiveStreamUri = streamUri ?: file.uri.toString()
         // S3383: by id, never by name or uri. A file recovered from a FileDO container is published
@@ -54,7 +57,8 @@ class SelectedMediaManager @Inject constructor() {
             streamUri = effectiveStreamUri,
             sourceId = sourceId,
             isDirectStream = isDirectStream,
-            phoneToken = phoneToken
+            phoneToken = phoneToken,
+            broadcastRoute = broadcastRoute
         )
     }
     
@@ -96,6 +100,8 @@ class SelectedMediaManager @Inject constructor() {
  * S3359: [phoneToken] is the browse token of the phone's own original, carried for a copy fetched from
  * the paired phone. The cached copy is named after that token's hash, so nothing on this watch can
  * recover it from the file, and a move that asks the phone to delete the original has no other address.
+ *
+ * S4610: [broadcastRoute] is the broadcast a direct stream was resolved from, so a failure walks its endpoints.
  */
 data class SelectedMedia(
     val file: WearMediaFile,
@@ -103,5 +109,6 @@ data class SelectedMedia(
     val streamUri: String,
     val sourceId: String? = null,
     val isDirectStream: Boolean = false,
-    val phoneToken: String? = null
+    val phoneToken: String? = null,
+    val broadcastRoute: WearBroadcastRoute? = null
 )

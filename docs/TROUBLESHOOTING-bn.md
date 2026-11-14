@@ -9,7 +9,7 @@ permalink: /docs/TROUBLESHOOTING-bn.html
 
 # 🔧 সমস্যা সমাধান গাইড
 
-FastMediaSorter v2-এর জন্য বর্তমান সমস্যা সমাধান গাইড। সমস্যাটি যদি নির্বাচিত বিল্ড পাথের (Standard, Lite, Photos, Legacy, বা XR / noLegal) উপর নির্ভর করে, তাহলে [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md)-এর ক্যানোনিকাল ফ্লেভার ম্যাট্রিক্স ব্যবহার করুন।
+Fast Media Sorter & Organizer v2-এর জন্য বর্তমান সমস্যা সমাধান গাইড। সমস্যাটি যদি নির্বাচিত বিল্ড পাথের (Standard, Lite, Photos, Legacy, বা XR / noLegal) উপর নির্ভর করে, তাহলে [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md)-এর ক্যানোনিকাল ফ্লেভার ম্যাট্রিক্স ব্যবহার করুন।
 
 ---
 
@@ -53,7 +53,7 @@ FastMediaSorter v2-এর জন্য বর্তমান সমস্যা 
 ### ❌ "Google Drive sign-in failed"
 
 **সমাধান:**
-1. অ্যাপ ডেটা ক্লিয়ার করুন: Settings → Apps → FastMediaSorter → Clear Data
+1. অ্যাপ ডেটা ক্লিয়ার করুন: Settings → Apps → Fast Media Sorter & Organizer → Clear Data
 2. অ্যাপটি পুনরায় ইনস্টল করুন
 3. Google অ্যাকাউন্ট সেটিংস পরীক্ষা করুন → Security → Third-party apps
 
@@ -63,7 +63,7 @@ FastMediaSorter v2-এর জন্য বর্তমান সমস্যা 
 
 **সমাধান:**
 1. Microsoft অ্যাকাউন্টের অবস্থা পরীক্ষা করুন
-2. অ্যাপ ডেটা ক্লিয়ার করুন: Settings → Apps → FastMediaSorter → Clear Data
+2. অ্যাপ ডেটা ক্লিয়ার করুন: Settings → Apps → Fast Media Sorter & Organizer → Clear Data
 3. Microsoft অ্যাকাউন্ট সেটিংস পরীক্ষা করুন → Privacy → Apps and services
 
 ---
@@ -72,7 +72,7 @@ FastMediaSorter v2-এর জন্য বর্তমান সমস্যা 
 
 **সমাধান:**
 1. Dropbox অ্যাকাউন্টের অবস্থা পরীক্ষা করুন
-2. অ্যাপ ডেটা ক্লিয়ার করুন: Settings → Apps → FastMediaSorter → Clear Data
+2. অ্যাপ ডেটা ক্লিয়ার করুন: Settings → Apps → Fast Media Sorter & Organizer → Clear Data
 3. Dropbox অ্যাকাউন্ট সেটিংস পরীক্ষা করুন → Security → Connected apps
 
 ---
@@ -182,7 +182,7 @@ FastMediaSorter v2-এর জন্য বর্তমান সমস্যা 
 ### ❌ "App crashes on startup"
 
 **সমাধান:**
-1. অ্যাপ ক্যাশ ক্লিয়ার করুন: Settings → Apps → FastMediaSorter → Clear Cache
+1. অ্যাপ ক্যাশ ক্লিয়ার করুন: Settings → Apps → Fast Media Sorter & Organizer → Clear Cache
 2. সমস্যা থেকেই গেলে: অ্যাপ ডেটা ক্লিয়ার করুন (⚠️ সেটিংস হারিয়ে যাবে)
 3. শেষ উপায় হিসেবে অ্যাপ পুনরায় ইনস্টল করুন
 

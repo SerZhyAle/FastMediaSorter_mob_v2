@@ -15,6 +15,9 @@ data class StreamInlineAudioViews(
     val miniControl: View,
     val titleView: TextView,
     val playStopButton: ImageButton,
+    // When present, playStopButton toggles pause and resume and this one stops and hides the bar;
+    // a host without it keeps the stop-only button.
+    val dismissButton: ImageButton? = null,
 )
 
 /**
@@ -27,9 +30,13 @@ data class StreamInlineAudioCallbacks(
     // dialog offering retry / remove-from-list - without this hook the failure only stopped the
     // background service and left the UI silent.
     val onError: (StreamSourceEntity) -> Unit = {},
-    // S0593: fired once per play when the stream actually starts playing (ground-truth "OK" outcome).
-    // The Activity forwards it to the ViewModel, which records the green status for this source.
+    // S0593: fired once per counted play when the stream actually starts playing (ground-truth "OK"
+    // outcome). The Activity forwards it to the ViewModel, which records the green status and the play.
+    // Not fired for a catalog stream owned by the background service, which counts that play itself,
+    // nor for a resume after a pause.
     val onSuccess: (StreamSourceEntity) -> Unit = {},
+    // Fired once per play and once per resume when audio first flows, whoever counts the play.
+    val onPlaybackStarted: (StreamSourceEntity) -> Unit = {},
     // S1142: fired with this manager's own playing id and the current now-playing track line (or null)
     // so the Activity can mirror it onto the active channel's grid tile (the grid adapters have no
     // metadata pipeline of their own). The id is passed in rather than read back from the Activity's

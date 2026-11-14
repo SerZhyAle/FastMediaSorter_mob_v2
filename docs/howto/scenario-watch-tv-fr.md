@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Regarder des chaînes de télévision sur votre montre connectée - FastMediaSorter v2"
+title: "Regarder des chaînes de télévision sur votre montre connectée - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-watch-tv-fr.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -23,7 +23,7 @@ FastMedia Wear lit les chaînes de télévision et de radio en direct directemen
 
 - Une montre connectée fonctionnant sous **Wear OS 2.0** ou plus récent avec FastMedia Wear installé
 - Un réseau Wi-Fi que la montre peut rejoindre, ou un téléphone associé pour relayer la connexion
-- Optionnel : FastMediaSorter sur votre téléphone Android, si vous voulez envoyer vos propres chaînes à la montre
+- Optionnel : Fast Media Sorter & Organizer sur votre téléphone Android, si vous voulez envoyer vos propres chaînes à la montre
 
 ---
 
@@ -47,7 +47,7 @@ Une installation neuve n'a pas encore de chaînes, et l'écran l'indique.
 Il existe deux façons de la remplir, et elles fonctionnent ensemble :
 
 - **Télécharger le catalogue partagé.** Appuyez sur **Actualiser le catalogue**. La montre récupère la banque de chaînes publiée en une seule archive - plusieurs milliers de chaînes TV et radio avec leurs sujets, langues et pays.
-- **Envoyer des chaînes depuis votre téléphone.** Une chaîne que vous avez ajoutée vous-même dans FastMediaSorter sur le téléphone peut être transmise avec **Envoyer à la montre** depuis la liste de flux du téléphone. Les chaînes que vous épinglez sur le téléphone sont aussi remontées vers le haut de la liste de la montre, juste derrière celles que vous avez épinglées sur la montre elle-même, afin que les deux ou trois que vous regardez réellement soient accessibles sans défiler. Désépingler sur le téléphone retire à nouveau la chaîne de ce groupe, et une chaîne que le propre catalogue de la montre ne contient pas est simplement ignorée.
+- **Envoyer des chaînes depuis votre téléphone.** Une chaîne que vous avez ajoutée vous-même dans Fast Media Sorter & Organizer sur le téléphone peut être transmise avec **Envoyer à la montre** depuis la liste de flux du téléphone. Les chaînes que vous épinglez sur le téléphone sont aussi remontées vers le haut de la liste de la montre, juste derrière celles que vous avez épinglées sur la montre elle-même, afin que les deux ou trois que vous regardez réellement soient accessibles sans défiler. Désépingler sur le téléphone retire à nouveau la chaîne de ce groupe, et une chaîne que le propre catalogue de la montre ne contient pas est simplement ignorée.
 
 Les chaînes envoyées depuis le téléphone survivent à une actualisation du catalogue - l'actualisation remplace la banque partagée et laisse vos propres lignes intactes.
 

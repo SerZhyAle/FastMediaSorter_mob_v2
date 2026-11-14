@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "分步指南 - FastMediaSorter v2"
+title: "分步指南 - Fast Media Sorter & Organizer"
 permalink: /docs/howto/index-zh-hans.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>

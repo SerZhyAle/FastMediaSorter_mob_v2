@@ -94,6 +94,22 @@ class BroadcastLoopbackBridges @Inject constructor(
         }.port
     }
 
+    /**
+     * S4609: closes the bridge listening on [port], if any. A session that ended no longer needs it, and the next
+     * resolution of the same broadcast opens a fresh one.
+     */
+    @Synchronized
+    fun closePort(port: Int) {
+        val iterator = bridges.values.iterator()
+        while (iterator.hasNext()) {
+            val bridge = iterator.next()
+            if (bridge.port == port) {
+                iterator.remove()
+                bridge.close()
+            }
+        }
+    }
+
     @Synchronized
     private fun portFor(key: String, label: String, opener: () -> ExchangeConnection): Int =
         bridges.getOrPut(key) { BroadcastLoopbackBridge(label, opener) }.port

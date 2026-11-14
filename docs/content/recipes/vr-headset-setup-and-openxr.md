@@ -2,7 +2,7 @@
 page_id: vr.headset-setup-and-openxr
 title: Setting Up Meta Quest and OpenXR Devices
 nav_title: Headset setup and OpenXR
-description: Which editions and headsets FastMediaSorter's immersive mode runs on, how to install it, how the 3D/VR master switch and the VR settings block work, what OpenXR does under the hood, the three ways to launch VR Cinema, the VR badge on APK files, the in-headset immersive browser, the controls legend, leaving immersive mode, and the built-in self-test.
+description: Which editions and headsets Fast Media Sorter & Organizer's immersive mode runs on, how to install it, how the 3D/VR master switch and the VR settings block work, what OpenXR does under the hood, the three ways to launch VR Cinema, the VR badge on APK files, the in-headset immersive browser, the controls legend, leaving immersive mode, and the built-in self-test.
 category: VR and OpenXR
 category_slug: vr
 ticket: S2967
@@ -12,11 +12,11 @@ availability_note: noLegal and VR, on a compatible headset
 recipe_number: "01"
 canonical_url: documentation/vr/headset-setup-and-openxr.html
 why: |
-  A phone screen shows you a photo or a film. A [VR headset](term:vr-headset) puts you inside it - a 360° panorama wraps all the way around, a 3D film gets real depth, and a folder of holiday photos becomes a little cinema of its own. FastMediaSorter's immersive mode turns any [Meta Quest](term:meta-quest) or other [OpenXR](https://www.khronos.org/openxr/)-compatible headset into that cinema, right from the files you already have.
+  A phone screen shows you a photo or a film. A [VR headset](term:vr-headset) puts you inside it - a 360° panorama wraps all the way around, a 3D film gets real depth, and a folder of holiday photos becomes a little cinema of its own. Fast Media Sorter & Organizer's immersive mode turns any [Meta Quest](term:meta-quest) or other [OpenXR](https://www.khronos.org/openxr/)-compatible headset into that cinema, right from the files you already have.
 
   This page covers the ground floor: which edition and which headset you need, turning immersive mode on, how the app tells a real headset from an ordinary phone, and the handful of screens - VR Cinema, the file browser's VR badge, the in-headset browser, the controls legend - you will meet before you ever press play. Playback itself and the floating control panel are their own recipes, linked at the bottom.
 ingredients:
-  - "FastMediaSorter in the [noLegal edition](term:nolegal-edition) or the [VR edition](term:vr-edition) - immersive mode does not exist in Standard, Lite, Photos, Legacy or FOSS."
+  - "Fast Media Sorter & Organizer in the [noLegal edition](term:nolegal-edition) or the [VR edition](term:vr-edition) - immersive mode does not exist in Standard, Lite, Photos, Legacy or FOSS."
   - "A [VR headset](term:vr-headset) such as a Meta Quest, or another Android XR / OpenXR-compatible headset. A phone-in-a-box viewer does not qualify - see the disambiguation on that term."
   - "For the noLegal edition: the APK installed on the headset the same way you would install it on a phone. The VR edition installs like any other headset app."
 steps:
@@ -26,14 +26,14 @@ steps:
     text: |
       Immersive mode is a headset feature, so it lives in the two editions that run on one: the [noLegal edition](term:nolegal-edition), the general-purpose sideload build that happens to work on a headset too, and the [VR edition](term:vr-edition), built specifically for one. Every other edition - Standard, Lite, Photos, Legacy, FOSS - never shows a VR button anywhere, because the capability is not compiled in. See the full grid in the [edition](term:edition) comparison if you are choosing between them.
 
-      On the headset itself, FastMediaSorter checks what it is running on before it shows anything immersive: a real [Meta Quest](term:meta-quest), a non-Quest Android XR headset, or a device with no XR support at all. Nothing here is a manual setting - plug in a supported headset and the VR controls simply appear; leave the app on an ordinary phone and they simply do not.
+      On the headset itself, Fast Media Sorter & Organizer checks what it is running on before it shows anything immersive: a real [Meta Quest](term:meta-quest), a non-Quest Android XR headset, or a device with no XR support at all. Nothing here is a manual setting - plug in a supported headset and the VR controls simply appear; leave the app on an ordinary phone and they simply do not.
   - number: 2
     id: installing
     title: Installing on the headset
     text: |
       The VR edition installs the way any headset app does - from wherever your headset gets its apps. The noLegal edition is a sideload build, so on the headset it goes on the same way it would on a phone: copy the APK across and open it from the headset's own file manager, or use a sideloading tool if you already have one set up.
 
-      Either way, the very first thing worth doing after install is the [welcome wizard](term:welcome-wizard): pick the **VR headset** device profile and FastMediaSorter pre-enables 3D/360° layouts and immersive controls for you, so you are not hunting through Settings before your first film.
+      Either way, the very first thing worth doing after install is the [welcome wizard](term:welcome-wizard): pick the **VR headset** device profile and Fast Media Sorter & Organizer pre-enables 3D/360° layouts and immersive controls for you, so you are not hunting through Settings before your first film.
   - number: 3
     id: master-toggle
     title: Turn immersive mode on
@@ -53,27 +53,27 @@ steps:
     id: what-runs-it
     title: What is actually running the show
     text: |
-      Under that switch sits [OpenXR](https://www.khronos.org/openxr/), the open standard most VR and mixed-reality headsets speak - it is what lets FastMediaSorter talk to a Meta Quest and to other Android XR headsets through the same code instead of one app build per brand. When you step into an immersive session, FastMediaSorter hands off to a dedicated screen of its own with a steady frame loop built for a headset display, so the picture stays smooth while everything else - your file list, your settings - waits for you on the other side, unchanged, for when you step back out.
+      Under that switch sits [OpenXR](https://www.khronos.org/openxr/), the open standard most VR and mixed-reality headsets speak - it is what lets Fast Media Sorter & Organizer talk to a Meta Quest and to other Android XR headsets through the same code instead of one app build per brand. When you step into an immersive session, Fast Media Sorter & Organizer hands off to a dedicated screen of its own with a steady frame loop built for a headset display, so the picture stays smooth while everything else - your file list, your settings - waits for you on the other side, unchanged, for when you step back out.
   - number: 5
     id: vr-cinema-entry-points
     title: Launch VR Cinema from wherever you are
     text: |
       **Editions:** noLegal.
 
-      FastMediaSorter calls its immersive playback session [VR Cinema](term:vr-cinema), and it is never more than one tap away from a video, wherever you found it:
+      Fast Media Sorter & Organizer calls its immersive playback session [VR Cinema](term:vr-cinema), and it is never more than one tap away from a video, wherever you found it:
 
       - From a video tile in the [file browser](term:file-browser), the tile's overflow menu offers **Open in VR Cinema**.
       - From a video [resource](term:resource) in the resource list, the same entry sits in that resource's own menu.
       - From inside the flat [video player](term:video-player), it is a badge and an overflow entry - covered in [spatial 3D/360 cinema and video playback](page:vr.spatial-cinema-playback).
 
-      If the headset is busy or not reachable at the moment, FastMediaSorter says so plainly - **VR Cinema is unavailable right now** - rather than leaving you staring at nothing.
+      If the headset is busy or not reachable at the moment, Fast Media Sorter & Organizer says so plainly - **VR Cinema is unavailable right now** - rather than leaving you staring at nothing.
   - number: 6
     id: apk-vr-badge
     title: Spot a VR app before you install it
     text: |
       **Editions:** noLegal.
 
-      Browsing a folder full of APK files on the headset? A small [badge](term:badge) - a circular VR headset icon - appears in the corner of any APK tile that declares itself VR-capable, so you can tell a Quest app from an ordinary one before you tap it. FastMediaSorter reads this straight out of the APK's own manifest, so the badge is only there for files it can check locally; one sitting on a slow network folder shows no badge rather than making you wait.
+      Browsing a folder full of APK files on the headset? A small [badge](term:badge) - a circular VR headset icon - appears in the corner of any APK tile that declares itself VR-capable, so you can tell a Quest app from an ordinary one before you tap it. Fast Media Sorter & Organizer reads this straight out of the APK's own manifest, so the badge is only there for files it can check locally; one sitting on a slow network folder shows no badge rather than making you wait.
     image_bookmark:
       shot_id: vr.apk-badge-file-browser
       device_profile: phone
@@ -86,7 +86,7 @@ steps:
     id: immersive-browser
     title: Browse your files without taking the headset off
     text: |
-      Instead of dropping you back to a flat screen every time you want the next file, FastMediaSorter can show your folder as an [immersive browser](term:immersive-browser) - a 3D grid of tiles rendered right inside the immersive scene. Point the controller ray at a tile to highlight it and pull the trigger to open it; the thumbstick walks the highlight across the grid too, left and right along a row, up and down between rows, stepping to the next page when you walk off the side. Choosing a video starts it playing immediately, in stereo when the file has it, without a detour back through the flat file browser first.
+      Instead of dropping you back to a flat screen every time you want the next file, Fast Media Sorter & Organizer can show your folder as an [immersive browser](term:immersive-browser) - a 3D grid of tiles rendered right inside the immersive scene. Point the controller ray at a tile to highlight it and pull the trigger to open it; the thumbstick walks the highlight across the grid too, left and right along a row, up and down between rows, stepping to the next page when you walk off the side. Choosing a video starts it playing immediately, in stereo when the file has it, without a detour back through the flat file browser first.
     image_bookmark:
       shot_id: vr.immersive-browser-grid
       device_profile: phone
@@ -99,21 +99,21 @@ steps:
     id: controls-legend
     title: Learn the controls, right inside the headset
     text: |
-      The first time you go immersive after installing, FastMediaSorter shows a legend of every controller binding: touch controllers (Quest 2, 3 and Pro), hand tracking with controllers set aside, a Bluetooth keyboard and a Bluetooth mouse, each in its own section. Any press closes it - you are not stuck reading it - and a **HELP** button on the HUD strip brings it straight back whenever you want a refresher, or long-press the Y button (or F1 on a keyboard) to reopen it yourself.
+      The first time you go immersive after installing, Fast Media Sorter & Organizer shows a legend of every controller binding: touch controllers (Quest 2, 3 and Pro), hand tracking with controllers set aside, a Bluetooth keyboard and a Bluetooth mouse, each in its own section. Any press closes it - you are not stuck reading it - and a **HELP** button on the HUD strip brings it straight back whenever you want a refresher, or long-press the Y button (or F1 on a keyboard) to reopen it yourself.
   - number: 9
     id: leaving-immersive
     title: Leaving immersive mode
     text: |
-      However you got in, one input reliably takes you back out: the B button on a touch controller, a key press on a Bluetooth keyboard, or the matching hand-tracking gesture - FastMediaSorter treats them all as the same "please exit" signal. There is a short grace period right after the first frame appears, so a stray button press while the picture is still loading will not throw you straight back out again.
+      However you got in, one input reliably takes you back out: the B button on a touch controller, a key press on a Bluetooth keyboard, or the matching hand-tracking gesture - Fast Media Sorter & Organizer treats them all as the same "please exit" signal. There is a short grace period right after the first frame appears, so a stray button press while the picture is still loading will not throw you straight back out again.
   - number: 10
     id: self-test-and-fallback
     title: Something not showing up? Test it and see
     text: |
       **Editions:** noLegal.
 
-      The same **3D-VR playback and controls** section in Settings has a **Test Immersive** button: it opens a sample 360° image in immersive mode on the spot, so you can confirm the headset and the app are talking to each other without hunting down a real 360° file first. If the session cannot start, FastMediaSorter says so directly - **Cannot start VR. Check that your headset is connected.** - and if it drops mid-session, **VR session ended unexpectedly.**
+      The same **3D-VR playback and controls** section in Settings has a **Test Immersive** button: it opens a sample 360° image in immersive mode on the spot, so you can confirm the headset and the app are talking to each other without hunting down a real 360° file first. If the session cannot start, Fast Media Sorter & Organizer says so directly - **Cannot start VR. Check that your headset is connected.** - and if it drops mid-session, **VR session ended unexpectedly.**
 
-      The self-test's decoder is built to survive a low-memory device rather than crash it, and if your own device has no sample media handy, FastMediaSorter ships one anyway: a royalty-free 360° image bundled with the app, used as the fallback whenever the diagnostic needs something to show.
+      The self-test's decoder is built to survive a low-memory device rather than crash it, and if your own device has no sample media handy, Fast Media Sorter & Organizer ships one anyway: a royalty-free 360° image bundled with the app, used as the fallback whenever the diagnostic needs something to show.
 outcome: |
   Immersive mode is on, the app knows your headset and your edition, and you know the handful of doors into it - VR Cinema from a file, a resource or the player, the VR badge on APK tiles, and the immersive browser for finding the next thing to watch without ever taking the headset off.
 tips:
@@ -141,4 +141,4 @@ next_recipes:
 
 <sub class="doc-stamp">26.10.07 01:10</sub>
 
-Which editions and headsets run FastMediaSorter's immersive mode, how to install it, how the 3D/VR master switch and OpenXR work together, and the VR Cinema, VR badge, immersive browser, controls legend and self-test you will meet before your first film.
+Which editions and headsets run Fast Media Sorter & Organizer's immersive mode, how to install it, how the 3D/VR master switch and OpenXR work together, and the VR Cinema, VR badge, immersive browser, controls legend and self-test you will meet before your first film.

@@ -1,30 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   Layout for SettingsToggleRow compound view.
-  Canonical pattern: switch (leftmost) + text group (title + helper inline, subtitle below) + optional trailing slot.
+  Canonical pattern (BOOLEAN-OPTION 2.1): checkbox (reading start) + text group (title + helper inline,
+  explanation below) + optional trailing slot.
   See docs/ARCHITECTURE.md § "UI Patterns - Trigger Row" (Pattern A).
 -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <com.google.android.material.materialswitch.MaterialSwitch
-        android:id="@+id/str_switch"
+    <!-- Touch/mouse target only: the row is the focus stop and the accessible checkbox (SettingsToggleRow). -->
+    <com.google.android.material.checkbox.MaterialCheckBox
+        android:id="@+id/str_checkbox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        android:layout_marginEnd="@dimen/settings_switch_margin_end"
-        android:clickable="false"
-        android:duplicateParentState="true"
-        android:focusable="false" />
+        android:layout_gravity="top"
+        android:clickable="true"
+        android:focusable="false"
+        android:importantForAccessibility="no" />
 
     <!-- Optional leading feature icon (S0776). Decorative; sits next to the label, hidden when unset. -->
     <ImageView
         android:id="@+id/str_icon"
         android:layout_width="@dimen/settings_help_icon_size"
         android:layout_height="@dimen/settings_help_icon_size"
-        android:layout_gravity="center_vertical"
+        android:layout_gravity="top"
+        android:layout_marginTop="@dimen/settings_toggle_heading_inset_top"
         android:layout_marginEnd="@dimen/settings_help_icon_margin"
         android:contentDescription="@null"
+        android:focusable="false"
         android:importantForAccessibility="no"
         app:tint="?attr/colorOnSurfaceVariant"
         android:visibility="gone" />
@@ -33,7 +36,8 @@
         android:id="@+id/str_textGroup"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
+        android:layout_gravity="top"
+        android:layout_marginTop="@dimen/settings_toggle_heading_inset_top"
         android:layout_weight="1"
         android:orientation="vertical">
 
@@ -42,12 +46,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
+            android:minHeight="@dimen/settings_help_icon_size"
             android:orientation="horizontal">
 
             <TextView
                 android:id="@+id/str_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:focusable="false"
+                android:importantForAccessibility="no"
                 android:textSize="@dimen/toggler_title_text_size" />
 
             <ImageButton
@@ -77,6 +84,8 @@
             android:id="@+id/str_subtitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/settings_toggle_explanation_gap"
+            android:importantForAccessibility="no"
             android:textColor="@color/text_color_secondary"
             android:textSize="@dimen/toggler_desc_text_size"
             android:visibility="gone" />

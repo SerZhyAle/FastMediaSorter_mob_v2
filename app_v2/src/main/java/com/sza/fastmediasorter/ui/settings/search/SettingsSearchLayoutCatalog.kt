@@ -10,7 +10,7 @@ import com.sza.fastmediasorter.R
  * `fragment_settings_media_container` layout is intentionally excluded because it is a
  * tab host with no rows of its own - the actual rows live in the sub-fragment layouts.
  *
- * Dialog-hosted settings (e.g. `dialog_edge_gesture_config`, `dialog_launcher_settings`) are
+ * Dialog-hosted settings (e.g. `dialog_edge_gesture_config`, `dialog_launcher_wallpaper_settings`) are
  * deliberately NOT added here - S1035 §6.6 settled that in-app search indexes only the
  * settings-screen entry point for a dialog-hosted settings group, not the rows inside the
  * dialog (a dialog is not part of the activity view hierarchy `SettingsActivity.navigateToTarget`
@@ -30,6 +30,9 @@ object SettingsSearchLayoutCatalog {
         R.layout.fragment_settings_other,
         R.layout.fragment_settings_streams,
         R.layout.fragment_settings_broadcast,
-        R.layout.fragment_settings_destinations
+        R.layout.fragment_settings_destinations,
+        R.layout.fragment_settings_launcher,
+        R.layout.fragment_settings_tools,
+        R.layout.fragment_settings_about
     )
 }

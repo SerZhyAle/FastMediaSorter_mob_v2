@@ -212,7 +212,7 @@
     <string name="backup_account">অ্যাকাউন্ট: %s</string>
     <string name="google_sign_in_cancelled">Google সাইন-ইন বাতিল করা হয়েছে</string>
     <string name="battery_optimization_hint_title">ব্যাটারি অপ্টিমাইজেশন সতর্কতা</string>
-    <string name="battery_optimization_hint_message">ব্যাটারি অপ্টিমাইজেশন ব্যাকগ্রাউন্ড অডিও প্লেব্যাক বাধাগ্রস্ত করতে পারে। নির্ভরযোগ্য ব্যাকগ্রাউন্ড অডিওর জন্য সিস্টেম সেটিংসে FastMediaSorter-এর ব্যাটারি অপ্টিমাইজেশন বন্ধ করুন।</string>
+    <string name="battery_optimization_hint_message">ব্যাটারি অপ্টিমাইজেশন ব্যাকগ্রাউন্ড অডিও প্লেব্যাক বাধাগ্রস্ত করতে পারে। নির্ভরযোগ্য ব্যাকগ্রাউন্ড অডিওর জন্য সিস্টেম সেটিংসে Fast Media Sorter &amp; Organizer-এর ব্যাটারি অপ্টিমাইজেশন বন্ধ করুন।</string>
     <string name="no_internet_connection">ইন্টারনেট সংযোগ নেই। পরে আবার চেষ্টা করুন।</string>
     <string name="restart_required_title">পুনরায় চালু করা প্রয়োজন</string>
     <string name="restart_required_message">সেটিংস আমদানি করা হয়েছে। পরিবর্তনগুলি প্রয়োগ করতে অ্যাপটি পুনরায় চালু করুন।</string>
@@ -413,7 +413,6 @@
     <string name="connection_test_success_title">সংযোগ পরীক্ষা - সফল</string>
     <string name="connection_test_failed_title">সংযোগ পরীক্ষা - ব্যর্থ</string>
     <string name="restart_app_title">অ্যাপ্লিকেশন পুনরায় চালু করুন</string>
-    <string name="restart_app_message">নতুন ভাষা (%1$s) প্রয়োগ করতে অ্যাপ্লিকেশনটি পুনরায় চালু করতে হবে। চালিয়ে যাবেন?</string>
     <string name="restart_app_cache_message">নতুন ক্যাশ আকার (%1$d MB) প্রয়োগ করতে অ্যাপ্লিকেশনটি পুনরায় চালু করতে হবে। চালিয়ে যাবেন?</string>
     <string name="restart_app_compact_elements_message">নতুন প্লেয়ার নিয়ন্ত্রণ আকার প্রয়োগ করতে অ্যাপ্লিকেশনটি পুনরায় চালু করতে হবে। চালিয়ে যাবেন?</string>
     <string name="restart">পুনরায় চালু করুন</string>
@@ -1519,13 +1518,13 @@
     <string name="browse_transfer_notif_title_permission_required">অনুমতি প্রয়োজন</string>
     <string name="browse_transfer_notif_text_preparing">প্রস্তুত করা হচ্ছে..</string>
     <string name="browse_transfer_notif_text_progress">%1$d%% - %2$s</string>
-    <string name="browse_transfer_notif_text_failed">বিস্তারিত জানতে FastMediaSorter খুলুন</string>
-    <string name="browse_transfer_notif_text_auth_required">সাইন ইন করে চালিয়ে যেতে FastMediaSorter খুলুন</string>
-    <string name="browse_transfer_notif_text_permission_required">অনুমতি দিয়ে আবার চেষ্টা করতে FastMediaSorter খুলুন</string>
+    <string name="browse_transfer_notif_text_failed">বিস্তারিত জানতে Fast Media Sorter &amp; Organizer খুলুন</string>
+    <string name="browse_transfer_notif_text_auth_required">সাইন ইন করে চালিয়ে যেতে Fast Media Sorter &amp; Organizer খুলুন</string>
+    <string name="browse_transfer_notif_text_permission_required">অনুমতি দিয়ে আবার চেষ্টা করতে Fast Media Sorter &amp; Organizer খুলুন</string>
     <string name="browse_transfer_notif_action_cancel">বাতিল</string>
     <string name="midi_playback_failed">এই MIDI ফাইলটি চালানো সম্ভব হয়নি। অন্য একটি কপি দিয়ে চেষ্টা করুন অথবা পরবর্তী ট্র্যাকে চলে যান।</string>
     <string name="tooltip_calculator_title">ক্যালকুলেটর</string>
-    <string name="tooltip_calculator_message">প্রধান মেনুতে একটি সাধারণ ক্যালকুলেটর যোগ করে এবং ক্যালকুলেটর উইজেট চালু করে। ক্যালকুলেটরটি FastMediaSorter-এর ভিতরেই থাকে।</string>
+    <string name="tooltip_calculator_message">প্রধান মেনুতে একটি সাধারণ ক্যালকুলেটর যোগ করে এবং ক্যালকুলেটর উইজেট চালু করে। ক্যালকুলেটরটি Fast Media Sorter &amp; Organizer-এর ভিতরেই থাকে।</string>
     <string name="profile_picker_title">আপনার ডিভাইস প্রোফাইল বেছে নিন</string>
     <string name="profile_picker_select">নির্বাচন করুন</string>
     <string name="system_info_copy_full_report">সম্পূর্ণ প্রতিবেদনের কপি</string>
@@ -1630,7 +1629,7 @@
     <string name="cache_size_installed_toast">ক্যাশে সেট করা হয়েছে: %1$d MB</string>
     <string name="welcome_enable_all">সবগুলো সক্ষম করুন</string>
     <string name="welcome_enable_all_content_description">সবকিছু সক্রিয় করুন এবং সেটআপ শেষ করুন।</string>
-    <string name="default_player_choose_in_settings">সিস্টেম সেটিংসে, এই ধরনের জন্য ডিফল্ট অ্যাপ হিসেবে FastMediaSorter নির্বাচন করুন।</string>
+    <string name="default_player_choose_in_settings">সিস্টেম সেটিংসে, এই ধরনের জন্য ডিফল্ট অ্যাপ হিসেবে Fast Media Sorter &amp; Organizer নির্বাচন করুন।</string>
     <string name="s0413_audio_track_skipped">\"%1$s\" বাদ দেওয়া হয়েছে - এই ফাইলটি চালানো যাবে না।</string>
     <string name="s0413_audio_queue_unplayable">এখানে কিছুই বাজানো সম্ভব ছিল না।</string>
     <string name="settings_remote_sources_title">দূরবর্তী উৎস (SMB/(S)FTP/ক্লাউড)</string>
@@ -1648,8 +1647,8 @@
     <string name="settings_remote_source_cloud_help_message">ক্লাউড স্টোরেজের ফাইল খুলুন - Google Drive, OneDrive ও Dropbox। অ্যাপের ভেতরেই আপনার ক্লাউড ফোল্ডার ব্রাউজ করতে একটি অ্যাকাউন্ট যুক্ত করুন।</string>
     <string name="settings_remote_source_disable_confirm_title">এই ফোল্ডারগুলো লুকাবেন?</string>
     <string name="settings_remote_source_disable_confirm_message">এই উৎসের ফোল্ডারগুলো লুকানো হবে, মোছা হবে না। আপনার সংরক্ষিত উৎসগুলো থেকে যাবে এবং উৎসটি আবার চালু করলে ফিরে আসবে।</string>
-    <string name="screenshot_accessibility_service_description">FastMediaSorter-কে প্রান্তের জেসচার দিয়ে স্ক্রিনশট নিতে এবং প্রতিটি শটের জন্য ডায়ালগ ছাড়াই সেগুলি সংরক্ষণ করতে দেয়। এটি শুধু স্ক্রিনশটের ক্ষেত্রে প্রযোজ্য - স্ক্রিন ভিডিও রেকর্ডিং আলাদা এবং প্রতিটি রেকর্ডিংয়ের শুরুতে Android-এর কাছে অনুমতি চায়।</string>
-    <string name="screenshot_accessibility_permission_rationale">প্রান্তের জেসচার দিয়ে স্ক্রিনশট নিতে FastMediaSorter অ্যাক্সেসিবিলিটি পরিষেবা চালু করুন:\n\n1. সেটিংস খুলুন-এ ট্যাপ করুন, তারপর অ্যাক্সেসিবিলিটি তালিকায় FastMediaSorter সক্রিয় করুন।\n2. যদি সীমাবদ্ধ সেটিং দ্বারা নিয়ন্ত্রিত বা অ্যাপকে অ্যাক্সেস দেওয়া হয়নি দেখায়: App info-তে এই অ্যাপটি খুলুন, মেনুতে (3 বিন্দু) ট্যাপ করুন, সীমাবদ্ধ সেটিংস অনুমোদন করুন বেছে নিন, নিশ্চিত করুন, তারপর ফিরে গিয়ে এটি সক্রিয় করুন।\n\nসক্রিয় করতে না পারলে পুরনো পদ্ধতি-তে ট্যাপ করুন, যা প্রতিটি শটে অনুমতি চাওয়া সংস্করণ ব্যবহার করে।</string>
+    <string name="screenshot_accessibility_service_description">Fast Media Sorter &amp; Organizer-কে প্রান্তের জেসচার দিয়ে স্ক্রিনশট নিতে এবং প্রতিটি শটের জন্য ডায়ালগ ছাড়াই সেগুলি সংরক্ষণ করতে দেয়। এটি শুধু স্ক্রিনশটের ক্ষেত্রে প্রযোজ্য - স্ক্রিন ভিডিও রেকর্ডিং আলাদা এবং প্রতিটি রেকর্ডিংয়ের শুরুতে Android-এর কাছে অনুমতি চায়।</string>
+    <string name="screenshot_accessibility_permission_rationale">প্রান্তের জেসচার দিয়ে স্ক্রিনশট নিতে Fast Media Sorter &amp; Organizer অ্যাক্সেসিবিলিটি পরিষেবা চালু করুন:\n\n1. সেটিংস খুলুন-এ ট্যাপ করুন, তারপর অ্যাক্সেসিবিলিটি তালিকায় Fast Media Sorter &amp; Organizer সক্রিয় করুন।\n2. যদি সীমাবদ্ধ সেটিং দ্বারা নিয়ন্ত্রিত বা অ্যাপকে অ্যাক্সেস দেওয়া হয়নি দেখায়: App info-তে এই অ্যাপটি খুলুন, মেনুতে (3 বিন্দু) ট্যাপ করুন, সীমাবদ্ধ সেটিংস অনুমোদন করুন বেছে নিন, নিশ্চিত করুন, তারপর ফিরে গিয়ে এটি সক্রিয় করুন।\n\nসক্রিয় করতে না পারলে পুরনো পদ্ধতি-তে ট্যাপ করুন, যা প্রতিটি শটে অনুমতি চাওয়া সংস্করণ ব্যবহার করে।</string>
     <string name="screen_capture_rate_limited">স্ক্রিনশটটি খুব দ্রুত নেওয়া হয়ে গেছে, আবার চেষ্টা করুন।</string>
     <string name="screenshot_gesture_permission_dialog_title">স্ক্রিন জেসচার সক্রিয় করুন</string>
     <string name="screenshot_gesture_open_settings">সেটিংস খুলুন</string>
@@ -1765,7 +1764,7 @@
     <string name="statistics_privacy_note">এই তথ্য আপনার ডিভাইসেই থাকে। সারসংক্ষেপটি আপনি নিজেই, নিজের ইমেল অ্যাপ থেকে লেখকের কাছে পাঠান।</string>
     <string name="statistics_send_to_author">লেখকের কাছে পাঠান</string>
     <string name="statistics_export">এক্সপোর্ট</string>
-    <string name="statistics_email_subject">FastMediaSorter পরিসংখ্যান</string>
+    <string name="statistics_email_subject">Fast Media Sorter &amp; Organizer পরিসংখ্যান</string>
     <string name="statistics_no_email_app">কোনও অ্যাপ এটি পাঠাতে পারে না - একটি মেল বা শেয়ারিং অ্যাপ ইনস্টল করে আবার চেষ্টা করুন।</string>
     <string name="statistics_report_all_time">সর্বকালের মোট</string>
     <string name="statistics_report_section_summary">সারসংক্ষেপ</string>
@@ -1889,7 +1888,7 @@
     <string name="app_launch_panel_action_move">সরান</string>
     <string name="app_launch_panel_action_replace">বদলান</string>
     <string name="app_launch_panel_action_remove">বাদ দিন</string>
-    <string name="app_launch_panel_own_app_label">FastMediaSorter</string>
+    <string name="app_launch_panel_own_app_label">Fast Media Sorter &amp; Organizer</string>
     <string name="app_picker_title">একটি অ্যাপ বেছে নিন</string>
     <string name="app_launch_panel_title">দ্রুত চালু</string>
     <string name="app_launch_panel_edit_action">সম্পাদনা</string>
@@ -1924,8 +1923,8 @@
     <string name="app_launch_panel_add_chooser_title">প্যানেলে যোগ করুন</string>
     <string name="app_launch_panel_path_external_app">Android অ্যাপ</string>
     <string name="app_launch_panel_path_os_part">Android OS সেটিংস</string>
-    <string name="app_launch_panel_path_app_feature">FastMediaSorter ফিচার</string>
-    <string name="app_launch_panel_path_app_resource">FastMediaSorter উৎস</string>
+    <string name="app_launch_panel_path_app_feature">Fast Media Sorter &amp; Organizer ফিচার</string>
+    <string name="app_launch_panel_path_app_resource">Fast Media Sorter &amp; Organizer উৎস</string>
     <string name="app_launch_panel_picker_feature_title">একটি ফিচার বেছে নিন</string>
     <string name="app_launch_panel_picker_os_title">Android OS সেটিং বেছে নিন</string>
     <string name="app_launch_panel_picker_resource_title">একটি উৎস বেছে নিন</string>
@@ -2014,7 +2013,7 @@
     <string name="screen_recording_card_title">রেকর্ডিং স্ক্রিন</string>
     <string name="screen_recording_stop">রেকর্ডিং বন্ধ করুন</string>
     <string name="screen_recording_disclosure_title">স্ক্রিন ভিডিও রেকর্ডিং</string>
-    <string name="screen_recording_disclosure_message">FastMediaSorter আপনার স্ক্রিনে দেখানো সবকিছু, অন্যান্য অ্যাপ সহ, মাইক্রোফোনের অডিও সহ একটি ভিডিও ফাইলে রেকর্ড করতে থাকবে যতক্ষণ না আপনি এটি বন্ধ করছেন। রেকর্ডিং ব্যাকগ্রাউন্ডে চলতে থাকে। প্রতিটি রেকর্ডিংয়ের শুরুতে অ্যান্ড্রয়েড আপনাকে এই অ্যাপটি বা পুরো স্ক্রিনটি বেছে নিতে বলে, এবং এই ধাপটি এড়িয়ে যাওয়া যায় না।</string>
+    <string name="screen_recording_disclosure_message">Fast Media Sorter &amp; Organizer আপনার স্ক্রিনে দেখানো সবকিছু, অন্যান্য অ্যাপ সহ, মাইক্রোফোনের অডিও সহ একটি ভিডিও ফাইলে রেকর্ড করতে থাকবে যতক্ষণ না আপনি এটি বন্ধ করছেন। রেকর্ডিং ব্যাকগ্রাউন্ডে চলতে থাকে। প্রতিটি রেকর্ডিংয়ের শুরুতে অ্যান্ড্রয়েড আপনাকে এই অ্যাপটি বা পুরো স্ক্রিনটি বেছে নিতে বলে, এবং এই ধাপটি এড়িয়ে যাওয়া যায় না।</string>
     <string name="screen_recording_disclosure_start">রেকর্ডিং শুরু করুন</string>
     <string name="screen_recording_saved">স্ক্রিন রেকর্ডিং সংরক্ষিত হয়েছে: %1$s</string>
     <string name="screen_recording_error">স্ক্রিন রেকর্ডিংটি সংরক্ষণ করা যায়নি।</string>
@@ -2097,7 +2096,7 @@
     <string name="edge_gesture_general_group_title">সাধারণ অঙ্গভঙ্গি সেটিংস</string>
     <string name="edge_gesture_schema_content_description">এজ জেসচার ম্যাপ: একটি অ্যাকশন নির্ধারণ করতে একটি জোনের দিকে ট্যাপ করুন</string>
     <string name="companion_qr_share_title">রিসোর্স যোগ করতে স্ক্যান করুন</string>
-    <string name="companion_qr_share_hint">FastMediaSorter-এ: রিসোর্স যোগ করুন -&gt; QR স্ক্যান করুন</string>
+    <string name="companion_qr_share_hint">Fast Media Sorter &amp; Organizer-এ: রিসোর্স যোগ করুন -&gt; QR স্ক্যান করুন</string>
     <string name="companion_qr_share_no_password_note">কোনো পাসওয়ার্ড অন্তর্ভুক্ত নেই - প্রাপক আমদানির সময় সেটি দেবেন।</string>
     <string name="companion_qr_share_encode_failed">QR কোড তৈরি করা যায়নি।</string>
     <string name="sftp_share_show_qr_action">কিউআর কোড দেখান</string>
@@ -2117,7 +2116,7 @@
     <string name="gesture_action_explain_send_to_recipients">পর্দা ক্যাপচার করে আপনার বেছে নেওয়া প্রাপকদের পাঠায়।</string>
     <string name="gesture_action_explain_share">পর্দা ক্যাপচার করে সিস্টেমের শেয়ার শিট খোলে।</string>
     <string name="gesture_action_explain_crop_and_share">পর্দা ক্যাপচার করে, আপনাকে ক্রপ করতে দেয়, তারপর ফলাফল শেয়ার করে।</string>
-    <string name="gesture_action_explain_open_app">এই অঙ্গভঙ্গির জন্য আপনার বেছে নেওয়া অ্যাপ খোলে। কোনও অ্যাপ বেছে না নিলে FastMediaSorter খোলে।</string>
+    <string name="gesture_action_explain_open_app">এই অঙ্গভঙ্গির জন্য আপনার বেছে নেওয়া অ্যাপ খোলে। কোনও অ্যাপ বেছে না নিলে Fast Media Sorter &amp; Organizer খোলে।</string>
     <string name="gesture_action_explain_open_panel">দ্রুত-অ্যাক্সেস প্যানেল খোলে।</string>
     <string name="gesture_action_explain_launch_camera">অ্যাপের ভিতরের ক্যামেরা খোলে।</string>
     <string name="gesture_action_explain_take_photo">অ্যাপের ভিতরের ক্যামেরা দিয়ে ছবি তোলে এবং সংরক্ষণ করে।</string>
@@ -2191,7 +2190,7 @@
     <string name="launcher_home_mode_play">প্লে</string>
     <string name="launcher_home_cell_with_mode">%1$s, %2$s</string>
     <string name="launcher_taskbar_start">স্টার্ট</string>
-    <string name="launcher_menu_open_app">FastMediaSorter খুলুন</string>
+    <string name="launcher_menu_open_app">Fast Media Sorter &amp; Organizer খুলুন</string>
     <string name="launcher_menu_resources">আমার রিসোর্স</string>
     <string name="launcher_menu_all_apps">সব অ্যাপ</string>
     <string name="launcher_menu_android_settings">Android সেটিংস</string>
@@ -2283,8 +2282,6 @@
     <string name="settings_streams_smart_buffering_summary">সংযোগ দুর্বল হলে শুরুতে বড় বাফার ও নীরবে পুনঃসংযোগ</string>
     <string name="streams_section_pinned">পিন করা</string>
     <string name="streams_section_main">চ্যানেল</string>
-    <string name="streams_section_expand">বিভাগ প্রসারিত করুন</string>
-    <string name="streams_section_collapse">বিভাগ সংকুচিত করুন</string>
     <string name="ext_channel_preview_atlas_title">চ্যানেল প্রিভিউ অ্যাটলাস</string>
     <string name="ext_channel_preview_atlas_desc">প্রথমবার দেখার আগেই গ্রিড মোডে ভিডিও চ্যানেলের প্রিভিউ দেখায়।</string>
     <string name="streams_atlas_prompt_message">চ্যানেল প্রিভিউ ডাউনলোড করবেন, যাতে চালানোর আগে ভিডিও চ্যানেলে ছবি দেখা যায়?</string>
@@ -2420,7 +2417,7 @@
     <string name="launcher_tray_sim_signal_none">SIM %1$d, কোনো নেটওয়ার্ক নেই</string>
     <string name="launcher_now_playing_other_apps">অন্যান্য অ্যাপের গান দেখান</string>
     <string name="launcher_now_playing_access_title">অন্যান্য অ্যাপের গান দেখান</string>
-    <string name="launcher_now_playing_access_message">FastMediaSorter যে অ্যাপ চলছে তার মিডিয়া সেশন পড়ে - ট্র্যাকের নাম, শিল্পী এবং প্লে অবস্থা - যাতে এই গ্যাজেট তা দেখাতে এবং প্লেব্যাক নিয়ন্ত্রণ করতে পারে। Android এই অনুমতিকে নোটিফিকেশন অ্যাক্সেস বলে, কিন্তু অ্যাপটি কোনো নোটিফিকেশন পড়ে না, শুধু মিডিয়া সেশন পড়ে। আপনি এটি একটি Android সেটিংস স্ক্রিনে অনুমতি দেন এবং সেখান থেকে যেকোনো সময় তা প্রত্যাহার করতে পারেন।</string>
+    <string name="launcher_now_playing_access_message">Fast Media Sorter &amp; Organizer যে অ্যাপ চলছে তার মিডিয়া সেশন পড়ে - ট্র্যাকের নাম, শিল্পী এবং প্লে অবস্থা - যাতে এই গ্যাজেট তা দেখাতে এবং প্লেব্যাক নিয়ন্ত্রণ করতে পারে। Android এই অনুমতিকে নোটিফিকেশন অ্যাক্সেস বলে, কিন্তু অ্যাপটি কোনো নোটিফিকেশন পড়ে না, শুধু মিডিয়া সেশন পড়ে। আপনি এটি একটি Android সেটিংস স্ক্রিনে অনুমতি দেন এবং সেখান থেকে যেকোনো সময় তা প্রত্যাহার করতে পারেন।</string>
     <string name="perm_title_notification_listener">নোটিফিকেশন অ্যাক্সেস</string>
     <string name="perm_desc_notification_listener">লঞ্চার ডেস্কটপের এখন বাজছে গ্যাজেটকে অন্য অ্যাপ কী চালাচ্ছে তা দেখাতে ও নিয়ন্ত্রণ করতে দেয়। অ্যাপটি শুধুমাত্র মিডিয়া সেশন পড়ে, নোটিফিকেশনের বিষয়বস্তু কখনও নয়। ঐচ্ছিক - Android সেটিংস স্ক্রিনে অনুমোদন করা হয়।</string>
     <string name="perm_title_write_external_storage">ডিভাইস স্টোরেজে সংরক্ষণ</string>
@@ -2902,7 +2899,7 @@
     <string name="wear_log_report_channel_name">ওয়াচ লগ</string>
     <string name="wear_log_report_notification_title">ওয়াচ লগ প্রাপ্ত হয়েছে</string>
     <string name="wear_log_report_notification_text">ডেভেলপারের কাছে পাঠাতে ট্যাপ করুন</string>
-    <string name="wear_log_report_email_subject">FastMediaSorter ওয়াচ লগ</string>
+    <string name="wear_log_report_email_subject">Fast Media Sorter &amp; Organizer ওয়াচ লগ</string>
     <string name="wear_log_report_email_body">আর্কাইভে ওয়াচ এবং ফোন উভয়ের লগ রয়েছে।</string>
     <string name="settings_unused_credentials_title">অব্যবহৃত ক্রেডেনশিয়াল</string>
     <string name="settings_unused_credentials_button">অব্যবহৃত ক্রেডেনশিয়াল - %1$d</string>
@@ -3018,7 +3015,6 @@
     <string name="ext_vlc_engine_desc">বিল্ট-ইন প্লেয়ার খুলতে পারে না এমন ভিডিও ফাইল এবং ডিস্ক চিত্রগুলি চালায়। প্রায় 44 MB এর এককালীন ডাউনলোড।</string>
     <string name="calculator_display_content_description">ফলাফল। অনুলিপি করতে আলতো চাপুন, একটি নম্বর পেস্ট করতে দীর্ঘক্ষণ টিপুন</string>
     <string name="calculator_action_settings">ক্যালকুলেটর সেটিংস</string>
-    <string name="calculator_settings_title">ক্যালকুলেটর সেটিংস</string>
     <string name="calculator_settings_group_thousands">গ্রুপ সংখ্যা</string>
     <string name="calculator_settings_group_thousands_summary">দশমিক বিন্দুর উভয় পাশে প্রতি তিনটি সংখ্যার মধ্যে একটি কমা দিন</string>
     <string name="calculator_settings_text_size">ফলাফলের আকার</string>
@@ -3145,7 +3141,7 @@
     <string name="welcome_enable_all_explainer_step_permissions_title">অ্যাক্সেসের অনুমতি দিন</string>
     <string name="welcome_enable_all_explainer_step_permissions_body">Android নিজের অনুরোধ দেখায়। অনুমতি দিন-এ ট্যাপ করুন। কিছু ধরনের অ্যাক্সেসের জন্য এর বদলে একটি আলাদা সেটিংস পেজ খোলে - সেখানে সুইচ চালু করুন এবং ফিরে যান চাপুন।</string>
     <string name="welcome_enable_all_explainer_step_default_app_title">আপনার ফাইলের জন্য অ্যাপ বেছে নিন</string>
-    <string name="welcome_enable_all_explainer_step_default_app_body">আপনার নিজের একটি ফাইল খোলে যাতে Android জিজ্ঞাসা করতে পারে কোন অ্যাপ এটি পরিচালনা করবে। এটাই স্বাভাবিক। FastMediaSorter বেছে নিন, সবসময়-এ ট্যাপ করুন, তারপর এখানে ফিরে আসতে ফিরে যান চাপুন।</string>
+    <string name="welcome_enable_all_explainer_step_default_app_body">আপনার নিজের একটি ফাইল খোলে যাতে Android জিজ্ঞাসা করতে পারে কোন অ্যাপ এটি পরিচালনা করবে। এটাই স্বাভাবিক। Fast Media Sorter &amp; Organizer বেছে নিন, সবসময়-এ ট্যাপ করুন, তারপর এখানে ফিরে আসতে ফিরে যান চাপুন।</string>
     <string name="welcome_enable_all_explainer_step_back_title">ফিরে যান আপনাকে এখানে ফিরিয়ে আনে</string>
     <string name="welcome_enable_all_explainer_step_back_body">যে কোনো স্ক্রিন যা আমাদের নয়, তা ফিরে যান দিয়ে ছেড়ে দিন। কিছুই হারায় না - সেটআপ যেখানে থেমেছিল সেখান থেকেই চলতে থাকে।</string>
     <string name="welcome_enable_all_explainer_continue">বুঝেছি, শুরু করুন</string>
@@ -3300,7 +3296,7 @@
     <string name="widget_water_flashlight_label">ওয়াটার টর্চ</string>
     <string name="widget_water_flashlight_description">ফ্ল্যাশ ও স্ক্রিন জ্বালায় এবং স্ক্রিন লক করে - কেবল একটি বোতাম এটি বন্ধ করে</string>
     <string name="tooltip_stopwatch_title">স্টপওয়াচ</string>
-    <string name="tooltip_stopwatch_message">প্রধান মেনুতে একটি স্টপওয়াচ যোগ করে। একটি দৌড় বা পরপর কয়েকটি মাপে, একসঙ্গে চারজন অংশগ্রহণকারী পর্যন্ত, এবং ফলাফল FastMediaSorter এর ভিতরেই রাখে।</string>
+    <string name="tooltip_stopwatch_message">প্রধান মেনুতে একটি স্টপওয়াচ যোগ করে। একটি দৌড় বা পরপর কয়েকটি মাপে, একসঙ্গে চারজন অংশগ্রহণকারী পর্যন্ত, এবং ফলাফল Fast Media Sorter &amp; Organizer এর ভিতরেই রাখে।</string>
     <string name="stopwatch_volume_label">সঙ্গীতের ভলিউম</string>
     <string name="stopwatch_settings_title">স্টপওয়াচ সেটিংস</string>
     <string name="stopwatch_settings_participants">অংশগ্রহণকারীরা</string>
@@ -3355,7 +3351,7 @@
     <string name="wear_listen_caption_idle">ঘড়ির মাইক্রোফোন যা শোনে তা শুনুন. ঘড়ি আপনাকে নিশ্চিত করতে বলবে.</string>
     <string name="wear_listen_caption_waiting">ঘড়িতে আপনার নিশ্চিতকরণের জন্য অপেক্ষা করা হচ্ছে..</string>
     <string name="wear_listen_caption_listening">ঘড়ি শোনা হচ্ছে.</string>
-    <string name="wear_listen_refusal_not_asked">ঘড়ি আপনাকে জিজ্ঞাসা করতে পারেনি: FastMediaSorter-এর জন্য এর বিজ্ঞপ্তি চালু করুন.</string>
+    <string name="wear_listen_refusal_not_asked">ঘড়ি আপনাকে জিজ্ঞাসা করতে পারেনি: Fast Media Sorter &amp; Organizer-এর জন্য এর বিজ্ঞপ্তি চালু করুন.</string>
     <string name="wear_listen_refusal_declined">আপনি ঘড়িতে অনুরোধটি প্রত্যাখ্যান করেছেন.</string>
     <string name="wear_listen_refusal_expired">সময়মতো ঘড়িতে কেউ উত্তর দেয়নি.</string>
     <string name="wear_listen_refusal_capture_failed">ঘড়ি তার মাইক্রোফোন খুলতে পারেনি.</string>
@@ -3569,7 +3565,7 @@
     <string name="wear_system_info_channel_name">ঘড়ির সিস্টেম তথ্য</string>
     <string name="wear_system_info_notification_title">ঘড়ির রিপোর্ট পাওয়া গেছে</string>
     <string name="wear_system_info_notification_text">রিপোর্ট খুলতে বা পাঠাতে ট্যাপ করুন</string>
-    <string name="wear_system_info_share_subject">FastMediaSorter ঘড়ির সিস্টেম তথ্য</string>
+    <string name="wear_system_info_share_subject">Fast Media Sorter &amp; Organizer ঘড়ির সিস্টেম তথ্য</string>
     <string name="wear_clipboard_channel_name">ঘড়ির ক্লিপবোর্ড</string>
     <string name="wear_clipboard_notification_title">ঘড়ি থেকে টেক্সট</string>
     <string name="wear_clipboard_notification_text">এটি এখন এই ফোনের ক্লিপবোর্ডে আছে</string>
@@ -3715,8 +3711,8 @@
     <string name="settings_sftp_server_apply_hint">পরিবর্তন প্রয়োগ করতে সার্ভার বন্ধ করে আবার চালু করুন</string>
     <string name="settings_sftp_server_show_qr">পেয়ারিং কোড দেখান</string>
     <string name="settings_sftp_server_hide_qr">পেয়ারিং কোড লুকান</string>
-    <string name="settings_sftp_server_qr_description">পেয়ারিং কোড: অন্য ডিভাইসে FastMediaSorter-এ এটি স্ক্যান করুন</string>
-    <string name="add_resource_sftp_pairing_invalid">এই কোডটি FastMediaSorter-এর সম্পূর্ণ পেয়ারিং কোড নয় - সার্ভার ফোনে এটি আবার দেখান এবং পুনরায় স্ক্যান করুন</string>
+    <string name="settings_sftp_server_qr_description">পেয়ারিং কোড: অন্য ডিভাইসে Fast Media Sorter &amp; Organizer-এ এটি স্ক্যান করুন</string>
+    <string name="add_resource_sftp_pairing_invalid">এই কোডটি Fast Media Sorter &amp; Organizer-এর সম্পূর্ণ পেয়ারিং কোড নয় - সার্ভার ফোনে এটি আবার দেখান এবং পুনরায় স্ক্যান করুন</string>
     <string name="add_resource_sftp_pairing_filled">পেয়ারিং কোড থেকে সংযোগের তথ্য পূরণ করা হয়েছে - সেগুলো যাচাই করে সংরক্ষণ করুন</string>
     <string name="add_resource_sftp_pairing_name">ডিভাইস সার্ভার %1$s</string>
     <string name="filedo_password_remember_leak">আনলক করা অবস্থায় এই ফোন যার হাতে থাকবে, সে এই পাসওয়ার্ডে খোলে এমন প্রতিটি .fd-sec ফাইল পাসওয়ার্ড টাইপ না করেই খুলতে পারবে।</string>
@@ -3824,8 +3820,8 @@
     <string name="wear_watchface_hint">আপনার ঘড়ির জন্য একটি FastMediaSorter ওয়াচ ফেস আছে।</string>
     <string name="wear_watchface_hint_action">নিন</string>
     <string name="wear_install_offer_title">একটি ঘড়ি সংযুক্ত আছে</string>
-    <string name="wear_install_offer_message">%1$s এই ফোনের সঙ্গে সংযুক্ত। কব্জি থেকেই আপনার মিডিয়া খুলতে ঘড়িতে FastMediaSorter ইনস্টল করুন, এবং FastMediaSorter ওয়াচ ফেস নিন।</string>
-    <string name="wear_install_offer_message_face_only">FastMediaSorter ইতিমধ্যে %1$s-এ আছে। FastMediaSorter ওয়াচ ফেসও নেবেন?</string>
+    <string name="wear_install_offer_message">%1$s এই ফোনের সঙ্গে সংযুক্ত। কব্জি থেকেই আপনার মিডিয়া খুলতে ঘড়িতে Fast Media Sorter &amp; Organizer ইনস্টল করুন, এবং Fast Media Sorter &amp; Organizer ওয়াচ ফেস নিন।</string>
+    <string name="wear_install_offer_message_face_only">Fast Media Sorter &amp; Organizer ইতিমধ্যে %1$s-এ আছে। Fast Media Sorter &amp; Organizer ওয়াচ ফেসও নেবেন?</string>
     <string name="wear_install_offer_app">ঘড়িতে ইনস্টল করুন</string>
     <string name="wear_install_offer_face">ওয়াচ ফেস</string>
     <string name="wear_install_offer_app_no_watch">কোনো ঘড়ি সংযুক্ত নেই - পরিবর্তে ঘড়ির অ্যাপের পেজটি এখানেই খুলছে।</string>
@@ -3842,7 +3838,7 @@
     <string name="wear_stream_pins_push_no_watch">কাছে কোনো ঘড়ি নেই</string>
     <string name="wear_stream_pins_push_failed">তালিকা ঘড়িতে পৌঁছায়নি। আবার চেষ্টা করুন।</string>
     <string name="wear_stream_pins_picker_title">ঘড়ির জন্য একটি চ্যানেল পিন করুন</string>
-    <string name="welcome_default_player_hint_side">একটি বোতামে ট্যাপ করুন - একটি ডায়ালগ আসবে। FastMediaSorter বেছে নিন এবং <b>সবসময়</b> ট্যাপ করুন।</string>
+    <string name="welcome_default_player_hint_side">একটি বোতামে ট্যাপ করুন - একটি ডায়ালগ আসবে। Fast Media Sorter &amp; Organizer বেছে নিন এবং <b>সবসময়</b> ট্যাপ করুন।</string>
     <string name="host_key_repin_warning_format">আপনার নিরাপত্তার জন্য কিছুই লোড করা হয়নি। এই নেটওয়ার্ককে বিশ্বাস করলেই কেবল ফিঙ্গারপ্রিন্ট হালনাগাদ করুন। এতে এই ঠিকানা ব্যবহার করা %1$dটি রিসোর্সের ফিঙ্গারপ্রিন্ট হালনাগাদ হবে।</string>
     <string name="host_key_repin_confirm">ফিঙ্গারপ্রিন্ট হালনাগাদ করুন</string>
     <string name="host_key_repin_done">ফিঙ্গারপ্রিন্ট হালনাগাদ হয়েছে</string>
@@ -4026,7 +4022,6 @@
     <string name="broadcast_control_group_share">লিংক ও শেয়ারিং</string>
     <string name="msg_transfer_same_folder_refused">এটি ইতিমধ্যে ফাইলটির ফোল্ডার। অন্য একটি গন্তব্য বেছে নিন।</string>
     <string name="settings_collapse_all">সব সংকুচিত করুন</string>
-    <string name="settings_category_about_app">এই অ্যাপ সম্পর্কে সবকিছু</string>
     <string name="broadcast_control_preview_toggle_cd">সম্প্রচারের ছবি। কন্ট্রোল দেখাতে বা লুকাতে ট্যাপ করুন</string>
     <string name="broadcast_link_password_title">লিংকের পাসওয়ার্ড</string>
     <string name="broadcast_link_password_mode_auto">স্বয়ংক্রিয়</string>

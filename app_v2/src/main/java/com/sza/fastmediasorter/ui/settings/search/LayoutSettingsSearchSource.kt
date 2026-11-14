@@ -304,9 +304,7 @@ class LayoutSettingsSearchSource @Inject constructor(
             R.id.btnOk,
             R.id.btnApply,
             R.id.btnCameraSettingsApply,
-            R.id.btnCameraSettingsCancel,
-            R.id.btnCalculatorSettingsApply,
-            R.id.btnCalculatorSettingsCancel
+            R.id.btnCameraSettingsCancel
         )
     }
 }

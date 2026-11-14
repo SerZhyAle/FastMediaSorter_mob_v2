@@ -32,6 +32,7 @@ import com.sza.fastmediasorter.domain.model.isAllFilesPredefined
 import com.sza.fastmediasorter.domain.model.isFileCountUnknown
 import com.sza.fastmediasorter.ui.common.MediaColorCategory
 import com.sza.fastmediasorter.ui.common.MediaTypeColorCatalog
+import com.sza.fastmediasorter.ui.common.RowTouchTarget
 import com.sza.fastmediasorter.ui.common.tintIconsFromTheme
 import com.sza.fastmediasorter.ui.icon.ResourceIconComposer
 import com.sza.fastmediasorter.util.LimitedStorageReach
@@ -39,6 +40,7 @@ import com.sza.fastmediasorter.util.VirtualPathUtils
 import com.sza.fastmediasorter.utils.keepLongestWordOnOneLine
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import com.sza.fastmediasorter.utils.setOnLongClickListenerDebounced
+import timber.log.Timber
 
 /** Callback from the adapter to the host (MainActivity) to start an ItemTouchHelper drag. */
 interface DragStartListener {
@@ -535,6 +537,20 @@ class ResourceAdapter(
         }
     }
 
+    // UI-SIZING 1.2 rule 4: ordinary mode gives a card action button the 48dp hit target; compact keeps the
+    // declared size, which is larger than 24dp on tablets and must not shrink there.
+    private fun cardActionButtonPx(resources: android.content.res.Resources): Int =
+        if (useCompactElements) {
+            resources.getDimensionPixelSize(R.dimen.item_icon_size_small)
+        } else {
+            RowTouchTarget.targetPx(resources, compact = false)
+        }
+
+    // Only the quick-slideshow icon is a target of its own: any other icon forwards its tap to the row body, and
+    // compact mode keeps the declared 24dp floor, so neither grows a hit area.
+    private fun quickIconHitAreaPx(resources: android.content.res.Resources, quickEligible: Boolean): Int =
+        if (quickEligible && !useCompactElements) RowTouchTarget.targetPx(resources, compact = false) else 0
+
     // S0727: toggle the per-row "Open in new window" menu entry after construction, so the persisted
     // allowSeparateWindow preference can be applied off the Main thread.
     fun setOpenInNewWindowVisible(visible: Boolean) {
@@ -600,6 +616,7 @@ class ResourceAdapter(
         val moreActionsButton: android.view.View get() = binding.btnMoreActions
 
         init {
+            Timber.d("S4631: resource tile action target ${cardActionButtonPx(binding.root.resources)}px")
             binding.tvResourceName.keepLongestWordOnOneLine(
                 binding.root.resources.getDimension(R.dimen.text_size_tiny)
             )
@@ -632,6 +649,8 @@ class ResourceAdapter(
                 ivResourceTypeIcon.setImageDrawable(iconDrawable)
 
                 val quickEligibleGrid = isQuickSlideshowEligible(resource)
+                val iconHitAreaPx = quickIconHitAreaPx(root.resources, quickEligibleGrid)
+                RowTouchTarget.expandHitArea(ivResourceTypeIcon, iconHitAreaPx)
                 if (quickEligibleGrid) {
                     ivResourceTypeIcon.isClickable = true
                     ivResourceTypeIcon.isFocusable = true
@@ -733,6 +752,7 @@ class ResourceAdapter(
                     btnMoreActions.visibility = android.view.View.GONE
                 } else {
                     btnMoreActions.visibility = android.view.View.VISIBLE
+                    RowTouchTarget.resize(btnMoreActions, cardActionButtonPx(root.resources))
                     // S0977: the name in the spoken label keeps each card's overflow uniquely targetable by E2E
                     btnMoreActions.contentDescription =
                         btnMoreActions.context.getString(R.string.resource_more_actions_for, resource.name)
@@ -762,6 +782,10 @@ class ResourceAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         val moreActionsButton: android.view.View get() = binding.btnMoreActions
+
+        private val inlineActionButtons by lazy {
+            listOf(binding.btnEdit, binding.btnCopy, binding.btnMoveUp, binding.btnMoveDown, binding.btnDelete)
+        }
 
         fun bind(resource: MediaResource, selectedId: Long?) {
             binding.apply {
@@ -798,6 +822,8 @@ class ResourceAdapter(
                 ivResourceTypeIcon.setImageDrawable(iconDrawable)
 
                 val quickEligibleList = isQuickSlideshowEligible(resource)
+                val iconHitAreaPx = quickIconHitAreaPx(root.resources, quickEligibleList)
+                RowTouchTarget.expandHitArea(ivResourceTypeIcon, iconHitAreaPx)
                 if (quickEligibleList) {
                     ivResourceTypeIcon.isClickable = true
                     ivResourceTypeIcon.isFocusable = true
@@ -1003,12 +1029,17 @@ class ResourceAdapter(
                     layoutInlineActions.visibility = android.view.View.GONE
                     ivDragHandle.visibility = android.view.View.GONE
                 } else {
+                    Timber.d("S4631: resource row action target ${cardActionButtonPx(root.resources)}px")
                     val isPredefinedVirtualResource = resource.path in VirtualPathUtils.ALL_VIRTUAL_PATHS
 
                     val showInlineActions = !overflowModeEnabled &&
                         root.resources.getBoolean(R.bool.is_resource_actions_inline)
                     if (showInlineActions) {
                         layoutInlineActions.visibility = android.view.View.VISIBLE
+                        val inlineButtonPx = cardActionButtonPx(root.resources)
+                        for (inlineButton in inlineActionButtons) {
+                            RowTouchTarget.resize(inlineButton, inlineButtonPx)
+                        }
                         btnEdit.setOnClickListenerDebounced { onEditClick(resource) }
                         btnCopy.visibility = if (isPredefinedVirtualResource) android.view.View.GONE else android.view.View.VISIBLE
                         btnCopy.setOnClickListenerDebounced { onCopyFromClick(resource) }
@@ -1026,6 +1057,7 @@ class ResourceAdapter(
                     // or on any phone in landscape, and the storage-reach banner sends the user to one
                     // of those eleven.
                     btnMoreActions.visibility = android.view.View.VISIBLE
+                    RowTouchTarget.resize(btnMoreActions, cardActionButtonPx(root.resources))
                     // S0977: the name in the spoken label keeps each card's overflow uniquely targetable by E2E
                     btnMoreActions.contentDescription =
                         btnMoreActions.context.getString(R.string.resource_more_actions_for, resource.name)

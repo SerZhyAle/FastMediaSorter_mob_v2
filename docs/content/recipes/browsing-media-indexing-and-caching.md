@@ -14,7 +14,7 @@ why: |
 
   This page has nothing to configure. It explains what the [file browser](term:file-browser) is already doing for you, so a moment of loading - or the rare case where it needs to catch up - makes sense instead of looking like something is wrong.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition). This is background behavior, not a feature you switch on."
+  - "Fast Media Sorter & Organizer in any [edition](term:edition). This is background behavior, not a feature you switch on."
   - "At least one [resource](term:resource) with enough files to notice a difference - a folder of a few hundred photos shows it better than a folder of five."
 steps:
   - number: 1

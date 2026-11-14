@@ -99,7 +99,7 @@
     <string name="phone_resource_loading">আপনার ফোন থেকে লোড হচ্ছে..</string>
     <string name="phone_resource_retry">পুনরায় চেষ্টা করুন</string>
     <string name="phone_resource_empty">আপনার ফোনে এখানে দেখানোর কিছু নেই। অন্য ফোল্ডার খুলুন বা পুনরায় চেষ্টা করুন।</string>
-    <string name="phone_resource_unavailable">FastMediaSorter আপনার ফোনে সাড়া দিচ্ছে না। সেখানে এটি খুলুন, এবং ফোনটি কাছে রাখুন।</string>
+    <string name="phone_resource_unavailable">Fast Media Sorter &amp; Organizer আপনার ফোনে সাড়া দিচ্ছে না। সেখানে এটি খুলুন, এবং ফোনটি কাছে রাখুন।</string>
     <string name="phone_resource_access_denied">আপনার ফোন এই ফোল্ডারটি ওয়াচের সাথে শেয়ার করে না।</string>
     <string name="phone_resource_unsupported">ওয়াচ এই ধরনের ফাইল খুলতে পারে না।</string>
     <string name="phone_resource_transfer_rejected">এই ফাইলটি ওয়াচে পাঠানোর জন্য খুব বড়।</string>
@@ -383,9 +383,9 @@
     <string name="phone_resource_no_resource_for_type">এই ধরনের ধারণ করার জন্য কোনো ফোন রিসোর্স সেট আপ করা হয়নি।</string>
     <string name="wear_folder_load_more">আরও দেখান</string>
     <string name="wear_file_op_outcome_needs_consent">নিশ্চিত করা হয়নি - কিছুই পরিবর্তন হয়নি</string>
-    <string name="wear_sync_no_phone_paired">কোনো ফোন সংযুক্ত নেই। আপনার ফোন পেয়ার করুন এবং তাতে FastMediaSorter ইনস্টল করুন।</string>
+    <string name="wear_sync_no_phone_paired">কোনো ফোন সংযুক্ত নেই। আপনার ফোন পেয়ার করুন এবং তাতে Fast Media Sorter &amp; Organizer ইনস্টল করুন।</string>
     <string name="wear_sync_request_failed">ফোনকে জিজ্ঞাসা করা যায়নি। আবার চেষ্টা করুন।</string>
-    <string name="phone_resource_not_paired">এই ঘড়ির সাথে কোনো ফোন সংযুক্ত নেই। একটি ফোন পেয়ার করুন এবং তাতে FastMediaSorter ইনস্টল করুন।</string>
+    <string name="phone_resource_not_paired">এই ঘড়ির সাথে কোনো ফোন সংযুক্ত নেই। একটি ফোন পেয়ার করুন এবং তাতে Fast Media Sorter &amp; Organizer ইনস্টল করুন।</string>
     <string name="wear_streams_sort_most_used">সর্বাধিক ব্যবহৃত</string>
     <string name="streams_rubric_general">সাধারণ</string>
     <string name="streams_rubric_news">সংবাদ</string>
@@ -767,7 +767,7 @@
     <string name="wear_cast_phone_busy">আপনার ফোন সাড়া দেয়নি - এটি কাছাকাছি আছে কিনা দেখুন</string>
     <string name="wear_cast_not_castable">শুধু ফোন সোর্সের স্ট্রিম ও ফাইল TV-তে দেখানো যায়</string>
     <string name="wear_stream_stalled">স্ট্রিম পাঠানো বন্ধ হয়ে গেছে। ব্যাটারি বাঁচাতে প্লেব্যাক বন্ধ করা হয়েছে।</string>
-    <string name="phone_resource_companion_disabled">আপনার ফোনে Wear Companion সুইচ বন্ধ আছে। FastMediaSorter সেটিংসে এটি চালু করুন, তারপর আবার চেষ্টা করুন।</string>
+    <string name="phone_resource_companion_disabled">আপনার ফোনে Wear Companion সুইচ বন্ধ আছে। Fast Media Sorter &amp; Organizer সেটিংসে এটি চালু করুন, তারপর আবার চেষ্টা করুন।</string>
     <string name="wear_tourist_app">পর্যটক</string>
     <string name="wear_tourist_metric_speed">গতি</string>
     <string name="wear_tourist_metric_altitude">উচ্চতা</string>
@@ -934,12 +934,12 @@
     <string name="about_watch_face_caption">Wear OS 6 ও তার পরের সংস্করণের জন্য</string>
     <string name="about_watch_face_no_store">এই ঘড়িতে Google Play নেই</string>
     <string name="wear_companion_hint_connect">রিসোর্স ও ফোন দেখতে আপনার ফোন সংযুক্ত করুন</string>
-    <string name="wear_companion_hint_install">রিসোর্স ও ফোন দেখতে আপনার ফোনে FastMediaSorter ইনস্টল করুন</string>
-    <string name="wear_companion_offer_title">FastMediaSorter আপনার ফোনে নেই</string>
+    <string name="wear_companion_hint_install">রিসোর্স ও ফোন দেখতে আপনার ফোনে Fast Media Sorter &amp; Organizer ইনস্টল করুন</string>
+    <string name="wear_companion_offer_title">Fast Media Sorter &amp; Organizer আপনার ফোনে নেই</string>
     <string name="wear_companion_offer_message">ঘড়ি থেকে ফোন ও তার রিসোর্স ব্রাউজ করতে এটি ইনস্টল করুন</string>
     <string name="wear_companion_offer_install">ইনস্টল করুন</string>
     <string name="wear_companion_offer_later">এখন নয়</string>
-    <string name="wear_companion_install_row">ফোনে FastMediaSorter ইনস্টল করুন</string>
+    <string name="wear_companion_install_row">ফোনে Fast Media Sorter &amp; Organizer ইনস্টল করুন</string>
     <string name="wear_tourist_metric_pressure">বায়ুচাপ</string>
     <string name="wear_tourist_metric_baro_altitude">ব্যারোমেট্রিক উচ্চতা</string>
     <string name="wear_tourist_metric_elevation_gain_loss">আরোহণ</string>

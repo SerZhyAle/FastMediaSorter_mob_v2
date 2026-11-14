@@ -92,7 +92,6 @@
     <string name="settings_all_files_profile_confirm_message">该场景会启用文件管理器模式，并创建缺少的“所有文件”资源。要继续吗？</string>
     <string name="settings_reset_settings_failed">无法重置设置。请重试。</string>
     <string name="settings_reset_smb_failed">无法重置 SMB 连接。请重试。</string>
-    <string name="settings_saved">设置已保存</string>
     <string name="settings_search_close">关闭设置搜索</string>
     <string name="settings_search_hint">搜索设置</string>
     <string name="settings_search_no_results">未找到相关设置</string>

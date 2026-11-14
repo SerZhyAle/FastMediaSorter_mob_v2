@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Connecter la montre connectée aux partages NAS et PC - FastMediaSorter v2"
+title: "Connecter la montre connectée aux partages NAS et PC - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-watch-network-fr.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -13,7 +13,7 @@ permalink: /docs/howto/scenario-watch-network-fr.html
 
 > **Version complète uniquement** - ce guide n'est pas implémenté dans la version distribuée via Google Play. Il s'applique à la version complète, un téléchargement direct de l'APK depuis [Téléchargements](../DOWNLOADS.md).
 
-FastMediaSorter sur Wear OS se connecte directement au stockage de votre réseau domestique (NAS, dossiers partagés PC, serveurs FTP ou SFTP) via le Wi-Fi. Vous pouvez parcourir des fichiers distants, diffuser de la musique vers des écouteurs Bluetooth, et synchroniser vos dossiers favoris sans avoir besoin de votre téléphone.
+Fast Media Sorter & Organizer sur Wear OS se connecte directement au stockage de votre réseau domestique (NAS, dossiers partagés PC, serveurs FTP ou SFTP) via le Wi-Fi. Vous pouvez parcourir des fichiers distants, diffuser de la musique vers des écouteurs Bluetooth, et synchroniser vos dossiers favoris sans avoir besoin de votre téléphone.
 
 > **Nouveau dans les partages réseau ?** Si vous n'avez pas encore configuré de dossier partagé sur votre PC ou NAS, commencez d'abord par notre guide [Se connecter à un NAS / partage Windows (SMB)](scenario-smb-setup-fr.md).
 
@@ -36,7 +36,7 @@ FastMediaSorter sur Wear OS se connecte directement au stockage de votre réseau
 
 ![Resources screen on Wear OS](screenshots/screenshot-wear-network-step1.png)
 
-> **Raccourci Synchroniser depuis le téléphone :** si vous avez déjà ajouté vos partages SMB ou SFTP dans FastMediaSorter sur votre téléphone Android, appuyez sur **Synchroniser depuis le téléphone** pour importer tous les paramètres de connexion vers votre montre en un geste.
+> **Raccourci Synchroniser depuis le téléphone :** si vous avez déjà ajouté vos partages SMB ou SFTP dans Fast Media Sorter & Organizer sur votre téléphone Android, appuyez sur **Synchroniser depuis le téléphone** pour importer tous les paramètres de connexion vers votre montre en un geste.
 
 ---
 

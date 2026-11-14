@@ -83,9 +83,12 @@ class DocumentPrintManager(
      * via [NetworkFileManager]. Returns null and shows a message on failure or size overflow.
      */
     private suspend fun prepareLocalFile(mediaFile: MediaFile): File? {
-        val file = try {
+        Timber.d("S4580: prepareLocalFile measures the prepared file inside the IO block")
+        val (file, sizeBytes) = try {
             withContext(Dispatchers.IO) {
-                host.printNetworkFileManager.prepareFileForRead(mediaFile)
+                val prepared = host.printNetworkFileManager.prepareFileForRead(mediaFile)
+                // Measured here because exists() and length() are disk reads and the caller resumes on main.
+                prepared to if (prepared.exists()) prepared.length() else 0L
             }
         } catch (e: Exception) {
             e.errorUnlessCancellation("DocumentPrintManager: failed to prepare file for print: ${mediaFile.path}")
@@ -93,16 +96,16 @@ class DocumentPrintManager(
             return null
         }
 
-        if (!file.exists() || file.length() == 0L) {
+        if (sizeBytes == 0L) {
             Timber.e("DocumentPrintManager: prepared file is missing or empty: ${file.absolutePath}")
             showMessage(host.printHostActivity.getString(R.string.error_print_download_failed))
             return null
         }
 
-        if (file.length() > MAX_PRINT_FILE_SIZE_BYTES) {
+        if (sizeBytes > MAX_PRINT_FILE_SIZE_BYTES) {
             Timber.w(
                 "DocumentPrintManager: file too large for print " +
-                    "(${file.length()} bytes > $MAX_PRINT_FILE_SIZE_BYTES)"
+                    "($sizeBytes bytes > $MAX_PRINT_FILE_SIZE_BYTES)"
             )
             showMessage(host.printHostActivity.getString(R.string.error_print_file_too_large))
             return null
@@ -110,7 +113,7 @@ class DocumentPrintManager(
 
         Timber.d(
             "DocumentPrintManager: prepared local file for print " +
-                "(${file.length()} bytes): ${file.absolutePath}"
+                "($sizeBytes bytes): ${file.absolutePath}"
         )
         return file
     }

@@ -95,8 +95,9 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSosStop"
                 style="@style/Widget.FastMediaSorter.Button.DialogDestructive"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="@dimen/sos_stop_button_height"
+                android:layout_gravity="end"
                 android:layout_marginTop="@dimen/margin_large"
                 android:text="@string/sos_stop_action"
                 android:textAppearance="?attr/textAppearanceHeadline6" />

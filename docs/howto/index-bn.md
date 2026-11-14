@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "ধাপে ধাপে গাইড - FastMediaSorter v2"
+title: "ধাপে ধাপে গাইড - Fast Media Sorter & Organizer"
 permalink: /docs/howto/index-bn.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>

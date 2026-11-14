@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "ایک کوڈ اسکین کر کے اپنے پی سی کے فولڈرز کھولیں - FastMediaSorter v2"
+title: "ایک کوڈ اسکین کر کے اپنے پی سی کے فولڈرز کھولیں - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-companion-share-ur.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -56,7 +56,7 @@ permalink: /docs/howto/scenario-companion-share-ur.html
 
 ## مرحلہ 2، طریقہ A - کوڈ اسکین کریں (تیز ترین)
 
-1. FastMediaSorter کھولیں اور مین اسکرین پر **Add** <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> بٹن پر ٹیپ کریں۔
+1. Fast Media Sorter & Organizer کھولیں اور مین اسکرین پر **Add** <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> بٹن پر ٹیپ کریں۔
 2. **"Import by barcode"** پر ٹیپ کریں - یہ چار ریسورس ٹائپ کارڈز (Local, SMB, SFTP/FTP, Cloud) کے ساتھ اور SFTP فارم ہیڈر میں موجود ہے۔
 3. کیمرہ *"Point the camera at the companion QR code"* کے اشارے کے ساتھ کھلتا ہے۔ فون کو اپنے پی سی پر QR کے سامنے رکھیں۔ اندھیرے کمرے میں **Torch** پر ٹیپ کریں۔
 4. ایک تصدیقی پیغام ظاہر ہوتا ہے - *"Import access - Add the SFTP resource .. with N folder(s)?"*۔ **Import** پر ٹیپ کریں۔
@@ -115,7 +115,7 @@ permalink: /docs/howto/scenario-companion-share-ur.html
 | "Import by barcode" اندراج موجود نہیں | ڈیوائس میں کیمرہ نہیں ہے، یا یہ VR بلڈ ہے۔ [طریقہ B - فائل درآمد کریں](#step-2-method-b---import-the-file) استعمال کریں |
 | کیمرہ کہتا ہے کہ رسائی درکار ہے | پوچھے جانے پر کیمرہ کی اجازت دیں - یہ صرف اسکین کے لیے استعمال ہوتی ہے |
 | "This file is not a valid companion config" | کوڈ یا فائل Windows کمپینین سے نہیں ہے۔ اسے **Share** ٹیب سے دوبارہ ایکسپورٹ کریں |
-| "Created by a newer companion version" | فون پر FastMediaSorter اپ ڈیٹ کریں، یا ایک مطابقت رکھنے والے کمپینین ورژن سے دوبارہ ایکسپورٹ کریں |
+| "Created by a newer companion version" | فون پر Fast Media Sorter & Organizer اپ ڈیٹ کریں، یا ایک مطابقت رکھنے والے کمپینین ورژن سے دوبارہ ایکسپورٹ کریں |
 | ریسورس شامل ہو گیا مگر فولڈرز خالی ہیں | یقینی بنائیں کہ پی سی ہیلپر ابھی بھی چل رہا ہے۔ **ایک ہی Wi-Fi** پر ایپ خود پی سی تلاش کر لیتی ہے؛ اگر پھر بھی ناکام ہو، تو ایپ دکھاتی ہے کہ کیا چیک کرنا ہے |
 | Wi-Fi پر کام کرتا ہے مگر موبائل ڈیٹا پر نہیں | کسی دوسرے نیٹ ورک سے پی سی تک پہنچنے کے لیے، اسے انٹرنیٹ سے قابل رسائی ہونا چاہیے - کمپینین کی **Share** ترتیبات میں پورٹ فارورڈنگ یا IPv6 سیٹ اپ کریں۔ اس کے بغیر، شیئر صرف ایک ہی Wi-Fi پر کام کرتا ہے |
 

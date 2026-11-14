@@ -1,24 +1,26 @@
 ---
 layout: doc
-title: "FastMediaSorter v2 - Повний список можливостей"
+title: "Fast Media Sorter & Organizer - Повний список можливостей"
 permalink: /docs/FEATURES-uk.html
 ---
 <sub class="doc-stamp">26.11.10 04:08</sub>
 
-# FastMediaSorter v2 - Повний список можливостей
+<a id="fastmediasorter-v2---повний-список-можливостей"></a>
+
+# Fast Media Sorter & Organizer - Повний список можливостей
 
 *Останнє оновлення: 2026-11-12*
 
 Цей документ - кураторська вітрина ключових користувацьких можливостей. Повний технічний інвентар усіх реалізованих можливостей міститься у `docs/ALL_FEATURES.jsonl`.
 
-FastMediaSorter - повноцінна оболонка Android-пристрою. Вітрина йде за вісьмома її стовпами в незмінному порядку: оболонка пристрою, медіаплеєр, трансляції, запуск програм, заміна штатних програм, супутник на годиннику, моніторинг пристрою та повний файловий менеджер.
+Fast Media Sorter & Organizer - повноцінна оболонка Android-пристрою. Вітрина йде за вісьмома її стовпами в незмінному порядку: оболонка пристрою, медіаплеєр, трансляції, запуск програм, заміна штатних програм, супутник на годиннику, моніторинг пристрою та повний файловий менеджер.
 
 **Платформні вимоги:** Android 8.0+ (API 26) для збірки Standard. Версія Legacy підтримує пристрої від Android 6.0+ (API 23), зберігаючи ті самі функції. Версія Lite працює лише з локальними файлами, без мережевих джерел (SMB/FTP/SFTP) та хмарних дисків. Підтримувані пристрої: смартфони, планшети, ТВ-приставки на Android TV та автомобільні магнітоли. Працює в Chrome OS через Google Play (ARC++).
 
 ---
 
 ## 1. Оболонка пристрою
-- **Застосунок як домашній екран** `[Standard / noLegal]`: Режим лаунчера перетворює FastMediaSorter на домашній екран пристрою зі змінюваними гаджетами, робочим годинником і підписаною прокручуваною сіткою застосунків. <!-- af: settings-navigation.launcher-mode, launcher.resize-home-screen-gadgets, launcher.labeled-scrollable-app-grid-in-start-menu -->
+- **Застосунок як домашній екран** `[Standard / noLegal]`: Режим лаунчера перетворює Fast Media Sorter & Organizer на домашній екран пристрою зі змінюваними гаджетами, робочим годинником і підписаною прокручуваною сіткою застосунків. <!-- af: settings-navigation.launcher-mode, launcher.resize-home-screen-gadgets, launcher.labeled-scrollable-app-grid-in-start-menu -->
 - **Екран затемнення стає живим циферблатом** `[Standard / noLegal]`: Екран затемнення показує справжні іконки застосунків біля повідомлень, відкриває застосунок за тапом, відкриває витрату батареї за тапом на батареї, показує стан мережі та Bluetooth, а годинник повторює віджет годинника лаунчера. <!-- af: launcher.dim-screen-live-clock-face -->
 - **Розділений жест шторки** `[Standard / noLegal]`: Якщо жест униз на робочому столі відкриває шторку, початок ліворуч показує сповіщення, а праворуч - швидкі налаштування. <!-- af: launcher.split-notification-shade-swipe -->
 - **Робочий стіл під себе** `[Standard / noLegal]`: Оберіть фірмову анімацію хвиль і частинок, рівний порожній фон або власну картинку, зокрема анімований GIF, обрізану за розміром екрана. <!-- af: launcher.desktop_wallpaper -->
@@ -156,7 +158,7 @@ FastMediaSorter - повноцінна оболонка Android-пристрою
 - **Скасування перенесення цілої теки** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: копіювання чи переміщення теки повертається однією дією, а не файл за файлом. <!-- af: file-operations.folder-transfer-undo -->
 - **Єдиний хаб "Надіслати в.."** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Один пункт збирає Telegram, email, Lens, Keep, друк, Share та інші ввімкнені способи надсилання в один короткий список замість розсипу окремих кнопок. <!-- af: sharing.unified-send-to-bottom-sheet -->
 - **Панель миттєвого сортування** `[Standard / VR]`: Тримайте до 30 обраних тек призначення прямо в плеєрі та відправляйте поточний файл у потрібне місце одним натисканням, за бажанням з автопереходом до наступного. <!-- af: destinations.quick-sort-destination-panel-in-player, destinations.auto-advance-to-next-file-after-sort -->
-- **Відкрили один файл з іншого застосунку - гортайте сусідні** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Якщо інший застосунок передав один файл, у FastMediaSorter можна відразу перейти до наступного, попереднього, випадкового або ввімкнути слайд-шоу з тієї ж теки. <!-- af: media-player.standalone-neighbour-file-paging -->
+- **Відкрили один файл з іншого застосунку - гортайте сусідні** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Якщо інший застосунок передав один файл, у Fast Media Sorter & Organizer можна відразу перейти до наступного, попереднього, випадкового або ввімкнути слайд-шоу з тієї ж теки. <!-- af: media-player.standalone-neighbour-file-paging -->
 - **Режим файлового менеджера** `[Standard / VR]`: Показує приховані файли та знімає медіа-обмеження, щоб працювати зі змішаними теками, архівами, APK, EXE та іншими не-медійними файлами. <!-- af: media-browsing.file-manager-mode, media-browsing.show-hidden-files-toggle -->
 - **Переносьте теки цілком, а не лише файли** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Виділяйте підтеки так само, як файли, копіюйте і переміщуйте їх між протоколами, а надіслана у фон передача лишається на натискній смузі, до якої можна повернутися. <!-- af: file-operations.folder-selection-and-transfer, browse.backgrounded-copy-move-stays-visible-on-a-tappable -->
 - **Карти пам'яті та під'єднані диски** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Знімні носії та змонтовані зовнішні диски видно як звичайні джерела, а не лишаються невидимими. <!-- af: media-browsing.removable-storage-support -->

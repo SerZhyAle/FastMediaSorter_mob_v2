@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Connect to NAS / Windows Share (SMB) - FastMediaSorter v2"
+title: "Connect to NAS / Windows Share (SMB) - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-smb-setup.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -11,7 +11,7 @@ permalink: /docs/howto/scenario-smb-setup.html
 
 SMB (also called Windows File Sharing or CIFS) lets you browse files on your home PC, laptop, or NAS device exactly like they were on your phone - no cables, no USB, just Wi-Fi.
 
-> **Plain English explanation:** Imagine your PC has a public notice board on your home Wi-Fi. Any device in the house can read from that board. FastMediaSorter connects to that "board" (your shared folder) and lets you browse your files as if they were stored right on your phone. Nothing is copied or downloaded upfront - files open on demand.
+> **Plain English explanation:** Imagine your PC has a public notice board on your home Wi-Fi. Any device in the house can read from that board. Fast Media Sorter & Organizer connects to that "board" (your shared folder) and lets you browse your files as if they were stored right on your phone. Nothing is copied or downloaded upfront - files open on demand.
 
 ---
 
@@ -65,12 +65,12 @@ On **Windows:**
 
 ---
 
-## Step 3 - Open FastMediaSorter and Tap "+"
+## Step 3 - Open Fast Media Sorter & Organizer and Tap "+" {#step-3---open-fastmediasorter-and-tap-}
 
 1. Open the app
 2. On the **resource list**, tap the **"Add" <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** button in the top toolbar
 
-![FastMediaSorter resource list - Add button highlighted in top toolbar, SMB tab visible](screenshots/screenshot-smb-step3.png)
+![Fast Media Sorter & Organizer resource list - Add button highlighted in top toolbar, SMB tab visible](screenshots/screenshot-smb-step3.png)
 
 ---
 
@@ -145,7 +145,7 @@ Tap **"Save"**. The new folder appears in the resource list with an SMB badge.
 
 Tap it to browse its contents - photos, videos, and other files appear as thumbnails like any local folder.
 
-![FastMediaSorter resource list - new "Common" SMB resource card (smb://192.168.1.100/Common) with Network folder SMB badge highlighted](screenshots/screenshot-smb-step8.png)
+![Fast Media Sorter & Organizer resource list - new "Common" SMB resource card (smb://192.168.1.100/Common) with Network folder SMB badge highlighted](screenshots/screenshot-smb-step8.png)
 
 ---
 

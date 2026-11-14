@@ -9,7 +9,7 @@ permalink: /docs/TROUBLESHOOTING-hi.html
 
 # 🔧 समस्या निवारण गाइड
 
-FastMediaSorter v2 के लिए मौजूदा समस्या निवारण गाइड. जब समस्या चुने गए बिल्ड पथ (Standard, Lite, Photos, Legacy, या XR / noLegal) पर निर्भर करती है तो [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) में दी गई कैनोनिकल संस्करण तालिका इस्तेमाल करें.
+Fast Media Sorter & Organizer के लिए मौजूदा समस्या निवारण गाइड. जब समस्या चुने गए बिल्ड पथ (Standard, Lite, Photos, Legacy, या XR / noLegal) पर निर्भर करती है तो [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) में दी गई कैनोनिकल संस्करण तालिका इस्तेमाल करें.
 
 ---
 
@@ -53,7 +53,7 @@ FastMediaSorter v2 के लिए मौजूदा समस्या नि
 ### ❌ "Google Drive साइन-इन विफल"
 
 **समाधान:**
-1. ऐप डेटा साफ़ करें: Settings → Apps → FastMediaSorter → Clear Data
+1. ऐप डेटा साफ़ करें: Settings → Apps → Fast Media Sorter & Organizer → Clear Data
 2. ऐप फिर से इंस्टॉल करें
 3. Google अकाउंट सेटिंग्स → Security → Third-party apps जाँचें
 
@@ -63,7 +63,7 @@ FastMediaSorter v2 के लिए मौजूदा समस्या नि
 
 **समाधान:**
 1. Microsoft अकाउंट की स्थिति जाँचें
-2. ऐप डेटा साफ़ करें: Settings → Apps → FastMediaSorter → Clear Data
+2. ऐप डेटा साफ़ करें: Settings → Apps → Fast Media Sorter & Organizer → Clear Data
 3. Microsoft अकाउंट सेटिंग्स → Privacy → Apps and services जाँचें
 
 ---
@@ -72,7 +72,7 @@ FastMediaSorter v2 के लिए मौजूदा समस्या नि
 
 **समाधान:**
 1. Dropbox अकाउंट की स्थिति जाँचें
-2. ऐप डेटा साफ़ करें: Settings → Apps → FastMediaSorter → Clear Data
+2. ऐप डेटा साफ़ करें: Settings → Apps → Fast Media Sorter & Organizer → Clear Data
 3. Dropbox अकाउंट सेटिंग्स → Security → Connected apps जाँचें
 
 ---
@@ -182,7 +182,7 @@ FastMediaSorter v2 के लिए मौजूदा समस्या नि
 ### ❌ "स्टार्टअप पर ऐप क्रैश हो जाता है"
 
 **समाधान:**
-1. ऐप कैश साफ़ करें: Settings → Apps → FastMediaSorter → Clear Cache
+1. ऐप कैश साफ़ करें: Settings → Apps → Fast Media Sorter & Organizer → Clear Cache
 2. अगर फिर भी हो: ऐप डेटा साफ़ करें (⚠️ सेटिंग्स खो जाती हैं)
 3. आख़िरी उपाय के रूप में ऐप फिर से इंस्टॉल करें
 

@@ -9,7 +9,7 @@ permalink: /docs/WEAR_OS_SETUP.html
 
 ## Overview
 
-FastMediaSorter now includes a Wear OS companion app for browsing and playing media on smartwatches. This guide covers how to build and run the Wear OS app in Android Studio.
+Fast Media Sorter & Organizer now includes a Wear OS companion app for browsing and playing media on smartwatches. This guide covers how to build and run the Wear OS app in Android Studio.
 
 ## Prerequisites
 

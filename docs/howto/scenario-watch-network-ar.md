@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "توصيل الساعة الذكية بمشاركات NAS وجهاز الكمبيوتر - FastMediaSorter v2"
+title: "توصيل الساعة الذكية بمشاركات NAS وجهاز الكمبيوتر - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-watch-network-ar.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -13,7 +13,7 @@ permalink: /docs/howto/scenario-watch-network-ar.html
 
 > **الإصدار الكامل فقط** - هذا الدليل غير مطبّق في الإصدار الموزّع عبر Google Play. ينطبق على الإصدار الكامل، وهو تنزيل مباشر لملف APK من [التنزيلات](../DOWNLOADS.md).
 
-يتصل FastMediaSorter على Wear OS مباشرة بتخزين شبكتك المنزلية (NAS، أو مجلدات كمبيوتر مشتركة، أو خوادم FTP، أو SFTP) عبر Wi-Fi. يمكنك تصفح الملفات البعيدة، وبث الموسيقى إلى سماعات بلوتوث، ومزامنة مجلداتك المفضلة دون الحاجة لهاتفك.
+يتصل Fast Media Sorter & Organizer على Wear OS مباشرة بتخزين شبكتك المنزلية (NAS، أو مجلدات كمبيوتر مشتركة، أو خوادم FTP، أو SFTP) عبر Wi-Fi. يمكنك تصفح الملفات البعيدة، وبث الموسيقى إلى سماعات بلوتوث، ومزامنة مجلداتك المفضلة دون الحاجة لهاتفك.
 
 > **جديد على مشاركات الشبكة؟** إذا لم تُعدّ بعد مجلدًا مشتركًا على جهاز الكمبيوتر أو NAS، ابدأ أولًا بدليل [الاتصال بـ NAS / مشاركة Windows (SMB)](scenario-smb-setup-ar.md) الخاص بنا.
 
@@ -36,7 +36,7 @@ permalink: /docs/howto/scenario-watch-network-ar.html
 
 ![شاشة الموارد على Wear OS](screenshots/screenshot-wear-network-step1.png)
 
-> **اختصار المزامنة من الهاتف:** إذا كنت قد أضفت بالفعل مشاركات SMB أو SFTP في FastMediaSorter على هاتفك الذكي، اضغط **المزامنة من الهاتف** لاستيراد جميع إعدادات الاتصال إلى ساعتك بلمسة واحدة.
+> **اختصار المزامنة من الهاتف:** إذا كنت قد أضفت بالفعل مشاركات SMB أو SFTP في Fast Media Sorter & Organizer على هاتفك الذكي، اضغط **المزامنة من الهاتف** لاستيراد جميع إعدادات الاتصال إلى ساعتك بلمسة واحدة.
 
 ---
 

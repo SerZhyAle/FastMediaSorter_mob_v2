@@ -417,6 +417,9 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
 
         // Apply saved locale - SharedPreferences read already wrapped in StrictModeHelper
         LocaleHelper.applyLocale(this)
+        // Below API 33 AppCompat forgets its locale when the process ends; hand the stored choice back
+        // before the first activity is created.
+        LocaleHelper.restoreForAppCompat(this)
         // Note: logging initialized early in attachBaseContext to capture startup crashes
         
         // Cast SDK is initialised lazily by CastController.init() (S0403 seam; GMS-backed

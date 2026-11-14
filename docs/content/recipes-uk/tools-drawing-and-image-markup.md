@@ -13,7 +13,7 @@ why: |
 
   Він також відкривається на порожній сторінці, тож скріншот, ескіз чи схему можна почати з нуля.
 ingredients:
-  - "FastMediaSorter у будь-якій [редакції](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR або FOSS."
+  - "Fast Media Sorter & Organizer у будь-якій [редакції](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR або FOSS."
   - "Зображення, відкрите в [перегляді зображень](term:image-viewer), або папка, у яку вам дозволено записувати, для порожнього полотна."
 steps:
   - number: 1

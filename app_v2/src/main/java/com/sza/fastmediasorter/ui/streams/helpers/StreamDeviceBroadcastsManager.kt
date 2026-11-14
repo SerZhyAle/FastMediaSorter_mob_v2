@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.ui.streams.helpers
 
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.StringRes
@@ -18,15 +17,16 @@ import com.sza.fastmediasorter.ui.streams.DeviceBroadcastsSectionState
  * Renders the "Broadcasts of my devices" section of the streams list (S4116 phase 07): a header that opens and
  * closes it, a status line, and one row per broadcast. Rows are plain views - the list is a handful of live
  * broadcasts, never a catalog - and every one is D-pad and TalkBack reachable through its own focus.
+ *
+ * S4626: the header is a [com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader] that the screen
+ * registers with the shared collapsible-section manager, which restores the remembered state; the directory watch
+ * follows that state in the view model, and this class only draws what [render] is given.
  */
 class StreamDeviceBroadcastsManager(
     private val section: View,
-    private val header: View,
-    private val chevron: ImageView,
     private val status: TextView,
     private val list: LinearLayout,
     private val portalLink: View,
-    private val onToggle: () -> Unit,
     private val onChosen: (ExchangeDeviceBroadcast) -> Unit,
     onPortalLink: () -> Unit,
 ) {
@@ -36,7 +36,6 @@ class StreamDeviceBroadcastsManager(
     private var renderedItems: List<ExchangeDeviceBroadcast> = emptyList()
 
     init {
-        header.setOnClickListener { onToggle() }
         portalLink.setOnClickListener { onPortalLink() }
     }
 
@@ -45,12 +44,6 @@ class StreamDeviceBroadcastsManager(
     }
 
     fun render(state: DeviceBroadcastsSectionState) {
-        val context = chevron.context
-        chevron.setImageResource(if (state.expanded) R.drawable.ic_expand_less else R.drawable.ic_expand_more)
-        val toggleLabel = if (state.expanded) R.string.streams_section_collapse else R.string.streams_section_expand
-        chevron.contentDescription = context.getString(toggleLabel)
-        header.contentDescription =
-            "${context.getString(R.string.streams_section_device_broadcasts)}, ${context.getString(toggleLabel)}"
         val listed = state.listed.takeIf { state.expanded }
         val items = listed?.items.orEmpty()
         val statusText: Int? = when {

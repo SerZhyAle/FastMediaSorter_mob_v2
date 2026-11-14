@@ -2,7 +2,7 @@
 page_id: storage.destination-targets-setup
 title: Sorting Files into Destinations with Quick Sort
 nav_title: Quick Sort destinations
-description: How to turn folders into numbered, colored destinations, and then copy or move the photo or video you are looking at into one of them with a single tap or a number key - the heart of sorting with FastMediaSorter.
+description: How to turn folders into numbered, colored destinations, and then copy or move the photo or video you are looking at into one of them with a single tap or a number key - the heart of sorting with Fast Media Sorter & Organizer.
 category: Sources, Destinations & File Operations
 category_slug: storage
 ticket: S2949
@@ -14,7 +14,7 @@ why: |
 
   [Quick Sort](term:quick-sort) turns this into a rhythm: look at a photo, tap the button of the folder it belongs to, and the next photo is already on the screen. Each folder you sort into is a [destination](term:destination) - a resource with its own number and color.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition). Network destinations need any edition except Lite; cloud destinations any edition except Lite and FOSS."
+  - "Fast Media Sorter & Organizer in any [edition](term:edition). Network destinations need any edition except Lite; cloud destinations any edition except Lite and FOSS."
   - "The folders you want to sort into, added as [resources](term:resource) the app can write to - see [Adding folders from this device](page:storage.storage-sources-setup). Read-only resources cannot be destinations."
 steps:
   - number: 1

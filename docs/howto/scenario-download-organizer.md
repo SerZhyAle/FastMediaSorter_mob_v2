@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Download Organizer (Quick Sort) - FastMediaSorter v2"
+title: "Download Organizer (Quick Sort) - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-download-organizer.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -9,7 +9,7 @@ permalink: /docs/howto/scenario-download-organizer.html
 
 > **Level:** Beginner &bull; **Flavor:** Any (Standard, Lite, Photos, Legacy, VR, noLegal)
 
-**Quick Sort** is FastMediaSorter's star feature: set up your folders once, then sort hundreds of files by just tapping a number. No drag-and-drop. No menus. Just tap **1**, **2**, or **3** - and the file is gone to the right place.
+**Quick Sort** is Fast Media Sorter & Organizer's star feature: set up your folders once, then sort hundreds of files by just tapping a number. No drag-and-drop. No menus. Just tap **1**, **2**, or **3** - and the file is gone to the right place.
 
 **Real example:** you have 200 files in your Downloads folder - screenshots, work documents, family photos, memes, receipts. With Quick Sort you can sort all 200 in about 5 minutes. Without it - good luck.
 
@@ -36,7 +36,7 @@ The folder appears in the resource list as a card.
 
 > **The Downloads folder is where your browser, Telegram, WhatsApp and other apps save files.** That's usually the messiest place on any phone.
 
-![FastMediaSorter resource list - Downloads resource card added, Local badge visible](screenshots/screenshot-dl-step1.png)
+![Fast Media Sorter & Organizer resource list - Downloads resource card added, Local badge visible](screenshots/screenshot-dl-step1.png)
 
 ---
 
@@ -50,12 +50,12 @@ Think of it like physical folders on your desk. Examples:
 - **Keep** - things worth saving long-term
 - **Trash** - files to delete after reviewing
 
-**You can create these folders right inside FastMediaSorter:**
+**You can create these folders right inside Fast Media Sorter & Organizer:**
 1. Open the Downloads resource
 2. Tap the **menu <img src="../icons/doc/ic_more_vert.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** button → **Create folder**
 3. Type the folder name → tap **OK**
 
-Or create the folders in your phone's regular file manager - they'll appear automatically in FastMediaSorter.
+Or create the folders in your phone's regular file manager - they'll appear automatically in Fast Media Sorter & Organizer.
 
 ---
 

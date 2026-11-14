@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Cinema em Casa e Streaming em VR - FastMediaSorter v2"
+title: "Cinema em Casa e Streaming em VR - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-home-cinema-pt.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -21,7 +21,7 @@ Assista à sua coleção de séries diretamente do seu PC de casa - no celular, 
 
 - Celular / tablet / headset de VR na mesma **rede Wi-Fi de casa** que o seu PC
 - Vídeos no seu **PC ou NAS** (a caixa do seu roteador com armazenamento)
-- FastMediaSorter instalado
+- Fast Media Sorter & Organizer instalado
 
 ---
 
@@ -39,7 +39,9 @@ No **Windows:**
 
 ---
 
-## Passo 2 - Adicione a Pasta de Vídeos no FastMediaSorter
+<a id="passo-2---adicione-a-pasta-de-vídeos-no-fastmediasorter"></a>
+
+## Passo 2 - Adicione a Pasta de Vídeos no Fast Media Sorter & Organizer
 
 1. Abra o app → toque em **Adicionar <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** → **"Pasta de rede (SMB)"**
 2. Toque em **"Buscar Rede"** - o app procura por PCs disponíveis na sua rede doméstica
@@ -104,7 +106,7 @@ Quando o **"Próximo automático"** está ativado, o próximo episódio começa 
 
 > **Esta seção é para pessoas com um headset de VR (como Meta Quest 2/3 ou Pico 4).** Se você não tem um, pule este passo.
 
-Headsets de VR baseados em Android podem rodar o FastMediaSorter. Instale-o via sideload:
+Headsets de VR baseados em Android podem rodar o Fast Media Sorter & Organizer. Instale-o via sideload:
 1. Baixe o APK da [página de Downloads](../DOWNLOADS.md)
 2. No seu headset, ative **"Instalar de fontes desconhecidas"** nas configurações de Desenvolvedor
 3. Instale o APK usando o SideQuest ou diretamente via ADB
@@ -115,7 +117,7 @@ Depois de instalado, o player de vídeo funciona exatamente da mesma forma:
 - Use o **thumbstick** para deslizar entre episódios (se o seu headset mapear botões de mídia)
 - Para filmes e séries 2D comuns - funciona imediatamente, sem configuração extra
 
-> **Para experiência de cinema em VR:** você pode usar um app dedicado de cinema em VR como launcher, e então escolher "Abrir com FastMediaSorter" para o gerenciamento de arquivos. O FastMediaSorter cuida da navegação de arquivos; o app de cinema em VR cuida da exibição imersiva 360°.
+> **Para experiência de cinema em VR:** você pode usar um app dedicado de cinema em VR como launcher, e então escolher "Abrir com Fast Media Sorter & Organizer" para o gerenciamento de arquivos. O Fast Media Sorter & Organizer cuida da navegação de arquivos; o app de cinema em VR cuida da exibição imersiva 360°.
 
 ---
 

@@ -108,6 +108,20 @@ class DeviceExchangeAccountStore @Inject constructor(
     }
 
     /**
+     * Turns the notes sync of the entry of [identity] on, clearing it on every other entry in the same edit (item
+     * FK: one entry only), or off on that entry alone; nothing else changes.
+     */
+    suspend fun setSyncNotes(identity: String, enabled: Boolean) = mutate { current ->
+        current.map { held ->
+            when {
+                held.identity == identity -> held.copy(syncNotes = enabled)
+                enabled -> held.copy(syncNotes = false)
+                else -> held
+            }
+        }
+    }
+
+    /**
      * Writes [leaf] and [key] as the pin of the entry of [identity] (19 item AY), read inside the same edit so a
      * concurrent change of another field survives. An entry that pins nothing stays platform-trusted: a pin is
      * only ever the user's acceptance, never something a connect creates.
@@ -140,7 +154,8 @@ class DeviceExchangeAccountStore @Inject constructor(
             element.takeIf(JsonElement::isJsonObject)?.asJsonObject?.let(::entryOf)
         }
         val first = decoded.indexOfFirst { it.outgoing }
-        val oneFlag = decoded.mapIndexed { i, entry -> entry.copy(outgoing = i == first) }
+        val notes = decoded.indexOfFirst { it.syncNotes }
+        val oneFlag = decoded.mapIndexed { i, entry -> entry.copy(outgoing = i == first, syncNotes = i == notes) }
         return DeviceExchangeOutgoingRule.normalize(oneFlag)
     }
 
@@ -176,6 +191,7 @@ class DeviceExchangeAccountStore @Inject constructor(
             features = json.textList(KEY_FEATURES),
             accountKind = json.text(KEY_ACCOUNT_KIND),
             pinnedKey = pinnedKey,
+            syncNotes = json.flag(KEY_SYNC_NOTES),
         )
     }
 
@@ -189,6 +205,7 @@ class DeviceExchangeAccountStore @Inject constructor(
                     addProperty(KEY_DEVICE_ID, entry.deviceId)
                     entry.pinnedCertificate?.let { addProperty(KEY_PIN, it) }
                     addProperty(KEY_AUTO_ATTACH, entry.autoAttach)
+                    if (entry.syncNotes) addProperty(KEY_SYNC_NOTES, true)
                     entry.publicEndpoint?.let { addProperty(KEY_PUBLIC_ENDPOINT, it) }
                     if (entry.outgoing) addProperty(KEY_OUTGOING, true)
                     if (entry.pinCapable) addProperty(KEY_PIN_CAPABLE, true)
@@ -220,6 +237,7 @@ class DeviceExchangeAccountStore @Inject constructor(
         const val KEY_DEVICE_ID = "deviceId"
         const val KEY_PIN = "pin"
         const val KEY_AUTO_ATTACH = "autoAttach"
+        const val KEY_SYNC_NOTES = "syncNotes"
         const val KEY_PUBLIC_ENDPOINT = "publicEndpoint"
         const val KEY_OUTGOING = "outgoing"
         const val KEY_PIN_CAPABLE = "pinCapable"

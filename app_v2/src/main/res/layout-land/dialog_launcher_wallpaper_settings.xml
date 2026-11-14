@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- S2730: landscape counterpart of layout/dialog_launcher_wallpaper_settings.xml, carrying every id in
-     portrait. Split across two columns as dialog_launcher_settings.xml already is in this orientation:
+     portrait. Split across two columns as fragment_settings_launcher.xml already is in this orientation:
      column 1 is the choice (what is drawn, where it comes from), column 2 is what follows from it (how it
      looks, what the battery does to it). -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"

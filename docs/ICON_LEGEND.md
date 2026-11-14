@@ -7,7 +7,7 @@ permalink: /docs/ICON_LEGEND.html
 
 # Icon legend
 
-These are the real interface icons from FastMediaSorter, each shown next to the exact label it displays on screen.
+These are the real interface icons from Fast Media Sorter & Organizer, each shown next to the exact label it displays on screen.
 
 ## Program navigation
 
@@ -83,7 +83,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 
 | Icon | Meaning |
 |---|---|
-| <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | All about this application |
+| <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Info |
 | <img src="icons/svg/ic_apps.svg" alt="ic_apps" width="24" height="24"> | Additional programs and scenarios |
 | <img src="icons/svg/ic_cloud_upload.svg" alt="ic_cloud_upload" width="24" height="24"> | Backups, restore and settings export |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Audio playback, covers and visuals |

@@ -3049,7 +3049,8 @@ scripts/docs/help/generate-help-pages.ps1
     -ImageRoot          [String] = ''
     -OutAssets          [String] = ''
     -OutPortal          [String] = ''
-  Exit: 0 - pages written (or already up to date); 1 - source error: a mapped help id has no source file, a source is invalid or lacks a locale, a labelKey is
+    -Check              [SwitchParameter]
+  Exit: 0 - pages written (or already up to date); with -Check, the disk equals the sources; 1 - source error: a mapped help id has no source file, a source is invalid or lacks a locale, a labelKey is
 ```
 
 ### list-help-surfaces.ps1
@@ -4047,11 +4048,13 @@ Gate: the documentation termbase is well-formed and no corpus page uses a forbid
 scripts/quality/assert-docs-termbase.ps1
   Gate: the documentation termbase is well-formed and no corpus page uses a forbidden synonym (S2974).
   Params:
-    -Termbase             [String] = 'docs/termbase.jsonl'
-    -CorpusRoot           [String[]] = @('docs/content/recipes', 'documentation')
-    -ChangedFiles         [String[]] = @()
-    -Quiet                [SwitchParameter]
-    -RepoRoot             [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Termbase               [String] = 'docs/termbase.jsonl'
+    -CorpusRoot             [String[]] = @('docs/content/recipes', 'documentation')
+    -HelpRoot               [String] = 'docs/content/help'
+    -DefinitionRoot         [String] = 'scripts/docs/lib'
+    -ChangedFiles           [String[]] = @()
+    -Quiet                  [SwitchParameter]
+    -RepoRoot               [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
   Exit: 0 - the termbase is valid and no judged page uses a forbidden synonym; 1 - at least one schema finding or forbidden synonym, each printed as FAIL <path>:<line>: ..; 2 - cannot verify: the termbase or docs/flavors/flavor-matrix.json is missing or unreadable,
 ```
 
