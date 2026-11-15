@@ -205,6 +205,9 @@ finally {
     foreach ($f in $fixtures) { if (Test-Path -LiteralPath $f) { Remove-Item -LiteralPath $f -Recurse -Force -ErrorAction SilentlyContinue } }
 }
 
-Write-Host ("assert-allfeatures-sync.tests: {0} passed, {1} failed" -f $script:passed, $script:failed)
-if ($script:failed -gt 0) { exit 1 }
+if ($script:failed -gt 0) {
+    Write-Host ("assert-allfeatures-sync.tests: FAIL (run={0} skipped=0, failed={1})" -f ($script:passed + $script:failed), $script:failed)
+    exit 1
+}
+Write-Host ("assert-allfeatures-sync.tests: PASS (run={0} skipped=0)" -f $script:passed)
 exit 0

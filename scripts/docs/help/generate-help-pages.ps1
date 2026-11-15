@@ -6,7 +6,8 @@
 .DESCRIPTION
     Input, all read-only:
     - the help map (app_v2/src/main/assets/help/help-map.json): every row with form `page` or `both` names a help
-      id, and a Settings-style row adds one help id per entry of its `pages[]`; ids are de-duplicated in map order;
+      id, and a Settings-style row adds one help id per entry of its `pages[]`; an inherited row can name an
+      index-only page with `indexHelp`. Ids are de-duplicated in map order;
     - one source per help id, <SourceRoot>/<help-id>.json, plus <SourceRoot>/index.json for the help index page;
     - the UI strings (app_v2/src/main/res/values[-<locale>]/strings*.xml): an element's name is the value of
       @string/<labelKey>, so a renamed button is renamed in its help by the same edit (rule 13);
@@ -33,13 +34,18 @@
     - `shortcut` is a key combination written with `+` ("Ctrl+Shift+F"); alternatives are separated by " / ".
     - An element without `labelKey` may carry `name` in the locale entry instead; a labelKey is the normal case.
     - `details` and `purpose` are plain text; a blank line starts a new paragraph. All text is HTML-escaped.
+    - Optional root `mark` places the Media Exchange Server mark (EXCHANGE-MARK rules 10-11): `head` = the page is
+      about the server, the full-form mark (img/mark-full-256.png, 128 px) opens the hero; `inline` = the page shows
+      the server among other things, the 24 px mark (img/mark-24.png) follows the title inside the <h1>. Any other
+      value is a source problem; a page that merely mentions the server carries no `mark`.
 
     Output, written only when every input is valid (all problems are listed first, nothing is half-written):
     - <OutAssets>/<locale>/<help-id>.html and <OutAssets>/<locale>/index.html (page links are <help-id>.html,
       css is ../help.css, images are ../img/..);
     - <OutAssets>/help.css, copied from the help.css beside this script;
     - <OutPortal>/<help-id>.html (en), <help-id>-<locale>.html (other locales) and the index the same way
-      (page links carry the locale suffix, css is help.css, images are img/..), plus help.css and img/;
+      (page links carry the locale suffix, css is help.css, images are img/..), plus help.css and img/; every portal copy carries
+      <meta name="robots" content="noindex"> (DOC-EXTERNAL-QUALITY item O), the in-app copies do not;
     - docs/DOCUMENT_REGISTRY.jsonl: one sitemap_exclude row per <OutPortal>/*.html under the docs-corpus-pages
       record, because a portal copy is not a site page (CONTEXT-HELP rule 10) and carries no permalink. Skipped
       when the registry is absent or -OutPortal is not the default folder.
@@ -128,6 +134,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 . (Join-Path $PSScriptRoot '../lib/site-addresses.ps1')
+. (Join-Path $PSScriptRoot '../lib/doc-stamp.ps1')
 
 $script:SourceLocale = 'en'
 $script:SiteBase = 'https://serzhyale.github.io/FastMediaSorter_mob_v2/'
@@ -165,6 +172,7 @@ $script:Titles = @{}
 $script:PageIds = @()
 $script:Manifest = @{}
 $script:ImageCopies = [ordered]@{}
+$script:ImageOwners = @{}
 $script:Terms = @()
 $script:Cfg = $null
 
@@ -368,6 +376,10 @@ function Get-HelpMapPages {
     }
     foreach ($surface in @(Get-Prop $Map 'surfaces')) {
         $form = Get-Prop $surface 'form'
+        $indexHelp = Get-Prop $surface 'indexHelp'
+        if ($form -eq 'inherit' -and $indexHelp) {
+            & $take ([pscustomobject]@{ help = $indexHelp }) "index-only surface '$(Get-Prop $surface 'id')'"
+        }
         if ($form -notin 'page', 'both') { continue }
         $sid = Get-Prop $surface 'id'
         & $take $surface "surface '$sid'"
@@ -482,6 +494,10 @@ function Read-HelpSource {
     if ($null -eq $json) { return }
     if ((Get-Prop $json 'help') -ne $Id) {
         Add-Problem "${path}: 'help' is '$(Get-Prop $json 'help')', expected '$Id'"
+    }
+    $mark = Get-Prop $json 'mark'
+    if ($null -ne $mark -and ($IsIndex -or [string]$mark -cnotin 'head', 'inline')) {
+        Add-Problem "${path}: 'mark' is '$mark', expected 'head' or 'inline' (and none on the index)"
     }
     $ids = [System.Collections.Generic.List[string]]::new()
     if (-not $IsIndex) {
@@ -668,6 +684,30 @@ function New-ScreenshotHtml {
     return $lines + @('</figure>')
 }
 
+function New-MarkImageHref {
+    # The mark is one shared asset, not a per-locale screenshot, so its portal copy is owned by the page that shows it.
+    param([string]$HelpId, [string]$Target, [string]$File)
+    if ($Target -eq 'portal') {
+        $destination = Join-Path (Join-Path $script:Cfg.OutPortal 'img') $File
+        $script:ImageCopies[$destination] = Join-Path $script:Cfg.ImageRoot $File
+        $script:ImageOwners[$destination] = $HelpId
+    }
+    return Get-ImageHref $Target $File
+}
+
+function New-HeroHtml {
+    param([string]$HelpId, [string]$Target, [string]$Title, [string]$Mark)
+    $lines = @('<header class="hero">')
+    $text = ConvertTo-HtmlText $Title
+    if ($Mark -eq 'head') {
+        $lines += "<img class=`"exchange-head`" src=`"$(New-MarkImageHref $HelpId $Target 'mark-full-256.png')`" width=`"128`" height=`"128`" alt=`"Media Exchange Server`">"
+    }
+    if ($Mark -eq 'inline') {
+        $text += " <img class=`"exchange-inline`" src=`"$(New-MarkImageHref $HelpId $Target 'mark-24.png')`" width=`"24`" height=`"24`" alt=`"Media Exchange Server`">"
+    }
+    return $lines + @("<h1>$text</h1>", '</header>')
+}
+
 function New-HelpPageBody {
     param($Source, [string]$HelpId, [string]$Locale, [string]$Target, [string]$ProductName, [string]$Version)
     $ui = Get-Ui $Locale
@@ -682,9 +722,7 @@ function New-HelpPageBody {
     $body.Add("<nav class=`"help-crumbs`" aria-label=`"$(ConvertTo-HtmlText $ui.Index)`">")
     $body.Add("<a href=`"$indexHref`">$(ConvertTo-HtmlText $ui.Index)</a><span class=`"sep`" aria-hidden=`"true`">/</span><span>$(ConvertTo-HtmlText $title)</span>")
     $body.Add('</nav>')
-    $body.Add('<header class="hero">')
-    $body.Add("<h1>$(ConvertTo-HtmlText $title)</h1>")
-    $body.Add('</header>')
+    foreach ($line in @(New-HeroHtml $HelpId $Target $title ([string](Get-Prop $Source 'mark')))) { $body.Add($line) }
 
     $body.Add("<h2>$($ui.Purpose)</h2>")
     foreach ($paragraph in @(ConvertTo-ParagraphsHtml ([string](Get-Prop $block 'purpose')) 'lead')) { $body.Add($paragraph) }
@@ -840,6 +878,10 @@ function New-IndexPageBody {
 function New-PageHtml {
     param([string]$Locale, [string]$Target, [string]$DocTitle, [string[]]$Main)
     $dir = if ($script:RtlLocales -contains $Locale) { 'rtl' } else { 'ltr' }
+    # DOC-EXTERNAL-QUALITY item O: a portal copy is built for the application, without the identity and get-it blocks
+    # a visitor from a search needs, so it stays crawlable (no robots.txt block) but out of the index. The in-app copy is
+    # an offline asset, not a page of any site.
+    $robots = if ($Target -eq 'portal') { @('<meta name="robots" content="noindex">') } else { @() }
     $head = @(
         '<!doctype html>',
         "<html lang=`"$Locale`" dir=`"$dir`">",
@@ -847,7 +889,8 @@ function New-PageHtml {
         '<meta charset="utf-8">',
         '<meta name="viewport" content="width=device-width, initial-scale=1">',
         '<meta name="referrer" content="no-referrer">',
-        '<meta name="color-scheme" content="light dark">',
+        '<meta name="color-scheme" content="light dark">'
+    ) + $robots + @(
         "<title>$(ConvertTo-HtmlText $DocTitle)</title>",
         "<link rel=`"stylesheet`" href=`"$(Get-CssHref $Target)`">",
         '</head>',
@@ -887,9 +930,10 @@ function Sync-RegistryHelpExclusions {
 # ---------- check ----------
 
 function ConvertTo-DateNeutral {
-    # The footer date is a fact of the last generation of that page, so it never decides a -Check verdict.
+    # The footer date is a fact of the last generation of that page, and the doc-stamp div is added after generation
+    # by stamp-doc-dates.ps1, so neither decides a -Check verdict.
     param([string]$Text)
-    return [regex]::Replace($Text.Replace("`r`n", "`n"), '(<footer class="help-foot">\s*<span>[^<]*, )\d{4}-\d{2}-\d{2}(</span>)', '${1}0000-00-00${2}')
+    return [regex]::Replace((Remove-DocStamp $Text).Replace("`r`n", "`n"),'(<footer class="help-foot">\s*<span>[^<]*, )\d{4}-\d{2}-\d{2}(</span>)', '${1}0000-00-00${2}')
 }
 
 function Invoke-DiskCheck {
@@ -1007,9 +1051,13 @@ function Invoke-Main {
     $imageLocales = ($script:Cfg.Locales | ForEach-Object { [regex]::Escape($_) }) -join '|'
     foreach ($destination in $script:ImageCopies.Keys) {
         $imageName = [System.IO.Path]::GetFileName($destination)
-        $selectedImage = @($selectedIds | Where-Object {
-            $imageName -match ('^' + [regex]::Escape($_) + '-(?:' + $imageLocales + ')-')
-        }).Count -gt 0
+        $selectedImage = if ($script:ImageOwners.ContainsKey($destination)) {
+            $script:ImageOwners[$destination] -in $selectedIds
+        } else {
+            @($selectedIds | Where-Object {
+                $imageName -match ('^' + [regex]::Escape($_) + '-(?:' + $imageLocales + ')-')
+            }).Count -gt 0
+        }
         if (-not $writeAll -and -not $selectedImage) { continue }
         $selectedImageCount++
         if (Copy-FileIfChanged -Source $script:ImageCopies[$destination] -Destination $destination) { $written++ }

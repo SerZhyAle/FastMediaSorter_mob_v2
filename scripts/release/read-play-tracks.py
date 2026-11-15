@@ -9,7 +9,7 @@ Emits one JSON object on stdout:
     {
       "package": "com.sza.fastmediasorter",
       "tracks": [{"track": "production", "releases": [{"status": .., "versionCodes": [..],
-                                                       "name": ..}]}, ..],
+                                                       "name": .., "releaseNotesLanguages": [..]}]}, ..],
       "phone_production": {"version_code": 260825013, "version_name": "2.60.8250.134"},
       "wear_production":  {"version_code": 26082501,  "version_name": "2.60.8250.134"}
     }
@@ -17,6 +17,10 @@ Emits one JSON object on stdout:
 The two convenience members carry the completed release of `production` / `wear:production`,
 or null when that track holds none. `version_name` is the release's `name` field, which is the
 versionName the store shows; a release that states no name reports null.
+
+`releaseNotesLanguages` lists the language code of each release-notes block exactly as Play stores
+it, in stored order. It answers GOOGLE-PLAY rule 26: a release sent through the API under `uk-UA`
+reads back as `uk-UA` or as `uk`, and the codes are the only part of the notes this reader emits.
 
 Exit codes:
   0 - state read and printed
@@ -97,6 +101,9 @@ def main(argv):
                             "status": release.get("status"),
                             "versionCodes": release.get("versionCodes"),
                             "name": release.get("name"),
+                            "releaseNotesLanguages": [
+                                note.get("language") for note in (release.get("releaseNotes", []) or [])
+                            ],
                         }
                         for release in (track.get("releases", []) or [])
                     ],

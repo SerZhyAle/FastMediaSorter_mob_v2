@@ -14,6 +14,7 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.util.Calendar
 import java.util.zip.ZipFile
 
 /**
@@ -30,7 +31,7 @@ class LogExportHelperTest {
 
     @Before
     fun clearCachedZip() {
-        File(context.cacheDir, ZIP_NAME).delete()
+        archives().forEach { it.delete() }
         // S1806: the export now walks the log directory itself, so a report left there by one case
         // would leak into the next one - including the case that asserts an empty set produces none.
         LoggingHelper.getLogsDirectory(context).listFiles()?.forEach { it.delete() }
@@ -166,12 +167,68 @@ class LogExportHelperTest {
         return File(directory, name).apply { writeText("watch line") }
     }
 
-    private fun zipFile() = File(context.cacheDir, ZIP_NAME)
+    // DIAGNOSTIC-REPORT section 8 A: the name carries the version and the export time, so the file is found by pattern.
+    @Test
+    fun `the archive follows the contract name and starts with the environment summary`() {
+        writeWatchReport("watch_log_20260820_010000.txt")
+
+        LogExportHelper.buildLogsZipUri(context)
+
+        val name = zipFile().name
+        assertTrue("the name does not follow the pattern: $name", ARCHIVE_NAME_PATTERN.matches(name))
+        assertEquals(
+            "the environment summary is not the first entry",
+            DiagnosticArchive.ENVIRONMENT_ENTRY,
+            entryNames().first()
+        )
+        val summary = entryText(DiagnosticArchive.ENVIRONMENT_ENTRY).lines()
+        assertTrue("schema_version is missing", summary.contains("schema_version=1"))
+        assertTrue("app_version is missing", summary.any { it.startsWith("app_version=") })
+        assertTrue("generated_utc is missing", summary.any { it.startsWith("generated_utc=") })
+    }
+
+    @Test
+    fun `an export removes the archives of earlier exports and the fixed-name one`() {
+        writeWatchReport("watch_log_20260820_020000.txt")
+        val earlier = File(context.cacheDir, "FastMediaSorter-logs-old-20200101-000000.zip").apply { writeText("x") }
+        val legacy = File(context.cacheDir, DiagnosticArchive.LEGACY_FILE_NAME).apply { writeText("x") }
+
+        LogExportHelper.buildLogsZipUri(context)
+
+        assertFalse("the earlier archive was kept", earlier.exists())
+        assertFalse("the fixed-name archive was kept", legacy.exists())
+        assertEquals("more than one archive is left", 1, archives().size)
+    }
+
+    @Test
+    fun `the file name carries the version and the local export time`() {
+        val moment = Calendar.getInstance().apply { set(2026, Calendar.NOVEMBER, 15, 14, 5, 9) }.time
+
+        assertEquals(
+            "FastMediaSorter-logs-26.1115.1200-20261115-140509.zip",
+            DiagnosticArchive.fileName("26.1115.1200", moment)
+        )
+        assertEquals(
+            "FastMediaSorter-logs-26.1115.1200-Photos_beta-20261115-140509.zip",
+            DiagnosticArchive.fileName("26.1115.1200-Photos beta", moment)
+        )
+        assertTrue(DiagnosticArchive.isArchiveName(DiagnosticArchive.fileName("1.0", moment)))
+        assertFalse(DiagnosticArchive.isArchiveName(DiagnosticArchive.LEGACY_FILE_NAME))
+    }
+
+    private fun archives(): List<File> =
+        context.cacheDir.listFiles { file -> DiagnosticArchive.isArchiveName(file.name) }?.toList().orEmpty()
+
+    // An absent archive still gives a File, so the existence assertions above keep their meaning.
+    private fun zipFile(): File = archives().firstOrNull() ?: File(context.cacheDir, "no-archive-was-written.zip")
 
     private fun entryNames(): List<String> =
         ZipFile(zipFile()).use { zip -> zip.entries().toList().map { it.name } }
 
+    private fun entryText(name: String): String =
+        ZipFile(zipFile()).use { zip -> zip.getInputStream(zip.getEntry(name)).bufferedReader().readText() }
+
     private companion object {
-        const val ZIP_NAME = "fastmediasorter_logs.zip"
+        val ARCHIVE_NAME_PATTERN = Regex("""FastMediaSorter-logs-[A-Za-z0-9._-]+-\d{8}-\d{6}\.zip""")
     }
 }

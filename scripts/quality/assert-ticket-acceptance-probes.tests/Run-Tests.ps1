@@ -8,8 +8,11 @@ $fixtureRoot = Join-Path $repoRoot 'temp/S1582/acceptance-probes-test'
 $sourceRoot = Join-Path $fixtureRoot 'src/main/java'
 $catalogPath = Join-Path $fixtureRoot 'spec-catalog.jsonl'
 
+$script:asserts = 0
+
 function Assert-Test {
     param([Parameter(Mandatory)][bool] $Condition, [Parameter(Mandatory)][string] $Message)
+    $script:asserts++
     if (-not $Condition) { throw "assert-ticket-acceptance-probes test failed: $Message" }
 }
 
@@ -51,7 +54,7 @@ fun probes(value: Int, user: String) {
     Assert-Test ($byTicket['S9002'] -eq 'missing-source-template') 'absent literal was not reported'
     Assert-Test ($byTicket['S9003'] -eq 'pass') 'valid Probe none was rejected'
     Assert-Test ($byTicket['S9004'] -eq 'invalid-alternative-evidence') 'invalid Probe none was accepted'
-    Write-Host 'assert-ticket-acceptance-probes tests: expected: 8 | actual: 8'
+    Write-Host "assert-ticket-acceptance-probes tests: PASS (run=$script:asserts skipped=0)"
 }
 finally {
     if (Test-Path -LiteralPath $fixtureRoot) { Remove-Item -LiteralPath $fixtureRoot -Recurse -Force }

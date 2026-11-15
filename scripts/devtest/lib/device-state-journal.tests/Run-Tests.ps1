@@ -159,8 +159,8 @@ finally {
 }
 
 if ($failures -gt 0) {
-    Write-Error "device-state-journal.tests: expected: 0 | actual: $failures failing case(s)." -ErrorAction Continue
+    Write-Error "device-state-journal.tests: FAIL (run=$cases skipped=0, failed=$failures)" -ErrorAction Continue
     exit 1
 }
-Write-Host "device-state-journal.tests: PASS - $cases case(s)." -ForegroundColor Green
+Write-Host "device-state-journal.tests: PASS (run=$cases skipped=0)" -ForegroundColor Green
 exit 0

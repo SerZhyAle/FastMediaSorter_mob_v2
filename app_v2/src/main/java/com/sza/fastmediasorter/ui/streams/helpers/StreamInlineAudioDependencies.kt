@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.streams.helpers
 import android.view.View
 import android.widget.ImageButton
 import android.widget.TextView
+import com.sza.fastmediasorter.core.playback.resilience.StreamFailureReason
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.domain.player.BroadcastStopSignal
 
@@ -28,8 +29,9 @@ data class StreamInlineAudioCallbacks(
     val onPlaybackStateChanged: (StreamSourceEntity?, Boolean) -> Unit = { _, _ -> },
     // Fired when the inline stream fails to play (no response, dead URL). The Activity surfaces a
     // dialog offering retry / remove-from-list - without this hook the failure only stopped the
-    // background service and left the UI silent.
-    val onError: (StreamSourceEntity) -> Unit = {},
+    // background service and left the UI silent. The reason is the failure class the dialog names
+    // (STREAM-BANK 2.10 section 2.5); null when nothing more specific is known.
+    val onError: (StreamSourceEntity, StreamFailureReason?) -> Unit = { _, _ -> },
     // S0593: fired once per counted play when the stream actually starts playing (ground-truth "OK"
     // outcome). The Activity forwards it to the ViewModel, which records the green status and the play.
     // Not fired for a catalog stream owned by the background service, which counts that play itself,

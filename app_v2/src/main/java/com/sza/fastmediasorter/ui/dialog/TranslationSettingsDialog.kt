@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.domain.models.TranslationFontFamily
 import com.sza.fastmediasorter.domain.models.TranslationFontSize
 import com.sza.fastmediasorter.domain.models.TranslationSessionSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.ui.delivery.DeliveryEnableInterceptorEntryPoint
 import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
 import com.sza.fastmediasorter.ui.player.helpers.TranslationLanguageCatalog
@@ -204,8 +205,11 @@ object TranslationSettingsDialog {
 
             // Enter reuses the view's own confirm button; Escape dismisses without applying,
             // matching btnCancel.
-            DialogKeyboardDelegate.applyTo(dialog) { btnOk.performClick() }
+            DialogKeyboardDelegate.applyTo(dialog, onHelp = null, helpSurfaceId = "dialog_translation_settings") {
+                btnOk.performClick()
+            }
             dialog.showBoundToHost(context)
+                ?.let { DialogHelpEntryManager.installButton(it, "dialog_translation_settings") }
         }
     }
 

@@ -39,6 +39,7 @@ $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 # only needs to supply entries to judge.
 $fixture = Join-Path $repoRoot 'temp/S3030/fixture-root'
 $failures = 0
+$cases = 0
 
 function Reset-Fixture {
     if (Test-Path -LiteralPath $fixture) { Remove-Item -LiteralPath $fixture -Recurse -Force }
@@ -52,6 +53,7 @@ function Invoke-Gate {
 
 function Assert-Case {
     param([string] $Name, [scriptblock] $Body)
+    $script:cases++
     try {
         $message = & $Body
         if ($message) {
@@ -141,8 +143,8 @@ finally {
 }
 
 if ($failures -gt 0) {
-    Write-Error "assert-temp-root-inventory.tests: expected: 0 | actual: $failures failing case(s)." -ErrorAction Continue
+    Write-Error "assert-temp-root-inventory.tests: FAIL (run=$cases skipped=0, failed=$failures)" -ErrorAction Continue
     exit 1
 }
-Write-Host 'assert-temp-root-inventory.tests: PASS - 7 case(s).' -ForegroundColor Green
+Write-Host "assert-temp-root-inventory.tests: PASS (run=$cases skipped=0)" -ForegroundColor Green
 exit 0

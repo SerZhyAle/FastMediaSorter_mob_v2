@@ -13,6 +13,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogSortBinding
 import com.sza.fastmediasorter.domain.model.SortMode
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.util.showBoundToHost
 
 internal class BrowseSortDialogManager(
@@ -100,7 +101,7 @@ internal class BrowseSortDialogManager(
             override fun getItemCount(): Int = DIALOG_SORT_ORDER.size
         }
 
-        dialog.showBoundToHost(activity)
+        dialog.showBoundToHost(activity)?.let { DialogHelpEntryManager.attach(it, "dialog_sort") }
         com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper.applyInitialFocus(dialog)
     }
 

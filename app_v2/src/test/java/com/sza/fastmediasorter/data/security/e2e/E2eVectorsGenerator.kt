@@ -121,7 +121,7 @@ object E2eVectorsGenerator {
                 add(
                     "credentials",
                     JsonObject().apply {
-                        addProperty("username", "listener")
+                        addProperty("user", "listener")
                         addProperty("password", "broadcast-password")
                     },
                 )

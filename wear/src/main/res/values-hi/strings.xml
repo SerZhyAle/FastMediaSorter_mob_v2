@@ -809,7 +809,6 @@
     <string name="wear_clipboard_no_phone">पहुंच में कोई फ़ोन नहीं</string>
     <string name="wear_clipboard_no_answer">फ़ोन ने जवाब नहीं दिया</string>
     <string name="wear_clipboard_refused">फ़ोन ने अस्वीकार किया: %1$s</string>
-    <string name="wear_tourist_press_button_to_unlock">अनलॉक करने के लिए घड़ी का कोई बटन दबाएं</string>
     <string name="wear_tourist_metric_body_temperature">शरीर का तापमान</string>
     <string name="wear_onboarding_welcome_title">स्वागत है</string>
     <string name="wear_onboarding_welcome_body">अपनी मीडिया को सीधे कलाई पर ब्राउज़ करें, चलाएं और क्रमबद्ध करें।</string>

@@ -30,7 +30,9 @@ $sha = 'a' * 40
 $gate = 'Android CI Quality Gate'
 
 $failures = New-Object System.Collections.Generic.List[string]
+$script:cases = 0
 function Assert-Case([string] $Name, [bool] $Condition, [string] $Detail = '') {
+    $script:cases++
     if ($Condition) { Write-Host "  ok   $Name" } else { Write-Host "  FAIL $Name $Detail" -ForegroundColor Red; $failures.Add($Name) }
 }
 
@@ -150,8 +152,8 @@ finally {
 }
 
 if ($failures.Count -gt 0) {
-    Write-Host ("assert-ci-verdict tests: FAIL - {0} case(s): {1}" -f $failures.Count, ($failures -join '; ')) -ForegroundColor Red
+    Write-Host ("assert-ci-verdict tests: FAIL (run={0} skipped=0, failed={1}): {2}" -f $script:cases, $failures.Count, ($failures -join '; ')) -ForegroundColor Red
     exit 1
 }
-Write-Host 'assert-ci-verdict tests: PASS'
+Write-Host ("assert-ci-verdict tests: PASS (run={0} skipped=0)" -f $script:cases)
 exit 0

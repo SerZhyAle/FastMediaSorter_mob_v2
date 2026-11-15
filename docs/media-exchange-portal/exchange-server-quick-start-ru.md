@@ -1,11 +1,12 @@
 ---
+source_sha256: 2d3319974cffc1d1ec2484970dd93a96a67e6b61abea7d628ce791b35fbb17a0
 layout: doc
-title: "Разверните свой сервер обмена: шаг за шагом"
+title: "Media Exchange Server: разверните свой, шаг за шагом"
 description: "Короткий список шагов, чтобы запустить свой сервер обмена на ПК с Windows: установить пакет, ответить на два запроса Windows, задать адрес, создать первый аккаунт, добавить сервер на телефон, проверить его по мобильному интернету и пригласить людей."
 category: "Обмен медиа"
 permalink: /docs/media-exchange-portal/exchange-server-quick-start-ru.html
 ---
-<sub class="doc-stamp">26.10.22 01:25</sub>
+<sub class="doc-stamp">26.11.15 15:28</sub>
 
 # Разверните свой сервер обмена
 

@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.26 18:38</sub>
+<sub class="doc-stamp">26.11.15 17:06</sub>
 
 # Phone UI Component Patterns and Unification Catalogue
 
@@ -200,6 +200,15 @@ One `DialogWindowSizer` resolves the window width from the existing `@dimen/dial
 #### Naming
 
 A surface that behaves as a bottom sheet is named `sheet_*.xml` and a surface that behaves as a dialog is named `dialog_*.xml`. The name is what a gate can see, so a misnamed file is an ungated file. S3244 closed the gap this section opened with: the offload offer layout is `sheet_stream_offload_offer.xml`, and `assert-dialog-cancel-style.ps1` now scans `sheet_*.xml` and `*_sheet.xml` as well as the two original prefixes, so `sheet_send_to.xml`, `launcher_signal_list_sheet.xml` and `sheet_launcher_section_actions.xml` are inside a gate rather than beside one.
+
+#### Help in a dialog
+
+A dialog whose help-map row reaches a page answers F1 and shows a "?" at the trailing end of its title row; both open the same help through `HelpOpenManager` (contract `CONTEXT-HELP` 0.2 items A and E). A dialog without a row, or with a `none` or `ask: "off"` row, gets neither - the host screen's page is never borrowed.
+
+- The surface id is the owning `DialogFragment`'s class name, found by `DialogHelpEntryManager` from the dialog itself; a dialog the map names by its layout (`dialog_*`) passes that id - `helpSurfaceId` on `DialogKeyboardDelegate` or `AppDialog.custom`.
+- A dialog with its own title row includes `view_dialog_help_button` at the end of that row, before an existing close button; a titled `MaterialAlertDialogBuilder` dialog gets the button appended to the platform title row with no layout edit.
+- A dialog that uses `DialogKeyboardDelegate` needs nothing more once it is shown. A dialog that does not calls `DialogHelpEntryManager.attach(dialog, id)` after `show()`; one with its own key listener calls `installButton` and answers F1 in that listener.
+- A dialog with no title row puts the button at the end of its first line - the line that names or explains it, which then becomes a horizontal row - or, when there is no such line, in the free top corner of the surface, over nothing (`dialog_copy_to`, `dialog_webview_auth`, the now-playing sheet). A Compose card draws its own button and takes `DialogHelpEntryManager.debouncedOpener`. A surface that records raw keys, such as `CaptureDialogFragment`, is `ask: "off"`: F1 is the key being recorded and no control is reachable from the keyboard.
 
 #### Context menus
 

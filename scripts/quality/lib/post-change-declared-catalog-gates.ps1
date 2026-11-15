@@ -157,6 +157,23 @@ else {
     Skip-Step "baseline-inventory-gate" "not applicable - no changed file is a ratchet baseline or the baseline inventory"
 }
 
+# S4645: a set baseline that gained an identifier since HEAD with no journal row in
+# scripts/quality/set-baseline-accepted.jsonl (CHECK-BASELINE 0.12 item B). PER-TICKET by Rule 33: the
+# author of the edit that added the line knows why the finding is accepted, and the row costs one
+# command in that change. Fixed-input like the inventory gate above: a finding is charged only when the
+# journal, the gate or that baseline file is in the changed set.
+if (Test-AnyChangedFile 'baseline[^/]*\.(txt|ids)$|(^|/)scripts/quality/(set-baseline-accepted\.jsonl|assert-set-baseline-rise\.ps1)$') {
+    $argvSetBaselineRise = @('-NoProfile', '-File',
+        (Join-Path $root "scripts/quality/assert-set-baseline-rise.ps1"), '-Gate', '-Quiet')
+    if ($ScopeToFile -and $changedFiles.Count -gt 0) {
+        $argvSetBaselineRise += @('-ChangedFiles', ($changedFiles -join ','))
+    }
+    Invoke-FixedInputGate "set-baseline-rise-gate" $argvSetBaselineRise 'assert-set-baseline-rise.ps1'
+}
+else {
+    Skip-Step "set-baseline-rise-gate" "not applicable - no changed file is a set baseline, the accept journal or the rise gate"
+}
+
 # S3459: the lint twin of detekt-baseline-absorption (S1356). check-lint.ps1 -Regenerate and the CI
 # regenerate-lint-baseline dispatch both rewrite <module>/lint-baseline.xml from every live finding;
 # this refuses an XML carrying an identifier the committed <module>/lint-baseline.ids does not.

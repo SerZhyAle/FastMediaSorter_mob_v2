@@ -335,7 +335,7 @@ _Available in: Standard, Legacy, VR, FOSS_
 | Enable video recording | Enables the built-in video recording feature. |
 | Open recorded video in player | Opens the recorded video in the player immediately after recording stops. |
 | Let my watch see my camera | Arms the phone camera for the paired watch: turning it on starts a camera session while the app is on screen, so a request from the watch meets a stream that already exists and needs no tap on the phone. Available in the sideload build only, which is the one allowed to keep the camera on air after the app leaves the screen. |
-| Water flashlight | Adds the water flashlight to the programs list: the camera flash and the screen light together, and only a hardware button closes it. |
+| Water flashlight | Adds the water flashlight to the programs list: the camera flash and screen light together with touch lock. Hold a volume button or press it three times to switch the light off. |
 
 ## Launcher
 

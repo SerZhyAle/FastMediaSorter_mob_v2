@@ -1,11 +1,11 @@
 ---
 layout: doc
-title: "Deploy your own exchange server: step by step"
+title: "Media Exchange Server: deploy your own, step by step"
 description: "The short list of steps to run your own exchange server on a Windows PC: install the package, answer the two Windows prompts, set the address, create the first account, add the server on the phone, check it from mobile data and invite people."
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/exchange-server-quick-start.html
 ---
-<sub class="doc-stamp">26.10.22 01:25</sub>
+<sub class="doc-stamp">26.11.15 14:24</sub>
 
 # Deploy your own exchange server
 

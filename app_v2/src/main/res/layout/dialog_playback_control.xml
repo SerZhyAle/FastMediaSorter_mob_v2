@@ -28,6 +28,8 @@
             android:textSize="20sp"
             android:textStyle="bold" />
 
+        <include layout="@layout/view_dialog_help_button" />
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnClosePlaybackControl"
             style="@style/Widget.Material3.Button"

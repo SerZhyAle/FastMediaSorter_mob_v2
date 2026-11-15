@@ -22,6 +22,10 @@
       - `write: wholesale` with `verdict: safe` - a writer that re-freezes the class in one call is
         exactly what rule 4 forbids, so it is either an exception with a carrier or it is fixed.
 
+    A set baseline of any write path is also judged against its copy at HEAD by
+    assert-set-baseline-rise.ps1 (S4645, CHECK-BASELINE 0.12 item B), which is why a hand-only set
+    is declared `safe` here: the edit that adds a line to it needs a journal row.
+
     Per ticket under the fixed-input contract (lib/fixed-input-scope.ps1): with -ChangedFiles, a
     finding is charged only when the inventory or the finding's own baseline file is in the set.
 

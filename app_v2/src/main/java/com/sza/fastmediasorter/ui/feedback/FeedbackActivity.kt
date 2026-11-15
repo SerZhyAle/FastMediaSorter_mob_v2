@@ -117,7 +117,7 @@ class FeedbackActivity : AppCompatActivity() {
             }
             state.handoff?.let { handoff ->
                 viewModel.consumeHandoff()
-                binding.feedbackTextInput.text = null
+                if (handoff.clearForm) binding.feedbackTextInput.text = null
                 sendTo.show(handoff)
             }
         }

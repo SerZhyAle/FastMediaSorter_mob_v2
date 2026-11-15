@@ -209,4 +209,14 @@
         </LinearLayout>
 
     </LinearLayout>
+
+    <!-- The sheet has no title row: the help "?" takes the free top corner (CONTEXT-HELP 0.2 item E). It is empty
+         beside the player panel and lies over the empty spacer of the queue header, so it covers nothing. -->
+    <include
+        layout="@layout/view_dialog_help_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="16dp" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

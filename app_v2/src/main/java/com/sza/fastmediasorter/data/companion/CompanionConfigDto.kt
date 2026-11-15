@@ -107,6 +107,19 @@ class CompanionConfigException(
         UNSUPPORTED_VERSION,
 
         /** Structurally valid JSON but required fields are missing or invalid. */
-        INVALID_CONTENT
+        INVALID_CONTENT,
+
+        /**
+         * FMSCFG 2.6 C3: no access path of a direct kind (`lan`, `ipv6`, `portforward`) - a tunnel path alone
+         * or only unknown kinds. Its own reason because the contract asks for a "no usable access path" message.
+         */
+        NO_USABLE_ACCESS_PATH,
+
+        /**
+         * S4649, Q1=A: the share side refuses to export an SFTP resource whose server key was never pinned.
+         * The S4643 importer refuses a blank-fingerprint config whole (C2), so exporting one would only hand
+         * the recipient a file their app rejects - connect to the server once, then share.
+         */
+        UNPINNED_HOST_KEY
     }
 }

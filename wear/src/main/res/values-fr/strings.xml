@@ -809,7 +809,6 @@
     <string name="wear_clipboard_no_phone">Aucun téléphone à portée</string>
     <string name="wear_clipboard_no_answer">Le téléphone n\'a pas répondu</string>
     <string name="wear_clipboard_refused">Le téléphone a refusé : %1$s</string>
-    <string name="wear_tourist_press_button_to_unlock">Appuyez sur un bouton de la montre pour déverrouiller</string>
     <string name="wear_tourist_metric_body_temperature">Température corporelle</string>
     <string name="wear_onboarding_welcome_title">Bienvenue</string>
     <string name="wear_onboarding_welcome_body">Parcourez, lisez et triez vos médias directement au poignet.</string>

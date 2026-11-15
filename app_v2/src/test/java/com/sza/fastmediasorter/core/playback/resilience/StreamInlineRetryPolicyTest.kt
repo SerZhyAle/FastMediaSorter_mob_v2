@@ -123,6 +123,22 @@ class StreamInlineRetryPolicyTest {
         )
     }
 
+    /** STREAM-BANK 2.10 section 2.5: an observed 4xx other than 429 gives up at once, on either backend. */
+    @Test
+    fun `an observed client-error status gives up at once`() {
+        val policy = startedPolicy()
+
+        assertEquals(
+            GIVE_UP,
+            policy.onFailure(
+                badHttpStatus(httpStatus = HTTP_FORBIDDEN),
+                hasEverPlayed = true,
+                usingService = false,
+                nowMs = youngConnectionMs(),
+            ),
+        )
+    }
+
     @Test
     fun `audible playback refills the delay ladder`() {
         val policy = startedPolicy()
@@ -170,7 +186,7 @@ class StreamInlineRetryPolicyTest {
         failureOf(StreamFailureClass.ERROR_CODE_IO_BAD_HTTP_STATUS, httpStatus)
 
     private fun failureOf(errorCode: Int, httpStatus: Int? = null): StreamAudioFailure =
-        StreamAudioFailure(StreamFailureClass.classify(errorCode, httpStatus), errorCode)
+        StreamAudioFailure(StreamFailureClass.classify(errorCode, httpStatus), errorCode, httpStatus)
 
     private fun retryAfter(delayMs: Long): StreamInlineRetryDecision =
         StreamInlineRetryDecision.RetryAfter(delayMs)
@@ -202,5 +218,6 @@ class StreamInlineRetryPolicyTest {
 
         /** Far past any budget the other two ladders own - this one has none to exhaust. */
         const val UNBOUNDED_PROBE_ATTEMPTS = 100
+        const val HTTP_FORBIDDEN = 403
     }
 }

@@ -28,7 +28,9 @@ $sandbox = Join-Path ([IO.Path]::GetTempPath()) ("run-ci-parity-tests-{0}" -f $P
 New-Item -ItemType Directory -Force -Path $sandbox | Out-Null
 
 $failures = New-Object System.Collections.Generic.List[string]
+$script:cases = 0
 function Assert-Case([string] $Name, [bool] $Condition, [string] $Detail = '') {
+    $script:cases++
     if ($Condition) { Write-Host "  ok   $Name" } else { Write-Host "  FAIL $Name $Detail" -ForegroundColor Red; $failures.Add($Name) }
 }
 
@@ -86,8 +88,8 @@ try {
 }
 
 if ($failures.Count -gt 0) {
-    Write-Host ("run-ci-parity tests: FAIL - {0} case(s): {1}" -f $failures.Count, ($failures -join '; ')) -ForegroundColor Red
+    Write-Host ("run-ci-parity tests: FAIL (run={0} skipped=0, failed={1}): {2}" -f $script:cases, $failures.Count, ($failures -join '; ')) -ForegroundColor Red
     exit 1
 }
-Write-Host 'run-ci-parity tests: PASS' -ForegroundColor Green
+Write-Host ("run-ci-parity tests: PASS (run={0} skipped=0)" -f $script:cases) -ForegroundColor Green
 exit 0

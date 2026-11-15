@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The "?" of a dialog's title row (contract CONTEXT-HELP 0.2 item E). Hidden until
+     DialogHelpEntryManager finds a page for the dialog in the help map. -->
+<com.google.android.material.button.MaterialButton xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/btnDialogHelp"
+    style="@style/Widget.Material3.Button.IconButton"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center_vertical"
+    android:contentDescription="@string/help_with_key"
+    android:tooltipText="@string/help_with_key"
+    android:focusable="true"
+    android:visibility="gone"
+    app:icon="@drawable/ic_help_outline"
+    app:iconTint="?attr/colorOnSurface" />

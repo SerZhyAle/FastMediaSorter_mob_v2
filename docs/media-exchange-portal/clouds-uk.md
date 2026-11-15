@@ -1,11 +1,12 @@
 ---
+source_sha256: 2226f3d20ec416176d4691f9f878aa6d37bc67109c5ddea57a80093a184ed350
 layout: doc
 title: "Хмари: спільна скринька для ваших пристроїв"
 description: "Google Диск, Dropbox і OneDrive як місце, яке відкриває кожен ваш пристрій, що увійшов в обліковий запис, без власного сервера й без налаштування роутера."
 category: "Обмін медіа"
 permalink: /docs/media-exchange-portal/clouds-uk.html
 ---
-<sub class="doc-stamp">26.10.23 14:53</sub>
+<sub class="doc-stamp">26.11.15 15:28</sub>
 
 # Хмари: спільна скринька для ваших пристроїв
 

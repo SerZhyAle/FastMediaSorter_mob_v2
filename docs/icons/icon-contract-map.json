@@ -6,7 +6,8 @@
     { "pattern": "ic_game_triangle_*", "why": "game board controls drawn as part of the game artwork" },
     { "pattern": "ic_game_door", "why": "game figure" },
     { "pattern": "ic_guide_*", "why": "guide illustrations" },
-    { "pattern": "ic_sysinfo_*", "why": "System information group markers - a memory chip, a hardware board, a key and a verified shield for report groups the vocabulary has no meaning for; every other group reuses a vocabulary glyph (S4283)" },
+    { "pattern": "ic_sysinfo_permissions", "why": "System information group marker - the key of the special-permissions group, which ICON-SET 0.41 section 27 item G leaves without a meaning (S4283)" },
+    { "pattern": "ic_sysinfo_signature", "why": "System information group marker - the verified shield of the installer and signature group, which ICON-SET 0.41 section 27 item G leaves without a meaning (S4283)" },
     { "pattern": "ic_splash_*", "why": "splash art" },
     { "pattern": "ic_launcher_edition_fore", "why": "application icon layer - product identity artwork (ICON-SET section 7)" },
     { "pattern": "ic_launcher_monochrome", "why": "application icon layer - product identity artwork (ICON-SET section 7)" },
@@ -17,12 +18,15 @@
     { "pattern": "ic_exchange_mark*", "why": "identity artwork per EXCHANGE-MARK 0.3 (S4395)" }
   ],
   "glyphs": {
+    "ic_sysinfo_hardware": "system.hardware",
+    "ic_sysinfo_memory": "system.memory",
     "ic_page_previous": "media.previous",
     "ic_page_next": "media.next",
     "ic_next_circle_red": "media.next",
     "ic_next_circle_red_pressed": "media.next",
     "ic_next_circle_selector": "media.next",
     "ic_copy_full_report": "action.copy",
+    "ic_unarchive": "action.unarchive",
     "ic_paste": "action.paste",
     "ic_draw_overlay": "feature.drawing",
     "ic_send_note_brush": "tool.brush",
@@ -181,7 +185,8 @@
     "action.select-all": { "ru": ["выбрать все"], "uk": ["вибрати всі"] },
     "app.colour": { "en": ["color"] },
     "action.favorite": { "en": ["favorites"] },
-    "action.reset": { "en": ["reset to default"] }
+    "action.reset": { "en": ["reset to default"] },
+    "feature.camera": { "ru": ["камеру"], "uk": ["камеру"] }
   },  "exceptions": [
     { "key": "accessible-name|app_v2|app_v2/src/launcherEnabled/res/layout/gadget_launcher_youtube_music.xml|ic_open_in_browse|launcher_gadget_open_external", "why": "nav.open-external is named \"Open in new window\", which misnames opening a browser on Android - S3484, catalog proposal iconography/PROPOSAL-2026-09-24-fms-accessible-names.md" },
     { "key": "accessible-name|app_v2|app_v2/src/launcherEnabled/res/layout/gadget_launcher_youtube.xml|ic_open_in_browse|launcher_gadget_open_external", "why": "nav.open-external is named \"Open in new window\", which misnames opening a browser on Android - S3484, catalog proposal iconography/PROPOSAL-2026-09-24-fms-accessible-names.md" },

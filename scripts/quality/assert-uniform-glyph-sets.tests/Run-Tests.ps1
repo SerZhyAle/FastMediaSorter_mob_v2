@@ -79,6 +79,10 @@ $missing = Join-Path $repoRoot ("temp/scratch/glyph-sets-missing-" + [guid]::New
 $out = & $pwshExe -NoProfile -File $gateScript -Root $missing 2>&1 | Out-String
 Assert-That 'a missing source root cannot be verified' ($LASTEXITCODE -eq 2) "got exit $($LASTEXITCODE):`n$out"
 
-Write-Host "assert-uniform-glyph-sets tests: $script:pass passed, $script:fail failed"
-if ($script:fail -gt 0) { exit 1 }
+$glyphRun = $script:pass + $script:fail
+if ($script:fail -gt 0) {
+    Write-Host "assert-uniform-glyph-sets tests: FAIL (run=$glyphRun skipped=0, failed=$script:fail)"
+    exit 1
+}
+Write-Host "assert-uniform-glyph-sets tests: PASS (run=$glyphRun skipped=0)"
 exit 0

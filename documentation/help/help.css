@@ -72,6 +72,8 @@ kbd { font-family: var(--font-mono); font-size: .8em; padding: .12em .45em; bord
 
 .hero { padding-block: .6rem 1rem; }
 .hero h1 { font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 800; }
+.help .exchange-head { display: block; width: 128px; height: 128px; margin-block-end: .8rem; }
+.help .exchange-inline { display: inline-block; width: 24px; height: 24px; vertical-align: middle; margin-inline-start: .4rem; }
 .help h2 { font-size: 1.15rem; font-weight: 700; margin-block: 2rem .8rem; }
 .help h3 { font-size: 1rem; font-weight: 700; margin-block: 1.4rem .6rem; color: var(--text-2); }
 .lead { color: var(--text-2); font-size: 1.02rem; }

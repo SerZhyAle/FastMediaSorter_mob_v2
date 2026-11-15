@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.databinding.DialogAddStreamBinding
 import com.sza.fastmediasorter.domain.model.StreamTrackLanguage
 import com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.launch
@@ -105,10 +106,10 @@ object StreamEditDialog {
             }
             .setNegativeButton(R.string.cancel, null)
             .create()
-        DialogKeyboardDelegate.applyTo(dialog) {
+        DialogKeyboardDelegate.applyTo(dialog, onHelp = null, helpSurfaceId = "dialog_add_stream") {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()
         }
-        dialog.showBoundToHost(activity)
+        dialog.showBoundToHost(activity)?.let { DialogHelpEntryManager.installButton(it, "dialog_add_stream") }
         binding.etUrl.requestFocus()
     }
 

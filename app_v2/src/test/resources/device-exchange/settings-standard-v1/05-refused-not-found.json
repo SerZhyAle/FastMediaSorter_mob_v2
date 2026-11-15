@@ -1,0 +1,6 @@
+{
+  "type": "refused",
+  "schemaVersion": 2,
+  "reason": "not-found",
+  "message": "No standard settings stored for application 'fms_win'."
+}

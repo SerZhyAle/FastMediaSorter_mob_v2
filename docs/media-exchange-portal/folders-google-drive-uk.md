@@ -1,11 +1,12 @@
 ---
+source_sha256: 4b95552c34e69f3947273bbbd22607206e6f3a8573dc9efa1e748957f45aec56
 layout: doc
 title: "Файли й теки через Google Drive: між вашими пристроями, без сервера"
 description: "Як надсилати файли, відкривати теку іншого свого пристрою й запускати розклад через власний акаунт Google, без сервера обміну й без адреси: де перемикач, що проходить, скільки це триває і які є межі."
 category: "Обмін медіа"
 permalink: /docs/media-exchange-portal/folders-google-drive-uk.html
 ---
-<sub class="doc-stamp">26.10.23 14:53</sub>
+<sub class="doc-stamp">26.11.15 15:28</sub>
 
 # Файли й теки через Google Drive
 

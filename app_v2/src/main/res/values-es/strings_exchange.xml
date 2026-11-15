@@ -298,7 +298,6 @@
     <string name="exchange_admin_sign_in">Iniciar sesión</string>
     <string name="exchange_admin_sign_out">Cerrar sesión</string>
     <string name="exchange_admin_signing_in">Iniciando sesión..</string>
-    <string name="exchange_admin_lapsed">La sesión ha terminado. Introduce de nuevo la contraseña de administración.</string>
     <string name="exchange_admin_section_status">Estado</string>
     <string name="exchange_admin_section_accounts">Cuentas</string>
     <string name="exchange_admin_section_invitations">Invitaciones</string>

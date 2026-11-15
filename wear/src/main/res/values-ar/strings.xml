@@ -809,7 +809,6 @@
     <string name="wear_clipboard_no_phone">لا يوجد هاتف في النطاق</string>
     <string name="wear_clipboard_no_answer">لم يستجب الهاتف</string>
     <string name="wear_clipboard_refused">رفض الهاتف: %1$s</string>
-    <string name="wear_tourist_press_button_to_unlock">اضغط زر الساعة لإلغاء القفل</string>
     <string name="wear_tourist_metric_body_temperature">درجة حرارة الجسم</string>
     <string name="wear_onboarding_welcome_title">مرحبًا</string>
     <string name="wear_onboarding_welcome_body">تصفّح وسائطك وشغّلها ورتّبها مباشرة على معصمك.</string>

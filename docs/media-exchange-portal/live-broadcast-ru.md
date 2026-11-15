@@ -1,11 +1,12 @@
 ---
+source_sha256: fe43604c0ff4791e76ac7e8c886993086b0d9600167df25ed8d7494f6ecae8aa
 layout: doc
 title: "Живая трансляция: любое устройство в эфире, остальные слушают"
 description: "Кто может выйти в эфир и кто может воспроизвести живую трансляцию, как она идёт в одной сети Wi-Fi и через сервер обмена, Chromecast и cast между вашими устройствами."
 category: "Обмен медиа"
 permalink: /docs/media-exchange-portal/live-broadcast-ru.html
 ---
-<sub class="doc-stamp">26.10.22 01:29</sub>
+<sub class="doc-stamp">26.11.15 15:28</sub>
 
 # Живая трансляция: любое устройство в эфире, остальные слушают
 

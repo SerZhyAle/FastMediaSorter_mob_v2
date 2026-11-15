@@ -197,7 +197,8 @@ class DeviceExchangeAccountClient @Inject constructor(
      */
     private suspend fun recordPin(entry: DeviceExchangeAccountEntry, connection: ExchangeConnection) {
         val leaf = connection.certificateFingerprint
-        val key = connection.keyFingerprint ?: return
+        // 1.12 item EW: a chain the platform validated leaves a held pin as it is - nothing learned, nothing replaced.
+        val key = connection.keyFingerprint?.takeUnless { connection.platformValidated } ?: return
         val learned = entry.pinnedCertificate != null && (leaf != entry.pinnedCertificate || entry.pinnedKey == null)
         if (!learned) return
         try {

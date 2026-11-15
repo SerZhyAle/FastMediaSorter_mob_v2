@@ -1,11 +1,12 @@
 ---
+source_sha256: b90dcf89902d41291464d9b29c51bf2da9bec985c797443c93fc8c4bb04d203e
 layout: doc
-title: "Установка и проверка сервера обмена"
+title: "Media Exchange Server: установка и проверка"
 description: "Какой пакет для Windows несёт сервер обмена, что Windows говорит об установщике и что нажимать, первый запуск в Share Manager, адрес, по которому звонят устройства, и как проверить, что сервер работает из другой сети."
 category: "Обмен медиа"
 permalink: /docs/media-exchange-portal/exchange-server-install-ru.html
 ---
-<sub class="doc-stamp">26.10.22 01:25</sub>
+<sub class="doc-stamp">26.11.15 15:28</sub>
 
 # Установка и проверка сервера обмена
 

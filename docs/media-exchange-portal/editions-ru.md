@@ -1,11 +1,12 @@
 ---
+source_sha256: 014967305311957c399bdef820c92215e824ad41e415102aa8c8fbaa8e65e53b
 layout: doc
 title: "Редакции: в каком приложении какой способ обмена"
 description: "В какой редакции FastMediaSorter для Android есть сетевые папки, «Мои устройства», облака, файлы через Google Drive, живая трансляция, Chromecast и компаньон для часов."
 category: "Обмен медиа"
 permalink: /docs/media-exchange-portal/editions-ru.html
 ---
-<sub class="doc-stamp">26.10.20 12:24</sub>
+<sub class="doc-stamp">26.11.15 15:28</sub>
 
 # Редакции: в каком приложении какой способ обмена
 

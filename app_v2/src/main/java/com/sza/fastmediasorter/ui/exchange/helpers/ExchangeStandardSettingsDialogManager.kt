@@ -10,8 +10,10 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogExchangeStandardSettingsBinding
 import com.sza.fastmediasorter.domain.exchange.StandardSettingsSerializer
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
+import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import com.sza.fastmediasorter.domain.model.ExchangeSettingsGetResult
 import com.sza.fastmediasorter.domain.model.ExchangeSettingsSaveResult
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.ui.exchange.MyDevicesViewModel
 import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.CoroutineScope
@@ -41,6 +43,7 @@ class ExchangeStandardSettingsDialogManager(
             .setNeutralButton(R.string.exchange_standard_settings_read_btn, null)
             .setNegativeButton(R.string.cancel, null)
             .showBoundTo(activity) ?: return
+        DialogHelpEntryManager.attach(built, "dialog_exchange_standard_settings")
 
         dialog = built
 
@@ -90,7 +93,7 @@ class ExchangeStandardSettingsDialogManager(
                 }
                 is ExchangeSettingsSaveResult.Refused -> {
                     view.textStandardSettingsStatus.isVisible = true
-                    view.textStandardSettingsStatus.text = result.message ?: result.reason
+                    view.textStandardSettingsStatus.text = refusalText(result.reason)
                 }
                 is ExchangeSettingsSaveResult.Error -> {
                     view.textStandardSettingsStatus.isVisible = true
@@ -121,7 +124,7 @@ class ExchangeStandardSettingsDialogManager(
                 }
                 is ExchangeSettingsGetResult.Refused -> {
                     view.textStandardSettingsStatus.isVisible = true
-                    view.textStandardSettingsStatus.text = result.message ?: result.reason
+                    view.textStandardSettingsStatus.text = refusalText(result.reason)
                 }
                 is ExchangeSettingsGetResult.Error -> {
                     view.textStandardSettingsStatus.isVisible = true
@@ -130,6 +133,10 @@ class ExchangeStandardSettingsDialogManager(
             }
         }
     }
+
+    // Item EO: the server's `message` is diagnostic English and never shown; the row of item EP is.
+    private fun refusalText(reason: String): String =
+        ExchangeMessageText.twoParts(activity, ExchangeMessage.ofSettings(reason))
 
     fun dismiss() {
         dialog?.dismiss()

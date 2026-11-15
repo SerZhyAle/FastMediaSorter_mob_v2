@@ -1,11 +1,12 @@
 ---
+source_sha256: c841bfae3648a71e974fa390188cccb972a8a688f3399fc5593af43ae104e689
 layout: doc
 title: "Буфер на сервері"
 description: "Надішліть скопійоване на одному з ваших пристроїв на сервер обміну й отримайте на іншому: дві кнопки, де вони розташовані, один об'єкт за раз, лише останнє значення, межа розміру і що бачить сервер."
 category: "Обмін медіа"
 permalink: /docs/media-exchange-portal/exchange-clipboard-uk.html
 ---
-<sub class="doc-stamp">26.10.15 14:25</sub>
+<sub class="doc-stamp">26.11.15 15:28</sub>
 
 # Буфер на сервері
 

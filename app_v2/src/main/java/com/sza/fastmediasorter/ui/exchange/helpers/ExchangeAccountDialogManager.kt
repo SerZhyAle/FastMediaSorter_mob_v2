@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.databinding.DialogExchangeChangePasswordBinding
 import com.sza.fastmediasorter.databinding.DialogExchangeDeleteAccountBinding
 import com.sza.fastmediasorter.databinding.ViewExchangeFailurePanelBinding
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
 import com.sza.fastmediasorter.ui.exchange.ExchangeAccountActionState
 import com.sza.fastmediasorter.ui.exchange.MyDevicesViewModel
@@ -39,6 +40,7 @@ class ExchangeAccountDialogManager(
                 .setPositiveButton(R.string.exchange_password_submit, null),
             binding.exchangeFailurePanel,
         ) ?: return
+        DialogHelpEntryManager.attach(shown, "dialog_exchange_change_password")
         shown.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
             val old = binding.etExchangePasswordOld.text?.toString().orEmpty()
             val new = binding.etExchangePasswordNew.text?.toString().orEmpty()

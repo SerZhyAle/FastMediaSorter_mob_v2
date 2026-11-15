@@ -21,6 +21,7 @@ import com.sza.fastmediasorter.databinding.BottomSheetPlayerFilesBinding
 import com.sza.fastmediasorter.databinding.DialogPlayerFileNumberBinding
 import com.sza.fastmediasorter.databinding.ItemPlayerFileBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.util.showBoundTo
 
 /** Owns file-selection windows without retaining a second live collection or changing its order. */
@@ -122,6 +123,8 @@ class PlayerFileSelectionManager(
             binding.number.setOnEditorActionListener(null)
         }
         numberDialog.showBoundTo(host) ?: return
+        // F1 is already answered by bindDismissal's own key listener, so only the button is added.
+        DialogHelpEntryManager.installButton(numberDialog, "dialog_player_file_number")
         dialog = numberDialog
         binding.number.requestFocus()
     }

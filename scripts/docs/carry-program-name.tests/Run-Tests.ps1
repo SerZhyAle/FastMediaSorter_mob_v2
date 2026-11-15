@@ -33,7 +33,9 @@ if (-not (Test-Path -LiteralPath $script)) {
 }
 
 $failures = [System.Collections.Generic.List[string]]::new()
+$script:assertions = 0
 function Assert-That([bool] $Condition, [string] $Name) {
+    $script:assertions++
     if ($Condition) { Write-Host "PASS  $Name" } else { Write-Host "FAIL  $Name"; $failures.Add($Name) }
 }
 
@@ -105,8 +107,8 @@ try {
 }
 
 if ($failures.Count -gt 0) {
-    Write-Host "carry-program-name tests: $($failures.Count) failed"
+    Write-Host "carry-program-name tests: FAIL (run=$script:assertions skipped=0, failed=$($failures.Count))"
     exit 1
 }
-Write-Host 'carry-program-name tests: all passed'
+Write-Host "carry-program-name tests: PASS (run=$script:assertions skipped=0)"
 exit 0

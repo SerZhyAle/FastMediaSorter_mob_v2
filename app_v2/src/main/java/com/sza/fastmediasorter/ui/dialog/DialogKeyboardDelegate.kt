@@ -6,8 +6,8 @@ import android.view.View
 import android.widget.AdapterView
 import android.widget.CompoundButton
 import android.widget.EditText
-import androidx.fragment.app.FragmentActivity
 import com.google.android.material.chip.Chip
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.ui.common.input.FocusDirection
 import com.sza.fastmediasorter.ui.common.input.InputAction
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.util.KeyboardShortcutHandler
  * Wires standard keyboard contract onto any [Dialog]:
  *  - Enter  → [onConfirm], unless the focused view owns Enter itself (see [focusedViewOwnsEnter])
  *  - Escape → [Dialog.dismiss]
+ *  - F1     → the dialog's help page when the help map has one, else the shortcut sheet
  *
  * Call [applyTo] once after the dialog's view is created (e.g. inside [Dialog.onCreate]).
  */
@@ -32,9 +33,19 @@ object DialogKeyboardDelegate {
 
     /**
      * [onHelp] lets a dialog that belongs to a surface with a help page open that page on F1; it returns
-     * true when it handled the key, otherwise the generic dialog shortcut sheet is shown.
+     * true when it handled the key. Otherwise F1 opens the help the map gives the dialog's surface id -
+     * [helpSurfaceId], else the owning DialogFragment's class name - and the generic dialog shortcut
+     * sheet is shown only when there is none. A dialog already showing also gets its "?" button here.
      */
-    fun applyTo(dialog: Dialog, onHelp: (() -> Boolean)?, onConfirm: () -> Unit) {
+    fun applyTo(
+        dialog: Dialog,
+        onHelp: (() -> Boolean)?,
+        helpSurfaceId: String? = null,
+        onConfirm: () -> Unit,
+    ) {
+        if (dialog.isShowing) {
+            DialogHelpEntryManager.installButton(dialog, DialogHelpEntryManager.surfaceIdOf(dialog, helpSurfaceId))
+        }
         dialog.setOnKeyListener { _, keyCode, event ->
             if (event.action != KeyEvent.ACTION_UP) return@setOnKeyListener false
 
@@ -52,7 +63,7 @@ object DialogKeyboardDelegate {
                     true
                 }
                 InputAction.ShowHelp -> {
-                    if (onHelp?.invoke() != true) showHelp(dialog)
+                    if (onHelp?.invoke() != true && !openMappedHelp(dialog, helpSurfaceId)) showHelp(dialog)
                     true
                 }
                 InputAction.ToggleSelection -> toggleFocusedControl(dialog)
@@ -73,9 +84,14 @@ object DialogKeyboardDelegate {
     }
 
     /** Variant of [applyToDialogFragment] whose F1 can open a help page, see [applyTo]. */
-    fun applyToDialogFragment(dialog: Dialog?, onHelp: (() -> Boolean)?, onConfirm: () -> Unit) {
+    fun applyToDialogFragment(
+        dialog: Dialog?,
+        onHelp: (() -> Boolean)?,
+        helpSurfaceId: String? = null,
+        onConfirm: () -> Unit,
+    ) {
         dialog ?: return
-        applyTo(dialog, onHelp, onConfirm)
+        applyTo(dialog, onHelp, helpSurfaceId, onConfirm)
     }
 
     /**
@@ -89,8 +105,11 @@ object DialogKeyboardDelegate {
         return focused !is EditText && (focused.isClickable || focused is AdapterView<*>)
     }
 
+    private fun openMappedHelp(dialog: Dialog, helpSurfaceId: String?): Boolean =
+        DialogHelpEntryManager.openHelp(dialog, DialogHelpEntryManager.surfaceIdOf(dialog, helpSurfaceId))
+
     private fun showHelp(dialog: Dialog) {
-        val activity = dialog.context as? FragmentActivity ?: return
+        val activity = DialogHelpEntryManager.activityOf(dialog.context) ?: return
         InputHelpDialogFragment.show(activity.supportFragmentManager, UiSurface.DIALOG)
     }
 

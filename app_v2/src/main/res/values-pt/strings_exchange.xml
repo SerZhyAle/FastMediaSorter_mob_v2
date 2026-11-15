@@ -296,7 +296,6 @@
     <string name="exchange_admin_sign_in">Entrar</string>
     <string name="exchange_admin_sign_out">Sair</string>
     <string name="exchange_admin_signing_in">Entrando..</string>
-    <string name="exchange_admin_lapsed">A sessão terminou. Digite novamente a senha de administração.</string>
     <string name="exchange_admin_section_accounts">Contas</string>
     <string name="exchange_admin_section_invitations">Convites</string>
     <string name="exchange_admin_section_shared">Convite compartilhado</string>

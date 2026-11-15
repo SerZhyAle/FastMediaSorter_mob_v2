@@ -17,6 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+            android:baselineAligned="false"
             android:gravity="center_vertical"
             android:layout_marginBottom="@dimen/margin_large">
 
@@ -27,6 +28,8 @@
                 android:text="@string/gif_edit_title"
                 android:textSize="@dimen/text_size_large"
                 android:textStyle="bold" />
+
+            <include layout="@layout/view_dialog_help_button" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnClose"

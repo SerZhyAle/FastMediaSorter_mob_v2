@@ -190,7 +190,8 @@ object AppDialog {
      * [keyboardContract] can be disabled for a dialog that manages its own key handling
      * (e.g. a color picker with arrow-key sliders). [onConfirm] wires the keyboard contract's
      * Enter action; a caller with its own confirm button but no keyboard-triggered confirm can
-     * leave it at the default no-op.
+     * leave it at the default no-op. [helpSurfaceId] is the dialog's id in the help map, which a
+     * custom dialog has to name because it has no class of its own.
      */
     fun custom(
         owner: LifecycleOwner,
@@ -198,6 +199,7 @@ object AppDialog {
         @LayoutRes layoutRes: Int,
         keyboardContract: Boolean = true,
         onConfirm: () -> Unit = {},
+        helpSurfaceId: String? = null,
         bind: (View, AlertDialog) -> Unit,
     ): AlertDialog {
         val content = LayoutInflater.from(context).inflate(layoutRes, null, false)
@@ -205,7 +207,7 @@ object AppDialog {
             .setView(content)
             .create()
         bind(content, dialog)
-        return wireAndShow(dialog, owner, onConfirm = onConfirm, keyboardContract = keyboardContract)
+        return wireAndShow(dialog, owner, onConfirm, keyboardContract, helpSurfaceId)
     }
 
     /** The positive button dismisses on its own; the keyboard path must too, or a second Enter re-runs it. */
@@ -219,6 +221,7 @@ object AppDialog {
         owner: LifecycleOwner,
         onConfirm: () -> Unit,
         keyboardContract: Boolean = true,
+        helpSurfaceId: String? = null,
     ): AlertDialog {
         // S3242: window/decor APIs need the dialog's window attached, which happens inside
         // show() (Dialog.dispatchOnCreate -> onCreate installs the content view) - so every
@@ -227,7 +230,7 @@ object AppDialog {
         DialogWindowSizer.applyTo(dialog)
         dialog.applyDialogInsets()
         if (keyboardContract) {
-            DialogKeyboardDelegate.applyTo(dialog, onConfirm)
+            DialogKeyboardDelegate.applyTo(dialog, onHelp = null, helpSurfaceId = helpSurfaceId, onConfirm = onConfirm)
         }
         DialogAccessibilityHelper.applyInitialFocus(dialog)
         return dialog

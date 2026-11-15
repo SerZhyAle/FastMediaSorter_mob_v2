@@ -22,12 +22,13 @@ import androidx.media3.extractor.metadata.icy.IcyInfo
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.playback.NowPlayingMetadata
 import com.sza.fastmediasorter.core.playback.RadioStreamBufferConfig
-import com.sza.fastmediasorter.core.playback.resilience.StreamAudioFailure
+import com.sza.fastmediasorter.core.playback.StreamPlaybackFailureReader
 import com.sza.fastmediasorter.core.playback.resilience.StreamEndedOutcome
 import com.sza.fastmediasorter.core.playback.resilience.StreamEndedRule
-import com.sza.fastmediasorter.core.playback.resilience.StreamFailureClass
+import com.sza.fastmediasorter.core.playback.resilience.StreamFailureReason
 import com.sza.fastmediasorter.core.playback.resilience.StreamInlineRetryDecision
 import com.sza.fastmediasorter.core.playback.resilience.StreamInlineRetryPolicy
+import com.sza.fastmediasorter.core.playback.resilience.toReason
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.domain.player.BroadcastPlaybackPairs
 import com.sza.fastmediasorter.domain.player.BroadcastPlaybackSessions
@@ -79,6 +80,10 @@ class StreamInlineAudioManager(
     // in pure code. The flag below stays here because the stall timeout co-owns it (S1513 Phase 04).
     private val retryPolicy = StreamInlineRetryPolicy()
     private var hasSuccessfulPlayback = false
+
+    // STREAM-BANK 2.10 sections 2.5 and 6.1, read per prepare: until audio flowed since the user's own
+    // start, the tolerance timer is the 15 s bound to the dialog, whatever the station did on earlier days.
+    private var readySincePrepare = false
     private var noSignalVisible = false
     private val toleranceRunnable = Runnable { handleToleranceTimeout() }
     private val retryRunnable = Runnable { retryLocalPlayback() }
@@ -121,7 +126,7 @@ class StreamInlineAudioManager(
                     markPlaybackHealthy()
                     reportSuccessfulPlayback()
                 }
-                Player.STATE_BUFFERING -> if (hasSuccessfulPlayback) scheduleToleranceTimeout()
+                Player.STATE_BUFFERING -> if (readySincePrepare) scheduleToleranceTimeout()
                 Player.STATE_ENDED -> if (!stopForBroadcast(BroadcastStopSignal.StreamEnded)) handleEndedStream()
             }
         }
@@ -159,8 +164,12 @@ class StreamInlineAudioManager(
             }
             val badStatus = error.errorCode == PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS
             if (badStatus && stopForBroadcast(BroadcastStopSignal.HttpStatus(error.responseCodeOrNull()))) return
+            // On the service path this is the controller's copy, with no status to read: the policy then
+            // answers OwnedByService and the service forwards its own verdict (onServiceStreamFailure).
+            val failure = StreamPlaybackFailureReader.read(error)
+            Timber.d("S4641: inline failure ${failure.failureClass} status=${failure.httpStatus} svc=$usingService")
             val decision = retryPolicy.onFailure(
-                failure = error.toStreamFailure(),
+                failure = failure,
                 hasEverPlayed = hasSuccessfulPlayback,
                 usingService = usingService,
                 nowMs = SystemClock.elapsedRealtime(),
@@ -172,13 +181,14 @@ class StreamInlineAudioManager(
                 StreamInlineRetryDecision.OwnedByService -> Unit
                 StreamInlineRetryDecision.GiveUp -> {
                     stop()
-                    failed?.let(callbacks.onError)
+                    failed?.let { callbacks.onError(it, failure.toReason()) }
                 }
             }
         }
     }
 
     init {
+        audioController.onStreamFailure = ::onServiceStreamFailure
         views.playStopButton.setOnClickListener { onPrimaryButton() }
         views.dismissButton?.setOnClickListener { stop() }
         renderButton()
@@ -232,6 +242,7 @@ class StreamInlineAudioManager(
         countPlay = countAsNewPlay
         liveWhilePlaying = false
         hasSuccessfulPlayback = source.lastPlayedAt != null
+        readySincePrepare = false
         retryPolicy.onStreamStarted(SystemClock.elapsedRealtime())
         noSignalVisible = false
         scheduleToleranceTimeout()
@@ -390,6 +401,7 @@ class StreamInlineAudioManager(
         Timber.d("S4615: resume on the service player at the live edge")
         successReported = false
         countPlay = false
+        readySincePrepare = false
         retryPolicy.onStreamStarted(SystemClock.elapsedRealtime())
         scheduleToleranceTimeout()
         // The default position of a live item is its live edge, so the listener hears the station now.
@@ -461,6 +473,7 @@ class StreamInlineAudioManager(
      * of the session while the stream was audibly fine.
      */
     private fun markPlaybackHealthy() {
+        readySincePrepare = true
         recoveryHandler.removeCallbacks(toleranceRunnable)
         retryPolicy.onPlaybackHealthy()
         if (noSignalVisible) {
@@ -482,7 +495,7 @@ class StreamInlineAudioManager(
 
     private fun scheduleToleranceTimeout() {
         recoveryHandler.removeCallbacks(toleranceRunnable)
-        val delay = if (hasSuccessfulPlayback) {
+        val delay = if (readySincePrepare) {
             RadioStreamBufferConfig.PASSIVE_STATUS_TIMEOUT_MS
         } else {
             RadioStreamBufferConfig.DIALOG_TIMEOUT_MS
@@ -498,22 +511,29 @@ class StreamInlineAudioManager(
             markPlaybackHealthy()
             return
         }
-        if (hasSuccessfulPlayback) {
+        Timber.d("S4641: tolerance timer fired readySincePrepare=$readySincePrepare")
+        if (readySincePrepare) {
             noSignalVisible = true
             renderTitle()
         } else {
             stop()
-            callbacks.onError(source)
+            callbacks.onError(source, StreamFailureReason.UNREACHABLE)
         }
     }
 
     /**
-     * This site has never read a response code out of the `cause` chain, so no HTTP status is ever
-     * observed here. The policy answers the bad-HTTP-status code from the code alone, which is what
-     * the flat IO range did before the move (S1513).
+     * STREAM-BANK 2.10 section 2.5: the service ended this station in failure and says why, so the dialog
+     * opens now rather than at the tolerance timer. A broadcast row is LIVE-BROADCAST's to answer, and a
+     * url other than the current station's is another item of the service.
      */
-    private fun PlaybackException.toStreamFailure(): StreamAudioFailure =
-        StreamAudioFailure(StreamFailureClass.classify(errorCode, httpStatus = null), errorCode)
+    private fun onServiceStreamFailure(reason: StreamFailureReason?, url: String) {
+        val failed = currentSource
+            ?.takeIf { usingService && it.url == url && BroadcastPlaybackSessions.forUrl(it.url) == null }
+            ?: return
+        Timber.i("StreamInlineAudioManager: service ended the stream - %s (%s)", url, reason)
+        stop()
+        callbacks.onError(failed, reason)
+    }
 
     /**
      * S4444: hands a broadcast row's stop to the host instead of the retry ladder, in both the in-app and the
@@ -586,7 +606,7 @@ class StreamInlineAudioManager(
             StreamInlineRetryDecision.OwnedByService -> Unit
             StreamInlineRetryDecision.GiveUp -> {
                 stop()
-                callbacks.onError(failed)
+                callbacks.onError(failed, StreamFailureReason.UNREACHABLE)
             }
         }
     }

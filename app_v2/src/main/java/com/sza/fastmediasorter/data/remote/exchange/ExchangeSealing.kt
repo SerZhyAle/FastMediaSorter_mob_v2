@@ -12,6 +12,8 @@ class ExchangeSealing(
     val recipients: List<E2eRecipient>,
     val states: Map<String, ExchangeSealState>,
     private val trusted: Map<String, String>,
+    /** This device's own record, as the server lists it, carries `e2eKem` (1.12 item FB). */
+    val selfListed: Boolean = false,
 ) {
     /** The opening check of item DH: [fromKey] is the key this device trusts for [from]. */
     fun trusts(from: String, fromKey: ByteArray): Boolean = E2eRecipients.trusts(trusted, from, fromKey)

@@ -4,7 +4,7 @@ import com.sza.fastmediasorter.data.remote.sftp.anywhere.ExchangeTrustDecision.V
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-/** Amendment D of contract DEVICE-EXCHANGE: platform trust first, a pin only for what the platform refuses. */
+/** Amendment D and 1.12 item EW of DEVICE-EXCHANGE: platform trust first, a pin only for what it refuses. */
 class ExchangeTrustDecisionTest {
 
     @Test
@@ -23,9 +23,9 @@ class ExchangeTrustDecisionTest {
     }
 
     @Test
-    fun `a changed pinned certificate is refused even when the platform would trust it`() {
+    fun `a changed pinned certificate is refused unless the platform trusts it`() {
         assertEquals(Verdict.CHANGED, ExchangeTrustDecision.decide(ExchangeTrust.Verified(LEAF), false, OTHER))
-        assertEquals(Verdict.CHANGED, ExchangeTrustDecision.decide(ExchangeTrust.Verified(LEAF), true, OTHER))
+        assertEquals(Verdict.PLATFORM, ExchangeTrustDecision.decide(ExchangeTrust.Verified(LEAF), true, OTHER))
     }
 
     @Test
@@ -39,7 +39,7 @@ class ExchangeTrustDecisionTest {
     fun `another leaf with another key is refused`() {
         val trust = ExchangeTrust.Verified(LEAF, KEY)
 
-        assertEquals(Verdict.CHANGED, ExchangeTrustDecision.decide(trust, true, OTHER, OTHER_KEY))
+        assertEquals(Verdict.CHANGED, ExchangeTrustDecision.decide(trust, false, OTHER, OTHER_KEY))
         assertEquals(Verdict.CHANGED, ExchangeTrustDecision.decide(trust, false, OTHER, null))
     }
 

@@ -153,8 +153,8 @@ finally {
 
 Write-Host ''
 if ($failures -gt 0) {
-    Write-Error ("preflight-checks.tests: FAIL - {0} of {1} case(s) failed." -f $failures, $caseNo) -ErrorAction Continue
+    Write-Error ("preflight-checks.tests: FAIL (run={0} skipped=0, failed={1})" -f $caseNo, $failures) -ErrorAction Continue
     exit 1
 }
-Write-Host ("preflight-checks.tests: PASS ({0} case(s))" -f $caseNo) -ForegroundColor Green
+Write-Host ("preflight-checks.tests: PASS (run={0} skipped=0)" -f $caseNo) -ForegroundColor Green
 exit 0

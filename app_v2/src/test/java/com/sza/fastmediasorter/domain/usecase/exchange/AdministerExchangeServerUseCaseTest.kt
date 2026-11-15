@@ -37,7 +37,7 @@ class AdministerExchangeServerUseCaseTest {
     fun `sign in preserves each contract refusal`() = runTest {
         val reasons = mapOf(
             "admin-disabled" to ExchangeMessage.ADMIN_DISABLED,
-            "bad-credentials" to ExchangeMessage.BAD_CREDENTIALS,
+            "bad-credentials" to ExchangeMessage.BAD_CREDENTIALS_ADMIN,
             "rate-limited" to ExchangeMessage.RATE_LIMITED,
             "capacity" to ExchangeMessage.CAPACITY,
             "tls-required" to ExchangeMessage.TLS_REQUIRED,

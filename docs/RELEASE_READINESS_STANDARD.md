@@ -185,7 +185,7 @@ Required artifacts and where they live:
 - Screenshots of key screens - under `temp/` for the run.
 - Play Console Pre-launch report link.
 - Data Safety review note (reviewed for this release).
-- Signing fingerprint confirmation - release upload key matches the production registration.
+- Signing fingerprint confirmation - release upload key matches the production registration; the fingerprints are recorded in `docs/PLAY_PUBLISHING_STATE.md` "Signing keys" and the release is compared against that table.
 - Deobfuscation: `mapping.txt` + native symbols, keyed by `versionCode`, uploaded to Play Console / archived (research/02). Produced without operator action by the release build and proven by `/spec-prerelease` step 0.6; the evidence is that gate's PASS line, not a manual copy.
 - Waiver file - `store_assets/release_waivers/<versionName>.md` for any waiver-eligible gap.
 

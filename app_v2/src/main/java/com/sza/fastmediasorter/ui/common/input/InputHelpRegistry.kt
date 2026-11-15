@@ -10,6 +10,11 @@ import com.sza.fastmediasorter.R
  * shortcuts that actually exist on that surface; global shortcuts
  * (F1 help itself, F10 exit, Tab navigation) live in the common tail
  * appended by [get].
+ *
+ * Every key label follows INPUT-CHORD rule 5: Latin modifiers in the order
+ * Ctrl, Shift, Alt, Win and the rule 1 key names (`PageUp`, `Delete`, `Left`,
+ * `NumpadAdd`, `BracketLeft`), never a short form or an arrow glyph. Labels
+ * are not translated, so one spelling serves every locale.
  */
 object InputHelpRegistry {
 
@@ -31,8 +36,8 @@ object InputHelpRegistry {
         InputHelpEntry.Section(
             titleRes = R.string.kbm_help_section_navigation,
             entries = listOf(
-                entry("↑ / ↓ / ← / →", R.string.kbm_help_nav_arrows),
-                entry("PgUp / PgDn", R.string.kbm_help_nav_page),
+                entry("Up / Down / Left / Right", R.string.kbm_help_nav_arrows),
+                entry("PageUp / PageDown", R.string.kbm_help_nav_page),
                 entry("Home / End", R.string.kbm_help_nav_home_end),
                 entry("Enter", R.string.kbm_help_main_open),
                 entry("Insert / +", R.string.kbm_help_main_add),
@@ -43,7 +48,7 @@ object InputHelpRegistry {
             entries = listOf(
                 entry("F2 / Ctrl+R", R.string.kbm_help_op_rename),
                 entry("F5 / Ctrl+C", R.string.kbm_help_op_copy),
-                entry("F8 / Del / Ctrl+D", R.string.kbm_help_op_delete),
+                entry("F8 / Delete / Ctrl+D", R.string.kbm_help_op_delete),
                 entry("Ctrl+Shift+R / Ctrl+F5", R.string.kbm_help_op_refresh),
             ),
         ),
@@ -53,8 +58,8 @@ object InputHelpRegistry {
         InputHelpEntry.Section(
             titleRes = R.string.kbm_help_section_navigation,
             entries = listOf(
-                entry("↑ / ↓ / ← / →", R.string.kbm_help_nav_arrows),
-                entry("PgUp / PgDn", R.string.kbm_help_nav_page),
+                entry("Up / Down / Left / Right", R.string.kbm_help_nav_arrows),
+                entry("PageUp / PageDown", R.string.kbm_help_nav_page),
                 entry("Home / End", R.string.kbm_help_nav_home_end),
                 entry("Enter", R.string.kbm_help_browse_open),
                 entry("Backspace", R.string.kbm_help_browse_back),
@@ -64,10 +69,10 @@ object InputHelpRegistry {
             titleRes = R.string.kbm_help_section_selection,
             entries = listOf(
                 entry("Insert / Space", R.string.kbm_help_sel_toggle),
-                entry("Num+ / Ctrl+A", R.string.kbm_help_sel_all),
-                entry("Num- / Ctrl+Shift+A / Esc", R.string.kbm_help_sel_clear),
-                entry("Num*", R.string.kbm_help_sel_invert),
-                entry("Shift+↑ / Shift+↓", R.string.kbm_help_sel_range),
+                entry("NumpadAdd / Ctrl+A", R.string.kbm_help_sel_all),
+                entry("NumpadSubtract / Ctrl+Shift+A / Esc", R.string.kbm_help_sel_clear),
+                entry("NumpadMultiply", R.string.kbm_help_sel_invert),
+                entry("Shift+Up / Shift+Down", R.string.kbm_help_sel_range),
             ),
         ),
         InputHelpEntry.Section(
@@ -79,7 +84,7 @@ object InputHelpRegistry {
                 entry("F5 / Ctrl+C", R.string.kbm_help_op_copy),
                 entry("F6 / Ctrl+X", R.string.kbm_help_op_move),
                 entry("F7 / Ctrl+Shift+N", R.string.kbm_help_op_create_folder),
-                entry("F8 / Del / Ctrl+D", R.string.kbm_help_op_delete),
+                entry("F8 / Delete / Ctrl+D", R.string.kbm_help_op_delete),
                 entry("Ctrl+Shift+R", R.string.kbm_help_op_refresh),
             ),
         ),
@@ -91,16 +96,16 @@ object InputHelpRegistry {
             entries = listOf(
                 // INPUT-PARITY 0.4 VIEWER-KEYBOARD defaults; zoom and destination digits are S4362's rows.
                 entry("Space / K", R.string.kbm_help_player_space),
-                entry("← / →", R.string.kbm_help_player_arrows),
-                entry("PgUp / PgDn", R.string.kbm_help_player_prev_next),
-                entry("Shift+← / Shift+→", R.string.kbm_help_player_seek_3s),
-                entry("Ctrl+← / Ctrl+→", R.string.kbm_help_player_seek_60s),
-                entry("↑ / ↓", R.string.kbm_help_player_step_ten),
-                entry("Shift+PgUp / Shift+PgDn", R.string.kbm_help_player_step_hundred),
+                entry("Left / Right", R.string.kbm_help_player_arrows),
+                entry("PageUp / PageDown", R.string.kbm_help_player_prev_next),
+                entry("Shift+Left / Shift+Right", R.string.kbm_help_player_seek_3s),
+                entry("Ctrl+Left / Ctrl+Right", R.string.kbm_help_player_seek_60s),
+                entry("Up / Down", R.string.kbm_help_player_step_ten),
+                entry("Shift+PageUp / Shift+PageDown", R.string.kbm_help_player_step_hundred),
                 entry("Home / End", R.string.kbm_help_player_first_last),
                 entry("Y", R.string.kbm_help_player_random),
-                entry("[ / ]", R.string.kbm_help_player_speed),
-                entry("Ctrl+↑ / Ctrl+↓", R.string.kbm_help_player_volume),
+                entry("BracketLeft / BracketRight", R.string.kbm_help_player_speed),
+                entry("Ctrl+Up / Ctrl+Down", R.string.kbm_help_player_volume),
                 entry("M", R.string.kbm_help_player_mute),
                 entry("A", R.string.kbm_help_player_audio_track),
                 entry("F", R.string.kbm_help_player_fullscreen),
@@ -116,7 +121,7 @@ object InputHelpRegistry {
                 entry("F3 / Ctrl+I", R.string.kbm_help_player_info),
                 entry("F5 / Ctrl+C", R.string.kbm_help_op_copy),
                 entry("F6 / Ctrl+X", R.string.kbm_help_op_move),
-                entry("F8 / Del / Ctrl+D", R.string.kbm_help_op_delete),
+                entry("F8 / Delete / Ctrl+D", R.string.kbm_help_op_delete),
                 entry("F9 / Ctrl+M", R.string.kbm_help_op_context_menu),
                 entry("Ctrl+S", R.string.kbm_help_player_save),
             ),
@@ -127,8 +132,8 @@ object InputHelpRegistry {
         InputHelpEntry.Section(
             titleRes = R.string.kbm_help_section_navigation,
             entries = listOf(
-                entry("← / →", R.string.kbm_help_settings_tabs),
-                entry("↑ / ↓", R.string.kbm_help_settings_rows),
+                entry("Left / Right", R.string.kbm_help_settings_tabs),
+                entry("Up / Down", R.string.kbm_help_settings_rows),
                 entry("Enter / Space", R.string.kbm_help_settings_activate),
                 entry("Tab", R.string.kbm_help_global_tab),
                 entry("Ctrl+F", R.string.kbm_help_settings_search),
@@ -143,7 +148,7 @@ object InputHelpRegistry {
             entries = listOf(
                 entry("Enter / Ctrl+Enter", R.string.kbm_help_dialog_primary),
                 entry("Esc", R.string.kbm_help_dialog_cancel),
-                entry("↑ / ↓", R.string.kbm_help_dialog_arrows),
+                entry("Up / Down", R.string.kbm_help_dialog_arrows),
                 entry("Space", R.string.kbm_help_dialog_toggle),
             ),
         ),
@@ -153,7 +158,7 @@ object InputHelpRegistry {
         InputHelpEntry.Section(
             titleRes = R.string.kbm_help_section_navigation,
             entries = listOf(
-                entry("↑ / ↓ / ← / →", R.string.kbm_help_nav_arrows),
+                entry("Up / Down / Left / Right", R.string.kbm_help_nav_arrows),
                 entry("Enter", R.string.kbm_help_nav_enter),
                 entry("Backspace", R.string.kbm_help_nav_backspace),
                 entry("Esc", R.string.kbm_help_nav_escape),

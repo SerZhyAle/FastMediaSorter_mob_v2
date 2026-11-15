@@ -10,12 +10,13 @@ class MediaCategoryClassifierTest {
 
     // MEDIA-CLASSIFICATION 0.11 rule 1, copied verbatim (order and leading dots included) so a product-only
     // extension fails the comparison below instead of passing in both copies. `.jxl` is the one entry past the
-    // copy: it enters rule 1 IMAGE with the owner amendment MEDIA-CLASSIFICATION 0.12.
+    // copy: it enters rule 1 IMAGE with the owner amendment MEDIA-CLASSIFICATION 0.12. The 0.13 item C additions
+    // (`.tif`, `.cb7`, `.cbt`, `.azw3`, `.html`, `.htm`) are appended to their categories the same way.
     private val contractTable = mapOf(
         MediaCategory.IMAGE to listOf(
             ".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".avif", ".heic", ".heif", ".svg", ".tiff", ".ico",
             ".wmf", ".emf",
-        ) + listOf(".jxl"),
+        ) + listOf(".jxl", ".tif"),
         MediaCategory.VIDEO to listOf(
             ".mp4", ".mkv", ".mov", ".webm", ".3gp", ".flv", ".wmv", ".m4v", ".avi", ".mpg", ".mpeg", ".ts", ".m2ts",
             ".vob", ".ogv", ".divx", ".m2v", ".mts", ".3g2", ".asf",
@@ -24,7 +25,7 @@ class MediaCategoryClassifierTest {
             ".mp3", ".m4a", ".flac", ".aac", ".ogg", ".wma", ".opus", ".amr", ".awb", ".ac3", ".ec3", ".ac4", ".adts",
             ".thd", ".mka", ".oga", ".caf", ".alac", ".mia", ".mid", ".midi", ".wav", ".wave",
         ),
-        MediaCategory.BOOK to listOf(".epub", ".pdf", ".cbz", ".cbr", ".fb2", ".mobi"),
+        MediaCategory.BOOK to listOf(".epub", ".pdf", ".cbz", ".cbr", ".fb2", ".mobi", ".cb7", ".cbt", ".azw3"),
         MediaCategory.STREAM to listOf(".m3u", ".m3u8", ".pls", ".xspf", ".fmsbcast"),
         MediaCategory.CONTAINER to listOf(
             ".fd-sec", ".zip", ".rar", ".7z", ".tar", ".gz", ".bz2", ".xz", ".cab", ".arj", ".lzh", ".iso", ".dmg",
@@ -32,7 +33,7 @@ class MediaCategoryClassifierTest {
         ),
         MediaCategory.DOCUMENT to listOf(
             ".doc", ".docx", ".rtf", ".odt", ".xls", ".xlsx", ".ods", ".ppt", ".pptx", ".odp", ".txt", ".md", ".json",
-            ".xml", ".csv", ".tsv", ".yaml", ".yml", ".toml", ".ini", ".conf",
+            ".xml", ".csv", ".tsv", ".yaml", ".yml", ".toml", ".ini", ".conf", ".html", ".htm",
         ),
     )
 

@@ -32,10 +32,12 @@
 
 .NOTES
     Exit codes:
-      0 - every runnable case passed. When Code.Fixture is held (by this session or a sibling), the
-          acquiring cases are skipped and the resolution and non-acquiring cases are verified; the
-          suite exits 0 with a note about the skipped cases.
+      0 - every case passed and none was skipped.
       1 - a case failed.
+      2 - could not verify (CHECK-VERDICT 0.14 item A.5): Code.Fixture is held (by this session or a
+          sibling), so the acquiring cases were skipped and only the resolution and non-acquiring
+          cases ran, and none of those failed. The line ends COULD NOT VERIFY (run=N skipped=M, only
+          ..); re-run when the fixture domain is free.
 #>
 [CmdletBinding()]
 param()
@@ -130,8 +132,8 @@ Write-Host 'code-lock-scope contract suite' -ForegroundColor Cyan
 # --- Guard: skip acquiring cases when the fixture domain is held --------------
 # The acquiring cases touch Code.Fixture only, so a sibling working in scripts/ no longer turns them
 # off. When the fixture domain is held - by this session or a parallel run of this suite - run only
-# the resolution and non-acquiring cases and exit 0, so the release-scope gate gets a trustworthy
-# verdict instead of a false red or a cannot-verify.
+# the resolution and non-acquiring cases and exit 2 (COULD NOT VERIFY, CHECK-VERDICT 0.14 item A.5):
+# a verdict over part of the suite is not a pass, and a held fixture is not a failed case either.
 $skipAcquiring = $false
 $fixtureStatus = Get-AgentLockStatus -Name 'Code.Fixture'
 if ($fixtureStatus.Exists -and -not $fixtureStatus.Stale) {
@@ -380,13 +382,31 @@ Assert-Case 'acquiring cases use Code.Fixture and leave Code.Scripts free of thi
 
 # --- Verdict ------------------------------------------------------------------
 Write-Host ''
+# Static count of the acquiring cases the guard skipped: each `Assert-Case` call under an
+# `if (-not $skipAcquiring)` block of this file, so the figure cannot drift from the blocks.
+$skippedCases = 0
+if ($skipAcquiring) {
+    $ownTokens = $null
+    $ownErrors = $null
+    $ownAst = [System.Management.Automation.Language.Parser]::ParseFile($PSCommandPath, [ref]$ownTokens, [ref]$ownErrors)
+    $guards = $ownAst.FindAll({ param($node)
+        $node -is [System.Management.Automation.Language.IfStatementAst] -and
+            $node.Clauses[0].Item1.Extent.Text -eq '-not $skipAcquiring'
+    }, $true)
+    foreach ($guard in $guards) {
+        $skippedCases += @($guard.FindAll({ param($node)
+            $node -is [System.Management.Automation.Language.CommandAst] -and $node.GetCommandName() -eq 'Assert-Case'
+        }, $true)).Count
+    }
+}
 if ($failures -gt 0) {
-    Write-Host "code-lock-scope.tests: FAIL ($failures of $caseNo case(s))" -ForegroundColor Red
+    Write-Host "code-lock-scope.tests: FAIL (run=$caseNo skipped=$skippedCases, failed=$failures)" -ForegroundColor Red
     exit 1
 }
+# CHECK-VERDICT 0.14 item A.5: skipped acquiring cases mean the contract was verified in part only.
 if ($skipAcquiring) {
-    Write-Host "code-lock-scope.tests: PASS ($caseNo cases, acquiring cases skipped - Code.Fixture held)" -ForegroundColor Green
-    exit 0
+    Write-Host "code-lock-scope.tests: COULD NOT VERIFY (run=$caseNo skipped=$skippedCases, only the resolution and non-acquiring cases - Code.Fixture held)" -ForegroundColor Yellow
+    exit 2
 }
-Write-Host "code-lock-scope.tests: PASS ($caseNo cases)" -ForegroundColor Green
+Write-Host "code-lock-scope.tests: PASS (run=$caseNo skipped=0)" -ForegroundColor Green
 exit 0

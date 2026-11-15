@@ -53,6 +53,9 @@ data class SftpFileListing(
  * stores the key it was offered. Only that first connect runs without verification.
  */
 @Singleton
+// Every collaborator is a distinct process-wide singleton the pool or the pin/proof policy needs; a holder
+// object would only move the list.
+@Suppress("LongParameterList")
 class SftpClient @Inject constructor(
     private val reachabilityGate: com.sza.fastmediasorter.core.network.NetworkReachabilityGate,
     private val lifecycleBootstrapper:
@@ -64,6 +67,7 @@ class SftpClient @Inject constructor(
     private val proofRegistry: SftpRootProofRegistry,
     private val tunnelRouter: dagger.Lazy<ExchangeTunnelRouter>,
     private val accountClient: dagger.Lazy<DeviceExchangeAccountClient>,
+    private val endpointResolver: dagger.Lazy<SftpEndpointResolver>,
 ) {
 
     companion object {
@@ -85,6 +89,7 @@ class SftpClient @Inject constructor(
 
     private val pool = SftpConnectionPool(
         onFirstUseHostKey = pinRegistry::recordFirstUse,
+        onTransportLost = { host, port -> endpointResolver.get().forgetWinner(host, port) },
         router = tunnelRouter.get(),
         client = accountClient.get(),
     )

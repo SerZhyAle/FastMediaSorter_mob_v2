@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.ui.BaseViewModel
 import com.sza.fastmediasorter.core.ui.UiState
 import com.sza.fastmediasorter.data.capture.SaveResult
+import com.sza.fastmediasorter.data.companion.CompanionConfigException
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -458,7 +459,7 @@ class MainViewModel @Inject constructor(
                 onSuccess = { file -> sendEvent(MainEvent.ShareCompanionConfigFile(file.absolutePath)) },
                 onFailure = { e ->
                     Timber.e(e, "SFTP config export failed")
-                    sendEvent(MainEvent.ShowResourceMessage(R.string.sftp_share_export_failed))
+                    sendEvent(MainEvent.ShowResourceMessage(shareExportErrorRes(e)))
                 }
             )
         }
@@ -476,11 +477,20 @@ class MainViewModel @Inject constructor(
                 },
                 onFailure = { e ->
                     Timber.e(e, "SFTP QR export failed")
-                    sendEvent(MainEvent.ShowResourceMessage(R.string.sftp_share_export_failed))
+                    sendEvent(MainEvent.ShowResourceMessage(shareExportErrorRes(e)))
                 }
             )
         }
     }
+
+    // S4649: the unpinned-server refusal is actionable, so it names its own fix; every other export
+    // failure keeps the generic share message.
+    private fun shareExportErrorRes(e: Throwable): Int =
+        if ((e as? CompanionConfigException)?.reason == CompanionConfigException.Reason.UNPINNED_HOST_KEY) {
+            R.string.companion_share_unpinned_error
+        } else {
+            R.string.sftp_share_export_failed
+        }
 
     fun startPlayer() {
         if (state.value.isNavigating) {

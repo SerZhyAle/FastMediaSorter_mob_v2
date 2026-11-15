@@ -5,7 +5,7 @@
 | | |
 | --- | --- |
 | **Id** | `CAPTURE-OUTPUT` |
-| **Version** | 0.7, draft. Owner: this product |
+| **Version** | 0.8, draft. Owner: this product |
 | **Home** | `capture-output/README.md` in the shared contracts catalog |
 | **Role here** | owner and producer (every screenshot, recording, photo, frame, text and translation file the app writes) |
 

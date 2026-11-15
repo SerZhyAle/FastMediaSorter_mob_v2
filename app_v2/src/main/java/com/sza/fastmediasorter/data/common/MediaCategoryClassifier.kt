@@ -24,6 +24,7 @@ object MediaCategoryClassifier {
 
     private val IMAGE = setOf(
         "jpg", "jpeg", "png", "webp", "gif", "bmp", "avif", "heic", "heif", "jxl", "svg", "tiff", "ico", "wmf", "emf",
+        "tif",
     )
     private val VIDEO = setOf(
         "mp4", "mkv", "mov", "webm", "3gp", "flv", "wmv", "m4v", "avi", "mpg", "mpeg", "ts", "m2ts", "vob",
@@ -35,7 +36,7 @@ object MediaCategoryClassifier {
         "mp3", "m4a", "flac", "aac", "ogg", "wma", "opus", "amr", "awb", "ac3", "ec3", "ac4", "adts", "thd",
         "mka", "oga", "caf", "alac", "mia", "mid", "midi", "wav", "wave", "m4b",
     )
-    private val BOOK = setOf("epub", "pdf", "cbz", "cbr", "fb2", "mobi")
+    private val BOOK = setOf("epub", "pdf", "cbz", "cbr", "fb2", "mobi", "cb7", "cbt", "azw3")
     private val STREAM = setOf("m3u", "m3u8", "pls", "xspf", "fmsbcast")
     private val CONTAINER = setOf(
         "fd-sec", "zip", "rar", "7z", "tar", "gz", "bz2", "xz", "cab", "arj", "lzh", "iso", "dmg", "img", "vhd",
@@ -43,7 +44,7 @@ object MediaCategoryClassifier {
     )
     private val DOCUMENT = setOf(
         "doc", "docx", "rtf", "odt", "xls", "xlsx", "ods", "ppt", "pptx", "odp", "txt", "md", "json", "xml",
-        "csv", "tsv", "yaml", "yml", "toml", "ini", "conf",
+        "csv", "tsv", "yaml", "yml", "toml", "ini", "conf", "html", "htm",
     )
 
     private val CATEGORY_BY_EXTENSION: Map<String, MediaCategory> = buildMap {

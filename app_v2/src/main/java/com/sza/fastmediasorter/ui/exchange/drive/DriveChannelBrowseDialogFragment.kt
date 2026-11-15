@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogDriveChannelBrowseBinding
 import com.sza.fastmediasorter.ui.common.dialog.applyDialogInsets
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -63,6 +64,7 @@ class DriveChannelBrowseDialogFragment : DialogFragment() {
     override fun onStart() {
         super.onStart()
         dialog?.applyDialogInsets()
+        dialog?.let { DialogHelpEntryManager.attach(it, DialogHelpEntryManager.surfaceIdOf(it, null)) }
     }
 
     override fun onDestroyView() {

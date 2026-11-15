@@ -673,6 +673,52 @@ watch (see "Step 3 does not wait on step 4").
 
 ---
 
+## Signing keys (GOOGLE-PLAY rules 2-3)
+
+Public certificate fingerprints only; no key material is ever written to this file. One row per console
+app. The upload key is the release keystore that signs every bundle and APK this repository builds; the
+app signing key is the one Play re-signs with, which only the Console's `App integrity` page shows.
+
+| Console app | Upload key SHA-256 | Source of the upload key | App signing key SHA-256 | Source class |
+|-------------|--------------------|--------------------------|-------------------------|--------------|
+| `com.sza.fastmediasorter` (phone and watch app) | `6A:A6:EA:72:75:2A:E9:44:09:29:F1:E0:BA:F8:F2:AD:13:CC:21:CE:C4:60:6B:F6:22:9D:69:02:06:C4:35:A6` | `keytool -list -v` of `.secrets/fastmediasorter.keystore`, alias `fastmediasorter`, exit 0 on 2026-11-15; equal to the pin in `scripts/release/expected-signing-fingerprint.txt` (`apksigner` of the release APKs, 2026-05-15) | not read | `transcribed` - the owner copies the SHA-256 from `App integrity` > `App signing` |
+| `com.sza.fastmediasorter.watchface` | `6A:A6:EA:72:75:2A:E9:44:09:29:F1:E0:BA:F8:F2:AD:13:CC:21:CE:C4:60:6B:F6:22:9D:69:02:06:C4:35:A6` | `scripts/builders/build-watchface-release.ps1` refuses a bundle whose fingerprint differs from the same pin | not read | `transcribed` - same page of the watch face's own console app |
+
+Whether Google manages the app signing key or the upload key is also the app signing key is read from
+the same page and is not recorded here yet; until both app signing rows are filled, rung 1 of
+`GOOGLE-PLAY` is not claimed for this product. The release-readiness check "Signing fingerprint
+confirmation" (`docs/RELEASE_READINESS_STANDARD.md`) compares a release against this table.
+
+## Review batch log (GOOGLE-PLAY rules 16 and 21)
+
+One row per review batch or verdict, with the fact and where it was read. A cell the file does not hold
+is `not recorded`, never a guess. The owner appends a row when a batch is sent and when a verdict
+arrives; the verdict letters themselves stay in block 3.
+
+| Date | Console app | Event | Changes in the batch | Routing ID | versionCodes named | Carriers | Source |
+|------|-------------|-------|----------------------|------------|--------------------|----------|--------|
+| 2026-08-25 | `com.sza.fastmediasorter` | phone and watch releases sent together as one batch | not recorded | not recorded | watch `26082501` | not recorded | block 2, block 3 (verdict of 2026-08-31) |
+| 2026-08-31 | `com.sza.fastmediasorter` | verdict: `Update rejected`, four Wear rows | not recorded | not recorded | `26082501` | S2273, S2274, S2275 | block 3 |
+| 2026-09-02 to 2026-09-12 | `com.sza.fastmediasorter` | batch held while a rejection stood; a track clear queued as one more change | 21, then 25 | not recorded | not recorded | not recorded | `GOOGLE-PLAY` rule 17 (this product's own measurement) |
+| 2026-09-08 | `com.sza.fastmediasorter` | verdict: `Update rejected`, one Wear row | not recorded | `ZLFS` | `26090503` | S2755, S2756 | block 3 |
+| 2026-09-24 | `com.sza.fastmediasorter` | verdict: `Update rejected`, listing description | not recorded | not recorded | `260924019` | S3529 | block 3 |
+| 2026-09-25 | `com.sza.fastmediasorter` | verdict: `Update rejected`, missing ongoing activity | not recorded | `ZLFS` | `260924236` | S3555 | block 3 |
+| 2026-10-02 | `com.sza.fastmediasorter` | verdict: third watch-shape rejection of `wear:production` | not recorded | not recorded | `260926008` | not recorded | "Release batches" section above |
+| 2026-10-18 | `com.sza.fastmediasorter.watchface` | verdict: `Rejected`, listing icon | not recorded | `ZLFS` | `261014176` | no ticket | block 3 |
+| 2026-10-18 | `com.sza.fastmediasorter.watchface` | republished bundle `261018159` and the three-locale listing, both held | not recorded | not recorded | `261018159` | not recorded | block 3 |
+
+## Open measurement - release notes language code (GOOGLE-PLAY rule 26)
+
+- **Question:** `scripts/release/publish-play-release.py` sends the Ukrainian release notes under `uk-UA`,
+  while the console's own code is `uk`. Whether Play stores the API's `uk-UA` as `uk` is unmeasured; for a
+  listing it does (S1266), for release notes nobody has read it back.
+- **Measure:** after a release that carried notes, run
+  `pwsh -NoProfile -File scripts/release/read-play-tracks.ps1`; its `notes=` column lists the language
+  codes of each release as Play stores them. It needs `.secrets/play-console-key.json`, which was not on the
+  workstation of 2026-11-15.
+- **Decision:** `uk` stored -> map the folder `uk-UA` to the code `uk` in `get_release_notes()`; `uk-UA`
+  stored, alone or beside `uk` -> record the measurement as a correction proposal to the contract.
+
 ## How this file is kept current
 
 `scripts/release/refresh-play-publishing-state.ps1` is the **only** writer of blocks 1 and 2, and

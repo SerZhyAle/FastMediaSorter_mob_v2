@@ -298,7 +298,6 @@
     <string name="exchange_admin_sign_in">সাইন ইন করুন</string>
     <string name="exchange_admin_sign_out">সাইন আউট</string>
     <string name="exchange_admin_signing_in">সাইন ইন করা হচ্ছে..</string>
-    <string name="exchange_admin_lapsed">সেশন শেষ হয়ে গেছে। প্রশাসনের পাসওয়ার্ড আবার লিখুন।</string>
     <string name="exchange_admin_section_status">অবস্থা</string>
     <string name="exchange_admin_section_accounts">অ্যাকাউন্ট</string>
     <string name="exchange_admin_section_invitations">আমন্ত্রণ</string>

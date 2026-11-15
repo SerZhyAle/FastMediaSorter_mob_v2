@@ -47,6 +47,7 @@ $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..\..')).Path
 $inventoryLib = Join-Path $repoRoot 'scripts/utils/temp-root-inventory.ps1'
 $fixture = Join-Path $repoRoot 'temp/S3036/store-fixture'
 $failures = 0
+$cases = 0
 
 function Reset-Fixture {
     if (Test-Path -LiteralPath $fixture) { Remove-Item -LiteralPath $fixture -Recurse -Force }
@@ -55,6 +56,7 @@ function Reset-Fixture {
 
 function Assert-Case {
     param([string] $Name, [scriptblock] $Body)
+    $script:cases++
     try {
         $message = & $Body
         if ($message) {
@@ -149,8 +151,8 @@ finally {
 }
 
 if ($failures -gt 0) {
-    Write-Error "device-store-paths.tests: expected: 0 | actual: $failures failing case(s)." -ErrorAction Continue
+    Write-Error "device-store-paths.tests: FAIL (run=$cases skipped=0, failed=$failures)" -ErrorAction Continue
     exit 1
 }
-Write-Host 'device-store-paths.tests: PASS - 7 case(s).' -ForegroundColor Green
+Write-Host "device-store-paths.tests: PASS (run=$cases skipped=0)" -ForegroundColor Green
 exit 0

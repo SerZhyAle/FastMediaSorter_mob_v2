@@ -298,7 +298,6 @@
     <string name="exchange_admin_sign_in">تسجيل الدخول</string>
     <string name="exchange_admin_sign_out">تسجيل الخروج</string>
     <string name="exchange_admin_signing_in">جارٍ تسجيل الدخول..</string>
-    <string name="exchange_admin_lapsed">انتهت الجلسة. أدخل كلمة مرور الإدارة مرة أخرى.</string>
     <string name="exchange_admin_section_status">الحالة</string>
     <string name="exchange_admin_section_accounts">الحسابات</string>
     <string name="exchange_admin_section_invitations">الدعوات</string>

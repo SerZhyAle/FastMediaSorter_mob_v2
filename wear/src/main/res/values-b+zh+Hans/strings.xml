@@ -809,7 +809,6 @@
     <string name="wear_clipboard_no_phone">附近没有手机</string>
     <string name="wear_clipboard_no_answer">手机没有响应</string>
     <string name="wear_clipboard_refused">手机拒绝了：%1$s</string>
-    <string name="wear_tourist_press_button_to_unlock">按下手表按钮以解锁</string>
     <string name="wear_tourist_metric_body_temperature">体温</string>
     <string name="wear_onboarding_welcome_title">欢迎</string>
     <string name="wear_onboarding_welcome_body">直接在手腕上浏览、播放和整理媒体。</string>

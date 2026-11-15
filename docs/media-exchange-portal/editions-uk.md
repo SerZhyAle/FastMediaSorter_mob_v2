@@ -1,11 +1,12 @@
 ---
+source_sha256: 014967305311957c399bdef820c92215e824ad41e415102aa8c8fbaa8e65e53b
 layout: doc
 title: "Редакції: у якому застосунку який спосіб обміну"
 description: "У якій редакції FastMediaSorter для Android є мережеві теки, «Мої пристрої», хмари, файли через Google Drive, пряма трансляція, Chromecast і компаньйон для годинника."
 category: "Обмін медіа"
 permalink: /docs/media-exchange-portal/editions-uk.html
 ---
-<sub class="doc-stamp">26.10.20 12:24</sub>
+<sub class="doc-stamp">26.11.15 15:28</sub>
 
 # Редакції: у якому застосунку який спосіб обміну
 

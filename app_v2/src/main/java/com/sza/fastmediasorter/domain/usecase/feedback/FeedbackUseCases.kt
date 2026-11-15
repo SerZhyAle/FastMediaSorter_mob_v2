@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.ticket.TicketOrigin
 import com.sza.fastmediasorter.domain.model.ticket.TicketOutboxEntry
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -22,8 +23,10 @@ import javax.inject.Inject
 data class FeedbackFolder(val resourceId: Long, val name: String, val viaExchange: Boolean)
 
 /**
- * S4573: what the form's folder selector shows. [available] is false where the network file layer is not
- * built in; [lastPacket] is the newest packet sent to the selected folder.
+ * S4573: what the form's folder selector shows. The writable-folder list is also what the ticket
+ * composer's destination selector offers (S4663), while [selectedId] and [lastPacket] stay the
+ * feedback form's own state. [available] is false where the network file layer is not built in;
+ * [lastPacket] is the newest packet this form sent to the selected folder.
  */
 data class FeedbackFolderChoice(
     val available: Boolean = false,
@@ -55,7 +58,8 @@ class ObserveFeedbackFoldersUseCase @Inject constructor(
                 folders = folders,
                 selectedId = chosen,
                 lastPacket = chosen?.let { id ->
-                    outbox.filter { it.inboxResourceId == id }.maxByOrNull { it.createdAtEpochMs }
+                    outbox.filter { it.inboxResourceId == id && it.origin == TicketOrigin.FEEDBACK }
+                        .maxByOrNull { it.createdAtEpochMs }
                 }
             )
         }
@@ -79,6 +83,7 @@ class SelectFeedbackFolderUseCase @Inject constructor(private val settings: Sett
 /**
  * S4573: the feedback channel. With a folder chosen the feedback is staged as a TICKET packet for that
  * folder and its delivery scheduled; the Send to.. handoff that follows is the caller's, with or without one.
+ * The draft's origin marks the packet as this form's own (S4663).
  */
 class SendFeedbackUseCase @Inject constructor(
     private val inbox: TicketInboxRepository,
@@ -89,7 +94,13 @@ class SendFeedbackUseCase @Inject constructor(
         val folderId = current.feedbackInboxResourceId
             ?: return Result.success(FeedbackSendResult(packetId = null, settings = current))
         // The listener files a packet without a project into its own triage project (INBOX-PACKET item FC).
-        val draft = TicketDraft(text = text, project = null, attachments = attachments, inboxResourceId = folderId)
+        val draft = TicketDraft(
+            text = text,
+            project = null,
+            attachments = attachments,
+            inboxResourceId = folderId,
+            origin = TicketOrigin.FEEDBACK
+        )
         return inbox.stage(draft).map { packetId -> FeedbackSendResult(packetId, current) }
     }
 }

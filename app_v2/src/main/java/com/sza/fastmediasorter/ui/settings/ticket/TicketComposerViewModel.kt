@@ -2,17 +2,22 @@ package com.sza.fastmediasorter.ui.settings.ticket
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.domain.model.ticket.TicketOrigin
 import com.sza.fastmediasorter.domain.model.ticket.TicketOutboxEntry
 import com.sza.fastmediasorter.domain.model.ticket.TicketProject
 import com.sza.fastmediasorter.domain.ticket.TicketAttachmentSource
 import com.sza.fastmediasorter.domain.ticket.TicketDraft
+import com.sza.fastmediasorter.domain.usecase.feedback.FeedbackFolderChoice
+import com.sza.fastmediasorter.domain.usecase.feedback.ObserveFeedbackFoldersUseCase
 import com.sza.fastmediasorter.domain.usecase.ticket.FileTicketUseCase
 import com.sza.fastmediasorter.domain.usecase.ticket.GetTicketProjectsUseCase
 import com.sza.fastmediasorter.domain.usecase.ticket.ObserveTicketOutboxUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -31,20 +36,30 @@ data class TicketComposerUiState(
     val projectsLoaded: Boolean = false,
     val busy: Boolean = false,
     val notice: TicketComposerNotice? = null,
-    val sentCount: Int = 0
+    val sentCount: Int = 0,
+    /** S4663: the chosen destination's resource; null is Google Drive, the default on every open. */
+    val destinationId: Long? = null
 )
 
 @HiltViewModel
 class TicketComposerViewModel @Inject constructor(
     private val fileTicket: FileTicketUseCase,
     private val getProjects: GetTicketProjectsUseCase,
-    private val observeOutbox: ObserveTicketOutboxUseCase
+    private val observeOutbox: ObserveTicketOutboxUseCase,
+    observeFolders: ObserveFeedbackFoldersUseCase
 ) : ViewModel() {
 
     private val mutableState = MutableStateFlow(TicketComposerUiState())
     val state: StateFlow<TicketComposerUiState> = mutableState.asStateFlow()
 
     val outbox: StateFlow<List<TicketOutboxEntry>> = observeOutbox()
+
+    /** S4663: the writable network folders offered next to Drive; the feedback-saved id inside stays that form's. */
+    val folders: StateFlow<FeedbackFolderChoice> = observeFolders().stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS),
+        FeedbackFolderChoice(),
+    )
 
     init {
         viewModelScope.launch {
@@ -75,7 +90,14 @@ class TicketComposerViewModel @Inject constructor(
         val project = current.projects?.getOrNull(projectIndex - 1)?.key
         mutableState.update { it.copy(busy = true) }
         viewModelScope.launch {
-            val staged = fileTicket(TicketDraft(text, project, current.attachments))
+            val draft = TicketDraft(
+                text = text,
+                project = project,
+                attachments = current.attachments,
+                inboxResourceId = current.destinationId,
+                origin = TicketOrigin.TICKET
+            )
+            val staged = fileTicket(draft)
             mutableState.update { state ->
                 staged.fold(
                     onSuccess = {
@@ -95,6 +117,10 @@ class TicketComposerViewModel @Inject constructor(
         }
     }
 
+    fun chooseDestination(resourceId: Long?) {
+        mutableState.update { it.copy(destinationId = resourceId) }
+    }
+
     fun refresh() {
         viewModelScope.launch { observeOutbox.refresh() }
     }
@@ -105,5 +131,9 @@ class TicketComposerViewModel @Inject constructor(
 
     fun consumeNotice() {
         mutableState.update { it.copy(notice = null) }
+    }
+
+    private companion object {
+        const val STOP_TIMEOUT_MS = 5_000L
     }
 }

@@ -28,6 +28,7 @@ import com.sza.fastmediasorter.databinding.DialogFolderSelectionBinding
 import com.sza.fastmediasorter.domain.model.PermissionTask
 import com.sza.fastmediasorter.domain.model.StorageVolumeInfo
 import com.sza.fastmediasorter.ui.common.dialog.DialogWindowSizer
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
 import com.sza.fastmediasorter.ui.common.permissions.permissionRationaleShort
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
@@ -195,7 +196,7 @@ internal class AddResourceScanManager(
             applyVirtualButtonStates(folderBinding, virtualButtons, viewModel.getExistingVirtualPaths())
         }
 
-        dialog.showBoundToHost(activity)
+        dialog.showBoundToHost(activity)?.let { DialogHelpEntryManager.attach(it, "dialog_folder_selection") }
         sizeFolderSelectionDialog(dialog)
     }
 
@@ -469,7 +470,7 @@ internal class AddResourceScanManager(
         btnSelectCurrent?.setOnClickListener { selectFolderByPath(currentPath, dialog) }
         btnCancel?.setOnClickListener { dialog.dismiss() }
 
-        dialog.showBoundToHost(activity)
+        dialog.showBoundToHost(activity)?.let { DialogHelpEntryManager.attach(it, "dialog_folder_browser") }
     }
 
     /**

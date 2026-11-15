@@ -124,6 +124,7 @@ class MyDevicesActivity : BaseActivity<ActivityMyDevicesBinding>() {
         popup.menu.findItem(R.id.action_exchange_make_outgoing).isVisible = !entry.outgoing
         popup.menu.findItem(R.id.action_exchange_connect_watch).isVisible = mediaCapabilities.supportsWearCompanion
         popup.menu.findItem(R.id.action_exchange_auto_attach).isChecked = entry.autoAttach
+        popup.menu.findItem(R.id.action_exchange_standard_settings).isVisible = entry.offersSettings
         popup.menu.findItem(R.id.action_exchange_sync_notes).apply {
             isVisible = mediaCapabilities.supportsDocuments && entry.mayProduce
             isChecked = entry.syncNotes

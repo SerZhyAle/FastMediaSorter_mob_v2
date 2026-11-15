@@ -80,10 +80,11 @@ class ExchangeMessageTableConformanceTest {
     }
 
     @Test
-    fun `the admin-disabled row of the web binding is held word for word in the three authored languages`() {
-        val lines = contractFile(WEB_BINDING).readLines(Charsets.UTF_8)
+    fun `the admin-disabled row of item EU is held word for word in the three authored languages`() {
+        // Item EU replaced the row of WEB-BINDING.md with its own words, for a page and a native client alike.
+        val lines = headingBlock(contractFile(RECOMMENDATIONS_1112).readLines(Charsets.UTF_8), "EU")
         val row = tableRows(lines).singleOrNull { it.first == "`${ExchangeMessage.ADMIN_DISABLED.code}`" }
-        checkNotNull(row) { "the admin-disabled row is not in $WEB_BINDING" }
+        checkNotNull(row) { "the admin-disabled row is not in item EU of $RECOMMENDATIONS_1112" }
         val key = keyOf(ExchangeMessage.ADMIN_DISABLED)
         val actual = locales.map { resources(it)[key] }
         assertEquals(locales.indices.map(row::text), actual)
@@ -112,6 +113,7 @@ class ExchangeMessageTableConformanceTest {
     private fun keyOf(message: ExchangeMessage): String {
         val variant = when (message) {
             ExchangeMessage.BAD_CREDENTIALS_ONE_TIME_CODE -> "_one_time_code"
+            ExchangeMessage.BAD_CREDENTIALS_ADMIN -> "_admin"
             ExchangeMessage.LIMIT_REACHED_CLIPBOARD -> "_clipboard"
             ExchangeMessage.UNREACHABLE_SERVER -> "_server"
             ExchangeMessage.UNREACHABLE_DEVICE -> "_device"
@@ -126,6 +128,7 @@ class ExchangeMessageTableConformanceTest {
         val suffix = when (val qualifier = match.groupValues[2].trim()) {
             "" -> ""
             "with a one-time code" -> "_one_time_code"
+            "on an administration sign-in" -> "_admin"
             "on a clipboard send" -> "_clipboard"
             "to a server" -> "_server"
             "to a device" -> "_device"
@@ -139,7 +142,7 @@ class ExchangeMessageTableConformanceTest {
     // A row the table already holds wins over the amendment's prose, so a later consolidation that adds the table row
     // changes nothing here.
     private fun messageRows(): List<Row> {
-        val tabled = tableRows().filter { CODE_CELL.matches(it.first) && it.second in KINDS }
+        val tabled = (tableRows() + placedRows()).filter { CODE_CELL.matches(it.first) && it.second in KINDS }
         val tabledKeys = tabled.map { messageKey(it.first) }.toSet()
         return tabled + amendmentRows().filter { messageKey(it.first) !in tabledKeys }
     }
@@ -159,6 +162,20 @@ class ExchangeMessageTableConformanceTest {
                 Row(head + quoted.map { it.groupValues[2] })
             }
         }
+    }
+
+    // Item FE: since 1.12 the rows of item CZ sit in several places; these are the ones beside the README items.
+    private fun placedRows(): List<Row> = PLACED_ROWS.flatMap { (file, letters) ->
+        val lines = contractFile(file).readLines(Charsets.UTF_8)
+        letters.flatMap { tableRows(headingBlock(lines, it)) }
+    }
+
+    // An amendment file opens each item with a level-2 heading, `## EP [NEW] - ..`; the block runs to the next one.
+    private fun headingBlock(lines: List<String>, letter: String): List<String> {
+        val start = lines.indexOfFirst { it.startsWith("## $letter ") }
+        check(start >= 0) { "item $letter is not in the amendment" }
+        val next = (start + 1 until lines.size).firstOrNull { lines[it].startsWith("## ") }
+        return lines.subList(start, next ?: lines.size)
     }
 
     private fun stepRows(): List<Row> = tableRows().filter { it.first.toIntOrNull() != null }
@@ -222,7 +239,12 @@ class ExchangeMessageTableConformanceTest {
         const val REPLY_CODE_COLUMNS = 4
         const val REPLY_TEXT_EN = 1
         const val README = "device-exchange/README.md"
-        const val WEB_BINDING = "device-exchange/WEB-BINDING.md"
+        const val SETTINGS_STANDARD = "device-exchange/SETTINGS-STANDARD-2026-11-12.md"
+        const val RECOMMENDATIONS_1112 = "device-exchange/RECOMMENDATIONS-2026-11-12.md"
+        val PLACED_ROWS = listOf(
+            SETTINGS_STANDARD to listOf("EP"),
+            RECOMMENDATIONS_1112 to listOf("EU", "EV", "FB"),
+        )
         const val REMOTE_ADMIN = "device-exchange/REMOTE-ADMIN.md"
         const val REPLY_CODES_HEADING = "## administration-reply-codes"
         val NOT_IN_README = setOf(ExchangeMessage.Kind.PRODUCT, ExchangeMessage.Kind.BINDING)

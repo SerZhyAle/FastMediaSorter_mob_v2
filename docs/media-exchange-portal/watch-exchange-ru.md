@@ -1,11 +1,12 @@
 ---
+source_sha256: 4c8836702f323851057272abd50e16230c521c2e9c646db72442ff4ae38b99a0
 layout: doc
 title: "Часы в вашем аккаунте: через телефон и без него"
 description: "Как часы Wear OS входят в ваш аккаунт обмена с телефона, а потом открывают ваши папки, воспроизводят и вещают звук, принимают cast и отправляют файлы по собственным Wi-Fi или LTE - и для чего ещё нужны Bluetooth и телефон."
 category: "Обмен медиа"
 permalink: /docs/media-exchange-portal/watch-exchange-ru.html
 ---
-<sub class="doc-stamp">26.10.23 14:53</sub>
+<sub class="doc-stamp">26.11.15 15:28</sub>
 
 # Часы в вашем аккаунте
 

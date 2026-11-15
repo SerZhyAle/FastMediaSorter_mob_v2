@@ -25,4 +25,8 @@
     <string name="ticket_inbox_queued_notice">Ticket queued for sending</string>
     <string name="ticket_inbox_stage_failed">The ticket could not be saved: %1$s</string>
     <string name="ticket_inbox_discard">Remove from the list</string>
+    <string name="ticket_inbox_destination_label">Deliver to</string>
+    <string name="ticket_inbox_destination_drive">Google Drive</string>
+    <string name="ticket_inbox_state_folder_waiting">Waiting for the folder on the computer: %1$s</string>
+    <string name="ticket_inbox_state_folder_sent">In the folder - waiting for the computer</string>
 </resources>

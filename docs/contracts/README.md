@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.14 16:01</sub>
+<sub class="doc-stamp">26.11.15 18:53</sub>
 
 # Contract pointers
 
@@ -49,6 +49,7 @@ catalog registry to one set of ids and versions.
 | [`MEDIA-CLASSIFICATION.md`](MEDIA-CLASSIFICATION.md) | `MEDIA-CLASSIFICATION` | owner; producer and consumer (file and stream media category classifier) |
 | [`CAPTURE-OUTPUT.md`](CAPTURE-OUTPUT.md) | `CAPTURE-OUTPUT` | owner; producer (screenshots, recordings, photos, frames, text and translation files) |
 | [`PACKAGE-VERSIONING.md`](PACKAGE-VERSIONING.md) | `PACKAGE-VERSIONING` | owner and reference implementation (the version stamps of the phone app, the watch app and the watch face) |
+| [`GOOGLE-PLAY.md`](GOOGLE-PLAY.md) | `GOOGLE-PLAY` | owner and publisher (the phone and watch console app and the watch face console app) |
 | [`LAN-DISCOVERY.md`](LAN-DISCOVERY.md) | `LAN-DISCOVERY` | consumer (companion SFTP mDNS/DNS-SD discovery) |
 | [`UPDATE-MANIFEST.md`](UPDATE-MANIFEST.md) | `UPDATE-MANIFEST` | declared consumer; no feed client ships yet |
 | [`DIAGNOSTIC-REPORT.md`](DIAGNOSTIC-REPORT.md) | `DIAGNOSTIC-REPORT` | producer and consumer (sanitized diagnostic logs and export bundle) |

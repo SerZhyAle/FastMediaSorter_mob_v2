@@ -1,11 +1,11 @@
 ---
 layout: doc
-title: "What the exchange server is for and everything you can do with it"
+title: "Media Exchange Server: what it is for and what it can do"
 description: "What an exchange server is for, in plain sentences, and the full list of what you can do with it: open folders from any network, give a folder to a guest, put a watch on your account, broadcast and cast, send the clipboard and schedule copies."
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/exchange-server-purpose.html
 ---
-<sub class="doc-stamp">26.10.22 01:26</sub>
+<sub class="doc-stamp">26.11.15 14:24</sub>
 
 # What the exchange server is for
 

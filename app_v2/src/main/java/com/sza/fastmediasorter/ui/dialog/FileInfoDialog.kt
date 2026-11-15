@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.databinding.DialogFileInfoBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.Quantity
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.ui.dialog.helpers.FileInfoAudioDisplayHelper
 import com.sza.fastmediasorter.ui.dialog.helpers.FileInfoFileSectionHelper
 import com.sza.fastmediasorter.ui.dialog.helpers.FileInfoLaunchManager
@@ -99,6 +100,10 @@ class FileInfoDialog(
         }
     }
     
+    override fun onStart() {
+        super.onStart()
+        DialogHelpEntryManager.attach(this, "dialog_file_info")
+    }
     override fun onStop() {
         super.onStop()
         scope.cancel()

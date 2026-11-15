@@ -86,7 +86,7 @@ class WearExchangeWireTest {
             WearExchangeTrustDecision.decide(pinned = "SHA256:a", platformTrusted = false, presented = "SHA256:a"),
         )
         assertEquals(
-            WearExchangeTrustDecision.Verdict.CHANGED,
+            WearExchangeTrustDecision.Verdict.PLATFORM,
             WearExchangeTrustDecision.decide(pinned = "SHA256:a", platformTrusted = true, presented = "SHA256:b"),
         )
     }
@@ -99,7 +99,7 @@ class WearExchangeWireTest {
         )
         assertEquals(
             WearExchangeTrustDecision.Verdict.CHANGED,
-            WearExchangeTrustDecision.decide("SHA256:a", true, "SHA256:b", pinnedKey = "K", presentedKey = "L"),
+            WearExchangeTrustDecision.decide("SHA256:a", false, "SHA256:b", pinnedKey = "K", presentedKey = "L"),
         )
         assertEquals(
             WearExchangeTrustDecision.Verdict.CHANGED,

@@ -24,8 +24,12 @@ class HelpTargetResolver(
     private val availablePages: Set<String>,
 ) {
 
-    /** The help of [surfaceId] in [language], or null when the surface has no page of its own or inherited. */
+    /**
+     * The help of [surfaceId] in [language], or null when the surface has no page of its own or inherited,
+     * or its row carries `ask: "off"`.
+     */
     fun resolve(surfaceId: String, language: String, elementAnchor: String? = null): HelpTarget? {
+        if (map.surface(surfaceId)?.askOff == true) return null
         val lang = language.lowercase()
         val ref = helpRefFor(surfaceId)
         val page = ref?.let { bundledPage(it.first, lang) }

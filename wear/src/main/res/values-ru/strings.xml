@@ -854,7 +854,6 @@
     <string name="wear_clipboard_no_phone">Телефон недоступен</string>
     <string name="wear_clipboard_no_answer">Телефон не ответил</string>
     <string name="wear_clipboard_refused">Телефон отказал: %1$s</string>
-    <string name="wear_tourist_press_button_to_unlock">Нажмите кнопку часов, чтобы разблокировать</string>
     <string name="wear_tourist_metric_body_temperature">Температура тела</string>
     <string name="wear_tourist_unit_celsius">°C</string>
     <string name="wear_onboarding_welcome_title">Добро пожаловать</string>
@@ -1163,4 +1162,5 @@
     <string name="wear_scheduled_message_channel_name">Сообщения по расписанию</string>
     <string name="wear_audio_fetching">Загрузка трека..</string>
     <string name="wear_stream_ended">Эта трансляция больше не в эфире. Повторите, когда она снова начнётся.</string>
+    <string name="wear_tourist_lock_exit_hint">Заблокировано. Для разблокировки 3 раза быстро смахните назад</string>
 </resources>

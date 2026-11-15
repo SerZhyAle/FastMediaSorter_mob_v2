@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.databinding.DialogFilterBinding
 import com.sza.fastmediasorter.domain.model.FileFilter
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.Quantity
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.util.showBoundToHost
 import dagger.hilt.android.EntryPointAccessors
 import java.util.Calendar
@@ -122,7 +123,7 @@ internal class BrowseFilterDialogManager(
             dialog.dismiss()
         }
 
-        dialog.showBoundToHost(activity)
+        dialog.showBoundToHost(activity)?.let { DialogHelpEntryManager.attach(it, "dialog_filter") }
         com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper.applyInitialFocus(dialog)
     }
 

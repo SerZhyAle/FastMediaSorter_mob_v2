@@ -1,0 +1,8 @@
+{
+  "type": "settings_standard_payload",
+  "schemaVersion": 2,
+  "appId": "fms_win",
+  "formatVersion": 1,
+  "settingsPayload": "{\"version\":1,\"groups\":{\"appearance\":{\"theme\":\"dark\",\"density\":\"compact\"},\"general\":{\"confirmDelete\":true}}}",
+  "updatedAt": "2026-11-10T02:00:00Z"
+}

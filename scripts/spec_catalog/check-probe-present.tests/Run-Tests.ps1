@@ -26,9 +26,10 @@
 # Usage:  pwsh -NoProfile -File scripts/spec_catalog/check-probe-present.tests/Run-Tests.ps1
 #
 # Exit codes:
-#   0   all cases pass (a skip is not a failure).
+#   0   all cases pass and none was skipped.
 #   1   at least one case failed.
-#   2   the fixtures could not be prepared.
+#   2   could not verify: the fixtures could not be prepared, or a case was skipped by name and no
+#       executed case failed (CHECK-VERDICT 0.14 item A.5 - the line ends COULD NOT VERIFY).
 #
 # S2934 added the shape half: a probe must be one statement alone on its physical line, because it
 # is deleted in bulk when the ticket leaves the status. Those cases are skipped by name while the
@@ -330,8 +331,16 @@ Assert-That "no sampled parked ticket on the live tree carries a probe that shar
 Remove-Item -LiteralPath $fixtureRoot -Recurse -Force -ErrorAction SilentlyContinue
 
 Write-Host ""
-$summary = "check-probe-present.tests: {0} passed, {1} failed" -f $script:pass, $script:fail
-if ($script:skipped -gt 0) { $summary += ", {0} case(s) skipped" -f $script:skipped }
-Write-Host $summary
-if ($script:fail -gt 0) { exit 1 }
+$probeRun = $script:pass + $script:fail
+if ($script:fail -gt 0) {
+    Write-Host ("check-probe-present.tests: FAIL (run={0} skipped={1}, failed={2})" -f $probeRun, $script:skipped, $script:fail)
+    exit 1
+}
+# CHECK-VERDICT 0.14 item A.5: a suite that skipped a group and found no failure in the rest could not
+# verify the whole contract, so it is not a pass.
+if ($script:skipped -gt 0) {
+    Write-Host ("check-probe-present.tests: COULD NOT VERIFY (run={0} skipped={1}, only the cases not skipped above)" -f $probeRun, $script:skipped)
+    exit 2
+}
+Write-Host ("check-probe-present.tests: PASS (run={0} skipped=0)" -f $probeRun)
 exit 0

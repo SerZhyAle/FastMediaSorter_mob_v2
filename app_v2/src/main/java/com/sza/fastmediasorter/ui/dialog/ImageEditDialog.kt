@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.domain.usecase.ApplyImageFilterUseCase
 import com.sza.fastmediasorter.domain.usecase.FlipImageUseCase
 import com.sza.fastmediasorter.domain.usecase.NetworkImageEditUseCase
 import com.sza.fastmediasorter.domain.usecase.RotateImageUseCase
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -293,6 +294,10 @@ class ImageEditDialog(
         progressDialog = null
     }
     
+    override fun onStart() {
+        super.onStart()
+        DialogHelpEntryManager.attach(this, "dialog_image_edit")
+    }
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         dialogJob.cancel() // Cancel all running coroutines

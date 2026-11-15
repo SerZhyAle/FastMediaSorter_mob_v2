@@ -18,7 +18,7 @@
   "locales": {
     "en": {
       "title": "Water flashlight",
-      "purpose": "The water flashlight lights the camera flash and the whole screen at full brightness together, then locks the screen against touch. It is made for wet hands - rain, a shower - where a touch screen presses itself. You leave it by holding a volume button or pressing it three times, never by touching the glass.",
+      "purpose": "The water flashlight lights the camera flash and the screen at full brightness and enables touch lock. Touch lock prevents accidental taps; it does not protect the device from water. To switch off the light, hold a volume button for 1.5 seconds or press volume buttons three times within 2 seconds. A system gesture can also close the screen.",
       "steps": [
         "Open Water flashlight from the programs menu, the programs panel or a home-screen widget. If it is not offered, switch it on first in Settings, on the Management tab, in the group Additional programs and scenarios. The camera flash and the screen (1) light up together at once.",
         "From this moment the screen is locked. Only the time (2) and the reminder (3) are shown, and touching the glass does nothing: wet fingers or drops cannot close, dim or press anything. The hint Locked. Use the buttons (3) means the volume buttons (4).",
@@ -61,7 +61,7 @@
     },
     "ru": {
       "title": "Водный фонарь",
-      "purpose": "Водный фонарь зажигает вспышку камеры и весь экран на полную яркость, а затем запирает экран от касаний. Он сделан для мокрых рук - в дождь или под душем, - когда сенсор нажимает сам себя. Выходят из него удержанием кнопки громкости или тремя нажатиями, а не касанием стекла.",
+      "purpose": "Водный фонарь включает вспышку камеры и экран на полной яркости и блокирует касания. Блокировка касаний предотвращает случайные нажатия, но не защищает устройство от воды. Чтобы выключить свет, удерживайте кнопку громкости 1,5 секунды или нажмите кнопки громкости три раза за 2 секунды. Системный жест тоже может закрыть экран.",
       "steps": [
         "Откройте «Водный фонарь» из меню программ, с панели программ или виджетом на домашнем экране. Если его там нет, сначала включите его в «Настройках», на вкладке «Управление», в группе «Дополнительные программы и сценарии». Вспышка камеры и экран (1) загорятся одновременно.",
         "С этого момента экран заперт. На нём видны только время (2) и напоминание (3), а касания стекла ничего не делают: мокрые пальцы и капли не могут ни закрыть, ни притушить, ни нажать что-либо. Подсказка «Заблокировано. Используйте кнопки» (3) означает кнопки громкости (4).",
@@ -104,7 +104,7 @@
     },
     "uk": {
       "title": "Водний ліхтар",
-      "purpose": "Водний ліхтар запалює спалах камери та весь екран на повну яскравість, а потім замикає екран від дотиків. Він зроблений для мокрих рук - під дощем чи в душі, - коли сенсор натискає сам себе. Виходять із нього утриманням кнопки гучності або трьома натисканнями, а не дотиком до скла.",
+      "purpose": "Водний ліхтар вмикає спалах камери та екран на повну яскравість і блокує дотики. Блокування дотиків запобігає випадковим натисканням, але не захищає пристрій від води. Щоб вимкнути світло, утримуйте кнопку гучності 1,5 секунди або натисніть кнопки гучності тричі за 2 секунди. Системний жест теж може закрити екран.",
       "steps": [
         "Відкрийте «Водний ліхтар» з меню програм, із панелі програм або віджетом на домашньому екрані. Якщо його там немає, спершу ввімкніть його в «Налаштуваннях», на вкладці «Управління», у групі «Додаткові програми та сценарії». Спалах камери й екран (1) засвітяться одночасно.",
         "Відтоді екран замкнений. На ньому видно лише час (2) і нагадування (3), а дотики до скла нічого не роблять: мокрі пальці й краплі не можуть ні закрити, ні притьмарити, ні натиснути щось. Підказка «Заблоковано. Використовуйте кнопки» (3) означає кнопки гучності (4).",

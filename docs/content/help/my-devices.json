@@ -1,5 +1,6 @@
 {
   "help": "my-devices",
+  "mark": "head",
   "surface": "MyDevicesActivity",
   "elements": [
     { "id": "toolbar", "viewId": "toolbar", "labelKey": "exchange_devices_title" },

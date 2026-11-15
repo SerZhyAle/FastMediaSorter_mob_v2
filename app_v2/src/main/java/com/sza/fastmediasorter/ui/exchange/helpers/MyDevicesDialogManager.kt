@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionString
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringResult
 import com.sza.fastmediasorter.domain.model.ExchangeMessage
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.ui.companionimport.qr.QrCodeEncoder
 import com.sza.fastmediasorter.ui.exchange.ExchangeDevicesState
 import com.sza.fastmediasorter.ui.exchange.ExchangeSignInRequest
@@ -80,6 +81,7 @@ class MyDevicesDialogManager(
                 onDismiss?.invoke()
             }
             .showBoundTo(activity) ?: return
+        DialogHelpEntryManager.attach(dialog, "dialog_exchange_sign_in")
         // Set after show(): a builder listener would dismiss the dialog before the server has answered.
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener { submitSignIn(binding) }
         signInDialog = dialog
@@ -214,6 +216,7 @@ class MyDevicesDialogManager(
                 viewModel.closeDevices()
             }
             .showBoundTo(activity)
+        devicesDialog?.let { DialogHelpEntryManager.attach(it, "dialog_exchange_server_devices") }
         devicesBinding = binding
         devicesPanel = ExchangeFailurePanel(binding.exchangeFailurePanel, activity).also {
             it.showProgress(activity.getString(R.string.exchange_devices_list_loading))
@@ -272,6 +275,7 @@ class MyDevicesDialogManager(
             .setPositiveButton(R.string.save, null)
             .setNegativeButton(R.string.cancel, null)
             .showBoundTo(activity) ?: return
+        DialogHelpEntryManager.attach(dialog, "dialog_exchange_edit_address")
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
             val endpoint = viewModel.parseAddress(binding.etExchangeEditAddress.text?.toString().orEmpty())
             if (endpoint == null) {
@@ -331,6 +335,7 @@ class MyDevicesDialogManager(
             }
             .setNegativeButton(R.string.close, null)
             .showBoundTo(activity)
+            ?.let { DialogHelpEntryManager.attach(it, "dialog_exchange_share_server") }
         activity.lifecycleScope.launch {
             val sizePx = activity.resources.getDimensionPixelSize(R.dimen.sftp_server_qr_size)
             val bitmap = withContext(Dispatchers.Default) { QrCodeEncoder.encode(text, sizePx) }

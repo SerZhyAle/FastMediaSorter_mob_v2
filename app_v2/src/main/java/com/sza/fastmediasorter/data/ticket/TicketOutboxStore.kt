@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.data.ticket
 import android.content.Context
 import android.net.Uri
 import com.sza.fastmediasorter.domain.model.ticket.TicketAttachmentRole
+import com.sza.fastmediasorter.domain.model.ticket.TicketOrigin
 import com.sza.fastmediasorter.domain.model.ticket.TicketOutboxEntry
 import com.sza.fastmediasorter.domain.model.ticket.TicketOutboxState
 import com.sza.fastmediasorter.domain.model.ticket.TicketPacketCodec
@@ -76,7 +77,8 @@ class TicketOutboxStore @Inject constructor(
                 title = titleOf(text, files),
                 project = draft.project,
                 state = TicketOutboxState.QUEUED,
-                inboxResourceId = draft.inboxResourceId
+                inboxResourceId = draft.inboxResourceId,
+                origin = draft.origin
             )
             writeState(folder, entry, files)
             File(folder, TicketPacketManifest.MANIFEST_FILE_NAME)
@@ -147,7 +149,9 @@ class TicketOutboxStore @Inject constructor(
                 .getOrDefault(TicketOutboxState.QUEUED),
             tickets = (0 until tickets.length()).map(tickets::getString),
             failure = state.optString(KEY_FAILURE).ifEmpty { null },
-            inboxResourceId = if (state.has(KEY_INBOX_RESOURCE)) state.getLong(KEY_INBOX_RESOURCE) else null
+            inboxResourceId = if (state.has(KEY_INBOX_RESOURCE)) state.getLong(KEY_INBOX_RESOURCE) else null,
+            origin = runCatching { TicketOrigin.valueOf(state.optString(KEY_ORIGIN)) }
+                .getOrDefault(TicketOrigin.FEEDBACK)
         )
     }
 
@@ -162,6 +166,8 @@ class TicketOutboxStore @Inject constructor(
             .put(KEY_FAILURE, entry.failure ?: "")
         // An S4554 packet carries no key at all, which reads back as the Drive inbox.
         entry.inboxResourceId?.let { json.put(KEY_INBOX_RESOURCE, it) }
+        // Only the composer's packets carry the key, so a feedback packet's state stays byte-identical.
+        if (entry.origin != TicketOrigin.FEEDBACK) json.put(KEY_ORIGIN, entry.origin.name)
         val fileArray = files?.let { list -> JSONArray(list.map(::fileJson)) }
             ?: previous?.optJSONArray(KEY_FILES)
             ?: JSONArray()
@@ -234,6 +240,7 @@ class TicketOutboxStore @Inject constructor(
         private const val KEY_FAILURE = "failure"
         private const val KEY_FILES = "files"
         private const val KEY_INBOX_RESOURCE = "inboxResourceId"
+        private const val KEY_ORIGIN = "origin"
         private const val DEFAULT_MIME = "application/octet-stream"
         private const val TEXT_MIME = "text/markdown"
         private const val COPY_BUFFER_BYTES = 65_536

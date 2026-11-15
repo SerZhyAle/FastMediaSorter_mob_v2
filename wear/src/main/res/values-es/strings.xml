@@ -809,7 +809,6 @@
     <string name="wear_clipboard_no_phone">Ningún teléfono al alcance</string>
     <string name="wear_clipboard_no_answer">El teléfono no respondió</string>
     <string name="wear_clipboard_refused">El teléfono rechazó: %1$s</string>
-    <string name="wear_tourist_press_button_to_unlock">Pulsa un botón del reloj para desbloquear</string>
     <string name="wear_tourist_metric_body_temperature">Temperatura corporal</string>
     <string name="wear_onboarding_welcome_title">Bienvenido</string>
     <string name="wear_onboarding_welcome_body">Explora, reproduce y ordena tus archivos multimedia en tu muñeca.</string>

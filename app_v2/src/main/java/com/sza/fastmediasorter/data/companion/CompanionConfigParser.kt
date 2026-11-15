@@ -83,9 +83,9 @@ class CompanionConfigParser @Inject constructor() {
             }
         }
         if (dto.username.isNullOrBlank()) invalid("username missing")
-        // S0984: empty password + empty fingerprint are valid Android-side (passwordless share
-        // where the recipient types the password at import, and no-pin TOFU on first connect).
-        // The frozen cross-repo contract still always sends both, so no schemaVersion bump.
+        // S0984: an empty password is valid here (passwordless share, the recipient types it at import).
+        // An empty fingerprint also parses - this stays a structural check - but the import refuses it
+        // (FMSCFG 2.6 C2, ImportCompanionConfigUseCase), so no unpinned resource is ever created.
         if (dto.roots.orEmpty().isEmpty()) invalid("roots is empty")
         dto.roots.orEmpty().forEach { root ->
             if (!isValidVirtualPath(root.virtualPath)) {

@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.playback.resilience.StreamFailureReason
 import com.sza.fastmediasorter.core.streams.FaviconAtlasSlicer
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
@@ -39,6 +40,7 @@ import com.sza.fastmediasorter.domain.player.BroadcastPlaybackSession
 import com.sza.fastmediasorter.domain.streams.StreamFrameIngestor
 import com.sza.fastmediasorter.domain.usecase.exchange.ObserveLiveBroadcastSourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.PinnedStreamMove
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.ui.common.help.HelpOpenManager
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
@@ -1421,7 +1423,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * S1509: removal is offered only when the device had a network - otherwise the user's own dead
      * link, not the channel, is what failed, and the dialog says so instead of proposing a deletion.
      */
-    private fun showStreamUnavailable(played: StreamSourceEntity) {
+    private fun showStreamUnavailable(played: StreamSourceEntity, reason: StreamFailureReason? = null) {
         // S4160: removal and retry act on the stored row; a retry of a broadcast resolves from the top again.
         val source = played.copy(url = broadcastEndpoints.storedUrl(played.id, played.url))
         // S1509: one connectivity sample drives both the recorded outcome and the dialog, so the row
@@ -1434,6 +1436,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             activity = this,
             channelTitle = source.title,
             offline = !hasNetwork,
+            reason = reason,
             onRetry = {
                 if (broadcastEndpoints.needsResolution(source.broadcastEndpoints)) {
                     playBroadcast(source)
@@ -1503,10 +1506,11 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             cancelHealthProbe()
             scanBroadcastQr()
         }
-        DialogKeyboardDelegate.applyTo(dialog) {
+        DialogKeyboardDelegate.applyTo(dialog, onHelp = null, helpSurfaceId = "dialog_add_stream") {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()
         }
         dialog.showBoundToHost(this@StreamsActivity)
+            ?.let { DialogHelpEntryManager.installButton(it, "dialog_add_stream") }
         dialogBinding.etUrl.requestFocus()
     }
 

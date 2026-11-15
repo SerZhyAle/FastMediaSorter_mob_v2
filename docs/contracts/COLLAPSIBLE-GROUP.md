@@ -5,7 +5,7 @@
 | | |
 | --- | --- |
 | **Id** | `COLLAPSIBLE-GROUP` |
-| **Version** | 1.2, active. Owner: shared |
+| **Version** | 1.3, active. Owner: shared |
 | **Home** | `collapsible-group/README.md` in the shared contracts catalog |
 | **Role here** | consumer - phone, launcher and watch |
 

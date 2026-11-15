@@ -38,7 +38,7 @@ class AdministerExchangeServerUseCase @Inject constructor(
         ExchangeAdminSignIn.SignedIn(repository.signIn(entry, password))
     } catch (e: DeviceExchangeRefusedException) {
         Timber.w("Exchange admin sign-in refused (%s)", e.reason)
-        ExchangeAdminSignIn.Refused(diagnose(ExchangeMessage.ofWire(e.reason), entry.host))
+        ExchangeAdminSignIn.Refused(diagnose(ExchangeMessage.ofWire(e.reason, adminSignIn = true), entry.host))
     } catch (e: DeviceExchangeWireException) {
         Timber.i(e, "Exchange admin sign-in not answered")
         ExchangeAdminSignIn.Refused(diagnose(ExchangeMessage.UNANSWERED, entry.host))

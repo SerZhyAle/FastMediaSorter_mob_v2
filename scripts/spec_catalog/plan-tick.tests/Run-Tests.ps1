@@ -14,11 +14,14 @@
 
     The compact cases skip by name while the resolved harness predates the canon edit, because only
     the owner can deploy the plugin and a red suite would block every session that cannot fix it.
+    A skipped group is not a pass (CHECK-VERDICT 0.14 item A.5): the suite exits 2 with the line
+    COULD NOT VERIFY (run=N skipped=M, only <groups>).
 
 .EXIT CODES
-    0 - every case passed.
+    0 - every case passed and none was skipped.
     1 - at least one case failed.
-    2 - the harness itself could not run.
+    2 - could not verify: the harness itself could not run, or a group was skipped and none of the
+        executed cases failed.
 #>
 [CmdletBinding()]
 param()
@@ -394,10 +397,15 @@ try {
 Write-Host ''
 if ($failures.Count -gt 0) {
     foreach ($failure in $failures) { Write-Host "FAIL $failure" -ForegroundColor Red }
-    Write-Error "plan-tick.tests: $($failures.Count) assertion(s) failed across $cases case(s)." -ErrorAction Continue
+    Write-Error "plan-tick.tests: FAIL (run=$cases skipped=$skipped, failed=$($failures.Count))" -ErrorAction Continue
     exit 1
 }
 
-$skipNote = if ($skipped -gt 0) { ", $skipped case(s) skipped" } else { '' }
-Write-Host "plan-tick.tests: PASS - $cases cases passed$skipNote (A batch, B counters, C reversal, D unknown step, E divergence, F checkbox, G trace, H phase header, I compact tick, J compact isolation, K compact checkbox, L compact index refusal, M skipped, N blocked, O in progress, P suffix, Q operator label)." -ForegroundColor Green
+# CHECK-VERDICT 0.14 item A.5: the compact groups (I-L) skip by name while the resolved harness has
+# no compact phase resolution; a suite that skipped a group is not a pass.
+if ($skipped -gt 0) {
+    Write-Host "plan-tick.tests: COULD NOT VERIFY (run=$cases skipped=$skipped, only the groups A-H and M-Q; the compact groups I-L need a harness with compact phase resolution)" -ForegroundColor Yellow
+    exit 2
+}
+Write-Host "plan-tick.tests: PASS (run=$cases skipped=0)" -ForegroundColor Green
 exit 0

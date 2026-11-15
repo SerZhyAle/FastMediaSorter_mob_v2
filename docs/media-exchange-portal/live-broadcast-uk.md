@@ -1,11 +1,12 @@
 ---
+source_sha256: fe43604c0ff4791e76ac7e8c886993086b0d9600167df25ed8d7494f6ecae8aa
 layout: doc
 title: "Пряма трансляція: будь-який пристрій в ефірі, решта слухає"
 description: "Хто може вийти в ефір і хто може відтворити пряму трансляцію, як вона йде в одній мережі Wi-Fi і через сервер обміну, Chromecast і cast між вашими пристроями."
 category: "Обмін медіа"
 permalink: /docs/media-exchange-portal/live-broadcast-uk.html
 ---
-<sub class="doc-stamp">26.10.22 01:29</sub>
+<sub class="doc-stamp">26.11.15 15:28</sub>
 
 # Пряма трансляція: будь-який пристрій в ефірі, решта слухає
 

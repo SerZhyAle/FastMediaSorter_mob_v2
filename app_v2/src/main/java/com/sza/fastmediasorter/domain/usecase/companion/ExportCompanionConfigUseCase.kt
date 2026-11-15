@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.companion.CompanionAccessPathDto
 import com.sza.fastmediasorter.data.companion.CompanionConfigDto
+import com.sza.fastmediasorter.data.companion.CompanionConfigException
 import com.sza.fastmediasorter.data.companion.CompanionConfigParser
 import com.sza.fastmediasorter.data.companion.CompanionConfigSerializer
 import com.sza.fastmediasorter.data.companion.CompanionResourceTokens
@@ -82,6 +83,14 @@ class ExportCompanionConfigUseCase @Inject constructor(
     // S1039: single source of the credential fetch + S0421-contract DTO build shared by the file and QR
     // paths (removes the S1029 duplicate-domain smell); throws on failure so each caller wraps to Result.
     private suspend fun buildConfigDto(resource: MediaResource, includePassword: Boolean): CompanionConfigDto {
+        // S4649, Q1=A: a resource never connected carries no pin, and the S4643 importer refuses a
+        // blank-fingerprint config whole - refuse at the share action instead of shipping a broken file.
+        if (resource.hostKeyFingerprint.isNullOrBlank()) {
+            throw CompanionConfigException(
+                CompanionConfigException.Reason.UNPINNED_HOST_KEY,
+                "SFTP resource '${resource.name}' has no pinned host key; connect once before sharing"
+            )
+        }
         val pathInfo = requireNotNull(SftpPathUtils.parseSftpPath(resource.path)) {
             "Resource path is not a valid SFTP path: ${resource.path}"
         }

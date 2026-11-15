@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.databinding.DialogBroadcastGuestsBinding
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.domain.model.ExchangeBroadcastGrant
 import com.sza.fastmediasorter.domain.usecase.broadcast.ManageBroadcastGuestsUseCase
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.Job
@@ -35,6 +36,7 @@ class BroadcastGuestsDialogManager(private val guests: ManageBroadcastGuestsUseC
             .setView(view.root)
             .setOnDismissListener { watch?.cancel() }
             .showBoundTo(activity) ?: return
+        DialogHelpEntryManager.attach(dialog, "dialog_broadcast_guests")
         watch = activity.collectOnLifecycle(guests.grants) { list -> renderGrants(activity, view, list) }
         view.etBroadcastGuestLogin.doAfterTextChanged { view.tilBroadcastGuestLogin.error = null }
         view.btnBroadcastGuestCancel.setOnClickListener { dialog.dismiss() }

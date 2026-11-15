@@ -3709,11 +3709,11 @@
     <string name="water_flashlight_title">Водний ліхтар</string>
     <string name="water_flashlight_locked_hint">Заблоковано. Використовуйте кнопки</string>
     <string name="water_flashlight_settings_toggle_title">Водний ліхтар</string>
-    <string name="water_flashlight_settings_toggle_subtitle">Спалах і екран на повну яскравість, екран заблоковано</string>
+    <string name="water_flashlight_settings_toggle_subtitle">Спалах і екран на повну яскравість, блокування дотиків</string>
     <string name="water_flashlight_help_title">Водний ліхтар</string>
-    <string name="water_flashlight_help_message">Запалює спалах камери та екран одночасно і замикає екран: видно лише час і нагадування, а закриває програму тільки апаратна кнопка. Зроблено для мокрих рук, коли сенсор натискає сам себе. Вихід системним жестом теж гасить світло. Програма не замінює режим захисту від води, вбудований у годинник чи телефон - до нього застосунки доступу не мають.</string>
+    <string name="water_flashlight_help_message">Водний ліхтар вмикає спалах камери та екран і блокує дотики. Блокування дотиків запобігає випадковим натисканням, але не захищає пристрій від води. Щоб вимкнути світло, утримуйте кнопку гучності 1,5 секунди або натисніть кнопки гучності тричі за 2 секунди. Системний жест теж може закрити екран.</string>
     <string name="widget_water_flashlight_label">Водний ліхтар</string>
-    <string name="widget_water_flashlight_description">Запалює спалах та екран і замикає екран - закриває лише кнопка</string>
+    <string name="widget_water_flashlight_description">Спалах і екран із блокуванням дотиків; для виходу утримуйте кнопку гучності або натисніть її тричі</string>
     <string name="tooltip_stopwatch_title">Секундомір</string>
     <string name="tooltip_stopwatch_message">Додає секундомір до головного меню. Рахує один замір або кілька поспіль, до чотирьох учасників одразу, і залишає результат усередині Fast Media Sorter &amp; Organizer.</string>
     <string name="stopwatch_volume_label">Гучність музики</string>
@@ -4617,7 +4617,7 @@
     <string name="notes_delete">Видалити</string>
     <string name="notes_delete_title">Видалити нотатку?</string>
     <string name="notes_delete_confirm">Нотатку «%1$s» буде видалено з пристрою.</string>
-    <string name="notes_row_more">Інші дії з нотаткою</string>
+    <string name="notes_row_more">Ще: дії з нотаткою</string>
     <string name="notes_error_folder">Папка нотаток недоступна.</string>
     <string name="notes_error_delete">Не вдалося видалити нотатку.</string>
     <string name="setting_enable_notes_desc">Усі нотатки одним списком із пошуком; нова нотатка - одним натисканням</string>
@@ -4625,9 +4625,9 @@
     <string name="setting_enable_feedback_desc">Текст, зображення й голосова нотатка в одній формі - через «Надіслати до..» і на ваш комп\'ютер</string>
     <string name="feedback_text_hint">Що сталося? Що б ви змінили?</string>
     <string name="feedback_paste_image">Вставити зображення з буфера обміну</string>
-    <string name="feedback_pick_image">Вибрати фото або знімок екрана</string>
-    <string name="feedback_take_photo">Зробити знімок</string>
-    <string name="feedback_record_voice">Записати голосову нотатку</string>
+    <string name="feedback_pick_image">Вибрати зображення або знімок екрана</string>
+    <string name="feedback_take_photo">Зробити знімок на камеру</string>
+    <string name="feedback_record_voice">Записати голосову нотатку через мікрофон</string>
     <string name="feedback_stop_voice">Зупинити запис</string>
     <string name="feedback_recording">Триває запис..</string>
     <string name="feedback_attachments_label">Прикріплені зображення й голосові нотатки</string>
@@ -4657,8 +4657,12 @@
     <string name="streams_category_hint">Категорія (необовʼязково)</string>
     <string name="s4609_broadcast_stopped_text">Відтворення зупинено. Відкрийте «Трансляції», щоб дізнатися причину.</string>
     <string name="streams_filter_media_recent">Нещодавні</string>
-    <string name="streams_media_filter_recent">Показувати лише нещодавно відтворені трансляції</string>
+    <string name="streams_media_filter_recent">Показувати лише нещодавні трансляції</string>
     <string name="streams_pause">Пауза</string>
     <string name="streams_resume">Продовжити</string>
     <string name="streams_paused">На паузі</string>
+    <string name="streams_unavailable_refused_message">«%1$s» - сервер відмовив у підключенні. Видалити зі списку?</string>
+    <string name="streams_unavailable_certificate_message">«%1$s» використовує сертифікат, якому цей пристрій не довіряє. Видалити зі списку?</string>
+    <string name="companion_import_no_access_path_error">У цьому файлі немає адреси для прямого підключення. Попросіть відправника поділитися ще раз із локальною або переадресованою адресою.</string>
+    <string name="companion_share_unpinned_error">Підключіться до цього сервера хоча б раз перед тим, як ділитися доступом - застосунку потрібен його перевірений ключ.</string>
 </resources>

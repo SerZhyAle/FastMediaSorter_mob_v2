@@ -280,7 +280,7 @@
     <string name="exchange_portal_link_phone_sharing">О телефоне как сервере</string>
     <string name="exchange_portal_link_my_devices">О добавлении сервера</string>
     <string name="exchange_portal_link_watch">О подключении часов</string>
-    <string name="exchange_failure_admin_disabled">Веб-администрирование на этом сервере выключено. Включите его в настройках сервера на самом компьютере сервера.</string>
+    <string name="exchange_failure_admin_disabled">Удалённое администрирование на этом сервере выключено. Включите его в настройках сервера на самом компьютере сервера.</string>
     <string name="exchange_admin_reply_bad_request">Сервер не принял этот запрос. Проверьте введённое и повторите.</string>
     <string name="exchange_admin_reply_no_account">Такой учётной записи нет.</string>
     <string name="exchange_admin_reply_exists">Это уже есть на сервере.</string>
@@ -299,7 +299,6 @@
     <string name="exchange_admin_sign_in">Войти</string>
     <string name="exchange_admin_sign_out">Выйти</string>
     <string name="exchange_admin_signing_in">Вход..</string>
-    <string name="exchange_admin_lapsed">Сеанс завершён. Введите пароль администрирования ещё раз.</string>
     <string name="exchange_admin_section_status">Состояние</string>
     <string name="exchange_admin_section_accounts">Учётные записи</string>
     <string name="exchange_admin_section_invitations">Приглашения</string>
@@ -378,4 +377,11 @@
     <string name="broadcast_drive_line_sign_in">Через Google Drive: не анонсирована. Снова войдите в Google Drive в настройках</string>
     <string name="broadcast_drive_line_unreachable">Через Google Drive: не анонсирована, Google Drive не отвечает. Повторяем попытку</string>
     <string name="broadcast_drive_line_guest">Через Google Drive: не анонсирована, гостевой аккаунт ничего не анонсирует</string>
+    <string name="exchange_failure_not_found">На сервере пока не сохранены стандартные настройки для этой программы. Сначала сохраните их.</string>
+    <string name="exchange_failure_invalid_payload">Сервер не принял эти настройки: они повреждены или слишком велики.</string>
+    <string name="exchange_failure_app_id_mismatch">Этот сервер не хранит настройки этой программы для этого аккаунта.</string>
+    <string name="exchange_failure_version_incompatible">Сервер не поддерживает эту версию формата настроек.</string>
+    <string name="exchange_failure_bad_credentials_admin">Пароль администратора неверен. Введите его ещё раз - он задан на компьютере сервера.</string>
+    <string name="exchange_failure_admin_session_ended">Сеанс администрирования завершён. Войдите снова, чтобы продолжить.</string>
+    <string name="exchange_failure_e2e_missing_peer">Устройство, на котором это содержимое, пока не умеет передавать его защищённым, поэтому через сервер от него ничего не приходит.</string>
 </resources>

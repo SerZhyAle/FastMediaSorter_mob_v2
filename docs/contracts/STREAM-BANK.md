@@ -5,7 +5,7 @@
 | | |
 | --- | --- |
 | **Id** | `STREAM-BANK` |
-| **Version** | 2.8, active. Owner: this product |
+| **Version** | 2.10, active. Owner: this product |
 | **Home** | `stream-catalog/README.md` in the shared contracts catalog |
 | **Role here** | producer (the publish script) and consumer (the phone and watch importers) |
 
@@ -38,6 +38,10 @@
   transport and, started with none, shows the no-network toast and probes nothing; a probe or a grid frame capture
   that fails after the device lost its transport is not written, and the sweep ends there, so a stored OK is never
   replaced by the device's own outage. A failure while a transport is up is still written UNKNOWN. S4617 carries it.
+- Inline audio failure (2.10, `06` section 2.5): both inline backends classify a playback error with the
+  section 5.3 rule and the HTTP status, surface a hard failure (a 4xx other than 429, an untrusted TLS certificate)
+  at once as the section 5.4 dialog, and retry a transient one with the section 5.2 ladder. Not held yet: a dated
+  exception in the catalog registry, carrier S4641.
 - A change to a column, an asset name or an atlas ceiling is agreed in the catalog first.
 
 ## Where it lives here

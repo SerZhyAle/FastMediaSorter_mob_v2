@@ -37,19 +37,42 @@
     then at user scope. A clone
     without the catalog is the ordinary case, so that is "could not verify", not a failure.
 
+    -Check is the read-only mode (ICON-SET section 6 rung 1, from 0.39): it runs every step up to the
+    write, then compares what a run would write with what is on disk and writes, creates and prunes
+    nothing. Each generated file that differs is named with its reason - stale (content differs from
+    what the vocabulary and this product's resources produce, which also covers a hand edit), missing
+    (a run would create it) or extraneous (a run would prune it). The interval between a hand
+    amendment of vocabulary.jsonl and the next run is what it closes.
+
     Exit codes:
-      0 - every artifact was written and the vocabulary is consistent.
+      0 - every artifact was written and the vocabulary is consistent; with -Check, every generated
+          file on disk equals what a run would write and none would be pruned.
       1 - the vocabulary is inconsistent (duplicate id, dangling reference, unknown enum value) or
           a drawable it names is missing or cannot be converted; or the carrier
           iconography/vocabulary.version differs from the ICON-SET version in iconography/README.md
-          (both values are named); nothing is pruned.
+          (both values are named); nothing is pruned. With -Check, also: at least one generated file is
+          stale, missing or extraneous (each named); nothing was written.
       2 - could not verify: no catalog root, no iconography/vocabulary.jsonl inside it, no ICON-SET
           contract header with a version in iconography/README.md, or no repo venv to measure the
           style report with (scripts/docs/lib/requirements.txt).
+
+.PARAMETER CatalogRoot
+    Root of the shared contracts catalog; falls back to FMS_CONTRACTS_ROOT.
+
+.PARAMETER RepoRoot
+    Root of this product, whose colour resources, drawables and style exceptions feed the export.
+
+.PARAMETER Check
+    Compare instead of write: the exit code says whether every generated file is already what a run
+    would write.
+
+.EXAMPLE
+    pwsh -NoProfile -File scripts/docs/export-icon-contract.ps1 -Check
 #>
 param(
     [string] $CatalogRoot = $env:FMS_CONTRACTS_ROOT,
-    [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path,
+    [switch] $Check
 )
 
 $ErrorActionPreference = 'Stop'
@@ -487,9 +510,38 @@ $h.Add('(function(){var bs=document.querySelectorAll(".bar button");function app
 $h.Add('</script></body></html>')
 $files['::gallery.html'] = ($h -join "`n") + "`n"
 
+# ------------------------------------------------------------------ -Check: compare with the disk, write nothing
+$looksDir = Join-Path $domain 'looks'
+if ($Check) {
+    function Get-ContentHash([byte[]] $bytes) { [Convert]::ToBase64String([System.Security.Cryptography.SHA256]::HashData($bytes)) }
+    $differs = New-Object System.Collections.Generic.List[string]
+    foreach ($k in $files.Keys) {
+        $isDomainFile = $k.StartsWith('::')
+        $target = if ($isDomainFile) { Join-Path $domain $k.Substring(2) } else { Join-Path $glyphDir $k }
+        $shown = if ($isDomainFile) { $k.Substring(2) } else { 'glyphs/' + $k }
+        if (-not (Test-Path -LiteralPath $target -PathType Leaf)) { $differs.Add("$shown - missing, a run would create it"); continue }
+        $v = $files[$k]
+        $want = if ($v -is [byte[]]) { $v } else { $utf8.GetBytes($v) }
+        if ((Get-ContentHash $want) -ne (Get-ContentHash ([System.IO.File]::ReadAllBytes($target)))) {
+            $differs.Add("$shown - stale or hand-edited, a run would rewrite it")
+        }
+    }
+    foreach ($dir in @(@($glyphDir, 'glyphs/', ''), @($looksDir, 'looks/', '::looks/'))) {
+        if (-not (Test-Path -LiteralPath $dir[0] -PathType Container)) { continue }
+        foreach ($f in Get-ChildItem -LiteralPath $dir[0] -File | Sort-Object Name) {
+            if (-not $files.Contains($dir[2] + $f.Name)) { $differs.Add($dir[1] + $f.Name + ' - extraneous, a run would prune it') }
+        }
+    }
+    if ($differs.Count) {
+        Stop-Verdict 1 'FAIL' (@("check: $($differs.Count) generated file(s) differ from what a run would write; nothing was written - run without -Check to regenerate") + @($differs))
+    }
+    Write-Host ("  check: $($files.Count) generated file(s) equal what a run would write; nothing written")
+    Write-Host 'export-icon-contract: PASS (check)'
+    exit 0
+}
+
 # ------------------------------------------------------------------ write, then prune what the vocabulary no longer names
 $null = New-Item -ItemType Directory -Force -Path $glyphDir
-$looksDir = Join-Path $domain 'looks'
 $null = New-Item -ItemType Directory -Force -Path $looksDir
 $written = 0
 foreach ($k in $files.Keys) {

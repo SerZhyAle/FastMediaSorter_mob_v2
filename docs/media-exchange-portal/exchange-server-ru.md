@@ -1,11 +1,12 @@
 ---
+source_sha256: 1fba47fa791082a5affaefdad6bb4aa04ec13e0a81a6d7f03c088d2daf4ac7a9
 layout: doc
-title: "Сервер обмена: ваши устройства из любой сети"
+title: "Media Exchange Server: ваши устройства из любой сети"
 description: "Один аккаунт для всех устройств и доступ из любой сети без настройки роутера - кто держит сервер обмена, как он работает, что видит и что хранит, и как ладят между собой версии программ."
 category: "Обмен медиа"
 permalink: /docs/media-exchange-portal/exchange-server-ru.html
 ---
-<sub class="doc-stamp">26.10.22 01:26</sub>
+<sub class="doc-stamp">26.11.15 15:28</sub>
 
 # Сервер обмена: ваши устройства из любой сети
 

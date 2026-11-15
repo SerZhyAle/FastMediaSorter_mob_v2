@@ -854,7 +854,6 @@
     <string name="wear_clipboard_no_phone">No phone within reach</string>
     <string name="wear_clipboard_no_answer">The phone did not answer</string>
     <string name="wear_clipboard_refused">The phone declined: %1$s</string>
-    <string name="wear_tourist_press_button_to_unlock">Press a watch button to unlock</string>
     <string name="wear_tourist_metric_body_temperature">Body temperature</string>
     <string name="wear_tourist_unit_celsius">°C</string>
     <string name="wear_onboarding_welcome_title">Welcome</string>
@@ -1161,4 +1160,5 @@
     <string name="wear_scheduled_message_channel_name">Scheduled messages</string>
     <string name="wear_audio_fetching">Loading the track..</string>
     <string name="wear_stream_ended">This stream is no longer on air. Retry when it starts again.</string>
+    <string name="wear_tourist_lock_exit_hint">Locked. Swipe back 3 times fast to unlock</string>
 </resources>

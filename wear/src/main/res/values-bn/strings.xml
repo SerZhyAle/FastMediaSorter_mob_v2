@@ -809,7 +809,6 @@
     <string name="wear_clipboard_no_phone">নাগালের মধ্যে কোনো ফোন নেই</string>
     <string name="wear_clipboard_no_answer">ফোন সাড়া দেয়নি</string>
     <string name="wear_clipboard_refused">ফোন প্রত্যাখ্যান করেছে: %1$s</string>
-    <string name="wear_tourist_press_button_to_unlock">আনলক করতে ঘড়ির একটি বোতাম টিপুন</string>
     <string name="wear_tourist_metric_body_temperature">শরীরের তাপমাত্রা</string>
     <string name="wear_onboarding_welcome_title">স্বাগতম</string>
     <string name="wear_onboarding_welcome_body">কবজিতেই আপনার মিডিয়া ব্রাউজ করুন, চালান ও সাজান।</string>

@@ -43,13 +43,15 @@ import com.sza.fastmediasorter.core.logging.LoggingHelper
 import com.sza.fastmediasorter.core.notification.NotificationIcons
 import com.sza.fastmediasorter.core.playback.NowPlayingMetadata
 import com.sza.fastmediasorter.core.playback.RadioStreamBufferConfig
+import com.sza.fastmediasorter.core.playback.StreamFailureSignal
+import com.sza.fastmediasorter.core.playback.StreamPlaybackFailureReader
 import com.sza.fastmediasorter.core.playback.WearCompanionPackages
-import com.sza.fastmediasorter.core.playback.resilience.StreamAudioFailure
 import com.sza.fastmediasorter.core.playback.resilience.StreamEndedOutcome
 import com.sza.fastmediasorter.core.playback.resilience.StreamEndedRule
-import com.sza.fastmediasorter.core.playback.resilience.StreamFailureClass
+import com.sza.fastmediasorter.core.playback.resilience.StreamFailureReason
 import com.sza.fastmediasorter.core.playback.resilience.StreamServiceRetryDecision
 import com.sza.fastmediasorter.core.playback.resilience.StreamServiceRetryPolicy
+import com.sza.fastmediasorter.core.playback.resilience.toReason
 import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
 import com.sza.fastmediasorter.domain.player.BroadcastPlaybackPairs
@@ -760,22 +762,17 @@ class AudioPlaybackService : MediaSessionService() {
     // session and keep the stop behavior. See S0413 research/01.
     private fun PlaybackException.isSkippable(): Boolean = errorCode in 3000..4999
 
-    /**
-     * This site has never read a response code out of the `cause` chain, so no HTTP status is ever
-     * observed here. The policy answers the bad-HTTP-status code from the code alone, which is what
-     * the flat IO range did before the move (S1513).
-     */
-    private fun PlaybackException.toStreamFailure(): StreamAudioFailure =
-        StreamAudioFailure(StreamFailureClass.classify(errorCode, httpStatus = null), errorCode)
-
     private fun handlePlaybackError(error: PlaybackException, failedUrl: String?) {
         val p = player
+        // STREAM-BANK 2.10 section 2.5: this process owns the player, so the status and the certificate
+        // verdict are read here; the controller's copy of the error has lost both.
+        val failure = StreamPlaybackFailureReader.read(error)
         // Asked only when a player is alive: the policy spends an attempt when it answers
         // with a retry, and there would be nothing left to reconnect.
         val retryDecision = if (p == null) {
             StreamServiceRetryDecision.Ignore
         } else {
-            streamRetryPolicy.onFailure(error.toStreamFailure(), SystemClock.elapsedRealtime())
+            streamRetryPolicy.onFailure(failure, SystemClock.elapsedRealtime())
         }
         if (retryDecision is StreamServiceRetryDecision.RetryAfter) {
             scheduleStreamRetry(retryDecision.delayMs)
@@ -803,10 +800,22 @@ class AudioPlaybackService : MediaSessionService() {
             ).show()
         }
         Timber.e(error, "AudioPlaybackService: fatal playback error - stopping service")
+        forwardStreamFailure(failure.toReason(), failedUrl)
         endFailedPlayback(notify = broadcastFailover.isLeftToService(failedUrl))
     }
 
     private fun currentStreamUrl(): String? = player?.currentMediaItem?.localConfiguration?.uri?.toString()
+
+    /**
+     * STREAM-BANK 2.10 section 2.5: the screen surfaces a failure the service ended on at once, in the
+     * service's words, instead of waiting for its tolerance timer. Sent before the queue is cleared so the
+     * controller can still match the url to its station.
+     */
+    private fun forwardStreamFailure(reason: StreamFailureReason, failedUrl: String?) {
+        val url = failedUrl ?: return
+        Timber.d("S4641: service forwards stream failure reason=$reason")
+        mediaSession?.broadcastCustomCommand(StreamFailureSignal.command, StreamFailureSignal.args(reason, url))
+    }
 
     /**
      * S4609: every fatal end of the session. `stopSelf` does not destroy a service while a controller is still
@@ -935,6 +944,7 @@ class AudioPlaybackService : MediaSessionService() {
             }
             streamRetryPolicy.onRetryDue(SystemClock.elapsedRealtime()) is StreamServiceRetryDecision.GiveUp -> {
                 Timber.w("AudioPlaybackService: stream unreachable - stopping service instead of retrying")
+                forwardStreamFailure(StreamFailureReason.UNREACHABLE, currentStreamUrl())
                 endFailedPlayback(notify = broadcastFailover.isLeftToService(currentStreamUrl()))
             }
             broadcastFailover.isLeftToService(currentStreamUrl()) -> {

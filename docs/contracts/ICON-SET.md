@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.11.14 13:36</sub>
+<sub class="doc-stamp">26.11.15 15:52</sub>
 
 # Pointer - `ICON-SET`
 
 | | |
 | --- | --- |
 | **Id** | `ICON-SET` |
-| **Version** | 0.40, draft. Owner: this product |
+| **Version** | 0.41, draft. Owner: this product |
 | **Home** | `iconography/README.md` section 2 in the shared contracts catalog |
 | **Role here** | owner and reference implementation - phone, launcher, watch, documentation and the website |
 
@@ -41,7 +41,9 @@
 
 ## Where it lives here
 
-- Export (rung 1): `scripts/docs/export-icon-contract.ps1`, byte-identical on a rerun.
+- Export (rung 1): `scripts/docs/export-icon-contract.ps1`, byte-identical on a rerun; its `-Check` mode (0.39)
+  compares every generated file with what a run would write, names each that is stale, missing or extraneous, and
+  writes nothing.
 - Product declaration against the vocabulary: `docs/icons/icon-contract-map.json`.
 - Rungs 2, 3 and 5: `scripts/quality/assert-icon-contract.ps1` - unmapped glyphs, labels against
   glyphs, name substitutions, docs pictures - with its baseline `scripts/quality/icon-contract-baseline.txt`.

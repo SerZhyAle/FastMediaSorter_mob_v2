@@ -809,7 +809,6 @@
     <string name="wear_clipboard_no_phone">رسائی میں کوئی فون نہیں</string>
     <string name="wear_clipboard_no_answer">فون نے جواب نہیں دیا</string>
     <string name="wear_clipboard_refused">فون نے انکار کر دیا: %1$s</string>
-    <string name="wear_tourist_press_button_to_unlock">غیر مقفل کرنے کے لیے گھڑی کا کوئی بٹن دبائیں</string>
     <string name="wear_tourist_metric_body_temperature">جسم کا درجہ حرارت</string>
     <string name="wear_onboarding_welcome_title">خوش آمدید</string>
     <string name="wear_onboarding_welcome_body">اپنی میڈیا کو سیدھے اپنی کلائی پر براؤز کریں، چلائیں اور ترتیب دیں۔</string>

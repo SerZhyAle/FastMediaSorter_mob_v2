@@ -1,11 +1,11 @@
 ---
 layout: doc
-title: "Installing and checking your exchange server"
+title: "Media Exchange Server: installing and checking it"
 description: "Which Windows package carries the exchange server, what Windows says about the installer and what to click, the first run in Share Manager, the address devices dial, and how to check that the server works from another network."
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/exchange-server-install.html
 ---
-<sub class="doc-stamp">26.10.22 01:25</sub>
+<sub class="doc-stamp">26.11.15 14:25</sub>
 
 # Installing and checking your exchange server
 

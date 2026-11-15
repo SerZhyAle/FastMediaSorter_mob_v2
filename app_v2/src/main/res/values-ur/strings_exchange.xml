@@ -298,7 +298,6 @@
     <string name="exchange_admin_sign_in">سائن ان کریں</string>
     <string name="exchange_admin_sign_out">سائن آؤٹ کریں</string>
     <string name="exchange_admin_signing_in">سائن ان ہو رہا ہے..</string>
-    <string name="exchange_admin_lapsed">سیشن ختم ہو گیا ہے۔ ایڈمنسٹریشن پاس ورڈ دوبارہ درج کریں۔</string>
     <string name="exchange_admin_section_status">حالت</string>
     <string name="exchange_admin_section_accounts">اکاؤنٹس</string>
     <string name="exchange_admin_section_invitations">دعوت نامے</string>

@@ -8,6 +8,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogTouristCounterStartBinding
 import com.sza.fastmediasorter.domain.model.tourist.TouristCounterState
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.util.showBoundToHost
 
 /** S4184: the three confirmations of the counter screen - starting number, reset and clearing history. */
@@ -59,6 +60,6 @@ class TouristCounterDialogsManager(
         dialog.setOnShowListener {
             dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener { submit() }
         }
-        dialog.showBoundToHost(context)
+        dialog.showBoundToHost(context)?.let { DialogHelpEntryManager.attach(it, "dialog_tourist_counter_start") }
     }
 }

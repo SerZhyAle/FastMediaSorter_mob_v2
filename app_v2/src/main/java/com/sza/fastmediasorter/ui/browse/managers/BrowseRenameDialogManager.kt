@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.UndoOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.ui.common.showSoftInputImplicitly
 import com.sza.fastmediasorter.ui.dialog.RenameDialog
 import com.sza.fastmediasorter.util.showBoundToHost
@@ -191,7 +192,7 @@ internal class BrowseRenameDialogManager(
             }
         }
 
-        dialog.showBoundToHost(activity)
+        dialog.showBoundToHost(activity)?.let { DialogHelpEntryManager.attach(it, "dialog_rename_multiple") }
         com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper.applyInitialFocus(dialog)
         dialogBinding.rvFileNames.postDelayed({
             val firstViewHolder = dialogBinding.rvFileNames.findViewHolderForAdapterPosition(0)

@@ -28,11 +28,15 @@ sealed interface FeedbackNotice {
     data class StageFailed(val reason: String) : FeedbackNotice
 }
 
-/** S4573: the composed feedback handed to the Send to.. menu once Send succeeded. */
+/**
+ * S4573: the composed feedback handed to the Send to.. menu once Send succeeded. [clearForm] is true only
+ * when a packet was staged in the outbox; a Send to.. only hand-off leaves the form as the sole copy.
+ */
 data class FeedbackHandoff(
     val text: String,
     val attachments: List<TicketAttachmentSource>,
     val settings: AppSettings,
+    val clearForm: Boolean,
 )
 
 /** S4573: what the feedback form shows. */
@@ -88,12 +92,14 @@ class FeedbackComposerViewModel @Inject constructor(
         viewModelScope.launch {
             sendFeedback(text.trim(), attachments).fold(
                 onSuccess = { result ->
+                    val staged = result.packetId != null
+                    Timber.d("S4651: feedback send done staged=$staged keepsForm=${!staged}")
                     mutableState.update {
                         it.copy(
                             busy = false,
-                            attachments = emptyList(),
-                            notice = if (result.packetId != null) FeedbackNotice.Queued else null,
-                            handoff = FeedbackHandoff(text.trim(), attachments, result.settings),
+                            attachments = if (staged) emptyList() else it.attachments,
+                            notice = if (staged) FeedbackNotice.Queued else null,
+                            handoff = FeedbackHandoff(text.trim(), attachments, result.settings, clearForm = staged),
                         )
                     }
                 },

@@ -84,7 +84,9 @@ internal class StreamVideoRetryPolicy(
             // needs; the code adds nothing, being the bad-HTTP-status one by construction.
             StreamFailureClass.RETRYABLE_HTTP_STATUS -> decideTransient()
             StreamFailureClass.TRANSIENT_NETWORK -> decideTransient(failure.errorCode)
-            StreamFailureClass.NOT_RETRYABLE -> StreamVideoRetryDecision.Surface
+            StreamFailureClass.NOT_RETRYABLE,
+            StreamFailureClass.UNTRUSTED_CERTIFICATE,
+            -> StreamVideoRetryDecision.Surface
         }
     }
 

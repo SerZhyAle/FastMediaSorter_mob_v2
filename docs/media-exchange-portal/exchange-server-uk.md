@@ -1,11 +1,12 @@
 ---
+source_sha256: 1fba47fa791082a5affaefdad6bb4aa04ec13e0a81a6d7f03c088d2daf4ac7a9
 layout: doc
-title: "Сервер обміну: ваші пристрої з будь-якої мережі"
+title: "Media Exchange Server: ваші пристрої з будь-якої мережі"
 description: "Один акаунт для всіх пристроїв і доступ з будь-якої мережі без налаштування роутера - хто тримає сервер обміну, як він працює, що бачить і що зберігає, і як ладнають між собою версії програм."
 category: "Обмін медіа"
 permalink: /docs/media-exchange-portal/exchange-server-uk.html
 ---
-<sub class="doc-stamp">26.10.22 01:26</sub>
+<sub class="doc-stamp">26.11.15 15:28</sub>
 
 # Сервер обміну: ваші пристрої з будь-якої мережі
 

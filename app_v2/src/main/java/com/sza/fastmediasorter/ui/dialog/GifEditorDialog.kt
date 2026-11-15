@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.databinding.DialogGifEditorBinding
 import com.sza.fastmediasorter.domain.usecase.ChangeGifSpeedUseCase
 import com.sza.fastmediasorter.domain.usecase.ExtractGifFramesUseCase
 import com.sza.fastmediasorter.domain.usecase.SaveGifFirstFrameUseCase
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.ui.dialog.helpers.GifEditorHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -337,6 +338,10 @@ class GifEditorDialog(
         progressDialog = null
     }
     
+    override fun onStart() {
+        super.onStart()
+        DialogHelpEntryManager.attach(this, "dialog_gif_editor")
+    }
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         extractFramesJob?.cancel()

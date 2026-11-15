@@ -1,11 +1,12 @@
 ---
+source_sha256: 17b406bf607197bed31307ea5f7234b33f5583c9e6c859841b6311db0ee9422b
 layout: doc
 title: "Сервери Windows: роздавання тек ПК на ваші пристрої"
 description: "Що робить для обміну Fast Media Sorter & Sharing for Windows: три необов'язкові частини - переглядач, роздавання тек через SFTP і сервер обміну, два способи почати, що входить до кожного пакета, прив'язка телефона за QR-кодом або файлом, один код із кількома адресами та серверна редакція, що працює постійно."
 category: "Обмін медіа"
 permalink: /docs/media-exchange-portal/windows-servers-uk.html
 ---
-<sub class="doc-stamp">26.10.22 01:27</sub>
+<sub class="doc-stamp">26.11.15 15:28</sub>
 
 # Сервери Windows: роздавання тек ПК на ваші пристрої
 

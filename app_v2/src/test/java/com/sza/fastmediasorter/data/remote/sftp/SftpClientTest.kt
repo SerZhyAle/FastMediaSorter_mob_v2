@@ -121,5 +121,6 @@ class SftpClientTest {
         proofRegistry,
         dagger.Lazy { mockk(relaxed = true) },
         dagger.Lazy { mockk(relaxed = true) },
+        dagger.Lazy { mockk(relaxed = true) },
     )
 }

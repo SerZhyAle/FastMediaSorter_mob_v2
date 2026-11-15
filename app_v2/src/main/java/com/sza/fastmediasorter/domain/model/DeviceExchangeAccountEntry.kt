@@ -78,6 +78,10 @@ data class DeviceExchangeAccountEntry(
         get() = accountKind != ACCOUNT_KIND_GUEST &&
             features?.let { FEATURE_NOTES in it && FEATURE_SEALED in it } == true
 
+    /** Whether the server keeps a settings standard (1.12 item EO): the actions are shown only when it says so. */
+    val offersSettings: Boolean
+        get() = features?.contains(FEATURE_SETTINGS) == true
+
     // DIAGNOSTIC-REPORT section 10: host, login and pin are private; the generated form would print all three.
     override fun toString(): String =
         "DeviceExchangeAccountEntry(host=$REDACTED, port=$port, login=$REDACTED, deviceId=$deviceId, " +
@@ -90,6 +94,7 @@ data class DeviceExchangeAccountEntry(
         const val FEATURE_CLIPBOARD = "clipboard"
         const val FEATURE_SEALED = "sealed"
         const val FEATURE_NOTES = "notes"
+        const val FEATURE_SETTINGS = "settings"
         const val ACCOUNT_KIND_MEMBER = "member"
         const val ACCOUNT_KIND_GUEST = "guest"
 

@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.core.di.UnitSystemEntryPoint
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.databinding.DialogStreamInfoBinding
 import com.sza.fastmediasorter.domain.model.Quantity
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.ui.dialog.helpers.StreamFormatProbeManager
 import com.sza.fastmediasorter.ui.dialog.helpers.StreamInfoGroup
 import com.sza.fastmediasorter.ui.dialog.helpers.StreamInfoProperty
@@ -86,6 +87,7 @@ class StreamInfoDialog(
 
     override fun onStart() {
         super.onStart()
+        DialogHelpEntryManager.attach(this, "dialog_stream_info")
         startMeasurement()
     }
 

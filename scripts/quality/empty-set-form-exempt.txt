@@ -13,6 +13,7 @@ assert-help-map | fixed-inputs | Fixed inputs; set only decides if divergence is
 assert-launcher-reset-coverage | fixed-inputs | Fixed inputs; set only decides if divergence is chargeable
 assert-oss-notices | fixed-inputs | Fixed inputs; set only decides if divergence is chargeable
 assert-rule-digest-sync | fixed-inputs | Fixed inputs; set only decides if divergence is chargeable
+assert-set-baseline-rise | fixed-inputs | Fixed inputs; set only decides if divergence is chargeable
 assert-wear-canonical-key-parity | fixed-inputs | Fixed inputs; set only decides if divergence is chargeable
 assert-wear-settings-parity | fixed-inputs | Fixed inputs; set only decides if divergence is chargeable
 assert-wear-wire-nullability | fixed-inputs | Fixed inputs; set only decides if divergence is chargeable

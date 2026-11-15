@@ -1,11 +1,12 @@
 ---
+source_sha256: 17b406bf607197bed31307ea5f7234b33f5583c9e6c859841b6311db0ee9422b
 layout: doc
 title: "Серверы Windows: раздача папок ПК на ваши устройства"
 description: "Что делает для обмена Fast Media Sorter & Sharing for Windows: три необязательные части - просмотрщик, раздача папок по SFTP и сервер обмена, два способа начать, что входит в каждый пакет, привязка телефона по QR-коду или файлу, один код с несколькими адресами и постоянно работающая серверная редакция."
 category: "Обмен медиа"
 permalink: /docs/media-exchange-portal/windows-servers-ru.html
 ---
-<sub class="doc-stamp">26.10.22 01:27</sub>
+<sub class="doc-stamp">26.11.15 15:28</sub>
 
 # Серверы Windows: раздача папок ПК на ваши устройства
 

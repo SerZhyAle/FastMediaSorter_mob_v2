@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogExchangeDirectoryBinding
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
 import com.sza.fastmediasorter.ui.exchange.ExchangeDirectoryState
 import com.sza.fastmediasorter.ui.exchange.ExchangeDirectoryViewModel
@@ -70,6 +71,7 @@ class ExchangeDirectoryDialogManager(
                 viewModel.close()
             }
             .showBoundTo(activity)
+        dialog?.let { DialogHelpEntryManager.attach(it, "dialog_exchange_directory") }
         // Set after show(): a builder listener would dismiss the dialog before the attach has run.
         dialog?.getButton(DialogInterface.BUTTON_POSITIVE)?.setOnClickListener { viewModel.attachSelected() }
         dialog?.getButton(DialogInterface.BUTTON_NEUTRAL)?.setOnClickListener { viewModel.attachAll() }

@@ -32,6 +32,19 @@ object BroadcastEndpointCodec {
             null
         }
         // Gson fills a missing non-null member with null despite the Kotlin type; such an entry is unusable.
-        return decoded?.filterNotNull()?.filter { it.url != null && it.transport != null }?.takeIf { it.isNotEmpty() }
+        return decoded?.filterNotNull()?.filter { !it.url.isNullOrBlank() }?.mapNotNull(::withTransport)
+            ?.takeIf { it.isNotEmpty() }
     }
+
+    // LIVE-BROADCAST item W: an absent `transport` is read from the url's scheme, `rtsp` or `http` only. Any other
+    // scheme, or a `seal`, may be a relay or a tunnel, which is never played as clear bytes, so the entry is skipped.
+    @Suppress("SENSELESS_COMPARISON")
+    private fun withTransport(endpoint: BroadcastEndpointDto): BroadcastEndpointDto? {
+        if (endpoint.transport != null) return endpoint
+        val scheme = endpoint.url.substringBefore("://", missingDelimiterValue = "").lowercase()
+        val transport = SCHEME_TRANSPORTS[scheme]?.takeIf { endpoint.seal == null }
+        return transport?.let { endpoint.copy(transport = it) }
+    }
+
+    private val SCHEME_TRANSPORTS = mapOf("rtsp" to "RTSP", "http" to "HTTP")
 }

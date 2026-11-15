@@ -1,11 +1,12 @@
 ---
+source_sha256: 2226f3d20ec416176d4691f9f878aa6d37bc67109c5ddea57a80093a184ed350
 layout: doc
 title: "Облака: общий ящик для ваших устройств"
 description: "Google Диск, Dropbox и OneDrive как место, которое открывает каждое ваше устройство, вошедшее в аккаунт, без своего сервера и без настройки роутера."
 category: "Обмен медиа"
 permalink: /docs/media-exchange-portal/clouds-ru.html
 ---
-<sub class="doc-stamp">26.10.23 14:53</sub>
+<sub class="doc-stamp">26.11.15 15:28</sub>
 
 # Облака: общий ящик для ваших устройств
 

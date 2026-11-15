@@ -145,3 +145,4 @@
 {"file":"scripts/quality/withcontext-closeable-wear-baseline.txt","shape":"count","owner":"scripts/quality/assert-source-gates.ps1","write":"down-only","verdict":"safe"}
 {"file":"wear/lint-baseline.ids","shape":"set","owner":"scripts/quality/assert-lint-baseline-absorption.ps1","write":"raise-with-reason","verdict":"safe"}
 {"file":"wear/lint-baseline.xml","shape":"xml","owner":"scripts/quality/assert-lint-baseline-absorption.ps1","write":"guarded","verdict":"safe"}
+{"file":"scripts/quality/internal-doc-links-baseline.txt","shape":"set","owner":"scripts/quality/assert-internal-doc-links.ps1","write":"hand-only","verdict":"safe"}

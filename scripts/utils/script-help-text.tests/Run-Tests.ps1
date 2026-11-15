@@ -317,10 +317,9 @@ exit 0
 Remove-Item -LiteralPath $sandbox -Recurse -Force -ErrorAction SilentlyContinue
 
 Write-Host ''
-Write-Host ("script-help-text tests: expected: 0 failures | actual: {0} failed, {1} passed" -f $script:fail, $script:pass)
 if ($script:fail -gt 0) {
-    Write-Error "script-help-text tests: FAIL - $($script:fail) case(s) failed." -ErrorAction Continue
+    Write-Error ("script-help-text tests: FAIL (run={0} skipped=0, failed={1})" -f ($script:pass + $script:fail), $script:fail) -ErrorAction Continue
     exit 1
 }
-Write-Host 'script-help-text tests: PASS' -ForegroundColor Green
+Write-Host ("script-help-text tests: PASS (run={0} skipped=0)" -f $script:pass) -ForegroundColor Green
 exit 0

@@ -1,5 +1,6 @@
 {
   "help": "settings-general",
+  "mark": "inline",
   "surface": "SettingsActivity",
   "elements": [
     { "id": "language", "viewId": "rowLanguage", "labelKey": "language" },

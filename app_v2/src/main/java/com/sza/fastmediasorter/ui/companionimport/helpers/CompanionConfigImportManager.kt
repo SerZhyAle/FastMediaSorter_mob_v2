@@ -41,12 +41,11 @@ class CompanionConfigImportManager @Inject constructor(
 
     /** FMSCFG rule 1: a newer schemaVersion says "update the app" here exactly as the in-app import does. */
     @StringRes
-    fun rejectionMessageRes(e: Throwable): Int =
-        if ((e as? CompanionConfigException)?.reason == CompanionConfigException.Reason.UNSUPPORTED_VERSION) {
-            R.string.companion_import_version_error
-        } else {
-            R.string.companion_import_invalid_error
-        }
+    fun rejectionMessageRes(e: Throwable): Int = when ((e as? CompanionConfigException)?.reason) {
+        CompanionConfigException.Reason.UNSUPPORTED_VERSION -> R.string.companion_import_version_error
+        CompanionConfigException.Reason.NO_USABLE_ACCESS_PATH -> R.string.companion_import_no_access_path_error
+        else -> R.string.companion_import_invalid_error
+    }
 
     /** Runs the insert-only import of an already-parsed config. */
     suspend fun import(config: CompanionConfigDto): Result<CompanionImportResult> = importUseCase.import(config)

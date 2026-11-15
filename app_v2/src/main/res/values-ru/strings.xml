@@ -3724,11 +3724,11 @@
     <string name="water_flashlight_title">Водный фонарь</string>
     <string name="water_flashlight_locked_hint">Заблокировано. Используйте кнопки</string>
     <string name="water_flashlight_settings_toggle_title">Водный фонарь</string>
-    <string name="water_flashlight_settings_toggle_subtitle">Вспышка и экран на полную яркость, экран заблокирован</string>
+    <string name="water_flashlight_settings_toggle_subtitle">Вспышка и экран на полной яркости, блокировка касаний</string>
     <string name="water_flashlight_help_title">Водный фонарь</string>
-    <string name="water_flashlight_help_message">Зажигает вспышку камеры и экран одновременно и запирает экран: видно только время и напоминание, а закрывает программу лишь аппаратная кнопка. Сделано для мокрых рук, когда сенсор нажимает сам себя. Выход системным жестом тоже гасит свет. Программа не заменяет режим защиты от воды, встроенный в часы или телефон - к нему у приложений доступа нет.</string>
+    <string name="water_flashlight_help_message">Водный фонарь включает вспышку камеры и экран и блокирует касания. Блокировка касаний предотвращает случайные нажатия, но не защищает устройство от воды. Чтобы выключить свет, удерживайте кнопку громкости 1,5 секунды или нажмите кнопки громкости три раза за 2 секунды. Системный жест тоже может закрыть экран.</string>
     <string name="widget_water_flashlight_label">Водный фонарь</string>
-    <string name="widget_water_flashlight_description">Зажигает вспышку и экран и запирает экран - закрывает только кнопка</string>
+    <string name="widget_water_flashlight_description">Вспышка и экран с блокировкой касаний; для выхода удерживайте кнопку громкости или нажмите её три раза</string>
     <string name="tooltip_stopwatch_title">Секундомер</string>
     <string name="tooltip_stopwatch_message">Добавляет секундомер в основное меню. Считает один замер или несколько подряд, до четырёх участников сразу, и оставляет результат внутри Fast Media Sorter &amp; Organizer.</string>
     <string name="stopwatch_volume_label">Громкость музыки</string>
@@ -4632,7 +4632,7 @@
     <string name="notes_delete">Удалить</string>
     <string name="notes_delete_title">Удалить заметку?</string>
     <string name="notes_delete_confirm">Заметка «%1$s» будет удалена с устройства.</string>
-    <string name="notes_row_more">Другие действия с заметкой</string>
+    <string name="notes_row_more">Ещё: действия с заметкой</string>
     <string name="notes_error_folder">Папка заметок недоступна.</string>
     <string name="notes_error_delete">Не удалось удалить заметку.</string>
     <string name="setting_enable_notes_desc">Все заметки одним списком с поиском; новая заметка - одним нажатием</string>
@@ -4640,9 +4640,9 @@
     <string name="setting_enable_feedback_desc">Текст, картинка и голосовая заметка в одной форме - через «Отправить в..» и на ваш компьютер</string>
     <string name="feedback_text_hint">Что случилось? Что бы вы изменили?</string>
     <string name="feedback_paste_image">Вставить картинку из буфера обмена</string>
-    <string name="feedback_pick_image">Выбрать фото или скриншот</string>
-    <string name="feedback_take_photo">Сделать снимок</string>
-    <string name="feedback_record_voice">Записать голосовую заметку</string>
+    <string name="feedback_pick_image">Выбрать изображение или скриншот</string>
+    <string name="feedback_take_photo">Сделать снимок на камеру</string>
+    <string name="feedback_record_voice">Записать голосовую заметку через микрофон</string>
     <string name="feedback_stop_voice">Остановить запись</string>
     <string name="feedback_recording">Идёт запись..</string>
     <string name="feedback_attachments_label">Прикреплённые картинки и голосовые заметки</string>
@@ -4672,8 +4672,12 @@
     <string name="streams_category_hint">Категория (необязательно)</string>
     <string name="s4609_broadcast_stopped_text">Воспроизведение остановлено. Откройте «Трансляции», чтобы узнать причину.</string>
     <string name="streams_filter_media_recent">Недавние</string>
-    <string name="streams_media_filter_recent">Показывать только недавно проигранные трансляции</string>
+    <string name="streams_media_filter_recent">Показывать только недавние трансляции</string>
     <string name="streams_pause">Пауза</string>
     <string name="streams_resume">Продолжить</string>
     <string name="streams_paused">На паузе</string>
+    <string name="streams_unavailable_refused_message">«%1$s» - сервер отказал в подключении. Удалить из вашего списка?</string>
+    <string name="streams_unavailable_certificate_message">«%1$s» использует сертификат, которому это устройство не доверяет. Удалить из вашего списка?</string>
+    <string name="companion_import_no_access_path_error">В этом файле нет адреса для прямого подключения. Попросите отправителя поделиться ещё раз с локальным или проброшенным адресом.</string>
+    <string name="companion_share_unpinned_error">Подключитесь к этому серверу хотя бы раз перед тем, как делиться доступом - приложению нужен его проверенный ключ.</string>
 </resources>

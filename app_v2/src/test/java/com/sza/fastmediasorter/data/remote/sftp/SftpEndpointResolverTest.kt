@@ -98,6 +98,19 @@ class SftpEndpointResolverTest {
     }
 
     @Test
+    fun `forgetting a lost winner makes the next open race again`() = runBlocking {
+        coEvery { dao.getAllResourcesSync() } returns listOf(companionResource())
+        val resolver = SftpEndpointResolver(dao, mdns, monitor, rendezvous, SftpRendezvousVerdicts())
+
+        resolver.resolve("127.0.0.1", deadPort)
+        resolver.forgetWinner("127.0.0.1", reachablePort)
+
+        assertEquals(HostPort("127.0.0.1", deadPort), resolver.resolveCached("127.0.0.1", deadPort))
+        resolver.resolve("127.0.0.1", deadPort)
+        coVerify(exactly = 2) { dao.getAllResourcesSync() }
+    }
+
+    @Test
     fun `pinned group does not let a non-SSH listener win on TCP alone`() = runBlocking {
         val pinned = companionResource().copy(hostKeyFingerprint = PIN)
         coEvery { dao.getAllResourcesSync() } returns listOf(pinned)

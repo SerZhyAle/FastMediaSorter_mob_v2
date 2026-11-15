@@ -196,9 +196,9 @@ try {
 Write-Host ''
 if ($failures.Count -gt 0) {
     foreach ($failure in $failures) { Write-Host "FAIL $failure" -ForegroundColor Red }
-    Write-Error "session-bootstrap.tests: $($failures.Count) assertion(s) failed across $passed case(s)." -ErrorAction Continue
+    Write-Error "session-bootstrap.tests: FAIL (run=$passed skipped=0, failed=$($failures.Count))" -ErrorAction Continue
     exit 1
 }
 
-Write-Host "session-bootstrap.tests: PASS - $passed cases passed (A skip-device, B no-claim, C partial failure, D block shape)." -ForegroundColor Green
+Write-Host "session-bootstrap.tests: PASS (run=$passed skipped=0)" -ForegroundColor Green
 exit 0

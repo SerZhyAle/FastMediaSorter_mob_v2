@@ -77,7 +77,7 @@ steps:
     text: |
       The app keeps a debug log - a diary of what it was doing, what went wrong and why. When something fails, do the thing once more so the log catches it, then open **Settings**, the **General** tab, the group **Backups, restore and settings export**:
 
-      - **Share Debug Logs** packs the log into one archive, `fastmediasorter_logs.zip`, and opens the Android share menu - pick your email app or messenger and send it to the author.
+      - **Share Debug Logs** packs the log into one archive, `FastMediaSorter-logs-<version>-<date>-<time>.zip` (named by the app version and the export time; `environment.txt` inside lists the app and Android versions), and opens the Android share menu - pick your email app or messenger and send it to the author.
       - **Save Debug Logs** saves the same archive to a folder you pick. If your device has no folder picker, the app offers to share the archive instead.
 
       Touching and holding the version line on the same tab shares the log as well.
@@ -123,6 +123,6 @@ next_recipes:
     description: What each permission is for, when a feature does not work.
 ---
 
-<sub class="doc-stamp">26.10.07 01:10</sub>
+<sub class="doc-stamp">26.11.15 14:24</sub>
 
 Two tools help when something in Fast Media Sorter & Organizer does not work as it should: the **System information** report about your phone and the app, and the **debug log** of what the app was doing. This page shows how to open, read, copy, save and send both, and how to read the exact build from the version number.

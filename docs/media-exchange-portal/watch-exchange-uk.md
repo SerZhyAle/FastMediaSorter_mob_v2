@@ -1,11 +1,12 @@
 ---
+source_sha256: 4c8836702f323851057272abd50e16230c521c2e9c646db72442ff4ae38b99a0
 layout: doc
 title: "Годинник в акаунті: через телефон і без нього"
 description: "Як годинник Wear OS входить у ваш акаунт обміну з телефона, а потім відкриває ваші теки, відтворює й мовить звук, приймає cast і надсилає файли власними Wi-Fi чи LTE - і для чого ще потрібні Bluetooth і телефон."
 category: "Обмін медіа"
 permalink: /docs/media-exchange-portal/watch-exchange-uk.html
 ---
-<sub class="doc-stamp">26.10.23 14:53</sub>
+<sub class="doc-stamp">26.11.15 15:28</sub>
 
 # Годинник в акаунті
 

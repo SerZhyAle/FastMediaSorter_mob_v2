@@ -9,6 +9,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogStreamsFilterBinding
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamCollectionsUseCase
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog
 import com.sza.fastmediasorter.ui.streams.StreamsViewModel
@@ -176,9 +177,10 @@ class StreamsFilterDialogManager(
         // Override the neutral click after show() so "Clear filters" resets in place without dismissing.
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener { onClear() }
+            DialogHelpEntryManager.installButton(dialog, "dialog_streams_filter")
         }
         // Escape dismisses; Enter confirms via OK (row/toggle changes already apply the filter live).
-        DialogKeyboardDelegate.applyTo(dialog) {
+        DialogKeyboardDelegate.applyTo(dialog, onHelp = null, helpSurfaceId = "dialog_streams_filter") {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()
         }
         return dialog

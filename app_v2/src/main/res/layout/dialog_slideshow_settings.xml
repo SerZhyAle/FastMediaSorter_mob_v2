@@ -13,7 +13,7 @@
             android:text="@string/slideshow_settings"
             android:textSize="@dimen/activity_player_btnInfo_textSize"
             android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@id/btnClose"
+            app:layout_constraintEnd_toStartOf="@id/btnDialogHelp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -111,6 +111,16 @@
             app:layout_constraintTop_toBottomOf="@id/tvMusicStatus"
             app:layout_constraintBottom_toBottomOf="@id/btnSelectMusic" />
 
+        <include
+            android:id="@+id/btnDialogHelp"
+            layout="@layout/view_dialog_help_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="@id/tvTitle"
+            app:layout_constraintEnd_toStartOf="@id/btnClose"
+            app:layout_constraintStart_toEndOf="@id/tvTitle"
+            app:layout_constraintTop_toTopOf="@id/tvTitle" />
+
         <!-- Header Action -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnClose"
@@ -120,7 +130,7 @@
             android:text="@string/close"
             app:layout_constraintBottom_toBottomOf="@id/tvTitle"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/tvTitle"
+            app:layout_constraintStart_toEndOf="@id/btnDialogHelp"
             app:layout_constraintTop_toTopOf="@id/tvTitle" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

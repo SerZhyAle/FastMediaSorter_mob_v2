@@ -22,6 +22,7 @@
       - docs-hub-shell        (S4114) the hand-kept portal hubs carry a current shared shell
       - released-addresses    (S4256) every page a release carried keeps its address and its anchors, or is retired
       - portal-pages          (S4256) the media exchange portal's section owners, three-language set and rendered schemes
+      - internal-doc-links    (S4653) relative links and anchors inside the changed docs/ and dev/ Markdown resolve on disk
 
     site-origins reads the whole published set - every page, stylesheet and script, 39 MB - and took
     1.9 s when added, so its trigger is any published page, stylesheet, script or template, never a
@@ -68,6 +69,8 @@ $runsReleasedAddresses = Test-AnyChangedFile '^(docs/site-released-addresses\.js
 $argvReleasedAddresses = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-released-addresses.ps1"), '-Quiet')
 $runsPortalPages = Test-AnyChangedFile '^(docs/media-exchange-portal/|scripts/docs/(portal-sections\.json|render-usage-schemes\.ps1|usage-schemes/)|scripts/quality/assert-portal-pages(\.ps1$|\.tests/))'
 $argvPortalPages = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-portal-pages.ps1"))
+$internalDocLinkFiles = @($changedFiles | ForEach-Object { "$_".Replace('\', '/') } | Where-Object { $_ -match '^(docs|dev)/.*\.md$' })
+$argvInternalDocLinks = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-internal-doc-links.ps1"), '-Quiet', '-Files', ($internalDocLinkFiles -join ','))
 
 # Started together so the children overlap; each Invoke-Gate below joins its own.
 if ($runsSiteAddresses) { Start-PooledGate @argvSiteAddresses }
@@ -148,6 +151,14 @@ if ($runsPortalPages) {
 }
 else {
     Skip-Step "portal-pages" "not applicable - no changed portal page, picture, label file, section manifest or scheme renderer"
+}
+
+# S4653: fatal - DOC-INTERNAL-QUALITY rule 3; the author of a changed document answers for its own links.
+if ($internalDocLinkFiles.Count -gt 0) {
+    Invoke-Gate "internal-doc-links" { Invoke-GateChild @argvInternalDocLinks }
+}
+else {
+    Skip-Step "internal-doc-links" "not applicable - no changed Markdown file under docs/ or dev/"
 }
 
 # Each label is written out, never looped over: assert-gate-hints-sync.ps1 pairs a hint with a

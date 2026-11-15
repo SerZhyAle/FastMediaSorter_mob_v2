@@ -116,7 +116,8 @@ class ExchangeServerAdminActivity : BaseActivity<ActivityExchangeServerAdminBind
                 renderShared(state.shared)
                 renderPolicy(state.policy)
             }
-            ExchangeAdminScreenState.Lapsed -> failures.showProgress(getString(R.string.exchange_admin_lapsed))
+            ExchangeAdminScreenState.Lapsed ->
+                failures.showProgress(getString(R.string.exchange_failure_admin_session_ended))
             ExchangeAdminScreenState.MissingEntry -> finish()
             ExchangeAdminScreenState.Disabled -> Unit
         }

@@ -298,7 +298,6 @@
     <string name="exchange_admin_sign_in">登录</string>
     <string name="exchange_admin_sign_out">退出登录</string>
     <string name="exchange_admin_signing_in">正在登录..</string>
-    <string name="exchange_admin_lapsed">会话已结束。请重新输入管理密码。</string>
     <string name="exchange_admin_section_status">状态</string>
     <string name="exchange_admin_section_accounts">账户</string>
     <string name="exchange_admin_section_invitations">邀请</string>

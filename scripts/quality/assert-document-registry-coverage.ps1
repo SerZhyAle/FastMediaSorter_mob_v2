@@ -16,6 +16,16 @@
     its first run gets switched off rather than read. The failure this gate exists for is
     directory-shaped: no glob reached `.claude/rules/` at all.
 
+    S4653 narrows that decision for the two file-level roots, docs/ and dev/ (DOC-INTERNAL-QUALITY rule 2 and item V):
+    there every .md file must be matched by a record glob itself, or named by a baseline row - a file
+    (`dev/foo.md`), a file glob (`dev/TASK_*.md`) or its directory. Measured 2026-11-15: 32 files under
+    docs/ and dev/ sat in covered directories with no record naming them, so a new file dropped into a
+    covered folder passed. The other roots keep the directory rule.
+
+    The local, gitignored registry dev/DOCUMENT_REGISTRY.jsonl is read when present (S4653): its globs name
+    files like the tracked ones, and each of its globs must match a file - the canon harness reads one
+    registry path only, so nothing else checks the local corpus. An absent local registry is no finding.
+
     The roots are DECLARED here, never derived from git (strategic ADR-1). Measured 2026-09-06, the
     git index answers "is this a maintained document" wrongly in both directions on this tree:
     `.claude/` is gitignored in full (.gitignore:71) yet carries the largest registered surface in
@@ -39,7 +49,8 @@
 
 Exit codes:
     0 - every directory holding documents is covered by a record or accounted for in the baseline.
-    1 - a directory is unaccounted for, a baseline reason is too thin, or a baseline row is stale.
+    1 - a directory or a file-level-root file is unaccounted for, a baseline reason is too thin, a
+        baseline row is stale, or a local registry glob matches no file.
     2 - cannot verify: the registry is missing or unreadable, or RepoRoot does not exist.
 #>
 [CmdletBinding()]
@@ -71,6 +82,10 @@ $documentRoots = @(
     'docs', 'dev', '.claude', '.github', '.agents',
     'maestro', 'store_assets', 'play', 'delivery', 'scripts'
 )
+
+# Roots judged per FILE rather than per directory (S4653, DOC-INTERNAL-QUALITY rule 2). Kept to the two
+# trees whose one-off notes are few enough to excuse by name; widening it is a decision, not a free edit.
+$fileLevelRoots = @('docs', 'dev')
 
 # Trees that are never documents, skipped during the walk rather than excused row by row. A baseline
 # row is a DECISION about a repository tree; these are categories, and listing 3390 vendored files
@@ -141,7 +156,61 @@ function Get-RelativeDirectory {
     return $relative.Substring(0, $lastSlash)
 }
 
+function Get-RelativePath {
+    param([string] $FullPath)
+    return $FullPath.Substring($RepoRoot.Length).TrimStart('\', '/').Replace('\', '/')
+}
+
+function Test-FileLevelRoot {
+    param([string] $RelativeFile)
+    foreach ($fileRoot in $fileLevelRoots) {
+        if ($RelativeFile.StartsWith("$fileRoot/", [StringComparison]::OrdinalIgnoreCase)) { return $true }
+    }
+    return $false
+}
+
+function Test-FileRow {
+    # A row whose left side ends in a document extension names files, not a directory.
+    param([string] $Row)
+    return @($documentExtensions | Where-Object { $Row.EndsWith($_, [StringComparison]::OrdinalIgnoreCase) }).Count -gt 0
+}
+
 $errors = [System.Collections.Generic.List[string]]::new()
+$advisories = [System.Collections.Generic.List[string]]::new()
+
+function Test-RenderFields {
+    <#
+        DOC-INTERNAL-QUALITY item W (S4653): a generated record names its generator and its drift check as
+        fields, each a command whose first .ps1 token exists. `check` = `none` is accepted as an ADVISORY -
+        the renders that have no drift check today are listed on every run rather than hidden as free text.
+    #>
+    param($Record)
+    $names = @($Record.PSObject.Properties.Name)
+    $isGenerated = ($names -contains 'generated') -and [bool]$Record.generated
+    if (-not $isGenerated) {
+        if ($names -contains 'generator') {
+            $errors.Add("record '$($Record.id)': carries 'generator' but is not generated - drop the field or set generated true")
+        }
+        return
+    }
+    foreach ($field in 'generator', 'check') {
+        $value = if ($names -contains $field) { "$($Record.$field)".Trim() } else { '' }
+        if (-not $value) {
+            $errors.Add("record '$($Record.id)': generated record has no '$field' field - name the command (DOC-INTERNAL-QUALITY item W)")
+            continue
+        }
+        if ($field -eq 'check' -and $value -ieq 'none') {
+            $advisories.Add("record '$($Record.id)': render has no drift check (check = none)")
+            continue
+        }
+        $script = @(($value -split '\s+') | Where-Object { $_ -like '*.ps1' } | Select-Object -First 1)
+        if (-not $script) {
+            $errors.Add("record '$($Record.id)': '$field' names no .ps1 command: $value")
+        } elseif (-not (Test-Path -LiteralPath (Join-Path $RepoRoot $script[0]))) {
+            $errors.Add("record '$($Record.id)': '$field' names a script that does not exist: $($script[0])")
+        }
+    }
+}
 
 # --- covered set: every directory a record glob actually reaches -------------------------------
 # Directory EQUALITY, never prefix: `.claude/` had covered siblings when `.claude/rules/` was
@@ -153,18 +222,31 @@ if (-not (Test-Path -LiteralPath $registryPath)) {
 }
 
 $covered = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+$namedFiles = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
 $recordCount = 0
+$localRecordCount = 0
+$localRegistryPath = Join-Path $RepoRoot 'dev/DOCUMENT_REGISTRY.jsonl'
+$registrySources = @(@{ Path = $registryPath; Local = $false })
+if (Test-Path -LiteralPath $localRegistryPath) { $registrySources += @{ Path = $localRegistryPath; Local = $true } }
 try {
-    foreach ($line in Get-Content -LiteralPath $registryPath -Encoding utf8) {
-        if (-not "$line".Trim()) { continue }
-        $record = $null
-        try { $record = "$line".Trim() | ConvertFrom-Json } catch { continue }
-        if (-not ($record.PSObject.Properties.Name -contains 'paths')) { continue }
-        $recordCount++
-        foreach ($registered in @($record.paths)) {
-            $pattern = Join-Path $RepoRoot ("$registered" -replace '/', [IO.Path]::DirectorySeparatorChar)
-            foreach ($file in @(Get-ChildItem -Path $pattern -File -ErrorAction SilentlyContinue)) {
-                [void]$covered.Add((Get-RelativeDirectory -FullPath $file.FullName))
+    foreach ($source in $registrySources) {
+        foreach ($line in Get-Content -LiteralPath $source.Path -Encoding utf8) {
+            if (-not "$line".Trim()) { continue }
+            $record = $null
+            try { $record = "$line".Trim() | ConvertFrom-Json } catch { continue }
+            if (-not ($record.PSObject.Properties.Name -contains 'paths')) { continue }
+            if ($source.Local) { $localRecordCount++ } else { $recordCount++ }
+            Test-RenderFields -Record $record
+            foreach ($registered in @($record.paths)) {
+                $pattern = Join-Path $RepoRoot ("$registered" -replace '/', [IO.Path]::DirectorySeparatorChar)
+                $matchedFiles = @(Get-ChildItem -Path $pattern -File -ErrorAction SilentlyContinue)
+                if ($source.Local -and $matchedFiles.Count -eq 0) {
+                    $errors.Add("local registry record '$($record.id)': glob '$registered' matches no file - fix or delete the glob in dev/DOCUMENT_REGISTRY.jsonl")
+                }
+                foreach ($file in $matchedFiles) {
+                    [void]$covered.Add((Get-RelativeDirectory -FullPath $file.FullName))
+                    [void]$namedFiles.Add((Get-RelativePath -FullPath $file.FullName))
+                }
             }
         }
     }
@@ -205,6 +287,7 @@ if (Test-Path -LiteralPath $baselinePath) {
 
 # --- walk: every directory that holds a document ------------------------------------------------
 $documentDirectories = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+$fileLevelFiles = [System.Collections.Generic.List[string]]::new()
 foreach ($file in @(Get-ChildItem -LiteralPath $RepoRoot -File -ErrorAction SilentlyContinue)) {
     if ($documentExtensions -contains $file.Extension.ToLowerInvariant()) { [void]$documentDirectories.Add('.') }
 }
@@ -215,17 +298,33 @@ foreach ($root in $documentRoots) {
         if ($documentExtensions -notcontains $file.Extension.ToLowerInvariant()) { continue }
         $directory = Get-RelativeDirectory -FullPath $file.FullName
         if (Test-ExcludedPath -RelativeDirectory $directory) { continue }
+        $relativeFile = Get-RelativePath -FullPath $file.FullName
+        if (Test-FileLevelRoot -RelativeFile $relativeFile) { $fileLevelFiles.Add($relativeFile); continue }
         [void]$documentDirectories.Add($directory)
     }
 }
 
 # --- verdict ------------------------------------------------------------------------------------
 $baselineRows = @($baseline.Keys)
+$directoryRows = @($baselineRows | Where-Object { -not (Test-FileRow -Row $_) })
+$fileRows = @($baselineRows | Where-Object { Test-FileRow -Row $_ })
 $unaccounted = @($documentDirectories | Where-Object {
     $directory = $_
     if ($covered.Contains($directory)) { return $false }
-    -not @($baselineRows | Where-Object { Test-BaselineRowMatches -Row $_ -Directory $directory }).Count
+    -not @($directoryRows | Where-Object { Test-BaselineRowMatches -Row $_ -Directory $directory }).Count
 } | Sort-Object)
+$unaccountedFiles = @($fileLevelFiles | Where-Object {
+    $relativeFile = $_
+    if ($namedFiles.Contains($relativeFile)) { return $false }
+    if (@($fileRows | Where-Object { $relativeFile -like $_ }).Count) { return $false }
+    $directory = $relativeFile.Substring(0, [Math]::Max(0, $relativeFile.LastIndexOf('/')))
+    -not @($directoryRows | Where-Object { Test-BaselineRowMatches -Row $_ -Directory $directory }).Count
+} | Sort-Object)
+foreach ($relativeFile in $unaccountedFiles) {
+    $errors.Add("$relativeFile is a document that no registry record names - add it to a record glob in " +
+        "docs/DOCUMENT_REGISTRY.jsonl (or dev/DOCUMENT_REGISTRY.jsonl when gitignored), or add a file row to " +
+        "scripts/quality/document-registry-coverage-baseline.txt saying what the file is and why it is not maintained")
+}
 foreach ($directory in $unaccounted) {
     $errors.Add("$directory holds documents that no registry record names - add a record (or a glob to an " +
         "existing one) in docs/DOCUMENT_REGISTRY.jsonl, or add a row to " +
@@ -236,7 +335,14 @@ foreach ($directory in $unaccounted) {
 # one until someone checks - the same reason validate.ps1 refuses a sitemap_exclude naming a missing
 # file. Covered counts as alive: a tree that got registered after being excused is a fixed problem,
 # not a stale row, and failing there would punish the fix.
+$fileLevelDirectories = @($fileLevelFiles | ForEach-Object { $_.Substring(0, [Math]::Max(0, $_.LastIndexOf('/'))) } | Select-Object -Unique)
 foreach ($row in $baselineRows) {
+    if (Test-FileRow -Row $row) {
+        if (@($fileLevelFiles | Where-Object { $_ -like $row }).Count -gt 0) { continue }
+        $errors.Add("baseline row '$row' names no document file - delete the row")
+        continue
+    }
+    if (@($fileLevelDirectories | Where-Object { Test-BaselineRowMatches -Row $row -Directory $_ }).Count -gt 0) { continue }
     $matched = @($documentDirectories | Where-Object { Test-BaselineRowMatches -Row $row -Directory $_ })
     if ($matched.Count -gt 0) { continue }
     if (@($covered | Where-Object { Test-BaselineRowMatches -Row $row -Directory $_ }).Count -gt 0) { continue }
@@ -250,8 +356,9 @@ if ($errors.Count -gt 0) {
 }
 
 if (-not $Quiet) {
-    Write-Host ("  records: {0}   covered directories: {1}   document directories: {2}   baseline rows: {3}" -f `
-        $recordCount, $covered.Count, $documentDirectories.Count, $baseline.Count) -ForegroundColor Gray
+    Write-Host ("  records: {0} (+{1} local)   covered directories: {2}   document directories: {3}   file-level files: {4}   baseline rows: {5}" -f `
+        $recordCount, $localRecordCount, $covered.Count, $documentDirectories.Count, $fileLevelFiles.Count, $baseline.Count) -ForegroundColor Gray
 }
+foreach ($advisory in $advisories) { Write-Host "  advisory: $advisory" -ForegroundColor Yellow }
 Write-Host "assert-document-registry-coverage: PASS (every document directory is registered or accounted for)" -ForegroundColor Green
 exit 0

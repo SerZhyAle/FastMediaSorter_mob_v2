@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.14 15:51</sub>
+<sub class="doc-stamp">26.11.15 16:16</sub>
 
 # Pointer - `INPUT-PARITY`
 
@@ -29,6 +29,11 @@
   read against item K.3 from the code and not run. `Back` is deliberately not an exit event (under gesture navigation
   it arrives from a swipe across the glass, which K.2 forbids from ending the screen), so the gate is stricter than
   K.3's "platform's back". Item K.4 (help and listing wording, `ask: off`) is a separate read.
+- The watch Tourist lock (`TouristLockOverlay`, the dashboard touch lock) is this product's second touch-locked screen
+  and a permanent supported variant: it keeps the telemetry readable while swimming or running, and no touch or crown
+  turn reaches the dashboard under it. Its exit is the watch `WaterFlashlightExitGate`, shared with the watch water
+  flashlight: a key held 1500 ms, or three backs or key releases with the third at most 2000 ms after the first; one
+  key release or one back does not leave. Read from the code, not run on a watch.
 - The deviations currently open are recorded as exceptions in the catalog's registry. The 0.4 `VIEWER-KEYBOARD.md`
   player defaults ship in `default_bindings.json` and `PlayerKeyboardHandler` (S4363); the rows still open
   (`G`, `N`, `F4`, frame step, A-B loop, the standalone hosts) are implemented by S4373 and await device

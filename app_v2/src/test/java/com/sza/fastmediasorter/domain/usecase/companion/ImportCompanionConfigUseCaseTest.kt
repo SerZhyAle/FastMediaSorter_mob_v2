@@ -21,10 +21,14 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.util.Base64
 
 /**
  * S4032: the import must never create a resource that cannot log in, and a newer schemaVersion must reach
  * every caller as UNSUPPORTED_VERSION.
+ *
+ * S4643: FMSCFG 2.6 C2 and C3 - a missing or non-`SHA256:<base64>` fingerprint and a config without a
+ * direct access path are refused whole, before any write.
  */
 class ImportCompanionConfigUseCaseTest {
 
@@ -62,14 +66,15 @@ class ImportCompanionConfigUseCaseTest {
 
     private fun config(
         password: String = "pw",
-        fingerprint: String = "",
+        fingerprint: String = FINGERPRINT,
         virtualPath: String = "/Photos",
         label: String? = "Photos",
-        schemaVersion: Int = 1
+        schemaVersion: Int = 1,
+        accessPaths: String = "{\"kind\":\"lan\",\"host\":\"$HOST\",\"port\":$PORT}"
     ): String {
         val labelField = label?.let { ",\"label\":\"$it\"" }.orEmpty()
         return "{\"schemaVersion\":$schemaVersion,\"resourceName\":\"Home PC\",\"protocol\":\"sftp\"," +
-            "\"accessPaths\":[{\"kind\":\"lan\",\"host\":\"$HOST\",\"port\":$PORT}]," +
+            "\"accessPaths\":[$accessPaths]," +
             "\"username\":\"fms\",\"password\":\"$password\",\"hostKeyFingerprintSha256\":\"$fingerprint\"," +
             "\"roots\":[{\"virtualPath\":\"$virtualPath\"$labelField}]}"
     }
@@ -159,6 +164,93 @@ class ImportCompanionConfigUseCaseTest {
         coVerify(exactly = 0) { smbOperations.saveSftpCredentials(any(), any(), any(), any(), any()) }
     }
 
+    private fun assertRefusedWithNothingWritten(
+        result: Result<CompanionImportResult>,
+        detail: String? = null,
+        reason: CompanionConfigException.Reason = CompanionConfigException.Reason.INVALID_CONTENT,
+    ) {
+        assertEquals(reason, reasonOf(result))
+        detail?.let { assertTrue(result.exceptionOrNull()?.message.orEmpty().contains(it)) }
+        coVerify(exactly = 0) { smbOperations.saveSftpCredentials(any(), any(), any(), any(), any()) }
+        coVerify(exactly = 0) { addResource.addMultiple(any(), any()) }
+    }
+
+    @Test
+    fun `absent or blank fingerprint is refused and nothing is written`() = runTest {
+        listOf("", "   ").forEach { blank ->
+            assertRefusedWithNothingWritten(useCase.importFromPayload(config(fingerprint = blank)))
+        }
+        val keyAbsent = config().replace("\"hostKeyFingerprintSha256\":\"$FINGERPRINT\",", "")
+        assertRefusedWithNothingWritten(useCase.importFromPayload(keyAbsent))
+    }
+
+    @Test
+    fun `only the exact SHA256 base64 form is accepted as a fingerprint`() = runTest {
+        val bare = FINGERPRINT.removePrefix("SHA256:")
+        val hex = Base64.getDecoder().decode("$bare=").joinToString("") { "%02x".format(it) }
+        listOf(
+            bare,
+            hex,
+            hex.chunked(2).joinToString(":"),
+            "$FINGERPRINT=",
+            FINGERPRINT.replaceFirst("SHA256:", "sha256:"),
+            " $FINGERPRINT"
+        ).forEach { form ->
+            assertRefusedWithNothingWritten(useCase.importFromPayload(config(fingerprint = form)))
+        }
+    }
+
+    @Test
+    fun `canonical fingerprint is pinned on the created resource`() = runTest {
+        assertTrue(useCase.importFromPayload(config()).isSuccess)
+
+        assertEquals(FINGERPRINT, addedResources.captured.single().hostKeyFingerprint)
+    }
+
+    @Test
+    fun `a config with only a tunnel path is refused as no usable access path`() = runTest {
+        val tunnelOnly = "{\"kind\":\"rendezvousTunnel\",\"host\":\"relay.example.net\",\"port\":44022," +
+            "\"shareId\":\"$SHARE_ID\"}"
+
+        val result = useCase.importFromPayload(config(accessPaths = tunnelOnly))
+
+        assertRefusedWithNothingWritten(result, "No usable access path", NO_PATH)
+    }
+
+    @Test
+    fun `a config with only paths of an unknown kind is refused as no usable access path`() = runTest {
+        val unknownOnly = "{\"kind\":\"satellite\",\"host\":\"$HOST\",\"port\":$PORT}," +
+            "{\"host\":\"10.0.0.3\",\"port\":$PORT}"
+
+        val result = useCase.importFromPayload(config(accessPaths = unknownOnly))
+
+        assertRefusedWithNothingWritten(result, "No usable access path", NO_PATH)
+    }
+
+    @Test
+    fun `the first direct path is the primary even when other kinds come before it`() = runTest {
+        val paths = "{\"kind\":\"satellite\",\"host\":\"10.0.0.9\",\"port\":$PORT}," +
+            "{\"kind\":\"portforward\",\"host\":\"203.0.113.7\",\"port\":$PORT}," +
+            "{\"kind\":\"lan\",\"host\":\"$HOST\",\"port\":$PORT}"
+
+        assertTrue(useCase.importFromPayload(config(accessPaths = paths)).isSuccess)
+
+        val resource = addedResources.captured.single()
+        assertTrue(resource.path.contains("203.0.113.7"))
+        assertEquals(listOf(HostPort(HOST, PORT)), resource.altAccessPaths)
+        coVerify(exactly = 0) { smbOperations.saveSftpCredentials("10.0.0.9", any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `a path of an unknown kind after a direct one is not kept as an alternate`() = runTest {
+        val paths = "{\"kind\":\"lan\",\"host\":\"$HOST\",\"port\":$PORT}," +
+            "{\"kind\":\"satellite\",\"host\":\"10.0.0.9\",\"port\":$PORT}"
+
+        assertTrue(useCase.importFromPayload(config(accessPaths = paths)).isSuccess)
+
+        assertTrue(addedResources.captured.single().altAccessPaths.isEmpty())
+    }
+
     @Test
     fun `newer schemaVersion surfaces as unsupported version`() = runTest {
         val result = useCase.importFromPayload(config(schemaVersion = 3))
@@ -191,6 +283,8 @@ class ImportCompanionConfigUseCaseTest {
     }
 
     private companion object {
+        val NO_PATH = CompanionConfigException.Reason.NO_USABLE_ACCESS_PATH
+        const val FINGERPRINT = "SHA256:8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk"
         const val SHARE_ID = "q3Vb7YtK0xP2mN9sLfR4wA"
         const val HOST = "10.0.0.2"
         const val PORT = 2022

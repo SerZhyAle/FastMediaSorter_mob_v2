@@ -1,11 +1,12 @@
 ---
+source_sha256: fed01593ea4d507d4dd1b10e804cabe42f61d36843a838a06849f064dc9419a8
 layout: doc
 title: "Приём трансляции: список, ссылка, пароль и cast на ваше устройство"
 description: "Четыре способа открыть живую трансляцию на устройстве - список «Трансляции моих устройств», ссылка, QR-код или файл, ссылка с паролем и cast с другого вашего устройства - и чем cast отличается от Google Cast."
 category: "Обмен медиа"
 permalink: /docs/media-exchange-portal/broadcast-receive-ru.html
 ---
-<sub class="doc-stamp">26.11.14 19:37</sub>
+<sub class="doc-stamp">26.11.15 15:28</sub>
 
 # Приём трансляции
 

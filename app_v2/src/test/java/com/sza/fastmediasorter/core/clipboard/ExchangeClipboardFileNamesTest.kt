@@ -4,7 +4,7 @@ import com.sza.fastmediasorter.domain.model.ExchangeClipboardKind
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-/** The received-file naming of contract DEVICE-EXCHANGE 22 item CB. */
+/** The received-file naming of contract DEVICE-EXCHANGE 22 item CB and 1.11 item EL. */
 class ExchangeClipboardFileNamesTest {
 
     @Test
@@ -21,22 +21,43 @@ class ExchangeClipboardFileNamesTest {
 
     @Test
     fun `an empty or dot name falls back to a made-up one`() {
-        assertEquals("clipboard-20261014100000.bin", name(""))
-        assertEquals("clipboard-20261014100000.bin", name(".."))
+        assertEquals("clipboard-20261014-100000.bin", name(""))
+        assertEquals("clipboard-20261014-100000.bin", name(".."))
     }
 
     @Test
     fun `an image with no name is named from its time and type`() {
         val made = ExchangeClipboardFileNames.safeName(null, ExchangeClipboardKind.IMAGE, "image/png", STORED_AT)
 
-        assertEquals("clipboard-20261014100000.png", made)
+        assertEquals("clipboard-20261014-100000.png", made)
     }
 
     @Test
     fun `text is always saved as a txt file`() {
         val made = ExchangeClipboardFileNames.safeName(null, ExchangeClipboardKind.TEXT, null, STORED_AT)
 
-        assertEquals("clipboard-20261014100000.txt", made)
+        assertEquals("clipboard-20261014-100000.txt", made)
+    }
+
+    @Test
+    fun `the stamp is the stored instant in UTC and an unknown type has no extension`() {
+        val made = ExchangeClipboardFileNames.safeName(
+            null,
+            ExchangeClipboardKind.IMAGE,
+            "image/x-unknown",
+            "2026-10-29T16:30:05.250+02:00",
+        )
+
+        assertEquals("clipboard-20261029-143005", made)
+    }
+
+    @Test
+    fun `an absent stored time falls back to the receiver's time in UTC`() {
+        val now = java.time.Instant.parse("2026-10-29T14:30:05Z")
+
+        val made = ExchangeClipboardFileNames.safeName(null, ExchangeClipboardKind.IMAGE, "image/png", null, now)
+
+        assertEquals("clipboard-20261029-143005.png", made)
     }
 
     @Test

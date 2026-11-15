@@ -116,6 +116,8 @@ internal class AddResourceCompanionCoordinator(
     private fun errorMessage(e: Throwable): String = when {
         e is CompanionConfigException && e.reason == CompanionConfigException.Reason.UNSUPPORTED_VERSION ->
             context.getString(R.string.companion_import_version_error)
+        e is CompanionConfigException && e.reason == CompanionConfigException.Reason.NO_USABLE_ACCESS_PATH ->
+            context.getString(R.string.companion_import_no_access_path_error)
         e is CompanionConfigException ->
             context.getString(R.string.companion_import_invalid_error)
         else ->

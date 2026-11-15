@@ -21,6 +21,7 @@ import com.sza.fastmediasorter.databinding.DialogBroadcastPreparedShareBinding
 import com.sza.fastmediasorter.domain.model.PreparedBroadcastLink
 import com.sza.fastmediasorter.domain.usecase.broadcast.EncodeBroadcastDescriptorUseCase
 import com.sza.fastmediasorter.domain.usecase.broadcast.ResolvePreparedBroadcastShareUseCase
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.ui.companionimport.qr.QrCodeEncoder
 import com.sza.fastmediasorter.util.CaptureFileNamer
 import com.sza.fastmediasorter.util.showBoundTo
@@ -63,11 +64,12 @@ class BroadcastPreparedShareDialogManager @Inject constructor(
         val payload = encode.compress(descriptor)
         val shareLink = BroadcastShareLinkFactory.create(payload)
         val view = DialogBroadcastPreparedShareBinding.inflate(LayoutInflater.from(activity))
-        MaterialAlertDialogBuilder(activity)
+        val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.broadcast_prepared_share_title)
             .setView(view.root)
             .setNegativeButton(R.string.close, null)
             .showBoundTo(activity) ?: return
+        DialogHelpEntryManager.attach(dialog, "dialog_broadcast_prepared_share")
         renderQr(activity, view, payload)
         val password = resolveShare.linkPassword(link)
         view.tvPreparedSharePassword.isVisible = password != null

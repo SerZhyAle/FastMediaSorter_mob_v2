@@ -280,7 +280,7 @@
     <string name="exchange_portal_link_phone_sharing">About the phone as a server</string>
     <string name="exchange_portal_link_my_devices">About adding a server</string>
     <string name="exchange_portal_link_watch">About connecting a watch</string>
-    <string name="exchange_failure_admin_disabled">Web administration is turned off on this server. Turn it on in the server\'s settings, on the server machine.</string>
+    <string name="exchange_failure_admin_disabled">Remote administration is turned off on this server. Turn it on in the server\'s settings, on the server machine.</string>
     <string name="exchange_admin_reply_bad_request">The server did not accept this request. Check what was entered and try again.</string>
     <string name="exchange_admin_reply_no_account">There is no such account.</string>
     <string name="exchange_admin_reply_exists">This already exists on the server.</string>
@@ -299,7 +299,6 @@
     <string name="exchange_admin_sign_in">Sign in</string>
     <string name="exchange_admin_sign_out">Sign out</string>
     <string name="exchange_admin_signing_in">Signing in..</string>
-    <string name="exchange_admin_lapsed">The session has ended. Enter the administration password again.</string>
     <string name="exchange_admin_section_status">Status</string>
     <string name="exchange_admin_section_accounts">Accounts</string>
     <string name="exchange_admin_section_invitations">Invitations</string>
@@ -376,4 +375,11 @@
     <string name="broadcast_drive_line_sign_in">Via Google Drive: not announced. Sign in to Google Drive again in Settings</string>
     <string name="broadcast_drive_line_unreachable">Via Google Drive: not announced, Google Drive does not answer. Trying again</string>
     <string name="broadcast_drive_line_guest">Via Google Drive: not announced, a guest account announces nothing</string>
+    <string name="exchange_failure_not_found">No standard settings are saved on the server for this program yet. Save them first.</string>
+    <string name="exchange_failure_invalid_payload">The server did not accept these settings: they are damaged or too large.</string>
+    <string name="exchange_failure_app_id_mismatch">This server does not keep settings of this program for this account.</string>
+    <string name="exchange_failure_version_incompatible">The server does not support this version of the settings format.</string>
+    <string name="exchange_failure_bad_credentials_admin">The administrator password is wrong. Type it again - it is set on the server machine.</string>
+    <string name="exchange_failure_admin_session_ended">The administration session has ended. Sign in again to continue.</string>
+    <string name="exchange_failure_e2e_missing_peer">The device that has this content cannot send it protected yet, so nothing from it comes through the server.</string>
 </resources>

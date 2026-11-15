@@ -1,11 +1,12 @@
 ---
+source_sha256: 7026fd41b4798f13f2bac7838873ff11c30a9b6eea2b7e307590dd348075c106
 layout: doc
 title: "Як видалити акаунт"
 description: "Як видалити свій акаунт на сервері обміну FastMediaSorter: у застосунку або без нього, попросивши того, хто тримає сервер, - що стирається одразу, що лишається і що робити, якщо телефон втрачено."
 category: "Обмін медіа"
 permalink: /docs/media-exchange-portal/account-deletion-uk.html
 ---
-<sub class="doc-stamp">26.10.22 01:29</sub>
+<sub class="doc-stamp">26.11.15 15:28</sub>
 
 # Як видалити акаунт
 

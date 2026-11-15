@@ -1,0 +1,6 @@
+{
+  "type": "refused",
+  "schemaVersion": 2,
+  "reason": "version-incompatible",
+  "message": "Format version 99 is unsupported by application 'fms_win'."
+}

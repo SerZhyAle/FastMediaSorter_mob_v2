@@ -19,6 +19,7 @@ import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.ui.browse.transfer.TransferSkipSummary
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.utils.keepLongestWordOnOneLine
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import kotlinx.coroutines.CoroutineScope
@@ -93,6 +94,12 @@ class FileOperationDestinationDialog(
 
         setupUI()
         loadDestinations()
+    }
+
+    // This dialog never installs the keyboard delegate, so the help "?" and F1 are wired here.
+    override fun onStart() {
+        super.onStart()
+        DialogHelpEntryManager.attach(this, "dialog_copy_to")
     }
 
     /**

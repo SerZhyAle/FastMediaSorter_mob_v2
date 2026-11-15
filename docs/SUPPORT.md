@@ -4,7 +4,7 @@ title: "Support for Fast Media Sorter"
 description: "How to report a problem with Fast Media Sorter, what to include, the private contact, what answer to expect and how to send the app's diagnostic log."
 permalink: /docs/SUPPORT.html
 ---
-<sub class="doc-stamp">26.10.18 20:00</sub>
+<sub class="doc-stamp">26.11.15 14:24</sub>
 
 # Support
 
@@ -33,7 +33,7 @@ The app keeps a log on the device: a record of what it was doing and which error
 
 1. Repeat the action that fails once more, so the log catches it.
 2. Open Settings, the General tab, the group Backups, restore and settings export.
-3. Choose **Share Debug Logs** to pack the log into one archive, `fastmediasorter_logs.zip`, and pick your mail app or messenger - or **Save Debug Logs** to save the archive to a folder you choose.
+3. Choose **Share Debug Logs** to pack the log into one archive, `FastMediaSorter-logs-<version>-<date>-<time>.zip` (named by the app version and the export time; `environment.txt` inside lists the app and Android versions), and pick your mail app or messenger - or **Save Debug Logs** to save the archive to a folder you choose.
 
 What the log contains and what it does not:
 

@@ -809,7 +809,6 @@
     <string name="wear_clipboard_no_phone">Kein Telefon in Reichweite</string>
     <string name="wear_clipboard_no_answer">Das Telefon hat nicht geantwortet</string>
     <string name="wear_clipboard_refused">Das Telefon hat abgelehnt: %1$s</string>
-    <string name="wear_tourist_press_button_to_unlock">Drücken Sie eine Uhrtaste zum Entsperren</string>
     <string name="wear_tourist_metric_body_temperature">Körpertemperatur</string>
     <string name="wear_onboarding_welcome_title">Willkommen</string>
     <string name="wear_onboarding_welcome_body">Medien direkt am Handgelenk durchsuchen, abspielen und sortieren.</string>

@@ -6,12 +6,23 @@
     android:orientation="vertical"
     android:paddingVertical="16dp">
 
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/epub_search_all_chapters"
-        android:textAppearance="?attr/textAppearanceTitleMedium"
-        android:layout_marginBottom="12dp" />
+        android:layout_marginBottom="12dp"
+        android:baselineAligned="false"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="@string/epub_search_all_chapters"
+            android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+        <include layout="@layout/view_dialog_help_button" />
+    </LinearLayout>
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"

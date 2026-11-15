@@ -3781,11 +3781,11 @@
     <string name="water_flashlight_title">Water flashlight</string>
     <string name="water_flashlight_locked_hint">Locked. Use the buttons</string>
     <string name="water_flashlight_settings_toggle_title">Water flashlight</string>
-    <string name="water_flashlight_settings_toggle_subtitle">Torch and screen at full brightness, locked against touch</string>
+    <string name="water_flashlight_settings_toggle_subtitle">Torch and screen at full brightness with touch lock</string>
     <string name="water_flashlight_help_title">Water flashlight</string>
-    <string name="water_flashlight_help_message">Lights the camera flash and the screen at once, then locks the screen: only the time and a reminder show, and only a hardware button closes it. Made for wet hands, where a touch screen presses itself. Leaving through a system gesture turns the light off as well. It does not replace the water-lock mode built into a watch or a phone - no app can reach that one.</string>
+    <string name="water_flashlight_help_message">The water flashlight lights the camera flash and screen and enables touch lock. Touch lock prevents accidental taps; it does not protect the device from water. Hold a volume button for 1.5 seconds or press volume buttons three times within 2 seconds to switch off the light. A system gesture can also close the screen.</string>
     <string name="widget_water_flashlight_label">Water flashlight</string>
-    <string name="widget_water_flashlight_description">Lights the flash and the screen and locks the screen - only a button closes it</string>
+    <string name="widget_water_flashlight_description">Flash and screen with touch lock; hold or triple-press a volume button to exit</string>
     <string name="tooltip_stopwatch_title">Stopwatch</string>
     <string name="tooltip_stopwatch_message">Adds a stopwatch to the main menu. Measures one run or several in a row, for up to four participants at once, and keeps the result inside Fast Media Sorter &amp; Organizer.</string>
     <string name="stopwatch_volume_label">Music volume</string>
@@ -4701,9 +4701,9 @@
     <string name="setting_enable_feedback_desc">Text, a picture and a voice note in one form, sent through Send to.. and to your computer</string>
     <string name="feedback_text_hint">What happened? What would you change?</string>
     <string name="feedback_paste_image">Paste a picture from the clipboard</string>
-    <string name="feedback_pick_image">Pick a photo or a screenshot</string>
-    <string name="feedback_take_photo">Take a photo</string>
-    <string name="feedback_record_voice">Record a voice note</string>
+    <string name="feedback_pick_image">Pick an image or a screenshot</string>
+    <string name="feedback_take_photo">Take a photo with the camera</string>
+    <string name="feedback_record_voice">Record a voice note with the microphone</string>
     <string name="feedback_stop_voice">Stop recording</string>
     <string name="feedback_recording">Recording..</string>
     <string name="feedback_attachments_label">Attached pictures and voice notes</string>
@@ -4733,8 +4733,12 @@
     <string name="streams_category_hint">Category (optional)</string>
     <string name="s4609_broadcast_stopped_text">Playback has stopped. Open Streams to see why.</string>
     <string name="streams_filter_media_recent">Recent</string>
-    <string name="streams_media_filter_recent">Show recently played streams only</string>
+    <string name="streams_media_filter_recent">Show recent streams only</string>
     <string name="streams_pause">Pause</string>
     <string name="streams_resume">Resume</string>
     <string name="streams_paused">Paused</string>
+    <string name="streams_unavailable_refused_message">\"%1$s\" was refused by its server. Remove it from your list?</string>
+    <string name="streams_unavailable_certificate_message">\"%1$s\" uses a certificate this device does not trust. Remove it from your list?</string>
+    <string name="companion_import_no_access_path_error">This file has no address the app can connect to directly. Ask the sender to share it again with a local or forwarded address.</string>
+    <string name="companion_share_unpinned_error">Connect to this server once before sharing - the app needs its verified key.</string>
 </resources>

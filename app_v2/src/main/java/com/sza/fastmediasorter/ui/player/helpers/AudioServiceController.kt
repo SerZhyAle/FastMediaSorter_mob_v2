@@ -8,11 +8,17 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
+import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionError
+import androidx.media3.session.SessionResult
 import androidx.media3.session.SessionToken
+import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
 import com.sza.fastmediasorter.core.playback.MediaControllerRelease
+import com.sza.fastmediasorter.core.playback.StreamFailureSignal
+import com.sza.fastmediasorter.core.playback.resilience.StreamFailureReason
 import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
 import com.sza.fastmediasorter.ui.player.AudioPlaybackService
 import com.sza.fastmediasorter.ui.player.model.MediaItemWithMeta
@@ -43,6 +49,27 @@ class AudioServiceController(
     // construction with no playback) would clobber an unrelated subsystem's in-flight scenario
     // (e.g. VideoPlayerManager's own tracked scenario).
     private var ownsEnduranceScenario = false
+
+    /**
+     * S4641: called on the main thread with the reason and url of a stream the service ended in failure
+     * ([StreamFailureSignal]). Set by the inline audio host; null ignores the signal.
+     */
+    var onStreamFailure: ((reason: StreamFailureReason?, url: String) -> Unit)? = null
+
+    private val controllerListener = object : MediaController.Listener {
+        override fun onCustomCommand(
+            controller: MediaController,
+            command: SessionCommand,
+            args: Bundle,
+        ): ListenableFuture<SessionResult> {
+            if (command.customAction != StreamFailureSignal.ACTION) {
+                return Futures.immediateFuture(SessionResult(SessionError.ERROR_NOT_SUPPORTED))
+            }
+            val url = StreamFailureSignal.urlOf(args)
+            if (url != null) onStreamFailure?.invoke(StreamFailureSignal.reasonOf(args), url)
+            return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
+        }
+    }
 
     /** Whether the controller is currently connected to the service */
     val isConnected: Boolean
@@ -371,7 +398,9 @@ class AudioServiceController(
                 context,
                 ComponentName(context, AudioPlaybackService::class.java)
             )
-            val future = MediaController.Builder(context, sessionToken).buildAsync()
+            val future = MediaController.Builder(context, sessionToken)
+                .setListener(controllerListener)
+                .buildAsync()
             controllerFuture = future
             return ControllerConnectionRequest.FutureRequest(future)
         }

@@ -19,9 +19,11 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
 $script:watchdog = Join-Path $repoRoot 'scripts/utils/agent-watchdog.ps1'
 $script:failures = 0
+$script:cases = 0
 
 function Assert-That {
     param([string] $Name, [bool] $Condition, [string] $Detail = '')
+    $script:cases++
     if ($Condition) {
         Write-Output "  PASS  $Name"
     } else {
@@ -86,8 +88,8 @@ Assert-That 'stall window leaves room for daemon startup' ($stallDefault -ge 20)
 
 Write-Output ''
 if ($script:failures -gt 0) {
-    Write-Output "agent-watchdog contract: expected: 0 | actual: $($script:failures) failure(s)"
+    Write-Output "agent-watchdog contract: FAIL (run=$($script:cases) skipped=0, failed=$($script:failures))"
     exit 1
 }
-Write-Output 'agent-watchdog contract: expected: 0 | actual: 0 failure(s)'
+Write-Output "agent-watchdog contract: PASS (run=$($script:cases) skipped=0)"
 exit 0

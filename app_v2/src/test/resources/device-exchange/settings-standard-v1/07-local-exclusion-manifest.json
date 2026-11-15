@@ -1,0 +1,24 @@
+{
+  "contract": "DEVICE-EXCHANGE",
+  "topic": "app-settings-exchange-standard",
+  "mandatoryLocalExclusions": [
+    "device_key",
+    "private_key",
+    "auth_tokens",
+    "passwords",
+    "hardware_paths",
+    "drive_letters",
+    "port_bindings",
+    "loopback_ip",
+    "window_bounds",
+    "window_state",
+    "screen_dpi"
+  ],
+  "exchangeableSettingGroups": [
+    "general",
+    "appearance",
+    "playback",
+    "shortcuts",
+    "behavior"
+  ]
+}

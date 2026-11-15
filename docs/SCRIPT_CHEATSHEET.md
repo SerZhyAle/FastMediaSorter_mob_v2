@@ -2724,7 +2724,8 @@ scripts/docs/export-icon-contract.ps1
   Params:
     -CatalogRoot         [String] = $env:FMS_CONTRACTS_ROOT
     -RepoRoot            [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-  Exit: 0 - every artifact was written and the vocabulary is consistent.; 1 - the vocabulary is inconsistent (duplicate id, dangling reference, unknown enum value) or
+    -Check               [SwitchParameter]
+  Exit: 0 - every artifact was written and the vocabulary is consistent; with -Check, every generated
 ```
 
 ### export-icon-svgs.ps1
@@ -2736,6 +2737,18 @@ scripts/docs/export-icon-svgs.ps1
   Params:
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
   Exit: 0 - the generated tree is complete and current.; 1 - the inventory is missing, or a source drawable named by it is absent.; 4 - Code.Scripts is held by another session: nothing was written or pruned,
+```
+
+### export-item-cz-rows.ps1
+Generate the machine-readable export of the rows of DEVICE-EXCHANGE item CZ (item FE).
+
+```
+scripts/docs/export-item-cz-rows.ps1
+  Generate the machine-readable export of the rows of DEVICE-EXCHANGE item CZ (item FE).
+  Params:
+    -OutFile      (req)  [String]
+    -CatalogRoot         [String] = $env:FMS_CONTRACTS_ROOT
+  Exit: 0 - the file was written.; 1 - a place was not found, yielded no row, or a row was refused (each reason is printed).; 2 - could not verify: no catalog root or no device-exchange/README.md inside it.
 ```
 
 ### generate-docs-pages.ps1
@@ -2992,6 +3005,20 @@ scripts/docs/stamp-doc-dates.ps1
   Exit: 0 every considered document is stamped and current (or was stamped now); 1 -Check found a missing or stale stamp; 2 no input given, a file could not be read or written, or a recipe page restamp failed
 ```
 
+### stamp-portal-translation.ps1
+S4653 - records in a portal translation which English original it was rebuilt from (DOC-EXTERNAL-QUALITY 0.11 item G).
+
+```
+scripts/docs/stamp-portal-translation.ps1
+  S4653 - records in a portal translation which English original it was rebuilt from (DOC-EXTERNAL-QUALITY 0.11 item G).
+  Params:
+    -Pages             [String] = ''
+    -All               [SwitchParameter]
+    -Check             [SwitchParameter]
+    -PortalDir         [String] = ''
+  Exit: 0 - stamped, or -Check found every translation fresh.; 1 - -Check found a stale translation.; 2 - could not verify: no pages named, a named page or its English original is missing.
+```
+
 ### strip-landing-filter-emoji.ps1
 S0907 - strip decorative emoji from the landing feature-explorer (JS scenario-filter labels, variant/tab/toggle buttons, and JS/markup section titles), text-only per owner decision 2026-07-04.
 
@@ -3034,6 +3061,19 @@ scripts/docs/carry-program-name.tests/Run-Tests.ps1
   Params:
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
   Exit: 0 every assertion passed; 1 at least one assertion failed; 2 could not verify: the script is missing
+```
+
+## scripts\docs\export-icon-contract.tests
+
+### Run-Tests.ps1
+S4655 - contract test of the read-only mode (-Check) of the ICON-SET exporter.
+
+```
+scripts/docs/export-icon-contract.tests/Run-Tests.ps1
+  S4655 - contract test of the read-only mode (-Check) of the ICON-SET exporter.
+  Params:
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+  Exit: 0 every assertion passed; 1 at least one assertion failed; 2 could not verify: the exporter is missing, or it could not generate the fixture catalog
 ```
 
 ## scripts\docs\help
@@ -3147,6 +3187,15 @@ A function page's availability marker, derived from the build (SITE-REPRESENTATI
 ```
 scripts/docs/lib/page-availability.ps1
   A function page's availability marker, derived from the build (SITE-REPRESENTATION 0.1 rule 9, S4107).
+  (no param block)
+```
+
+### portal-fingerprint.ps1
+Dot-sourced by scripts/docs/stamp-portal-translation.ps1 and scripts/quality/assert-portal-pages.ps1 (S4653).
+
+```
+scripts/docs/lib/portal-fingerprint.ps1
+  Dot-sourced by scripts/docs/stamp-portal-translation.ps1 and scripts/quality/assert-portal-pages.ps1 (S4653).
   (no param block)
 ```
 
@@ -4112,7 +4161,7 @@ scripts/quality/assert-document-registry-coverage.ps1
     -RepoRoot         [String] = ''
     -Quiet            [SwitchParameter]
     -Gate             [SwitchParameter]
-  Exit: 0 - every directory holding documents is covered by a record or accounted for in the baseline.; 1 - a directory is unaccounted for, a baseline reason is too thin, or a baseline row is stale.; 2 - cannot verify: the registry is missing or unreadable, or RepoRoot does not exist.
+  Exit: 0 - every directory holding documents is covered by a record or accounted for in the baseline.; 1 - a directory or a file-level-root file is unaccounted for, a baseline reason is too thin, a
 ```
 
 ### assert-dotsource-tracked.ps1
@@ -4528,6 +4577,21 @@ scripts/quality/assert-install-trust.ps1
     -Quiet               [SwitchParameter]
     -Help                [SwitchParameter]
   Exit: 0 - every rule-1, rule-6 and rule-7 check passed.; 1 - at least one ORDER, SURFACE, UNDECLARED, CLAIM or CODE finding.; 2 - cannot verify: the root or the declaration is missing or unreadable.
+```
+
+### assert-internal-doc-links.ps1
+S4653 - every relative Markdown link and anchor inside the internal corpus (docs/, dev/) resolves on disk.
+
+```
+scripts/quality/assert-internal-doc-links.ps1
+  S4653 - every relative Markdown link and anchor inside the internal corpus (docs/, dev/) resolves on disk.
+  Params:
+    -Files                [String] = ''
+    -RepoRoot             [String] = ''
+    -BaselinePath         [String] = ''
+    -Quiet                [SwitchParameter]
+    -Gate                 [SwitchParameter]
+  Exit: 0 - every judged link resolves or is baselined.; 1 - a new broken link or a stale baseline row.; 2 - could not verify: RepoRoot or a named file does not exist.
 ```
 
 ### assert-invoked-tracked.ps1
@@ -5064,8 +5128,10 @@ S4256 - holds the shared media exchange portal to its section manifest, its thre
 scripts/quality/assert-portal-pages.ps1
   S4256 - holds the shared media exchange portal to its section manifest, its three-language page set and its rendered schemes.
   Params:
-    -Dimension         [String] = 'all'  {sections|variants|schemes|all}
+    -Dimension         [String] = 'all'  {sections|variants|schemes|freshness|all}
     -RepoRoot          [String] = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+    -Strict            [SwitchParameter]
+    -Quiet             [SwitchParameter]
   Exit: 0 every requested dimension passed; 1 at least one finding (each is named); 2 could not verify: the manifest is missing or malformed, the portal or the renderer is missing, or
 ```
 
@@ -5333,6 +5399,25 @@ scripts/quality/assert-sensitive-settings-annotated.ps1
   Params:
     -Gate          [SwitchParameter]
     -Quiet         [SwitchParameter]
+```
+
+### assert-set-baseline-rise.ps1
+S4645: every set baseline is compared with its copy at HEAD, and an identifier added since needs a row in scripts/quality/set-baseline-accepted.jsonl (CHECK-BASELINE 0.12 item B).
+
+```
+scripts/quality/assert-set-baseline-rise.ps1
+  S4645: every set baseline is compared with its copy at HEAD, and an identifier added since needs a row in scripts/quality/set-baseline-accepted.jsonl (CHECK-BASELINE 0.12 item B).
+  Params:
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+    -ChangedFiles         [String[]]
+    -Accept               [SwitchParameter]
+    -File                 [String]
+    -Reason               [String]
+    -Ticket               [String]
+    -MaxListed            [Int32] = 50
+    -RepoRoot             [String]
+  Exit: 0 - no unaccepted rise; findings without -Gate; or -Accept completed.; 1 - an unaccepted rise and -Gate was passed.; 2 - could not verify: the inventory or the journal is missing or holds a line that is not JSON,
 ```
 
 ### assert-settings-catalog-complete.ps1
@@ -6836,6 +6921,18 @@ scripts/quality/assert-install-trust.tests/Run-Tests.ps1
   Exit: 0 every case passed; 1 at least one case failed
 ```
 
+## scripts\quality\assert-internal-doc-links.tests
+
+### Run-Tests.ps1
+Contract suite for assert-internal-doc-links.ps1 (S4653) on synthetic trees.
+
+```
+scripts/quality/assert-internal-doc-links.tests/Run-Tests.ps1
+  Contract suite for assert-internal-doc-links.ps1 (S4653) on synthetic trees.
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
+```
+
 ## scripts\quality\assert-invoked-tracked.tests
 
 ### Run-Tests.ps1
@@ -7032,6 +7129,18 @@ Contract tests for the contacts-declaration check of scripts/quality/assert-secu
 ```
 scripts/quality/assert-security-posture.tests/Run-Tests.ps1
   Contract tests for the contacts-declaration check of scripts/quality/assert-security-posture.ps1 (S4030).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
+```
+
+## scripts\quality\assert-set-baseline-rise.tests
+
+### Run-Tests.ps1
+Contract tests for scripts/quality/assert-set-baseline-rise.ps1 (S4645).
+
+```
+scripts/quality/assert-set-baseline-rise.tests/Run-Tests.ps1
+  Contract tests for scripts/quality/assert-set-baseline-rise.ps1 (S4645).
   (no param block)
   Exit: 0 - every case passed.; 1 - at least one case failed.
 ```
@@ -9236,7 +9345,7 @@ Run-Tests.ps1 (S2324) - regression suite for scripts/spec_catalog/check-probe-pr
 scripts/spec_catalog/check-probe-present.tests/Run-Tests.ps1
   Run-Tests.ps1 (S2324) - regression suite for scripts/spec_catalog/check-probe-present.ps1 and the
   (no param block)
-  Exit: 0 all cases pass (a skip is not a failure).; 1 at least one case failed.; 2 the fixtures could not be prepared.
+  Exit: 0 all cases pass and none was skipped.; 1 at least one case failed.; 2 could not verify: the fixtures could not be prepared, or a case was skipped by name and no
 ```
 
 ## scripts\spec_catalog\close-and-log.tests
@@ -9274,7 +9383,7 @@ Regression suite for scripts/spec_catalog/plan-tick.ps1 (S1596).
 scripts/spec_catalog/plan-tick.tests/Run-Tests.ps1
   Regression suite for scripts/spec_catalog/plan-tick.ps1 (S1596).
   (no param block)
-  Exit: 0 - every case passed.; 1 - at least one case failed.; 2 - the harness itself could not run.
+  Exit: 0 - every case passed and none was skipped.; 1 - at least one case failed.; 2 - could not verify: the harness itself could not run, or a group was skipped and none of the
 ```
 
 ## scripts\spec_catalog\preview.tests
@@ -11007,7 +11116,7 @@ S2615 - contract tests for scripts/utils/code-lock-scope.ps1.
 scripts/utils/code-lock-scope.tests/Run-Tests.ps1
   S2615 - contract tests for scripts/utils/code-lock-scope.ps1.
   (no param block)
-  Exit: 0 - every runnable case passed. When Code.Fixture is held (by this session or a sibling), the
+  Exit: 0 - every case passed and none was skipped.; 1 - a case failed.; 2 - could not verify (CHECK-VERDICT 0.14 item A.5): Code.Fixture is held (by this session or a
 ```
 
 ## scripts\utils\dev-monitor-snapshot.tests

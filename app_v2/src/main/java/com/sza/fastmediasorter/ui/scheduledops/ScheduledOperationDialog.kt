@@ -28,6 +28,7 @@ import com.sza.fastmediasorter.domain.model.ScheduledOperationDraft
 import com.sza.fastmediasorter.domain.model.TimeFilter
 import com.sza.fastmediasorter.domain.model.computeNextRunAt
 import com.sza.fastmediasorter.ui.common.dialog.DialogWindowSizer
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.scheduledops.helpers.ScheduledOpConditionsFormManager
 import com.sza.fastmediasorter.ui.scheduledops.helpers.ScheduledOpWatchMessageFormManager
@@ -214,6 +215,11 @@ class ScheduledOperationDialog(
     /** Maps the dropdown text back to its type; COPY is the dropdown's own default for an empty field. */
     private fun resolveOperationType(text: String): ScheduledOpType =
         offeredOperations.firstOrNull { operationLabel(it) == text } ?: ScheduledOpType.COPY
+
+    override fun onStart() {
+        super.onStart()
+        DialogHelpEntryManager.attach(this, "dialog_scheduled_operation")
+    }
 
     // The base bundle carries the id-bearing text fields only: both switch rows wrap an inner switch
     // with the same id, so the hierarchy restores one row's value into both, and the staged folder

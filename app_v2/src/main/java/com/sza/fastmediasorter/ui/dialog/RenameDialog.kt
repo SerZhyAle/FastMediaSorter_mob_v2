@@ -68,6 +68,7 @@ class RenameDialog(
             context = context,
             layoutRes = R.layout.dialog_rename,
             keyboardContract = true,
+            helpSurfaceId = "dialog_rename",
             onConfirm = ::renameFiles,
         ) { view, _ ->
             binding = DialogRenameBinding.bind(view)

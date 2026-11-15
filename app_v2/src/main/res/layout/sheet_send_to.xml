@@ -8,15 +8,26 @@
     android:orientation="vertical"
     android:paddingTop="8dp">
 
-    <TextView
-        android:id="@+id/tvSendToTitle"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
         android:paddingHorizontal="16dp"
-        android:paddingBottom="8dp"
-        android:text="@string/share_to_menu_title"
-        android:textAppearance="?attr/textAppearanceTitleMedium" />
+        android:baselineAligned="false"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvSendToTitle"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:paddingBottom="8dp"
+            android:text="@string/share_to_menu_title"
+            android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+        <include layout="@layout/view_dialog_help_button" />
+    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvSendToReceivers"

@@ -1,11 +1,11 @@
 ---
 layout: doc
-title: "Exchange server: your devices from any network"
+title: "Media Exchange Server: your devices from any network"
 description: "One account for all your devices and access from any network without router setup - who runs an exchange server, how it works, what it sees and keeps, and how the versions of the programs get along."
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/exchange-server.html
 ---
-<sub class="doc-stamp">26.10.22 01:26</sub>
+<sub class="doc-stamp">26.11.15 14:25</sub>
 
 # Exchange server: your devices from any network
 
