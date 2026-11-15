@@ -79,6 +79,12 @@ class CommandPanelController(
          * PopupMenu, at [order] (the command's priority). No-op when there is no current file.
          */
         fun onSendToOverflowSubMenuRequested(menu: android.view.Menu, order: Int)
+
+        /**
+         * True while the text editor panel is open. Its own overflow carries «Send to..» (saving first),
+         * so the player overflow drops the same entry to avoid showing it twice.
+         */
+        fun isTextEditorOpen(): Boolean
         fun onEditClicked()
         fun onUndoClicked()
         fun onFullscreenClicked()
@@ -602,8 +608,14 @@ class CommandPanelController(
         val currentFile = state.currentFile ?: return
         val context = binding.root.context
 
-        val commands = latestOverflowCommands
+        val editorOpen = callback.isTextEditorOpen()
+        val commands = latestOverflowCommands.filterNot {
+            editorOpen && it == CommandPanelLayoutPlanner.PlayerCommand.SEND_TO
+        }
         if (commands.isEmpty()) return
+        if (editorOpen) {
+            Timber.d("S4636: overflow built without Send to.. while the text editor is open")
+        }
 
         // S0158: Big Buttons Mode uses a custom ListPopupWindow with doubled row height
         if (bigButtonsMode) {

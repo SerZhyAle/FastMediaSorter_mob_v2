@@ -3021,6 +3021,7 @@
     <string name="ext_vlc_engine_desc">Reproduce archivos de vídeo e imágenes de disco que el reproductor integrado no puede abrir. Descarga única de aproximadamente 44 MB.</string>
     <string name="calculator_display_content_description">Resultado. Toque para copiar, mantenga presionado para pegar un número</string>
     <string name="calculator_action_settings">Configuración de la calculadora</string>
+    <string name="calculator_settings_title">Configuración de la calculadora</string>
     <string name="calculator_settings_group_thousands">Dígitos del grupo</string>
     <string name="calculator_settings_group_thousands_summary">Pon una coma entre cada tres dígitos, a ambos lados del punto decimal.</string>
     <string name="calculator_settings_text_size">Tamaño del resultado</string>
@@ -4024,6 +4025,7 @@
     <string name="broadcast_control_group_share">Enlace y uso compartido</string>
     <string name="msg_transfer_same_folder_refused">Esta ya es la carpeta del archivo. Elige un destino diferente.</string>
     <string name="settings_collapse_all">Contraer todo</string>
+    <string name="settings_category_about_app">Todo sobre esta aplicación</string>
     <string name="broadcast_control_preview_toggle_cd">Imagen de la emisión. Toca para mostrar u ocultar los controles</string>
     <string name="broadcast_link_password_title">Contraseña del enlace</string>
     <string name="broadcast_link_password_mode_auto">Automática</string>

@@ -3013,6 +3013,7 @@
     <string name="ext_vlc_engine_desc">ऐसी वीडियो फ़ाइलें और डिस्क इमेज चलाता है जिन्हें अंतर्निहित प्लेयर नहीं खोल सकता। लगभग 44 MB का एक बार का डाउनलोड।</string>
     <string name="calculator_display_content_description">परिणाम। कॉपी करने के लिए टैप करें, किसी नंबर को पेस्ट करने के लिए देर तक दबाएं</string>
     <string name="calculator_action_settings">कैलकुलेटर सेटिंग्स</string>
+    <string name="calculator_settings_title">कैलकुलेटर सेटिंग्स</string>
     <string name="calculator_settings_group_thousands">अंक समूहित करें</string>
     <string name="calculator_settings_group_thousands_summary">दशमलव बिंदु के दोनों ओर प्रत्येक तीन अंकों के बीच अल्पविराम लगाएं</string>
     <string name="calculator_settings_text_size">परिणाम आकार</string>
@@ -4019,6 +4020,7 @@
     <string name="broadcast_control_group_share">लिंक और साझा करना</string>
     <string name="msg_transfer_same_folder_refused">यह पहले से फ़ाइल का फ़ोल्डर है। कोई दूसरा गंतव्य चुनें।</string>
     <string name="settings_collapse_all">सभी संक्षिप्त करें</string>
+    <string name="settings_category_about_app">इस ऐप के बारे में सब कुछ</string>
     <string name="broadcast_control_preview_toggle_cd">प्रसारण की तस्वीर। नियंत्रण दिखाने या छिपाने के लिए टैप करें</string>
     <string name="broadcast_link_password_title">लिंक पासवर्ड</string>
     <string name="broadcast_link_password_mode_auto">स्वचालित</string>

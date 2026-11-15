@@ -13,8 +13,7 @@ import com.sza.fastmediasorter.core.util.XrDeviceProbe
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.launcher.LauncherPrimaryWindow
-import com.sza.fastmediasorter.ui.settings.SettingsActivity
-import com.sza.fastmediasorter.ui.settings.SettingsDestination
+import com.sza.fastmediasorter.ui.settings.LauncherSettingsDialogFragment
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,7 +24,7 @@ import kotlinx.coroutines.withContext
 /**
  * S1088: owns the System-launcher entry in General -> Interface.
  * S3024: Consolidated primary window choice (Home screen, Desktop in-app, Main screen)
- * backed by [LauncherPrimaryWindowManager] plus the button that opens the Launcher settings page
+ * backed by [LauncherPrimaryWindowManager] plus the button that opens [LauncherSettingsDialogFragment]
  * for the launcher's own settings. Hidden when the build has no launcher surface
  * ([LauncherModeContract.isAvailableInBuild]).
  *
@@ -88,9 +87,8 @@ class GeneralSettingsLauncherHelper(
                 updateOpenRowEnabled(choice != LauncherPrimaryWindow.RESOURCE_MANAGER)
             }
         }
-        // S4622: the launcher settings are their own page now; this row leads to it.
         binding.rowLauncherSettings.setOnClickListener {
-            (fragment.activity as? SettingsActivity)?.openDestination(SettingsDestination.LAUNCHER)
+            LauncherSettingsDialogFragment().show(fragment.childFragmentManager, LauncherSettingsDialogFragment.TAG)
         }
         refreshState()
     }

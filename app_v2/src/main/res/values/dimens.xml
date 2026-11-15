@@ -130,7 +130,7 @@
     <dimen name="card_elevation">2dp</dimen>
 
     <!-- S3241: the three sanctioned corner radii of docs/ui/PHONE_UI_COMPONENT_PATTERNS.md section 1.5.
-         The per-feature names (card_corner_radius, focus_decoration_corner_radius,
+         The per-feature names (card_corner_radius, settings_tab_corner_radius, focus_decoration_corner_radius,
          tourist_*_card_corner_radius, welcome_*_corner) collapse onto these as each feature is next
          touched, never as a campaign - a fourth radius needs a decision, not a fourth name. -->
     <dimen name="shape_corner_small">8dp</dimen>
@@ -236,13 +236,14 @@
     <dimen name="toolbar_row_height_compact">24dp</dimen>
     <!-- Settings Activity portrait title row, non-compact: the UI-SIZING ordinary touch floor (docs/ui/PHONE_SIZE_PROFILE.md) -->
     <dimen name="settings_title_row_height">@dimen/touch_target_min_height</dimen>
+    <dimen name="settings_tabs_height">48dp</dimen>
     <dimen name="settings_tabs_height_compact">40dp</dimen>
-    <!-- S4621: settings page menu (rail on wide windows, list on narrow ones). -->
-    <dimen name="settings_rail_width">200dp</dimen>
-    <dimen name="settings_rail_row_min_height">48dp</dimen>
-    <dimen name="settings_rail_glyph_size">20dp</dimen>
-    <dimen name="settings_rail_glyph_gap">8dp</dimen>
-    <dimen name="settings_rail_selected_bar_width">4dp</dimen>
+    <dimen name="settings_tab_min_touch_height">40dp</dimen>
+    <dimen name="settings_tab_horizontal_padding">8dp</dimen>
+    <dimen name="settings_tab_vertical_padding">4dp</dimen>
+    <dimen name="settings_tab_corner_radius">8dp</dimen>
+    <dimen name="settings_tab_bottom_cover_height">2dp</dimen>
+    <dimen name="settings_tab_land_width">140dp</dimen>
     <dimen name="control_button_spacing_small">8dp</dimen>
     <dimen name="control_button_play_width">96dp</dimen>
     <dimen name="dialog_padding_large">24dp</dimen>
@@ -427,10 +428,6 @@
     <dimen name="settings_switch_margin_end">10dp</dimen>
     <dimen name="settings_help_icon_size">@dimen/icon_tier_24</dimen>
     <dimen name="settings_help_icon_margin">4dp</dimen>
-    <!-- BOOLEAN-OPTION 2.1 section 2: half of (48dp checkbox target - 24dp heading line), so the checkbox
-         aligns with the first heading line rather than the centre of a long explanation. -->
-    <dimen name="settings_toggle_heading_inset_top">12dp</dimen>
-    <dimen name="settings_toggle_explanation_gap">4dp</dimen>
     <dimen name="settings_nested_margin_start">24dp</dimen>
     <!-- S1161: below this a settings group card stops fitting its own rows, so the multi-column
          group layout falls back to one column regardless of the requested count. -->

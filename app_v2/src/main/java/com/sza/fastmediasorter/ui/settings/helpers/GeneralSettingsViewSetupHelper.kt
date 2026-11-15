@@ -72,6 +72,7 @@ class GeneralSettingsViewSetupHelper(
         setupCacheSizeInput()
         syncSetupHelper.setup()
         GeneralSettingsDefaultCredentialsSetupHelper(hostContext).setup()
+        GeneralSettingsLinkButtonsSetupHelper(hostContext).setup()
         setupActionButtons()
     }
 

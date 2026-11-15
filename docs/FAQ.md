@@ -5,7 +5,7 @@ permalink: /docs/FAQ.html
 lang: en
 ---
 
-<sub class="doc-stamp">26.10.15 19:27</sub>
+<sub class="doc-stamp">26.11.15 03:00</sub>
 
 <div lang="en" markdown="1">
 
@@ -149,7 +149,7 @@ Quick Sort folders are pre-configured target folders for fast file sorting. You 
 Open a file and select a destination on the command panel. Check whether the selected action is **Copy** or **Move** before confirming. Touch-zone positions vary with media type and player mode; do not assume the lower-left corner always copies.
 
 ### Can I use number keys instead of tapping?
-Yes - connect a hardware keyboard, gamepad, or TV remote and your Quick Sort buttons get numbered (0-9) automatically. Press the matching digit to copy or move the file to that destination instantly, same as tapping the button.
+Yes - connect a hardware keyboard or use a TV remote and your Quick Sort buttons get numbered (0-9) automatically. Press the matching digit to copy or move the file to that destination instantly, same as tapping the button. Without a keyboard the buttons show only their names.
 
 ### Quick Sort buttons are not showing
 Make sure you have added at least one destination folder first: Settings → Management → Quick Sort destinations, then **"Add to Quick Sort"**. Buttons only appear when at least one destination is configured.

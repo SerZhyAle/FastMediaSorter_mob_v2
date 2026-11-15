@@ -81,10 +81,9 @@ class StopwatchActivity : BaseActivity<ActivityStopwatchBinding>() {
         }
         binding.btnStopwatchResult.setOnClickListener { openResultDialog() }
         setupVolumeSlider()
-        // S4622: the options are a block of the Tools settings page; the screen reads them through the
-        // settings flow, so an edit made there is live on return.
         binding.btnStopwatchSettings.setOnClickListener {
-            startActivity(SettingsActivity.openToolsSectionIntent(this, SettingsActivity.SECTION_STOPWATCH))
+            StopwatchSettingsDialogFragment.newInstance()
+                .show(supportFragmentManager, StopwatchSettingsDialogFragment.TAG)
         }
         binding.btnStopwatchOpenSettings.setOnClickListener { openSettings() }
     }

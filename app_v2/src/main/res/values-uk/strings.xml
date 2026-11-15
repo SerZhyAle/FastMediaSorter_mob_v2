@@ -3416,6 +3416,7 @@
     <string name="ext_vlc_engine_desc">Програє відеофайли та образи дисків, які вбудований плеєр відкрити не може. Разове завантаження приблизно 44 МБ.</string>
     <string name="calculator_display_content_description">Результат. Натисніть, щоб скопіювати, утримуйте, щоб вставити число</string>
     <string name="calculator_action_settings">Налаштування калькулятора</string>
+    <string name="calculator_settings_title">Налаштування калькулятора</string>
     <string name="calculator_settings_group_thousands">Розділяти розряди</string>
     <string name="calculator_settings_group_thousands_summary">Ставити кому між кожними трьома цифрами - і до, і після крапки</string>
     <string name="calculator_settings_text_size">Розмір результату</string>
@@ -4474,6 +4475,7 @@
     <string name="broadcast_control_group_share">Посилання й обмін</string>
     <string name="msg_transfer_same_folder_refused">Це та сама папка, де лежить файл. Виберіть інше призначення.</string>
     <string name="settings_collapse_all">Згорнути всі</string>
+    <string name="settings_category_about_app">Усе про цей застосунок</string>
     <string name="broadcast_control_preview_toggle_cd">Картинка мовлення. Торкніться, щоб показати або сховати кнопки керування</string>
     <string name="broadcast_link_password_title">Пароль посилання</string>
     <string name="broadcast_link_password_mode_auto">Автоматичний</string>
@@ -4612,7 +4614,6 @@
     <string name="notes_new">Нова нотатка</string>
     <string name="notes_search_hint">Пошук у нотатках</string>
     <string name="notes_empty">Нотаток поки немає. Натисніть «Нова нотатка», щоб написати першу.</string>
-    <string name="notes_share">Поділитися</string>
     <string name="notes_delete">Видалити</string>
     <string name="notes_delete_title">Видалити нотатку?</string>
     <string name="notes_delete_confirm">Нотатку «%1$s» буде видалено з пристрою.</string>
@@ -4660,9 +4661,4 @@
     <string name="streams_pause">Пауза</string>
     <string name="streams_resume">Продовжити</string>
     <string name="streams_paused">На паузі</string>
-    <string name="settings_tab_tools">Інструменти</string>
-    <string name="settings_tools_group_translation">Переклад</string>
-    <string name="settings_tools_group_calculator">Калькулятор</string>
-    <string name="settings_tools_group_stopwatch">Секундомір</string>
-    <string name="settings_tab_launcher">Лаунчер</string>
 </resources>

@@ -1,19 +1,26 @@
 package com.sza.fastmediasorter.ui.settings.helpers
 
+import android.app.ActivityManager
+import android.content.Context
+import android.os.Build
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.debug.DebugToolsBridge
 import com.sza.fastmediasorter.core.logging.LogExportHelper
 import com.sza.fastmediasorter.data.debug.ReleasedTicketsDataSource
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.domain.usecase.SaveTextFileToResourceUseCase
+import com.sza.fastmediasorter.ui.common.support.SupportDestination
+import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
 import com.sza.fastmediasorter.ui.dialog.DestinationPickerDialog
 import com.sza.fastmediasorter.ui.dialog.ScrollableTextDialog
+import com.sza.fastmediasorter.ui.systeminfo.SystemInfoActivity
 import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -22,6 +29,7 @@ import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.roundToInt
 
 class GeneralSettingsLogHelper(
     private val binding: FragmentSettingsGeneralBinding,
@@ -30,11 +38,26 @@ class GeneralSettingsLogHelper(
     private val getDestinationsUseCase: GetDestinationsUseCase,
     private val saveTextFileToResourceUseCase: SaveTextFileToResourceUseCase,
 ) {
+    fun setupVersionInfo() {
+        val versionName = com.sza.fastmediasorter.BuildConfig.VERSION_NAME
+        val versionCode = com.sza.fastmediasorter.BuildConfig.VERSION_CODE
+        val versionInfo = "$versionName | Build $versionCode | ${SupportIntentFactory.SUPPORT_EMAIL}"
+        // Keep a compact hardware line under the version so screenshot-only bug reports still identify the device.
+        binding.tvVersionInfo.text = "$versionInfo\n${buildDeviceSummary()}"
+        binding.tvVersionInfo.setOnClickListener { openEmailClient() }
+        binding.tvVersionInfo.setOnLongClickListener {
+            val intent = DebugToolsBridge.maybeCreateDebugMenuIntent(fragment.requireContext())
+            if (intent != null) fragment.startActivity(intent) else shareLogs()
+            true
+        }
+    }
+
     fun setupButtons() {
         binding.btnShowLog.setOnClickListener { showLogDialog(fullLog = true) }
         binding.btnShowSessionLog.setOnClickListener { showLogDialog(fullLog = false) }
         binding.btnShareLogs?.setOnClickListener { shareLogs() }
         binding.btnSaveLogs?.setOnClickListener { launchSaveLogs() }
+        binding.btnSystemInfo?.setOnClickListener { showSystemInfoDialog() }
         // S1783: the button lives in the debug-tools group, which GeneralSettingsViewSetupHelper
         // already hides outside a debug build - so this only wires the click.
         binding.btnReleasedTickets?.setOnClickListener { showReleasedTicketsDialog() }
@@ -56,6 +79,11 @@ class GeneralSettingsLogHelper(
                 monospace = true,
             )
         }
+    }
+
+    fun showSystemInfoDialog() {
+        val context = fragment.requireContext()
+        fragment.startActivity(SystemInfoActivity.createIntent(context))
     }
 
     fun shareLogs() {
@@ -164,6 +192,47 @@ class GeneralSettingsLogHelper(
             .setPositiveButton(R.string.share) { _, _ -> shareLogs() }
             .setNegativeButton(R.string.cancel, null)
             .showBoundTo(fragment)
+    }
+
+    private fun buildDeviceSummary(): String {
+        val model = sanitizeBuildField(Build.MODEL)
+        val product = sanitizeBuildField(Build.PRODUCT, fallback = sanitizeBuildField(Build.DEVICE))
+        val androidRelease = sanitizeBuildField(Build.VERSION.RELEASE, fallback = Build.VERSION.SDK_INT.toString())
+        return "$model-$product $androidRelease(${Build.VERSION.SDK_INT}) RAM:${getRoundedTotalRamGb()}G"
+    }
+
+    private fun sanitizeBuildField(value: String?, fallback: String = "unknown"): String {
+        return value?.takeIf { it.isNotBlank() } ?: fallback
+    }
+
+    private fun getRoundedTotalRamGb(): Int {
+        val activityManager = fragment.requireContext().getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        val memoryInfo = ActivityManager.MemoryInfo()
+        activityManager.getMemoryInfo(memoryInfo)
+        // Round to the marketed RAM size because this label is for quick human diagnostics, not precise profiling.
+        return (memoryInfo.totalMem / (1024.0 * 1024.0 * 1024.0)).roundToInt().coerceAtLeast(1)
+    }
+
+    private fun openEmailClient() {
+        // S0118: route the bug-report channel through SupportIntentFactory so the
+        // mailto target lives in one place. The "About .. (mobile)" prefix stays so support
+        // filters keep matching; S3392 corrected the product name to the one that ships.
+        val version = com.sza.fastmediasorter.BuildConfig.VERSION_NAME
+        val subject = "About FastMediaSorter (mobile) $version"
+        val intent = android.content.Intent.createChooser(
+            SupportIntentFactory.build(
+                context = fragment.requireContext(),
+                destination = SupportDestination.REPORT_PROBLEM,
+                emailSubject = subject,
+            ),
+            fragment.getString(R.string.send_email),
+        )
+        try {
+            fragment.startActivity(intent)
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to open email client")
+            Toast.makeText(fragment.requireContext(), R.string.no_email_client, Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun getFullLog(): String {

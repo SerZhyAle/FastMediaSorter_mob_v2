@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeSession
 import com.sza.fastmediasorter.data.remote.exchange.ExchangeBroadcastPublication
 import com.sza.fastmediasorter.data.remote.exchange.ExchangeGrantAudiences
 import com.sza.fastmediasorter.data.remote.exchange.ExchangeLocalFailureClassifier
+import com.sza.fastmediasorter.data.remote.exchange.ExchangeNotesEnvelopes
 import com.sza.fastmediasorter.data.security.e2e.E2eRecipient
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
 import com.sza.fastmediasorter.domain.model.ExchangeMessage
@@ -426,6 +427,9 @@ class SftpServerTunnelManager @Inject constructor(
                 sendGrants(control)
             }
             live.set(control)
+            // DEVICE-EXCHANGE 1.13 item FM: a connected entry is a moment the notes sync runs; the welcome marker
+            // is how the flow's collectors learn of it, as no envelope of the stream says so.
+            mutableControlEvents.tryEmit(DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_WELCOME))
             // 27 item DI: the box follows the account's devices, so the stream watches them like a directory surface.
             if (control.serverSeals) {
                 sendQuietly(session, LIST)
@@ -918,6 +922,7 @@ class SftpServerTunnelManager @Inject constructor(
             DeviceExchangeEnvelope.TYPE_CAST_OFFER,
             DeviceExchangeEnvelope.TYPE_CAST_RESULT,
             DeviceExchangeEnvelope.TYPE_CAST_STOP,
+            ExchangeNotesEnvelopes.TYPE_NOTES_CHANGED,
         )
         val KEEPALIVE = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_KEEPALIVE)
         val LIST = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_LIST)

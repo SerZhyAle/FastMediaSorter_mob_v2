@@ -23,13 +23,12 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <!-- S0536: bare control. Kept bare, not wrapped in SettingsToggleRow, because this is a dense
-                 single-line card row where the control is a leading one beside the op icon + source-to-target
-                 labels + error badge; the full-width toggle row would break the compact RecyclerView item
-                 height. S4623: a checkbox now (BOOLEAN-OPTION 2.1 section 1); the labels beside it describe the
-                 operation, not the option, so the option has no caption of its own and only the checkbox toggles. -->
-            <com.google.android.material.checkbox.MaterialCheckBox
-                android:id="@+id/checkEnabled"
+            <!-- S0536: bare MaterialSwitch (inherits materialSwitchStyle). Kept bare, not wrapped in
+                 SettingsToggleRow, because this is a dense single-line card row where the switch is a
+                 leading control beside the op icon + source-to-target labels + error badge; the full-width
+                 toggle row would break the compact RecyclerView item height. -->
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/switchEnabled"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="@dimen/margin_tiny"

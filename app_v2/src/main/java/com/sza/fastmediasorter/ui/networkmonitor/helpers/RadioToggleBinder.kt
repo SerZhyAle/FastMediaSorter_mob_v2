@@ -1,10 +1,12 @@
 package com.sza.fastmediasorter.ui.networkmonitor.helpers
 
+import android.widget.CompoundButton
+import android.widget.TextView
 import androidx.annotation.StringRes
+import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
 import com.sza.fastmediasorter.domain.radio.RadioKind
-import com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow
 
 /**
  * S1433: what came of the user asking a section to switch its radio.
@@ -38,19 +40,18 @@ data class RadioToggleState(
 )
 
 /**
- * S1433: the checkbox row that opens every radio-bearing subscreen (BOOLEAN-OPTION 2.1, S4623).
+ * S1433: the switch row that opens every radio-bearing subscreen.
  *
  * One binder so the Wi-Fi and the Bluetooth rows cannot drift: strategic §3.2 requires the control to look
- * identical everywhere, and §11 criterion 11 forbids an error message for either refusal outcome. The reason
- * a row is unknown or disabled is the row's subtitle, so the visible text and the accessibility description
- * are one string.
+ * identical everywhere, and §11 criterion 11 forbids an error message for either refusal outcome.
  *
  * View-side only. It holds no repository, no contract and no coroutine scope - the ViewModel owns those and
  * hands this class a rendered state and a finished outcome, which is what keeps a domain dependency out of
  * the Fragment.
  */
 class RadioToggleBinder(
-    private val row: FormCheckboxRow,
+    private val switch: CompoundButton,
+    private val reasonView: TextView,
     private val onToggleRequested: () -> Unit,
 ) {
 
@@ -61,22 +62,26 @@ class RadioToggleBinder(
      */
     private var observedOn: Boolean? = null
 
+    /** True while this class is writing the switch itself, because the listener cannot tell who moved it. */
+    private var isApplyingState = false
+
     init {
-        row.setOnCheckedChangeListener { _ ->
-            timber.log.Timber.d("S4623: radio checkbox row toggle requested")
-            onToggleRequested()
+        switch.setOnCheckedChangeListener { _, _ ->
+            if (!isApplyingState) {
+                onToggleRequested()
+            }
         }
     }
 
     /** Reflects the observed state. Called on every emission, including the ones a tap caused. */
     fun render(state: RadioToggleState) {
         observedOn = state.isOn
-        row.isEnabled = state.isSupported
-        row.setCheckedSilently(state.isOn == true)
+        switch.isEnabled = state.isSupported
+        setCheckedSilently(state.isOn == true)
         when {
             !state.isSupported -> showReason(R.string.network_monitor_radio_unsupported)
             state.isOn == null -> showReason(R.string.network_monitor_radio_state_unknown)
-            else -> row.setSubtitle(null)
+            else -> reasonView.isVisible = false
         }
     }
 
@@ -90,26 +95,34 @@ class RadioToggleBinder(
     }
 
     /**
-     * Puts the checkbox back where the observer had it and opens the system surface instead.
+     * Puts the switch back where the observer had it and opens the system surface instead.
      *
      * No message accompanies either action. A firmware ignoring `setWifiEnabled` is the documented behaviour
      * of every Android since 10, and reporting the platform doing its job as an error would teach the user to
-     * distrust a screen that is working correctly. The checkbox is reverted rather than left where the finger
+     * distrust a screen that is working correctly. The switch is reverted rather than left where the finger
      * put it because nothing has changed yet - the observer will move it if and when the system panel does.
      */
     private fun openSystemSurface(kind: RadioKind) {
-        row.setCheckedSilently(observedOn == true)
-        row.context.startSystemSurfaceFor(kind.shortcutKey())
+        setCheckedSilently(observedOn == true)
+        switch.context.startSystemSurfaceFor(kind.shortcutKey())
     }
 
     private fun showUnsupported() {
-        row.isEnabled = false
-        row.setCheckedSilently(observedOn == true)
+        switch.isEnabled = false
+        setCheckedSilently(observedOn == true)
         showReason(R.string.network_monitor_radio_unsupported)
     }
 
+    /** The listener fires for a programmatic write too, and treating that as a tap would loop. */
+    private fun setCheckedSilently(checked: Boolean) {
+        isApplyingState = true
+        switch.isChecked = checked
+        isApplyingState = false
+    }
+
     private fun showReason(@StringRes reasonRes: Int) {
-        row.setSubtitle(reasonRes)
+        reasonView.setText(reasonRes)
+        reasonView.isVisible = true
     }
 }
 

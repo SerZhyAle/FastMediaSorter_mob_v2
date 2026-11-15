@@ -3034,6 +3034,7 @@
     <string name="ext_vlc_engine_desc">يقوم بتشغيل ملفات الفيديو وصور الأقراص التي لا يمكن للمشغل المدمج فتحها. تنزيل لمرة واحدة بحجم 44 ميجابايت تقريبًا.</string>
     <string name="calculator_display_content_description">نتيجة. انقر للنسخ، ثم اضغط لفترة طويلة للصق رقم</string>
     <string name="calculator_action_settings">إعدادات الآلة الحاسبة</string>
+    <string name="calculator_settings_title">إعدادات الآلة الحاسبة</string>
     <string name="calculator_settings_group_thousands">أرقام المجموعة</string>
     <string name="calculator_settings_group_thousands_summary">ضع فاصلة بين كل ثلاثة أرقام، على جانبي العلامة العشرية</string>
     <string name="calculator_settings_text_size">حجم النتيجة</string>
@@ -4041,6 +4042,7 @@
     <string name="broadcast_control_group_share">الرابط والمشاركة</string>
     <string name="msg_transfer_same_folder_refused">هذا هو مجلد الملف بالفعل. اختر وجهة مختلفة.</string>
     <string name="settings_collapse_all">طيّ الكل</string>
+    <string name="settings_category_about_app">كل شيء عن هذا التطبيق</string>
     <string name="broadcast_control_preview_toggle_cd">صورة البث. اضغط لإظهار عناصر التحكم أو إخفائها</string>
     <string name="broadcast_link_password_title">كلمة مرور الرابط</string>
     <string name="broadcast_link_password_mode_auto">تلقائي</string>

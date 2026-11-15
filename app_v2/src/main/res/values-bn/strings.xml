@@ -3015,6 +3015,7 @@
     <string name="ext_vlc_engine_desc">বিল্ট-ইন প্লেয়ার খুলতে পারে না এমন ভিডিও ফাইল এবং ডিস্ক চিত্রগুলি চালায়। প্রায় 44 MB এর এককালীন ডাউনলোড।</string>
     <string name="calculator_display_content_description">ফলাফল। অনুলিপি করতে আলতো চাপুন, একটি নম্বর পেস্ট করতে দীর্ঘক্ষণ টিপুন</string>
     <string name="calculator_action_settings">ক্যালকুলেটর সেটিংস</string>
+    <string name="calculator_settings_title">ক্যালকুলেটর সেটিংস</string>
     <string name="calculator_settings_group_thousands">গ্রুপ সংখ্যা</string>
     <string name="calculator_settings_group_thousands_summary">দশমিক বিন্দুর উভয় পাশে প্রতি তিনটি সংখ্যার মধ্যে একটি কমা দিন</string>
     <string name="calculator_settings_text_size">ফলাফলের আকার</string>
@@ -4022,6 +4023,7 @@
     <string name="broadcast_control_group_share">লিংক ও শেয়ারিং</string>
     <string name="msg_transfer_same_folder_refused">এটি ইতিমধ্যে ফাইলটির ফোল্ডার। অন্য একটি গন্তব্য বেছে নিন।</string>
     <string name="settings_collapse_all">সব সংকুচিত করুন</string>
+    <string name="settings_category_about_app">এই অ্যাপ সম্পর্কে সবকিছু</string>
     <string name="broadcast_control_preview_toggle_cd">সম্প্রচারের ছবি। কন্ট্রোল দেখাতে বা লুকাতে ট্যাপ করুন</string>
     <string name="broadcast_link_password_title">লিংকের পাসওয়ার্ড</string>
     <string name="broadcast_link_password_mode_auto">স্বয়ংক্রিয়</string>

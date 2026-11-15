@@ -88,9 +88,12 @@ class ExchangeReceiverControlStreams @Inject constructor(
         if (lent.remove(entry.identity, session)) lentIds.update { it - entry.identity }
     }
 
-    /** An envelope read on a lent stream; only the cast messages travel on. */
+    /**
+     * An envelope read on a lent stream, or the connect marker of an own one; only the cast messages, `notes_changed`
+     * and that marker travel on.
+     */
     fun deliver(entry: DeviceExchangeAccountEntry, envelope: DeviceExchangeEnvelope) {
-        if (envelope.type in CAST_TYPES) mutableEvents.tryEmit(ExchangeControlEvent(entry, envelope))
+        if (envelope.type in FORWARDED_TYPES) mutableEvents.tryEmit(ExchangeControlEvent(entry, envelope))
     }
 
     private fun reconcile(
@@ -173,6 +176,9 @@ class ExchangeReceiverControlStreams @Inject constructor(
             val lastHeard = AtomicLong(nowMs())
             val intervalMs = (session.welcome.keepaliveSeconds ?: KEEPALIVE_SECONDS).toLong() * MILLIS_PER_SECOND
             val keepalive = launch { keepalive(session, intervalMs, lastHeard) }
+            // DEVICE-EXCHANGE 1.13 item FM: a connected entry is a moment the notes sync runs; no envelope of the
+            // stream says so, so the welcome marker does.
+            deliver(entry, DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_WELCOME))
             val outcome = try {
                 receiveAll(entry, session, lastHeard)
             } finally {
@@ -252,7 +258,14 @@ class ExchangeReceiverControlStreams @Inject constructor(
         const val MAX_BACKOFF_MS = 120_000L
         const val MILLIS_PER_SECOND = 1_000L
         const val EVENT_BUFFER = 16
-        val CAST_TYPES = setOf(DeviceExchangeEnvelope.TYPE_CAST_OFFER, DeviceExchangeEnvelope.TYPE_CAST_STOP)
+
+        // The welcome is the connect marker serveRegistered emits itself; the real one is read before any loop here.
+        val FORWARDED_TYPES = setOf(
+            DeviceExchangeEnvelope.TYPE_CAST_OFFER,
+            DeviceExchangeEnvelope.TYPE_CAST_STOP,
+            ExchangeNotesEnvelopes.TYPE_NOTES_CHANGED,
+            DeviceExchangeEnvelope.TYPE_WELCOME,
+        )
         val KEEPALIVE = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_KEEPALIVE)
         val BYE = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_BYE)
         val PERMANENT_REFUSALS = setOf(

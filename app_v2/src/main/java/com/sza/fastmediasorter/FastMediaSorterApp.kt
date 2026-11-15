@@ -112,6 +112,11 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
     lateinit var exchangeCastCoordinator:
         dagger.Lazy<com.sza.fastmediasorter.domain.exchange.ExchangeCastCoordinator>
 
+    /** S4572: syncs the notes when the notes entry connects and when the server pushes `notes_changed`. */
+    @Inject
+    lateinit var notesSyncTriggerManager:
+        dagger.Lazy<com.sza.fastmediasorter.domain.exchange.NotesSyncTriggerManager>
+
     /** S4225: resumes the phone's sharing each time the app comes to the foreground, launcher mode included. */
     @Inject
     lateinit var sftpServerResumeCoordinator:
@@ -355,6 +360,9 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
         }
         applicationScope.launch(Dispatchers.IO) {
             exchangeCastCoordinator.get().start()
+        }
+        applicationScope.launch(Dispatchers.IO) {
+            notesSyncTriggerManager.get().start()
         }
         applicationScope.launch(Dispatchers.IO) {
             sftpServerResumeCoordinator.get().start()

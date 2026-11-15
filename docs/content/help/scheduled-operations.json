@@ -13,7 +13,7 @@
     { "id": "history-panel", "viewId": "containerScheduledHistoryRows", "labelKey": "scheduled_ops_history_title" },
     { "id": "history-clear", "viewId": "btnScheduledHistoryClear", "labelKey": "scheduled_ops_log_clear" },
     { "id": "list", "viewId": "rvScheduledOps" },
-    { "id": "op-switch", "viewId": "checkEnabled", "labelKey": "scheduled_op_enabled_toggle" },
+    { "id": "op-switch", "viewId": "switchEnabled", "labelKey": "scheduled_op_enabled_toggle" },
     { "id": "op-warning", "viewId": "btnRunStatus" },
     { "id": "op-history", "viewId": "btnHistory", "labelKey": "scheduled_op_history" },
     { "id": "op-run-now", "viewId": "btnRunNow", "labelKey": "scheduled_op_run_now" },

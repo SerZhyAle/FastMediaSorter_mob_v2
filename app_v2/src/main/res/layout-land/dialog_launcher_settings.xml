@@ -1,15 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- S4622: landscape counterpart of layout/fragment_settings_launcher.xml, with all of its ids.
-     Column 1: Taskbar, Tray, Top Bar. Column 2: Desktop, Gestures, Appearance, System. -->
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- S1088: landscape counterpart of layout/dialog_launcher_settings.xml.
+     S1422/S2252: seven collapsible groups split across two columns in landscape, matching all ids in portrait.
+     Column 1: Taskbar, Tray, Top Bar. Column 2: Desktop, Gestures, Appearance, System.
+     S2252: Fullscreen dialog layout with fixed header containing btnClose (Apply) outside NestedScrollView;
+     NestedScrollView carries weight 1 with descendantFocusability afterDescendants. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:clipToPadding="false"
-    android:descendantFocusability="afterDescendants"
-    android:fillViewport="true"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
     android:padding="@dimen/padding_normal">
 
+    <!-- Header: title + btnClose (id unchanged; still just dismiss()). S2017: labeled and styled as
+         Apply/DialogConfirm, not Close/DialogCancel - every row here applies immediately, so the
+         button never had anything to discard, and "Close" read to the owner as a cancel action. -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/margin_small"
+        android:baselineAligned="false"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/launcher_settings_dialog_title"
+            android:textSize="@dimen/text_size_title_dialog"
+            android:textStyle="bold" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnClose"
+            style="@style/Widget.FastMediaSorter.Button.DialogConfirm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_small"
+            android:text="@string/apply" />
+
+    </LinearLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:descendantFocusability="afterDescendants"
+        android:focusable="false">
 
         <!-- S1739/S2252: Two columns container in landscape -->
         <LinearLayout
@@ -617,4 +654,6 @@
 
         </LinearLayout>
 
-</androidx.core.widget.NestedScrollView>
+    </androidx.core.widget.NestedScrollView>
+
+</LinearLayout>

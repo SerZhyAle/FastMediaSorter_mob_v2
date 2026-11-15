@@ -35,25 +35,28 @@ data class DocScopeSurface(
 object SettingsDocScopeCatalog {
 
     val surfaces: List<DocScopeSurface> = listOf(
-        // S4622 class: panel of the launcher page.
-        // S2730: the wallpaper rows moved out of the launcher settings into their own screen, so
+        DocScopeSurface(
+            R.layout.dialog_launcher_settings,
+            "launcher",
+            SettingsSearchDestination.GENERAL,
+            "rowLauncherSettings"
+        ),
+        // S2730: the wallpaper rows moved out of the launcher settings dialog into their own screen, so
         // they are a settings surface of its own; rowLauncherWallpaper is what opens it.
         DocScopeSurface(
             R.layout.dialog_launcher_wallpaper_settings,
             "launcher",
-            SettingsSearchDestination.LAUNCHER,
+            SettingsSearchDestination.GENERAL,
             "rowLauncherWallpaper"
         ),
-        // S4622 class: panel - the confirmation of the reset command, with that command's own parameter.
         // S1886: the reset confirmation carries its own density selector, so it is a settings surface
-        // of its own; btnResetLauncher on the Launcher page is what opens it.
+        // of its own; btnResetLauncher inside the launcher settings dialog is what opens it.
         DocScopeSurface(
             R.layout.dialog_launcher_reset_confirm,
             "launcher",
-            SettingsSearchDestination.LAUNCHER,
+            SettingsSearchDestination.GENERAL,
             "btnResetLauncher"
         ),
-        // S4622 class: panel of the General page - a command menu, it edits no setting.
         // S1565: the import/export menu is a dialog on the General tab, opened by rowDataTransfer.
         DocScopeSurface(
             R.layout.dialog_data_transfer,
@@ -61,29 +64,25 @@ object SettingsDocScopeCatalog {
             SettingsSearchDestination.GENERAL,
             "rowDataTransfer"
         ),
-        // S4622 class: panel of the General page - the pending queue and its commands; the Drive channel
-        // switches moved onto the page itself, under rowCrossDevicePackets.
+        // S4231: the Drive channel switches live in the pending-transfers dialog, opened by rowCrossDevicePackets.
         DocScopeSurface(
             R.layout.dialog_cross_device_packets,
             "general",
             SettingsSearchDestination.GENERAL,
             "rowCrossDevicePackets"
         ),
-        // S4622 class: panel of Management - the zone strip is an object selector, not a page menu.
         DocScopeSurface(
             R.layout.dialog_edge_gesture_config,
             "gestures",
             SettingsSearchDestination.OPERATIONS,
             "btnOpenEdgeGestureConfig"
         ),
-        // S4622 class: panel of Management - default-app commands plus one sub-topic, opened from its row.
         DocScopeSurface(
             R.layout.dialog_default_apps,
             "defaultApps",
             SettingsSearchDestination.OPERATIONS,
             "btnOpenDefaultAppsDialog"
         ),
-        // S4622 class: host task - unpersisted capture-session state, previewed on the viewfinder.
         // Opened only from the camera-capture viewfinder (CameraSettingsCallbackHandler), never
         // from a settings screen - no settings-screen control leads here, so hostKey stays empty.
         DocScopeSurface(
@@ -92,7 +91,22 @@ object SettingsDocScopeCatalog {
             SettingsSearchDestination.OPERATIONS,
             ""
         ),
-        // S4622 class: host task - the master toggle starts and stops the program.
+        // S2024: opened only from the calculator's own popup menu, never from a settings screen - no
+        // settings-screen control leads here, so hostKey stays empty.
+        DocScopeSurface(
+            R.layout.dialog_calculator_settings,
+            "calculator",
+            SettingsSearchDestination.OPERATIONS,
+            ""
+        ),
+        // S1411 ADR-5: unlike the calculator above, this one is reachable from a settings-screen row
+        // as well as from the tool's own gear button (§6.4), which is what the non-empty host key says.
+        DocScopeSurface(
+            R.layout.dialog_stopwatch_settings,
+            "stopwatch",
+            SettingsSearchDestination.OPERATIONS,
+            "rowOpenStopwatchSettings"
+        ),
         // S3365: the scheduled-operations program screen hosts the group's master toggle after the
         // settings card was extracted; the settings open button (S3929) reaches it, so it documents
         // under the same destination instead of the live search index.
@@ -102,7 +116,20 @@ object SettingsDocScopeCatalog {
             SettingsSearchDestination.OPERATIONS,
             "btnOpenScheduledOpsScreen"
         ),
-        // S4622 class: host task - the switch starts and stops the monitor's track recording.
+        // Opened only from the camera-OCR capture flow (CameraOcrTranslateActivity), same reason.
+        DocScopeSurface(
+            R.layout.dialog_camera_ocr_settings,
+            "camera",
+            SettingsSearchDestination.OPERATIONS,
+            ""
+        ),
+        // Opened from the on-screen translation overlay, not a settings screen.
+        DocScopeSurface(
+            R.layout.dialog_translation_settings,
+            "translation",
+            SettingsSearchDestination.MEDIA,
+            ""
+        ),
         // S1433: the GNSS track opt-in lives inside the Network Monitor's Satellites section, not on a
         // settings screen, so hostKey stays empty. It is registered as its own one-row layout rather than
         // as the whole GNSS fragment: this scan also indexes MaterialButtons, and the fragment's share
@@ -113,7 +140,6 @@ object SettingsDocScopeCatalog {
             SettingsSearchDestination.OPERATIONS,
             ""
         ),
-        // S4622 class: host task input - the folder is an input of the send command, not an app setting.
         // S4573: the folder the feedback goes to is chosen inside the Send feedback form, not on a settings
         // screen, so hostKey stays empty; the row is its own layout for the same reason as the GNSS one above.
         DocScopeSurface(

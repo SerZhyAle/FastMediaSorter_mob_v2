@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- S1433 Bluetooth subscreen, portrait. The radio checkbox row is the first row under the heading and above all
+<!-- S1433 Bluetooth subscreen, portrait. The radio switch is the first row under the heading and above all
      data (strategic 3.1.2). No scan action exists anywhere on this screen: discovery is a non-goal of the
      first release, and the picker offers only devices already connected. -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/bluetoothSectionScroll"
     android:layout_width="match_parent"
@@ -33,13 +32,29 @@
 
             <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.CardContent">
 
-                <com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow
-                    android:id="@+id/bluetoothRadioRow"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:nextFocusDown="@+id/bluetoothDevicePicker"
-                    android:nextFocusForward="@+id/bluetoothDevicePicker"
-                    app:fcr_title="@string/network_monitor_radio_bluetooth" />
+                <LinearLayout style="@style/Widget.FastMediaSorter.NetworkMonitor.ToggleRow">
+
+                    <TextView
+                        style="@style/Widget.FastMediaSorter.NetworkMonitor.ToggleLabel"
+                        android:labelFor="@+id/bluetoothRadioSwitch"
+                        android:text="@string/network_monitor_radio_bluetooth" />
+
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/bluetoothRadioSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:nextFocusDown="@+id/bluetoothDevicePicker"
+                        android:nextFocusForward="@+id/bluetoothDevicePicker" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/bluetoothRadioReason"
+                    style="@style/Widget.FastMediaSorter.NetworkMonitor.Note"
+                    android:visibility="gone"
+                    tools:text="@string/network_monitor_radio_state_unknown"
+                    tools:visibility="visible" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -152,7 +167,7 @@
                         android:layout_height="wrap_content"
                         android:focusable="true"
                         android:inputType="none"
-                        android:nextFocusUp="@+id/bluetoothRadioRow"
+                        android:nextFocusUp="@+id/bluetoothRadioSwitch"
                         tools:text="@string/network_monitor_bluetooth_picker_none" />
                 </com.google.android.material.textfield.TextInputLayout>
 

@@ -34,7 +34,8 @@ class NotesRowActionManager(
 
     fun show(note: NoteSummary, anchor: View) {
         val popup = PopupMenu(activity, anchor)
-        popup.menu.add(0, ITEM_SHARE, 0, R.string.notes_share)
+        Timber.d("S4636: notes row menu built with the Send to.. label")
+        popup.menu.add(0, ITEM_SHARE, 0, R.string.share_to_menu_title)
         popup.menu.add(0, ITEM_DELETE, 1, R.string.notes_delete)
         popup.setOnMenuItemClickListener { item ->
             when (item.itemId) {

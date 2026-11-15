@@ -18,12 +18,9 @@
   `StandardWearToggleChip` draws a trailing switch glyph, so the watch boolean rows carry that exception (recorded
   2026-11-14 by S4600, until 2026-12-31, remediation S4619); its radio form is a single choice and outside this
   contract. Record: `docs/ui/WEAR_SIZE_PROFILE.md`.
-- The shared phone row `SettingsToggleRow` draws the section 1 checkbox with the section 3 activation split
-  (S4604): checkbox, caption and glyph toggle once; explanation, gaps, background and help do not; the row is
-  one focus stop and one named checkbox for accessibility services. The second shared row `FormCheckboxRow`
-  carries the same split, the network monitor radio rows and the scheduled-operation card draw a checkbox, and
-  separated checkbox captions toggle (S4623). Conformance is not claimed: the section 5 evidence, the
-  remaining card without a caption and the launcher captures are owned by S4619.
+- Phone and launcher rows: the shared row `SettingsToggleRow` keeps its trailing `MaterialSwitch` and the whole
+  row toggles it - the portfolio owner's decision of 2026-11-15 (S4634), recorded as the catalog registry
+  exception row "S4634".
 - The deviations currently open are recorded as exceptions in the catalog's registry.
 
 ## Where it lives here

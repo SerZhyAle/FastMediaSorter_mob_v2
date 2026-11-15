@@ -79,6 +79,8 @@ class PlayerCommandPanelCallbackImpl(
         )
     }
 
+    override fun isTextEditorOpen(): Boolean = activity._textViewerManager?.isEditorOpen() == true
+
     // Builds the unified-menu payload for the current file. Local file: a FileProvider Uri is ready
     // now. Remote file (S0493): leave uris empty and carry the source path so the dispatch layer
     // downloads a local copy on demand. Null only when no file is open, or a local file whose

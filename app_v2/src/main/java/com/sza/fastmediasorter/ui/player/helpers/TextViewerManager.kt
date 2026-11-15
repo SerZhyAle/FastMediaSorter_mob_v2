@@ -1080,9 +1080,29 @@ class TextViewerManager(
         null
     }
 
+    /** True while the text editor panel replaces the read-only text view. */
+    fun isEditorOpen(): Boolean = safeViews.textEditContainer.isVisible
+
+    /**
+     * Copy/Move read the file on disk, never the editor buffer, so a dirty buffer is saved in place
+     * first (no rename dialog: a renamed file would leave the transfer on the old one). A move also
+     * takes the file out from under the editor, hence [closeEditor].
+     */
+    fun commitEditorBeforeTransfer(closeEditor: Boolean, proceed: () -> Unit) {
+        Timber.d("S4639: transfer requested, editorOpen=${isEditorOpen()} closeEditor=$closeEditor")
+        when {
+            !isEditorOpen() -> proceed()
+            dirtyTracker.isDirty.value -> saveEditedText(proceed)
+            else -> {
+                if (closeEditor) exitEditMode()
+                proceed()
+            }
+        }
+    }
+
     /** Text a «Send to..» payload carries for text receivers: the editor buffer while editing, else the shown text. */
     fun shareableText(): String? {
-        val text = if (safeViews.textEditContainer.isVisible) {
+        val text = if (isEditorOpen()) {
             safeViews.etTextContent.text.toString()
         } else {
             originalTextForTranslation()

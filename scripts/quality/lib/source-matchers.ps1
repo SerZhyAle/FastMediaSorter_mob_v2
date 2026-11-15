@@ -1098,10 +1098,10 @@ function Get-SourceRules {
         # S2193: "one visual form per element role" (docs/ARCHITECTURE.md, right before the Trigger
         # Row patterns). SettingsToggleRow already owns the toggle-row role; a hand-rolled
         # MaterialSwitch + TextView + ImageButton triplet outside it is the same debt Pattern A's
-        # own prose already calls out. Since S4623 no shipped layout holds a MaterialSwitch (the
-        # wrapper draws a checkbox, BOOLEAN-OPTION 2.1 section 1), so the rule bans any return of one;
-        # the wrapper's layout stays excluded by name. Same five layout roots as the colour/dimen
-        # rules above, on the same S1932 measurement basis.
+        # own prose already calls out. Excluded: the wrapper's own layout (it legitimately embeds
+        # the switch), and item_scheduled_operation.xml, the S0536 documented dense-list-item
+        # exception where ARCHITECTURE.md explicitly allows a bare MaterialSwitch. Same five layout
+        # roots as the colour/dimen rules above, on the same S1932 measurement basis.
         (New-RegexRule -Name 'view-raw-switch' `
                 -Pattern ([regex]'<com\.google\.android\.material\.materialswitch\.MaterialSwitch\b') `
                 -Extensions @('.xml') `
@@ -1109,15 +1109,13 @@ function Get-SourceRules {
                          'app_v2/src/main/res/layout-sw480dp', 'app_v2/src/main/res/layout-sw720dp',
                          'app_v2/src/main/res/layout-w600dp') `
                 -PathFilter 'app_v2/src/main/res/layout(-land|-sw480dp|-sw720dp|-w600dp)?/' `
-                -ExcludeNames @('view_settings_toggle_row.xml') `
+                -ExcludeNames @('view_settings_toggle_row.xml', 'item_scheduled_operation.xml') `
                 -FailMessage 'new hand-rolled MaterialSwitch row outside the canonical wrapper (S2193). Use com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow (docs/ARCHITECTURE.md Pattern A) instead of a private MaterialSwitch + TextView triplet.'),
         # S2193: same principle, checkbox side. FormCheckboxRow already owns the checkbox-row role
         # and its subtitle is optional (setSubtitle(null) hides it), so it is the canonical form
         # with or without a subtitle - a raw MaterialCheckBox outside it (e.g. a hand-rolled
-        # media-type filter grid) is the same debt as the switch rule above. Excluded: the two
-        # wrappers' own layouts (each legitimately embeds its checkbox) and item_scheduled_operation.xml,
-        # the S0536 documented dense-list-item exception whose leading control is a bare checkbox
-        # since S4623.
+        # media-type filter grid) is the same debt as the switch rule above. Only the wrapper's own
+        # layout is excluded.
         (New-RegexRule -Name 'view-raw-checkbox' `
                 -Pattern ([regex]'<com\.google\.android\.material\.checkbox\.MaterialCheckBox\b') `
                 -Extensions @('.xml') `
@@ -1125,7 +1123,7 @@ function Get-SourceRules {
                          'app_v2/src/main/res/layout-sw480dp', 'app_v2/src/main/res/layout-sw720dp',
                          'app_v2/src/main/res/layout-w600dp') `
                 -PathFilter 'app_v2/src/main/res/layout(-land|-sw480dp|-sw720dp|-w600dp)?/' `
-                -ExcludeNames @('view_form_checkbox_row.xml', 'view_settings_toggle_row.xml', 'item_scheduled_operation.xml') `
+                -ExcludeNames @('view_form_checkbox_row.xml') `
                 -FailMessage 'new raw MaterialCheckBox outside the canonical wrapper (S2193). Use com.sza.fastmediasorter.ui.common.widget.FormCheckboxRow (docs/ARCHITECTURE.md Pattern B - subtitle is optional) instead of a hand-rolled checkbox.'),
         # S3303: a user-visible label taken from a framework resource. @android:string/* and
         # android.R.string.* live in framework-res.apk, so they resolve against the system DISPLAY

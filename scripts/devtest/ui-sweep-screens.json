@@ -796,6 +796,17 @@
       "backAfter": 2
     },
     {
+      "id": "filler",
+      "name": "Storage filler",
+      "label": "@string/filler_title",
+      "from": "main",
+      "via": "btnMainDropdownMenu",
+      "expect": "Start filling",
+      "expectRes": "filler_start",
+      "backAfter": 0,
+      "note": "Popup item, so label rather than id. The popup label and the screen title are both filler_title, so the marker is the Start button: static in activity_filler.xml and absent from the popup. Opening the screen starts nothing; the run waits for Start."
+    },
+    {
       "id": "app-launch-panel",
       "name": "Quick launch panel",
       "label": "@string/app_launch_panel_title",
@@ -850,7 +861,7 @@
       "expect": "Exposure",
       "expectRes": "camera_setting_exposure",
       "backAfter": 0,
-      "note": "The `camera` settings section is covered here. It is not reachable from the Settings entry point: CameraSettingsDialogFragment has exactly one call site, the gear button on the capture screen. camera_settings_title is NOT the marker - it is the content description of that same gear button on the host screen."
+      "note": "The `camera` settings section is covered here. It is not reachable from the Settings entry point: CameraSettingsDialogFragment has exactly one call site, the gear button on the capture screen. camera_settings_title is NOT the marker - it is the content description of that same gear button on the host screen. The section's second layout, dialog_camera_ocr_settings, belongs to CameraOcrTranslateActivity, which is excluded no-static-marker; the section stays covered by this entry."
     }
   ],
   "excluded": [
@@ -1078,6 +1089,21 @@
       "activity": "ImmersiveBrowseActivity",
       "reason": "absent-from-this-flavor",
       "note": "Declared only in app_v2/src/vr/AndroidManifest.xml."
+    },
+    {
+      "activity": "HelpPageActivity",
+      "reason": "not-a-destination",
+      "note": "Help viewer, not a navigation destination: opened only by the ? action of a host screen, with that host's asset and site URLs from HelpOpenManager. Help-map coverage is the job of assert-help-map.ps1, not of this walk."
+    },
+    {
+      "activity": "ExchangeServerAdminActivity",
+      "reason": "needs-seeded-content",
+      "note": "Opened from My devices with a DeviceExchangeAccountEntry as its identity extra, so it needs a configured exchange server. The sweep setup configures none."
+    },
+    {
+      "activity": "ExchangeClipboardActivity",
+      "reason": "needs-seeded-content",
+      "note": "Translucent window behind the clipboard send and get items. Send reads the device clipboard and get writes it, both against a configured exchange server, and the sweep setup configures none."
     }
   ],
   "excludedSurfaces": [
@@ -1121,6 +1147,7 @@
     "water-flashlight": "WaterFlashlightActivity",
     "game": "GameActivity",
     "game-help": "GameHelpActivity",
+    "filler": "FillerActivity",
     "app-launch-panel": "AppLaunchPanelActivity",
     "edit-app-launch-panel": "EditAppLaunchPanelActivity",
     "streams": "StreamsActivity",
@@ -1147,9 +1174,9 @@
     "translation": "player-translation-settings"
   },
   "_coverage": [
-    "Activities: dev/ACTIVITY_CATALOG/app_v2.jsonl holds 70 records. 26 are walked by the `screens` list",
+    "Activities: dev/ACTIVITY_CATALOG/app_v2.jsonl holds 75 records. 27 are walked by the `screens` list",
     "above (some screens are dialogs hosted by an already-counted activity, so screens > activities),",
-    "and 44 are named in `excluded`. 26 + 44 = 70, with no record in both lists and none in neither.",
+    "and 48 are named in `excluded`. 27 + 48 = 75, with no record in both lists and none in neither.",
     "",
     "Settings sections: docs/settings/settings-manifest.json holds 19 distinct sectionId values.",
     "17 are covered by a walk entry through `_sectionCoverage`, two of those (camera, translation) from",

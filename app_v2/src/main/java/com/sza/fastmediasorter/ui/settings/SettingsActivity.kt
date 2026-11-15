@@ -3,29 +3,36 @@ package com.sza.fastmediasorter.ui.settings
 import android.animation.ValueAnimator
 import android.content.Context
 import android.content.Intent
-import android.content.res.Configuration
 import android.graphics.Rect
 import android.os.Bundle
 import android.os.SystemClock
+import android.text.TextUtils
 import android.util.TypedValue
+import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
+import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
+import androidx.appcompat.widget.AppCompatTextView
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.core.util.AnimationPolicy
-import com.sza.fastmediasorter.core.util.XrDeviceProbe
 import com.sza.fastmediasorter.databinding.ActivitySettingsBinding
-import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.ui.common.help.HelpOpenManager
 import com.sza.fastmediasorter.ui.common.help.HelpTooltipManager
 import com.sza.fastmediasorter.ui.common.input.FocusDirection
@@ -33,10 +40,6 @@ import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.scheduledops.ScheduledOperationsActivity
 import com.sza.fastmediasorter.ui.settings.fragments.BaseSettingsFragment
 import com.sza.fastmediasorter.ui.settings.fragments.MediaSettingsFragment
-import com.sza.fastmediasorter.ui.settings.fragments.ToolsSettingsFragment
-import com.sza.fastmediasorter.ui.settings.helpers.SettingsNavigationRailManager
-import com.sza.fastmediasorter.ui.settings.helpers.SettingsPageStateStore
-import com.sza.fastmediasorter.ui.settings.helpers.SettingsPageTimingRecorder
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import dagger.hilt.android.AndroidEntryPoint
@@ -65,29 +68,17 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     // S0245: flavor-supplied extra Settings tabs (currently only the VR flavor adds an entry).
     @Inject lateinit var settingsTabExtensions: Set<@JvmSuppressWildcards SettingsTabExtension>
 
-    // S4622: decides whether the Launcher page is listed - the same gate as the General page's launcher rows.
-    @Inject lateinit var launcherModeContract: LauncherModeContract
-
     // S0284: auto-indexed settings search registry (replaces the static SettingsSearchRegistry object).
     @Inject lateinit var settingsSearchRegistry: com.sza.fastmediasorter.ui.settings.search.SettingsSearchRegistry
 
     private val viewModel: SettingsViewModel by viewModels()
     private val searchAdapter = SettingsSearchAdapter(::onSearchResultSelected)
     private var searchDebounceJob: Job? = null
-
-    // S4621: set in setupViews; nullable because setupViews never runs for the EXTRA_OPEN_SCHEDULED redirect.
-    private var pagerAdapter: SettingsPagerAdapter? = null
-    private var railManager: SettingsNavigationRailManager? = null
-    private var pendingSavedState: Bundle? = null
-    private var pageStateStore: SettingsPageStateStore? = null
-    private val pageTimingRecorder = SettingsPageTimingRecorder()
     private val keyboardManager =
         SettingsKeyboardNavigationManager(object : SettingsKeyboardNavigationManager.Callback {
             override fun switchTab(delta: Int) {
-                selectPosition(
-                    (binding.viewPager.currentItem + delta)
-                        .coerceIn(0, (binding.viewPager.adapter?.itemCount ?: 1) - 1),
-                )
+                binding.viewPager.currentItem = (binding.viewPager.currentItem + delta)
+                    .coerceIn(0, (binding.viewPager.adapter?.itemCount ?: 1) - 1)
             }
             override fun tabCount(): Int = binding.viewPager.adapter?.itemCount ?: 0
             override fun currentTab(): Int = binding.viewPager.currentItem
@@ -131,9 +122,6 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         /** Intent extra: Int - open Settings on this tab index (0=General, 1=Media, 2=Playback, 3=Destinations). */
         const val EXTRA_INITIAL_TAB = "extra_initial_tab"
 
-        /** S4621: Intent extra - String [SettingsDestination] id; wins over [EXTRA_INITIAL_TAB] when both are set. */
-        const val EXTRA_INITIAL_DESTINATION = "extra_initial_destination"
-
         /**
          * Intent extra: Boolean - legacy deep-link that used to open the Operations tab with the
          * Scheduled section expanded. Since S3365 [onCreate] redirects it to the program screen;
@@ -155,27 +143,8 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
 
         /** S1883: the Wear OS group on the Operations tab - the settings target of the companion route. */
         const val SECTION_WEAR = "wear"
-
-        /** S4622: the blocks of the Tools page that a host's settings command opens. */
-        const val SECTION_TRANSLATION = "translation"
-        const val SECTION_CALCULATOR = "calculator"
-        const val SECTION_STOPWATCH = "stopwatch"
-
-        /** S4622: open Settings on the Launcher page - the launcher's own settings commands use it. */
-        fun openLauncherPageIntent(context: Context): Intent =
-            Intent(context, SettingsActivity::class.java)
-                .putExtra(EXTRA_INITIAL_DESTINATION, SettingsDestination.LAUNCHER)
-
-        /**
-         * S4622: open Settings on the Tools page with [sectionId] expanded - the one route a host screen
-         * uses for its settings command, so no host keeps an editable copy (SETTINGS-NAVIGATION 2.1 item A).
-         */
-        fun openToolsSectionIntent(context: Context, sectionId: String): Intent =
-            Intent(context, SettingsActivity::class.java).apply {
-                Timber.d("S4622: host command opens Tools section=$sectionId")
-                putExtra(EXTRA_INITIAL_DESTINATION, SettingsDestination.TOOLS)
-                putExtra(EXTRA_EXPAND_SECTION, sectionId)
-            }
+        private const val PREFS_NAME = "settings_state"
+        private const val KEY_LAST_TAB_POSITION = "last_tab_position"
 
         internal fun resolveInitialTabPosition(
             adapterItemCount: Int,
@@ -238,7 +207,6 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             super.onCreate(savedInstanceState)
             return
         }
-        pendingSavedState = savedInstanceState
         super.onCreate(savedInstanceState)
         // Measure actionBarSize and register insets listener before the first frame
         // to prevent toolbarContainer height from jumping on activity open.
@@ -269,8 +237,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         }
 
         if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [0ms] start setupViews")
-        val showLauncher = launcherModeContract.isAvailableInBuild && !XrDeviceProbe.isXrDevice(this)
-        val adapter = SettingsPagerAdapter(this, settingsTabExtensions, showLauncher)
+        val adapter = SettingsPagerAdapter(this, settingsTabExtensions)
         if (BuildConfig.DEBUG) {
             Timber.d(
                 "SettingsActivity: [${elapsed()}ms] SettingsPagerAdapter created (tabCount=${adapter.itemCount})"
@@ -290,29 +257,14 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         }
         if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] viewPager configured (transformer)")
 
-        // S4621: the page menu is the one way to change page. A swipe would change the destination
-        // behind the narrow list, which would then name a page other than the one the user left.
-        binding.viewPager.isUserInputEnabled = false
-        pagerAdapter = adapter
-        val navigation = SettingsNavigationRailManager(
-            rail = binding.settingsRail,
-            contentPane = binding.viewPager,
-            destinations = adapter.destinations,
-            onDestinationSelected = { destination -> selectDestination(destination.id) },
-            onPaneChanged = ::onNavigationPaneChanged,
-        )
-        railManager = navigation
-        navigation.bind()
+        TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
+            tab.text = getString(adapter.getTabTitleResId(position))
+        }.attach()
+        if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] TabLayoutMediator attached")
+        setupConnectedTabs(adapter)
 
-        val initialTab = intent.getStringExtra(EXTRA_INITIAL_DESTINATION)?.let(adapter::indexOf)
-            ?.takeIf { it >= 0 }
-            ?: intent.getIntExtra(EXTRA_INITIAL_TAB, -1)
-        navigation.restoreState(pendingSavedState, hasNamedDestination = initialTab >= 0)
-        pendingSavedState = null
-        val store = SettingsPageStateStore(this)
-        pageStateStore = store
-        val lastTabPosition = store.lastDestinationId { adapter.destinationAt(it)?.id }
-            ?.let(adapter::indexOf) ?: -1
+        val initialTab = intent.getIntExtra(EXTRA_INITIAL_TAB, -1)
+        val lastTabPosition = getLastTabPosition()
         val initialPosition = resolveInitialTabPosition(
             adapterItemCount = adapter.itemCount,
             lastTabPosition = lastTabPosition,
@@ -328,12 +280,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
-                adapter.destinationAt(position)?.let {
-                    store.saveLastDestinationId(it.id)
-                    navigation.markSelected(it.id)
-                    pageTimingRecorder.onActivated(it.id, binding.viewPager) { getSettingsFragment(position)?.view }
-                }
-                onNavigationPaneChanged()
+                saveLastTabPosition(position)
                 // S4394: posted - the newly selected page's view may not exist yet, and the
                 // refresh resolves that page's fragment by tag.
                 binding.viewPager.post { refreshCollapseAllButton() }
@@ -341,11 +288,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         })
 
         binding.viewPager.setCurrentItem(initialPosition, false)
-        adapter.destinationAt(initialPosition)?.let {
-            store.saveLastDestinationId(it.id)
-            navigation.markSelected(it.id)
-        }
-        navigation.applyPresentation(resources.configuration.isWideLayout())
+        saveLastTabPosition(initialPosition)
 
         setupGlobalSearch()
         setupCollapseAllButton()
@@ -376,6 +319,116 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         collectOnLifecycle(viewModel.settings) { settings ->
             applyCompactToolbar(settings.useCompactElements)
         }
+    }
+
+    private val connectedTabListener = object : TabLayout.OnTabSelectedListener {
+        override fun onTabSelected(tab: TabLayout.Tab) = syncConnectedTabState(tab, true)
+        override fun onTabUnselected(tab: TabLayout.Tab) = syncConnectedTabState(tab, false)
+        override fun onTabReselected(tab: TabLayout.Tab) = syncConnectedTabState(tab, true)
+    }
+
+    // Held apart from binding: the EXTRA_OPEN_SCHEDULED redirect finishes before setupViews binds anything.
+    private var connectedTabLayout: TabLayout? = null
+
+    override fun onDestroy() {
+        connectedTabLayout?.removeOnTabSelectedListener(connectedTabListener)
+        connectedTabLayout = null
+        super.onDestroy()
+    }
+
+    private fun setupConnectedTabs(adapter: SettingsPagerAdapter) {
+        val useFixedTabs = binding.tabLayout.tabCount <= 4
+        binding.tabLayout.tabMode = if (useFixedTabs) TabLayout.MODE_FIXED else TabLayout.MODE_SCROLLABLE
+        binding.tabLayout.tabGravity = if (useFixedTabs) TabLayout.GRAVITY_FILL else TabLayout.GRAVITY_START
+
+        for (position in 0 until binding.tabLayout.tabCount) {
+            val tab = binding.tabLayout.getTabAt(position) ?: continue
+            val title = getString(adapter.getTabTitleResId(position))
+            tab.icon = null
+            tab.contentDescription = title
+            tab.customView = createConnectedTabView(title, position, binding.tabLayout.tabCount)
+            tab.view.minimumWidth = 0
+            tab.view.setPadding(0, 0, 0, 0)
+        }
+
+        if (useFixedTabs) {
+            forceEqualTabWidths()
+        }
+
+        binding.tabLayout.addOnTabSelectedListener(connectedTabListener)
+        connectedTabLayout = binding.tabLayout
+
+        // Capture tabLayout so the posted runnable never dereferences `binding`: on a launch/recreate
+        // race the activity can be torn down before this frame runs, and `binding` then throws
+        // IllegalStateException. The captured view stays valid to read; bail if already destroyed
+        // since the recreated instance re-runs setupConnectedTabs.
+        val tabLayout = binding.tabLayout
+        tabLayout.post {
+            if (isDestroyed) return@post
+            for (position in 0 until tabLayout.tabCount) {
+                tabLayout.getTabAt(position)?.let { tab ->
+                    syncConnectedTabState(tab, position == tabLayout.selectedTabPosition)
+                }
+            }
+        }
+    }
+
+    private fun createConnectedTabView(
+        title: String,
+        position: Int,
+        tabCount: Int,
+    ): TextView {
+        val horizontalPadding = resources.getDimensionPixelSize(R.dimen.settings_tab_horizontal_padding)
+        val verticalPadding = resources.getDimensionPixelSize(R.dimen.settings_tab_vertical_padding)
+        return AppCompatTextView(this).apply {
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT,
+            )
+            gravity = Gravity.CENTER
+            text = title
+            isSingleLine = true
+            ellipsize = TextUtils.TruncateAt.END
+            includeFontPadding = false
+            minHeight = resources.getDimensionPixelSize(R.dimen.settings_tab_min_touch_height)
+            setPadding(horizontalPadding, verticalPadding, horizontalPadding, verticalPadding)
+            setTextAppearance(R.style.TextAppearance_FastMediaSorter_SettingsTabConnected)
+            setTextColor(ResourcesCompat.getColorStateList(resources, R.color.settings_tab_text, theme))
+            background = ResourcesCompat.getDrawable(resources, resolveConnectedTabBackground(position, tabCount), theme)
+            isDuplicateParentStateEnabled = true
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+        }
+    }
+
+    private fun resolveConnectedTabBackground(position: Int, tabCount: Int): Int = when {
+        tabCount <= 1 -> R.drawable.bg_settings_tab_single
+        position == 0 -> R.drawable.bg_settings_tab_start
+        position == tabCount - 1 -> R.drawable.bg_settings_tab_end
+        else -> R.drawable.bg_settings_tab_middle
+    }
+
+    private fun syncConnectedTabState(tab: TabLayout.Tab, selected: Boolean) {
+        tab.customView?.isSelected = selected
+        tab.customView?.refreshDrawableState()
+    }
+
+    private fun forceEqualTabWidths() {
+        val tabStrip = binding.tabLayout.getChildAt(0) as? LinearLayout ?: return
+        val isWide = resources.configuration.isWideLayout()
+        val landscapeTabWidth = resources.getDimensionPixelSize(R.dimen.settings_tab_land_width)
+        for (index in 0 until tabStrip.childCount) {
+            val child = tabStrip.getChildAt(index)
+            val params = child.layoutParams as? LinearLayout.LayoutParams ?: continue
+            if (isWide) {
+                params.width = landscapeTabWidth
+                params.weight = 0f
+            } else {
+                params.width = 0
+                params.weight = 1f
+            }
+            child.layoutParams = params
+        }
+        tabStrip.requestLayout()
     }
 
     private fun applyEdgeToEdgeInsets() {
@@ -451,13 +504,20 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             updateLandscapeToolbarHeight()
         } else {
             val titleH = if (compact) compactH else resources.getDimensionPixelSize(R.dimen.settings_title_row_height)
+            val tabH = if (compact) {
+                resources.getDimensionPixelSize(R.dimen.settings_tabs_height_compact)
+            } else {
+                resources.getDimensionPixelSize(R.dimen.settings_tabs_height)
+            }
             // S1693: titleRow exists only in the portrait layout, so the generated field is nullable.
             binding.titleRow?.let { titleRow ->
                 // The dp height is a floor: the title is sp, so a large font scale outgrows a fixed
-                // row and the pane below clips it.
+                // row and the tabs below clip it.
                 titleRow.layoutParams.height = max(titleH, binding.titleText.lineHeight)
                 titleRow.requestLayout()
             }
+            binding.tabLayout.layoutParams.height = tabH
+            binding.tabLayout.requestLayout()
         }
     }
 
@@ -491,19 +551,23 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
      * toolbar. ViewPager2 forwards the focus request to the currently-bound fragment's first
      * focusable child via native focus search (S0230 §11.3 - Settings per-screen audit).
      */
-    // S4621: the page list is the first stop for D-pad and keyboard whenever it is on screen.
-    override fun getInitialFocusView(): View? =
-        if (binding.settingsRail.isVisible) binding.settingsRail else binding.viewPager
+    override fun getInitialFocusView(): View? {
+        return binding.viewPager
+    }
 
     /** S0289 Phase 09: route mouse wheel onto the settings pager so each tab fragment scrolls naturally. */
     override fun getMouseScrollTargetView(): View? = binding.viewPager
 
     /** The button and F1 both land here, so each tab gives one answer (CONTEXT-HELP rule 3). */
     private fun openTabHelp() {
-        // S4621: the page answers by its destination; a flavor extension page has no help page of its own,
-        // so its destination carries the screen-level entry.
-        val surfaceId = pagerAdapter?.destinationAt(binding.viewPager.currentItem)?.helpSurfaceId
-            ?: SettingsDestination.SCREEN_HELP_SURFACE
+        val surfaceId = when (binding.viewPager.currentItem) {
+            TAB_GENERAL -> "settings.general"
+            TAB_MEDIA -> "settings.media"
+            TAB_PLAYBACK -> "settings.playback"
+            TAB_OPERATIONS -> "settings.operations"
+            // A flavor extension tab has no page of its own yet; the screen-level entry answers for it.
+            else -> "SettingsActivity"
+        }
         HelpOpenManager.open(this, surfaceId, UiSurface.SETTINGS)
     }
 
@@ -535,15 +599,10 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             this,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
-                    // S4621: order is search overlay, then narrow page -> page list, then leaving the screen.
-                    when {
-                        binding.searchOverlay.isVisible -> closeSearchOverlay()
-                        railManager?.onBackFromPage() == true -> Unit
-                        else -> leaveSettings()
+                    if (binding.searchOverlay.isVisible) {
+                        closeSearchOverlay()
+                        return
                     }
-                }
-
-                private fun leaveSettings() {
                     // If the back stack is empty (e.g. process was restarted while Settings was open),
                     // navigate up to MainActivity explicitly instead of going to home screen.
                     if (isTaskRoot) {
@@ -592,8 +651,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
 
     private fun onSearchResultSelected(item: SettingsSearchIndex) {
         closeSearchOverlay()
-        selectDestination(item.destination.destinationId)
-        railManager?.takeIf { !it.isWide }?.showPage()
+        binding.viewPager.currentItem = item.destination.tabIndex
 
         binding.viewPager.post { navigateToTarget(item, retryCount = 0) }
     }
@@ -607,7 +665,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
      * exactly how the first version of this fix passed on General and failed on Playback.
      */
     private fun expandSectionForTarget(item: SettingsSearchIndex) {
-        val fragment = getSettingsFragment(pagerAdapter?.indexOf(item.destination.destinationId) ?: -1)
+        val fragment = getSettingsFragment(item.destination.tabIndex)
         // Media's sections build their child fragment on first expand, so opening the container is
         // necessary but not sufficient there; this path attaches the child and is left as it was.
         if (fragment is MediaSettingsFragment) {
@@ -654,55 +712,6 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         }
     }
 
-    /** S4621: opens the page of destination [id]; an id this build does not have opens General. */
-    private fun selectDestination(id: String) {
-        val position = pagerAdapter?.indexOf(id)?.takeIf { it >= 0 } ?: 0
-        selectPosition(position)
-    }
-
-    /**
-     * S4622: a row of another page that leads to a Tools block opens it in place, the way a host command
-     * does from outside. The extra is read by a page created later; a page that already exists is told now.
-     */
-    fun openToolsSection(sectionId: String) {
-        intent.putExtra(EXTRA_EXPAND_SECTION, sectionId)
-        openDestination(SettingsDestination.TOOLS)
-        val position = pagerAdapter?.indexOf(SettingsDestination.TOOLS) ?: return
-        binding.viewPager.post { (getSettingsFragment(position) as? ToolsSettingsFragment)?.expandSectionFromIntent() }
-    }
-
-    /** S4622: a page row that leads to another page (the Launcher opener) shows that page, as the menu does. */
-    fun openDestination(id: String) {
-        selectDestination(id)
-        railManager?.takeIf { !it.isWide }?.showPage()
-    }
-
-    private fun selectPosition(position: Int) {
-        if (binding.viewPager.currentItem != position) binding.viewPager.setCurrentItem(position, false)
-    }
-
-    /** S4621: the toolbar names the page while a narrow window shows it without the page list. */
-    private fun onNavigationPaneChanged() {
-        val manager = railManager ?: return
-        val destination = pagerAdapter?.destinationAt(binding.viewPager.currentItem)
-        binding.titleText.text = if (manager.isShowingNarrowPage && destination != null) {
-            getString(destination.titleRes)
-        } else {
-            getString(R.string.settings)
-        }
-    }
-
-    // This activity absorbs rotation (android:configChanges), so the breakpoint is re-read here.
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-        railManager?.applyPresentation(newConfig.isWideLayout())
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        railManager?.saveState(outState)
-    }
-
     /** S4394: a page's view exists - sync the toolbar collapse-all affordance to its state. */
     fun onSettingsPageViewReady() {
         refreshCollapseAllButton()
@@ -741,22 +750,26 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     }
 
     /**
-     * S4621: scroll offset remembered for [page], or 0. Only a top-level page has a destination id; a
-     * page nested inside Media carries no pager tag and so is never remembered on its own.
+     * Get last opened tab position from SharedPreferences.
+     * Wrapped in StrictModeHelper to avoid violations.
      */
-    fun rememberedScrollOffset(page: androidx.fragment.app.Fragment): Int {
-        val id = destinationIdOf(page) ?: return 0
-        return pageStateStore?.scrollOffset(id) ?: 0
+    private fun getLastTabPosition(): Int {
+        return StrictModeHelper.allowDiskReads {
+            getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .getInt(KEY_LAST_TAB_POSITION, 0) // Default to first tab (General)
+        }
     }
 
-    fun rememberScrollOffset(page: androidx.fragment.app.Fragment, offset: Int) {
-        val id = destinationIdOf(page) ?: return
-        pageStateStore?.saveScrollOffset(id, offset)
-    }
-
-    private fun destinationIdOf(page: androidx.fragment.app.Fragment): String? {
-        val position = page.tag?.removePrefix("f")?.toIntOrNull()
-            ?.takeIf { page.parentFragmentManager === supportFragmentManager }
-        return position?.let { pagerAdapter?.destinationAt(it)?.id }
+    /**
+     * Save current tab position to SharedPreferences.
+     * Wrapped in StrictModeHelper to avoid violations.
+     */
+    private fun saveLastTabPosition(position: Int) {
+        StrictModeHelper.allowDiskWrites {
+            getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .putInt(KEY_LAST_TAB_POSITION, position)
+                .apply()
+        }
     }
 }

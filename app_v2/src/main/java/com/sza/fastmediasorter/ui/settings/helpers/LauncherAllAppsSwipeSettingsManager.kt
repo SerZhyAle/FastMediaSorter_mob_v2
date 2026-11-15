@@ -1,10 +1,10 @@
 package com.sza.fastmediasorter.ui.settings.helpers
 
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
+import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.databinding.FragmentSettingsLauncherBinding
+import com.sza.fastmediasorter.databinding.DialogLauncherSettingsBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.LauncherAllAppsSwipeAction
 import com.sza.fastmediasorter.domain.model.LauncherAllAppsSwipeDirection
@@ -26,8 +26,8 @@ import kotlinx.coroutines.launch
  * the same app picker.
  */
 class LauncherAllAppsSwipeSettingsManager(
-    private val host: Fragment,
-    private val binding: FragmentSettingsLauncherBinding,
+    private val host: DialogFragment,
+    private val binding: DialogLauncherSettingsBinding,
     private val currentSettings: () -> AppSettings,
     private val updateSettings: ((AppSettings) -> AppSettings) -> Unit,
     private val picker: LauncherAllAppsSwipeActionPickerManager,

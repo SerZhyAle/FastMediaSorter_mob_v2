@@ -631,10 +631,11 @@ class DestinationButtonsManager(
     /**
      * Number the addressable groups when non-touch input is active (TV remote / D-pad / keyboard); clear all badges otherwise.
      * Each button shows the key bound to its own global slot (MEDIA-VIEWER rule 4.2): Move buttons read
-     * `sorting.op_slot_<slot>`, Copy buttons `sorting.copy_slot_<slot>` with the Shift chord; the position
+     * `sorting.op_slot_<slot>`, Copy buttons `sorting.copy_slot_<slot>` with the arrow badge; the position
      * digit is the fallback. A button past slot 10 or in a collapsed group carries no badge.
      */
     fun refreshSlotBadges() {
+        Timber.d("S4638: refreshSlotBadges numbering=${shouldNumberSlots()}")
         val numberable = if (shouldNumberSlots()) addressableButtons().toSet() else emptySet()
         listOf(safeViews.copyToButtonsGrid to true, safeViews.moveToButtonsGrid to false).forEach { (grid, isCopy) ->
             flattenButtons(grid).forEach { button ->
@@ -645,12 +646,15 @@ class DestinationButtonsManager(
         }
     }
 
-    /** Badge of one slot: the bound key of its command, Shift-prefixed for Copy, the position digit as fallback. */
+    /**
+     * Badge of one slot: the bound key of its command, the position digit as fallback. Copy shows the arrow
+     * in front of the bare key only - the arrow already says Shift, so the formatted modifier name is dropped.
+     */
     private fun slotBadgeGlyph(slot: Int, isCopy: Boolean): String? {
         val commandId = if (isCopy) "sorting.copy_slot_$slot" else "sorting.op_slot_$slot"
         val bound = slotKeyGlyph(commandId)
         return when {
-            isCopy -> bound?.let { "⇧$it" } ?: positionDigit(slot)?.let { "⇧$it" }
+            isCopy -> (bound?.substringAfterLast('+') ?: positionDigit(slot))?.let { "⇧$it" }
             else -> bound ?: positionDigit(slot)
         }
     }

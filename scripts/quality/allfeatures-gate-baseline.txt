@@ -1,6 +1,8 @@
-# Reason (2026-10-12): S4168: raise count and gate baselines to match live ledger
+# Reason (2026-11-15): S4634: S4621 settings page rail record removed - feature reverted on owner order 2026-11-15
 audio-player.chromecast-casting SUPPORT_AUDIO+SUPPORT_CAST
 broadcast.acoustic-feedback-guard SUPPORT_BROADCAST_SOURCE
+broadcast.bright-frame-for-dark-broadcasts SUPPORT_BROADCAST_SOURCE
+broadcast.flashlight-during-video-broadcast SUPPORT_BROADCAST_SOURCE
 broadcast.neutral-default-stream-title SUPPORT_BROADCAST_SOURCE
 broadcast.preview-before-start SUPPORT_BROADCAST_SOURCE
 broadcast.viewer-help-link SUPPORT_BROADCAST_SOURCE
@@ -36,8 +38,10 @@ documents.reader-jump-to-start-separated-from-the-page SUPPORT_DOCUMENTS
 documents.standalone_print_send_to SUPPORT_DOCUMENTS
 documents.standalone-document-viewer-no-longer-leaks-a-pdfrenderer SUPPORT_DOCUMENTS
 documents.swipe-page-turn-in-the-pdf-reader SUPPORT_DOCUMENTS
+exchange.exchange-server-mark SUPPORT_LOCAL_NETWORK
 launcher_desktop.enabled_tool_shortcut_sync SUPPORT_LAUNCHER
 launcher-desktop.youtube-web-frame-widgets SUPPORT_LAUNCHER
+launcher.all-apps-category-groups SUPPORT_LAUNCHER
 launcher.all-apps-from-edge-gesture SUPPORT_LAUNCHER
 launcher.all-apps-swipe-actions SUPPORT_LAUNCHER
 launcher.app-function-shortcuts-follow-their-toggles SUPPORT_LAUNCHER
@@ -73,11 +77,13 @@ network.resource_speed SUPPORT_NETWORK_MONITOR
 network.traceroute SUPPORT_NETWORK_MONITOR
 ocr-translation.overlay-plate-overflow-rule ENABLE_TRANSLATION
 product.wear-companion-as-a-program SUPPORT_WEAR_COMPANION
+programs-tools.notes-exchange-sync SUPPORT_DOCUMENTS
 security.wear-sftp-host-key-pin SUPPORT_WEAR_COMPANION
 send-to-menu.open-media-on-paired-watch SUPPORT_WEAR_COMPANION
 settings-navigation.watch-log-reports-in-log-export SUPPORT_WEAR_COMPANION
 settings-navigation.wear-os-companion-settings-sync SUPPORT_WEAR_COMPANION
 settings-navigation.wear-two-way-settings-sync SUPPORT_WEAR_COMPANION
+sources-storage.exchange-import-completion SUPPORT_LOCAL_NETWORK
 streaming.live-stream-chromecast-cast SUPPORT_STREAMS+SUPPORT_CAST
 streams.broadcast-descriptor-file-hand-off SUPPORT_BROADCAST_SOURCE
 streams.clear-all-downloaded-channels SUPPORT_STREAMS
@@ -87,6 +93,7 @@ streams.favourite-star-survives-address-change SUPPORT_STREAMS
 streams.main_window_panel SUPPORT_STREAMS
 streams.offline-stream-play-soft-fail SUPPORT_STREAMS
 streams.open-stream-on-watch SUPPORT_WEAR_COMPANION
+streams.own-broadcasts-exchange-server SUPPORT_STREAMS
 streams.panel_inline_audio SUPPORT_STREAMS
 streams.preset-enabled-catalog-autoload SUPPORT_STREAMS
 streams.reorder-pinned-streams SUPPORT_STREAMS
@@ -180,6 +187,7 @@ wear.phone-folder-grid-and-thumbnails SUPPORT_WEAR_COMPANION
 wear.phone-media-browse-by-type SUPPORT_WEAR_COMPANION
 wear.player-panel-autohide-delay SUPPORT_WEAR_COMPANION
 wear.rectangular-grid-cells SUPPORT_WEAR_COMPANION
+wear.scheduled-message-to-watch SUPPORT_WEAR_COMPANION
 wear.selective-resource-transfer-to-watch SUPPORT_WEAR_COMPANION
 wear.send-to-receivers SUPPORT_WEAR_COMPANION
 wear.settings-group-master-switch SUPPORT_WEAR_COMPANION

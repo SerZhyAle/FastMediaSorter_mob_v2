@@ -3431,6 +3431,7 @@
     <string name="ext_vlc_engine_desc">Проигрывает видеофайлы и образы дисков, которые встроенный плеер открыть не может. Разовая загрузка примерно 44 МБ.</string>
     <string name="calculator_display_content_description">Результат. Нажмите, чтобы скопировать, удерживайте, чтобы вставить число</string>
     <string name="calculator_action_settings">Настройки калькулятора</string>
+    <string name="calculator_settings_title">Настройки калькулятора</string>
     <string name="calculator_settings_group_thousands">Разделять разряды</string>
     <string name="calculator_settings_group_thousands_summary">Ставить запятую между каждыми тремя цифрами - и до, и после точки</string>
     <string name="calculator_settings_text_size">Размер результата</string>
@@ -4489,6 +4490,7 @@
     <string name="broadcast_control_group_share">Ссылка и обмен</string>
     <string name="msg_transfer_same_folder_refused">Это и есть папка файла. Выберите другое назначение.</string>
     <string name="settings_collapse_all">Свернуть всё</string>
+    <string name="settings_category_about_app">Всё об этом приложении</string>
     <string name="broadcast_control_preview_toggle_cd">Картинка вещания. Нажмите, чтобы показать или скрыть кнопки управления</string>
     <string name="broadcast_link_password_title">Пароль ссылки</string>
     <string name="broadcast_link_password_mode_auto">Автоматический</string>
@@ -4627,7 +4629,6 @@
     <string name="notes_new">Новая заметка</string>
     <string name="notes_search_hint">Поиск в заметках</string>
     <string name="notes_empty">Заметок пока нет. Нажмите «Новая заметка», чтобы написать первую.</string>
-    <string name="notes_share">Поделиться</string>
     <string name="notes_delete">Удалить</string>
     <string name="notes_delete_title">Удалить заметку?</string>
     <string name="notes_delete_confirm">Заметка «%1$s» будет удалена с устройства.</string>
@@ -4675,9 +4676,4 @@
     <string name="streams_pause">Пауза</string>
     <string name="streams_resume">Продолжить</string>
     <string name="streams_paused">На паузе</string>
-    <string name="settings_tab_tools">Инструменты</string>
-    <string name="settings_tools_group_translation">Перевод</string>
-    <string name="settings_tools_group_calculator">Калькулятор</string>
-    <string name="settings_tools_group_stopwatch">Секундомер</string>
-    <string name="settings_tab_launcher">Лаунчер</string>
 </resources>

@@ -93,6 +93,7 @@
     <string name="settings_all_files_profile_confirm_message">یہ پروفائل فائل مینیجر موڈ فعال کرتی ہے اور غائب \"تمام فائلیں\" ذریعہ بنا دے گی۔ جاری رکھیں؟</string>
     <string name="settings_reset_settings_failed">ترتیبات دوبارہ ترتیب نہ ہو سکیں۔ دوبارہ کوشش کریں۔</string>
     <string name="settings_reset_smb_failed">SMB کنکشن دوبارہ ترتیب نہ ہو سکے۔ دوبارہ کوشش کریں۔</string>
+    <string name="settings_saved">ترتیبات محفوظ ہو گئیں</string>
     <string name="settings_search_close">ترتیبات کی تلاش بند کریں</string>
     <string name="settings_search_hint">ترتیبات میں تلاش کریں</string>
     <string name="settings_search_no_results">کوئی ترتیب نہ ملی</string>

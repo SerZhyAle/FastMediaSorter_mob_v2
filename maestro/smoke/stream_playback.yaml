@@ -50,13 +50,11 @@ env:
       visible:
         id: "com.sza.fastmediasorter.debug:id/rowEnableStreams"
         containsChild:
-          id: "com.sza.fastmediasorter.debug:id/str_checkbox"
+          id: "com.sza.fastmediasorter.debug:id/str_switch"
           checked: false
     commands:
       - tapOn:
-          id: "com.sza.fastmediasorter.debug:id/str_checkbox"
-          childOf:
-            id: "com.sza.fastmediasorter.debug:id/rowEnableStreams"
+          id: "com.sza.fastmediasorter.debug:id/rowEnableStreams"
 - runFlow: ../_shared/go_home.yaml
 - tapOn:
     id: "com.sza.fastmediasorter.debug:id/btnMainDropdownMenu"

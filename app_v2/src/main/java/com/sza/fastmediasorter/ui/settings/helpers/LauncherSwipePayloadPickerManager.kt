@@ -1,6 +1,6 @@
 package com.sza.fastmediasorter.ui.settings.helpers
 
-import androidx.fragment.app.Fragment
+import androidx.fragment.app.DialogFragment
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeAction
 import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeDirection
@@ -20,7 +20,7 @@ import com.sza.fastmediasorter.ui.applaunchpanel.edit.AppPickerDialogFragment
  * it through the two callbacks.
  */
 class LauncherSwipePayloadPickerManager(
-    private val host: Fragment,
+    private val host: DialogFragment,
     private val currentSettings: () -> AppSettings,
     private val updateSettings: ((AppSettings) -> AppSettings) -> Unit,
     private val pendingDirection: () -> LauncherDesktopSwipeDirection?,

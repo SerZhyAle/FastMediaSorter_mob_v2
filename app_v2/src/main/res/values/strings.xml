@@ -3489,6 +3489,7 @@
     <string name="ext_vlc_engine_desc">Plays video files and disc images the built-in player cannot open. One-time download of about 44 MB.</string>
     <string name="calculator_display_content_description">Result. Tap to copy, long-press to paste a number</string>
     <string name="calculator_action_settings">Calculator settings</string>
+    <string name="calculator_settings_title">Calculator settings</string>
     <string name="calculator_settings_group_thousands">Group digits</string>
     <string name="calculator_settings_group_thousands_summary">Put a comma between every three digits, on both sides of the decimal point</string>
     <string name="calculator_settings_text_size">Result size</string>
@@ -4552,6 +4553,7 @@
     <string name="broadcast_control_group_share">Link and sharing</string>
     <string name="msg_transfer_same_folder_refused">This is already the file\'s folder. Pick a different destination.</string>
     <string name="settings_collapse_all">Collapse all</string>
+    <string name="settings_category_about_app">All about this application</string>
     <string name="broadcast_control_preview_toggle_cd">Broadcast picture. Tap to show or hide the controls</string>
     <string name="broadcast_link_password_title">Link password</string>
     <string name="broadcast_link_password_mode_auto">Automatic</string>
@@ -4688,7 +4690,6 @@
     <string name="notes_new">New note</string>
     <string name="notes_search_hint">Search notes</string>
     <string name="notes_empty">No notes yet. Tap New note to write the first one.</string>
-    <string name="notes_share">Share</string>
     <string name="notes_delete">Delete</string>
     <string name="notes_delete_title">Delete note?</string>
     <string name="notes_delete_confirm">The note \"%1$s\" will be deleted from the device.</string>
@@ -4736,9 +4737,4 @@
     <string name="streams_pause">Pause</string>
     <string name="streams_resume">Resume</string>
     <string name="streams_paused">Paused</string>
-    <string name="settings_tab_tools">Tools</string>
-    <string name="settings_tools_group_translation">Translation</string>
-    <string name="settings_tools_group_calculator">Calculator</string>
-    <string name="settings_tools_group_stopwatch">Stopwatch</string>
-    <string name="settings_tab_launcher">Launcher</string>
 </resources>

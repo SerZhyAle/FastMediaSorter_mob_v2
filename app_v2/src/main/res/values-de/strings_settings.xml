@@ -93,6 +93,7 @@
     <string name="settings_all_files_profile_confirm_message">Dieses Profil aktiviert den Dateimanager-Modus und legt die fehlende Quelle \"Alle Dateien\" an. Fortfahren?</string>
     <string name="settings_reset_settings_failed">Die Einstellungen ließen sich nicht zurücksetzen. Versuchen Sie es erneut.</string>
     <string name="settings_reset_smb_failed">Die SMB-Verbindungen ließen sich nicht zurücksetzen. Versuchen Sie es erneut.</string>
+    <string name="settings_saved">Einstellungen gespeichert</string>
     <string name="settings_search_close">Einstellungssuche schließen</string>
     <string name="settings_search_hint">Einstellungen durchsuchen</string>
     <string name="settings_search_no_results">Keine Einstellungen gefunden</string>

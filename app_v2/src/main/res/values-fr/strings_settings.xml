@@ -94,6 +94,7 @@
     <string name="settings_all_files_profile_confirm_message">Ce profil active le mode gestionnaire de fichiers et créera la source \"Tous les fichiers\" manquante. Continuer ?</string>
     <string name="settings_reset_settings_failed">Impossible de réinitialiser les paramètres. Réessayez.</string>
     <string name="settings_reset_smb_failed">Impossible de réinitialiser les connexions SMB. Réessayez.</string>
+    <string name="settings_saved">Paramètres enregistrés</string>
     <string name="settings_search_close">Fermer la recherche dans les paramètres</string>
     <string name="settings_search_hint">Rechercher dans les paramètres</string>
     <string name="settings_search_no_results">Aucun paramètre trouvé</string>

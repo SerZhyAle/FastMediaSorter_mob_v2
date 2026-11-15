@@ -7,7 +7,9 @@
     { "id": "list", "viewId": "notesRecyclerView" },
     { "id": "row-more", "viewId": "noteMore", "labelKey": "notes_row_more" },
     { "id": "empty", "viewId": "notesEmptyText", "labelKey": "notes_empty" },
-    { "id": "new-note", "viewId": "notesNewButton", "labelKey": "notes_new" }
+    { "id": "new-note", "viewId": "notesNewButton", "labelKey": "notes_new" },
+    { "id": "sync-now", "viewId": "action_notes_sync_now", "labelKey": "notes_sync_now" },
+    { "id": "too-large", "viewId": "noteTooLarge", "labelKey": "notes_sync_too_large" }
   ],
   "related": [
     { "help": "main" },
@@ -22,13 +24,16 @@
         "Tap New note (6) to start writing. The editor opens on an empty note; type, then save, and the note appears at the top of the list.",
         "Tap a note in the list (3) to open it in the editor. Each row shows the first line as the title, the next line below it and the time of the last change.",
         "To find a note, type in the search field (2). Only the notes whose text contains what you typed stay in the list.",
-        "The button at the end of a row (4) shares the note's text or deletes the note. Deleting asks first.",
-        "The back arrow (1) closes the screen. When there are no notes yet, a hint (5) says how to write the first one."
+        "The button at the end of a row (4) sends the note's text through Send to.. or deletes the note. Deleting asks first.",
+        "The back arrow (1) closes the screen. When there are no notes yet, a hint (5) says how to write the first one.",
+        "To keep the notes on your other devices too, open My devices, open the menu of your exchange server and turn on Sync notes through the exchange server. The notes are encrypted for your own devices only; whoever runs the server sees only how many notes there are, their sizes and times. Once it is on, the title shows the sync state and Sync now (7) runs a sync at once.",
+        "A note changed on two devices at the same time is kept twice, so no text is lost. A note that is too large to sync carries a mark (8) and stays on this device."
       ],
       "groups": [
         { "title": "Title bar", "elements": ["back"] },
         { "title": "Search and the list", "elements": ["search", "list", "row-more", "empty"] },
-        { "title": "Writing", "elements": ["new-note"] }
+        { "title": "Writing", "elements": ["new-note"] },
+        { "title": "Sync with your other devices", "elements": ["sync-now", "too-large"] }
       ],
       "elements": {
         "back": {
@@ -46,8 +51,8 @@
           "details": "The first line of a note is its title and the next line is shown under it, so most notes need no name. Tap a row to open the note in the text editor; a long press opens the same actions as the button at the end of the row."
         },
         "row-more": {
-          "summary": "Shares the note's text or deletes the note.",
-          "details": "Share sends the text to any app that accepts text, such as a messenger or email. Delete asks for confirmation and then removes the file from the device."
+          "summary": "Sends the note's text through Send to.. or deletes the note.",
+          "details": "Send to.. offers the recipients you set up for the whole app, including any app that accepts text, such as a messenger or email. Delete asks for confirmation and then removes the file from the device."
         },
         "empty": {
           "name": "Empty list hint",
@@ -57,6 +62,14 @@
         "new-note": {
           "summary": "Creates a new note and opens it in the text editor.",
           "details": "The note is named after the current date and time and saved in the Notes folder of Documents. Until you save it in the editor no file is written."
+        },
+        "sync-now": {
+          "summary": "Syncs the notes with your other devices at once.",
+          "details": "It appears in the screen menu once Sync notes through the exchange server is on for one of your servers. The notes are encrypted for your own devices only, and whoever runs the server sees only how many notes there are, their sizes and times. Notes are also synced when you open the screen, return from the editor, connect to the server and whenever another device changes a note. A note changed on two devices at the same time is kept twice. If the server cannot be reached, the notes stay on this device and the title says so."
+        },
+        "too-large": {
+          "summary": "Marks a note that is too large to sync.",
+          "details": "Such a note stays on this device and is not sent. Shorten it, or split it into two notes, and it syncs with the next sync."
         }
       }
     },
@@ -68,12 +81,15 @@
         "Нажмите на заметку в списке (3), чтобы открыть её в редакторе. В строке видны первая строка как заголовок, следующая строка под ней и время последнего изменения.",
         "Чтобы найти заметку, наберите текст в поле поиска (2). В списке останутся только заметки, в которых он встречается.",
         "Кнопка в конце строки (4) отправляет текст заметки или удаляет её. Перед удалением приложение спрашивает подтверждение.",
-        "Стрелка назад (1) закрывает экран. Пока заметок нет, подсказка (5) говорит, как написать первую."
+        "Стрелка назад (1) закрывает экран. Пока заметок нет, подсказка (5) говорит, как написать первую.",
+        "Чтобы заметки были и на других ваших устройствах, откройте «Мои устройства», откройте меню своего сервера обмена и включите «Синхронизировать заметки через сервер обмена». Заметки зашифрованы только для ваших собственных устройств; тот, кто управляет сервером, видит лишь их количество, размеры и время. Когда синхронизация включена, в заголовке виден её статус, а «Синхронизировать сейчас» (7) запускает её сразу.",
+        "Заметка, изменённая на двух устройствах одновременно, сохраняется в двух версиях, поэтому текст не теряется. Заметка, слишком большая для синхронизации, получает отметку (8) и остаётся на этом устройстве."
       ],
       "groups": [
         { "title": "Заголовок", "elements": ["back"] },
         { "title": "Поиск и список", "elements": ["search", "list", "row-more", "empty"] },
-        { "title": "Запись", "elements": ["new-note"] }
+        { "title": "Запись", "elements": ["new-note"] },
+        { "title": "Синхронизация с другими устройствами", "elements": ["sync-now", "too-large"] }
       ],
       "elements": {
         "back": {
@@ -92,7 +108,7 @@
         },
         "row-more": {
           "summary": "Отправляет текст заметки или удаляет заметку.",
-          "details": "«Поделиться» передаёт текст любому приложению, которое принимает текст, например мессенджеру или почте. «Удалить» спрашивает подтверждение и затем удаляет файл с устройства."
+          "details": "«Отправить в..» предлагает получателей, настроенных для всего приложения, в том числе любое приложение, которое принимает текст, например мессенджер или почту. «Удалить» спрашивает подтверждение и затем удаляет файл с устройства."
         },
         "empty": {
           "name": "Подсказка пустого списка",
@@ -102,6 +118,14 @@
         "new-note": {
           "summary": "Создаёт новую заметку и открывает её в текстовом редакторе.",
           "details": "Заметка получает имя по текущей дате и времени и сохраняется в папке Notes внутри Documents. Пока вы не сохраните её в редакторе, файл не записывается."
+        },
+        "sync-now": {
+          "summary": "Сразу синхронизирует заметки с другими вашими устройствами.",
+          "details": "Пункт появляется в меню экрана, когда для одного из ваших серверов включено «Синхронизировать заметки через сервер обмена». Заметки зашифрованы только для ваших собственных устройств, а тот, кто управляет сервером, видит лишь их количество, размеры и время. Синхронизация также идёт при открытии экрана, при возврате из редактора, при подключении к серверу и каждый раз, когда другое устройство изменяет заметку. Заметка, изменённая на двух устройствах одновременно, сохраняется в двух версиях. Если сервер недоступен, заметки остаются на этом устройстве, и заголовок сообщает об этом."
+        },
+        "too-large": {
+          "summary": "Отмечает заметку, слишком большую для синхронизации.",
+          "details": "Такая заметка остаётся на этом устройстве и не отправляется. Сократите её или разделите на две заметки, и при следующей синхронизации она отправится."
         }
       }
     },
@@ -113,12 +137,15 @@
         "Натисніть на нотатку в списку (3), щоб відкрити її в редакторі. У рядку видно перший рядок як заголовок, наступний рядок під ним і час останньої зміни.",
         "Щоб знайти нотатку, наберіть текст у полі пошуку (2). У списку залишаться лише нотатки, у яких він трапляється.",
         "Кнопка в кінці рядка (4) надсилає текст нотатки або видаляє її. Перед видаленням застосунок питає підтвердження.",
-        "Стрілка назад (1) закриває екран. Поки нотаток немає, підказка (5) пояснює, як написати першу."
+        "Стрілка назад (1) закриває екран. Поки нотаток немає, підказка (5) пояснює, як написати першу.",
+        "Щоб нотатки були й на інших ваших пристроях, відкрийте «Мої пристрої», відкрийте меню свого сервера обміну та ввімкніть «Синхронізувати нотатки через сервер обміну». Нотатки зашифровані лише для ваших власних пристроїв; той, хто керує сервером, бачить лише їхню кількість, розміри й час. Коли синхронізацію ввімкнено, у заголовку видно її стан, а «Синхронізувати зараз» (7) запускає її одразу.",
+        "Нотатка, змінена на двох пристроях одночасно, зберігається у двох версіях, тому текст не губиться. Нотатка, завелика для синхронізації, отримує позначку (8) і залишається на цьому пристрої."
       ],
       "groups": [
         { "title": "Заголовок", "elements": ["back"] },
         { "title": "Пошук і список", "elements": ["search", "list", "row-more", "empty"] },
-        { "title": "Запис", "elements": ["new-note"] }
+        { "title": "Запис", "elements": ["new-note"] },
+        { "title": "Синхронізація з іншими пристроями", "elements": ["sync-now", "too-large"] }
       ],
       "elements": {
         "back": {
@@ -137,7 +164,7 @@
         },
         "row-more": {
           "summary": "Надсилає текст нотатки або видаляє нотатку.",
-          "details": "«Поділитися» передає текст будь-якому застосунку, що приймає текст, наприклад месенджеру чи пошті. «Видалити» питає підтвердження, а потім видаляє файл із пристрою."
+          "details": "«Надіслати до..» пропонує отримувачів, налаштованих для всього застосунку, зокрема будь-який застосунок, що приймає текст, наприклад месенджер чи пошту. «Видалити» питає підтвердження, а потім видаляє файл із пристрою."
         },
         "empty": {
           "name": "Підказка порожнього списку",
@@ -147,6 +174,14 @@
         "new-note": {
           "summary": "Створює нову нотатку й відкриває її в текстовому редакторі.",
           "details": "Нотатка отримує ім'я за поточною датою й часом і зберігається в папці Notes всередині Documents. Поки ви не збережете її в редакторі, файл не записується."
+        },
+        "sync-now": {
+          "summary": "Одразу синхронізує нотатки з іншими вашими пристроями.",
+          "details": "Пункт з'являється в меню екрана, коли для одного з ваших серверів увімкнено «Синхронізувати нотатки через сервер обміну». Нотатки зашифровані лише для ваших власних пристроїв, а той, хто керує сервером, бачить лише їхню кількість, розміри й час. Синхронізація також іде під час відкриття екрана, під час повернення з редактора, під час підключення до сервера й щоразу, коли інший пристрій змінює нотатку. Нотатка, змінена на двох пристроях одночасно, зберігається у двох версіях. Якщо сервер недоступний, нотатки залишаються на цьому пристрої, і заголовок повідомляє про це."
+        },
+        "too-large": {
+          "summary": "Позначає нотатку, завелику для синхронізації.",
+          "details": "Така нотатка залишається на цьому пристрої й не надсилається. Скоротіть її або поділіть на дві нотатки, і під час наступної синхронізації вона надішлеться."
         }
       }
     }

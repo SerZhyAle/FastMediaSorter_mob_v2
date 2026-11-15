@@ -3017,6 +3017,7 @@
     <string name="ext_vlc_engine_desc">ایسی ویڈیو فائلیں اور ڈسک امیجز چلاتا ہے جو بلٹ اِن پلیئر نہیں کھول سکتا۔ تقریباً 44 MB کا ایک بار کا ڈاؤن لوڈ۔</string>
     <string name="calculator_display_content_description">نتیجہ۔ کاپی کرنے کے لیے ٹیپ کریں، نمبر پیسٹ کرنے کے لیے دیر تک دبائیں</string>
     <string name="calculator_action_settings">کیلکولیٹر کی ترتیبات</string>
+    <string name="calculator_settings_title">کیلکولیٹر کی ترتیبات</string>
     <string name="calculator_settings_group_thousands">ہندسوں کو گروپ کریں</string>
     <string name="calculator_settings_group_thousands_summary">اعشاریہ کے دونوں طرف ہر تین ہندسوں کے درمیان کوما لگائیں</string>
     <string name="calculator_settings_text_size">نتیجے کا سائز</string>
@@ -4024,6 +4025,7 @@
     <string name="broadcast_control_group_share">لنک اور شیئرنگ</string>
     <string name="msg_transfer_same_folder_refused">یہ پہلے ہی فائل کا فولڈر ہے۔ کوئی دوسری منزل چنیں۔</string>
     <string name="settings_collapse_all">سب سمیٹیں</string>
+    <string name="settings_category_about_app">اس ایپ کے بارے میں سب کچھ</string>
     <string name="broadcast_control_preview_toggle_cd">نشریے کی تصویر۔ کنٹرولز دکھانے یا چھپانے کے لیے ٹیپ کریں</string>
     <string name="broadcast_link_password_title">لنک کا پاس ورڈ</string>
     <string name="broadcast_link_password_mode_auto">خودکار</string>

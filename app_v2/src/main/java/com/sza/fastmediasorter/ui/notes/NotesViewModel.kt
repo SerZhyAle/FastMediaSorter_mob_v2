@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.domain.exchange.NotesSyncTriggerManager
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -75,6 +76,7 @@ class NotesViewModel @Inject constructor(
     private val resourceRepository: ResourceRepository,
     private val settingsRepository: SettingsRepository,
     private val syncNotes: SyncNotesThroughExchangeUseCase,
+    syncTriggers: NotesSyncTriggerManager,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(NotesUiState())
@@ -85,6 +87,11 @@ class NotesViewModel @Inject constructor(
 
     private var reloadJob: Job? = null
     private var syncJob: Job? = null
+
+    init {
+        // A sync the connect or a `notes_changed` started may write files while this screen is open.
+        viewModelScope.launch { syncTriggers.synced.collect { reload() } }
+    }
 
     /**
      * Opening the screen and returning from the editor are the moments a note may have changed (DEVICE-EXCHANGE
@@ -190,7 +197,12 @@ class NotesViewModel @Inject constructor(
     fun delete(note: NoteSummary) {
         viewModelScope.launch {
             deleteNote(note.path)
-                .onSuccess { reload() }
+                .onSuccess {
+                    reload()
+                    // Item FM: a local delete is a sync moment, and a delete the other devices never hear of
+                    // would let their copy come back on the next pull.
+                    syncNow()
+                }
                 .onFailure { error ->
                     Timber.e(error, "NotesViewModel: note deletion failed")
                     _events.send(NotesEvent.ShowError(NotesError.DELETE_FAILED))

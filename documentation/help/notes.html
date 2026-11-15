@@ -23,8 +23,10 @@
 <li>Tap New note <a class="ref" href="#new-note">6</a> to start writing. The editor opens on an empty note; type, then save, and the note appears at the top of the list.</li>
 <li>Tap a note in the list <a class="ref" href="#list">3</a> to open it in the editor. Each row shows the first line as the title, the next line below it and the time of the last change.</li>
 <li>To find a note, type in the search field <a class="ref" href="#search">2</a>. Only the notes whose text contains what you typed stay in the list.</li>
-<li>The button at the end of a row <a class="ref" href="#row-more">4</a> shares the note's text or deletes the note. Deleting asks first.</li>
+<li>The button at the end of a row <a class="ref" href="#row-more">4</a> sends the note's text through Send to.. or deletes the note. Deleting asks first.</li>
 <li>The back arrow <a class="ref" href="#back">1</a> closes the screen. When there are no notes yet, a hint <a class="ref" href="#empty">5</a> says how to write the first one.</li>
+<li>To keep the notes on your other devices too, open My devices, open the menu of your exchange server and turn on Sync notes through the exchange server. The notes are encrypted for your own devices only; whoever runs the server sees only how many notes there are, their sizes and times. Once it is on, the title shows the sync state and Sync now <a class="ref" href="#sync-now">7</a> runs a sync at once.</li>
+<li>A note changed on two devices at the same time is kept twice, so no text is lost. A note that is too large to sync carries a mark <a class="ref" href="#too-large">8</a> and stays on this device.</li>
 </ol>
 <h2>The elements</h2>
 <div class="elements">
@@ -49,9 +51,9 @@
 </div>
 </details>
 <details class="el" id="row-more">
-<summary><span class="mk">4</span><span><span class="name">More actions for this note</span><span class="one">Shares the note's text or deletes the note.</span></span></summary>
+<summary><span class="mk">4</span><span><span class="name">More actions for this note</span><span class="one">Sends the note's text through Send to.. or deletes the note.</span></span></summary>
 <div class="full">
-<p>Share sends the text to any app that accepts text, such as a messenger or email. Delete asks for confirmation and then removes the file from the device.</p>
+<p>Send to.. offers the recipients you set up for the whole app, including any app that accepts text, such as a messenger or email. Delete asks for confirmation and then removes the file from the device.</p>
 </div>
 </details>
 <details class="el" id="empty">
@@ -67,6 +69,19 @@
 <p>The note is named after the current date and time and saved in the Notes folder of Documents. Until you save it in the editor no file is written.</p>
 </div>
 </details>
+<h3>Sync with your other devices</h3>
+<details class="el" id="sync-now">
+<summary><span class="mk">7</span><span><span class="name">Sync now</span><span class="one">Syncs the notes with your other devices at once.</span></span></summary>
+<div class="full">
+<p>It appears in the screen menu once Sync notes through the exchange server is on for one of your servers. The notes are encrypted for your own devices only, and whoever runs the server sees only how many notes there are, their sizes and times. Notes are also synced when you open the screen, return from the editor, connect to the server and whenever another device changes a note. A note changed on two devices at the same time is kept twice. If the server cannot be reached, the notes stay on this device and the title says so.</p>
+</div>
+</details>
+<details class="el" id="too-large">
+<summary><span class="mk">8</span><span><span class="name">Too large to sync</span><span class="one">Marks a note that is too large to sync.</span></span></summary>
+<div class="full">
+<p>Such a note stays on this device and is not sent. Shorten it, or split it into two notes, and it syncs with the next sync.</p>
+</div>
+</details>
 </div>
 <h2>Related</h2>
 <ul class="related">
@@ -76,7 +91,7 @@
 <li><a href="index.html"><b>Help index</b></a></li>
 </ul>
 <footer class="help-foot">
-<span>Fast Media Sorter, 2026-11-14</span>
+<span>Fast Media Sorter, 2026-11-15</span>
 <a href="index.html">Help index</a>
 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
 </footer>

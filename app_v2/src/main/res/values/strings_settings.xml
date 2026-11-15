@@ -91,6 +91,7 @@
     <string name="settings_all_files_profile_confirm_message">This profile enables file-manager mode and will create the missing \"All Files\" resource. Continue?</string>
     <string name="settings_reset_settings_failed">Couldn\'t reset the settings. Try again.</string>
     <string name="settings_reset_smb_failed">Couldn\'t reset the SMB connections. Try again.</string>
+    <string name="settings_saved">Settings saved</string>
     <string name="settings_search_close">Close settings search</string>
     <string name="settings_search_hint">Search settings</string>
     <string name="settings_search_no_results">No settings found</string>
@@ -300,19 +301,4 @@
     <string name="drive_channel_send_waiting_any">Waiting for one of your devices to receive it via Google Drive.</string>
     <string name="drive_channel_consent_required">Google Drive has not given this app its own folder yet. Allow it to send and receive files between your devices. Nothing was deleted.</string>
     <string name="drive_channel_consent_allow">Allow</string>
-    <string name="settings_tab_about">About</string>
-    <string name="settings_about_description">Browse, play and sort photos, videos, music and documents - on the device, on network shares and in the cloud.</string>
-    <string name="settings_about_group_help">Help and documentation</string>
-    <string name="settings_about_group_legal">Legal</string>
-    <string name="settings_about_group_support">Support and diagnostics</string>
-    <string name="settings_about_group_get_app">Get the app</string>
-    <string name="settings_about_group_related">Related products</string>
-    <string name="settings_about_group_device">This device</string>
-    <string name="settings_about_support">Contact support</string>
-    <string name="settings_about_export_diagnostics">Export diagnostics</string>
-    <string name="settings_about_site">Official site</string>
-    <string name="settings_about_downloads">Downloads and updates</string>
-    <string name="settings_about_repository">Source repository</string>
-    <string name="settings_about_companion_home">Companion app for PC</string>
-    <string name="settings_rail_current_page">Current page</string>
 </resources>

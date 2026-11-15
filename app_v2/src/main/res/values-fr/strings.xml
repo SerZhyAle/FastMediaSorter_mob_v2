@@ -3021,6 +3021,7 @@
     <string name="ext_vlc_engine_desc">Lit les fichiers vidéo et les images disque que le lecteur intégré ne peut pas ouvrir. Téléchargement unique d\'environ 44 Mo.</string>
     <string name="calculator_display_content_description">Résultat. Appuyez pour copier, appuyez longuement pour coller un numéro</string>
     <string name="calculator_action_settings">Paramètres de la calculatrice</string>
+    <string name="calculator_settings_title">Paramètres de la calculatrice</string>
     <string name="calculator_settings_group_thousands">Chiffres de groupe</string>
     <string name="calculator_settings_group_thousands_summary">Mettez une virgule entre tous les trois chiffres, de part et d\'autre de la virgule décimale.</string>
     <string name="calculator_settings_text_size">Taille du résultat</string>
@@ -4020,6 +4021,7 @@
     <string name="broadcast_control_group_share">Lien et partage</string>
     <string name="msg_transfer_same_folder_refused">C\'est déjà le dossier du fichier. Choisissez une autre destination.</string>
     <string name="settings_collapse_all">Tout réduire</string>
+    <string name="settings_category_about_app">Tout sur cette application</string>
     <string name="broadcast_control_preview_toggle_cd">Image de la diffusion. Appuyez pour afficher ou masquer les commandes</string>
     <string name="broadcast_link_password_title">Mot de passe du lien</string>
     <string name="broadcast_link_password_mode_auto">Automatique</string>

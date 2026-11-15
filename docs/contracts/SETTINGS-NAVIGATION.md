@@ -11,10 +11,11 @@
 
 ## What this repository must do to stay conformant
 
-- Settings are navigated the way the contract lays out, with About reachable as its last page.
-- Not implemented on the existing surfaces yet - not "not applicable": the migration, and the evidence the
-  contract asks for before conformance is claimed, are owned by S4619.
-- The deviations currently open are recorded as exceptions in the catalog's registry.
+- Nothing on the phone: the portfolio owner decided on 2026-11-15 that the phone settings keep their own form -
+  a top tab strip, About as the last group of General, and each host screen's settings in its own dialog (S4634).
+  The deviation is the catalog registry exception row "S4634"; the proposal
+  `PROPOSAL-2026-11-15-fms-android-scope-windows-apps.md` asks to scope the contract to Windows settings windows.
+- The watch settings follow the 2.1 item C reading (`SettingsDestinationCatalog` in `wear/`).
 
 ## Where it lives here
 

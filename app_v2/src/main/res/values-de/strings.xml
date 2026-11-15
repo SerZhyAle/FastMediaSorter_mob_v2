@@ -3016,6 +3016,7 @@
     <string name="ext_vlc_engine_desc">Spielt Videodateien und Disk-Images ab, die der integrierte Player nicht öffnen kann. Einmaliger Download von etwa 44 MB.</string>
     <string name="calculator_display_content_description">Ergebnis. Zum Kopieren tippen, zum Einfügen einer Zahl lange drücken</string>
     <string name="calculator_action_settings">Rechnereinstellungen</string>
+    <string name="calculator_settings_title">Rechnereinstellungen</string>
     <string name="calculator_settings_group_thousands">Ziffern gruppieren</string>
     <string name="calculator_settings_group_thousands_summary">Setzt alle drei Ziffern ein Komma, auf beiden Seiten des Dezimaltrennzeichens</string>
     <string name="calculator_settings_text_size">Ergebnisgröße</string>
@@ -4007,6 +4008,7 @@
     <string name="broadcast_control_group_share">Link und Freigabe</string>
     <string name="msg_transfer_same_folder_refused">Das ist bereits der Ordner der Datei. Wähle ein anderes Ziel.</string>
     <string name="settings_collapse_all">Alle zuklappen</string>
+    <string name="settings_category_about_app">Alles über diese App</string>
     <string name="broadcast_control_preview_toggle_cd">Übertragungsbild. Tippen, um die Steuerelemente ein- oder auszublenden</string>
     <string name="broadcast_link_password_title">Link-Passwort</string>
     <string name="broadcast_link_password_mode_auto">Automatisch</string>

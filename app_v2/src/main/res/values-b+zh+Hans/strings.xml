@@ -3012,6 +3012,7 @@
     <string name="ext_vlc_engine_desc">播放内置播放器无法打开的视频文件和光盘映像。一次性下载约44MB。</string>
     <string name="calculator_display_content_description">结果。点击复制，长按粘贴号码</string>
     <string name="calculator_action_settings">计算器设置</string>
+    <string name="calculator_settings_title">计算器设置</string>
     <string name="calculator_settings_group_thousands">组位数字</string>
     <string name="calculator_settings_group_thousands_summary">小数点两边每三位数字之间加一个逗号</string>
     <string name="calculator_settings_text_size">结果大小</string>
@@ -4020,6 +4021,7 @@
     <string name="broadcast_control_group_share">链接与共享</string>
     <string name="msg_transfer_same_folder_refused">此处已是该文件的所在文件夹。请选择其他目的地。</string>
     <string name="settings_collapse_all">全部收起</string>
+    <string name="settings_category_about_app">关于此应用</string>
     <string name="broadcast_control_preview_toggle_cd">广播画面。点按可显示或隐藏控件</string>
     <string name="broadcast_link_password_title">链接密码</string>
     <string name="broadcast_link_password_mode_auto">自动</string>

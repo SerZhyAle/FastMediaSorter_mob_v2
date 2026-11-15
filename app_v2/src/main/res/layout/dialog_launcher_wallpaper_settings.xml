@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- S2730: the desktop wallpaper's own screen, extracted from the single row it used to occupy inside
-     fragment_settings_launcher.xml. Four blocks in the order a choice is made: what is drawn, where it comes
+     dialog_launcher_settings.xml. Four blocks in the order a choice is made: what is drawn, where it comes
      from, how it looks, and what the battery does to it. Every id must also exist in
      layout-land/dialog_launcher_wallpaper_settings.xml (one ViewBinding). -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"

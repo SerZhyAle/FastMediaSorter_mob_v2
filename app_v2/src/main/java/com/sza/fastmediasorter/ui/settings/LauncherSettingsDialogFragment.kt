@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.settings
 
+import android.app.Dialog
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.os.Bundle
@@ -7,8 +8,10 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.view.isVisible
+import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -20,14 +23,14 @@ import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
 import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
 import com.sza.fastmediasorter.core.screencapture.gesture.GestureAccessibilityActions
 import com.sza.fastmediasorter.databinding.DialogLauncherResetConfirmBinding
-import com.sza.fastmediasorter.databinding.FragmentSettingsLauncherBinding
+import com.sza.fastmediasorter.databinding.DialogLauncherSettingsBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.LauncherAllAppsSwipeDirection
 import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeDirection
 import com.sza.fastmediasorter.domain.usecase.panel.QueryLaunchableAppsUseCase
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
-import com.sza.fastmediasorter.ui.settings.fragments.BaseSettingsFragment
+import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.settings.helpers.LauncherAllAppsSwipeActionPickerManager
 import com.sza.fastmediasorter.ui.settings.helpers.LauncherAllAppsSwipeSettingsManager
 import com.sza.fastmediasorter.ui.settings.helpers.LauncherDesktopSwipeActionPickerManager
@@ -47,20 +50,20 @@ import javax.inject.Inject
 /**
  * S1088: hosts the system-launcher configuration rows (taskbar composition + grid density + change-home)
  * that used to sit in the Operations settings "System launcher" group. The enable toggle stays in
- * General settings. S4622: the Launcher page of Settings (SETTINGS-NAVIGATION 2.1 ADR-1, a page-sized
- * topic is a destination), listed only where [LauncherModeContract.isAvailableInBuild] holds and opened by
- * that toggle's neighbouring row and by the launcher Start menu. Every control applies immediately, reusing
- * the same [SettingsViewModel] writes as the former inline block - no row logic is duplicated.
+ * General settings; this dialog is only reachable from that toggle's neighbouring entry row and from the
+ * launcher Start menu, both gated by [LauncherModeContract.isAvailableInBuild]. Every control applies
+ * immediately (dismiss-to-close), reusing the same [SettingsViewModel] writes as the former inline block -
+ * no row logic is duplicated.
  */
 @AndroidEntryPoint
-class LauncherSettingsFragment : BaseSettingsFragment() {
+class LauncherSettingsDialogFragment : DialogFragment() {
 
-    private var _binding: FragmentSettingsLauncherBinding? = null
+    private var _binding: DialogLauncherSettingsBinding? = null
     private val binding get() = requireNotNull(_binding)
 
     private val viewModel: SettingsViewModel by activityViewModels()
 
-    // S1400: page-scoped, so the reset action does not have to be threaded through the shared
+    // S1400: dialog-scoped, so the reset action does not have to be threaded through the shared
     // settings ViewModel's already-oversized constructor.
     private val launcherViewModel: LauncherSettingsViewModel by viewModels()
 
@@ -85,10 +88,13 @@ class LauncherSettingsFragment : BaseSettingsFragment() {
     lateinit var queryLaunchableApps: QueryLaunchableAppsUseCase
 
     // S1422: the shared orchestrator already owns restore, animation and persistence of section state,
-    // so this page only declares which rows belong together. Built per view like the row managers
+    // so this dialog only declares which rows belong together. Built per view like the row managers
     // below: it keeps every registered header, so a surviving fragment must not carry the previous
-    // view's hierarchy through it (S3792).
+    // dialog's hierarchy through it (S3792).
     private var sectionsManager: CollapsibleSectionsManager? = null
+
+    // Guards render() writes so setCheckedSilently / setSelection never bounce back into a settings update.
+    private var isUpdatingFromSettings = false
 
     // Every row manager is released in onDestroyView: each one holds the binding, so a reference kept
     // past the view outlives the hierarchy it renders into.
@@ -108,6 +114,7 @@ class LauncherSettingsFragment : BaseSettingsFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setStyle(STYLE_NORMAL, R.style.ThemeOverlay_FastMediaSorter_Dialog_FullScreen)
         pendingSwipeAppDirection =
             savedInstanceState.getEnumByName<LauncherDesktopSwipeDirection>(STATE_PENDING_SWIPE_DIRECTION)
         pendingAllAppsSwipeDirection =
@@ -120,22 +127,26 @@ class LauncherSettingsFragment : BaseSettingsFragment() {
         outState.putEnumName(STATE_PENDING_ALL_APPS_SWIPE_DIRECTION, pendingAllAppsSwipeDirection)
     }
 
-    override fun collapsibleSections(): CollapsibleSectionsManager? = sectionsManager
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        val dialog = super.onCreateDialog(savedInstanceState)
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        return dialog
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        _binding = FragmentSettingsLauncherBinding.inflate(inflater, container, false)
+        _binding = DialogLauncherSettingsBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        Timber.d("S4622: Launcher page bound")
-        // Defensive: the destination is never listed on a build without the launcher surface, but never
-        // leave a functional launcher UI reachable if a caller slips through the gate.
+        // Defensive: the dialog is never opened on a build without the launcher surface, but never leave a
+        // functional launcher UI reachable if a caller slips through the gate.
         if (!launcherModeContract.isAvailableInBuild) {
-            binding.root.isVisible = false
+            dismiss()
             return
         }
+        binding.btnClose.setOnClickListener { dismiss() }
         desktopSwipeSettingsManager = LauncherDesktopSwipeSettingsManager(
             host = this,
             binding = binding,
@@ -417,7 +428,7 @@ class LauncherSettingsFragment : BaseSettingsFragment() {
                     launcherViewModel.resetToDefaults(AppSettings.LAUNCHER_DENSITY_OPTIONS[index])
                 }
                 .setNegativeButton(R.string.cancel, null)
-                .showBoundTo(this@LauncherSettingsFragment)
+                .showBoundTo(this@LauncherSettingsDialogFragment)
         }
     }
 
@@ -576,13 +587,24 @@ class LauncherSettingsFragment : BaseSettingsFragment() {
         binding.rowLauncherWidgetBackdropAlpha.setSelection(selected)
     }
 
+    override fun onStart() {
+        super.onStart()
+        dialog?.window?.setLayout(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT,
+        )
+        // Settings panel: every control applies immediately, so there is no positive action - a no-op
+        // confirm keeps Esc-dismiss and focus traversal without a false Enter-confirm.
+        DialogKeyboardDelegate.applyToDialogFragment(dialog, onConfirm = {})
+        binding.btnClose.requestFocus()
+    }
+
     /**
      * The grant is changed on a system screen, so nothing in this process emits when it does - returning
-     * here is the only moment the page can learn that the answer moved.
+     * here is the only moment the dialog can learn that the answer moved.
      */
     override fun onResume() {
         super.onResume()
-        if (_binding == null || !launcherModeContract.isAvailableInBuild) return
         renderForeignNotificationsRow(viewModel.settings.value.launcherForeignNotificationsEnabled)
     }
 
@@ -591,16 +613,20 @@ class LauncherSettingsFragment : BaseSettingsFragment() {
         allAppsSwipeSettingsManager = null
         screenTimeoutSettingsManager = null
         // S3792: released with the view like the row managers - the manager holds every header
-        // registered into it, and a lazy instance would keep the last view's hierarchy alive.
+        // registered into it, and a lazy instance would keep the last dialog's hierarchy alive.
         sectionsManager = null
         super.onDestroyView()
         _binding = null
     }
 
     companion object {
+        const val TAG = "LauncherSettingsDialogFragment"
+
         // S2256: survives the same process-death-while-app-picker-is-open window pendingSwipeAppDirection guards.
         private const val STATE_PENDING_SWIPE_DIRECTION = "pending_swipe_app_direction"
         private const val STATE_PENDING_ALL_APPS_SWIPE_DIRECTION = "pending_all_apps_swipe_direction"
+
+        fun newInstance(): LauncherSettingsDialogFragment = LauncherSettingsDialogFragment()
 
         /**
          * S2320: derived from the canonical default for the reason S2264 recorded for the alpha row -

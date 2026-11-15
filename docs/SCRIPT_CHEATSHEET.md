@@ -2667,6 +2667,20 @@ scripts/docs/capture-docs-screenshots.ps1
   Exit: 0 - the requested shots were listed, dry-run or captured; 1 - the manifest is missing, the shot id is unknown, or a capture step failed; 3 - the shot already exists under -OutRoot and -Force was not given (nothing written)
 ```
 
+### carry-program-name.ps1
+Carries the program's map name, "Fast Media Sorter & Organizer", through running text.
+
+```
+scripts/docs/carry-program-name.ps1
+  Carries the program's map name, "Fast Media Sorter & Organizer", through running text.
+  Params:
+    -Paths       (req)  [String[]]
+    -Check              [SwitchParameter]
+    -Json               [SwitchParameter]
+    -ReportPath         [String]
+  Exit: 0 every file is clean, or the rewrite was written (no -Check); 1 -Check found at least one rewritable occurrence; 2 bad arguments: a path does not exist
+```
+
 ### check-settings-annotations.ps1
 S0440 Phase 02 - settings annotations coverage/parity checker.
 
@@ -3007,6 +3021,19 @@ scripts/docs/update-docs-shell.ps1
   Params:
     -Check         [SwitchParameter]
   Exit: 0 - every hub is current, or the requested shell updates were written.; 1 - Check found at least one stale shell.
+```
+
+## scripts\docs\carry-program-name.tests
+
+### Run-Tests.ps1
+Test suite for scripts/docs/carry-program-name.ps1.
+
+```
+scripts/docs/carry-program-name.tests/Run-Tests.ps1
+  Test suite for scripts/docs/carry-program-name.ps1.
+  Params:
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+  Exit: 0 every assertion passed; 1 at least one assertion failed; 2 could not verify: the script is missing
 ```
 
 ## scripts\docs\help
@@ -6554,6 +6581,18 @@ scripts/quality.tests/SummarizeAuditSlices.Tests.ps1
   Exit: 0 every test passed.; 1 at least one test failed.; 2 cannot verify - the subject script or a fixture source is missing.
 ```
 
+## scripts\quality\assert-allfeatures-sync.tests
+
+### Run-Tests.ps1
+S2937: contract suite for the ungated single-flag rule (check 7) of assert-allfeatures-sync.ps1. # Subject: scripts/quality/lib/allfeatures-ungated-reach.ps1, scripts/quality/lib/flavor-matrix.ps1
+
+```
+scripts/quality/assert-allfeatures-sync.tests/Run-Tests.ps1
+  S2937: contract suite for the ungated single-flag rule (check 7) of assert-allfeatures-sync.ps1. # Subject: scripts/quality/lib/allfeatures-ungated-reach.ps1, scripts/quality/lib/flavor-matrix.ps1
+  (no param block)
+  Exit: 0 every case passed; 1 at least one case failed; 2 cannot verify - the subject script or its library is missing
+```
+
 ## scripts\quality\assert-always-loaded-budget.tests
 
 ### Run-Tests.ps1
@@ -7287,6 +7326,15 @@ S3075, S4380: one way for a gate to say "my input is not in this checkout" - COU
 ```
 scripts/quality/lib/absent-input.ps1
   S3075, S4380: one way for a gate to say "my input is not in this checkout" - COULD NOT VERIFY by default, NOT APPLICABLE when the caller declared such a checkout acceptable.
+  (no param block)
+```
+
+### allfeatures-ungated-reach.ps1
+Find ledger records that sit on a flag's row without naming a gate (S2937, S4633).
+
+```
+scripts/quality/lib/allfeatures-ungated-reach.ps1
+  Find ledger records that sit on a flag's row without naming a gate (S2937, S4633).
   (no param block)
 ```
 

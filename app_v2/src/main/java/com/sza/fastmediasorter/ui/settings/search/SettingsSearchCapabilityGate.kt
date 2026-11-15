@@ -8,7 +8,6 @@ import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
 import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayController
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
-import com.sza.fastmediasorter.ui.settings.SettingsSearchDestination
 import com.sza.fastmediasorter.ui.settings.SettingsSearchIndex
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -58,13 +57,9 @@ class SettingsSearchCapabilityGate @Inject constructor(
         R.id.groupScreenGestures to { screenGestureControllers.isNotEmpty() }
     )
 
-    /**
-     * False when a gated container is absent OR the row's own capability is absent. S4622: a row of the
-     * Launcher page is absent with the page, which is listed only where the launcher surface exists.
-     */
+    /** False when a gated container is absent OR the row's own capability is absent. */
     fun isAvailable(entry: SettingsSearchIndex): Boolean =
-        (entry.destination != SettingsSearchDestination.LAUNCHER || launcherModeContract.isAvailableInBuild) &&
-            isContainerCapabilityPresent(entry.ancestorIds) && isKeyCapabilityAvailable(entry.key)
+        isContainerCapabilityPresent(entry.ancestorIds) && isKeyCapabilityAvailable(entry.key)
 
     private fun isContainerCapabilityPresent(ancestorIds: List<Int>): Boolean =
         capabilityByContainer.none { (containerId, capabilityPresent) ->
@@ -108,8 +103,8 @@ class SettingsSearchCapabilityGate @Inject constructor(
         "btnTakeScreenshotNow" -> BuildConfig.DEBUG && menuScreenshotLaunchers.isNotEmpty()
         // S1088: the launcher enable control + the dialog-entry row moved into the always-available General
         // tab; both are GONE when the launcher capability is absent, so mirror that to avoid a dead search
-        // hit. The former composition/density rows live on the Launcher page (LauncherSettingsFragment),
-        // gated as a whole by the destination check in isAvailable, so they need no branch here.
+        // hit. The former composition/density rows now live in LauncherSettingsDialogFragment, whose layout
+        // is not in the search catalog (SettingsSearchLayoutCatalog), so they no longer need a branch here.
         // S3024 replaced the standalone enable toggle with the primary-window choice; the old
         // rowLauncherModeEnabled id exists in no layout, so a branch on it could never match.
         "rowLauncherPrimaryWindow",

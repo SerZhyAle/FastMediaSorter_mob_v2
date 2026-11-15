@@ -122,14 +122,26 @@ internal class PlayerFileOpsInitializer(
             activity.viewModel.state.value.resource
     }
 
+    private fun afterEditorCommit(closeEditor: Boolean, transfer: () -> Unit) {
+        val textViewer = activity._textViewerManager
+        if (textViewer == null) {
+            transfer()
+        } else {
+            textViewer.commitEditorBeforeTransfer(closeEditor, transfer)
+        }
+    }
+
     private fun buildDestinationButtonsCallback() = object : DestinationButtonsManager.DestinationButtonsCallback {
         override fun onCopyClicked(destination: com.sza.fastmediasorter.domain.model.MediaResource) =
-            activity.fileOperationsHandler.performCopy(destination)
+            afterEditorCommit(closeEditor = false) { activity.fileOperationsHandler.performCopy(destination) }
         override fun onMoveClicked(destination: com.sza.fastmediasorter.domain.model.MediaResource) =
-            activity.fileOperationsHandler.performMove(destination)
+            afterEditorCommit(closeEditor = true) { activity.fileOperationsHandler.performMove(destination) }
         override fun onCustomPathPickerRequested(operationType: com.sza.fastmediasorter.domain.model.FileOperationType) {
-            val credId = activity.viewModel.state.value.resource?.credentialsId
-            activity.playerFolderPickerHandler.requestFolderPick(operationType, credId)
+            val isMove = operationType == com.sza.fastmediasorter.domain.model.FileOperationType.MOVE
+            afterEditorCommit(closeEditor = isMove) {
+                val credId = activity.viewModel.state.value.resource?.credentialsId
+                activity.playerFolderPickerHandler.requestFolderPick(operationType, credId)
+            }
         }
         override fun getCurrentResourceId(): Long = activity.intent.getLongExtra("resourceId", -1)
         override fun getCurrentFilePath(): String? = activity.viewModel.state.value.currentFile?.path

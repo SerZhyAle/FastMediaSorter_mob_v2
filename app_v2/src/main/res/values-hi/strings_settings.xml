@@ -93,6 +93,7 @@
     <string name="settings_all_files_profile_confirm_message">यह प्रोफ़ाइल फ़ाइल-प्रबंधक मोड चालू करती है और लापता \"सभी फ़ाइलें\" स्रोत बना देगी। जारी रखें?</string>
     <string name="settings_reset_settings_failed">सेटिंग रीसेट नहीं हो सकीं। फिर कोशिश करें।</string>
     <string name="settings_reset_smb_failed">SMB कनेक्शन रीसेट नहीं हो सके। फिर कोशिश करें।</string>
+    <string name="settings_saved">सेटिंग सहेजी गईं</string>
     <string name="settings_search_close">सेटिंग खोज बंद करें</string>
     <string name="settings_search_hint">सेटिंग में खोजें</string>
     <string name="settings_search_no_results">कोई सेटिंग नहीं मिली</string>

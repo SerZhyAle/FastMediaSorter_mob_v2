@@ -56,6 +56,7 @@ import com.sza.fastmediasorter.ui.settings.helpers.OperationsProgramsManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsSectionsManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsSendCommandsManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsWearGroupManager
+import com.sza.fastmediasorter.ui.stopwatch.StopwatchSettingsDialogFragment
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.utils.viewScoped
@@ -413,9 +414,9 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         // S1411 ADR-5: the stopwatch's own options, the second way in beside its gear button. The row
         // above it only decides whether the tool is offered at all, so this one is never gated on it -
         // a user turning the tool on wants its options in the same place, not after a screen reload.
-        // S4622: the options moved to the Tools page; the row opens that block in place.
         binding.rowOpenStopwatchSettings.setOnRowClickListener {
-            (activity as? SettingsActivity)?.openToolsSection(SettingsActivity.SECTION_STOPWATCH)
+            StopwatchSettingsDialogFragment.newInstance()
+                .show(childFragmentManager, StopwatchSettingsDialogFragment.TAG)
         }
 
         // S3365/S3929: the settings hold only the program's master switch and one button into its

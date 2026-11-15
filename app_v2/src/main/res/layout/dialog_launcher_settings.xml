@@ -1,16 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- S4622: the Launcher page of Settings (SETTINGS-NAVIGATION 2.1 ADR-1: a page-sized topic is a destination).
-     Seven collapsible groups in the order specified by S2252; every row applies at once, so the page
-     carries no Apply button. Every id must also exist in layout-land/fragment_settings_launcher.xml. -->
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- S1088: System-launcher configuration dialog, extracted from fragment_settings_destinations' launcher
+     group. Row ids mirror the former inline block so LauncherSettingsDialogFragment reuses the same
+     binding wiring; the enable toggle stays in General settings. Every id must also exist in
+     layout-land/dialog_launcher_settings.xml (one ViewBinding).
+     S1422/S2252: seven collapsible groups in the order specified by S2252. The header with btnClose
+     is pinned at the top outside the NestedScrollView, while the NestedScrollView body carries a weight
+     of 1 wrapped in wrap_content with descendantFocusability afterDescendants. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:clipToPadding="false"
-    android:descendantFocusability="afterDescendants"
-    android:fillViewport="true"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
     android:padding="@dimen/padding_normal">
 
+    <!-- Header: title + btnClose (id unchanged; still just dismiss()). S2017: labeled and styled as
+         Apply/DialogConfirm, not Close/DialogCancel - every row here applies immediately, so the
+         button never had anything to discard, and "Close" read to the owner as a cancel action. -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/margin_small"
+        android:baselineAligned="false"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/launcher_settings_dialog_title"
+            android:textSize="@dimen/text_size_title_dialog"
+            android:textStyle="bold" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnClose"
+            style="@style/Widget.FastMediaSorter.Button.DialogConfirm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_small"
+            android:text="@string/apply" />
+
+    </LinearLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:descendantFocusability="afterDescendants"
+        android:focusable="false">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -604,4 +642,6 @@
 
         </LinearLayout>
 
-</androidx.core.widget.NestedScrollView>
+    </androidx.core.widget.NestedScrollView>
+
+</LinearLayout>
