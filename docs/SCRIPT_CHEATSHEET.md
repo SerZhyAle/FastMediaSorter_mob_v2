@@ -8056,6 +8056,40 @@ scripts/release/assert-play-review-batches.ps1
   Exit: 0 - the plan keeps the phone and the watch in separate batches; 1 - the plan lets the watch and the phone share a batch (reasons printed); 2 - could not verify: bad arguments or the track state could not be read
 ```
 
+### assert-play-target-api-floor.ps1
+Refuse a release whose Play artifacts target an API level below the current Play floor of their form factor (S4668, contract GOOGLE-PLAY rule 8).
+
+```
+scripts/release/assert-play-target-api-floor.ps1
+  Refuse a release whose Play artifacts target an API level below the current Play floor of their form factor (S4668, contract GOOGLE-PLAY rule 8).
+  Params:
+    -RepoRoot           [String]
+    -FloorsFile         [String]
+    -Today              [String]
+    -MaxAgeDays         [Int32] = 30
+    -Help               [SwitchParameter]
+  Exit: 0 - pass: every Play artifact meets its floor and the floors were read within -MaxAgeDays.; 1 - fail: a Play artifact's targetSdk is below its form factor's floor - raise it before the; 2 - could not verify: the floors file or a build file is absent or unreadable, or a targetSdk
+```
+
+### assert-required-features-vs-previous.ps1
+Refuse a release bundle that requires a device feature the previous release did not require (S4668, contract GOOGLE-PLAY rule 9 and section 4 rung 2).
+
+```
+scripts/release/assert-required-features-vs-previous.ps1
+  Refuse a release bundle that requires a device feature the previous release did not require (S4668, contract GOOGLE-PLAY rule 9 and section 4 rung 2).
+  Params:
+    -Bundle                      [String]
+    -Previous                    [String]
+    -ArchiveRoot                 [String]
+    -Bundletool                  [String]
+    -Aapt2                       [String]
+    -BadgingFile                 [String]
+    -PreviousBadgingFile         [String]
+    -WorkDir                     [String]
+    -Help                        [SwitchParameter]
+  Exit: 0 - pass: the new bundle requires no feature the previous release did not; both sets printed.; 1 - fail: the new bundle requires a feature the previous release did not - it removes devices.
+```
+
 ### assert-sweep-verdicts.ps1
 Release-point check of both sweep verdicts - the phone one and the watch ones (S4249).
 
@@ -8465,6 +8499,30 @@ Contract tests for scripts/release/assert-fgs-types-vs-previous.ps1 (S4413).
 ```
 scripts/release/assert-fgs-types-vs-previous.tests/Run-Tests.ps1
   Contract tests for scripts/release/assert-fgs-types-vs-previous.ps1 (S4413).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
+```
+
+## scripts\release\assert-play-target-api-floor.tests
+
+### Run-Tests.ps1
+Contract tests for scripts/release/assert-play-target-api-floor.ps1 (S4668).
+
+```
+scripts/release/assert-play-target-api-floor.tests/Run-Tests.ps1
+  Contract tests for scripts/release/assert-play-target-api-floor.ps1 (S4668).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
+```
+
+## scripts\release\assert-required-features-vs-previous.tests
+
+### Run-Tests.ps1
+Contract tests for scripts/release/assert-required-features-vs-previous.ps1 (S4668).
+
+```
+scripts/release/assert-required-features-vs-previous.tests/Run-Tests.ps1
+  Contract tests for scripts/release/assert-required-features-vs-previous.ps1 (S4668).
   (no param block)
   Exit: 0 - every case passed.; 1 - at least one case failed.
 ```

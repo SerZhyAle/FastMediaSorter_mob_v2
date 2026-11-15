@@ -5,7 +5,6 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -92,7 +91,16 @@ class CompanionConfigImportActivity : AppCompatActivity() {
 
     private suspend fun loadAndConfirm(uri: Uri) {
         importManager.readConfig(contentResolver, uri).fold(
-            onSuccess = { dto -> showConfirmDialog(dto) },
+            onSuccess = { dto ->
+                // S4649, Q2: the import refuses a blank-fingerprint config whole (FMSCFG 2.6 C2), so
+                // the confirm dialog refuses before it opens instead of warning about a server the
+                // import would reject anyway.
+                if (dto.hostKeyFingerprintSha256.isNullOrBlank()) {
+                    showResultAndFinish(getString(R.string.companion_import_invalid_error))
+                } else {
+                    showConfirmDialog(dto)
+                }
+            },
             onFailure = { e -> showResultAndFinish(getString(importManager.rejectionMessageRes(e))) }
         )
     }
@@ -103,9 +111,6 @@ class CompanionConfigImportActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.dialog_companion_import_confirm, null, false)
         view.findViewById<TextView>(R.id.textImportSummary).text =
             getString(R.string.companion_import_confirm_message, name, host, dto.roots?.size ?: 0)
-        if (dto.hostKeyFingerprintSha256.isNullOrBlank()) {
-            view.findViewById<TextView>(R.id.textNoFingerprintWarning).visibility = View.VISIBLE
-        }
         val needsPassword = dto.password.isNullOrBlank()
         val passwordLayout = view.findViewById<TextInputLayout>(R.id.layoutImportPassword)
         val passwordField = view.findViewById<TextInputEditText>(R.id.editImportPassword)

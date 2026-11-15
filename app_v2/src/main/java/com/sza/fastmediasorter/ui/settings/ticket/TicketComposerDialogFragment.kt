@@ -29,6 +29,7 @@ import com.sza.fastmediasorter.ui.settings.ticket.helpers.TicketVoiceRecordManag
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 /**
  * S4554: files a ticket into the SZA ticket inbox on the owner's Google Drive (INBOX-PACKET v1).
@@ -160,6 +161,7 @@ class TicketComposerDialogFragment : DialogFragment() {
 
     private fun renderDestinations(choice: FeedbackFolderChoice) {
         shownDestinations = choice
+        Timber.d("S4663: folder choices available=%b folders=%d", choice.available, choice.folders.size)
         destinationPicker?.render(choice, viewModel.state.value.destinationId)
     }
 
@@ -176,6 +178,7 @@ class TicketComposerDialogFragment : DialogFragment() {
         // S4663: a feedback form's folder-bound packet stays that form's to show; whatever this
         // composer filed - Drive or a folder - is listed here with its state.
         val entries = all.filter { it.inboxResourceId == null || it.origin == TicketOrigin.TICKET }
+        Timber.d("S4663: outbox rows total=%d shown=%d", all.size, entries.size)
         binding.outbox.tvTicketOutboxEmpty.isVisible = entries.isEmpty()
         outboxAdapter?.submitList(
             entries.map { entry ->

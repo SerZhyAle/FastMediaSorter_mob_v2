@@ -2072,7 +2072,6 @@
     <string name="sftp_share_export_action">শেয়ার</string>
     <string name="companion_import_title">অ্যাক্সেস আমদানি করুন</string>
     <string name="companion_import_confirm_message">%2$s-এ %3$d-টি ফোল্ডার সহ \"%1$s\" SFTP রিসোর্সটি যোগ করবেন?</string>
-    <string name="companion_import_no_fingerprint_warning">এই সার্ভারটি যাচাই করা হয়নি - প্রেরককে বিশ্বাস করলে তবেই সংযোগ করুন।</string>
     <string name="companion_import_password_label">এই সার্ভারের পাসওয়ার্ড</string>
     <string name="companion_import_action">আমদানি</string>
     <string name="companion_import_password_required">এই সার্ভারের পাসওয়ার্ড দিন।</string>

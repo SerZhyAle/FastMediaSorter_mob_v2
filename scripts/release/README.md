@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.12 20:13</sub>
+<sub class="doc-stamp">26.11.15 19:22</sub>
 
 # scripts/release - Operator Handbook
 
@@ -15,6 +15,8 @@ Scripts that publish FastMediaSorter to GitHub Releases so that **GitHub Store**
 | `run-ci-parity.ps1` | `/skill-release` Step 6b: runs locally the checks GitHub CI runs (whole-tree static gates, lint of both modules, lint-detector tests, both unit suites), every step even after a red, before the first push. |
 | `assert-ci-verdict.ps1` | `/skill-release` Step 7b: dispatches the release workflows on the pushed DEBUG head and reads GitHub CI's verdict - every run green and the Quality Gate present, or the release stops before the merge and the tag. |
 | `assert-fgs-types-vs-previous.ps1` | Release assessment check: the merged standard-release manifest's foreground-service types against the newest confirmed `fgs-types.json` snapshot, or the registry's standard rows until one exists; unconfirmed `fgs-types.pending.json` files are never a baseline (S4413, S4499). |
+| `assert-play-target-api-floor.ps1` | Release assessment check: the targetSdk of the phone app, the watch app and the watch face against the Play floors in `play-target-api-floors.json`, printed with the date they were read; stale floors are an advisory (S4668, contract `GOOGLE-PLAY` rule 8). |
+| `assert-required-features-vs-previous.ps1` | Pre-upload check: the required-feature set of a release bundle's universal APK against the previous release's; fails on a feature the previous release did not require, naming the implied-feature trigger (S4668, contract `GOOGLE-PLAY` rule 9). |
 | `confirm-fgs-snapshot.ps1` | Promote a release's `fgs-types.pending.json` to `fgs-types.json` once Play production carries its versionCode. `publish-play-release.ps1` calls it after a completed, not held production commit; run it by hand after held changes were sent (S4499). |
 | `apply-github-store-metadata.ps1` | Apply repo `description`, `topics`, `homepage` from `PLAN/S0214_github-store-publication/DECISIONS.md` to GitHub via REST. Idempotent. |
 | `publish-github-release.ps1` | Publish a stable release: discover prebuilt APKs, stage them with deterministic names, create a GitHub Release tag from `main`, attach release notes from `docs/WHATS_NEW.md`, upload both APKs as assets. |

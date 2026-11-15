@@ -17,16 +17,6 @@
             android:textAppearance="?attr/textAppearanceBodyMedium"
             android:textColor="?android:attr/textColorPrimary" />
 
-        <TextView
-            android:id="@+id/textNoFingerprintWarning"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/padding_normal"
-            android:text="@string/companion_import_no_fingerprint_warning"
-            android:textAppearance="?attr/textAppearanceBodySmall"
-            android:textColor="?attr/colorError"
-            android:visibility="gone" />
-
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/layoutImportPassword"
             android:layout_width="match_parent"

@@ -2071,7 +2071,6 @@
     <string name="sftp_share_export_action">शेयर करना</string>
     <string name="companion_import_title">एक्सेस आयात करें</string>
     <string name="companion_import_confirm_message">%2$s पर SFTP संसाधन \"%1$s\" को %3$d फ़ोल्डर के साथ जोड़ें?</string>
-    <string name="companion_import_no_fingerprint_warning">इस सर्वर की पुष्टि नहीं हुई है - तभी कनेक्ट करें जब आपको भेजने वाले पर भरोसा हो.</string>
     <string name="companion_import_password_label">इस सर्वर के लिए पासवर्ड</string>
     <string name="companion_import_action">आयात करें</string>
     <string name="companion_import_password_required">इस सर्वर के लिए पासवर्ड दर्ज करें.</string>

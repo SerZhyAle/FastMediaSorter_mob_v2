@@ -2079,7 +2079,6 @@
     <string name="sftp_share_export_action">Condividere</string>
     <string name="companion_import_title">Importa l\'accesso</string>
     <string name="companion_import_confirm_message">Aggiungere la risorsa SFTP \"%1$s\" su %2$s con %3$d cartelle?</string>
-    <string name="companion_import_no_fingerprint_warning">Questo server non è stato verificato - connettiti solo se ti fidi del mittente.</string>
     <string name="companion_import_password_label">Password per questo server</string>
     <string name="companion_import_action">Importa</string>
     <string name="companion_import_password_required">Inserisci la password per questo server.</string>

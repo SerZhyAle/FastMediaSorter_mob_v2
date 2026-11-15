@@ -2092,7 +2092,6 @@
     <string name="sftp_share_export_action">مشاركة</string>
     <string name="companion_import_title">استيراد الوصول</string>
     <string name="companion_import_confirm_message">إضافة مورد SFTP \"%1$s\" على %2$s مع %3$d مجلد؟</string>
-    <string name="companion_import_no_fingerprint_warning">لم يتم التحقق من هذا الخادم - لا تتصل إلا إذا كنت تثق بالمُرسِل.</string>
     <string name="companion_import_password_label">كلمة المرور لهذا الخادم</string>
     <string name="companion_import_action">استيراد</string>
     <string name="companion_import_password_required">أدخل كلمة المرور لهذا الخادم.</string>

@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.15 18:53</sub>
+<sub class="doc-stamp">26.11.15 19:23</sub>
 
 # Pointer - `GOOGLE-PLAY`
 
@@ -26,6 +26,7 @@
 - `scripts/release/publish-play-listing.ps1` - the listing upload.
 - `scripts/release/read-play-tracks.ps1`, `read-play-public-serve.ps1`, `refresh-play-publishing-state.ps1` - the read-back.
 - `scripts/release/assert-play-review-batches.ps1` - the batch split plan.
-- `scripts/quality/assert-fgs-types-vs-previous.ps1`, `scripts/release/confirm-fgs-snapshot.ps1` - the foreground-service baseline.
+- `scripts/release/assert-fgs-types-vs-previous.ps1`, `scripts/release/confirm-fgs-snapshot.ps1` - the foreground-service baseline.
+- `scripts/release/assert-play-target-api-floor.ps1`, `scripts/release/assert-required-features-vs-previous.ps1` - the target-API floor and required-feature pre-upload gates (rules 8-9).
 - `scripts/quality/assert-wear-phone-identity-parity.ps1`, `assert-orientation-implied-feature.ps1` - identity parity and the implied-feature class.
 - `docs/PLAY_PUBLISHING_STATE.md` - the publishing record.

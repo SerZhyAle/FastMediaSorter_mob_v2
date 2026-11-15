@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /** S4554: a one-shot message of the composer. */
@@ -88,6 +89,7 @@ class TicketComposerViewModel @Inject constructor(
             return
         }
         val project = current.projects?.getOrNull(projectIndex - 1)?.key
+        Timber.d("S4663: send destination=%s project=%s", current.destinationId ?: "drive", project ?: "none")
         mutableState.update { it.copy(busy = true) }
         viewModelScope.launch {
             val draft = TicketDraft(

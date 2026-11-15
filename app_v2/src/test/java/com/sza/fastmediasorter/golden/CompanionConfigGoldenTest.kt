@@ -25,8 +25,9 @@ import org.junit.Test
  *   calls "the frozen v1 fields"; every other root field is an S1002 v2 addition.
  * - `companion_v2.fmscfg` is `schemaVersion` 2, the parser's `SUPPORTED_SCHEMA_VERSION`, with the
  *   S1002 per-root params, the S1014 `accessNote`, the S1016 `readOnly`/`isDestination` pair, and
- *   the S0984 passwordless share (empty `password`, empty `hostKeyFingerprintSha256`) the parser
- *   names as valid Android-side.
+ *   the S0984 passwordless share (empty `password`). S4649, Q1=A re-pinned its blank
+ *   `hostKeyFingerprintSha256` to a real `SHA256:` value - an owner-approved contract byte change,
+ *   since the S4643 importer refuses a blank-fingerprint config whole.
  * - `companion_v2_compressed.fmscfg` is the same v2 payload in the second transport the parser
  *   declares - `FMSCFG1:` + base64(gzip(json)), the S1039 dense QR form.
  *
@@ -94,11 +95,11 @@ class CompanionConfigGoldenTest {
     }
 
     @Test
-    fun `a v2 config carries the access note and the passwordless share the parser allows`() {
+    fun `a v2 config carries the access note and the passwordless pinned share`() {
         val dto = parser.parse(readFixture("companion_v2.fmscfg"))
 
         assertEquals("", dto.password)
-        assertEquals("", dto.hostKeyFingerprintSha256)
+        assertEquals("SHA256:P1S1HJKFnzLNiT3m2D+WcQFS6IDHKIkCxKNzeNGSvhI", dto.hostKeyFingerprintSha256)
         assertEquals(
             "Open port 2222 on the studio router before connecting from outside.",
             dto.accessNote

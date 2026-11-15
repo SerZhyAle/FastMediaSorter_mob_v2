@@ -485,12 +485,10 @@ class MainViewModel @Inject constructor(
 
     // S4649: the unpinned-server refusal is actionable, so it names its own fix; every other export
     // failure keeps the generic share message.
-    private fun shareExportErrorRes(e: Throwable): Int =
-        if ((e as? CompanionConfigException)?.reason == CompanionConfigException.Reason.UNPINNED_HOST_KEY) {
-            R.string.companion_share_unpinned_error
-        } else {
-            R.string.sftp_share_export_failed
-        }
+    private fun shareExportErrorRes(e: Throwable): Int = when ((e as? CompanionConfigException)?.reason) {
+        CompanionConfigException.Reason.UNPINNED_HOST_KEY -> R.string.companion_share_unpinned_error
+        else -> R.string.sftp_share_export_failed
+    }
 
     fun startPlayer() {
         if (state.value.isNavigating) {

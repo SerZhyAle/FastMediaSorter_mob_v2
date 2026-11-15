@@ -2072,7 +2072,6 @@
     <string name="sftp_share_export_action">分享</string>
     <string name="companion_import_title">导入访问权限</string>
     <string name="companion_import_confirm_message">要添加 %2$s 上的 SFTP 资源“%1$s”（含 %3$d 个文件夹）吗？</string>
-    <string name="companion_import_no_fingerprint_warning">此服务器尚未验证 - 仅在你信任发送方时才连接。</string>
     <string name="companion_import_password_label">此服务器的密码</string>
     <string name="companion_import_action">导入</string>
     <string name="companion_import_password_required">输入此服务器的密码。</string>

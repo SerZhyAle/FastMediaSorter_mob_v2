@@ -81,8 +81,7 @@ internal class AddResourceCompanionCoordinator(
                 AddResourceEvent.CompanionPasswordRequired(
                     resourceName = pending.resourceName ?: host,
                     host = host,
-                    rootCount = pending.roots?.size ?: 0,
-                    hasFingerprint = !pending.hostKeyFingerprintSha256.isNullOrBlank()
+                    rootCount = pending.roots?.size ?: 0
                 )
             )
         }

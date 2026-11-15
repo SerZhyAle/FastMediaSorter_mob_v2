@@ -14,8 +14,8 @@
 
     Direction: a feature that becomes REQUIRED narrows reach and fails this check, naming the
     uses-implied-feature trigger when badging gives one. A feature that is no longer required widens
-    reach and is printed as information. The contract text calls a "smaller" set the regression,
-    which is backwards; ticket S4669 carries that wording fix.
+    reach and is printed as information. The contract states the same direction since its
+    2026-11-15 correction (rule 9, section 4 rung 2).
 
     Badging lines read:
       uses-feature: name='x'               required (also the older uses-feature:'x' form), unless

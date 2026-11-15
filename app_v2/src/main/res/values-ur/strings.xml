@@ -2074,7 +2074,6 @@
     <string name="sftp_share_export_action">شیئر کریں۔</string>
     <string name="companion_import_title">رسائی درآمد کریں</string>
     <string name="companion_import_confirm_message">%2$s پر SFTP وسیلہ \"%1$s\" %3$d فولڈرز کے ساتھ شامل کریں؟</string>
-    <string name="companion_import_no_fingerprint_warning">اس سرور کی تصدیق نہیں ہوئی - صرف اسی صورت میں منسلک ہوں اگر آپ بھیجنے والے پر بھروسا کرتے ہیں۔</string>
     <string name="companion_import_password_label">اس سرور کا پاس ورڈ</string>
     <string name="companion_import_action">درآمد کریں</string>
     <string name="companion_import_password_required">اس سرور کا پاس ورڈ درج کریں۔</string>

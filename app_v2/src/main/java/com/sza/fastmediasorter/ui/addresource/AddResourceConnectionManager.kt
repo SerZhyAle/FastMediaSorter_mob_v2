@@ -506,7 +506,6 @@ internal class AddResourceConnectionManager(
             request.host,
             request.rootCount
         )
-        binding.textNoFingerprintWarning.isVisible = !request.hasFingerprint
         val passwordLayout = binding.layoutImportPassword
         val passwordField = binding.editImportPassword
         passwordLayout.isVisible = true

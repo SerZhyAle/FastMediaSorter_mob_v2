@@ -96,8 +96,7 @@ sealed class AddResourceEvent {
     data class CompanionPasswordRequired(
         val resourceName: String,
         val host: String,
-        val rootCount: Int,
-        val hasFingerprint: Boolean
+        val rootCount: Int
     ) : AddResourceEvent()
 }
 

@@ -2524,7 +2524,6 @@
     <string name="sftp_share_export_action">Share</string>
     <string name="companion_import_title">Import access</string>
     <string name="companion_import_confirm_message">Add the SFTP resource \"%1$s\" on %2$s with %3$d folder(s)?</string>
-    <string name="companion_import_no_fingerprint_warning">This server has not been verified - connect only if you trust the sender.</string>
     <string name="companion_import_password_label">Password for this server</string>
     <string name="companion_import_action">Import</string>
     <string name="companion_import_password_required">Enter the password for this server.</string>

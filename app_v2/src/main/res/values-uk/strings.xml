@@ -2440,7 +2440,6 @@
     <string name="sftp_share_export_action">Поділитися</string>
     <string name="companion_import_title">Імпорт доступу</string>
     <string name="companion_import_confirm_message">Додати SFTP-ресурс «%1$s» на %2$s (папок: %3$d)?</string>
-    <string name="companion_import_no_fingerprint_warning">Сервер не верифіковано - підключайтеся, лише якщо довіряєте відправнику.</string>
     <string name="companion_import_password_label">Пароль для цього сервера</string>
     <string name="companion_import_action">Імпортувати</string>
     <string name="companion_import_password_required">Введіть пароль для цього сервера.</string>
