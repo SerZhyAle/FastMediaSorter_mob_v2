@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.15 19:27</sub>
+<sub class="doc-stamp">26.11.15 22:23</sub>
 
 # Development Changelog
 
@@ -37882,3 +37882,5 @@ Format: | datetime | file | target | description |
 | 2026-11-15 19:33:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceConnectionManager.kt` | `spec-dev` | no-fingerprint warning line removed from the password prompt (phase 03.2) [branch: DEBUG-v049] |
 | 2026-11-15 19:33:30 | `app_v2/src/main/res/layout/dialog_companion_import_confirm.xml` | `spec-dev` | warning TextView removed (phase 03.3) [branch: DEBUG-v049] |
 | 2026-11-15 19:33:31 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | companion_share_unpinned_error added en/ru/uk; warning string removed from all 13 locales (phases 02.2, 03.3) [branch: DEBUG-v049] |
+| 2026-11-15 22:23:13 | `app_v2/src/main/assets/help/ru/notes.html` | `RU/UK notes and index help pages` | Regenerate stale RU/UK notes and index help pages from docs/content/help sources (whole-tree generate-help-pages -Check was exit 1 with these 8 out of step; found in the S4667 audit) [set of 8: app_v2/src/main/assets/help/uk/notes.html, app_v2/src/main/assets/help/ru/index.html, app_v2/src/main/assets/help/uk/index.html, documentation/help/notes-ru.html, documentation/help/notes-uk.html, documentation/help/index-ru.html, +1 more] [branch: DEBUG-v049] |
+| 2026-11-15 22:29:37 | `PLAN/archive/S4667_water-flashlight-touch-lock-wording.md` | `spec-check` | Strategic audit: touch-lock wording verified in en/ru/uk help, strings and generated pages; eight stale RU/UK notes/index help pages regenerated and closed separately; status -> Verified [branch: DEBUG-v049] |
