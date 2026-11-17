@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.networkmonitor.helpers
 
+import android.Manifest
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
@@ -18,7 +19,7 @@ import java.util.WeakHashMap
 /** Offers the correct recovery action for a Monitor section that lacks one runtime permission. */
 class NetworkMonitorPermissionManager(private val fragment: Fragment) {
 
-    private val launcher = fragment.registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+    private val launcher = fragment.registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         bound.clear()
     }
 
@@ -67,13 +68,27 @@ class NetworkMonitorPermissionManager(private val fragment: Fragment) {
         )
         view.setOnClickListener {
             if (activity.canRequestPermission(denied.manifestName)) {
-                activity.markPermissionRequested(denied.manifestName)
-                launcher.launch(denied.manifestName)
+                val requested = requestSet(denied.manifestName)
+                requested.forEach { activity.markPermissionRequested(it) }
+                launcher.launch(requested)
             } else {
                 openAppSettings()
             }
         }
     }
+
+    /**
+     * Fine location goes out as the fine and coarse pair: from API 31 the platform ignores a
+     * fine-only request and shows no dialog at all (S4508 measurement), and the pair is what lets the
+     * user answer "approximate". S4670: the Play location declaration names these sections as fine
+     * consumers, so their grant path must actually show a dialog.
+     */
+    private fun requestSet(permission: String): Array<String> =
+        if (permission == Manifest.permission.ACCESS_FINE_LOCATION) {
+            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+        } else {
+            arrayOf(permission)
+        }
 
     private fun openAppSettings() {
         val context = fragment.requireContext()

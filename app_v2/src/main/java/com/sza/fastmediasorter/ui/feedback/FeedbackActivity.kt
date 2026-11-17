@@ -140,9 +140,11 @@ class FeedbackActivity : AppCompatActivity() {
     }
 
     private fun startPhoto() {
-        val (file, uri) = images.newPhotoTarget()
-        pendingPhoto = file
-        takePhoto.launch(uri)
+        lifecycleScope.launch {
+            val (file, uri) = images.newPhotoTarget()
+            pendingPhoto = file
+            takePhoto.launch(uri)
+        }
     }
 
     private fun toggleVoice() {

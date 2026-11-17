@@ -44,6 +44,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -78,11 +79,18 @@ class ObserveTouristDashboardUseCase @Inject constructor(
         baseStepCount = null
     }
 
-    fun hasLocationPermission(): Boolean =
+    fun hasFineLocationPermission(): Boolean =
         ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.ACCESS_FINE_LOCATION,
         ) == PackageManager.PERMISSION_GRANTED
+
+    fun hasLocationPermission(): Boolean =
+        hasFineLocationPermission() ||
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+            ) == PackageManager.PERMISSION_GRANTED
 
     fun hasActivityRecognitionPermission(): Boolean =
         Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
@@ -95,6 +103,7 @@ class ObserveTouristDashboardUseCase @Inject constructor(
     operator fun invoke(
         initialFocus: TouristTileType = TouristTileType.SPEED,
     ): Flow<TouristDashboardState> = channelFlow {
+        Timber.d("S4672: phone location granted=%s fine=%s", hasLocationPermission(), hasFineLocationPermission())
         tripTracker.ensureLoaded()
         val capabilities = SensorCapability.entries.filter { sensorAvailabilityRepository.isAvailable(it) }.toSet()
         val isStepsAvail = SensorCapability.STEP_COUNTER in capabilities
@@ -208,6 +217,8 @@ class ObserveTouristDashboardUseCase @Inject constructor(
         return prev.copy(
             speedKmh = motion.speedKmh,
             altitudeMeters = motion.altitudeMeters ?: prev.altitudeMeters,
+            latitude = motion.latitude ?: prev.latitude,
+            longitude = motion.longitude ?: prev.longitude,
             navigation = prev.navigation.copy(
                 gpsAccuracyMeters = motion.horizontalAccuracyMeters,
                 gpsGrade = TripMotionPolicy.gpsAccuracyGrade(motion.horizontalAccuracyMeters),

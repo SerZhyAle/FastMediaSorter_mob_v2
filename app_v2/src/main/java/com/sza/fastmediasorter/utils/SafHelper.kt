@@ -40,8 +40,9 @@ object SafHelper {
             // Try multiple deletion methods for SAF
             var deleted = false
 
-            // Method 1: ContentResolver.delete
-            if (!deleted) {
+            // Method 1: ContentResolver.delete - a documents provider refuses it ("Delete not supported"),
+            // so a document URI goes straight to DocumentsContract instead of logging a refusal per file.
+            if (!DocumentsContract.isDocumentUri(context, uri)) {
                 try {
                     val rowsDeleted = context.contentResolver.delete(uri, null, null)
                     deleted = rowsDeleted > 0

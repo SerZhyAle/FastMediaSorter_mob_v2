@@ -2418,8 +2418,8 @@
     <string name="streams_remove_from_favorites">Из избранного</string>
     <string name="streams_country_flag">Флаг страны</string>
     <string name="perm_group_location">Местоположение</string>
-    <string name="perm_title_location">Геометка при съёмке</string>
-    <string name="perm_desc_location">Геометки для съёмки</string>
+    <string name="perm_title_location">Точное местоположение</string>
+    <string name="perm_desc_location">Местоположение и высота для панели туриста</string>
     <string name="screenshot_gesture_action_launch_camera">Запустить камеру</string>
     <string name="screenshot_gesture_action_start_video_recording">Начать видеозапись</string>
     <string name="screenshot_gesture_action_start_audio_recording">Начать аудиозапись</string>
@@ -2842,7 +2842,7 @@
     <string name="perm_rationale_record_audio">Микрофон нужен для голосовых заметок, для звука в записи экрана и для живого звука при вещании. Без него запись и звуковое вещание не начнутся.</string>
     <string name="perm_addendum_record_audio_screen_recording">Звук в записи экрана берётся с микрофона.</string>
     <string name="perm_addendum_post_notifications_screen_recording">В уведомлении о записи находится кнопка остановки.</string>
-    <string name="perm_rationale_location">Местоположение используется только для записи координат в снимки и видео, снятые в приложении. Никуда ничего не отправляется.</string>
+    <string name="perm_rationale_location">Точное местоположение нужно, чтобы показать местоположение и высоту на панели туриста. Никуда ничего не отправляется.</string>
     <string name="perm_addendum_post_notifications_scheduled_ops">Разрешить уведомления для отложенных операций</string>
     <string name="perm_rationale_battery_optimization">Android может приостановить приложение в фоне, и тогда отложенная операция запустится с опозданием или вовсе не запустится. Исключение приложения из энергосбережения сохраняет расписание.</string>
     <string name="launcher_gadget_compass">Компас</string>
@@ -3448,9 +3448,9 @@
     <string name="wear_background_sent">Изображение на часах.</string>
     <string name="wear_background_failed">Не получилось отправить изображение - выберите другое или отправьте ещё раз.</string>
     <string name="wear_background_watch_unreachable">Часы недоступны - поднесите их ближе и отправьте ещё раз.</string>
-    <string name="perm_title_location_extended">Геометка, гаджеты и монитор сети</string>
-    <string name="perm_desc_location_extended">Геометки для съёмки, гаджеты рабочего стола и монитор сети</string>
-    <string name="perm_rationale_location_extended">Местоположение нужно, чтобы записать координаты в снятые фото и видео, нарисовать гаджеты компаса, скорости, высоты и карты на рабочем столе и заполнить разделы GNSS и Wi-Fi в мониторе сети. Всё это остаётся на устройстве, кроме гаджетов карты: чтобы нарисовать карту, они запрашивают картинку вашей местности у онлайн-сервиса карт и спрашивают у Android название места. Больше никуда ничего не уходит, и своих серверов у нас нет.</string>
+    <string name="perm_title_location_extended">Точное местоположение</string>
+    <string name="perm_desc_location_extended">Гаджеты рабочего стола, разделы монитора сети и панель туриста</string>
+    <string name="perm_rationale_location_extended">Точное местоположение нужно, чтобы нарисовать гаджеты компаса, скорости и высоты на рабочем столе, заполнить разделы GNSS и Wi-Fi в мониторе сети и показать местоположение и высоту на панели туриста. Никуда ничего не отправляется, и своих серверов у нас нет.</string>
     <string name="wear_received_upload_notif_channel">Файлы с часов</string>
     <string name="wear_received_upload_notif_progress">Сохраняю %1$s в %2$s</string>
     <string name="wear_received_upload_notif_success">%1$s сохранён в %2$s</string>
@@ -4679,4 +4679,7 @@
     <string name="streams_unavailable_certificate_message">«%1$s» использует сертификат, которому это устройство не доверяет. Удалить из вашего списка?</string>
     <string name="companion_import_no_access_path_error">В этом файле нет адреса для прямого подключения. Попросите отправителя поделиться ещё раз с локальным или проброшенным адресом.</string>
     <string name="companion_share_unpinned_error">Подключитесь к этому серверу хотя бы раз перед тем, как делиться доступом - приложению нужен его проверенный ключ.</string>
+    <string name="perm_rationale_access_coarse_location">Приблизительное местоположение нужно, чтобы записать координаты в снятые в приложении фото и видео. Никуда ничего не отправляется.</string>
+    <string name="perm_rationale_access_coarse_location_extended">Приблизительное местоположение нужно, чтобы записать координаты в снятые в приложении фото и видео и разместить гаджеты карты на рабочем столе: чтобы нарисовать карту, они запрашивают картинку вашей местности у онлайн-сервиса карт и спрашивают у Android название места. Больше никуда ничего не отправляется, и своих серверов у нас нет.</string>
+    <string name="perm_desc_access_coarse_location_extended">Приблизительные координаты для снятых в приложении фото и гаджетов карты на рабочем столе</string>
 </resources>

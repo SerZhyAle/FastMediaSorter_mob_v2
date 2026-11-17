@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase.streams
 
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointCodec
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointDto
+import com.sza.fastmediasorter.data.broadcast.BroadcastSealDto
 import com.sza.fastmediasorter.data.broadcast.exchange.BroadcastEndpointProbe
 import com.sza.fastmediasorter.domain.model.BroadcastStartState
 import com.sza.fastmediasorter.domain.repository.BroadcastPendingStore
@@ -68,6 +69,7 @@ class WatchBroadcastStartUseCaseTest {
     }
 
     private companion object {
+        const val GROUP_KEY = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
         const val ROW = "row-1"
         const val FUTURE_MS = 4_070_908_800_000L
         const val PAST_MS = 978_307_200_000L
@@ -76,6 +78,7 @@ class WatchBroadcastStartUseCaseTest {
                 BroadcastEndpointDto(
                     url = "https://exchange.example.org:8443/v2/b/AbCdEfGh12/stream",
                     transport = "RELAY",
+                    seal = BroadcastSealDto(key = GROUP_KEY),
                     certFingerprint = "SHA256:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU",
                 ),
             ),

@@ -1083,6 +1083,12 @@ class TextViewerManager(
     /** True while the text editor panel replaces the read-only text view. */
     fun isEditorOpen(): Boolean = safeViews.textEditContainer.isVisible
 
+    /** S4676: the editor's actions live in the player's overflow menu; no-op while the editor is closed. */
+    fun addEditorOverflowItems(menu: android.view.Menu) {
+        Timber.d("S4676: editor actions requested for the player overflow, editorOpen=${isEditorOpen()}")
+        if (isEditorOpen()) actionPanelManager.addOverflowItems(menu)
+    }
+
     /**
      * Copy/Move read the file on disk, never the editor buffer, so a dirty buffer is saved in place
      * first (no rename dialog: a renamed file would leave the transfer on the old one). A move also

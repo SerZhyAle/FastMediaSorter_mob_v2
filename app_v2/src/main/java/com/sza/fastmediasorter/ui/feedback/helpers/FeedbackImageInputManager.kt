@@ -36,10 +36,14 @@ class FeedbackImageInputManager(private val context: Context) {
         copy(uri, context.contentResolver.getType(uri) ?: JPEG_MIME)
     }
 
-    /** A cache file and its provider URI for the camera app to write into. */
-    fun newPhotoTarget(): Pair<File, Uri> {
+    /**
+     * A cache file and its provider URI for the camera app to write into. Suspending because resolving the
+     * cache folder creates it on disk, which a click handler must not do on the main thread.
+     */
+    suspend fun newPhotoTarget(): Pair<File, Uri> = withContext(Dispatchers.IO) {
+        Timber.d("S4678: feedback photo target resolved on the IO dispatcher")
         val file = File(folder, "photo_${System.currentTimeMillis()}.jpg")
-        return file to FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+        file to FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
     }
 
     fun fromPhoto(file: File): TicketAttachmentSource? = file.takeIf { it.length() > 0 }?.let {

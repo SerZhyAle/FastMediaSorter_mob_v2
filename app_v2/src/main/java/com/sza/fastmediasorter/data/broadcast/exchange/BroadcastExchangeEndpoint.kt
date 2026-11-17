@@ -84,7 +84,11 @@ object BroadcastExchangeEndpoints {
      * with no stored list is the single endpoint it always was: its [fallbackUrl].
      */
     fun playOrder(stored: String?, fallbackUrl: String): List<BroadcastExchangeEndpoint> =
-        BroadcastEndpointCodec.decode(stored)?.mapNotNull(::parse) ?: listOf(BroadcastExchangeEndpoint.Lan(fallbackUrl))
+        if (stored.isNullOrBlank()) {
+            listOfNotNull(parseLan(fallbackUrl))
+        } else {
+            BroadcastEndpointCodec.decode(stored)?.mapNotNull(::parse).orEmpty()
+        }
 
     /** The exchange server a stored channel plays through, for its caption; null for a LAN-only channel. */
     fun exchangeServer(stored: String?): ExchangeServer? =
@@ -109,17 +113,30 @@ object BroadcastExchangeEndpoints {
         val tunnelPin = seal?.pin?.trim()?.takeIf { it.isNotEmpty() }
         return when (dto.transport.trim().uppercase()) {
             TRANSPORT_HTTP, TRANSPORT_RTSP ->
-                dto.url.trim().takeIf { it.isNotEmpty() }?.let(BroadcastExchangeEndpoint::Lan)
+                dto.url.trim().takeIf { seal == null }?.let(::parseLan)
             TRANSPORT_RELAY -> parseRelay(dto.url.trim(), fingerprint)
-                ?.takeIf { seal == null || (seal.isKnown && groupKey != null) }
+                ?.takeIf { seal?.isKnown == true && groupKey != null }
                 ?.copy(groupKey = groupKey)
             TRANSPORT_TUNNEL -> parseTunnel(dto.url.trim(), dto.inner?.trim(), fingerprint)
-                ?.takeIf { seal == null || (seal.isKnown && tunnelPin != null) }
+                ?.takeIf { seal?.isKnown == true && tunnelPin != null }
                 ?.copy(tunnelPin = tunnelPin)
             else -> null
         }
     }
 
+    /** Exchange addresses cannot be played directly, even when an old row has no endpoint list. */
+    fun isExchangeUrl(url: String): Boolean {
+        val uri = uriOrNull(url.trim()) ?: return false
+        val path = uri.rawPath.orEmpty()
+        return uri.scheme.equals(SCHEME_FMSX, ignoreCase = true) ||
+            (path.startsWith(RELAY_PATH_PREFIX) && path.endsWith(RELAY_PATH_SUFFIX))
+    }
+
+    private fun parseLan(url: String): BroadcastExchangeEndpoint.Lan? {
+        val uri = uriOrNull(url.trim()) ?: return null
+        return url.trim().takeIf { uri.scheme?.lowercase() in setOf("http", "https", "rtsp") && !isExchangeUrl(it) }
+            ?.let(BroadcastExchangeEndpoint::Lan)
+    }
     private fun parseRelay(url: String, fingerprint: String?): BroadcastExchangeEndpoint.Relay? {
         val uri = uriOrNull(url)?.takeIf { it.scheme.equals(SCHEME_HTTPS, ignoreCase = true) }
         val server = uri?.let(::serverOf) ?: return null

@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.12 03:27</sub>
+<sub class="doc-stamp">26.11.17 12:05</sub>
 
 # Pointer - `SITE-FAMILY-MAP`
 
@@ -21,6 +21,6 @@
 
 ## Where it lives here
 
-- The footer of `index.html`, `nolegal.html` and their `-ru` / `-uk` translations.
-- The grid's one copy is `scripts/site/family-footer.json`; `scripts/site/render-family-footer.ps1` renders it into the six pages between the `family-footer` markers. A map change is an edit of that file plus a render.
+- The footer of `index.html`, `nolegal.html` and their `-ru` / `-uk` translations, and of each translated landing page `index-<locale>.html`.
+- The grid's one copy is `scripts/site/family-footer.json`; `scripts/site/render-family-footer.ps1` renders it into the sixteen pages between the `family-footer` markers. A map change is an edit of that file plus a render.
 - `scripts/quality/assert-site-family-map.ps1` (release scope) holds the pages to the source, the source to the map's section 2 (URL and `Tool` name), this product's row to `_config.yml`, and rule 3 on the pages and `README.md`.

@@ -1,5 +1,5 @@
 {
-  "_comment": "The footer tools grid of the six product pages (contract SITE-FAMILY-MAP). The one copy: edit here, then run scripts/site/render-family-footer.ps1. scripts/quality/assert-site-family-map.ps1 holds the pages to this file and this file to the catalog map.",
+  "_comment": "The footer tools grid of every product landing page (contract SITE-FAMILY-MAP). The one copy: edit here, then run scripts/site/render-family-footer.ps1. scripts/quality/assert-site-family-map.ps1 holds the pages to this file and this file to the catalog map. Each caption carries the locales of the pages that render it.",
   "self": "https://serzhyale.github.io/FastMediaSorter_mob_v2/",
   "tools": [
     {
@@ -8,7 +8,17 @@
       "caption": {
         "en": "PC media sorter &amp; folder share to Android",
         "ru": "Сортировщик медиа для Windows и общий доступ к папкам для Android",
-        "uk": "Сортувальник медіа для Windows і спільний доступ до тек для Android"
+        "uk": "Сортувальник медіа для Windows і спільний доступ до тек для Android",
+        "zh-hans": "PC 媒体整理工具，向 Android 共享文件夹",
+        "hi": "PC मीडिया सॉर्टर और Android के लिए फ़ोल्डर शेयर",
+        "es": "Organizador multimedia para PC y compartición de carpetas con Android",
+        "fr": "Trieur de médias PC et partage de dossiers vers Android",
+        "ar": "مرتب وسائط للكمبيوتر ومشاركة مجلدات مع أندرويد",
+        "bn": "PC মিডিয়া সর্টার ও Android-এ ফোল্ডার শেয়ার",
+        "pt": "organizador de mídia para PC e compartilhamento de pastas para Android",
+        "ur": "PC میڈیا سارٹر اور Android کے لیے فولڈر شیئر",
+        "de": "PC-Media-Sorter &amp; Ordnerfreigabe für Android",
+        "it": "Organizzatore media per PC &amp; condivisione cartelle verso Android"
       }
     },
     {
@@ -17,7 +27,17 @@
       "caption": {
         "en": "Windows ebook converter",
         "ru": "Конвертер книг для Windows",
-        "uk": "Конвертер книг для Windows"
+        "uk": "Конвертер книг для Windows",
+        "zh-hans": "Windows 电子书转换工具",
+        "hi": "Windows ईबुक कनवर्टर",
+        "es": "Conversor de libros electrónicos para Windows",
+        "fr": "Convertisseur d’ebooks Windows",
+        "ar": "محول كتب إلكترونية لـ Windows",
+        "bn": "Windows ইবুক কনভার্টার",
+        "pt": "conversor de ebooks para Windows",
+        "ur": "Windows ای بک کنورٹر",
+        "de": "Windows-eBook-Konverter",
+        "it": "Convertitore di ebook per Windows"
       }
     },
     {
@@ -26,7 +46,17 @@
       "caption": {
         "en": "Windows layout fixer",
         "ru": "Исправление раскладки Windows",
-        "uk": "Виправлення розкладки Windows"
+        "uk": "Виправлення розкладки Windows",
+        "zh-hans": "Windows 键盘布局修复工具",
+        "hi": "Windows लेआउट फिक्सर",
+        "es": "Corrector de distribución de teclado para Windows",
+        "fr": "Correcteur de disposition clavier Windows",
+        "ar": "مصلح تخطيط لوحة المفاتيح لـ Windows",
+        "bn": "Windows লেআউট ফিক্সার",
+        "pt": "corretor de layout de teclado para Windows",
+        "ur": "Windows لے آؤٹ فکسر",
+        "de": "Windows-Layout-Korrektur",
+        "it": "Correttore layout tastiera per Windows"
       }
     },
     {
@@ -35,7 +65,17 @@
       "caption": {
         "en": "Windows storage CLI",
         "ru": "CLI для хранилищ Windows",
-        "uk": "CLI для сховищ Windows"
+        "uk": "CLI для сховищ Windows",
+        "zh-hans": "Windows 存储命令行工具",
+        "hi": "Windows स्टोरेज CLI",
+        "es": "CLI de almacenamiento para Windows",
+        "fr": "CLI de stockage Windows",
+        "ar": "أداة سطر أوامر للتخزين على Windows",
+        "bn": "Windows স্টোরেজ CLI",
+        "pt": "CLI de armazenamento para Windows",
+        "ur": "Windows اسٹوریج CLI",
+        "de": "Windows-Speicher-CLI",
+        "it": "CLI di archiviazione per Windows"
       }
     },
     {
@@ -44,7 +84,17 @@
       "caption": {
         "en": "Windows stream player",
         "ru": "Плеер потоков для Windows",
-        "uk": "Плеєр потоків для Windows"
+        "uk": "Плеєр потоків для Windows",
+        "zh-hans": "Windows 流媒体播放器",
+        "hi": "Windows स्ट्रीम प्लेयर",
+        "es": "Reproductor de transmisiones para Windows",
+        "fr": "Lecteur de flux Windows",
+        "ar": "مشغل بث لـ Windows",
+        "bn": "Windows স্ট্রিম প্লেয়ার",
+        "pt": "reprodutor de streams para Windows",
+        "ur": "Windows اسٹریم پلیئر",
+        "de": "Windows-Stream-Player",
+        "it": "Lettore di stream per Windows"
       }
     },
     {
@@ -53,7 +103,17 @@
       "caption": {
         "en": "Windows tray launcher",
         "ru": "Лаунчер в трее Windows",
-        "uk": "Лаунчер у треї Windows"
+        "uk": "Лаунчер у треї Windows",
+        "zh-hans": "Windows 托盘启动器",
+        "hi": "Windows ट्रे लॉन्चर",
+        "es": "Lanzador de bandeja para Windows",
+        "fr": "Lanceur de zone de notification Windows",
+        "ar": "مشغل شريط مهام لـ Windows",
+        "bn": "Windows ট্রে লঞ্চার",
+        "pt": "lançador de bandeja para Windows",
+        "ur": "Windows ٹرے لانچر",
+        "de": "Windows-Tray-Starter",
+        "it": "Avvio rapido da tray per Windows"
       }
     },
     {
@@ -62,7 +122,55 @@
       "caption": {
         "en": "AI-dev methodology",
         "ru": "Методология AI-разработки",
-        "uk": "Методологія AI-розробки"
+        "uk": "Методологія AI-розробки",
+        "zh-hans": "AI 开发方法论",
+        "hi": "AI-dev पद्धति",
+        "es": "Metodología de desarrollo con IA",
+        "fr": "Méthodologie de développement IA",
+        "ar": "منهجية تطوير بالذكاء الاصطناعي",
+        "bn": "AI-ডেভ পদ্ধতি",
+        "pt": "metodologia de desenvolvimento com IA",
+        "ur": "AI ڈیو طریقہ کار",
+        "de": "KI-Entwicklungsmethodik",
+        "it": "Metodologia AI-dev"
+      }
+    },
+    {
+      "url": "https://serzhyale.github.io/DeviceInfo_Android/",
+      "name": "DeviceInfo",
+      "caption": {
+        "en": "Android and Wear OS device info",
+        "ru": "Сведения об устройстве для Android и Wear OS",
+        "uk": "Відомості про пристрій для Android і Wear OS",
+        "zh-hans": "Android 与 Wear OS 设备信息",
+        "hi": "Android और Wear OS के लिए डिवाइस जानकारी",
+        "es": "Información del dispositivo para Android y Wear OS",
+        "fr": "Infos appareil pour Android et Wear OS",
+        "ar": "معلومات الجهاز لـ Android وWear OS",
+        "bn": "Android ও Wear OS-এর ডিভাইস তথ্য",
+        "pt": "Informações do dispositivo para Android e Wear OS",
+        "ur": "Android اور Wear OS کے لیے ڈیوائس کی معلومات",
+        "de": "Geräteinfo für Android und Wear OS",
+        "it": "Info sul dispositivo per Android e Wear OS"
+      }
+    },
+    {
+      "url": "https://serzhyale.github.io/Tourist_Android/",
+      "name": "Tourist",
+      "caption": {
+        "en": "Android and Wear OS hiking kit",
+        "ru": "Туристический набор для Android и Wear OS",
+        "uk": "Туристичний набір для Android і Wear OS",
+        "zh-hans": "Android 与 Wear OS 徒步工具包",
+        "hi": "Android और Wear OS के लिए हाइकिंग किट",
+        "es": "Kit de senderismo para Android y Wear OS",
+        "fr": "Kit de randonnée pour Android et Wear OS",
+        "ar": "مجموعة المشي لمسافات طويلة لـ Android وWear OS",
+        "bn": "Android ও Wear OS-এর জন্য হাইকিং কিট",
+        "pt": "kit de caminhada para Android e Wear OS",
+        "ur": "Android اور Wear OS کے لیے ہائیکنگ کٹ",
+        "de": "Wanderset für Android und Wear OS",
+        "it": "Kit per escursioni per Android e Wear OS"
       }
     },
     {
@@ -71,7 +179,17 @@
       "caption": {
         "en": "Portfolio hub",
         "ru": "Портфолио",
-        "uk": "Портфоліо"
+        "uk": "Портфоліо",
+        "zh-hans": "作品集主页",
+        "hi": "पोर्टफोलियो हब",
+        "es": "Portafolio",
+        "fr": "Portail du portfolio",
+        "ar": "مركز المحفظة",
+        "bn": "পোর্টফোলিও হাব",
+        "pt": "Hub do portfólio",
+        "ur": "پورٹ فولیو حب",
+        "de": "Portfolio-Hub",
+        "it": "Hub del portfolio"
       }
     }
   ]

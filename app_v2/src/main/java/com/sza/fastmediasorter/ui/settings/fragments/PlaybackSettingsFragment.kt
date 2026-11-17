@@ -14,6 +14,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
@@ -26,6 +27,9 @@ import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 // S1161: see GeneralSettingsFragment - the collapsed-group grid is installed by the base class, so every
@@ -459,17 +463,26 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
     }
 
     private fun showBatteryOptimizationHintIfNeeded() {
-        val prefs = requireContext().getSharedPreferences(PREFS_NAME_HINT, Context.MODE_PRIVATE)
-        if (prefs.getBoolean(KEY_HAS_SHOWN_BATTERY_HINT, false)) return
-
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.battery_optimization_hint_title)
-            .setMessage(R.string.battery_optimization_hint_message)
-            .setPositiveButton(R.string.ok) { _, _ ->
-                prefs.edit().putBoolean(KEY_HAS_SHOWN_BATTERY_HINT, true).apply()
+        // Taken before the launch so the IO block never reaches into the fragment.
+        val appContext = requireContext().applicationContext
+        // Bound to the view: leaving the screen before the flag arrives drops a hint nobody can see.
+        viewLifecycleOwner.lifecycleScope.launch {
+            timber.log.Timber.d("S4678: battery hint flag read moved to the IO dispatcher")
+            val (prefs, alreadyShown) = withContext(Dispatchers.IO) {
+                val hintPrefs = appContext.getSharedPreferences(PREFS_NAME_HINT, Context.MODE_PRIVATE)
+                hintPrefs to hintPrefs.getBoolean(KEY_HAS_SHOWN_BATTERY_HINT, false)
             }
-            .setCancelable(false)
-            .showBoundTo(this@PlaybackSettingsFragment)
+            if (alreadyShown) return@launch
+
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.battery_optimization_hint_title)
+                .setMessage(R.string.battery_optimization_hint_message)
+                .setPositiveButton(R.string.ok) { _, _ ->
+                    prefs.edit().putBoolean(KEY_HAS_SHOWN_BATTERY_HINT, true).apply()
+                }
+                .setCancelable(false)
+                .showBoundTo(this@PlaybackSettingsFragment)
+        }
     }
 
     private fun getSortModeName(mode: SortMode): String {

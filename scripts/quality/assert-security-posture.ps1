@@ -10,7 +10,7 @@
     inventory and the code a state somebody sees, instead of a store rejection months later
     (canon rules/SECURITY_AND_PRIVACY.md section 7, contract source ticket S3380).
 
-    Five checks, all of them derivable and none of them a judgement:
+    Seven checks, all of them derivable and none of them a judgement:
 
       permission-coverage   every <uses-permission> / <uses-permission-sdk-23> declared in any
                             AndroidManifest.xml of app_v2 or wear has a row in the inventory, and
@@ -33,6 +33,9 @@
                             not set fms.readContacts=off (an absent property counts as on), because the next
                             release would ship a permission Google Play refused. The last PASS line shows the
                             state and its date; the Play verdict itself is read and recorded by the owner.
+      location-declaration and local-network-declaration require their declaration source and a
+                            recorded valid state while the matching permission is declared. A
+                            rejected declaration fails until that permission is removed.
       document-shape        the document exists and carries its reconciliation date, so an
                             inventory nobody has looked at in a year says so.
 
@@ -236,6 +239,50 @@ if ($declared.Contains('android.permission.READ_CONTACTS')) {
     }
 }
 
+# The Play declaration is relevant only while a manifest actually declares its permission.
+$declarationChecks = @(
+    @{ Name = 'location-declaration'; Permission = 'ACCESS_FINE_LOCATION'; Marker = '<!-- s4501:transcribed:location-declaration -->'; File = 'store_assets/PLAY_PERMISSIONS_DECLARATION.md' }
+    @{ Name = 'local-network-declaration'; Permission = 'ACCESS_LOCAL_NETWORK'; Marker = '<!-- s4502:transcribed:local-network-declaration -->'; File = 'store_assets/PLAY_LOCAL_NETWORK_DECLARATION.md' }
+)
+$declarationSummaries = @{}
+foreach ($check in $declarationChecks) {
+    $name = $check.Name
+    $declarationSummaries[$name] = 'not required (permission not declared)'
+    if (-not $declared.Contains("android.permission.$($check.Permission)")) { continue }
+    $declarationSummaries[$name] = 'state=unknown date=-'
+    if (-not (Test-Path -LiteralPath (Join-Path $RepoRoot $check.File))) {
+        $findings.Add("${name}: $($check.Permission) is declared and $($check.File) is missing.")
+    }
+    $statusPath = Join-Path $RepoRoot 'docs/PLAY_PUBLISHING_STATE.md'
+    if (-not (Test-Path -LiteralPath $statusPath)) {
+        $findings.Add("${name}: docs/PLAY_PUBLISHING_STATE.md is missing.")
+        continue
+    }
+    $statusText = Get-Content -LiteralPath $statusPath -Raw
+    $markerAt = $statusText.IndexOf($check.Marker, [System.StringComparison]::Ordinal)
+    if ($markerAt -lt 0) {
+        $findings.Add("${name}: docs/PLAY_PUBLISHING_STATE.md carries no '$($check.Marker)' block.")
+        continue
+    }
+    $block = $statusText.Substring($markerAt + $check.Marker.Length)
+    $end = [regex]::Match($block, '(?m)^(?:<!--|#{1,6}[ \t])')
+    if ($end.Success) { $block = $block.Substring(0, $end.Index) }
+    $stateMatch = [regex]::Match($block, '(?m)^\*\*State:\*\*[ \t]*(.*?)[ \t]*\r?$')
+    $dateMatch = [regex]::Match($block, '(?m)^\*\*Date:\*\*[ \t]*(.*?)[ \t]*\r?$')
+    if (-not $stateMatch.Success) {
+        $findings.Add("${name}: the declaration block carries no '**State:**' line.")
+        continue
+    }
+    $state = $stateMatch.Groups[1].Value.ToLowerInvariant()
+    $date = if ($dateMatch.Success -and $dateMatch.Groups[1].Value) { $dateMatch.Groups[1].Value } else { '-' }
+    $declarationSummaries[$name] = "state=$state date=$date"
+    if ($state -notin $contactsStates) {
+        $findings.Add("${name}: state '$state' is not one of: $($contactsStates -join ', ').")
+    } elseif ($state -eq 'rejected') {
+        $findings.Add("${name}: Google Play rejected the declaration while $($check.Permission) remains declared.")
+    }
+}
+
 # --- document shape -----------------------------------------------------------------------------
 if ($docText -notmatch '(?m)^\*\*Last reconciled:\*\*\s*\d{4}-\d{2}-\d{2}\s*$') {
     $findings.Add("document-shape: docs/SECURITY_POSTURE.md carries no '**Last reconciled:** YYYY-MM-DD' line, so nobody can tell how old the inventory is.")
@@ -252,6 +299,8 @@ if (-not $Quiet) {
     Write-Host "  rationale-keys: every named perm_rationale_* string resolves, and every row shown at request names one."
     Write-Host "  telemetry-claim: no analytics, crash-reporting or advertising artifact in the build inputs."
     Write-Host "  contacts-declaration: $contactsSummary."
+    foreach ($check in $declarationChecks) { Write-Host "  $($check.Name): $($declarationSummaries[$check.Name])." }
 }
-Write-Host "assert-security-posture: PASS ($($inventory.Count) inventory row(s)); contacts-declaration: $contactsSummary."
+$declarationSuffix = ($declarationChecks | ForEach-Object { "$($_.Name): $($declarationSummaries[$_.Name])" }) -join '; '
+Write-Host "assert-security-posture: PASS ($($inventory.Count) inventory row(s)); contacts-declaration: $contactsSummary; $declarationSuffix."
 exit 0

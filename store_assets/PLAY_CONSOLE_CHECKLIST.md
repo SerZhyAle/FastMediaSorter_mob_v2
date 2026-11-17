@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.30 11:35</sub>
+<sub class="doc-stamp">26.11.16 13:53</sub>
 
 # Play Console Operator Checklist - S0135
 
@@ -169,8 +169,9 @@ shared anywhere.** Every row below is unchecked, and the file above holds the ev
 ## C5. Contacts Permission declaration (S4030)
 
 Source of truth: `store_assets/PLAY_CONTACTS_DECLARATION.md`. Console path:
-`Policy and programs -> App content -> Contacts Permission`, as named in Google's April 2026 policy
-email. Like C3 and C4 this form has no Play Developer API endpoint, so the text is pasted by hand - edit
+`Policy and programs -> App content`; the form follows Google's restricted-permission policy announced
+2026-10-29 (Play Console Help answers 18100766 and 16909972). Like C3 and C4 this form has no Play
+Developer API endpoint, so the text is pasted by hand - edit
 the file first, never compose the text in the console. Enforcement starts 2027-01-27 for targetSdk 37
 and higher; the app targets 37 since S4502, so file this before the first upload of that build.
 
@@ -233,6 +234,11 @@ so file it before the first upload of that build.
 
 Local Network declaration. Source of truth: `store_assets/PLAY_LOCAL_NETWORK_DECLARATION.md`. Google lists it
 under 2027-08-25 for apps targeting 37; file it with the other two before the first upload targeting 37.
+
+Mirror convergence: the declaration files have one source of truth in this repository, and the
+FastMediaSorter_release clone (fms-release) receives them through its release sync - when walking this
+section at a release, confirm the clone's copies of `PLAY_CONTACTS_DECLARATION.md`,
+`PLAY_PERMISSIONS_DECLARATION.md` and `PLAY_LOCAL_NETWORK_DECLARATION.md` match this checkout (S4670, ADR-2).
 
 - [ ] Open the declaration form (`goo.gle/play-permission-decl-form`) and paste Field 1 and Field 2 verbatim;
       if a field limit is shorter than the text, trim the file first and write the limit on its heading

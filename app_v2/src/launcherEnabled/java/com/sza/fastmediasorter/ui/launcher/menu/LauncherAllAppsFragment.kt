@@ -24,6 +24,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
 import com.sza.fastmediasorter.core.screencapture.ScreenshotGestureActionDispatcher
 import com.sza.fastmediasorter.databinding.FragmentLauncherAllAppsBinding
@@ -93,11 +94,20 @@ class LauncherAllAppsFragment : DialogFragment() {
     private var latestApps: List<InstalledApp> = emptyList()
     private var latestCatalog: AppCategoryCatalog = AppCategoryCatalog.EMPTY
 
+    // The grid is drawn from the saved expansion state, so the first load of this file cannot be deferred
+    // without drawing every group collapsed first; the permit covers the load and the two reads below it.
     private val stateManager by lazy {
-        LauncherAllAppsStateManager(requireContext().getSharedPreferences(STATE_PREFERENCES, Context.MODE_PRIVATE))
+        StrictModeHelper.allowDiskReads {
+            Timber.d("S4678: launcher drawer state preferences opened under a disk-read permit")
+            LauncherAllAppsStateManager(requireContext().getSharedPreferences(STATE_PREFERENCES, Context.MODE_PRIVATE))
+        }
     }
-    private val expandedGroupKeys by lazy { stateManager.expandedGroupKeys().toMutableSet() }
-    private val expandedCategoryKeys by lazy { stateManager.expandedKeys().toMutableSet() }
+    private val expandedGroupKeys by lazy {
+        StrictModeHelper.allowDiskReads { stateManager.expandedGroupKeys().toMutableSet() }
+    }
+    private val expandedCategoryKeys by lazy {
+        StrictModeHelper.allowDiskReads { stateManager.expandedKeys().toMutableSet() }
+    }
     private var catalogReady = false
     private var restorePending = true
     private var currentSections: List<LauncherAppGroupSection> = emptyList()

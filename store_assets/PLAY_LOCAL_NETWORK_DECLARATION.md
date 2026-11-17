@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.30 11:36</sub>
+<sub class="doc-stamp">26.11.16 13:50</sub>
 
 # Play Console - Local Network declaration (S4502)
 
@@ -35,11 +35,13 @@ the user's other devices reach the phone's chosen folders, a live broadcast lets
 watch the phone's camera or a file, and casting hands a local file to a Cast receiver through a short-lived
 local stream.
 
-A system device picker cannot serve these use cases. A picker returns one discovered service for one
-session, while the app connects to addresses the user typed - including servers that do not announce
-themselves - keeps them as saved sources and reconnects to them later. File operations, playback and
-thumbnails open many connections to the same hosts. The built-in server and the broadcast must accept
-incoming connections from devices the phone did not choose, which no picker covers.
+A system device picker cannot serve these use cases. Android's own discovery API (`NsdManager`) finds
+only services that advertise themselves - the companion app announces `_sftp-fms._tcp` over mDNS - while
+the app connects to addresses the user typed, including SMB, SFTP and FTP servers that never announce
+anything, and keeps them as saved sources it reconnects to later. A picker returns one discovered
+service for one session; file operations, playback and thumbnails open many connections to the same
+hosts. The built-in server and the broadcast must accept incoming connections from devices the phone did
+not choose, which no picker covers.
 
 Every network feature starts from an explicit user action, and the app asks for the permission at that
 moment. Without the grant, local sources show a clear message and the rest of the app keeps working.

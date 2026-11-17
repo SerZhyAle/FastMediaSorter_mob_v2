@@ -18,6 +18,7 @@ import timber.log.Timber
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.IOException
 import javax.inject.Inject
 
 /**
@@ -165,7 +166,11 @@ class SftpOperationStrategy @Inject constructor(
             val pathInfo = parseSftpPath(path) ?: return@withContext Result.failure(IllegalArgumentException("Invalid SFTP path"))
             val connectionInfo = getConnectionInfo(pathInfo)
 
-            sftpClient.createDirectory(connectionInfo, pathInfo.remotePath)
+            // The path names the address the resource was saved with; the resolver may have taken another
+            // (S1006), so the refusal says which route the server answered on.
+            sftpClient.createDirectory(connectionInfo, pathInfo.remotePath).recoverCatching { cause ->
+                throw IOException("${cause.message} (via ${connectionInfo.host}:${connectionInfo.port})", cause)
+            }
         } catch (e: Exception) {
             e.rethrowIfCancellation()
             Timber.e(e, "SftpOperationStrategy: Create directory failed - $path")

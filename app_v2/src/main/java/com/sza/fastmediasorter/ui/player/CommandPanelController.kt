@@ -81,10 +81,13 @@ class CommandPanelController(
         fun onSendToOverflowSubMenuRequested(menu: android.view.Menu, order: Int)
 
         /**
-         * True while the text editor panel is open. Its own overflow carries «Send to..» (saving first),
-         * so the player overflow drops the same entry to avoid showing it twice.
+         * True while the text editor panel is open. The editor's actions carry «Send to..» (saving first),
+         * so the player overflow drops its own entry to avoid showing it twice.
          */
         fun isTextEditorOpen(): Boolean
+
+        /** S4676: append the open text editor's actions (Save, Send to.., Calculator) to [menu]. */
+        fun onEditorOverflowItemsRequested(menu: android.view.Menu)
         fun onEditClicked()
         fun onUndoClicked()
         fun onFullscreenClicked()
@@ -336,6 +339,8 @@ class CommandPanelController(
     /** Update command availability based on state */
     fun updateCommandAvailability(state: PlayerViewModel.PlayerState) {
         availabilityUpdater.update(state)
+        // S4676: the editor's actions live only in this menu, so it must stay reachable while editing.
+        if (callback.isTextEditorOpen()) safeViews.btnOverflowMenu.isVisible = true
     }
 
     /**
@@ -612,13 +617,14 @@ class CommandPanelController(
         val commands = latestOverflowCommands.filterNot {
             editorOpen && it == CommandPanelLayoutPlanner.PlayerCommand.SEND_TO
         }
-        if (commands.isEmpty()) return
+        if (commands.isEmpty() && !editorOpen) return
         if (editorOpen) {
             Timber.d("S4636: overflow built without Send to.. while the text editor is open")
         }
 
-        // S0158: Big Buttons Mode uses a custom ListPopupWindow with doubled row height
-        if (bigButtonsMode) {
+        // S0158: Big Buttons Mode uses a custom ListPopupWindow with doubled row height.
+        // S4676: its rows are planner commands only, so the editor's actions need the PopupMenu.
+        if (bigButtonsMode && !editorOpen) {
             bigButtonsModeManager.buildBigButtonsOverflowMenu(anchor, commands, bigButtonsMode = true) { cmd ->
                 handleOverflowCommand(cmd)
             }
@@ -630,6 +636,14 @@ class CommandPanelController(
         Timber.d("S4570: embedded overflow built with a glyph on every item")
 
         val iconColor = context.popupIconColor()
+
+        if (editorOpen) {
+            callback.onEditorOverflowItemsRequested(popup.menu)
+            for (i in 0 until popup.menu.size()) {
+                val item = popup.menu.getItem(i)
+                item.icon = item.icon?.mutate()?.apply { setTint(iconColor) }
+            }
+        }
 
         // S1364: count the section's members before creating it - Android does not hide an empty
         // submenu, and on a video or text file none of these commands is emitted at all. Same

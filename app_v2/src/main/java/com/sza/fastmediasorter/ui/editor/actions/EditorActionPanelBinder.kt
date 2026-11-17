@@ -1,7 +1,7 @@
 package com.sza.fastmediasorter.ui.editor.actions
 
+import android.view.Menu
 import android.view.View
-import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.editor.dirty.DirtyToolbarTinter
@@ -12,8 +12,10 @@ import kotlinx.coroutines.flow.StateFlow
  * S0189 (Phase 09): default [EditorActionPanel] implementation.
  *
  * Wires the [EditorActionButtons] and delegates dirty-state tinting of [hostView] to
- * [DirtyToolbarTinter]. Save / Send to.. / Calculator are exposed through the always-visible "more"
- * overflow menu; only Save & close and Cancel stay as direct buttons.
+ * [DirtyToolbarTinter]. Save / Send to.. / Calculator are appended to the host screen's overflow
+ * menu via [addOverflowItems]; only Save & close and Cancel stay as direct buttons.
+ *
+ * S4676: the panel's own "more" button stays hidden - one screen carries one "more" menu.
  *
  * S0459: the former separate "Save & send" and "Send to Keep" entries are merged into a single
  * "Send to.." item that routes through the unified menu (Keep is one of its receivers).
@@ -33,21 +35,18 @@ class EditorActionPanelBinder(
 ) : EditorActionPanel {
 
     private val tinter = DirtyToolbarTinter(hostView, cleanColor, dirtyColor)
+    private var callbacks: EditorActionCallbacks? = null
 
     override fun setup(callbacks: EditorActionCallbacks) {
-        // Save / Send to.. / Calculator now live inside the overflow menu;
-        // only Save & close and Cancel remain as direct buttons on the panel.
+        this.callbacks = callbacks
         buttons.saveClose.setOnClickListener { callbacks.onSaveAndClose() }
-        buttons.more.setOnClickListener { showOverflowMenu(callbacks) }
         buttons.cancel.setOnClickListener { callbacks.onCancel() }
 
-        // The moved actions are hidden as standalone buttons; the overflow menu is always present.
         buttons.save.isVisible = false
         buttons.saveSend.isVisible = false
         buttons.sendKeep.isVisible = false
-        buttons.more.isVisible = true
+        buttons.more.isVisible = false
 
-        // Observe dirty state and tint the host view accordingly.
         tinter.attach(coroutineScope, isDirty)
     }
 
@@ -61,40 +60,39 @@ class EditorActionPanelBinder(
         tinter.resetToClean()
     }
 
-    private fun showOverflowMenu(callbacks: EditorActionCallbacks) {
-        PopupMenu(buttons.more.context, buttons.more).apply {
-            var order = 0
-            menu.add(0, MENU_SAVE, order++, R.string.text_editor_action_save)
-            // S0459: single unified outbound entry; the menu self-gates its receivers (incl. Keep).
-            menu.add(0, MENU_SEND_TO, order++, R.string.share_to_menu_title)
-            // Calculator entry only when the feature is enabled in settings.
-            if (calculatorEnabled.value) {
-                menu.add(0, MENU_CALCULATOR, order++, R.string.calculator_title)
+    override fun addOverflowItems(menu: Menu) {
+        val target = callbacks ?: return
+        val context = hostView.context
+        menu.add(Menu.NONE, MENU_SAVE, ORDER_FIRST, context.getString(R.string.text_editor_action_save))
+            .setIcon(R.drawable.ic_save)
+            .setOnMenuItemClickListener {
+                target.onSave()
+                true
             }
-            setOnMenuItemClickListener { item ->
-                when (item.itemId) {
-                    MENU_SAVE -> {
-                        callbacks.onSave()
-                        true
-                    }
-                    MENU_SEND_TO -> {
-                        callbacks.onSendTo()
-                        true
-                    }
-                    MENU_CALCULATOR -> {
-                        callbacks.onOpenCalculator()
-                        true
-                    }
-                    else -> false
+        // S0459: single unified outbound entry; the receiver list self-gates (incl. Keep).
+        menu.add(Menu.NONE, MENU_SEND_TO, ORDER_FIRST, context.getString(R.string.share_to_menu_title))
+            .setIcon(R.drawable.ic_send_plane)
+            .setOnMenuItemClickListener {
+                target.onSendTo()
+                true
+            }
+        if (calculatorEnabled.value) {
+            menu.add(Menu.NONE, MENU_CALCULATOR, ORDER_FIRST, context.getString(R.string.calculator_title))
+                .setIcon(R.drawable.ic_calculator)
+                .setOnMenuItemClickListener {
+                    target.onOpenCalculator()
+                    true
                 }
-            }
-            show()
         }
     }
 
     private companion object {
-        const val MENU_SAVE = 1
-        const val MENU_SEND_TO = 2
-        const val MENU_CALCULATOR = 4
+        // Outside the aapt R.id range (0x7f......), so they never collide with a host menu's own items.
+        const val MENU_SAVE = 0x46760001
+        const val MENU_SEND_TO = 0x46760002
+        const val MENU_CALCULATOR = 0x46760004
+
+        // Equal orders keep insertion order; the lowest order puts the editor's actions on top.
+        const val ORDER_FIRST = 0
     }
 }

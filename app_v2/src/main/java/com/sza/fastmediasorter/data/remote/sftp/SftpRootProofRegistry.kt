@@ -45,6 +45,7 @@ class SftpRootProofRegistry @Inject constructor(
     private val roots = MutableStateFlow<Map<String, List<Root>>?>(null)
     private val localRoots = MutableStateFlow<Map<String, List<SftpRootProof>>>(emptyMap())
     private val verifiedLocal = ConcurrentHashMap<String, SftpRootProof>()
+    private val rejectedLocalUntil = ConcurrentHashMap<String, Long>()
     private val observing = AtomicBoolean(false)
 
     // The binding a proof was handed out for, by session key, so the outcome of that session names its owner.
@@ -98,6 +99,35 @@ class SftpRootProofRegistry @Inject constructor(
     /** Remember only a proof whose own session authenticated and could stat its root. */
     fun rememberLocal(info: SftpClient.SftpConnectionInfo, proof: SftpRootProof) {
         verifiedLocal[localKey(info, proof.root)] = proof
+        rejectedLocalUntil.remove(localKey(info, proof.root))
+    }
+
+    /**
+     * A local PIN whose root covers [remotePath] but has not been proven in this process. A write, mkdir
+     * or stat never runs the listing recovery of [localCandidate], so in a fresh process it reached an
+     * unproven session, where the server hides the protected root and answers "no such file".
+     */
+    suspend fun unprovenLocal(info: SftpClient.SftpConnectionInfo, remotePath: String?): SftpRootProof? {
+        if (info.rootProof != null || remotePath == null) return null
+        val exchange = awaitRoots()[key(info.host, info.port)]
+        val local = localRoots.value[key(info.host, info.port)]?.firstOrNull { covers(it.root, remotePath) }
+        val rejectedUntil = local?.let { rejectedLocalUntil[localKey(info, it.root)] }
+        return when {
+            exchange?.any { covers(it.name, remotePath) } == true -> null
+            local == null -> null
+            verifiedLocal[localKey(info, local.root)] == local -> null
+            rejectedUntil != null && System.currentTimeMillis() < rejectedUntil -> null
+            else -> local
+        }
+    }
+
+    /** A refused proof is not retried on every operation; a minute lets a PIN fixed on the server in. */
+    fun noteLocalVerdict(info: SftpClient.SftpConnectionInfo, proof: SftpRootProof, accepted: Boolean) {
+        if (accepted) {
+            rememberLocal(info, proof)
+        } else {
+            rejectedLocalUntil[localKey(info, proof.root)] = System.currentTimeMillis() + LOCAL_REJECTION_MS
+        }
     }
 
     private suspend fun proofFor(
@@ -146,6 +176,8 @@ class SftpRootProofRegistry @Inject constructor(
     }
 
     internal companion object {
+        private const val LOCAL_REJECTION_MS = 60_000L
+
         fun buildLocalRoots(resources: List<ResourceEntity>): Map<String, List<SftpRootProof>> {
             val result = HashMap<String, MutableList<SftpRootProof>>()
             resources.filter { it.type == ResourceType.SFTP && it.exchangeAccount == null }.forEach { entity ->

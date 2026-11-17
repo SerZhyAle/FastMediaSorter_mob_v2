@@ -203,8 +203,9 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         }
     }
 
-    // S0766: ACCESS_FINE_LOCATION consent for the opt-in camera geotag toggle. Persist the flag only
-    // on grant so coordinates are never embedded without explicit consent; revert the row on denial.
+    // S0766: location consent for the opt-in camera geotag toggle; S4670 asks ACCESS_COARSE_LOCATION
+    // (minimum scope for a one-time, user-initiated fix). Persist the flag only on grant so coordinates
+    // are never embedded without explicit consent; revert the row on denial.
     private val locationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->

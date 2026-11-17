@@ -32,10 +32,8 @@ class ResourceTicketInboxDataSource @Inject constructor(
         Timber.d("S4573: folder inbox upload packet=${manifest.packetId} resource=$resourceId")
         val root = rootOf(resourceId)
         val strategy = strategyFor(root)
-        val spool = join(root, NEW_DIR)
-        val packet = join(spool, manifest.packetId)
-        ensureDirectory(strategy, spool)
-        ensureDirectory(strategy, packet)
+        val packet = join(join(root, NEW_DIR), manifest.packetId)
+        ensureDirectoryChain(strategy, packet)
         (manifest.fileNames + TicketPacketManifest.MANIFEST_FILE_NAME).forEach { name ->
             transfer.copyFile(File(folder, name).absolutePath, join(packet, name))
                 .getOrElse { throw IOException("cannot write $name: ${it.message}", it) }
@@ -66,9 +64,29 @@ class ResourceTicketInboxDataSource @Inject constructor(
         return strategy.readFile(path).getOrElse { throw IOException("cannot read $path: ${it.message}", it) }
     }
 
-    private suspend fun ensureDirectory(strategy: FileOperationStrategy, path: String) {
-        if (strategy.exists(path).getOrDefault(false)) return
-        strategy.createDirectory(path).getOrElse { throw IOException("cannot create $path: ${it.message}", it) }
+    // An SFTP mkdir answers "no such file" when the parent is missing, so the walk climbs to the first
+    // level that exists - the resource root itself included - and creates everything below it.
+    private suspend fun ensureDirectoryChain(strategy: FileOperationStrategy, path: String) {
+        Timber.d("S4674: inbox folder chain check path=$path")
+        val missing = ArrayDeque<String>()
+        var current: String? = path
+        while (current != null && !strategy.exists(current).getOrDefault(false)) {
+            missing.addFirst(current)
+            current = parentOf(current)
+        }
+        missing.forEach { dir ->
+            strategy.createDirectory(dir).getOrElse { throw IOException("cannot create $dir: ${it.message}", it) }
+        }
+    }
+
+    // The authority of a `scheme://host` path and a content URI have no parent folder to create.
+    private fun parentOf(path: String): String? {
+        if (path.startsWith(CONTENT_SCHEME)) return null
+        val trimmed = path.trimEnd('/')
+        val scheme = trimmed.indexOf(SCHEME_SEPARATOR)
+        val pathStart = if (scheme < 0) 0 else trimmed.indexOf('/', scheme + SCHEME_SEPARATOR.length)
+        val cut = trimmed.lastIndexOf('/')
+        return if (pathStart < 0 || cut <= pathStart) null else trimmed.substring(0, cut)
     }
 
     private suspend fun rootOf(resourceId: Long): String {
@@ -88,5 +106,7 @@ class ResourceTicketInboxDataSource @Inject constructor(
         const val FAILED_DIR = "failed"
         const val RESULT_FILE = "result.json"
         const val REASON_FILE = "reason.json"
+        const val CONTENT_SCHEME = "content:"
+        const val SCHEME_SEPARATOR = "://"
     }
 }

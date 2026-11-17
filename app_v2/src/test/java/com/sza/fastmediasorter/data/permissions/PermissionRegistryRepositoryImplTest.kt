@@ -96,6 +96,17 @@ class PermissionRegistryRepositoryImplTest {
         val withMonitor = locationRow(permissionRegistry(launcherAvailable = false, networkMonitorAvailable = true))
         assertEquals(R.string.perm_desc_location_extended, withMonitor.descriptionRes)
         assertEquals(R.string.perm_rationale_location_extended, withMonitor.rationaleRes)
+
+        // S4670: the coarse row follows the same split - the geotag paragraph everywhere, the map-gadget
+        // wording on builds that place them - because the geotag request shows this row's rationale now.
+        val coarseGeotagOnly = permissionRegistry(launcherAvailable = false, networkMonitorAvailable = false)
+            .getEntries().first { it.id == "access_coarse_location" }
+        assertEquals(R.string.perm_desc_access_coarse_location, coarseGeotagOnly.descriptionRes)
+        assertEquals(R.string.perm_rationale_access_coarse_location, coarseGeotagOnly.rationaleRes)
+        val coarseWithLauncher = permissionRegistry(launcherAvailable = true, networkMonitorAvailable = false)
+            .getEntries().first { it.id == "access_coarse_location" }
+        assertEquals(R.string.perm_desc_access_coarse_location_extended, coarseWithLauncher.descriptionRes)
+        assertEquals(R.string.perm_rationale_access_coarse_location_extended, coarseWithLauncher.rationaleRes)
     }
 
     private fun locationRow(registry: PermissionRegistryRepositoryImpl) =

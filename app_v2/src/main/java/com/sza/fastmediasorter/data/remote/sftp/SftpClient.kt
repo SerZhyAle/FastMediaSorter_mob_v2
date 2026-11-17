@@ -124,7 +124,7 @@ class SftpClient @Inject constructor(
         reachabilityGate.requireLocalNetworkPermission("SFTP", callerInfo.host)
         // The pinned info flows on into the idle-disconnect arm so invalidation hits the same pool key. The
         // path decides whether the operation lies under a protected root and so needs its own proven session.
-        val info = proofRegistry.withProof(pinRegistry.withPin(callerInfo), remotePath)
+        val info = proveLocalRoot(proofRegistry.withProof(pinRegistry.withPin(callerInfo), remotePath), remotePath)
         val transportKey = rememberTransportKey(info)
         idleDisconnectPolicy.touch(transportKey)
         // S0219 Pillar C: rearm the idle timer on every completion path (success or failure), not
@@ -145,6 +145,20 @@ class SftpClient @Inject constructor(
                 armTransport(info)
             }
         }
+    }
+
+    /**
+     * Proves a PIN-protected local root once before the first operation under it. Only a listing recovered
+     * from "no such file" used to prove it, so a copy, move or mkdir made before any listing in this process
+     * ran in an unproven session, where the server hides the root. The proof's own session carries the proof,
+     * so this never recurses.
+     */
+    private suspend fun proveLocalRoot(info: SftpConnectionInfo, remotePath: String?): SftpConnectionInfo {
+        val candidate = proofRegistry.unprovenLocal(info, remotePath) ?: return info
+        Timber.d("S4677: proving local root before operation")
+        val accepted = verifyRootProof(info, candidate.root, candidate.pin).isSuccess
+        proofRegistry.noteLocalVerdict(info, candidate, accepted)
+        return if (accepted) info.copy(rootProof = candidate) else info
     }
 
     // ExoPlayer connection management lives in SftpConnectionPool.

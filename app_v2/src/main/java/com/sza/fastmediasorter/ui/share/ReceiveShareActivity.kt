@@ -690,26 +690,7 @@ class ReceiveShareActivity : AppCompatActivity() {
             cleanupAndFinish()
             return
         }
-        val request = BrowseFileTransferRequest(
-            operationType = FileOperationType.COPY,
-            sourceResourceId = -1L,
-            sourceResourceName = getString(R.string.receive_share_source_name),
-            sourceCredentialsId = null,
-            currentBrowsePath = null,
-            destinationPath = destinationPath,
-            destinationName = destinationName,
-            overwriteFiles = false,
-            sources = files.map {
-                BrowseFileTransferSource(
-                    path = it.absolutePath,
-                    displayName = it.name,
-                    size = it.length(),
-                    isDirectory = false,
-                )
-            },
-            sourcesOwnedByOperation = true,
-            stagingDirectoryPath = tempDir.absolutePath,
-        )
+        val sourceName = getString(R.string.receive_share_source_name)
         backgroundOrderInFlight = true
         // Claimed before the enqueue, not after it: Back during the in-flight window reaches onDestroy,
         // whose best-effort cleanup would otherwise delete the sources the accepted work is about to read.
@@ -717,6 +698,29 @@ class ReceiveShareActivity : AppCompatActivity() {
         // The application scope, not lifecycleScope: the enqueue must complete even if the user leaves
         // while WorkManager is still writing the request.
         applicationScope.launch(Dispatchers.IO) {
+            // Built here and not above: the per-file length() and the lazy tempDir (created on first read)
+            // touch the file system, which is what StrictMode flagged on the main thread.
+            Timber.d("S4678: share transfer request built on the IO dispatcher")
+            val request = BrowseFileTransferRequest(
+                operationType = FileOperationType.COPY,
+                sourceResourceId = -1L,
+                sourceResourceName = sourceName,
+                sourceCredentialsId = null,
+                currentBrowsePath = null,
+                destinationPath = destinationPath,
+                destinationName = destinationName,
+                overwriteFiles = false,
+                sources = files.map {
+                    BrowseFileTransferSource(
+                        path = it.absolutePath,
+                        displayName = it.name,
+                        size = it.length(),
+                        isDirectory = false,
+                    )
+                },
+                sourcesOwnedByOperation = true,
+                stagingDirectoryPath = tempDir.absolutePath,
+            )
             val result = browseTransferCoordinator.enqueueIfIdle(request)
             withContext(Dispatchers.Main) {
                 backgroundOrderInFlight = false

@@ -60,6 +60,8 @@ data class MotionReading(
     val horizontalAccuracyMeters: Float? = null,
     val verticalAccuracyMeters: Float? = null,
     val bearingDegrees: Float? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
 ) {
     companion object {
 

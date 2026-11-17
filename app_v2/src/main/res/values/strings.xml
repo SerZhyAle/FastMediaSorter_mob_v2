@@ -2477,8 +2477,8 @@
     <string name="streams_remove_from_favorites">Remove from favorites</string>
     <string name="streams_country_flag">Country flag</string>
     <string name="perm_group_location">Location</string>
-    <string name="perm_title_location">Location for capture geotag</string>
-    <string name="perm_desc_location">Geotag your captures</string>
+    <string name="perm_title_location">Precise location</string>
+    <string name="perm_desc_location">Position and altitude for the Tourist dashboard</string>
     <string name="screenshot_gesture_action_launch_camera">Launch camera</string>
     <string name="screenshot_gesture_action_start_video_recording">Start video recording</string>
     <string name="screenshot_gesture_action_start_audio_recording">Start audio recording</string>
@@ -2897,7 +2897,7 @@
     <string name="perm_rationale_record_audio">The microphone records voice notes and the sound in a screen recording, and carries live sound when you start a broadcast. Without it recording and audio broadcasts cannot start.</string>
     <string name="perm_addendum_record_audio_screen_recording">A screen recording takes its sound from the microphone.</string>
     <string name="perm_addendum_post_notifications_screen_recording">The recording notification carries the stop control.</string>
-    <string name="perm_rationale_location">Location is used only to write coordinates into the photos and videos you shoot in the app. Nothing is sent anywhere.</string>
+    <string name="perm_rationale_location">Precise location is used to show position and altitude on the Tourist dashboard. Nothing is sent anywhere.</string>
     <string name="perm_addendum_post_notifications_scheduled_ops">Allow notifications for scheduled operations</string>
     <string name="perm_rationale_battery_optimization">Android may pause the app in the background, and a scheduled operation then runs late or not at all. Excluding the app from battery optimization keeps the schedule on time.</string>
     <string name="launcher_gadget_compass">Compass</string>
@@ -3506,9 +3506,9 @@
     <string name="wear_background_sent">Image is on the watch.</string>
     <string name="wear_background_failed">Couldn\'t send the image - pick another one or send again.</string>
     <string name="wear_background_watch_unreachable">Can\'t reach the watch - bring it closer and send again.</string>
-    <string name="perm_title_location_extended">Geotag, gadgets and network monitor</string>
-    <string name="perm_desc_location_extended">Geotag your captures, run the desktop gadgets and the network monitor</string>
-    <string name="perm_rationale_location_extended">Location is used to write coordinates into the photos and videos you shoot, to draw the compass, speed, altitude and map gadgets on the desktop, and to fill the GNSS and Wi-Fi sections of the network monitor. All of it stays on your device except the map gadgets: to draw the map they ask an online map service for a picture of your area, and ask Android for the name of the place. Nothing else is sent anywhere, and we have no servers of our own.</string>
+    <string name="perm_title_location_extended">Precise location</string>
+    <string name="perm_desc_location_extended">Desktop gadgets, network monitor sections and the Tourist dashboard</string>
+    <string name="perm_rationale_location_extended">Precise location is used to draw the compass, speed and altitude gadgets on the desktop, to fill the GNSS and Wi-Fi sections of the network monitor, and to show position and altitude on the Tourist dashboard. Nothing is sent anywhere, and we have no servers of our own.</string>
     <string name="wear_received_upload_notif_channel">Files from the watch</string>
     <string name="wear_received_upload_notif_progress">Saving %1$s to %2$s</string>
     <string name="wear_received_upload_notif_success">%1$s saved to %2$s</string>
@@ -4740,4 +4740,7 @@
     <string name="streams_unavailable_certificate_message">\"%1$s\" uses a certificate this device does not trust. Remove it from your list?</string>
     <string name="companion_import_no_access_path_error">This file has no address the app can connect to directly. Ask the sender to share it again with a local or forwarded address.</string>
     <string name="companion_share_unpinned_error">Connect to this server once before sharing - the app needs its verified key.</string>
+    <string name="perm_rationale_access_coarse_location">Approximate location is used to write coordinates into the photos and videos you shoot in the app. Nothing is sent anywhere.</string>
+    <string name="perm_rationale_access_coarse_location_extended">Approximate location is used to write coordinates into the photos and videos you shoot in the app, and to place the map gadgets on the desktop: to draw a map they ask an online map service for a picture of your area and ask Android for the name of the place. Nothing else is sent anywhere, and we have no servers of our own.</string>
+    <string name="perm_desc_access_coarse_location_extended">Approximate coordinates for photos you shoot in the app and for the desktop map gadgets</string>
 </resources>

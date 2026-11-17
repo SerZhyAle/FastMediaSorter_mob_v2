@@ -156,8 +156,10 @@ class AndroidWearTouristRepository @Inject constructor(
             ticker.cancel()
             sensorManager?.unregisterListener(sensorListener)
             environmentSensors.unregister(sensorManager, environmentListener)
-            locationManager?.removeUpdates(locationListener)
-            locationManager?.unregisterGnssStatusCallback(gnssCallback)
+            runCatching { locationManager?.removeUpdates(locationListener) }
+                .onFailure { Timber.w(it, "Location listener cleanup failed") }
+            runCatching { locationManager?.unregisterGnssStatusCallback(gnssCallback) }
+                .onFailure { Timber.w(it, "GNSS callback cleanup failed") }
             // The flow's own scope is already cancelled here, so the last write rides the process scope.
             appScope.launch { tripTracker.persist() }
         }
@@ -322,10 +324,7 @@ class AndroidWearTouristRepository @Inject constructor(
         }
     }
 
-    // S3155: every call in this function sits behind the hasLocationPermission() early return on its
-    // first line and inside the SecurityException catch below. Lint follows neither a custom
-    // permission helper nor a catch around the call, so all five findings here are the same blind
-    // spot; the guard they claim is missing is the line that opens the body.
+    // Permission may be revoked after the guard; each provider must fail independently.
     @SuppressLint("MissingPermission")
     @Suppress("LongParameterList")
     private fun registerLocationAndGnss(
@@ -334,30 +333,34 @@ class AndroidWearTouristRepository @Inject constructor(
         gnssCallback: GnssStatus.Callback,
     ) {
         if (!hasLocationPermission() || locationManager == null) return
-        try {
-            if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                locationManager.requestLocationUpdates(
-                    LocationManager.GPS_PROVIDER,
-                    MIN_LOCATION_TIME_MS,
-                    MIN_LOCATION_DISTANCE_M,
-                    locationListener,
-                )
-            }
-            if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                locationManager.requestLocationUpdates(
-                    LocationManager.NETWORK_PROVIDER,
-                    MIN_LOCATION_TIME_MS,
-                    MIN_LOCATION_DISTANCE_M,
-                    locationListener,
-                )
-            }
-            val lastKnown = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-                ?: locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
-            lastKnown?.let { locationListener.onLocationChanged(it) }
-
-            locationManager.registerGnssStatusCallback(gnssCallback, Handler(Looper.getMainLooper()))
-        } catch (e: SecurityException) {
-            Timber.w(e, "Location permission not granted or revoked during registration")
+        val fineGranted = hasFineLocationPermission()
+        Timber.d("S4672: watch location granted=true fine=%s", fineGranted)
+        val providers = if (fineGranted) {
+            listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)
+        } else {
+            listOf(LocationManager.NETWORK_PROVIDER)
+        }
+        providers.forEach { provider ->
+            runCatching {
+                if (locationManager.isProviderEnabled(provider)) {
+                    locationManager.requestLocationUpdates(
+                        provider,
+                        MIN_LOCATION_TIME_MS,
+                        MIN_LOCATION_DISTANCE_M,
+                        locationListener,
+                    )
+                }
+            }.onFailure { Timber.w(it, "Location provider registration failed: %s", provider) }
+        }
+        val lastKnown = providers.firstNotNullOfOrNull { provider ->
+            runCatching { locationManager.getLastKnownLocation(provider) }
+                .onFailure { Timber.w(it, "Last location unavailable: %s", provider) }
+                .getOrNull()
+        }
+        lastKnown?.let { locationListener.onLocationChanged(it) }
+        if (fineGranted) {
+            runCatching { locationManager.registerGnssStatusCallback(gnssCallback, Handler(Looper.getMainLooper())) }
+                .onFailure { Timber.w(it, "GNSS registration failed") }
         }
     }
 
@@ -496,14 +499,17 @@ class AndroidWearTouristRepository @Inject constructor(
     }
 
     private fun hasLocationPermission(): Boolean {
-        return ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_FINE_LOCATION,
-        ) == PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(
+        return hasFineLocationPermission() || ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.ACCESS_COARSE_LOCATION,
         ) == PackageManager.PERMISSION_GRANTED
     }
+
+    private fun hasFineLocationPermission(): Boolean =
+        ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+        ) == PackageManager.PERMISSION_GRANTED
 
     private fun hasHeartRatePermission(): Boolean {
         return ContextCompat.checkSelfPermission(

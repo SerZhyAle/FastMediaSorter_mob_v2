@@ -1,9 +1,11 @@
-<sub class="doc-stamp">26.10.30 11:35</sub>
+<sub class="doc-stamp">26.11.16 13:51</sub>
 
 # Play Console - Contacts Permission declaration (S4030)
 
 Source of truth for the **Contacts Permission** form in Play Console
-(`Policy and programs -> App content -> Contacts Permission`, as named in Google's April 2026 policy email).
+(`Policy and programs -> App content`; the restricted-permission policy announced 2026-10-29, Play Console
+Help answers 18100766 and 16909972 - the rules put the Contact Picker first and require this declaration
+from 2027-01-27 for apps targeting API 37+).
 
 The form lives only in the web console and has no API, so this file is the only reviewable copy of what
 is declared. The earlier All files access declaration was rejected over text a reviewer refuted in a
@@ -25,6 +27,9 @@ The status of the declaration is recorded in `docs/PLAY_PUBLISHING_STATE.md`, in
 - `noLegal` is distributed outside Play and is out of scope; it keeps the permission whatever Play decides.
 - Enforcement: the policy applies to apps with targetSdk 37 or higher from 2027-01-27. The app is on
   targetSdk 37 since S4502, so the first upload of that build follows the filing of this declaration.
+- No disclosure: the app does not disclose or publish non-public contacts data - the rule's disclosure
+  clause. The snapshot a pinned cell keeps lives on the device and inside the user's own backups; the
+  Data safety section below records the same answer.
 
 ---
 

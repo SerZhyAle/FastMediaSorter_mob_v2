@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.player
 
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointCodec
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointDto
+import com.sza.fastmediasorter.data.broadcast.BroadcastSealDto
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -44,12 +45,13 @@ class BroadcastPlaybackSessionsTest {
 
     private fun lan() = BroadcastEndpointDto(url = "rtsp://192.168.1.20:8554/", transport = "RTSP")
 
-    private fun relay() = BroadcastEndpointDto(url = RELAY_URL, transport = "RELAY")
+    private fun relay() = BroadcastEndpointDto(url = RELAY_URL, transport = "RELAY", seal = BroadcastSealDto(key = KEY))
 
     private fun tunnel() = BroadcastEndpointDto(
         url = "fmsx://exchange.example.org:8443/b/$BROADCAST_ID/rtsp",
         transport = "TUNNEL",
         inner = "rtsp://192.168.1.20:8554/",
+        seal = BroadcastSealDto(pin = PIN),
     )
 
     private fun row(id: String, endpoints: List<BroadcastEndpointDto>?) = StreamSourceEntity(
@@ -64,6 +66,8 @@ class BroadcastPlaybackSessionsTest {
     )
 
     private companion object {
+        const val KEY = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        const val PIN = "SHA256:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU"
         const val PLAYED = "http://127.0.0.1:40001/v2/b/x/stream"
         const val BROADCAST_ID = "Zm9vYmFyYmF6cXV4MTIzNA"
         const val LIVE_ID = "bGl2ZWlk"

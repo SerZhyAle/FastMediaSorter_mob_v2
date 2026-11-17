@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.25 13:32</sub>
+<sub class="doc-stamp">26.11.16 14:43</sub>
 
 # Security posture - what this app can touch and what it can send
 
@@ -27,42 +27,42 @@ the request itself.
 
 | Permission | Declared in | Variants | Consumers | Rationale key | Shown at request |
 |---|---|---|---|---|---|
-| `android.permission.ACCESS_COARSE_LOCATION` | `app_v2/src/main`, `wear/src/noLegal` | all seven, `wear:noLegal` | photo/video geotag; launcher compass, speed, altitude and map gadgets; Network Monitor GNSS and Wi-Fi sections; watch Tourist dashboard | `perm_rationale_location`, `perm_rationale_location_extended` | yes |
-| `android.permission.ACCESS_FINE_LOCATION` | `app_v2/src/main`, `wear/src/noLegal` | all seven, `wear:noLegal` | same five consumers as the coarse permission (S2013) | `perm_rationale_location`, `perm_rationale_location_extended` | yes |
+| `android.permission.ACCESS_COARSE_LOCATION` | `app_v2/src/main`, `wear/src/main` | all seven, both watch flavors | photo/video geotag - the only grant it asks for (S4670); launcher map and Google Maps Live gadgets (S4504); phone and watch Tourist dashboard approximate position; watch satellite section (accepts either grant) | `perm_rationale_access_coarse_location`, `perm_rationale_access_coarse_location_extended` | yes |
+| `android.permission.ACCESS_FINE_LOCATION` | `app_v2/src/main`, `wear/src/main` | all seven, both watch flavors | launcher speed, altitude, compass-altitude and trip gadgets; Network Monitor GNSS section and Wi-Fi section (SSID/BSSID); phone and watch Tourist dashboard precise GPS and GNSS; watch satellite section | `perm_rationale_location`, `perm_rationale_location_extended` | yes |
 | `android.permission.ACCESS_LOCAL_NETWORK` | `app_v2/src/main` | standard, noLegal, photos, legacy, vr, foss | SMB, SFTP, FTP and DLNA resources and their discovery | `perm_rationale_access_local_network` | yes |
 | `android.permission.ACCESS_NETWORK_STATE` | `app_v2/src/main` | all seven | connectivity checks before a network resource or a stream is opened | `-` | no |
-| `android.permission.ACCESS_WIFI_STATE` | `app_v2/src/main`, `wear/src/noLegal` | all seven, `wear:noLegal` | Network Monitor Wi-Fi section; companion discovery | `-` | no |
+| `android.permission.ACCESS_WIFI_STATE` | `app_v2/src/main`, `wear/src/main` | all seven, both watch flavors | Network Monitor Wi-Fi section; companion discovery | `-` | no |
 | `android.permission.ACTIVITY_RECOGNITION` | `app_v2/src/noLegal`, `wear/src/noLegal` | noLegal, `wear:noLegal` | launcher steps gadget (S1614 moved it off the store flavors) | `perm_rationale_activity_recognition` | yes |
-| `android.permission.BLUETOOTH` | `app_v2/src/networkMonitor`, `wear/src/noLegal` | standard, noLegal, `wear:noLegal` | Network Monitor Bluetooth section (API <= 30) | `-` | no |
-| `android.permission.BLUETOOTH_ADMIN` | `app_v2/src/networkMonitor`, `wear/src/noLegal` | standard, noLegal, `wear:noLegal` | Network Monitor radio controls (API <= 30) | `-` | no |
-| `android.permission.BLUETOOTH_CONNECT` | `app_v2/src/networkMonitor`, `wear/src/noLegal` | standard, noLegal, `wear:noLegal` | Network Monitor Bluetooth section (API 31+) | `-` | no |
+| `android.permission.BLUETOOTH` | `app_v2/src/networkMonitor`, `wear/src/main` | standard, noLegal, both watch flavors | Network Monitor Bluetooth section (API <= 30) | `-` | no |
+| `android.permission.BLUETOOTH_ADMIN` | `app_v2/src/networkMonitor`, `wear/src/main` | standard, noLegal, both watch flavors | Network Monitor radio controls (API <= 30) | `-` | no |
+| `android.permission.BLUETOOTH_CONNECT` | `app_v2/src/networkMonitor`, `wear/src/main` | standard, noLegal, both watch flavors | Network Monitor Bluetooth section (API 31+) | `-` | no |
 | `android.permission.BODY_SENSORS` | `wear/src/noLegal` | `wear:noLegal` | watch heart-rate readout (API <= 35) | `-` | no |
 | `android.permission.CAMERA` | `app_v2/src/main`, `app_v2/src/broadcastSource` | all seven | in-app photo and video capture, OCR and translation, QR pairing, camera widgets, live video broadcast | `perm_rationale_camera` | yes |
-| `android.permission.CHANGE_NETWORK_STATE` | `wear/src/noLegal` | `wear:noLegal` | wide-band transport request while the watch streams | `-` | no |
+| `android.permission.CHANGE_NETWORK_STATE` | `wear/src/main` | both watch flavors | wide-band transport request while the watch streams | `-` | no |
 | `android.permission.CHANGE_WIFI_MULTICAST_STATE` | `app_v2/src/main` | all seven | mDNS discovery of `_sftp-fms._tcp` companion servers | `-` | no |
 | `android.permission.CHANGE_WIFI_STATE` | `app_v2/src/networkMonitor` | standard, noLegal | Network Monitor radio toggles | `-` | no |
 | `android.permission.EXPAND_STATUS_BAR` | `app_v2/src/main` | all seven | launcher shade-panel control | `-` | no |
-| `android.permission.FOREGROUND_SERVICE` | `app_v2/src/main`, `wear/src/noLegal` | all seven, `wear:noLegal` | every foreground service below | `-` | no |
+| `android.permission.FOREGROUND_SERVICE` | `app_v2/src/main`, `wear/src/main` | all seven, both watch flavors | every foreground service below | `-` | no |
 | `android.permission.FOREGROUND_SERVICE_CAMERA` | `app_v2/src/broadcastVideoBackground` | standard, noLegal | video broadcast that survives leaving the screen (S4235 enables for standard; legacy retains foreground-only) | `-` | no |
 | `android.permission.FOREGROUND_SERVICE_DATA_SYNC` | `app_v2/src/main` | all seven in debug builds; in a release noLegal, and standard unless built with `fms.dataSyncFgsStandard=off` (S4271) | background file transfers and scheduled file operations; the phone's folder-sharing service (S3041, lifetime S4225) | `-` | no |
-| `android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK` | `app_v2/src/main`, `wear/src/noLegal` | all seven, `wear:noLegal` | audio playback service | `-` | no |
+| `android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK` | `app_v2/src/main`, `wear/src/main` | all seven, both watch flavors | audio playback service | `-` | no |
 | `android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION` | `app_v2/src/screenCapture`, `app_v2/src/broadcastSource` | noLegal, standard, legacy | screen capture and screen recording (standard: when the capture suite is built); the phone-screen broadcast (S4233) | `-` | no |
-| `android.permission.FOREGROUND_SERVICE_MICROPHONE` | `app_v2/src/main`, `wear/src/noLegal` | all seven, `wear:noLegal` | quick voice recorder widget; watch voice recorder | `-` | no |
+| `android.permission.FOREGROUND_SERVICE_MICROPHONE` | `app_v2/src/main`, `wear/src/main` | all seven, both watch flavors | quick voice recorder widget; watch voice recorder | `-` | no |
 | `android.permission.FOREGROUND_SERVICE_SPECIAL_USE` | `app_v2/src/noLegal`, `app_v2/src/standardScreenCapture` | noLegal, standard when the edge overlay is built | edge-gesture overlay host | `-` | no |
 | `android.permission.health.READ_HEART_RATE` | `wear/src/noLegal` | `wear:noLegal` | watch heart-rate readout (Health permission, API 36+) | `-` | no |
-| `android.permission.INTERNET` | `app_v2/src/main`, `wear/src/noLegal` | all seven, `wear:noLegal` | every network surface of section 3 | `-` | no |
+| `android.permission.INTERNET` | `app_v2/src/main`, `wear/src/main` | all seven, both watch flavors | every network surface of section 3 | `-` | no |
 | `android.permission.MANAGE_EXTERNAL_STORAGE` | `app_v2/src/noLegal` | noLegal | any-folder browsing, including DCIM and `Android/media` | `perm_rationale_manage_external_storage` | yes, on a system screen |
 | `android.permission.MANAGE_MEDIA` | `app_v2/src/main` | all seven | media moves and deletions without a per-operation system confirmation | `perm_rationale_manage_media` | yes, on a system screen |
-| `android.permission.NEARBY_WIFI_DEVICES` | `app_v2/src/networkMonitor`, `wear/src/noLegal` | standard, noLegal, `wear:noLegal` | Wi-Fi scanning in the Monitor; watch stream transport | `-` | no |
+| `android.permission.NEARBY_WIFI_DEVICES` | `app_v2/src/networkMonitor`, `wear/src/main` | standard, noLegal, both watch flavors | Wi-Fi scanning in the Monitor; watch stream transport | `-` | no |
 | `android.permission.POST_NOTIFICATIONS` | `app_v2/src/main`, `app_v2/src/screenCapture`, `wear/src/main` | all seven, both watch flavors (`wear:standard`, `wear:noLegal`) | playback, transfer, recording and capture progress notifications with their stop controls; on the watch also the running stopwatch's ongoing activity (S3555) | `perm_rationale_post_notifications` | yes |
 | `android.permission.READ_CONTACTS` | `app_v2/src/main`, `app_v2/src/standardNoContacts` (removal overlay) | noLegal, standard unless the Play rollback switch `fms.readContacts=off` strips it (S4030) | pinned-contact name and photo on the launcher and the chat lookup of a new messenger shortcut; declared to Google Play in `store_assets/PLAY_CONTACTS_DECLARATION.md` | `perm_rationale_read_contacts` | yes |
-| `android.permission.READ_EXTERNAL_STORAGE` | `app_v2/src/main`, `wear/src/noLegal` | all seven, `wear:noLegal` | media library scan and browse (API <= 32) | `perm_rationale_read_external_storage` | yes |
-| `android.permission.READ_MEDIA_AUDIO` | `app_v2/src/main`, `wear/src/noLegal` | all seven, `wear:noLegal` | the same access split by media type (API 33+) | `perm_rationale_read_external_storage` | yes |
-| `android.permission.READ_MEDIA_IMAGES` | `app_v2/src/main`, `wear/src/noLegal` | all seven, `wear:noLegal` | the same access split by media type (API 33+) | `perm_rationale_read_external_storage` | yes |
-| `android.permission.READ_MEDIA_VIDEO` | `app_v2/src/main`, `wear/src/noLegal` | all seven, `wear:noLegal` | the same access split by media type (API 33+) | `perm_rationale_read_external_storage` | yes |
+| `android.permission.READ_EXTERNAL_STORAGE` | `app_v2/src/main`, `wear/src/main` | all seven, both watch flavors | media library scan and browse (API <= 32) | `perm_rationale_read_external_storage` | yes |
+| `android.permission.READ_MEDIA_AUDIO` | `app_v2/src/main`, `wear/src/main` | all seven, both watch flavors | the same access split by media type (API 33+) | `perm_rationale_read_external_storage` | yes |
+| `android.permission.READ_MEDIA_IMAGES` | `app_v2/src/main`, `wear/src/main` | all seven, both watch flavors | the same access split by media type (API 33+) | `perm_rationale_read_external_storage` | yes |
+| `android.permission.READ_MEDIA_VIDEO` | `app_v2/src/main`, `wear/src/main` | all seven, both watch flavors | the same access split by media type (API 33+) | `perm_rationale_read_external_storage` | yes |
 | `android.permission.READ_PHONE_STATE` | `app_v2/src/launcherEnabled` | standard, noLegal | SIM signal indicator in the launcher status area; per-SIM section of the Network Monitor | `perm_rationale_read_phone_state` | yes |
 | `android.permission.RECEIVE_BOOT_COMPLETED` | `app_v2/src/main` | all seven, debug build type only | scheduled operations after a reboot | `-` | no |
-| `android.permission.RECORD_AUDIO` | `app_v2/src/main`, `app_v2/src/screenCapture`, `wear/src/noLegal` | standard, noLegal, lite, legacy, vr, foss, `wear:noLegal` | voice notes, screen-recording sound, live audio broadcast, watch voice recorder | `perm_rationale_record_audio` | yes |
+| `android.permission.RECORD_AUDIO` | `app_v2/src/main`, `app_v2/src/screenCapture`, `wear/src/main` | standard, noLegal, lite, legacy, vr, foss, both watch flavors | voice notes, screen-recording sound, live audio broadcast, watch voice recorder | `perm_rationale_record_audio` | yes |
 | `android.permission.REQUEST_DELETE_PACKAGES` | `app_v2/src/launcherEnabled` | standard, noLegal | hands an app picked in the launcher menu to the system uninstall screen | `-` | no |
 | `android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` | `app_v2/src/main` | all seven, debug build type only | keeps scheduled operations on time | `perm_rationale_battery_optimization` | yes, on a system screen |
 | `android.permission.REQUEST_INSTALL_PACKAGES` | `app_v2/src/noLegal` | noLegal | installing an APK opened from a browsed folder | `perm_rationale_request_install_packages` | yes, on a system screen |

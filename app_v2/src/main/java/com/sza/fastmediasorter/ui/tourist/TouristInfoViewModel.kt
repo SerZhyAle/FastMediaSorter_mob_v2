@@ -60,6 +60,7 @@ class TouristInfoViewModel @Inject constructor(
 
     /** Bumped when a grant changed: the flow reads grants and binds listeners only when subscribed. */
     private val restartToken = MutableStateFlow(0)
+    private var lastFineLocationPermission: Boolean? = null
 
     private val sensorState = MutableStateFlow(TouristDashboardState(focusedTile = focus.value))
 
@@ -115,12 +116,15 @@ class TouristInfoViewModel @Inject constructor(
 
     fun refreshPermissions() {
         val current = sensorState.value
+        val fineLocationPermission = observeTouristDashboardUseCase.hasFineLocationPermission()
+        val precisionChanged = lastFineLocationPermission?.let { it != fineLocationPermission } == true
+        lastFineLocationPermission = fineLocationPermission
         val locationChanged =
             observeTouristDashboardUseCase.hasLocationPermission() != current.hasLocationPermission
         val activityChanged =
             observeTouristDashboardUseCase.hasActivityRecognitionPermission() !=
                 current.hasActivityRecognitionPermission
-        if (locationChanged || activityChanged) {
+        if (locationChanged || activityChanged || precisionChanged) {
             restartToken.update { it + 1 }
         }
     }
