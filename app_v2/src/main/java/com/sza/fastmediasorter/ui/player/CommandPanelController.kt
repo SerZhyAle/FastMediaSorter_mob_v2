@@ -372,17 +372,18 @@ class CommandPanelController(
     /** Update slideshow button visual state (color/alpha) based on active state */
     fun updateSlideshowButtonColor(isActive: Boolean) {
         val button = binding.btnSlideshowCmd
+        Timber.d("S4682: slideshow tint requested active=$isActive")
         button.alpha = if (isActive) 1.0f else 0.5f
-        // The command bar is a fixed dark overlay: idle takes the overlay's content colour, active the
-        // theme's error role (ICON-RENDER rule 2), so no theme can turn the toggle invisible.
+        // The top panel stays dark in both themes, so idle takes the panel's own tint selector. A
+        // theme-following overlay colour is black at night and hid the icon on the black panel; active
+        // takes the theme's error role (ICON-RENDER rule 2).
         if (isActive) {
             val active = MaterialColors.getColor(button, androidx.appcompat.R.attr.colorError)
             button.imageTintList = ColorStateList.valueOf(active)
             button.backgroundTintList =
                 ColorStateList.valueOf(ColorUtils.setAlphaComponent(active, ACTIVE_TOGGLE_BACKGROUND_ALPHA))
         } else {
-            button.imageTintList =
-                ColorStateList.valueOf(ContextCompat.getColor(button.context, R.color.player_overlay_on_primary))
+            button.imageTintList = ContextCompat.getColorStateList(button.context, R.color.selector_player_button_tint)
             button.backgroundTintList = ColorStateList.valueOf(Color.TRANSPARENT)
         }
     }

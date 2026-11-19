@@ -115,6 +115,8 @@ class StreamsDeviceBroadcastsViewModel @Inject constructor(
         ImportStreamBroadcastUseCase.ImportResult.InvalidDescriptor,
         ImportStreamBroadcastUseCase.ImportResult.Expired,
         -> R.string.broadcast_import_malformed
+        ImportStreamBroadcastUseCase.ImportResult.SecretStorageUnavailable ->
+            R.string.broadcast_import_secret_storage_failed
         ImportStreamBroadcastUseCase.ImportResult.UnsupportedVersion -> {
             Timber.i("LIVE-BROADCAST: device broadcast schema above supported, format-unsupported")
             ExchangeMessageText.what(ExchangeMessage.FORMAT_UNSUPPORTED)

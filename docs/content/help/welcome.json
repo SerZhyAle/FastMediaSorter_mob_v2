@@ -39,7 +39,15 @@
     { "help": "settings-general" },
     { "pageId": "getting-started.welcome-and-setup" },
     { "pageId": "getting-started.permissions-guide" },
-    { "pageId": "getting-started.main-screen-overview" }
+    { "pageId": "getting-started.main-screen-overview" },
+    {
+      "url": "https://serzhyale.github.io/FastMediaSorter_WEB/",
+      "label": {
+        "en": "FastMediaSorter for Web - the browser version for macOS, Linux, ChromeOS, iOS and iPadOS",
+        "ru": "FastMediaSorter for Web - версия в браузере для macOS, Linux, ChromeOS, iOS и iPadOS",
+        "uk": "FastMediaSorter for Web - версія в браузері для macOS, Linux, ChromeOS, iOS та iPadOS"
+      }
+    }
   ],
   "locales": {
     "en": {

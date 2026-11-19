@@ -22,6 +22,25 @@
       }
     },
     {
+      "url": "https://serzhyale.github.io/FastMediaSorter_WEB/",
+      "name": "FastMediaSorter for Web",
+      "caption": {
+        "en": "Browser media sorter",
+        "ru": "Сортировщик медиа в браузере",
+        "uk": "Сортувальник медіа в браузері",
+        "zh-hans": "浏览器媒体整理工具",
+        "hi": "ब्राउज़र मीडिया सॉर्टर",
+        "es": "Organizador multimedia en el navegador",
+        "fr": "Trieur de médias dans le navigateur",
+        "ar": "مرتب وسائط في المتصفح",
+        "bn": "ব্রাউজার মিডিয়া সর্টার",
+        "pt": "organizador de mídia no navegador",
+        "ur": "براؤزر میڈیا سارٹر",
+        "de": "Browser-Media-Sorter",
+        "it": "Organizzatore media nel browser"
+      }
+    },
+    {
       "url": "https://serzhyale.github.io/doc-html-translate/",
       "name": "doc-html-translate",
       "caption": {

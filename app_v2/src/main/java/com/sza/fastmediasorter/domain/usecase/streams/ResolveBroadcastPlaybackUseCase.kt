@@ -90,6 +90,7 @@ class ResolveBroadcastPlaybackUseCase @Inject constructor(
     }
 
     private fun resolve(url: String, endpoints: String, pair: BroadcastCredentialPair?): Playback {
+        Timber.d("S4675: resolving a saved broadcast through its opened endpoints")
         var refusedBy: String? = null
         for (endpoint in BroadcastExchangeEndpoints.playOrder(endpoints, url)) {
             // The relay checks the pair on its own address, whichever proxy the player reaches it through.

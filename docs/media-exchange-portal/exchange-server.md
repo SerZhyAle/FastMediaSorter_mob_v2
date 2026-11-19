@@ -5,7 +5,7 @@ description: "One account for all your devices and access from any network witho
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/exchange-server.html
 ---
-<sub class="doc-stamp">26.11.15 14:25</sub>
+<sub class="doc-stamp">26.11.19 01:01</sub>
 
 # Exchange server: your devices from any network
 
@@ -31,6 +31,8 @@ Accounts, invitations and passwords are on their own page: [Accounts, invitation
 2. **A PC or a phone publishes** its shared folders.
 3. **Any other device lists** all your folders and attaches the ones it needs.
 4. **Opening a folder asks the server for a private link between the two devices**, and the server joins the two outgoing connections without reading what passes. Along that link the folder still travels encrypted, end to end (over SFTP, the standard way devices share folders).
+
+[FastMediaSorter for Web](https://serzhyale.github.io/FastMediaSorter_WEB/) joins the same exchange account as another device in your browser and uses the same exchange protocol as the native programs.
 
 On one Wi-Fi network the devices still connect to each other directly. A folder for someone outside your account is given by an invitation of the kind "guest" or by a link with a password - see [people outside your account](exchange-accounts.html#outside).
 

@@ -148,6 +148,9 @@ class StandaloneViewManager(
         exoPlayer?.let {
             oldPlayerView.player = null
             safeViews.playerView.player = it
+            // S4682: the rotation lives on the view, so the discarded one lets go and the fresh one takes it.
+            VideoSurfaceRotationApplier.release(oldPlayerView)
+            VideoSurfaceRotationApplier.apply(safeViews.playerView, contentRotationDegrees)
         }
         if (playerSurfaceWasVisible) {
             safeViews.playerView.isVisible = true
@@ -267,12 +270,9 @@ class StandaloneViewManager(
     private var standaloneVideoSizeKnown = false
     private var standalonePendingEffects = false
 
-    // S0995: decoded video dimensions from onVideoSizeChanged; used to refit the frame at 90/270.
-    private var standaloneVideoWidth = 0
-    private var standaloneVideoHeight = 0
-
-    // S0995: cumulative visual frame rotation (0/90/180/270), applied to photoView (image/gif) and to
-    // the video effect chain. Carried across folder paging by re-applying after each image load.
+    // S0995: cumulative visual frame rotation (0/90/180/270), applied to photoView (image/gif) and, since
+    // S4682, to the video frame container by VideoSurfaceRotationApplier. Carried across folder paging by
+    // re-applying after each image load and each video start.
     private var contentRotationDegrees = 0
     private var audioServiceController: AudioServiceController? = null
     private var audioFocusManager: AudioFocusManager? = null
@@ -328,14 +328,15 @@ class StandaloneViewManager(
 
     /**
      * S0995: set the session frame rotation and apply it to the active surface. Image/gif rotate via
-     * PhotoView's matrix; video re-composes its effect chain with a rotation effect. Pure visual - no
-     * bitmap edit, no screen sensor. The stored angle is re-applied after each image load (folder paging).
+     * PhotoView's matrix; video turns its frame container (S4682, the effect-chain rotation was never seen
+     * working on a device). Pure visual - no bitmap edit, no screen sensor. The stored angle is re-applied
+     * after each image load (folder paging) and each video start.
      */
     fun setContentRotationDegrees(degrees: Int) {
         contentRotationDegrees = degrees
         when (currentMediaType) {
             MediaType.IMAGE, MediaType.GIF -> applyPhotoViewRotation()
-            MediaType.VIDEO -> applyVideoColorEffects()
+            MediaType.VIDEO -> VideoSurfaceRotationApplier.apply(safeViews.playerView, degrees)
             else -> Unit
         }
     }
@@ -618,6 +619,7 @@ class StandaloneViewManager(
         exoPlayer = player
         playerView.player = player
         applyVideoColorEffects()
+        VideoSurfaceRotationApplier.apply(playerView, contentRotationDegrees)
         val errorListener = createPlayerErrorListener()
         videoErrorListener = errorListener
         player.addListener(errorListener)
@@ -655,14 +657,7 @@ class StandaloneViewManager(
         // restored after every player recreation to keep Control dialog and gestures consistent.
         val effects = listOfNotNull(
             videoColorProcessor.buildHueEffect(),
-            videoColorProcessor.buildBrightnessEffect(),
-            // S0995: manual clockwise frame rotation, composed with the colour chain (single
-            // setVideoEffects call). Null (omitted) at angle 0 - keeps the existing zero-cost path.
-            VideoColorProcessor.buildRotationEffect(
-                contentRotationDegrees,
-                standaloneVideoWidth,
-                standaloneVideoHeight
-            )
+            videoColorProcessor.buildBrightnessEffect()
         )
         // Media3 1.2.1 deferral: Presentation.createForWidthAndHeight crashes with -1,-1 when
         // setVideoEffects() is called before the decoder emits the first frame.
@@ -863,9 +858,6 @@ class StandaloneViewManager(
 
         override fun onVideoSizeChanged(videoSize: androidx.media3.common.VideoSize) {
             if (videoSize.width <= 0 || videoSize.height <= 0) return
-            // S0995: remember decoded dims so the rotation effect can refit the frame at 90/270.
-            standaloneVideoWidth = videoSize.width
-            standaloneVideoHeight = videoSize.height
             if (!standaloneVideoSizeKnown) {
                 standaloneVideoSizeKnown = true
                 Timber.d("StandaloneViewManager: onVideoSizeChanged ${videoSize.width}x${videoSize.height}")

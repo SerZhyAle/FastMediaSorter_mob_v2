@@ -79,4 +79,9 @@ data class StreamSourceEntity(
     // Null on every row chosen anywhere else - by hand, link, QR, file or cast - and before MIGRATION_63_64.
     val exchangeEntryId: String? = null,
     val exchangeBroadcastId: String? = null
-)
+) {
+    // S4675: a row held in memory can carry relay keys and tunnel pins in [broadcastEndpoints], and its address names a
+    // broadcast, so neither is printed.
+    override fun toString(): String =
+        "StreamSourceEntity(id=$id, title=$title, mediaKind=$mediaKind, sourceOrigin=$sourceOrigin)"
+}

@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.domain.usecase.BackfillSmbCredentialShareNameUseC
 import com.sza.fastmediasorter.domain.usecase.PruneWatchLocalFavoritesUseCase
 import com.sza.fastmediasorter.domain.usecase.apps.RefreshInstalledAppsUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.MigrateStreamShortcutsUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.ProtectBroadcastEndpointSecretsUseCase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import timber.log.Timber
@@ -24,6 +25,7 @@ import timber.log.Timber
  * bootstrapped indirectly through [AppStartupInitializer.runDeferredStartupTasks], which launches
  * that long-lived settings flow into the application scope exactly once.
  */
+@Suppress("LongParameterList") // one Lazy per startup task; each is a distinct use case the sequence runs once
 @HiltWorker
 class DeferredStartupWorker @AssistedInject constructor(
     @Assisted context: Context,
@@ -35,6 +37,7 @@ class DeferredStartupWorker @AssistedInject constructor(
     private val refreshInstalledApps: dagger.Lazy<RefreshInstalledAppsUseCase>,
     private val migrateStreamShortcuts: dagger.Lazy<MigrateStreamShortcutsUseCase>,
     private val pruneWatchLocalFavorites: dagger.Lazy<PruneWatchLocalFavoritesUseCase>,
+    private val protectBroadcastEndpointSecrets: dagger.Lazy<ProtectBroadcastEndpointSecretsUseCase>,
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
@@ -50,6 +53,11 @@ class DeferredStartupWorker @AssistedInject constructor(
         // favourites table once and finds nothing to delete.
         runTask("prune-watch-local-favorites") {
             pruneWatchLocalFavorites.get().invoke()
+        }
+        // S4675: idempotent like the task above; rows saved before relay keys were sealed are moved behind the
+        // device's box here, not at first play, so a broadcast nobody opens is protected as well.
+        runTask("protect-broadcast-endpoint-secrets") {
+            protectBroadcastEndpointSecrets.get().invoke()
         }
         runTask("backfill-smb-credential-share-name") {
             backfillSmbCredentialShareNameUseCase.get().invoke()

@@ -4,7 +4,7 @@ title: "Fast Media Sorter & Organizer"
 permalink: /docs/README-uk.html
 ---
 
-<sub class="doc-stamp">26.10.29 21:46</sub>
+<sub class="doc-stamp">26.11.19 01:00</sub>
 
 # Fast Media Sorter & Organizer 🚀 {#fastmediasorter-v2-}
 
@@ -135,6 +135,10 @@ Fast Media Sorter & Organizer - повноцінна оболонка Android-п
 - Налаштовувані комбінації клавіш для ефективної роботи
 - Багатомовна підтримка (Англійська/Російська)
 - Підтримка Windows 7/10/11 з .NET Framework 4.8
+
+## Версія для браузера 🌐
+
+[FastMediaSorter for Web](https://serzhyale.github.io/FastMediaSorter_WEB/) дає змогу переглядати фото й відео, відтворювати аудіо та відео, сортувати файли за теками і користуватися обліковим записом обміну в браузері. У Chrome або Edge на комп'ютері файли переміщуються до вибраних тек цифровими клавішами. Застосунок підходить для macOS, Linux, ChromeOS, iOS та iPadOS, а також тим, хто не може встановити програму.
 
 ## Зміст
 

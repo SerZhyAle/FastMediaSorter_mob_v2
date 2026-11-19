@@ -38,7 +38,15 @@
     { "help": "add-resource" },
     { "pageId": "settings.backup-and-device-sync" },
     { "pageId": "network.phone-as-sftp-server" },
-    { "pageId": "wear.companion-data-sync" }
+    { "pageId": "wear.companion-data-sync" },
+    {
+      "url": "https://serzhyale.github.io/FastMediaSorter_WEB/",
+      "label": {
+        "en": "FastMediaSorter for Web - your exchange account as another device in a browser",
+        "ru": "FastMediaSorter for Web - ваша учётная запись обмена как ещё одно устройство в браузере",
+        "uk": "FastMediaSorter for Web - ваш обліковий запис обміну як ще один пристрій у браузері"
+      }
+    }
   ],
   "locales": {
     "en": {

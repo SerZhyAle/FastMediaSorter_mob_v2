@@ -4,7 +4,7 @@ title: "Fast Media Sorter & Organizer"
 permalink: /docs/README.html
 ---
 
-<sub class="doc-stamp">26.10.15 19:27</sub>
+<sub class="doc-stamp">26.11.19 01:00</sub>
 
 # Fast Media Sorter & Organizer 🚀 {#fastmediasorter-v2-}
 
@@ -46,6 +46,10 @@ Features include:
 - Customizable keyboard shortcuts for efficient workflow
 - Multi-language support (English/Russian)
 - Supports Windows 7/10/11 with .NET Framework 4.8
+
+## Browser Version 🌐
+
+[FastMediaSorter for Web](https://serzhyale.github.io/FastMediaSorter_WEB/) lets you browse photos and videos, play audio and video, sort files into folders and use your exchange account in a browser. In Chrome or Edge on a computer, move files into selected destination folders with number keys. It serves people on macOS, Linux, ChromeOS, iOS and iPadOS, and anyone who cannot install a native program.
 
 ## Table of Contents
 

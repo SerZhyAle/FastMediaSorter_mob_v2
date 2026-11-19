@@ -39,7 +39,10 @@ sealed interface BroadcastExchangeEndpoint {
         val certFingerprint: String?,
         /** 27 item DM: the `SHA256:` pin of the tunnel's own leaf, checked inside the server's TLS; null when clear. */
         val tunnelPin: String? = null,
-    ) : BroadcastExchangeEndpoint
+    ) : BroadcastExchangeEndpoint {
+        // The pin names the tunnel's certificate and an inner url may carry a LAN address: neither is printed.
+        override fun toString(): String = "Tunnel(server=$server, pinned=${tunnelPin != null})"
+    }
 }
 
 /** An exchange server as a descriptor names it - `host:port` of its `publicEndpoint`. */
@@ -90,15 +93,20 @@ object BroadcastExchangeEndpoints {
             BroadcastEndpointCodec.decode(stored)?.mapNotNull(::parse).orEmpty()
         }
 
-    /** The exchange server a stored channel plays through, for its caption; null for a LAN-only channel. */
+    /**
+     * The exchange server a stored channel plays through, for its caption; null for a LAN-only channel. S4675: read
+     * from the addresses alone, so a row bound on screen opens no secret, and a row whose key is lost still names it.
+     */
     fun exchangeServer(stored: String?): ExchangeServer? =
-        BroadcastEndpointCodec.decode(stored)?.asSequence()?.mapNotNull(::parse)?.firstNotNullOfOrNull {
-            when (it) {
-                is BroadcastExchangeEndpoint.Relay -> it.server
-                is BroadcastExchangeEndpoint.Tunnel -> it.server
-                is BroadcastExchangeEndpoint.Lan -> null
-            }
-        }
+        BroadcastEndpointCodec.decodeMetadata(stored)?.asSequence()
+            ?.filter { it.seal?.isKnown == true }
+            ?.firstNotNullOfOrNull(::endpointServer)
+
+    private fun endpointServer(dto: BroadcastEndpointDto): ExchangeServer? = when (dto.transport.trim().uppercase()) {
+        TRANSPORT_RELAY -> parseRelay(dto.url.trim(), null)?.server
+        TRANSPORT_TUNNEL -> parseTunnel(dto.url.trim(), dto.inner?.trim(), null)?.server
+        else -> null
+    }
 
     /**
      * Null for an endpoint this app cannot play: an unknown transport, a `seal` of an unknown version, or a sealed

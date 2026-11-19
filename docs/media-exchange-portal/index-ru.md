@@ -6,7 +6,7 @@ description: "Фото, видео и музыка одного вашего у�
 category: "Обмен медиа"
 permalink: /docs/media-exchange-portal/index-ru.html
 ---
-<sub class="doc-stamp">26.11.15 15:28</sub>
+<sub class="doc-stamp">26.11.19 01:01</sub>
 
 <a id="обмен-медиа-между-вашими-устройствами"></a>
 # Ваши файлы на всех ваших устройствах
@@ -47,6 +47,7 @@ permalink: /docs/media-exchange-portal/index-ru.html
 - **VR-шлем** - FastMediaSorter, редакция VR, открывает ваши папки и облака и воспроизводит трансляции и интернет-потоки внутри шлема.
 - **ПК с Windows** - у [Fast Media Sorter & Sharing for Windows](windows-servers-ru.html) [три необязательные части](windows-servers-ru.html#three-parts): просмотрщик и сортировщик фото и видео; раздача папок, которая раздаёт выбранные папки на ваши телефоны и привязывает телефон по QR-коду или файлу настроек; и сервер обмена - место встречи ваших устройств в одном аккаунте. Начните [с просмотрщика](windows-servers-ru.html#viewer-first) или, для ПК, который только раздаёт, без вошедшего пользователя, [с сервера](windows-servers-ru.html#server-first).
 - **ПК с Windows** - [STREAMS Player](https://serzhyale.github.io/StreamsPlayer/) воспроизводит живые трансляции с телефона или часов.
+- **Браузер** - [FastMediaSorter for Web](https://serzhyale.github.io/FastMediaSorter_WEB/) подключается к той же учётной записи обмена как ещё одно устройство в браузере и использует тот же протокол обмена, что и установленные программы.
 
 <a id="пошаговые-инструкции-по-сценариям"></a>
 ## Пошаговые инструкции по сценариям
@@ -79,6 +80,7 @@ permalink: /docs/media-exchange-portal/index-ru.html
 
 - [FastMediaSorter для Android](../../index-ru.html) - телефон, планшет, телевизор, часы и VR-шлем.
 - [Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) - на ПК: просмотрщик и сортировщик, раздача папок и сервер обмена, каждая часть необязательна; [что это за части](windows-servers-ru.html#three-parts).
+- [FastMediaSorter for Web](https://serzhyale.github.io/FastMediaSorter_WEB/) - в браузере, как ещё одно устройство вашей учётной записи.
 - [STREAMS Player](https://serzhyale.github.io/StreamsPlayer/) - живые потоки и трансляции на Windows.
 
 Подробные инструкции приложения для Android - в его [документации](../../documentation/index-ru.html).

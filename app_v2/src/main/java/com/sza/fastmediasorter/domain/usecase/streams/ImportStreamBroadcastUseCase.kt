@@ -4,7 +4,9 @@ import com.sza.fastmediasorter.broadcast.BroadcastMode
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorDto
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorParser
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointCodec
+import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointCodec.Protection
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
+import com.sza.fastmediasorter.data.repository.BroadcastEndpointSecretsRepository
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
 import com.sza.fastmediasorter.domain.repository.BroadcastPasswordStore
 import com.sza.fastmediasorter.domain.repository.BroadcastPendingStore
@@ -18,6 +20,7 @@ class ImportStreamBroadcastUseCase @Inject constructor(
     private val repository: StreamSourceRepository,
     private val passwordStore: BroadcastPasswordStore,
     private val pendingStore: BroadcastPendingStore,
+    private val endpointSecrets: BroadcastEndpointSecretsRepository,
 ) {
     /**
      * [password] is what the person typed for a protected descriptor; null keeps the one already stored. [listing]
@@ -87,11 +90,27 @@ class ImportStreamBroadcastUseCase @Inject constructor(
     private class Kept(val result: ImportResult, val rowId: String?)
 
     private suspend fun keepRow(dto: BroadcastDescriptorDto, password: String?): Kept {
-        val offered = dto.title?.trim()?.takeIf { it.isNotEmpty() }
-        val deviceId = dto.sourceId?.trim()?.takeIf { it.isNotEmpty() }
+        Timber.d("S4675: import seals the endpoint list before saving")
         // S4160: the whole list is kept, so a broadcast reachable through an exchange server plays outside the
         // broadcaster's LAN; a descriptor with no explicit list leaves the column null and plays its url.
         val endpoints = BroadcastEndpointCodec.encode(dto.endpoints)
+        // S4675: the list is sealed before any write, so a refusal leaves the row and everything about it untouched.
+        return when (val sealed = endpointSecrets.seal(endpoints)) {
+            Protection.Failed -> Kept(ImportResult.SecretStorageUnavailable, null)
+            Protection.Unchanged -> keepSealed(dto, password, endpoints, endpoints)
+            is Protection.Protected -> keepSealed(dto, password, endpoints, sealed.value)
+        }
+    }
+
+    // [endpoints] is the clear list a stored row is compared with; [stored] is the text a write puts in the column.
+    private suspend fun keepSealed(
+        dto: BroadcastDescriptorDto,
+        password: String?,
+        endpoints: String?,
+        stored: String?,
+    ): Kept {
+        val offered = dto.title?.trim()?.takeIf { it.isNotEmpty() }
+        val deviceId = dto.sourceId?.trim()?.takeIf { it.isNotEmpty() }
         val bySource = deviceId?.let { repository.getBySourceDeviceId(it) }
         val byAddress = if (bySource == null) repository.getByUrl(dto.url.trim()) else null
         // S4607: an equal address alone never merges two independently identified broadcasts - the row of another
@@ -100,9 +119,9 @@ class ImportStreamBroadcastUseCase @Inject constructor(
         val known = bySource ?: byAddress?.takeIf { endpoints != null }
         val kind = kindOf(dto.mode, dto.url)
         val result = if (known == null) {
-            addNew(dto.url, offered ?: FALLBACK_TITLE, sourceDeviceId = deviceId, endpoints = endpoints, kind = kind)
+            addNew(dto.url, offered ?: FALLBACK_TITLE, sourceDeviceId = deviceId, endpoints = stored, kind = kind)
         } else {
-            refresh(known, Offer(dto.url, offered, endpoints), kind)
+            refresh(known, Offer(dto.url, offered, endpoints, stored), kind)
         }
         return keptRow(dto, result, known?.id, password)
     }
@@ -138,7 +157,8 @@ class ImportStreamBroadcastUseCase @Inject constructor(
         }
     }
 
-    private class Offer(val url: String, val title: String?, val endpoints: String?)
+    // [endpoints] is the clear text a stored row is compared with, [stored] the sealed text a write puts in its place.
+    private class Offer(val url: String, val title: String?, val endpoints: String?, val stored: String?)
 
     /**
      * S4289: the descriptor's `mode` states what the stream carries, so it decides the row's kind - the url of a
@@ -173,11 +193,12 @@ class ImportStreamBroadcastUseCase @Inject constructor(
         val trimmed = offer.url.trim()
         val moved = trimmed != known.url
         val renamed = offer.title != null && offer.title != known.title && isGeneratedTitle(known.title)
-        val rerouted = offer.endpoints != known.broadcastEndpoints
+        // S4675: sealed text differs on every write, so the lists are compared by what they hold.
+        val rerouted = !endpointSecrets.isSame(offer.endpoints, known.broadcastEndpoints)
         val rekind = offeredKind?.takeIf { it != known.mediaKind }
         if (moved) repository.refreshSourceAddress(id = known.id, url = trimmed)
         if (renamed) repository.renameSource(id = known.id, title = requireNotNull(offer.title))
-        if (rerouted) repository.refreshBroadcastEndpoints(id = known.id, endpoints = offer.endpoints)
+        if (rerouted) repository.refreshBroadcastEndpoints(id = known.id, endpoints = offer.stored)
         if (rekind != null) {
             repository.updateUserFields(
                 id = known.id,
@@ -236,6 +257,9 @@ class ImportStreamBroadcastUseCase @Inject constructor(
 
         /** S4247: the link was made for a broadcast that never started before its `until`. */
         data object Expired : ImportResult
+
+        /** S4675: the broadcast's key could not be sealed on this device, so nothing was saved. */
+        data object SecretStorageUnavailable : ImportResult
     }
 
     private companion object {

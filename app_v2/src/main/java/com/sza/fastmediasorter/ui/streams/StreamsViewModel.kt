@@ -575,6 +575,8 @@ class StreamsViewModel @Inject constructor(
             ImportStreamBroadcastUseCase.ImportResult.Expired -> R.string.stream_broadcast_link_expired
             ImportStreamBroadcastUseCase.ImportResult.InvalidDescriptor ->
                 R.string.broadcast_import_malformed
+            ImportStreamBroadcastUseCase.ImportResult.SecretStorageUnavailable ->
+                R.string.broadcast_import_secret_storage_failed
             ImportStreamBroadcastUseCase.ImportResult.UnsupportedVersion -> {
                 Timber.i("LIVE-BROADCAST: descriptor schema above supported refused as format-unsupported")
                 ExchangeMessageText.what(ExchangeMessage.FORMAT_UNSUPPORTED)

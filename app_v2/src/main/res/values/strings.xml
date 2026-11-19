@@ -4743,4 +4743,5 @@
     <string name="perm_rationale_access_coarse_location">Approximate location is used to write coordinates into the photos and videos you shoot in the app. Nothing is sent anywhere.</string>
     <string name="perm_rationale_access_coarse_location_extended">Approximate location is used to write coordinates into the photos and videos you shoot in the app, and to place the map gadgets on the desktop: to draw a map they ask an online map service for a picture of your area and ask Android for the name of the place. Nothing else is sent anywhere, and we have no servers of our own.</string>
     <string name="perm_desc_access_coarse_location_extended">Approximate coordinates for photos you shoot in the app and for the desktop map gadgets</string>
+    <string name="broadcast_import_secret_storage_failed">The broadcast key could not be stored securely on this device</string>
 </resources>

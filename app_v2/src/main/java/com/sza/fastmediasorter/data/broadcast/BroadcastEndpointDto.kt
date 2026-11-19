@@ -26,14 +26,21 @@ data class BroadcastEndpointDto(
     @SerializedName("seal") val seal: BroadcastSealDto? = null,
 )
 
-/** `seal` of a `RELAY` or `TUNNEL` endpoint: [key] is a relay group key, [pin] the tunnel's leaf pin. */
+/**
+ * `seal` of a `RELAY` or `TUNNEL` endpoint: [key] is a relay group key, [pin] the tunnel's leaf pin.
+ *
+ * S4675: [box] exists only in a stored row, where it holds `key` and `pin` sealed by the device; the stored-list codec
+ * opens it into those two members, so a decoded seal never carries one.
+ */
 data class BroadcastSealDto(
     @SerializedName("v") val v: Int = VERSION,
     @SerializedName("key") val key: String? = null,
     @SerializedName("pin") val pin: String? = null,
+    @SerializedName("box") val box: String? = null,
 ) {
-    // A group key opens the broadcast: it is never printed.
-    override fun toString(): String = "BroadcastSealDto(v=$v, key=${key?.let { "***" }}, pin=$pin)"
+    // A group key opens the broadcast and a pin names the tunnel's certificate: neither is ever printed.
+    override fun toString(): String =
+        "BroadcastSealDto(v=$v, key=${key?.let { "***" }}, pin=${pin?.let { "***" }}, box=${box?.let { "***" }})"
 
     /** A version this build reads; any other endpoint is skipped, never played as clear bytes (item DK). */
     val isKnown: Boolean get() = v == VERSION
