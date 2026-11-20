@@ -333,11 +333,15 @@ class PlayerKeyboardHandler(
         if (callback.hasModalInput()) return false
         val currentType = callback.getCurrentMediaType()
         return handleViewerKeyCommand(commandId, currentType) ?: when (commandId) {
-            CommandId.PAUSE_PLAY, CommandId.PLAY, CommandId.PAUSE -> { handlePlayPause(); true }
+            CommandId.PAUSE_PLAY -> { handlePlayPause(); true }
+            CommandId.PLAY -> { withPlayablePlayer { it.play() }; true }
+            CommandId.PAUSE -> { withPlayablePlayer { it.pause() }; true }
             CommandId.STOP -> {
-                val t = callback.getCurrentMediaType()
-                if (t == MediaType.VIDEO || t == MediaType.AUDIO) {
-                    callback.getActivePlayer()?.let { if (it.isPlaying) it.pause() }
+                // Rewind instead of Player.stop(): stop() drops the prepared source and every host would
+                // have to prepare it again. Same contract as AudioPlaybackService.dispatchCommand("playback.stop").
+                withPlayablePlayer {
+                    it.pause()
+                    it.seekTo(0L)
                 }
                 true
             }
@@ -516,13 +520,14 @@ class PlayerKeyboardHandler(
         return false
     }
 
+    private inline fun withPlayablePlayer(action: (Player) -> Unit) {
+        if (isPlayable(callback.getCurrentMediaType())) callback.getActivePlayer()?.let(action)
+    }
+
     private fun handlePlayPause() {
-        val currentType = callback.getCurrentMediaType()
-        if (currentType == MediaType.VIDEO || currentType == MediaType.AUDIO) {
-            callback.getActivePlayer()?.let { player ->
-                if (player.isPlaying) player.pause() else player.play()
-                Timber.d("PlayerKeyboardHandler: play/pause toggled")
-            }
+        withPlayablePlayer { player ->
+            if (player.isPlaying) player.pause() else player.play()
+            Timber.d("PlayerKeyboardHandler: play/pause toggled")
         }
     }
 }

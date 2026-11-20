@@ -74,7 +74,6 @@
     <string name="copy_failed">फ़ाइलें कॉपी नहीं की जा सकीं.</string>
     <string name="no_destinations_available">कोई गंतव्य संसाधन कॉन्फ़िगर नहीं किया गया</string>
     <string name="moving_files">स्थानांतरित हो रहा है..</string>
-    <string name="moved_n_files">%1$d फ़ाइलें स्थानांतरित हुईं.</string>
     <string name="moved_n_of_m_files">%2$d में से %1$d फ़ाइलें स्थानांतरित हुईं.</string>
     <string name="move_failed">फ़ाइलें स्थानांतरित नहीं की जा सकीं.</string>
     <string name="renaming_files">नाम बदला जा रहा है..</string>
@@ -240,7 +239,6 @@
     <string name="confirm_delete_safe_mode">हटाने से पहले पुष्टि करें</string>
     <string name="confirm_move_safe_mode">स्थानांतरित करने से पहले पुष्टि करें</string>
     <string name="confirm_delete_title">फ़ाइलें हटाएं?</string>
-    <string name="confirm_delete_message">%1$d फ़ाइल(एं) हटाएं? इस कार्रवाई को पूर्ववत नहीं किया जा सकता.</string>
     <string name="confirm_move_title">फ़ाइलें स्थानांतरित करें?</string>
     <string name="confirm_move_message">%1$d फ़ाइल(एं) %2$s में स्थानांतरित करें?</string>
     <string name="user_guide">उपयोगकर्ता गाइड</string>
@@ -794,7 +792,6 @@
     <string name="error_copy_failed">फ़ाइल कॉपी नहीं की जा सकी.</string>
     <string name="error_file_exists_copy">फ़ाइल \"%1$s\" पहले से \"%2$s\" में है.\n\nअगर आप उसे बदलना चाहते हैं तो सेटिंग्स -&gt; कॉपी और मूव में \"कॉपी पर अधिलेखित करें\" चालू करें.</string>
     <string name="msg_move_success">%1$s में स्थानांतरित हो गया.</string>
-    <string name="msg_move_success_count">%2$s में %1$d फ़ाइलें स्थानांतरित हो गईं.</string>
     <string name="error_move_failed">फ़ाइल स्थानांतरित नहीं की जा सकी.</string>
     <string name="error_file_exists_move">फ़ाइल \"%1$s\" पहले से \"%2$s\" में है.\n\nअगर आप उसे बदलना चाहते हैं तो सेटिंग्स -&gt; कॉपी और मूव में \"मूव पर अधिलेखित करें\" चालू करें.</string>
     <string name="msg_delete_success">हटा दिया गया.</string>
@@ -1967,7 +1964,7 @@
     <string name="stream_wait_reconnecting">फिर से जुड़ रहा है..</string>
     <string name="streams_filter_pinned_only">केवल पिन किए गए</string>
     <string name="streams_refresh_probing">स्ट्रीम जांची जा रही हैं..</string>
-    <string name="streams_error_no_network">नेटवर्क नहीं है। स्ट्रीम चलाने के लिए Wi-Fi या मोबाइल डेटा से कनेक्ट करें।</string>
+    <string name="streams_error_no_network">नेटवर्क नहीं है। स्ट्रीम चलाने के लिए कनेक्ट करें।</string>
     <string name="tile_screenshot_label">स्क्रीनशॉट</string>
     <string name="camera_lens_front">फ्रंट</string>
     <string name="camera_lens_ultrawide">अल्ट्रा-वाइड</string>

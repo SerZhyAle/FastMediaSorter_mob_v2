@@ -165,7 +165,7 @@ class AuthSessionsListFragment : Fragment(), MenuProvider {
     }
 
     private fun promptForUrlAndOpenWebView() {
-        val resources = KnownAuthResources.all
+        val resources = KnownAuthResources.pickerEntries
         val labels = (resources.map { it.displayName } + getString(R.string.auth_add_enter_manually)).toTypedArray()
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.auth_add_picker_title)

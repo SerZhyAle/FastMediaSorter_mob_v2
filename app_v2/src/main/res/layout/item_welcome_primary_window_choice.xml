@@ -43,16 +43,20 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
+            <!-- S4705: the title is the flexible part (0dp + weight) so a long title wraps and the
+                 single-line badge keeps its full width; a wrap_content title took all the room and
+                 left the badge a sliver that broke it letter by letter. -->
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
                 <TextView
                     android:id="@+id/tvChoiceTitle"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:textColor="?attr/colorOnSurface"
                     android:textSize="@dimen/toggler_title_text_size"
                     android:textStyle="bold"
@@ -63,6 +67,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/padding_small"
+                    android:maxLines="1"
                     android:text="@string/launcher_primary_window_recommended"
                     android:textColor="?attr/colorPrimary"
                     android:textSize="@dimen/text_size_11sp"

@@ -43,7 +43,7 @@
     <string name="settings_default_document_type_pdf">PDF</string>
     <string name="settings_default_document_type_title">نوع المستند</string>
     <string name="settings_default_player_dialog_confirm">فتح الإعدادات</string>
-    <string name="settings_default_player_dialog_message">سيتم نقلك إلى إعدادات نظام Android حيث يمكنك اختيار FastMediaSorter تطبيقًا افتراضيًا لهذا النوع من الملفات.</string>
+    <string name="settings_default_player_dialog_message">سيتم نقلك إلى إعدادات نظام Android حيث يمكنك اختيار Fast Media Sorter &amp; Organizer تطبيقًا افتراضيًا لهذا النوع من الملفات.</string>
     <string name="settings_default_player_dialog_title">التعيين كافتراضي</string>
     <string name="settings_general_actions">الإجراءات</string>
     <string name="settings_general_behavior">سلوك التطبيق</string>
@@ -168,7 +168,7 @@
     <string name="setting_photos_during_audio_desc">صور عشوائية أثناء التشغيل (اختر قائمة صوتية وشاهد الصور)</string>
     <string name="setting_play_to_end_desc">تشغيل الوسائط حتى النهاية بدل استخدام فاصل عرض الشرائح</string>
     <string name="setting_prevent_sleep_desc">إبقاء الشاشة مضاءة أثناء استخدام التطبيق</string>
-    <string name="setting_primary_media_player_desc">إظهار FastMediaSorter في \"فتح باستخدام\" ومعالجة أزرار الوسائط</string>
+    <string name="setting_primary_media_player_desc">إظهار Fast Media Sorter &amp; Organizer في \"فتح باستخدام\" ومعالجة أزرار الوسائط</string>
     <string name="setting_resume_on_next_launch">استئناف التشغيل عند التشغيل التالي</string>
     <string name="setting_resume_on_next_launch_desc">عند بدء التطبيق، أعِد فتح آخر ملف شُغّل من حيث توقفت تلقائيًا</string>
     <string name="setting_safe_mode_desc">التأكيد قبل العمليات المدمِّرة (الحذف والنقل)</string>

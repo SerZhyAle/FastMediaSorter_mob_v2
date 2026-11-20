@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.di.ApplicationScope
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearSettingsMirrorStore
 import com.sza.fastmediasorter.domain.model.PairedWatchStatus
 import com.sza.fastmediasorter.domain.model.PhoneClipboardSendOutcome
@@ -430,11 +431,26 @@ class WearSyncViewModel @Inject constructor(
                     }
                 }
                 .onFailure { e ->
-                    Timber.e(e, "Wear sync failed")
+                    // S4775: an absent watch is an expected state, and an ERROR-level line with a stack
+                    // raises the debug banner for it. Any other failure keeps its stack.
+                    if (isWatchAbsent()) {
+                        Timber.d("Wear sync not started: no watch connected")
+                    } else {
+                        Timber.e(e, "Wear sync failed")
+                    }
                     _uiState.value = WearSyncUiState.Error(context.getString(R.string.wear_sync_failed))
                 }
         }
     }
+
+    /**
+     * S4775: told apart by asking the bridge again, not by matching the use case's message text. A
+     * bridge that cannot answer is no proof the watch is absent, so that case stays a failure.
+     */
+    private suspend fun isWatchAbsent(): Boolean =
+        runCatching { getPairedWatchStatusUseCase() }
+            .onFailure { it.rethrowIfCancellation() }
+            .getOrNull() is PairedWatchStatus.NotConnected
 
     /**
      * S2484: the whole exchange behind one control - strategic 2 goal 1.

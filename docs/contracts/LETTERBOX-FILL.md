@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.09.26 01:49</sub>
+<sub class="doc-stamp">26.11.20 20:29</sub>
 
 # Pointer - `LETTERBOX-BARS`, `LETTERBOX-HALO`
 
 | | |
 | --- | --- |
 | **Id** | `LETTERBOX-BARS`, `LETTERBOX-HALO` |
-| **Version** | 0.1 each, draft. Owner: FastMediaSorter_Lite |
+| **Version** | 0.2 each, draft. Owner: FastMediaSorter_Lite |
 | **Home** | `letterbox-fill/README.md` in the shared contracts catalog |
 | **Role here** | consumer - the player's edge-extended background behind a fitted photo |
 
@@ -16,6 +16,7 @@
 - Every constant of both contracts lives once, in one pure module, under a comment citing
   `LETTERBOX-BARS rule N` / `LETTERBOX-HALO rule N`; "round" means half to even.
 - Rung 1 of section 5: the implementation reproduces every value of the catalog's vectors.
+- Rungs 2 and 3 (0.2 items B and C) are owed by the contract's owner and are not claimed here.
 - The fill behind a video's first frame is outside version 0.1 (section 6) and is not claimed.
 - Open deviations are dated exceptions in the catalog's registry.
 

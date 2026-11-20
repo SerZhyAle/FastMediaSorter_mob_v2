@@ -90,6 +90,9 @@ class TextViewerManager(
          * no copy dialog, so both send menus of the unified player offer the same rows.
          */
         fun sendToPickResource(): (() -> Unit)? = null
+
+        /** The editor panel opened or closed; a host whose toolbar depends on that state re-lays it out. */
+        fun onEditorVisibilityChanged() {}
     }
 
     private var currentFile: MediaFile? = null
@@ -154,12 +157,24 @@ class TextViewerManager(
     // S0189 Phase 07: auto-fit font manager; created fresh on each enterEditMode
     private var autoFitFontManager: TextEditorAutoFitFontManager? = null
     private val safeViews = PlayerBindingSafeViews(root)
+    private val rebindStateManager = TextViewerRebindStateManager()
+    private var pendingRebindSnapshot: TextViewerRebindStateManager.Snapshot? = null
 
     // S1549: not a `by lazy` - it binds concrete editor-toolbar views, and a lazy would keep handing
     // out the discarded ones after a re-inflate, leaving Save/Cancel dead in the new layout.
     private var _actionPanelManager: com.sza.fastmediasorter.ui.editor.actions.EditorActionPanel? = null
     private val actionPanelManager: com.sza.fastmediasorter.ui.editor.actions.EditorActionPanel
         get() = _actionPanelManager ?: buildActionPanelManager().also { _actionPanelManager = it }
+
+    // S4714: the editor controller is built once, but a re-inflate rebuilds the panel against the new
+    // toolbar; this forwarder lets the controller always reach the panel of the current tree.
+    private val currentActionPanel = object : com.sza.fastmediasorter.ui.editor.actions.EditorActionPanel {
+        override fun setup(callbacks: com.sza.fastmediasorter.ui.editor.actions.EditorActionCallbacks) =
+            actionPanelManager.setup(callbacks)
+        override fun onEnterEditMode() = actionPanelManager.onEnterEditMode()
+        override fun onExitEditMode() = actionPanelManager.onExitEditMode()
+        override fun addOverflowItems(menu: android.view.Menu) = actionPanelManager.addOverflowItems(menu)
+    }
 
     private fun buildActionPanelManager(): com.sza.fastmediasorter.ui.editor.actions.EditorActionPanel {
         return com.sza.fastmediasorter.ui.editor.actions.EditorActionPanelBinder(
@@ -185,8 +200,16 @@ class TextViewerManager(
      * S1549: re-point at a re-inflated hierarchy. The loaded text, the current page and the editor
      * buffer stay in this instance; every delegate reads through the shared [safeViews], so
      * re-pointing that one object covers them all. The caller re-renders the current page after.
+     *
+     * S4714: the viewer and editor visibility and the editor buffer are read here, from the
+     * outgoing tree, because both hosts call this after `setContentView` and before anything reads
+     * the new tree; [rerenderAfterRebind] puts them back. A Calculator result inserted before the
+     * re-inflate travels with the buffer, one inserted after it lands in the restored editor.
      */
     fun rebindLayoutRoot(newRoot: View) {
+        val snapshot = rebindStateManager.capture(safeViews)
+        pendingRebindSnapshot = snapshot
+        if (snapshot.editorText != null) editorModeController.detachFromViews()
         safeViews.rebindRoot(newRoot)
         _actionPanelManager = null
     }
@@ -884,9 +907,19 @@ class TextViewerManager(
      * buffer live in this instance, only the views it renders into were replaced.
      */
     fun rerenderAfterRebind() {
-        if (textFilePager == null) return
-        reloadCurrentPage()
-        updatePageIndicator()
+        Timber.d("S4714: rerenderAfterRebind restores the carried text viewer state")
+        val snapshot = pendingRebindSnapshot
+        pendingRebindSnapshot = null
+        if (snapshot?.isViewerVisible == true) {
+            rebindStateManager.applyVisibility(safeViews, snapshot)
+            applyTextFontSize()
+        }
+        if (textFilePager != null) {
+            reloadCurrentPage()
+            updatePageIndicator()
+        }
+        val editorText = snapshot?.takeIf { it.isViewerVisible }?.editorText ?: return
+        editorModeController.reattachEditor(editorText, snapshot.selectionStart, snapshot.selectionEnd)
     }
 
     // ===== H.3: Editor enter/exit/save =====
@@ -904,7 +937,7 @@ class TextViewerManager(
             coroutineScope = coroutineScope,
             settingsRepository = settingsRepository,
             networkFileManager = networkFileManager,
-            actionPanelManager = actionPanelManager,
+            actionPanelManager = currentActionPanel,
             findReplaceManager = findReplaceManager,
             dirtyTracker = dirtyTracker,
             editContentFlow = editContentFlow,
@@ -923,7 +956,7 @@ class TextViewerManager(
             applyLineNumbers = ::applyLineNumbers,
             showError = callback::showError,
             loadingIndicatorCoordinator = loadingIndicatorCoordinator,
-        )
+        ).also { it.onEditorVisibilityChanged = callback::onEditorVisibilityChanged }
     }
 
     internal fun enterEditMode(autoOpen: Boolean = false) = editorModeController.enterEditMode(autoOpen)

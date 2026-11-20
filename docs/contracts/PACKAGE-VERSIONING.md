@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.11.14 13:36</sub>
+<sub class="doc-stamp">26.11.20 20:17</sub>
 
 # Pointer - `PACKAGE-VERSIONING`
 
 | | |
 | --- | --- |
 | **Id** | `PACKAGE-VERSIONING` |
-| **Version** | 0.8, draft. Owner: this product |
+| **Version** | 0.9, draft. Owner: this product |
 | **Home** | `package-versioning/README.md` in the shared contracts catalog |
 | **Role here** | owner and reference implementation (the version stamps of the phone app, the watch app and the watch face) |
 
@@ -20,6 +20,11 @@
 - 0.7 and 0.8 register the DeviceInfo Android and Filler Android families in the band table (rule 3) with no change to
   rules 1-8; the bands of this product's families above are unchanged, and the registered bands of another product
   are read from the catalog, never copied here.
+- 0.9 (section 9, from this product's proposal of S4646): a family that shares an application id and has no band left
+  derives its code from the same instant and adds `1_000_000_000`, a ten-digit code registered with its offset; rule 2
+  admits an edition label `-<Edition>` after the stamped name, the stamped part being what rules 1, 4 and 8 compare. The
+  XR edition is such a family: `xrVersionCodeOffset = 1_000_000_000` in `app_v2/build.gradle.kts`. The families `lite`
+  and `fdroid` join the table when each first ships to a channel.
 - Never repeat and never lower a versionCode within one application id; an out-of-scheme installed build is replaced by uninstall or a strictly greater code, recorded as a dated registry exception (rule 4).
 
 ## Where it lives here

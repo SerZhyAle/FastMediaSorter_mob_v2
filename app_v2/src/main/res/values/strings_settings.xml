@@ -41,7 +41,7 @@
     <string name="settings_default_document_type_pdf">PDF</string>
     <string name="settings_default_document_type_title">Document type</string>
     <string name="settings_default_player_dialog_confirm">Open settings</string>
-    <string name="settings_default_player_dialog_message">You will be redirected to Android system settings where you can select FastMediaSorter as the default app for this file type.</string>
+    <string name="settings_default_player_dialog_message">You will be redirected to Android system settings where you can select Fast Media Sorter &amp; Organizer as the default app for this file type.</string>
     <string name="settings_default_player_dialog_title">Set as default</string>
     <string name="settings_general_actions">Actions</string>
     <string name="settings_general_behavior">App Behavior</string>
@@ -163,7 +163,7 @@
     <string name="setting_photos_during_audio_desc">Random images during playback (select a list of audio - watch images)</string>
     <string name="setting_play_to_end_desc">Play media to end instead of using slideshow interval</string>
     <string name="setting_prevent_sleep_desc">Keep screen on while using the app</string>
-    <string name="setting_primary_media_player_desc">Show FastMediaSorter in \"Open with\" and handle media buttons</string>
+    <string name="setting_primary_media_player_desc">Show Fast Media Sorter &amp; Organizer in \"Open with\" and handle media buttons</string>
     <string name="setting_resume_on_next_launch">Resume playback on next launch</string>
     <string name="setting_resume_on_next_launch_desc">On app start, automatically reopen the last played file from where you left off</string>
     <string name="setting_safe_mode_desc">Confirm before destructive operations (delete, move)</string>

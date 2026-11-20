@@ -43,7 +43,7 @@
     <string name="settings_default_document_type_pdf">PDF</string>
     <string name="settings_default_document_type_title">Tipo di documento</string>
     <string name="settings_default_player_dialog_confirm">Apri le impostazioni</string>
-    <string name="settings_default_player_dialog_message">Verrai portato alle impostazioni di sistema di Android, dove potrai scegliere FastMediaSorter come app predefinita per questo tipo di file.</string>
+    <string name="settings_default_player_dialog_message">Verrai portato alle impostazioni di sistema di Android, dove potrai scegliere Fast Media Sorter &amp; Organizer come app predefinita per questo tipo di file.</string>
     <string name="settings_default_player_dialog_title">Imposta come predefinita</string>
     <string name="settings_general_actions">Azioni</string>
     <string name="settings_general_behavior">Comportamento dell\'app</string>
@@ -165,7 +165,7 @@
     <string name="setting_photos_during_audio_desc">Immagini casuali durante la riproduzione (scegli un elenco audio e guarda le immagini)</string>
     <string name="setting_play_to_end_desc">Riproduci il contenuto fino alla fine invece di usare l\'intervallo della presentazione</string>
     <string name="setting_prevent_sleep_desc">Tieni lo schermo acceso mentre usi l\'app</string>
-    <string name="setting_primary_media_player_desc">Mostra FastMediaSorter in \"Apri con\" e gestisci i tasti multimediali</string>
+    <string name="setting_primary_media_player_desc">Mostra Fast Media Sorter &amp; Organizer in \"Apri con\" e gestisci i tasti multimediali</string>
     <string name="setting_resume_on_next_launch">Riprendi la riproduzione al prossimo avvio</string>
     <string name="setting_resume_on_next_launch_desc">All\'avvio dell\'app riapri automaticamente l\'ultimo file riprodotto dal punto in cui eri arrivato</string>
     <string name="setting_safe_mode_desc">Conferma prima delle operazioni distruttive (eliminazione, spostamento)</string>

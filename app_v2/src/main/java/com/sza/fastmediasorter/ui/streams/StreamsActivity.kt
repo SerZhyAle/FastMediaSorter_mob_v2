@@ -551,6 +551,10 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                     gridAdapter.setNowPlaying(id, null)
                     pinnedGridAdapter.setNowPlaying(id, null)
                 },
+                onPausedChanged = { paused ->
+                    adapter.setPlayingPaused(paused)
+                    pinnedAdapter.setPlayingPaused(paused)
+                },
                 onPlaybackStateChanged = { source, isPlaying ->
                     if (isPlaying) source?.let(::persistStreamResume) else clearStreamResume()
                 },
@@ -712,9 +716,15 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             viewModel.onQueryChanged(it?.toString().orEmpty())
         }
         binding.btnFilter.setOnClickListener {
+            Timber.d("S4756: filter click touchFocusable=${binding.btnFilter.isFocusableInTouchMode}")
             cancelHealthProbe()
             showFilterDialog()
         }
+        // The layout flags btnFilter touch-focusable only so the launch focus parks on it. A
+        // touch-focusable view that is not focused spends its next tap on taking focus and never
+        // clicks, so once the first layout pass has placed that focus the flag goes and every tap
+        // reaches the handler above, e.g. the first one after touching Recent or the search field.
+        binding.btnFilter.post { binding.btnFilter.isFocusableInTouchMode = false }
         binding.btnSort.setOnClickListener {
             cancelHealthProbe()
             showSortDialog()
@@ -960,6 +970,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                 binding.rvStreams.post { scrollButtons.updateVisibility() }
             }
             binding.emptyStateView.isVisible = state.isEmpty
+            updateSectionFocusRouting()
             latestState = state
             updateFilterIndicator(state.filter)
             // S1473: renders from the shared filter state, so a change made in the filter dialog
@@ -1081,6 +1092,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private fun showDeviceBroadcastsSection(available: Boolean) {
         deviceBroadcasts.setAvailable(available)
         sectionsManager.setSiblingTopicVisible(available)
+        updateSectionFocusRouting()
     }
 
     private fun updateCatalogBannerFocus(bannerVisible: Boolean) {
@@ -1093,26 +1105,12 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         binding.btnFilter.nextFocusUpId = upTargetId
         binding.btnSort.nextFocusUpId = sortUpTargetId
 
-        binding.btnEmptyAddUrl.nextFocusUpId = if (bannerVisible) upTargetId else R.id.etSearch
-        binding.streamsPinnedHeader.setHeaderNextFocusUpId(if (bannerVisible) upTargetId else R.id.btnFilter)
-        binding.streamsMainHeader.setHeaderNextFocusUpId(
-            if (bannerVisible) upTargetId else R.id.streamsPinnedHeader,
-        )
-
         val banner = catalogBanner
         if (bannerVisible && banner != null) {
-            val isLandscape =
-                resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
-            val downTargetId = if (binding.emptyStateView.isVisible) {
-                R.id.btnEmptyAddUrl
-            } else if (binding.streamsPinnedSection.isVisible) {
-                R.id.streamsPinnedHeader
-            } else {
-                R.id.rvStreams
-            }
+            val downTargetId = firstContentFocusId()
             val actionBtn = banner.findViewById<View>(R.id.btnCatalogBannerAction)
             val dismissBtn = banner.findViewById<View>(R.id.btnCatalogBannerDismiss)
-            if (isLandscape) {
+            if (isLandscapeNow()) {
                 actionBtn?.nextFocusUpId = R.id.etSearch
                 dismissBtn?.nextFocusUpId = R.id.btnSort
                 actionBtn?.nextFocusDownId = downTargetId
@@ -1123,6 +1121,53 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                 actionBtn?.nextFocusDownId = R.id.btnFilter
                 dismissBtn?.nextFocusDownId = R.id.btnSort
             }
+        }
+        updateSectionFocusRouting()
+    }
+
+    private fun isLandscapeNow(): Boolean =
+        resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+
+    private fun firstContentFocusId(): Int = when {
+        binding.emptyStateView.isVisible -> R.id.btnEmptyAddUrl
+        binding.streamsDevicesSection.isVisible -> R.id.streamsDevicesHeader
+        binding.streamsPinnedSection.isVisible -> R.id.streamsPinnedHeader
+        binding.streamsMainHeader.isVisible -> R.id.streamsMainHeader
+        else -> R.id.rvStreams
+    }
+
+    /**
+     * S4747: D-pad order down the screen - controls, then the first section on screen, then each section in
+     * turn. The layout's fixed `nextFocusDown` on the controls jumps straight to the main list, so the
+     * device and pinned sections were unreachable. The banner is the previous stop for the sections only in
+     * landscape, where the controls live in the toolbar above it (S2991); in portrait the controls sit between
+     * the banner and the sections, so Up from a header goes to the filter bar.
+     */
+    private fun updateSectionFocusRouting() {
+        val bannerBelowControls = catalogBanner?.isVisible == true && isLandscapeNow()
+        val aboveSectionsId = if (bannerBelowControls) R.id.btnCatalogBannerAction else R.id.btnFilter
+        val devicesVisible = binding.streamsDevicesSection.isVisible
+        val pinnedVisible = binding.streamsPinnedSection.isVisible
+
+        val controlsDownId = if (bannerBelowControls) R.id.btnCatalogBannerAction else firstContentFocusId()
+        val sortDownId = if (bannerBelowControls) R.id.btnCatalogBannerDismiss else firstContentFocusId()
+        Timber.d("S4747: focus routing controlsDown=$controlsDownId pinned=$pinnedVisible devices=$devicesVisible")
+        binding.etSearch.nextFocusDownId = controlsDownId
+        binding.btnMediaKindVideo.nextFocusDownId = controlsDownId
+        binding.btnMediaKindAudio.nextFocusDownId = controlsDownId
+        binding.btnMediaKindOwn.nextFocusDownId = controlsDownId
+        binding.btnMediaKindRecent.nextFocusDownId = controlsDownId
+        binding.btnFilter.nextFocusDownId = controlsDownId
+        binding.btnSort.nextFocusDownId = sortDownId
+
+        binding.streamsDevicesHeader.setHeaderNextFocusUpId(aboveSectionsId)
+        val pinnedUpId = if (devicesVisible) R.id.streamsDevicesHeader else aboveSectionsId
+        binding.streamsPinnedHeader.setHeaderNextFocusUpId(pinnedUpId)
+        binding.streamsMainHeader.setHeaderNextFocusUpId(if (pinnedVisible) R.id.streamsPinnedHeader else pinnedUpId)
+        binding.btnEmptyAddUrl.nextFocusUpId = when {
+            binding.streamsMainHeader.isVisible -> R.id.streamsMainHeader
+            bannerBelowControls -> R.id.btnCatalogBannerAction
+            else -> R.id.etSearch
         }
     }
 
@@ -1139,7 +1184,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         // would only time out per row and write the outage over the person's verified marks.
         if (!viewModel.hasNetworkForStream) {
             Timber.d("S4617: refresh refused, no transport")
-            Toast.makeText(this, R.string.streams_error_no_network, Toast.LENGTH_SHORT).show()
+            Timber.d("S4753: refresh refused, refresh-specific no-network toast")
+            Toast.makeText(this, R.string.streams_error_no_network_refresh, Toast.LENGTH_SHORT).show()
             return
         }
         Toast.makeText(this, R.string.streams_refresh_probing, Toast.LENGTH_SHORT).show()
@@ -1464,6 +1510,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     }
 
     private fun showSourceDialog(isImport: Boolean) {
+        Timber.d("S4755: add stream dialog opened isImport=$isImport")
         val dialogBinding = DialogAddStreamBinding.inflate(layoutInflater)
         dialogBinding.tilUrl.hint = getString(
             if (isImport) R.string.streams_import_url_hint else R.string.streams_add_url_hint

@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.11.14 13:36</sub>
+<sub class="doc-stamp">26.11.20 20:17</sub>
 
 # Pointer - `HARNESS-PROFILE`
 
 | | |
 | --- | --- |
 | **Id** | `HARNESS-PROFILE` |
-| **Version** | 0.17, draft. Owner: the canon (sza-unified-rules) |
+| **Version** | 0.21, draft. Owner: the canon (sza-unified-rules) |
 | **Home** | `rule-adoption/README.md` section 3 in the shared contracts catalog |
 | **Role here** | adopter - configures the shipped harness through `.sza-profile.json` |
 
@@ -19,6 +19,11 @@
   `.claude/runner/model-effort.json` through its own `argsTemplate`.
 - The optional `extraction` block (0.17, rule 13) names a derived product's port ledger, scope file and source
   product; this product is not derived from another, declares none, and no profile has to change.
+- 0.18 to 0.21 add optional keys and defaults: `paths.releasesDir` (0.18, rule 14), the eight paths and grammar values
+  derived from `paths.specsDir`, `paths.specArchiveDir` and `grammar.ticketIdPattern` (0.19, rule 15), and
+  `grammar.legacyTicketIdPatterns` (0.20 and 0.21, rule 16). A key the profile carries wins, and this product declares
+  `paths.specsDir` with every derived key; it declares neither `paths.releasesDir` nor a legacy ticket pattern, so no
+  profile change follows.
 
 ## Where it lives here
 

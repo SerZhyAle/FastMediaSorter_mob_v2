@@ -52,6 +52,7 @@ data class WearTouristState(
     val sunsetMillis: Long? = null,
     val isDaylight: Boolean = true,
     val hasLocationPermission: Boolean = false,
+    val hasPreciseLocationPermission: Boolean = false,
     val hasCompassSensor: Boolean = true,
     val hasPressureSensor: Boolean = true,
     val hasStepSensor: Boolean = true,
@@ -61,4 +62,11 @@ data class WearTouristState(
     val hasMagneticSensor: Boolean = false,
     val hasLevelSensor: Boolean = false,
     val weather: WearTouristWeatherPayload? = null,
-)
+) {
+    /**
+     * An approximate grant gives network and fused positions only: no satellite data, no GPS altitude,
+     * no accuracy grade. The rows that depend on them must say so instead of promising a GPS search.
+     */
+    val isApproximateLocationOnly: Boolean
+        get() = hasLocationPermission && !hasPreciseLocationPermission
+}

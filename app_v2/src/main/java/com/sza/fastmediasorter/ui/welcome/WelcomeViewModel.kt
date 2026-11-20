@@ -374,7 +374,9 @@ class WelcomeViewModel @Inject constructor(
     }
 
     fun setMediaPermissionsGranted(granted: Boolean) {
-        StrictModeHelper.allowDiskWrites {
+        // First open of this preferences file in the process is a read (directory check, then the
+        // XML load that edit() waits for), which a writes-only permit does not cover.
+        StrictModeHelper.allowDiskIO {
             context.getSharedPreferences(APP_PREFS_NAME, Context.MODE_PRIVATE)
                 .edit()
                 .putBoolean(KEY_MEDIA_PERMISSIONS_GRANTED, granted)

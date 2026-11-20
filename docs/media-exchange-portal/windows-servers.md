@@ -58,13 +58,13 @@ Folder sharing and the exchange server need 64-bit Windows 10 version 1607 or ne
 - **Each folder has its own settings** - a name you give it, read-only or writable, an optional PIN, and filters by media type.
 - **It ships switched off.** Nothing listens until you enable the server features: a checkbox during installation, or a one-time button in Share Manager. That step shows one Windows administrator prompt and adds one Windows Firewall rule, limited to the sharing program. It is never done silently, and the rule is removed when you uninstall.
 - **The connection is encrypted and direct**, device to PC over SFTP. The phone pins the PC's host key at the first pairing, so a substituted server is noticed rather than trusted. The key is created once and is not replaced by an update, a restart or a switch between starts.
-- **Any SFTP app opens the folders too** - not only FastMediaSorter, but also WinSCP, FileZilla or a file manager on another computer. Share Manager shows the address, port, login, password and the key fingerprint, each with a copy button.
+- **Any SFTP app opens the folders too** - not only Fast Media Sorter & Organizer, but also WinSCP, FileZilla or a file manager on another computer. Share Manager shows the address, port, login, password and the key fingerprint, each with a copy button.
 - **Connection statistics stay on the PC.** Share Manager has a window with the counters, and nothing in it is sent anywhere.
 
 ## Bringing the folders to the phone {#to-the-phone}
 
 1. In Share Manager, share the folders and show the QR code, or export the configuration file (`.fmscfg`). The same data can also go by e-mail or as a text code from the clipboard.
-2. On the phone, in FastMediaSorter, open **Add resource** and choose **Import by barcode** or **Import from file**.
+2. On the phone, in Fast Media Sorter & Organizer, open **Add resource** and choose **Import by barcode** or **Import from file**.
 3. The shared folders appear as network resources, with the login and the PC's key already filled in.
 
 ## One code, several addresses {#one-code}

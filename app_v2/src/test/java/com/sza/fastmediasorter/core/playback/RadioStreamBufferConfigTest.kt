@@ -9,7 +9,6 @@ import androidx.media3.datasource.DataSpec
 import androidx.media3.datasource.HttpDataSource
 import androidx.media3.exoplayer.source.LoadEventInfo
 import androidx.media3.exoplayer.source.MediaLoadData
-import androidx.media3.exoplayer.upstream.DefaultLoadErrorHandlingPolicy
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
@@ -21,11 +20,15 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import java.io.IOException
 import java.net.SocketTimeoutException
+import java.security.cert.CertPathValidatorException
+import javax.net.ssl.SSLHandshakeException
+import javax.net.ssl.SSLPeerUnverifiedException
 
 /**
- * The smart-buffering loader policy must tell a lost link from the server's verdict: a 404/410 from a
- * dead channel used to count as connectivity and was retried forever, so the player never reached its
- * error path.
+ * The loader policy must tell a lost link from the server's verdict: a 404/410 from a dead channel used
+ * to count as connectivity and was retried forever, so the player never reached its error path. A
+ * verdict (client-error answer, rejected certificate) ends the load at the first attempt in both modes
+ * (S4759); a lost link keeps its mode's retry.
  */
 @RunWith(RobolectricTestRunner::class)
 // A bare Application: the real one's startup copies the stored setting (off) into the same
@@ -45,18 +48,48 @@ class RadioStreamBufferConfigTest {
     }
 
     @Test
-    fun `a 404 gives up after the stock threshold`() {
-        assertGivesUpAfterStockThreshold(httpStatus(404))
+    fun `a 403 gives up at the first attempt`() {
+        assertGivesUpAtOnce(httpStatus(403))
     }
 
     @Test
-    fun `a 410 gives up after the stock threshold`() {
-        assertGivesUpAfterStockThreshold(httpStatus(410))
+    fun `a 404 gives up at the first attempt`() {
+        assertGivesUpAtOnce(httpStatus(404))
     }
 
     @Test
-    fun `a 4xx wrapped in another exception still gives up`() {
-        assertGivesUpAfterStockThreshold(IOException("wrapped", httpStatus(404)))
+    fun `a 410 gives up at the first attempt`() {
+        assertGivesUpAtOnce(httpStatus(410))
+    }
+
+    @Test
+    fun `a 4xx wrapped in another exception still gives up at the first attempt`() {
+        assertGivesUpAtOnce(IOException("wrapped", httpStatus(404)))
+    }
+
+    @Test
+    fun `a rejected certificate gives up at the first attempt`() {
+        assertGivesUpAtOnce(rejectedCertificate())
+    }
+
+    @Test
+    fun `a host name the certificate does not cover gives up at the first attempt`() {
+        assertGivesUpAtOnce(handshakeFailure(SSLPeerUnverifiedException("Hostname 10.0.2.2 not verified")))
+    }
+
+    @Test
+    fun `a handshake that broke off keeps the silent reconnect`() {
+        assertKeepsReconnecting(handshakeFailure(null))
+    }
+
+    @Test
+    fun `the stock mode also gives up at once on a verdict and keeps the factory delay otherwise`() {
+        RadioStreamBufferConfig.syncMirror(context, smart = false)
+
+        assertEquals(C.TIME_UNSET, policy.getRetryDelayMsFor(errorInfo(httpStatus(403), 1)))
+        assertEquals(C.TIME_UNSET, policy.getRetryDelayMsFor(errorInfo(rejectedCertificate(), 1)))
+        assertNotEquals(C.TIME_UNSET, policy.getRetryDelayMsFor(errorInfo(httpStatus(503), 1)))
+        assertNotEquals(C.TIME_UNSET, policy.getRetryDelayMsFor(errorInfo(handshakeFailure(null), 1)))
     }
 
     @Test
@@ -94,13 +127,22 @@ class RadioStreamBufferConfigTest {
         assertNotEquals(Int.MAX_VALUE, policy.getMinimumLoadableRetryCount(C.DATA_TYPE_MEDIA))
     }
 
-    private fun assertGivesUpAfterStockThreshold(error: IOException) {
-        val threshold = DefaultLoadErrorHandlingPolicy.DEFAULT_MIN_LOADABLE_RETRY_COUNT
-        for (attempt in 1..threshold) {
-            assertNotEquals(C.TIME_UNSET, policy.getRetryDelayMsFor(errorInfo(error, attempt)))
-        }
-        assertEquals(C.TIME_UNSET, policy.getRetryDelayMsFor(errorInfo(error, threshold + 1)))
+    private fun assertGivesUpAtOnce(error: IOException) {
+        assertEquals(C.TIME_UNSET, policy.getRetryDelayMsFor(errorInfo(error, 1)))
     }
+
+    // The shape Media3 reports for a refused handshake: an HttpDataSourceException around the TLS
+    // exception, whose own cause is the certificate verdict (absent for a handshake that broke off).
+    private fun handshakeFailure(verdict: Throwable?): HttpDataSource.HttpDataSourceException =
+        HttpDataSource.HttpDataSourceException(
+            SSLHandshakeException("handshake failed").also { it.initCause(verdict) },
+            dataSpec,
+            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
+            HttpDataSource.HttpDataSourceException.TYPE_OPEN,
+        )
+
+    private fun rejectedCertificate(): HttpDataSource.HttpDataSourceException =
+        handshakeFailure(CertPathValidatorException("Trust anchor for certification path not found."))
 
     private fun assertKeepsReconnecting(error: IOException) {
         assertEquals(

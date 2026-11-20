@@ -12,6 +12,8 @@
     (FastMediaSorter_mob_v2, Widget.FastMediaSorter.Button, FastMediaSorterApp, FastMediaSorter-x). The separate
     watch face keeps its own name "FastMediaSorter": a line carrying its Play id (fastmediasorter.watchface) and
     the Russian/Ukrainian "Циферблат FastMediaSorter" are left alone, and so is every `wear_watchface_*` string.
+    "FastMediaSorter for Web" is the Tool cell of the browser client's row in SITE-FAMILY-MAP section 2, so it is
+    left alone as well.
 
     Listed as ambiguous and left alone: a compound glued with a hyphen (FastMediaSorter-Katalog) and the stem
     followed by Watch, VR, LITE, Lite, Web, Widgets or "for Windows" - a hand decision each, because the
@@ -76,7 +78,10 @@ function Get-ProtectedSpans {
     }
     # The separate watch face is its own product, named "FastMediaSorter" on its Play listing, with no map
     # row, so it keeps that name: a line carrying its Play id, and the Russian/Ukrainian "watch face" noun.
-    $patterns = @($patterns) + @('[^\n]*fastmediasorter\.watchface[^\n]*', '[Цц]иферблат FastMediaSorter')
+    $patterns = @($patterns) + @('[^\n]*fastmediasorter\.watchface[^\n]*', '[Цц]иферблат\w*\s+FastMediaSorter')
+    # The browser client's row in SITE-FAMILY-MAP section 2 (1.16) carries its Tool cell as "FastMediaSorter for
+    # Web", so that spelling is the map name of another program and is not a second name for this one.
+    $patterns = @($patterns) + @('FastMediaSorter for Web\b')
     $spans = [System.Collections.Generic.List[int[]]]::new()
     foreach ($p in $patterns) {
         foreach ($m in [regex]::Matches($Text, $p)) { $spans.Add([int[]]@($m.Index, ($m.Index + $m.Length))) }

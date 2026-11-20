@@ -166,6 +166,9 @@ try {
     $aabDest = Join-Path $downloadsDir 'FastMediaSorter_watchface_release.aab'
     Copy-Item -LiteralPath $aab.FullName -Destination $aabDest -Force
     Write-Host "Signed watch face bundle copied to $aabDest ($([math]::Round($aab.Length / 1KB, 1)) KB)" -ForegroundColor Green
+
+    # S4679: record the build in the release ledger; the wrapper reports and never fails the build.
+    & "$PSScriptRoot\..\utils\log-release-ledger-build.ps1" -Package watchface -Flavor standard -Kind release -Version $VersionName -Artifact $aabDest
     exit 0
 }
 finally {

@@ -3,6 +3,9 @@ package com.sza.fastmediasorter.ui.dialog.helpers
 import androidx.annotation.StringRes
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
+import com.sza.fastmediasorter.ui.streams.helpers.StreamCategoryOptionMapper
+import com.sza.fastmediasorter.ui.streams.helpers.StreamTopicRubricCatalog
+import timber.log.Timber
 
 /**
  * S1474: turns a stored channel and a measured transmission into the three groups the "about this
@@ -38,8 +41,8 @@ class StreamPropertiesFormatter(private val resources: StreamInfoResources) {
             row(R.string.stream_info_label_last_played, entity.lastPlayedAt?.let(resources::dateTime)),
             row(R.string.stream_info_label_last_outcome, resources.string(outcomeRes(lastPlayOutcome))),
             row(R.string.stream_info_label_pinned, resources.string(if (entity.pinned) R.string.yes else R.string.no)),
-            row(R.string.streams_filter_topic, entity.topic),
-            row(R.string.streams_filter_category, entity.category),
+            facetRow(R.string.streams_filter_topic, entity.topic, StreamTopicRubricCatalog::labelRes),
+            facetRow(R.string.streams_filter_category, entity.category, StreamCategoryOptionMapper::labelRes),
             row(R.string.streams_filter_language, entity.language),
             row(R.string.streams_filter_country, entity.country),
             row(R.string.stream_info_label_access, resources.string(accessRes(entity.access))),
@@ -106,6 +109,20 @@ class StreamPropertiesFormatter(private val resources: StreamInfoResources) {
     /** The two declared bitrates arrive as Int, the observed one as Long; the label reads the same. */
     private fun bitrate(bitsPerSecond: Int?): String? = bitsPerSecond?.let { resources.bitrate(it.toLong()) }
 
+    /**
+     * Topic and category are stored as catalog ids in English; the filter picker and the list show them
+     * translated, so the window does the same - raw ids on both rows made the two read as one field.
+     * An id this build does not know, such as a category the owner typed, stays as typed.
+     */
+    private fun facetRow(
+        @StringRes labelRes: Int,
+        stored: String?,
+        valueRes: (String) -> Int?,
+    ): StreamInfoProperty {
+        val shown = stored?.takeIf { it.isNotBlank() }?.let { id -> valueRes(id)?.let(resources::string) ?: id }
+        return row(labelRes, shown)
+    }
+
     /** A stored field that was never filled is [StreamInfoValue.Empty] - the row stays, the value does not. */
     private fun row(@StringRes labelRes: Int, value: String?): StreamInfoProperty = StreamInfoProperty(
         labelRes = labelRes,
@@ -135,11 +152,19 @@ class StreamPropertiesFormatter(private val resources: StreamInfoResources) {
         else -> R.string.stream_info_state_empty
     }
 
+    /**
+     * S4754: `UNKNOWN` is a recorded but inconclusive attempt (a failed sweep probe, or a play failure with no
+     * transport), so it must not read as "never tried" - only an absent or unrecognised code does.
+     */
     @StringRes
     private fun outcomeRes(code: String?): Int = when (code?.uppercase()) {
         OUTCOME_OK -> R.string.stream_info_outcome_ok
         OUTCOME_FAIL -> R.string.stream_info_outcome_fail
         OUTCOME_ENDED -> R.string.stream_status_ended
+        OUTCOME_UNKNOWN -> {
+            Timber.d("S4754: channel information shows not confirmed")
+            R.string.stream_info_outcome_unconfirmed
+        }
         else -> R.string.stream_info_outcome_never
     }
 
@@ -169,6 +194,7 @@ class StreamPropertiesFormatter(private val resources: StreamInfoResources) {
         const val OUTCOME_OK = "OK"
         const val OUTCOME_FAIL = "FAIL"
         const val OUTCOME_ENDED = "ENDED"
+        const val OUTCOME_UNKNOWN = "UNKNOWN"
 
         const val ACCESS_GEO = "geo"
     }

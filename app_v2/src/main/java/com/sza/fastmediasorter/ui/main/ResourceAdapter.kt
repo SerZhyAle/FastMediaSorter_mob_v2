@@ -328,14 +328,17 @@ class ResourceAdapter(
             }
         }
 
-        /** Formats supported media types as colored IVAGTPE string, or "ALL" for allFiles mode. */
+        /** Formats supported media types as colored IVAGTPE string, or the localized "ALL" word for allFiles mode. */
         fun formatMediaTypes(context: android.content.Context, types: Set<MediaType>, allFiles: Boolean): CharSequence {
             val iconSizePx = iconSizePxOf(context)
             val key = MediaTypeFormatKey(types, allFiles, nightModeOf(context), iconSizePx)
             mediaTypeFormatCache[key]?.let { return it }
 
             if (allFiles) {
-                return "ALL"
+                // Never stored in mediaTypeFormatCache: the key carries no locale, so a cached word would
+                // outlive a live language switch. The resource tab's word is reused because it already
+                // exists in every declared locale.
+                return context.getString(R.string.tab_all_resources)
             }
 
             // Single category: audio=note, docs=book, video=video icon, images=image icon.
@@ -748,6 +751,12 @@ class ResourceAdapter(
                 // overflowModeEnabled left a tile with no action surface at all - on every device and
                 // every orientation - and seven of the ten device profile presets ship that setting
                 // off. The button is now present for any real resource.
+                // S4791: the button is pinned to the bottom-end corner, so the strip that holds the media
+                // types must be as tall as the button or it rises over the last line of the name. Set for
+                // every tile, the button-less one included, so a recycled holder never keeps a stale height
+                // and neighbouring tiles stay one height.
+                tvMediaTypes.minHeight = cardActionButtonPx(root.resources)
+                Timber.d("S4791: resource tile bottom strip ${tvMediaTypes.minHeight}px")
                 if (resource.id == -100L) {
                     btnMoreActions.visibility = android.view.View.GONE
                 } else {

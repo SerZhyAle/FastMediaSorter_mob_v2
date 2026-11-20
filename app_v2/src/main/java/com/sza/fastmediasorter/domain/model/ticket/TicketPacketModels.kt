@@ -115,4 +115,15 @@ data class TicketOutboxEntry(
     val inboxResourceId: Long? = null,
     // A state.json without the key predates the composer, and every such packet is the feedback form's.
     val origin: TicketOrigin = TicketOrigin.FEEDBACK
-)
+) {
+    /** S4765: a Drive packet stopped only because the silent sign-in found no usable Drive grant. */
+    val needsDriveAccess: Boolean
+        get() = state == TicketOutboxState.WAITING_ON_DRIVE &&
+            inboxResourceId == null &&
+            failure == NOT_SIGNED_IN_FAILURE
+
+    companion object {
+        // Persisted in state.json, so the text is part of the on-disk format and must not be reworded.
+        const val NOT_SIGNED_IN_FAILURE = "Google Drive is not signed in"
+    }
+}

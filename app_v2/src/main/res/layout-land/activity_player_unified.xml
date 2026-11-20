@@ -109,18 +109,17 @@
 
                 <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnFullscreenCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_fullscreen" android:visibility="gone" android:contentDescription="@null" />
 
-                <!-- S0103: fixed anchor - already before nav block -->
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnSlideshowCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_slideshow" android:contentDescription="@null" android:visibility="gone" />
-
-                <!-- Navigation at end of scrollable area (same set as portrait, all part of adaptive system) -->
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnPreviousCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_skip_previous" android:contentDescription="@null" android:visibility="gone" />
-
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnRandomCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_random_nav" android:visibility="gone" android:contentDescription="@string/random_file_description" />
-
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnNextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_skip_next" android:contentDescription="@null" android:visibility="gone" />
-
             </LinearLayout>
         </HorizontalScrollView>
+
+        <!-- Right anchor, as in portrait: slideshow and navigation stay at the end of the bar, not packed after the scrolling commands. -->
+        <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnSlideshowCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_slideshow" android:contentDescription="@null" android:visibility="gone" />
+
+        <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnPreviousCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_skip_previous" android:contentDescription="@null" android:visibility="gone" />
+
+        <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnRandomCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_random_nav" android:visibility="gone" android:contentDescription="@string/random_file_description" />
+
+        <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnNextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_skip_next" android:contentDescription="@null" android:visibility="gone" />
 
     </LinearLayout>
 

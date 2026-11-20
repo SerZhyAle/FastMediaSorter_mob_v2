@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.domain.input.InputTrigger
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.ui.browse.transfer.TransferSkipSummary
 import com.sza.fastmediasorter.ui.keybinding.helpers.KeybindingRowLabelFormatter
 import com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperation
 import com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperationEvent
@@ -47,6 +48,16 @@ internal class PlayerFileOpsInitializer(
         activity.lifecycleScope.launch {
             activity.repeatOnLifecycle(Lifecycle.State.CREATED) {
                 activity.playerFileOperationQueue.events.collect { handleQueueEvent(it) }
+            }
+        }
+
+        // STARTED, not CREATED: a skip toast is only worth showing on a visible player, and the
+        // coordinator's replay delivers a transfer that finished meanwhile when the player returns.
+        activity.lifecycleScope.launch {
+            activity.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                activity.browseTransferCoordinator.terminalEvents.collect { event ->
+                    TransferSkipSummary.announce(activity, event)
+                }
             }
         }
 

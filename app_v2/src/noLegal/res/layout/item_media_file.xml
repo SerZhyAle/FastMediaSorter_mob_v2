@@ -90,11 +90,13 @@
         android:id="@+id/tvFileInfo"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/margin_small"
         android:includeFontPadding="true"
         android:textColor="?attr/colorOnSurfaceVariant"
         android:textSize="@dimen/item_detail_text_size"
+        app:layout_constraintWidth_min="72dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/barrierActions"
         app:layout_constraintStart_toStartOf="@+id/tvFileName"
         app:layout_constraintTop_toBottomOf="@+id/tvFileName"
         tools:text="2.5 MB • 2023-11-06" />
@@ -229,6 +231,16 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:visibility="visible" />
+
+    <!-- Left edge of the trailing action cluster. The default barrierAllowsGoneWidgets=true keeps this at
+         parent end when every control is gone, so the info line never collapses against an empty cluster.
+         The name line sits above the button band and keeps running to parent end. -->
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/barrierActions"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="start"
+        app:constraint_referenced_ids="btnFavorite,btnOverflowMenu,btnCopyItem,btnMoveItem,btnRenameItem,btnDeleteItem,btnPlayInline,ivDragHandle" />
 
     <!-- Selection checkbox overlays the thumbnail bottom-left corner (S0419). Declared last for top
          z-order; a self-contrasting white/black box stays visible without covering the thumbnail. -->

@@ -43,7 +43,7 @@
     <string name="settings_default_document_type_pdf">PDF</string>
     <string name="settings_default_document_type_title">दस्तावेज़ का प्रकार</string>
     <string name="settings_default_player_dialog_confirm">सेटिंग खोलें</string>
-    <string name="settings_default_player_dialog_message">आपको Android सिस्टम सेटिंग पर ले जाया जाएगा, जहाँ आप इस फ़ाइल प्रकार के लिए FastMediaSorter को डिफ़ॉल्ट ऐप चुन सकते हैं।</string>
+    <string name="settings_default_player_dialog_message">आपको Android सिस्टम सेटिंग पर ले जाया जाएगा, जहाँ आप इस फ़ाइल प्रकार के लिए Fast Media Sorter &amp; Organizer को डिफ़ॉल्ट ऐप चुन सकते हैं।</string>
     <string name="settings_default_player_dialog_title">डिफ़ॉल्ट बनाएँ</string>
     <string name="settings_general_actions">क्रियाएँ</string>
     <string name="settings_general_behavior">ऐप का व्यवहार</string>
@@ -164,7 +164,7 @@
     <string name="setting_photos_during_audio_desc">प्लेबैक के दौरान यादृच्छिक छवियाँ (ऑडियो सूची चुनें - छवियाँ देखें)</string>
     <string name="setting_play_to_end_desc">स्लाइडशो अंतराल के बजाय मीडिया को अंत तक चलाएँ</string>
     <string name="setting_prevent_sleep_desc">ऐप के उपयोग के दौरान स्क्रीन चालू रखें</string>
-    <string name="setting_primary_media_player_desc">\"इससे खोलें\" में FastMediaSorter दिखाएँ और मीडिया बटन संभालें</string>
+    <string name="setting_primary_media_player_desc">\"इससे खोलें\" में Fast Media Sorter &amp; Organizer दिखाएँ और मीडिया बटन संभालें</string>
     <string name="setting_resume_on_next_launch">अगली बार शुरू करने पर प्लेबैक जारी रखें</string>
     <string name="setting_resume_on_next_launch_desc">ऐप शुरू होने पर आख़िरी चली फ़ाइल वहीं से अपने आप खोलें जहाँ आपने छोड़ा था</string>
     <string name="setting_safe_mode_desc">विनाशकारी कार्यों (हटाना, स्थानांतरण) से पहले पुष्टि करें</string>

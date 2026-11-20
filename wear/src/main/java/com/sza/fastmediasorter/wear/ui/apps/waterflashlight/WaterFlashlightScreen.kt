@@ -146,11 +146,7 @@ internal fun WaterFlashlightExitGate.onScreenKey(event: KeyEvent, onLeave: () ->
         event.key == Key.Back ->
             event.type == KeyEventType.KeyUp && !backReachesDispatcher && onBack(nowMs)
         event.type == KeyEventType.KeyDown -> {
-            onKeyDown(
-                keyCode = event.key.keyCode,
-                nowMs = nowMs,
-                longPress = event.nativeKeyEvent.isLongPress || event.nativeKeyEvent.repeatCount > 0,
-            )
+            onKeyDown(keyCode = event.key.keyCode, nowMs = nowMs)
             false
         }
         event.type == KeyEventType.KeyUp -> onKeyUp(event.key.keyCode, nowMs)

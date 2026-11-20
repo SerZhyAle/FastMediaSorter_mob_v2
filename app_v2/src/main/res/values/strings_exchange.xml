@@ -382,4 +382,19 @@
     <string name="exchange_failure_bad_credentials_admin">The administrator password is wrong. Type it again - it is set on the server machine.</string>
     <string name="exchange_failure_admin_session_ended">The administration session has ended. Sign in again to continue.</string>
     <string name="exchange_failure_e2e_missing_peer">The device that has this content cannot send it protected yet, so nothing from it comes through the server.</string>
+    <string name="remote_command_consent_channel">Requests from your devices</string>
+    <string name="remote_command_consent_title">%1$s asks this phone</string>
+    <string name="remote_command_verb_playback_stop">Stop the audio that plays</string>
+    <string name="remote_command_verb_cast_stop">Stop casting to the screen</string>
+    <string name="remote_command_verb_broadcast_stop">End the live broadcast</string>
+    <string name="remote_command_verb_broadcast_start">Start the prepared broadcast: %1$s</string>
+    <string name="remote_command_mode_audio">sound only</string>
+    <string name="remote_command_mode_video_audio">picture and sound</string>
+    <string name="remote_command_mode_video">picture only</string>
+    <string name="remote_command_verb_quit">Close the app</string>
+    <string name="remote_command_verb_status">Tell whether the app is running</string>
+    <string name="remote_command_verb_version">Tell the app version</string>
+    <string name="remote_command_verb_commands">List the commands this phone accepts</string>
+    <string name="remote_command_consent_allow">Allow</string>
+    <string name="remote_command_consent_decline">Decline</string>
 </resources>

@@ -112,6 +112,11 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
     lateinit var exchangeCastCoordinator:
         dagger.Lazy<com.sza.fastmediasorter.domain.exchange.ExchangeCastCoordinator>
 
+    /** Answers commands from the account's other devices that arrive on the same control streams. */
+    @Inject
+    lateinit var remoteCommandCoordinator:
+        dagger.Lazy<com.sza.fastmediasorter.domain.exchange.RemoteCommandCoordinator>
+
     /** S4572: syncs the notes when the notes entry connects and when the server pushes `notes_changed`. */
     @Inject
     lateinit var notesSyncTriggerManager:
@@ -360,6 +365,7 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
         }
         applicationScope.launch(Dispatchers.IO) {
             exchangeCastCoordinator.get().start()
+            remoteCommandCoordinator.get().start()
         }
         applicationScope.launch(Dispatchers.IO) {
             notesSyncTriggerManager.get().start()
@@ -523,6 +529,12 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
         // the list in the previous language until long after the user had read it.
         applicationScope.launch(Dispatchers.IO) {
             startupInitializer.get().renameVirtualResources()
+        }
+
+        // S4702: the pass above runs once per process, and a live language switch keeps the process.
+        // The collector re-runs it for every later switch; it never completes, so it owns its own launch.
+        applicationScope.launch(Dispatchers.IO) {
+            startupInitializer.get().observeLanguageChanges()
         }
 
         applicationScope.launch(Dispatchers.IO) {

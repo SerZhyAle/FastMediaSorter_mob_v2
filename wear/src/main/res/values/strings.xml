@@ -1161,4 +1161,10 @@
     <string name="wear_audio_fetching">Loading the track..</string>
     <string name="wear_stream_ended">This stream is no longer on air. Retry when it starts again.</string>
     <string name="wear_tourist_lock_exit_hint">Locked. Swipe back 3 times fast to unlock</string>
+    <string name="wear_broadcast_waiting_until">The broadcast hasn\'t started yet. The link works until %1$s</string>
+    <string name="wear_broadcast_started">The broadcast has started</string>
+    <string name="wear_broadcast_expired">This link no longer works</string>
+    <string name="wear_broadcast_play">Play</string>
+    <string name="wear_tourist_no_fix_approximate">Searching location..</string>
+    <string name="wear_tourist_precise_needed">Precise location needed</string>
 </resources>

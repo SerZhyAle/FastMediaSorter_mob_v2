@@ -46,6 +46,10 @@ object E2eSealedBox {
 
     fun broadcastContext(broadcastId: String): String = "broadcast:$broadcastId"
 
+    fun commandContext(requestId: String): String = "command:$requestId"
+
+    fun commandResultContext(requestId: String): String = "command-result:$requestId"
+
     const val CLIPBOARD_CONTEXT = "clipboard"
 
     /** Seals [payload]; the caller has already cut [recipients] to the 40 seen most recently. */

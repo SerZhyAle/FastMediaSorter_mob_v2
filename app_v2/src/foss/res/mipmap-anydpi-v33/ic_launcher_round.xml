@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    S3431: the product mark on this edition's colour (ICON-RENDER 0.9 section 3 rule 9 - an edition may
-    differ by colour or badge, never by dropping the mark). Qualified -v33 for the same reason as
-    the main copy (S1507): below API 33 the v26 file stays free of the <monochrome> tag.
+    S4695: the edition icon is the standard plate and this source set's badged foreground, both cut by
+    scripts/identity/build-identity.ps1 (PRODUCT-IDENTITY rule 5). Below API 33 the main mipmap-anydpi-v26
+    icon resolves the same two layers, so only this -v33 copy exists here: it adds the badge to the
+    themed-icon layer, which would otherwise be the plain silhouette.
 -->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:drawable="@color/ic_launcher_edition_background" />
-    <foreground android:drawable="@drawable/ic_launcher_edition_fore" />
-    <monochrome android:drawable="@drawable/ic_launcher_monochrome" />
+    <background android:drawable="@mipmap/ic_launcher_adaptive_back" />
+    <foreground android:drawable="@mipmap/ic_launcher_adaptive_fore" />
+    <monochrome android:drawable="@drawable/ic_launcher_badged_monochrome" />
 </adaptive-icon>

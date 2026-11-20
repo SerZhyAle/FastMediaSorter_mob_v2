@@ -1,7 +1,7 @@
 ---
 layout: doc
 title: "Editions: which app has which way of exchange"
-description: "Which edition of FastMediaSorter for Android has network folders, My devices, clouds, files via Google Drive, live broadcasting, Chromecast and the watch companion."
+description: "Which edition of Fast Media Sorter & Organizer for Android has network folders, My devices, clouds, files via Google Drive, live broadcasting, Chromecast and the watch companion."
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/editions.html
 ---
@@ -9,7 +9,7 @@ permalink: /docs/media-exchange-portal/editions.html
 
 # Editions: which app has which way of exchange
 
-FastMediaSorter for Android comes in several editions. Not every edition carries every way of exchange: an edition without a capability shows no button for it at all.
+Fast Media Sorter & Organizer for Android comes in several editions. Not every edition carries every way of exchange: an edition without a capability shows no button for it at all.
 
 ## Which edition has what
 
@@ -44,7 +44,7 @@ The Windows programs are separate products and do not follow this table: Fast Me
 
 ## Step-by-step guides
 
-- [The editions of FastMediaSorter](../../documentation/flavors/overview-and-comparison.html)
-- [Putting FastMediaSorter on your watch](../../documentation/wear/installation-and-pairing.html)
+- [The editions of Fast Media Sorter & Organizer](../../documentation/flavors/overview-and-comparison.html)
+- [Putting Fast Media Sorter & Organizer on your watch](../../documentation/wear/installation-and-pairing.html)
 
 Back to the [portal start page](index.html).

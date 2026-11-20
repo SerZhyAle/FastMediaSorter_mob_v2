@@ -53,8 +53,19 @@
             android:layout_height="wrap_content"
             android:contentDescription="@string/feedback_record_voice"
             android:focusable="true"
-            android:nextFocusForward="@id/feedbackFolderSpinner"
+            android:nextFocusRight="@id/feedbackLogsButton"
+            android:nextFocusForward="@id/feedbackLogsButton"
             app:icon="@drawable/ic_microphone" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/feedbackLogsButton"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/feedback_attach_logs"
+            android:focusable="true"
+            android:nextFocusForward="@id/feedbackFolderSpinner"
+            app:icon="@drawable/ic_document" />
 
         <TextView
             android:id="@+id/feedbackRecordingText"

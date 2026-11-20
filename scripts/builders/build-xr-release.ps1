@@ -128,6 +128,9 @@ try {
 
     $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
     Add-Content -Path (Join-Path $downloadsDir 'builds_versions.lst') -Value "$timestamp | xr-release | $destName | $versionName"
+
+# S4679: record the build in the release ledger; the wrapper reports and never fails the build.
+& "$PSScriptRoot\..\utils\log-release-ledger-build.ps1" -Package phone -Flavor xr -Kind release -Version $versionName -Artifact "$downloadsDir\$destName"
     exit 0
 }
 finally {

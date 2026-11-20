@@ -105,7 +105,8 @@ data class ResourceEntity(
     @ColumnInfo(name = "alt_access_paths", defaultValue = "NULL")
     val altAccessPaths: String? = null,
 
-    // S1014: companion connectivity guidance (accessNote); shown on connection failure. null = none.
+    // S1014: imported companion reachability snapshot (accessNote), stored at share time. null = none.
+    // S4698: never shown as failure text (the note states the opposite of the failure and ignores the locale).
     @ColumnInfo(name = "access_note", defaultValue = "NULL")
     val accessNote: String? = null,
 

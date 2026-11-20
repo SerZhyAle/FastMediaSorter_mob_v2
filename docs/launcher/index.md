@@ -67,7 +67,7 @@ FastMedia Launcher gives you full control over your device's home screen layout:
 
 ## 📥 Downloads & App Stores
 
-FastMediaSorter with Launcher Mode is available across major channels:
+Fast Media Sorter & Organizer with Launcher Mode is available across major channels:
 
 ### Application Packages
 - [**Google Play Store**](https://play.google.com/store/apps) - Official Google Play Store download.

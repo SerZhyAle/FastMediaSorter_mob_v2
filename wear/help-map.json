@@ -13,6 +13,8 @@
       "reason": "A plain list of the files the user marked; the list is its own explanation." },
     { "id": "WearRoutes.STREAMS", "name": "Streams", "form": "none",
       "reason": "A scrolling list of streams with labelled search, filter and sort entries; a tap on a row plays it." },
+    { "id": "WearRoutes.BROADCAST_WAITING_PATTERN", "name": "Broadcast waiting", "form": "none",
+      "reason": "One sentence says whether the broadcast has started or the link expired, and a Play chip appears once it is on air." },
     { "id": "WearRoutes.APPS", "name": "Programs", "form": "none",
       "reason": "A launcher list of the watch's mini-programs; every row is the program's name." },
     { "id": "WearRoutes.NETWORK_SOURCES", "name": "Resources", "form": "none",

@@ -80,7 +80,7 @@
       "label_key": "cmd_playback_pause",
       "flavor_gate": null,
       "triggers": {
-        "keyboard": ["key:127:0", "key:86:0"],
+        "keyboard": ["key:127:0"],
         "gamepad": [],
         "mouse": [],
         "vr": []

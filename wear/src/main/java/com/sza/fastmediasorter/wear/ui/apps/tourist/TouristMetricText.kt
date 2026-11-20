@@ -69,10 +69,15 @@ fun touristMetricLabel(metric: TouristMetricType): String = stringResource(metri
 fun touristMetricValue(metric: TouristMetricType, state: WearTouristState, isMetric: Boolean): String =
     when (metric) {
         TouristMetricType.SPEED -> formatSpeedText(state.speedKmh, isMetric)
-        TouristMetricType.ALTITUDE -> formatAltitudeText(state.altitudeMeters, isMetric, R.string.wear_tourist_no_fix)
+        TouristMetricType.ALTITUDE ->
+            formatAltitudeText(state.altitudeMeters, isMetric, gpsMissingTextRes(state))
         TouristMetricType.COMPASS -> formatCompassText(state.azimuthDegrees, state.cardinalDirection)
-        TouristMetricType.COORDINATES -> formatCoordinatesText(state.latitude, state.longitude)
-        TouristMetricType.SATELLITES -> "${state.usedSatellites ?: 0}/${state.satelliteCount ?: 0}"
+        TouristMetricType.COORDINATES -> formatCoordinatesText(state.latitude, state.longitude, state)
+        TouristMetricType.SATELLITES -> if (state.isApproximateLocationOnly) {
+            stringResource(R.string.wear_tourist_precise_needed)
+        } else {
+            "${state.usedSatellites ?: 0}/${state.satelliteCount ?: 0}"
+        }
         TouristMetricType.STEPS -> "${state.stepCount}"
         TouristMetricType.TRIP_DISTANCE -> formatDistanceText(state.tripDistanceMeters, isMetric)
         TouristMetricType.SUN_TIME -> formatSunTimeText(state.sunriseMillis, state.sunsetMillis)
@@ -103,11 +108,11 @@ fun touristMetricValue(metric: TouristMetricType, state: WearTouristState, isMet
         TouristMetricType.CADENCE -> state.cadenceStepsPerMinute?.let {
             "$it ${stringResource(R.string.wear_tourist_unit_steps_per_minute)}"
         } ?: stringResource(R.string.wear_tourist_status_accumulating)
-        TouristMetricType.GPS_ACCURACY -> formatGpsAccuracyText(state.gpsAccuracyMeters, isMetric)
+        TouristMetricType.GPS_ACCURACY -> formatGpsAccuracyText(state.gpsAccuracyMeters, isMetric, state)
         TouristMetricType.COURSE -> state.courseDegrees?.let { "${it.toInt()}°" }
             ?: stringResource(R.string.wear_tourist_status_course_undetermined)
         TouristMetricType.DECLINATION -> state.declinationDegrees?.let { String.format(Locale.US, "%+.1f°", it) }
-            ?: stringResource(R.string.wear_tourist_no_fix)
+            ?: stringResource(gpsMissingTextRes(state))
         TouristMetricType.LEVEL -> formatLevelText(state.pitchDegrees, state.rollDegrees)
         TouristMetricType.LIGHT -> state.lightLux?.let {
             "${String.format(Locale.US, "%.0f", it)} ${stringResource(R.string.wear_tourist_unit_lux)}"
@@ -200,11 +205,19 @@ private fun formatGainLossText(state: WearTouristState, isMetric: Boolean): Stri
     return "+${scale(state.gainMeters)} / -${scale(state.lossMeters)} $unit"
 }
 
+/**
+ * What a row that only a GPS fix can fill reads while it is empty: an approximate-only grant never
+ * produces one, so promising a GPS search there would wait for ever.
+ */
+@StringRes
+fun gpsMissingTextRes(state: WearTouristState): Int =
+    if (state.isApproximateLocationOnly) R.string.wear_tourist_precise_needed else R.string.wear_tourist_no_fix
+
 @Composable
-private fun formatGpsAccuracyText(accuracyM: Float?, isMetric: Boolean): String {
+private fun formatGpsAccuracyText(accuracyM: Float?, isMetric: Boolean, state: WearTouristState): String {
     val grade = WearTripMotionPolicy.gpsAccuracyGrade(accuracyM)
     return if (accuracyM == null || grade == null) {
-        stringResource(R.string.wear_tourist_no_fix)
+        stringResource(gpsMissingTextRes(state))
     } else {
         val value = if (isMetric) accuracyM.toInt() else WearUnitScale.metresToFeet(accuracyM.toDouble()).toInt()
         "$value ${lengthUnit(isMetric)} • ${gpsAccuracyWord(grade)}"
@@ -257,13 +270,18 @@ private fun formatCompassText(azimuth: Float?, cardinal: String?): String {
 }
 
 @Composable
-private fun formatCoordinatesText(lat: Double?, lon: Double?): String {
+private fun formatCoordinatesText(lat: Double?, lon: Double?, state: WearTouristState): String {
     return if (lat != null && lon != null) {
         String.format(Locale.US, "%.3f, %.3f", lat, lon)
     } else {
-        stringResource(R.string.wear_tourist_no_fix)
+        stringResource(coordinatesMissingTextRes(state))
     }
 }
+
+/** Coordinates also come from a network or fused fix, so only the search wording depends on the grant. */
+@StringRes
+fun coordinatesMissingTextRes(state: WearTouristState): Int =
+    if (state.isApproximateLocationOnly) R.string.wear_tourist_no_fix_approximate else R.string.wear_tourist_no_fix
 
 /** Below the large unit the reading switches to the small one, or a short walk reads as a zero. */
 @Composable

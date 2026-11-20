@@ -799,8 +799,17 @@ class AudioPlaybackService : MediaSessionService() {
                 Toast.LENGTH_SHORT
             ).show()
         }
-        Timber.e(error, "AudioPlaybackService: fatal playback error - stopping service")
-        forwardStreamFailure(failure.toReason(), failedUrl)
+        val reason = failure.toReason()
+        if (reason == StreamFailureReason.UNTRUSTED_CERTIFICATE) {
+            // Classified and shown to the user as its own dialog: an expected outcome, not a defect, so no stack.
+            Timber.w(
+                "AudioPlaybackService: stream certificate not trusted - stopping service (%s)",
+                error.errorCodeName,
+            )
+        } else {
+            Timber.e(error, "AudioPlaybackService: fatal playback error - stopping service")
+        }
+        forwardStreamFailure(reason, failedUrl)
         endFailedPlayback(notify = broadcastFailover.isLeftToService(failedUrl))
     }
 

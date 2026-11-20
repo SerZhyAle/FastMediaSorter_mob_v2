@@ -5,4 +5,5 @@
     <plurals name="archiving_n_files_from_folder_plural"><item quantity="one">%2$s থেকে %1$d ফাইল আর্কাইভ করা হচ্ছে</item><item quantity="other">%2$s থেকে %1$d ফাইল আর্কাইভ করা হচ্ছে</item></plurals>
     <plurals name="moving_n_files_from_folder_plural"><item quantity="one">%2$s থেকে %1$d ফাইল সরানো হচ্ছে..</item><item quantity="other">%2$s থেকে %1$d ফাইল সরানো হচ্ছে..</item></plurals>
     <plurals name="renaming_n_files_from_folder_plural"><item quantity="one">%2$s থেকে %1$d ফাইলের নাম পরিবর্তন করা হচ্ছে..</item><item quantity="other">%2$s থেকে %1$d ফাইলের নাম পরিবর্তন করা হচ্ছে..</item></plurals>
+    <plurals name="delete_n_files_confirm_plural"><item quantity="one">%1$d টি ফাইল মুছে ফেলবেন? এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।</item><item quantity="other">%1$d টি ফাইল মুছে ফেলবেন? এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।</item></plurals>
 </resources>

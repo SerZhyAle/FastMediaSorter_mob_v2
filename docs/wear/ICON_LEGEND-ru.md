@@ -52,6 +52,7 @@ permalink: /docs/wear/ICON_LEGEND-ru.html
 
 | Значок | Значение |
 |---|---|
+| <img src="../icons/svg/wear/ic_exchange_mono.svg" alt="" width="24" height="24"> | Сервер обмена |
 | <img src="../icons/svg/wear/ic_resource_favorites.svg" alt="" width="24" height="24"> | Избранное |
 | <img src="../icons/svg/wear/ic_resource_ftp.svg" alt="" width="24" height="24"> | FTP-сервер |
 | <img src="../icons/svg/wear/ic_resource_smb.svg" alt="" width="24" height="24"> | Сетевая папка |
@@ -73,6 +74,7 @@ permalink: /docs/wear/ICON_LEGEND-ru.html
 |---|---|
 | <img src="../icons/svg/wear/ic_info.svg" alt="" width="24" height="24"> | Информация |
 | <img src="../icons/svg/wear/ic_notification_app_logo.svg" alt="" width="24" height="24"> | FastMediaSorter |
+| <img src="../icons/svg/wear/ic_product_mark_mono.svg" alt="" width="24" height="24"> | FastMediaSorter |
 | <img src="../icons/svg/wear/ic_night_mode.svg" alt="" width="24" height="24"> | Ночной режим |
 
 ## Система
@@ -104,6 +106,7 @@ permalink: /docs/wear/ICON_LEGEND-ru.html
 | <img src="../icons/svg/wear/ic_audio.svg" alt="" width="24" height="24"> | Аудиоплеер |
 | <img src="../icons/svg/wear/ic_profile_personal_smartphone.svg" alt="" width="24" height="24"> | Телефон |
 | <img src="../icons/svg/wear/ic_image.svg" alt="" width="24" height="24"> | Фоторамка |
+| <img src="../icons/svg/wear/ic_watch.svg" alt="" width="24" height="24"> | Часы Wear OS |
 
 ## Камера
 

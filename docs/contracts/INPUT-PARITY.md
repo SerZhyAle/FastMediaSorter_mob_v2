@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.11.15 16:16</sub>
+<sub class="doc-stamp">26.11.20 20:18</sub>
 
 # Pointer - `INPUT-PARITY`
 
 | | |
 | --- | --- |
 | **Id** | `INPUT-PARITY` |
-| **Version** | 0.7, draft. Owner: shared, one steward per device column |
+| **Version** | 0.8, draft. Owner: shared, one steward per device column |
 | **Home** | `input-controls/README.md` in the shared contracts catalog |
 | **Role here** | steward of the touch, gamepad and TV remote / D-pad columns |
 
@@ -34,6 +34,9 @@
   turn reaches the dashboard under it. Its exit is the watch `WaterFlashlightExitGate`, shared with the watch water
   flashlight: a key held 1500 ms, or three backs or key releases with the third at most 2000 ms after the first; one
   key release or one back does not leave. Read from the code, not run on a watch.
+- 0.8 (items M and N): "applicable" is the scope of sections 3 and 4 as a whole (section 3.2 rule 6): a product with no
+  search function writes `search` as not applicable and a product that has one binds `Ctrl+F`. This product has one,
+  and `system.search` is bound to `Ctrl+F` in `default_bindings.json`; no filled cell and no canonical spelling changes.
 - The deviations currently open are recorded as exceptions in the catalog's registry. The 0.4 `VIEWER-KEYBOARD.md`
   player defaults ship in `default_bindings.json` and `PlayerKeyboardHandler` (S4363); the rows still open
   (`G`, `N`, `F4`, frame step, A-B loop, the standalone hosts) are implemented by S4373 and await device

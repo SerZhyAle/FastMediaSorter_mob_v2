@@ -328,7 +328,26 @@ class LocalMediaScanner @Inject constructor(
             (!requireExisting || existsOnDisk(file)) &&
                 (sizeFilter == null || file.size <= 0L || inSizeRange(file, sizeFilter))
         }
-        return filtered.takeIf { files.isNotEmpty() && (it.isNotEmpty() || sizeFilter == null) }
+        return filtered
+            .takeIf { files.isNotEmpty() && (it.isNotEmpty() || sizeFilter == null) }
+            ?.map { completeUnknownSize(it) }
+    }
+
+    /**
+     * MediaStore reports SIZE = 0 for a row its scanner has not measured yet (a file written by another
+     * process, or registered before its bytes landed). The row would then render "-" and get no thumbnail
+     * until the explicit refresh re-registers every file, so an unmeasured row is completed from disk.
+     * Callers apply it after the size filter, which keeps list membership exactly as before.
+     */
+    private fun completeUnknownSize(file: MediaFile): MediaFile {
+        if (file.size > 0L || file.isDirectory || !file.path.startsWith("/")) return file
+        val length = File(file.path).takeIf { it.isFile }?.length() ?: 0L
+        return if (length > 0L) {
+            Timber.d("S4727: unmeasured MediaStore row completed from disk: ${file.name}")
+            file.copy(size = length)
+        } else {
+            file
+        }
     }
 
     private suspend fun queryMediaStore(
@@ -372,7 +391,7 @@ class LocalMediaScanner @Inject constructor(
 
             val filteredFiles = visibleFiles.filter { file ->
                 sizeFilter == null || file.size <= 0L || inSizeRange(file, sizeFilter)
-            }
+            }.map { completeUnknownSize(it) }
 
             onProgress?.onComplete(filteredFiles.size, 0)
             filteredFiles
@@ -401,7 +420,7 @@ class LocalMediaScanner @Inject constructor(
 
             val filteredFiles = files.filter { file ->
                 sizeFilter == null || file.size <= 0L || inSizeRange(file, sizeFilter)
-            }
+            }.map { completeUnknownSize(it) }
 
             onProgress?.onComplete(filteredFiles.size, 0)
             filteredFiles

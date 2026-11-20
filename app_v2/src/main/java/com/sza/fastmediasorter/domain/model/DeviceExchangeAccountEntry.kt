@@ -78,6 +78,13 @@ data class DeviceExchangeAccountEntry(
         get() = accountKind != ACCOUNT_KIND_GUEST &&
             features?.let { FEATURE_NOTES in it && FEATURE_SEALED in it } == true
 
+    /**
+     * Whether remote commands may arrive through this entry (DEVICE-EXCHANGE 1.18 item GC): never a `guest` account,
+     * and only a server that lists `command` together with `sealed`, since a command never travels in clear.
+     */
+    val acceptsCommands: Boolean
+        get() = accountKind != ACCOUNT_KIND_GUEST && carriesCommands(features)
+
     /** Whether the server keeps a settings standard (1.12 item EO): the actions are shown only when it says so. */
     val offersSettings: Boolean
         get() = features?.contains(FEATURE_SETTINGS) == true
@@ -95,10 +102,15 @@ data class DeviceExchangeAccountEntry(
         const val FEATURE_SEALED = "sealed"
         const val FEATURE_NOTES = "notes"
         const val FEATURE_SETTINGS = "settings"
+        const val FEATURE_COMMAND = "command"
         const val ACCOUNT_KIND_MEMBER = "member"
         const val ACCOUNT_KIND_GUEST = "guest"
 
         private val LOGIN = Regex("[A-Za-z0-9._-]{3,64}")
+
+        /** A stream may carry command frames only when its `welcome` lists `command` and `sealed` (item GC). */
+        fun carriesCommands(features: Collection<String>?): Boolean =
+            features?.let { FEATURE_COMMAND in it && FEATURE_SEALED in it } == true
 
         /** The login form of 5.1: 3 to 64 characters of `[a-z0-9._-]`, compared case-insensitively. */
         fun isValidLogin(login: String?): Boolean = login != null && LOGIN.matches(login)

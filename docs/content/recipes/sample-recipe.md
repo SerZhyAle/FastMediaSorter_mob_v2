@@ -19,7 +19,7 @@ steps:
     title: Locate and Open Your Music Directory
     text: Launch Fast Media Sorter & Organizer. From the home drawer or bottom navigation bar, tap **Local Storage** or choose a configured network bookmark. Navigate to your music directory.
     image:
-      src: assets/images/sample-step1.png
+      src: assets/images/sample-step1.svg
       alt: Folder Browser showing Music albums with metadata badges and track counts
       caption: "Figure 1: Navigating music folders with live duration badges and track counts."
   - number: 2
@@ -32,7 +32,7 @@ steps:
       * **Swipe left/right on the mini-player:** Skips to the previous or next track in the queue.
       * **Queue management:** Tap the playlist icon to drag and reorder songs or remove duplicates.
     image:
-      src: assets/images/audio-playback-deck.png
+      src: assets/images/audio-playback-deck.svg
       alt: Audio player deck showing active track playback, album art, and queue playlist controls
       caption: "Figure 2: Audio playback deck with waveform scrubber and track queue."
     callout:
@@ -78,6 +78,6 @@ next_recipes:
     description: Stream your high-resolution FLAC library directly without filling your device storage.
 ---
 
-<sub class="doc-stamp">26.10.07 01:10</sub>
+<sub class="doc-stamp">26.11.20 00:35</sub>
 
 Whether you have thousands of lossless FLAC tracks on an SD card or albums shared across a home <span class="doc-link-term" data-term="NAS">NAS</span> server, Fast Media Sorter & Organizer lets you browse, queue, and sort your audio library without altering your physical folder hierarchy.

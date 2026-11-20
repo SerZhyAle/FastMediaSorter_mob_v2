@@ -312,7 +312,9 @@ private fun rememberChannelClick(
         if (job?.isActive != true) {
             job = scope.launch {
                 val target = viewModel.prepareStreamPlayback(channel)
-                if (target.unplayable) {
+                if (target.waitingForStart) {
+                    navController.navigate(WearRoutes.broadcastWaiting(channel.url))
+                } else if (target.unplayable) {
                     Toast.makeText(context, unplayable, Toast.LENGTH_SHORT).show()
                 } else if (target.isVideo) {
                     navController.navigate(WearRoutes.videoPlayer(target.fileId))

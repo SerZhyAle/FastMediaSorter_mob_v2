@@ -4,7 +4,7 @@ title: "Що нового у Fast Media Sorter & Organizer"
 permalink: /docs/WHATS_NEW-uk.html
 ---
 
-<sub class="doc-stamp">26.10.29 21:45</sub>
+<sub class="doc-stamp">26.11.19 23:39</sub>
 
 <a id="що-нового-у-fastmediasorter-v2"></a>
 
@@ -1483,4 +1483,4 @@ permalink: /docs/WHATS_NEW-uk.html
 
 ---
 
-*Попередні версії: [Журнал змін](../dev/CHANGELOG.md)*
+*Попередні версії: [Історія продукту](PRODUCT_HISTORY-uk.md)*

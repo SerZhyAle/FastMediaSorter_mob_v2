@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.11.14 17:19</sub>
+<sub class="doc-stamp">26.11.20 20:27</sub>
 
 # Pointer - `STREAM-BANK`
 
 | | |
 | --- | --- |
 | **Id** | `STREAM-BANK` |
-| **Version** | 2.10, active. Owner: this product |
+| **Version** | 2.12, active. Owner: this product |
 | **Home** | `stream-catalog/README.md` in the shared contracts catalog |
 | **Role here** | producer (the publish script) and consumer (the phone and watch importers) |
 
@@ -42,6 +42,15 @@
   section 5.3 rule and the HTTP status, surface a hard failure (a 4xx other than 429, an untrusted TLS certificate)
   at once as the section 5.4 dialog, and retry a transient one with the section 5.2 ladder. Not held yet: a dated
   exception in the catalog registry, carrier S4641.
+- 2.11 (items W to AB, from this product's proposals of S4640): the tables and vectors of rule 14 are the six
+  `facet-*.tsv` files of the catalog folder, of which this product vendors `facet-golden.tsv` byte-identical
+  (`app_v2/src/test/resources/streams/`, `StreamFacetFoldingTest`); the first-connection poll bound is
+  `MAX_EMPTY_POLLS = 2` (`StreamStallRule`); a failed probe is not written offline while a reachable result may be;
+  "the section 5.2 budget" names the shape and each backend keeps its numbers, with section 6.1 counted per prepare;
+  an untrusted certificate is a hard failure, held through the 2.10 inline-failure exception above.
+- Transient ladder (`06` section 5.2): every call site here flattens the doubling at 8 s (2 s, 4 s, 8 s, 8 s). The
+  catalog accepted the correction as 2.12 on 2026-11-20 (the reference ladder now reads 2 s, 4 s, 8 s, 8 s in place of
+  2 s, 4 s, 8 s, 16 s), so this product's call sites and the reference text agree; S4801 carried the proposal.
 - A change to a column, an asset name or an atlas ceiling is agreed in the catalog first.
 
 ## Where it lives here

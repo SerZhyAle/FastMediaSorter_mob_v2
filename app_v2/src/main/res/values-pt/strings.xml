@@ -75,7 +75,6 @@
     <string name="copy_failed">Não foi possível copiar os arquivos.</string>
     <string name="no_destinations_available">Nenhum recurso de destino configurado</string>
     <string name="moving_files">Movendo..</string>
-    <string name="moved_n_files">%1$d arquivos movidos.</string>
     <string name="moved_n_of_m_files">%1$d de %2$d arquivos movidos.</string>
     <string name="move_failed">Não foi possível mover os arquivos.</string>
     <string name="renaming_files">Renomeando..</string>
@@ -241,7 +240,6 @@
     <string name="confirm_delete_safe_mode">Confirmar antes de eliminar</string>
     <string name="confirm_move_safe_mode">Confirmar antes de mover</string>
     <string name="confirm_delete_title">Eliminar ficheiros?</string>
-    <string name="confirm_delete_message">Eliminar %1$d ficheiro(s)? Esta ação não pode ser desfeita.</string>
     <string name="confirm_move_title">Mover ficheiros?</string>
     <string name="confirm_move_message">Mover %1$d ficheiro(s) para %2$s?</string>
     <string name="user_guide">Guia do Usuário</string>
@@ -795,7 +793,6 @@
     <string name="error_copy_failed">Não foi possível copiar o arquivo.</string>
     <string name="error_file_exists_copy">O arquivo \"%1$s\" já existe em \"%2$s\".\n\nAtive \"Substituir ao copiar\" em Configurações -&gt; Copiar &amp; Mover se quiser substituí-lo.</string>
     <string name="msg_move_success">Movido para %1$s.</string>
-    <string name="msg_move_success_count">%1$d arquivos movidos para %2$s.</string>
     <string name="error_move_failed">Não foi possível mover o arquivo.</string>
     <string name="error_file_exists_move">O arquivo \"%1$s\" já existe em \"%2$s\".\n\nAtive \"Substituir ao mover\" em Configurações -&gt; Copiar &amp; Mover se quiser substituí-lo.</string>
     <string name="msg_delete_success">Excluído.</string>
@@ -1973,7 +1970,7 @@
     <string name="stream_wait_reconnecting">A reconectar..</string>
     <string name="streams_filter_pinned_only">Apenas fixadas</string>
     <string name="streams_refresh_probing">A verificar transmissões..</string>
-    <string name="streams_error_no_network">Sem rede. Ligue-se a Wi-Fi ou dados móveis para reproduzir transmissões.</string>
+    <string name="streams_error_no_network">Sem rede. Ligue-se para reproduzir transmissões.</string>
     <string name="tile_screenshot_label">Captura de tela</string>
     <string name="camera_lens_front">Frontal</string>
     <string name="camera_lens_ultrawide">Ultra-angular</string>

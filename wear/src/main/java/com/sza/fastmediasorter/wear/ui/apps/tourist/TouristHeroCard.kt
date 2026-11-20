@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,11 +33,14 @@ import com.sza.fastmediasorter.wear.ui.common.LocalWearUnitSystem
 import com.sza.fastmediasorter.wear.ui.common.StandardWearCard
 import com.sza.fastmediasorter.wear.ui.common.WearHeroShape
 import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
+import timber.log.Timber
 import java.util.Locale
 
 // The card contributes the standard 10/8 inset, so only the missing 4dp of the panel's original
 // 12dp vertical breathing room is added back here - the focal digit keeps the height it was read at.
 private val HERO_INNER_PADDING = 4.dp
+private val LOCK_INSET_TOP = 6.dp
+private val LOCK_INSET_END = 8.dp
 private val NEEDLE_SIZE = 64.dp
 private const val NEEDLE_BASE_FRACTION = 0.22f
 private const val NEEDLE_PIVOT_FRACTION = 0.10f
@@ -67,11 +71,18 @@ fun TouristHeroCard(
             contentAlignment = Alignment.Center,
         ) {
             if (!isScreenLocked) {
+                LaunchedEffect(Unit) {
+                    Timber.d("S4745: hero lock control shown")
+                }
                 Text(
                     text = "🔒",
                     style = MaterialTheme.typography.body2,
+                    // The panel is the first row of the list, so its top-end corner stands where the rim of
+                    // a 192 dp round glass is already narrower than the panel; pinned to the bare corner
+                    // the glyph was clipped. The inset moves it onto the chord that is still on the glass.
                     modifier = Modifier
                         .align(Alignment.TopEnd)
+                        .padding(top = LOCK_INSET_TOP, end = LOCK_INSET_END)
                         .clickable(onClick = onLockScreen)
                         .semantics { contentDescription = lockDescription },
                 )
@@ -314,7 +325,7 @@ private fun HeroCoordinatesView(state: WearTouristState) {
         )
     } else {
         Text(
-            text = stringResource(R.string.wear_tourist_no_fix),
+            text = stringResource(coordinatesMissingTextRes(state)),
             style = MaterialTheme.typography.body1,
             color = MaterialTheme.colors.onSurfaceVariant,
         )
@@ -328,6 +339,14 @@ private fun HeroSatellitesView(state: WearTouristState) {
         style = MaterialTheme.typography.caption2,
         color = WearAppTheme.colors.touristAccent,
     )
+    if (state.isApproximateLocationOnly) {
+        Text(
+            text = stringResource(R.string.wear_tourist_precise_needed),
+            style = MaterialTheme.typography.body1,
+            color = MaterialTheme.colors.onSurfaceVariant,
+        )
+        return
+    }
     val used = state.usedSatellites ?: 0
     val total = state.satelliteCount ?: 0
     Text(

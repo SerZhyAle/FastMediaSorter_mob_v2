@@ -87,6 +87,7 @@ class NotesActivity : AppCompatActivity() {
         super.onResume()
         // Returning from the editor is the moment a note was created or changed, so the list is re-read.
         viewModel.start(getString(R.string.notes_title))
+        Timber.d("S4721: focus=${currentFocus?.javaClass?.simpleName} touch=${binding.root.isInTouchMode}")
     }
 
     private fun renderSync(sync: NotesSyncStatus) {

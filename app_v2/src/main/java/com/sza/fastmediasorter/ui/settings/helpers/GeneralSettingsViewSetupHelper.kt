@@ -157,9 +157,16 @@ class GeneralSettingsViewSetupHelper(
                     .setMessage(R.string.restart_app_compact_elements_message)
                     .setCancelable(false)
                     .setPositiveButton(R.string.restart) { _, _ ->
-                        viewModel.updateSettings { it.copy(useCompactElements = isChecked) }
-                        LocaleHelper.markReturnToSettings(fragment.requireContext())
-                        LocaleHelper.restartApp(fragment.requireActivity())
+                        // S4785: restartApp finishes this activity, which cancels viewModelScope; a write
+                        // launched there and not yet handed to DataStore is lost and the switch snaps back.
+                        val activity = fragment.requireActivity()
+                        Timber.d("S4785: compact restart confirmed value=$isChecked, awaiting write")
+                        fragment.viewLifecycleOwner.lifecycleScope.launch {
+                            viewModel.updateSettingsAwaitingWrite { it.copy(useCompactElements = isChecked) }
+                            Timber.d("S4785: compact write returned, restarting")
+                            LocaleHelper.markReturnToSettings(activity)
+                            LocaleHelper.restartApp(activity)
+                        }
                     }
                     .setNegativeButton(R.string.cancel) { dialog, _ ->
                         isUpdatingSpinner.set(true)

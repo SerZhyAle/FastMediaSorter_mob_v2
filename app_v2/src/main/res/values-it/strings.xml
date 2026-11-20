@@ -75,7 +75,6 @@
     <string name="copy_failed">Impossibile copiare i file.</string>
     <string name="no_destinations_available">Nessuna risorsa di destinazione configurata</string>
     <string name="moving_files">Spostamento in corso..</string>
-    <string name="moved_n_files">Spostati %1$d file.</string>
     <string name="moved_n_of_m_files">Spostati %1$d di %2$d file.</string>
     <string name="move_failed">Impossibile spostare i file.</string>
     <string name="renaming_files">Rinomina in corso..</string>
@@ -241,7 +240,6 @@
     <string name="confirm_delete_safe_mode">Conferma prima di eliminare</string>
     <string name="confirm_move_safe_mode">Conferma prima di spostare</string>
     <string name="confirm_delete_title">Eliminare i file?</string>
-    <string name="confirm_delete_message">Eliminare %1$d file? Questa azione non può essere annullata.</string>
     <string name="confirm_move_title">Spostare i file?</string>
     <string name="confirm_move_message">Spostare %1$d file in %2$s?</string>
     <string name="user_guide">Guida utente</string>
@@ -795,7 +793,6 @@
     <string name="error_copy_failed">Impossibile copiare il file.</string>
     <string name="error_file_exists_copy">Il file \"%1$s\" è già presente in \"%2$s\".\n\nAttiva \"Sovrascrivi durante la copia\" in Impostazioni → Copia e sposta se vuoi sostituirlo.</string>
     <string name="msg_move_success">Spostato in %1$s.</string>
-    <string name="msg_move_success_count">%1$d file spostati in %2$s.</string>
     <string name="error_move_failed">Impossibile spostare il file.</string>
     <string name="error_file_exists_move">Il file \"%1$s\" è già presente in \"%2$s\".\n\nAttiva \"Sovrascrivi durante lo spostamento\" in Impostazioni → Copia e sposta se vuoi sostituirlo.</string>
     <string name="msg_delete_success">Eliminato.</string>
@@ -1974,7 +1971,7 @@
     <string name="stream_wait_reconnecting">Riconnessione..</string>
     <string name="streams_filter_pinned_only">Solo fissati</string>
     <string name="streams_refresh_probing">Controllo degli stream..</string>
-    <string name="streams_error_no_network">Nessuna rete. Connettiti al Wi-Fi o ai dati mobili per riprodurre gli stream.</string>
+    <string name="streams_error_no_network">Nessuna rete. Connettiti per riprodurre gli stream.</string>
     <string name="tile_screenshot_label">Screenshot</string>
     <string name="camera_lens_front">Frontale</string>
     <string name="camera_lens_ultrawide">Ultra-grandangolo</string>

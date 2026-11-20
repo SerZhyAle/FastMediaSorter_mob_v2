@@ -75,7 +75,6 @@
     <string name="copy_failed">Impossible de copier les fichiers.</string>
     <string name="no_destinations_available">Aucune ressource de destination configurée</string>
     <string name="moving_files">Déplacement en cours..</string>
-    <string name="moved_n_files">%1$d fichiers déplacés.</string>
     <string name="moved_n_of_m_files">%1$d fichiers déplacés sur %2$d.</string>
     <string name="move_failed">Impossible de déplacer les fichiers.</string>
     <string name="renaming_files">Renommage en cours..</string>
@@ -241,7 +240,6 @@
     <string name="confirm_delete_safe_mode">Confirmer avant suppression</string>
     <string name="confirm_move_safe_mode">Confirmer avant déplacement</string>
     <string name="confirm_delete_title">Supprimer les fichiers ?</string>
-    <string name="confirm_delete_message">Supprimer %1$d fichier(s) ? Cette action est irréversible.</string>
     <string name="confirm_move_title">Déplacer les fichiers ?</string>
     <string name="confirm_move_message">Déplacer %1$d fichier(s) vers %2$s ?</string>
     <string name="user_guide">Guide utilisateur</string>
@@ -795,7 +793,6 @@
     <string name="error_copy_failed">Impossible de copier le fichier.</string>
     <string name="error_file_exists_copy">Le fichier \"%1$s\" existe déjà dans \"%2$s\".\n\nActivez \"Écraser lors de la copie\" dans Paramètres -&gt; Copier et déplacer si vous voulez le remplacer.</string>
     <string name="msg_move_success">Déplacé vers %1$s.</string>
-    <string name="msg_move_success_count">%1$d fichiers déplacés vers %2$s.</string>
     <string name="error_move_failed">Impossible de déplacer le fichier.</string>
     <string name="error_file_exists_move">Le fichier \"%1$s\" existe déjà dans \"%2$s\".\n\nActivez \"Écraser lors du déplacement\" dans Paramètres -&gt; Copier et déplacer si vous voulez le remplacer.</string>
     <string name="msg_delete_success">Supprimé.</string>
@@ -1974,7 +1971,7 @@
     <string name="stream_wait_reconnecting">Reconnexion..</string>
     <string name="streams_filter_pinned_only">Épinglés uniquement</string>
     <string name="streams_refresh_probing">Vérification des flux..</string>
-    <string name="streams_error_no_network">Aucun réseau. Connectez-vous au Wi-Fi ou aux données mobiles pour lire les flux.</string>
+    <string name="streams_error_no_network">Aucun réseau. Connectez-vous pour lire les flux.</string>
     <string name="tile_screenshot_label">Capture d\'écran</string>
     <string name="camera_lens_front">Avant</string>
     <string name="camera_lens_ultrawide">Ultra grand-angle</string>

@@ -95,10 +95,15 @@ try {
     Assert-That ([System.IO.File]::ReadAllText($json) -eq '{ "FastMediaSorter": "a tool of Fast Media Sorter & Organizer" }') 'json key kept, value rewritten'
 
     $face = Join-Path $scratch 'face.md'
-    $faceText = "Search for FastMediaSorter or open [it](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface).`nЦиферблат FastMediaSorter на часах.`n"
+    $faceText = "Search for FastMediaSorter or open [it](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface).`nЦиферблат FastMediaSorter на часах, страница циферблата FastMediaSorter.`n"
     [System.IO.File]::WriteAllText($face, $faceText, $utf8)
     & pwsh -NoProfile -File $script -Paths $face -Check | Out-Null
     Assert-That ($LASTEXITCODE -eq 0) 'watch face name kept'
+
+    $web = Join-Path $scratch 'web.md'
+    [System.IO.File]::WriteAllText($web, "Try [FastMediaSorter for Web](https://example.org/) in a browser.`n", $utf8)
+    & pwsh -NoProfile -File $script -Paths $web -Check | Out-Null
+    Assert-That ($LASTEXITCODE -eq 0) 'mapped Web name kept'
 
     & pwsh -NoProfile -File $script -Paths (Join-Path $scratch 'missing.md') 2>$null | Out-Null
     Assert-That ($LASTEXITCODE -eq 2) 'missing path exits 2'

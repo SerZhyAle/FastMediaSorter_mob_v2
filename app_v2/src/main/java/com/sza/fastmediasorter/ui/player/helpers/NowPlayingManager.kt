@@ -157,8 +157,11 @@ class NowPlayingManager(
     /**
      * Build a metadata-enriched playlist and start playback via [AudioServiceController].
      *
-     * @param files All audio files in the current list (same order as displayed in the player).
-     * @param startIndex Index of the track to play first.
+     * The queue holds the audio files of [files] only: the player list of a mixed folder also carries
+     * images and videos, which are not playable here and must not appear in the now-playing queue.
+     *
+     * @param files All media files in the current list (same order as displayed in the player).
+     * @param startIndex Index in [files] of the track to play first.
      * @param onPlayerReady Callback forwarded from the caller for binding the player to PlayerView.
      */
     fun startPlayback(
@@ -168,8 +171,16 @@ class NowPlayingManager(
     ) {
         if (!persistentAudioCompiledIn) return
 
-        Timber.d("NowPlayingManager: startPlayback files=${files.size} startIndex=$startIndex")
-        val items = files.map { file ->
+        val currentPath = files.getOrNull(startIndex)?.path
+        val queue = audioQueueFor(files, currentPath)
+        val queueStart = queue.indexOfFirst { it.path == currentPath }
+        if (queueStart < 0) {
+            Timber.w("NowPlayingManager: startPlayback - current file is not in the audio queue, index=$startIndex")
+            return
+        }
+        Timber.d("NowPlayingManager: startPlayback files=${files.size} queue=${queue.size} startIndex=$queueStart")
+        Timber.d("S4772: startPlayback audio queue=${queue.size} of files=${files.size}")
+        val items = queue.map { file ->
             val mimeType = if (MidiPlaybackPolicy.isMidiPath(file.path)) MimeTypes.AUDIO_MIDI else null
             MediaItemWithMeta(
                 uri = buildPlaybackUri(file),
@@ -183,7 +194,7 @@ class NowPlayingManager(
                 dateModified = file.lastModified.takeIf { it > 0L } ?: file.createdDate
             )
         }
-        audioServiceController.playAudioPlaylistWithMetadata(items, startIndex, onPlayerReady)
+        audioServiceController.playAudioPlaylistWithMetadata(items, queueStart, onPlayerReady)
     }
 
     private fun buildPlaybackUri(file: MediaFile): Uri {
@@ -424,5 +435,12 @@ class NowPlayingManager(
 
     companion object {
         private const val NOTE_TURN_MS = 3000L
+
+        /**
+         * The audio files of [files] in their original order. The file at [currentPath] is kept even
+         * when its type is not [MediaType.AUDIO], so the track being played always belongs to the queue.
+         */
+        internal fun audioQueueFor(files: List<MediaFile>, currentPath: String?): List<MediaFile> =
+            files.filter { it.type == MediaType.AUDIO || it.path == currentPath }
     }
 }

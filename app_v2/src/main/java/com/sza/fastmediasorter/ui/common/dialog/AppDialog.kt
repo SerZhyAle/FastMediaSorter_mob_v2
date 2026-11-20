@@ -61,11 +61,12 @@ object AppDialog {
         confirmLabel: CharSequence,
         onConfirm: () -> Unit,
     ): AlertDialog {
-        val themedContext = androidx.appcompat.view.ContextThemeWrapper(
+        // The overlay goes in as the builder's override theme: wrapping the context instead lets the app
+        // theme's materialAlertDialogTheme layer the green confirm pair back on top of it.
+        val dialog = MaterialAlertDialogBuilder(
             context,
             R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive,
         )
-        val dialog = MaterialAlertDialogBuilder(themedContext)
             .setTitle(title)
             .setMessage(message)
             .setPositiveButton(confirmLabel) { _, _ -> onConfirm() }

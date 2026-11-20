@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.29 05:03</sub>
+<sub class="doc-stamp">26.11.20 20:17</sub>
 
 # Pointer - `CHECK-VERDICT`
 
 | | |
 | --- | --- |
 | **Id** | `CHECK-VERDICT` |
-| **Version** | 0.14, draft; wire carrier: process exit code (0/1/2/3, plus the reserved non-verdict 4) plus one verdict line. Owner: this product |
+| **Version** | 0.15, draft; wire carrier: process exit code (0/1/2/3, plus the reserved non-verdict 4) plus one verdict line. Owner: this product |
 | **Home** | `automated-checks/README.md` section 2, in the shared contracts catalog |
 | **Role here** | owner and reference implementation |
 
@@ -27,6 +27,8 @@
   a skip over a declared input `2` (rule 13).
 - Test count writers use `run=N skipped=M`; executed tests include failures and exclude skips
   (0.13). Rule G rejects new legacy writers and stale entries in `test-count-baseline.txt`.
+- A reader of a test verdict line matches the tokens `run=N skipped=M` by name anywhere after the verdict word, inside
+  the parenthesis or bare (0.15, item E); this product's writers are unchanged.
 - An aggregator quotes its children's verdict lines and answers FAIL, then COULD NOT VERIFY, then
   PASS WITH ADVISORIES, then PASS (rule 14).
 - A wrapper of a product command maps each of its outcomes to `0`, `1`, `2` or `3` on purpose

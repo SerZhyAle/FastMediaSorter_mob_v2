@@ -97,6 +97,9 @@ object NotificationIds {
     /** S4226: how the last clipboard send or get ended. */
     const val EXCHANGE_CLIPBOARD_RESULT = 7901
 
+    /** S4701: a consent question for a request from another device of the account, one slot per request. */
+    val REMOTE_COMMAND_CONSENT: IntRange = IntRange(start = 8000, endInclusive = 8099)
+
     /** MediaProjection screenshot capture service. */
     const val SCREEN_CAPTURE = 0x4053
 

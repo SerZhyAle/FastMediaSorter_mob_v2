@@ -3431,6 +3431,31 @@ scripts/guard.tests/Run-Tests.ps1
   Exit: 0 all fixture cases pass.; 1 at least one case failed.
 ```
 
+## scripts\identity
+
+### build-identity.ps1
+Generate every rendition of the product mark and assets/identity/identity-manifest.json (PRODUCT-IDENTITY 0.2).
+
+```
+scripts/identity/build-identity.ps1
+  Generate every rendition of the product mark and assets/identity/identity-manifest.json (PRODUCT-IDENTITY 0.2).
+  Params:
+    -Check         [SwitchParameter]
+  Exit: 0 every rendition written, or with -Check every file equals its rendition and the family matches the catalog.; 1 -Check found a rendition missing or different, or the family copy or family.sha256 disagrees.; 2 COULD NOT VERIFY: no Python with Pillow, PyMuPDF and fontTools, an input missing, or with -Check everything
+```
+
+### sync-family-mark.ps1
+Copy the FastMediaSorter family master folder from the contracts catalog into assets/identity/family/ (S4784).
+
+```
+scripts/identity/sync-family-mark.ps1
+  Copy the FastMediaSorter family master folder from the contracts catalog into assets/identity/family/ (S4784).
+  Params:
+    -CatalogRoot         [String] = $env:FMS_CONTRACTS_ROOT
+    -Check               [SwitchParameter]
+  Exit: 0 copied, or with -Check the local copy equals the catalog.; 1 -Check found a local file missing or different, or a catalog file disagrees with its recorded hash.; 2 could not verify: no catalog root, or the family folder or its family-mark.json is missing.
+```
+
 ## scripts\metrics
 
 ### agent-cost-report.ps1
@@ -8238,6 +8263,19 @@ scripts/release/gen_fastlane_changelog.ps1
   Exit: 0 - at least one locale produced a changelog file.; 1 - a locale's "Current release" block is missing or empty, or no changelog was produced
 ```
 
+### measure-wear-change.ps1
+Measure how much the watch sources changed since the watch's last store release.
+
+```
+scripts/release/measure-wear-change.ps1
+  Measure how much the watch sources changed since the watch's last store release.
+  Params:
+    -SinceVersionName         [String]
+    -RepoRoot                 [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Json                     [SwitchParameter]
+  Exit: 0 - CHANGED: at least one shipping watch file differs from the last release's base.; 3 - UNCHANGED: no shipping watch file differs (test-only changes land here too).; 2 - could not verify: the Play track holds no watch release, the versionName encodes no
+```
+
 ### publish-github-release.ps1
 Publish the full FastMediaSorter release spectrum to GitHub Releases so that GitHub Store (OpenHub-Store/GitHub-Store) and IzzyOnDroid can index it.
 
@@ -8279,6 +8317,7 @@ scripts/release/publish-play-release.ps1
     -NotesVersionCode         [Int32]
     -Package                  [String]
     -NotesFile                [String]
+    -ListingRoot              [String]
   Exit: 0 - the bundle is on the track and the edit was committed.; 1 - the release is at fault: the AAB is missing, an argument contradicts the artifact, a
 ```
 
@@ -8632,6 +8671,18 @@ Release-campaign record and append-only phase journal (S4413), dot-sourced by th
 scripts/release/lib/release-campaign.ps1
   Release-campaign record and append-only phase journal (S4413), dot-sourced by the CLI and by every gate, suite or sweep step that reports its duration into a campaign.
   (no param block)
+```
+
+## scripts\release\measure-wear-change.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S4799) - contract suite for scripts/release/measure-wear-change.ps1.
+
+```
+scripts/release/measure-wear-change.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S4799) - contract suite for scripts/release/measure-wear-change.ps1.
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 the suite could not run (the subject or git is missing).
 ```
 
 ## scripts\release\publish-play-listing.tests
@@ -8994,6 +9045,7 @@ scripts/spec_catalog/insert.ps1
     -Priority         [Int32] = 50  {range 0..100}
     -Id               [String]
     -Slug             [String]
+    -Source           [String] = ''
     -Help             [SwitchParameter]
 ```
 
@@ -9121,7 +9173,9 @@ scripts/spec_catalog/release-queue.ps1
     -Release     (req)  [String] = ''
     -Version            [String] = ''
     -DryRun             [SwitchParameter]
-  Exit: 0 success (for -Validate: no drift).; 1 error, or -Validate found drift.; 2 cannot verify - PLAN/RELEASE_QUEUE.md is missing (seed it before using the queue). -List is
+    -Seed        (req)  [SwitchParameter]
+    -Since              [String] = ''
+    -Apply              [SwitchParameter]
 ```
 
 ### run-spec-all-queue.ps1
@@ -9322,6 +9376,7 @@ scripts/spec_catalog/update.ps1
     -File               [String]
     -Tier               [Int32] = -1
     -Priority           [Int32] = -1
+    -Title              [String]
     -StatusNote         [String] = $null
     -Help               [SwitchParameter]
 ```
@@ -10786,6 +10841,7 @@ scripts/utils/run-spec-queue.ps1
     -StartDelaySeconds          [Int32] = 0
     -ClaimGraceSeconds          [Int32] = 180
     -PromptTemplate             [String] = ''
+    -Parallel                   [String] = ''  {|ultracode}
     -PermissionMode             [String] = 'bypassPermissions'  {acceptEdits|auto|bypassPermissions|manual|dontAsk|plan}
     -Quiet                      [SwitchParameter]
     -DryRun                     [SwitchParameter]

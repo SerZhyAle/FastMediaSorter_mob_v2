@@ -38,6 +38,7 @@ import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 private val TILE_SPACING = 4.dp
 
@@ -67,8 +68,15 @@ fun TouristScreen(
         },
     )
 
+    // Asking for both permissions while only the approximate one is held raises the system "change to
+    // precise?" dialog on every entry. Either grant is accepted, so the entry prompt is for no grant at all.
+    // The telemetry flag is not read here: it is false until the first telemetry frame, so it would not
+    // tell a missing grant from a frame that has not arrived.
+    val hasAnyLocationGrant = permissionsState.revokedPermissions.size < permissionsState.permissions.size
+
     LaunchedEffect(Unit) {
-        if (!telemetry.hasLocationPermission && !permissionsState.allPermissionsGranted) {
+        Timber.d("S4743: tourist entry hasAnyLocationGrant=$hasAnyLocationGrant")
+        if (!hasAnyLocationGrant) {
             permissionsState.launchMultiplePermissionRequest()
         }
     }

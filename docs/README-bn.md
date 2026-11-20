@@ -3,9 +3,11 @@ layout: doc
 title: "Fast Media Sorter & Organizer"
 permalink: /docs/README-bn.html
 ---
-<sub class="doc-stamp">26.10.15 19:27</sub>
+<sub class="doc-stamp">26.11.19 23:39</sub>
 
 <div lang="bn" dir="ltr" markdown="1">
+
+<img src="../assets/identity/out/readme-head-128.png" width="64" height="64" alt="">
 
 # Fast Media Sorter & Organizer 🚀 {#fastmediasorter-v2-}
 
@@ -13,7 +15,7 @@ permalink: /docs/README-bn.html
 ![Android](https://img.shields.io/badge/Platform-Android-green?style=flat-square&logo=android)
 ![License](https://img.shields.io/badge/License-Apache_2.0-blue?style=flat-square&logo=apache)
 
-**📦 ডাউনলোড:** [<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" height="56">](https://apt.izzysoft.de/fdroid/index/apk/com.sza.fastmediasorter)
+**📦 ডাউনলোড:** [GitHub Releases](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest)
 
 সরাসরি APK ইনস্টল করছেন? Android এমন একটি প্যাকেজ সম্পর্কে সতর্ক করে যা এটি আগে দেখেনি - [কেন এই সতর্কতা আসে এবং কী ট্যাপ করতে হবে](INSTALL_TRUST.md)।
 

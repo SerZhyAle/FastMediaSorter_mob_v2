@@ -5,4 +5,5 @@
     <plurals name="archiving_n_files_from_folder_plural"><item quantity="one">Archivando %1$d archivo de %2$s</item><item quantity="many">Archivando %1$d de archivos de %2$s</item><item quantity="other">Archivando %1$d archivos de %2$s</item></plurals>
     <plurals name="moving_n_files_from_folder_plural"><item quantity="one">Moviendo %1$d archivo de %2$s..</item><item quantity="many">Moviendo %1$d de archivos de %2$s..</item><item quantity="other">Moviendo %1$d archivos de %2$s..</item></plurals>
     <plurals name="renaming_n_files_from_folder_plural"><item quantity="one">Renombrando %1$d archivo de %2$s..</item><item quantity="many">Renombrando %1$d de archivos de %2$s..</item><item quantity="other">Renombrando %1$d archivos de %2$s..</item></plurals>
+    <plurals name="delete_n_files_confirm_plural"><item quantity="one">¿Eliminar %1$d archivo? Esta acción no se puede deshacer.</item><item quantity="many">¿Eliminar %1$d de archivos? Esta acción no se puede deshacer.</item><item quantity="other">¿Eliminar %1$d archivos? Esta acción no se puede deshacer.</item></plurals>
 </resources>

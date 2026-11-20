@@ -6,6 +6,12 @@
         <item quantity="many">%1$d файлов</item>
         <item quantity="other">%1$d файлов</item>
     </plurals>
+    <plurals name="folder_item_count_plural">
+        <item quantity="one">%1$d элемент</item>
+        <item quantity="few">%1$d элемента</item>
+        <item quantity="many">%1$d элементов</item>
+        <item quantity="other">%1$d элемента</item>
+    </plurals>
     <plurals name="copying_n_files_from_folder_plural">
         <item quantity="one">Копируем %1$d файл из %2$s..</item>
         <item quantity="few">Копируем %1$d файла из %2$s..</item>
@@ -29,5 +35,35 @@
         <item quantity="few">Переименовываем %1$d файла из %2$s..</item>
         <item quantity="many">Переименовываем %1$d файлов из %2$s..</item>
         <item quantity="other">Переименовываем %1$d файлов из %2$s..</item>
+    </plurals>
+    <plurals name="moved_n_files_plural">
+        <item quantity="one">Переместили %1$d файл.</item>
+        <item quantity="few">Переместили %1$d файла.</item>
+        <item quantity="many">Переместили %1$d файлов.</item>
+        <item quantity="other">Переместили %1$d файлов.</item>
+    </plurals>
+    <plurals name="msg_move_success_count_plural">
+        <item quantity="one">Переместили %1$d файл в %2$s.</item>
+        <item quantity="few">Переместили %1$d файла в %2$s.</item>
+        <item quantity="many">Переместили %1$d файлов в %2$s.</item>
+        <item quantity="other">Переместили %1$d файлов в %2$s.</item>
+    </plurals>
+    <plurals name="delete_n_files_confirm_plural">
+        <item quantity="one">Удалить %1$d файл? Это действие нельзя отменить.</item>
+        <item quantity="few">Удалить %1$d файла? Это действие нельзя отменить.</item>
+        <item quantity="many">Удалить %1$d файлов? Это действие нельзя отменить.</item>
+        <item quantity="other">Удалить %1$d файлов? Это действие нельзя отменить.</item>
+    </plurals>
+    <plurals name="delete_n_files_trash_confirm_plural">
+        <item quantity="one">Удалить %1$d файл? Он будет перемещён в корзину, а не удалён окончательно.</item>
+        <item quantity="few">Удалить %1$d файла? Они будут перемещены в корзину, а не удалены окончательно.</item>
+        <item quantity="many">Удалить %1$d файлов? Они будут перемещены в корзину, а не удалены окончательно.</item>
+        <item quantity="other">Удалить %1$d файлов? Они будут перемещены в корзину, а не удалены окончательно.</item>
+    </plurals>
+    <plurals name="delete_n_folders_trash_confirm_plural">
+        <item quantity="one">Удалить %1$d папку и всё её содержимое? Она будет перемещена в корзину, а не удалена окончательно.</item>
+        <item quantity="few">Удалить %1$d папки и всё их содержимое? Они будут перемещены в корзину, а не удалены окончательно.</item>
+        <item quantity="many">Удалить %1$d папок и всё их содержимое? Они будут перемещены в корзину, а не удалены окончательно.</item>
+        <item quantity="other">Удалить %1$d папок и всё их содержимое? Они будут перемещены в корзину, а не удалены окончательно.</item>
     </plurals>
 </resources>

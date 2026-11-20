@@ -130,6 +130,10 @@ class SftpServerTunnelManager @Inject constructor(
     val liveEntry: DeviceExchangeAccountEntry?
         get() = live.get()?.entry
 
+    /** Whether the welcomed control stream may carry command frames (1.18 item GC); false while none is. */
+    val liveCarriesCommands: Boolean
+        get() = live.get()?.serverCommands == true
+
     /**
      * Holds the control stream of the outgoing entry [outgoingIdentity] even with nothing published, so a cast
      * reaches this device; null with nothing published lets the stream go.
@@ -418,6 +422,7 @@ class SftpServerTunnelManager @Inject constructor(
         try {
             source.rememberWelcome(entry, session.welcome)
             control.serverSeals = session.welcome.features?.contains(DeviceExchangeAccountEntry.FEATURE_SEALED) == true
+            control.serverCommands = DeviceExchangeAccountEntry.carriesCommands(session.welcome.features)
             control.record = record
             control.entry = entry
             mutableGranted.value = emptySet()
@@ -813,6 +818,10 @@ class SftpServerTunnelManager @Inject constructor(
         @Volatile
         var serverSeals: Boolean = false
 
+        /** The server listed `command` with `sealed` in this stream's welcome (1.18 item GC). */
+        @Volatile
+        var serverCommands: Boolean = false
+
         val directoryLock = Mutex()
 
         val grantLock = Mutex()
@@ -923,6 +932,7 @@ class SftpServerTunnelManager @Inject constructor(
             DeviceExchangeEnvelope.TYPE_CAST_RESULT,
             DeviceExchangeEnvelope.TYPE_CAST_STOP,
             ExchangeNotesEnvelopes.TYPE_NOTES_CHANGED,
+            DeviceExchangeEnvelope.TYPE_COMMAND_REQUEST,
         )
         val KEEPALIVE = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_KEEPALIVE)
         val LIST = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_LIST)

@@ -24,12 +24,31 @@
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerLanguages"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="@dimen/dialog_list_max_height"
-        android:minHeight="@dimen/button_height"
-        android:overScrollMode="ifContentScrolls"
-        android:scrollbars="vertical" />
+        android:layout_height="@dimen/dialog_list_max_height">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerLanguages"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:minHeight="@dimen/button_height"
+            android:overScrollMode="ifContentScrolls"
+            android:scrollbars="vertical" />
+
+        <TextView
+            android:id="@+id/tvLanguageEmpty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:focusable="false"
+            android:gravity="center"
+            android:padding="@dimen/padding_normal"
+            android:text="@string/language_picker_no_results"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="@dimen/resource_card_desc_text_size"
+            android:visibility="gone" />
+
+    </FrameLayout>
 
 </LinearLayout>

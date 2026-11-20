@@ -3,12 +3,14 @@ package com.sza.fastmediasorter.wear.domain.usecase
 import android.net.Uri
 import com.google.gson.JsonElement
 import com.sza.fastmediasorter.wear.data.exchange.WearBroadcastCredentials
+import com.sza.fastmediasorter.wear.data.exchange.WearBroadcastEndpoints
 import com.sza.fastmediasorter.wear.data.exchange.WearBroadcastPassStore
 import com.sza.fastmediasorter.wear.data.exchange.WearBroadcastPlaybackResolver
 import com.sza.fastmediasorter.wear.data.exchange.WearDirectoryBroadcast
 import com.sza.fastmediasorter.wear.domain.model.SOURCE_ID_STREAM
 import com.sza.fastmediasorter.wear.domain.model.WearBroadcastPlayback
 import com.sza.fastmediasorter.wear.domain.model.WearBroadcastRoute
+import com.sza.fastmediasorter.wear.domain.model.WearBroadcastStartState
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearStreamPlaybackTarget
@@ -18,6 +20,7 @@ import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamUsageRepository
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 /**
@@ -37,6 +40,7 @@ class PrepareWearStreamPlaybackUseCase @Inject constructor(
     private val preferencesRepository: WearPreferencesRepository,
     private val passStore: WearBroadcastPassStore,
     private val resolver: WearBroadcastPlaybackResolver,
+    private val watchStart: WatchWearBroadcastStartUseCase,
 ) {
 
     /**
@@ -85,7 +89,11 @@ class PrepareWearStreamPlaybackUseCase @Inject constructor(
      */
     private suspend fun prepareBroadcast(channel: WearStreamChannel): WearStreamPlaybackTarget {
         val stored = passStore.get(channel.url)
-        val playback = stored?.let {
+        // S4692, LIVE-BROADCAST item S: the relay bridge opens without asking the relay, so a link whose broadcast
+        // has not started would hand the player a 404; one look at the relay decides between waiting and playing.
+        val waiting = WearBroadcastEndpoints.pendingUntilMs(stored?.descriptor) != null &&
+            watchStart(channel.url).first() != WearBroadcastStartState.Started
+        val playback = stored?.takeUnless { waiting }?.let {
             resolver.resolve(
                 WearDirectoryBroadcast(
                     broadcastId = it.broadcastId,
@@ -98,7 +106,7 @@ class PrepareWearStreamPlaybackUseCase @Inject constructor(
             )
         }
         if (playback !is WearBroadcastPlayback.Playable) {
-            return WearStreamPlaybackTarget(fileId = 0L, isVideo = false, unplayable = true)
+            return WearStreamPlaybackTarget(fileId = 0L, isVideo = false, unplayable = true, waitingForStart = waiting)
         }
         val mediaFile = channel.copy(url = playback.url).toWearMediaFile(playback.isVideo)
         recordHistory(channel)

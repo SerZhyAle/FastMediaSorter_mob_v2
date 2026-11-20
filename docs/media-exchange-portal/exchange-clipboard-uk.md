@@ -23,7 +23,7 @@ permalink: /docs/media-exchange-portal/exchange-clipboard-uk.html
 - **Годинник:** власного буфера, який можна прочитати, у годинника немає, тому він надсилає через **Надіслати в..** - файл, картинку або голосовий запис. Отримане значення зберігається на годиннику й відкривається у вбудованому плеєрі застосунку годинника: текст, PDF, картинка, анімація, звук або відео.
 - **Windows:** дві кнопки в головному вікні Share Manager і ярлики на робочому столі. Бере участь і CyrFlip - невелика програма для Windows від того самого розробника.
 
-Надсилають і отримують FastMediaSorter на телефоні й годиннику, Fast Media Sorter & Sharing for Windows та CyrFlip. STREAMS Player і StreamsPlayer_mob не беруть участі.
+Надсилають і отримують Fast Media Sorter & Organizer на телефоні й годиннику, Fast Media Sorter & Sharing for Windows та CyrFlip. STREAMS Player і StreamsPlayer_mob не беруть участі.
 
 ## Правила {#rules}
 

@@ -17,6 +17,8 @@ import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferRequest
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferSource
 import com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperation
 import com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperationQueue
+import com.sza.fastmediasorter.util.deleteFilesConfirmText
+import com.sza.fastmediasorter.util.deleteGoesToTrash
 import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.utils.SafHelper
 import kotlinx.coroutines.CoroutineScope
@@ -367,9 +369,12 @@ class FileOperationsHandler(
                     Timber.w("FileOperationsHandler.deleteCurrentFile: Activity is finishing/destroyed, skipping confirm dialog")
                     return@launch
                 }
+                Timber.d("S4770: player delete confirm shown")
+                val toTrash = deleteGoesToTrash(settings.useTrash, listOf(currentFile.path))
+                Timber.d("S4771: player delete confirm toTrash=$toTrash")
                 MaterialAlertDialogBuilder(context, com.sza.fastmediasorter.R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
                     .setTitle(com.sza.fastmediasorter.R.string.confirm_delete_title)
-                    .setMessage(context.getString(com.sza.fastmediasorter.R.string.confirm_delete_message, 1))
+                    .setMessage(context.resources.deleteFilesConfirmText(1, toTrash))
                     .setPositiveButton(com.sza.fastmediasorter.R.string.delete) { _, _ -> performDelete() }
                     .setNegativeButton(com.sza.fastmediasorter.R.string.cancel, null)
                     .showBoundToHost(context)

@@ -3,7 +3,7 @@ layout: doc
 title: "Privacy Policy for Fast Media Sorter & Organizer"
 permalink: /docs/PRIVACY_POLICY.html
 ---
-<sub class="doc-stamp">26.10.18 20:20</sub>
+<sub class="doc-stamp">26.11.19 23:39</sub>
 
 # Privacy Policy for Fast Media Sorter & Organizer {#privacy-policy-for-fastmediasorter}
 
@@ -401,7 +401,7 @@ The app and its website are separate, and everything above is about the app. The
 - **fonts.googleapis.com** and **fonts.gstatic.com** (Google Fonts), on every page: they deliver the typefaces the pages are set in.
 - **pagead2.googlesyndication.com** (Google AdSense), on the landing pages only - the home page and its language versions: it shows an advertisement. While the page runs, the ad script contacts further Google addresses on its own: **ep1.adtrafficquality.google** and **ep2.adtrafficquality.google** check the ad traffic for invalid clicks and impressions, and **fundingchoicesmessages.google.com** shows the consent message for advertising cookies and keeps your choice. They receive the same request data, the page address and Google's advertising cookies - the consent address also receives the choice you make. The ad script may use cookies. Third-party vendors, including Google, use cookies to serve ads based on your earlier visits to this and other websites. You can turn off personalised advertising in [Google Ads Settings](https://adssettings.google.com), and [How Google uses information from sites that use its services](https://policies.google.com/technologies/partner-sites) explains the rest. No other page carries advertising: the documentation, the install-trust pages and this privacy page never load it.
 - **api.github.com** (GitHub), on the landing and sideload pages: the page asks it for the list of published releases, so the download buttons point at the latest build.
-- **img.shields.io**, **gitlab.com** and **raw.githubusercontent.com**, on the README pages: they serve the version and licence badges, the IzzyOnDroid badge and the GitHub Store badge.
+- **img.shields.io** and **raw.githubusercontent.com**, on the README pages: they serve the version and licence badges and the GitHub Store badge.
 
 GitHub Pages, as the host, receives every page request ([GitHub Privacy Statement](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement)). The website runs no analytics or tracking script of its own. It keeps two values in your browser - the theme and the language you picked - and they never leave it.
 
@@ -435,7 +435,7 @@ Continued use after changes constitutes acceptance.
 Fast Media Sorter & Organizer is open source. Review our code:
 
 - **Repository**: <https://github.com/SerZhyAle/FastMediaSorter_mob_v2>
-- **License**: [Project License]
+- **License**: [Apache License 2.0](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/LICENSE)
 
 ## Contact
 

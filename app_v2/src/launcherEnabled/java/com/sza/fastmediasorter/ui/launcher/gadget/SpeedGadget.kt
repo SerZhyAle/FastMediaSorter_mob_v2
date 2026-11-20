@@ -21,6 +21,7 @@ import com.sza.fastmediasorter.domain.usecase.sensors.ObserveMotionUseCase
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.combine
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -78,6 +79,7 @@ private class SpeedGadgetView(
             return
         }
         showMessage(R.string.launcher_gadget_sensor_no_fix)
+        Timber.d("S4797: speed tile active, value floor 8dp")
         // S2795: the setting is folded into the same stream as the reading, so flipping the unit system
         // redraws the tile at once instead of waiting for the next position fix, which may be minutes away.
         combine(observeMotion(), unitSystemProvider.current) { reading, system ->

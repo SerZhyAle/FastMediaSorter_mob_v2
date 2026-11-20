@@ -155,10 +155,16 @@ internal fun VideoPlayerManager.recoverFromStreamStall(reason: String) {
  * Hard-fail tail shared by budget exhaustion and the first-connection bound, so both reach the
  * unavailable dialog through one callback sequence. It never touches the recovery window: a stream
  * that has not reached ready since its prepare spends no watchdog recovery (STREAM-BANK 2.6).
+ *
+ * The player is stopped here because the watchdog only cancels its own timer: a connect still in flight
+ * would later fail into `onPlayerError`, whose ladder re-prepares behind the dialog and re-arms this
+ * bound on every new BUFFERING. A Retry from the dialog builds a fresh player in `playStreamVideo`.
  */
 private fun VideoPlayerManager.surfaceStreamStallFailure(message: String) {
     cancelStreamStallWatchdog()
     streamWatchdogReconnecting = false
+    Timber.d("S4760: stall failure stops the player before the unavailable dialog")
+    exoPlayer?.stop()
     playerCallback.onBuffering(false)
     playerCallback.onStreamWaitPhase(null)
     playerCallback.onPlaybackError(

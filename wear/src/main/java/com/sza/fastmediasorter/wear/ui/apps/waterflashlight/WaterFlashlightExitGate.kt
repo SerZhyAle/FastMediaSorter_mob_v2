@@ -8,7 +8,10 @@ package com.sza.fastmediasorter.wear.ui.apps.waterflashlight
  * wet glass reaches the app as a single back, and a button squeezed by a swimming stroke as a single
  * short press, so one event cannot be told from the owner's. Two shapes can be:
  *
- * - a key HELD past [EXIT_HOLD_MS], for a watch whose button reaches the app at all;
+ * - a key HELD for at least [EXIT_HOLD_MS] by the caller's clock, for a watch whose button reaches the
+ *   app at all. The platform's own long-press verdict is deliberately not read: its timeout is shorter
+ *   than [EXIT_HOLD_MS], and a hold the wet wrist can produce is what the threshold exists to refuse
+ *   (`INPUT-PARITY` section 3.3 pins 1500 ms);
  * - a STREAK of [STREAK_PRESSES_TO_LEAVE] single events inside [STREAK_WINDOW_MS] - backs, or key
  *   releases whose press never arrived.
  *
@@ -24,7 +27,6 @@ class WaterFlashlightExitGate {
 
     private var pressedKeyCode: Long? = null
     private var pressedAtMs = 0L
-    private var longPressSeen = false
     private var streakPresses = 0
     private var streakStartMs = 0L
 
@@ -32,31 +34,21 @@ class WaterFlashlightExitGate {
      * A key going down. While a key is held the platform repeats this event, so only the first one
      * starts the clock - re-stamping on every repeat would make a held key look freshly pressed and no
      * hold could ever reach the threshold.
-     *
-     * [longPress] is the platform's own verdict (`FLAG_LONG_PRESS`, or a repeat of the same key). It
-     * ends the light on its own, so a watch whose event timestamps disagree with the wall clock still
-     * has a way out.
      */
-    fun onKeyDown(keyCode: Long, nowMs: Long, longPress: Boolean = false) {
+    fun onKeyDown(keyCode: Long, nowMs: Long) {
         if (pressedKeyCode != keyCode) {
             pressedKeyCode = keyCode
             pressedAtMs = nowMs
-            longPressSeen = false
-        }
-        if (longPress) {
-            longPressSeen = true
         }
     }
 
     /** True when this release is a deliberate exit. */
     fun onKeyUp(keyCode: Long, nowMs: Long): Boolean {
         val pressedAt = pressedAtMs.takeIf { pressedKeyCode == keyCode }
-        val heldLong = longPressSeen
         pressedKeyCode = null
-        longPressSeen = false
         if (pressedAt != null) {
             streakPresses = 0
-            return heldLong || nowMs - pressedAt >= EXIT_HOLD_MS
+            return nowMs - pressedAt >= EXIT_HOLD_MS
         }
         return countStreakPress(nowMs)
     }

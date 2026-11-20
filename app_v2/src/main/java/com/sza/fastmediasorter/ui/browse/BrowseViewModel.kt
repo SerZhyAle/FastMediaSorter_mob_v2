@@ -397,19 +397,15 @@ class BrowseViewModel @Inject constructor(
 
     // --- Sort / Filter (delegated to BrowseSortFilterManager) ---
     private val sortFilterManager = com.sza.fastmediasorter.ui.browse.managers.BrowseSortFilterManager(
-        context = context,
         updateResourceUseCase = contentAuthoringUseCases.updateResourceUseCase,
         getResourcesUseCase = contentDiscovery.getResourcesUseCase,
-        getMediaFilesUseCase = contentDiscovery.getMediaFilesUseCase,
         scope = viewModelScope,
         ioDispatcher = ioDispatcher,
         stateFlow = state,
         updateState = { update -> updateState(update) },
-        sendEvent = { event -> sendEvent(event) },
         setLoading = { isLoading -> setLoading(isLoading) },
+        isLoading = { loading.value },
         loadMediaFiles = { loadMediaFiles() },
-        getFriendlyErrorMessage = { throwable -> getFriendlyBrowseErrorMessage(throwable) },
-        getSettings = { getSettings() },
         fileListManager = fileListManager,
         resourceId = resourceId,
         paginationThreshold = PAGINATION_THRESHOLD
@@ -478,6 +474,7 @@ class BrowseViewModel @Inject constructor(
         },
         onHandleLoadingError = { resource, e -> auxManager.handleLoadingError(resource, e) },
         schedulePlayerWarmup = { files -> auxManager.schedulePlayerWarmupIfEligible(files) },
+        filterForDisplay = { files -> sortFilterManager.filterForDisplay(files) },
         updateResourceMetadata = { resource, fileCount, subfolderCount ->
             val persisted = metadataManager.updateMetadata(resource, fileCount, subfolderCount)
             // S1001: merge the freshly persisted stats into the in-memory resource. Without this,

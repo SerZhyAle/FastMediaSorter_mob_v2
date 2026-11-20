@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
+import com.sza.fastmediasorter.ui.common.widget.MaxHeightLinearLayout
 import timber.log.Timber
 
 /**
@@ -24,7 +25,12 @@ import timber.log.Timber
  * S4626: both headers are [CollapsibleSectionHeader]s registered with the shared
  * [CollapsibleSectionsManager], so the marker, the whole-header activation and the remembered state are the
  * widget's. Opening or closing one section never moves the other (COLLAPSIBLE-GROUP section 2 rule 3);
- * the sections share the height by weight, so an open section takes what a closed one leaves.
+ * an open section takes what a closed one leaves.
+ *
+ * S4751: with both sections open the pinned one is as tall as its rows, up to [PINNED_MAX_HEIGHT_FRACTION] of
+ * the height it is offered, and the main section takes the rest - a fixed share left an empty block under a
+ * single pinned row. With the main section closed the pinned one fills the screen, so a long pinned list still
+ * uses the space the closed header leaves.
  *
  * A closed section drops to `wrap_content` (header only) with weight 0. The main header is a wrapper over
  * a single topic while neither the pinned section nor a sibling section is shown, so it is hidden and the
@@ -33,7 +39,7 @@ import timber.log.Timber
 @UnstableApi
 class StreamsSectionsManager(
     sections: CollapsibleSectionsManager,
-    private val pinnedSection: View,
+    private val pinnedSection: MaxHeightLinearLayout,
     pinnedHeader: CollapsibleSectionHeader,
     pinnedBody: View,
     private val mainSection: View,
@@ -106,17 +112,31 @@ class StreamsSectionsManager(
 
     private fun applySectionSizing() {
         Timber.d("S4626: streams sizing pinned=$pinnedExpanded main=$mainExpanded sibling=$siblingTopicVisible")
-        setSectionOpen(pinnedSection, pinnedExpanded, WEIGHT_FILL)
         val mainOpen = !hasSeveralTopics() || mainExpanded
-        val mainWeight = if (pinnedSection.isVisible && pinnedExpanded) WEIGHT_MAIN else WEIGHT_FILL
-        setSectionOpen(mainSection, mainOpen, mainWeight)
+        // The pinned body keeps weight 1 inside its section, so under a cap it shrinks to its rows and in a
+        // fill section it stretches over the whole section.
+        when {
+            !pinnedExpanded -> setPinnedShape(fill = false, capFraction = NO_CAP)
+            mainOpen -> setPinnedShape(fill = false, capFraction = PINNED_MAX_HEIGHT_FRACTION)
+            else -> setPinnedShape(fill = true, capFraction = NO_CAP)
+        }
+        setSectionOpen(mainSection, mainOpen)
     }
 
-    private fun setSectionOpen(section: View, open: Boolean, openWeight: Float) {
+    private fun setPinnedShape(fill: Boolean, capFraction: Float) {
+        Timber.d("S4751: pinned section shape fill=$fill capFraction=$capFraction")
+        pinnedSection.maxHeightFraction = capFraction
+        val lp = pinnedSection.layoutParams as? LinearLayout.LayoutParams ?: return
+        lp.height = if (fill) 0 else LinearLayout.LayoutParams.WRAP_CONTENT
+        lp.weight = if (fill) WEIGHT_FILL else WEIGHT_NONE
+        pinnedSection.layoutParams = lp
+    }
+
+    private fun setSectionOpen(section: View, open: Boolean) {
         val lp = section.layoutParams as? LinearLayout.LayoutParams ?: return
         if (open) {
             lp.height = 0
-            lp.weight = openWeight
+            lp.weight = WEIGHT_FILL
         } else {
             lp.height = LinearLayout.LayoutParams.WRAP_CONTENT
             lp.weight = WEIGHT_NONE
@@ -128,10 +148,14 @@ class StreamsSectionsManager(
         const val KEY_PINNED = "streams__pinned"
         const val KEY_MAIN = "streams__main"
 
-        // Default open split: pinned gets 1 share, main gets 2 (main larger). A sole open section
-        // uses WEIGHT_FILL; a closed section uses WEIGHT_NONE (wrap to its header).
+        // An open section that fills the remaining height uses WEIGHT_FILL; a closed or wrapped section uses
+        // WEIGHT_NONE (its own content height).
         const val WEIGHT_FILL = 1f
-        const val WEIGHT_MAIN = 2f
         const val WEIGHT_NONE = 0f
+
+        // The pinned section never takes more than this share of the height it is offered, which is the third
+        // the former 1:2 weight split gave it; the main section keeps the rest.
+        const val PINNED_MAX_HEIGHT_FRACTION = 1f / 3f
+        const val NO_CAP = 0f
     }
 }

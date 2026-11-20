@@ -50,7 +50,7 @@ class ExchangeReceiverControlStreams @Inject constructor(
 
     private val mutableEvents = MutableSharedFlow<ExchangeControlEvent>(extraBufferCapacity = EVENT_BUFFER)
 
-    /** Every `cast-offer` and `cast-stop` read on one of these streams or on a lent one. */
+    /** Every `cast-offer`, `cast-stop` and `command-request` read on one of these streams or on a lent one. */
     val events: SharedFlow<ExchangeControlEvent> = mutableEvents.asSharedFlow()
 
     private val sessions = ConcurrentHashMap<String, DeviceExchangeSession>()
@@ -73,6 +73,10 @@ class ExchangeReceiverControlStreams @Inject constructor(
     /** Sends on the stream of [identity], a lent one first; false when there is none or the write failed. */
     fun send(identity: String, envelope: DeviceExchangeEnvelope): Boolean =
         (lent[identity] ?: sessions[identity])?.let { sendQuietly(it, envelope) } ?: false
+
+    /** Whether the stream [send] would use for [identity] was welcomed with `command` and `sealed` (item GC). */
+    fun carriesCommands(identity: String): Boolean =
+        DeviceExchangeAccountEntry.carriesCommands((lent[identity] ?: sessions[identity])?.welcome?.features)
 
     /**
      * [session] is [entry]'s control stream for now: this entry's own stream steps aside without a `bye`, because
@@ -265,6 +269,7 @@ class ExchangeReceiverControlStreams @Inject constructor(
             DeviceExchangeEnvelope.TYPE_CAST_STOP,
             ExchangeNotesEnvelopes.TYPE_NOTES_CHANGED,
             DeviceExchangeEnvelope.TYPE_WELCOME,
+            DeviceExchangeEnvelope.TYPE_COMMAND_REQUEST,
         )
         val KEEPALIVE = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_KEEPALIVE)
         val BYE = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_BYE)

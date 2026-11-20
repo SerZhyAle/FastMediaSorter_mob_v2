@@ -3,7 +3,7 @@ layout: doc
 title: "Политика конфиденциальности Fast Media Sorter & Organizer"
 permalink: /docs/PRIVACY_POLICY-ru.html
 ---
-<sub class="doc-stamp">26.10.18 20:21</sub>
+<sub class="doc-stamp">26.11.19 23:39</sub>
 
 <a id="политика-конфиденциальности-fastmediasorter"></a>
 
@@ -407,7 +407,7 @@ Fast Media Sorter & Organizer доступен глобально. Вся обр
 - **fonts.googleapis.com** и **fonts.gstatic.com** (Google Fonts), на каждой странице: отдают шрифты, которыми набраны страницы.
 - **pagead2.googlesyndication.com** (Google AdSense), только на страницах лендинга - главной и её языковых версиях: показывает рекламу. Пока страница открыта, рекламный скрипт сам обращается к другим адресам Google: **ep1.adtrafficquality.google** и **ep2.adtrafficquality.google** проверяют рекламный трафик на недействительные клики и показы, а **fundingchoicesmessages.google.com** показывает запрос согласия на рекламные cookie и запоминает ваш выбор. Они получают те же данные запроса, адрес страницы и рекламные cookie Google, а адрес согласия - ещё и сделанный вами выбор. Рекламный скрипт может использовать cookie. Сторонние поставщики, в том числе Google, используют cookie, чтобы показывать рекламу с учётом ваших прошлых посещений этого и других сайтов. Персонализированную рекламу можно отключить в [настройках рекламы Google](https://adssettings.google.com), а остальное объясняет страница [Как Google использует информацию с сайтов, которые пользуются его сервисами](https://policies.google.com/technologies/partner-sites). Других страниц с рекламой нет: документация, страницы о доверии к установке и эта страница конфиденциальности её никогда не загружают.
 - **api.github.com** (GitHub), на страницах лендинга и страницах установки вне магазина: страница запрашивает у него список опубликованных релизов, чтобы кнопки загрузки вели на последнюю сборку.
-- **img.shields.io**, **gitlab.com** и **raw.githubusercontent.com**, на страницах README: отдают значки версии и лицензии, значок IzzyOnDroid и значок GitHub Store.
+- **img.shields.io** и **raw.githubusercontent.com**, на страницах README: отдают значки версии и лицензии и значок GitHub Store.
 
 GitHub Pages как хостинг получает каждый запрос страницы ([заявление GitHub о конфиденциальности](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement)). Своей аналитики и скриптов отслеживания на сайте нет. Он хранит в вашем браузере два значения - выбранные тему и язык, - и они никуда из него не уходят.
 
@@ -441,7 +441,7 @@ Fast Media Sorter & Organizer не собирает намеренно инфо�
 Fast Media Sorter & Organizer имеет открытый исходный код. Изучите наш код:
 
 - **Репозиторий**: <https://github.com/SerZhyAle/FastMediaSorter_mob_v2>
-- **Лицензия**: [Лицензия проекта]
+- **Лицензия**: [Apache License 2.0](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/LICENSE)
 
 ## Контакты
 

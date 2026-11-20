@@ -54,7 +54,7 @@
     <string name="export_logs_failed">Failed to export logs</string>
     <string name="export_logs_no_files">No log files available for export</string>
     <string name="export_logs_no_share_target">No app available to share log archive</string>
-    <string name="export_logs_subject">FastMediaSorter Debug Logs</string>
+    <string name="export_logs_subject">Fast Media Sorter &amp; Organizer Debug Logs</string>
     <string name="export_settings">Export All Settings to File</string>
     <string name="export_settings_confirm_message">Create an export file with current settings?</string>
     <string name="export_settings_confirm_title">Export settings</string>
@@ -76,6 +76,7 @@
     <string name="delete_confirmation">Delete files?</string>
     <string name="delete_failed">Could not delete the files.</string>
     <string name="delete_folder_confirm">Delete folder \"%1$s\" and all its contents? This cannot be undone.</string>
+    <string name="delete_folder_trash_confirm">Delete folder \"%1$s\" and all its contents? It moves to the trash instead of being erased.</string>
     <string name="delete_n_files_from_network_title">Delete %d files from network?</string>
     <string name="delete_n_folders_confirm">Delete %1$d folders and all their contents? This cannot be undone.</string>
     <string name="delete_old_files">Delete old files</string>

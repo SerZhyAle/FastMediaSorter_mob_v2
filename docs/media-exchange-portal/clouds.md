@@ -17,7 +17,7 @@ A cloud account is the simplest way to share media between your devices when the
 - **Dropbox** - signs in through Dropbox.
 - **OneDrive** - signs in with your Microsoft account.
 
-Each cloud appears in FastMediaSorter as a resource next to the local folders and network folders, so copying, moving and sorting work the same way across all of them.
+Each cloud appears in Fast Media Sorter & Organizer as a resource next to the local folders and network folders, so copying, moving and sorting work the same way across all of them.
 
 ## What else Google Drive carries
 

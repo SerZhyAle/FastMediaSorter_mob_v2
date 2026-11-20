@@ -14,9 +14,9 @@
             style="@style/Widget.FastMediaSorter.Toolbar.Flat"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:title="@string/notes_title"
             app:navigationIcon="@drawable/ic_arrow_back"
-            app:stbTitleIcon="@drawable/ic_send_note" />
+            app:stbTitleIcon="@drawable/ic_send_note"
+            app:title="@string/notes_title" />
 
         <androidx.appcompat.widget.SearchView
             android:id="@+id/notesSearchView"
@@ -63,6 +63,7 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/margin_large"
         android:focusable="true"
+        android:focusedByDefault="true"
         android:text="@string/notes_new"
         app:icon="@drawable/ic_edit" />
 

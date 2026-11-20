@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.data.broadcast.auth.BroadcastCredentialRegistry
 import com.sza.fastmediasorter.data.broadcast.exchange.ExchangeBroadcastAnnouncer
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.domain.repository.BroadcastPasswordStore
+import com.sza.fastmediasorter.domain.repository.BroadcastPendingStore
 import com.sza.fastmediasorter.testing.fakes.FakeBroadcastSecretBox
 import io.mockk.coEvery
 import io.mockk.every
@@ -31,7 +32,8 @@ class BuildWatchBroadcastHandoffUseCaseTest {
     private val passwordStore: BroadcastPasswordStore = mockk()
     private val announcer: ExchangeBroadcastAnnouncer = mockk()
     private val registry: BroadcastCredentialRegistry = mockk()
-    private val useCase = BuildWatchBroadcastHandoffUseCase(passwordStore, announcer, registry, Gson())
+    private val pendingStore: BroadcastPendingStore = mockk()
+    private val useCase = BuildWatchBroadcastHandoffUseCase(passwordStore, announcer, registry, pendingStore, Gson())
 
     private val lan = BroadcastEndpointDto(url = "http://192.168.1.20:8080/live", transport = "HTTP")
     private val relay = BroadcastEndpointDto(url = "https://relay.example/v2/b/b42/stream", transport = "RELAY")
@@ -41,6 +43,7 @@ class BuildWatchBroadcastHandoffUseCaseTest {
     @Before
     fun installBox() {
         BroadcastEndpointCodec.secretBox = box
+        coEvery { pendingStore.untilMs(any()) } returns null
     }
 
     @After
@@ -118,6 +121,29 @@ class BuildWatchBroadcastHandoffUseCaseTest {
         assertNull(result.descriptor.get("credentials"))
     }
 
+    // S4692, LIVE-BROADCAST item S: a row waiting for its start carries `pending.until` to the watch.
+
+    @Test
+    fun `a waiting relay row hands the watch its pending until`() = runBlocking {
+        coEvery { passwordStore.get("s1") } returns null
+        coEvery { pendingStore.untilMs("s1") } returns UNTIL_MS
+
+        val result = useCase.forStoredChannel(row(listOf(relay)))
+
+        result as BuildWatchBroadcastHandoffUseCase.Result.Handoff
+        assertEquals(UNTIL, result.descriptor.getAsJsonObject("pending").get("until").asString)
+    }
+
+    @Test
+    fun `a relay row that is not waiting hands no pending member`() = runBlocking {
+        coEvery { passwordStore.get("s1") } returns null
+
+        val result = useCase.forStoredChannel(row(listOf(relay)))
+
+        result as BuildWatchBroadcastHandoffUseCase.Result.Handoff
+        assertNull(result.descriptor.get("pending"))
+    }
+
     // S4675: a saved row keeps its relay key behind the device's box and still hands it to the watch.
 
     @Test
@@ -169,5 +195,7 @@ class BuildWatchBroadcastHandoffUseCaseTest {
 
     private companion object {
         const val GROUP_KEY = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        const val UNTIL = "2026-11-01T18:00:00Z"
+        const val UNTIL_MS = 1_793_556_000_000L
     }
 }

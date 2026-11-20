@@ -5,4 +5,5 @@
     <plurals name="archiving_n_files_from_folder_plural"><item quantity="one">%1$d Datei von %2$s wird archiviert</item><item quantity="other">%1$d Dateien von %2$s werden archiviert</item></plurals>
     <plurals name="moving_n_files_from_folder_plural"><item quantity="one">%1$d Datei wird von %2$s verschoben..</item><item quantity="other">%1$d Dateien werden von %2$s verschoben..</item></plurals>
     <plurals name="renaming_n_files_from_folder_plural"><item quantity="one">%1$d Datei wird von %2$s umbenannt..</item><item quantity="other">%1$d Dateien werden von %2$s umbenannt..</item></plurals>
+    <plurals name="delete_n_files_confirm_plural"><item quantity="one">%1$d Datei löschen? Diese Aktion kann nicht rückgängig gemacht werden.</item><item quantity="other">%1$d Dateien löschen? Diese Aktion kann nicht rückgängig gemacht werden.</item></plurals>
 </resources>

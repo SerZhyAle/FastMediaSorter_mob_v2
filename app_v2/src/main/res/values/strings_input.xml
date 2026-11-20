@@ -275,4 +275,10 @@
     <string name="kbm_help_player_audio_track">Next audio track</string>
     <string name="kbm_help_player_slideshow">Slideshow (S again: faster) / random slideshow</string>
     <string name="kbm_help_player_space">Play / pause a video; next file on a photo</string>
+    <string name="keybinding_label_playback_ab_loop">A-B Loop</string>
+    <string name="keybinding_label_navigation_file_grid">Thumbnail Grid</string>
+    <string name="keybinding_label_navigation_file_list">File List</string>
+    <string name="keybinding_label_navigation_file_number">Go to File</string>
+    <string name="keybinding_label_player_black_screen">Black Screen</string>
+    <string name="keybinding_label_sorting_create_text_note">Create Text Note</string>
 </resources>

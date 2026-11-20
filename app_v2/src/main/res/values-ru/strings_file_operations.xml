@@ -54,7 +54,7 @@
     <string name="export_logs_failed">Не удалось экспортировать логи</string>
     <string name="export_logs_no_files">Нет файлов логов для экспорта</string>
     <string name="export_logs_no_share_target">Нет приложения для отправки архива логов</string>
-    <string name="export_logs_subject">Отладочные логи FastMediaSorter</string>
+    <string name="export_logs_subject">Отладочные логи Fast Media Sorter &amp; Organizer</string>
     <string name="export_settings">Выгрузить все настройки в файл</string>
     <string name="export_settings_confirm_message">Создать файл экспорта с текущими настройками?</string>
     <string name="export_settings_confirm_title">Экспорт настроек</string>
@@ -76,6 +76,7 @@
     <string name="delete_confirmation">Удалить файлы?</string>
     <string name="delete_failed">Не получилось удалить файлы.</string>
     <string name="delete_folder_confirm">Удалить папку «%1$s» и всё её содержимое? Это нельзя отменить.</string>
+    <string name="delete_folder_trash_confirm">Удалить папку «%1$s» и всё её содержимое? Она будет перемещена в корзину, а не удалена окончательно.</string>
     <string name="delete_n_files_from_network_title">Удалить %d файлов из сети?</string>
     <string name="delete_n_folders_confirm">Удалить %1$d папок и весь их контент? Это нельзя отменить.</string>
     <string name="delete_old_files">Удалить старые файлы</string>

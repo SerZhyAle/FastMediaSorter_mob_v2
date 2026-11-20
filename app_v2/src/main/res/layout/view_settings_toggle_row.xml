@@ -38,7 +38,7 @@
         android:orientation="vertical">
 
         <!-- Title line: title + helper inline (helper sits next to the title, NOT at the right edge of the row). -->
-        <LinearLayout
+        <com.sza.fastmediasorter.ui.common.widget.SettingsTitleLine
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
@@ -71,7 +71,7 @@
                 android:layout_height="1dp"
                 android:layout_weight="1" />
 
-        </LinearLayout>
+        </com.sza.fastmediasorter.ui.common.widget.SettingsTitleLine>
 
         <TextView
             android:id="@+id/str_subtitle"

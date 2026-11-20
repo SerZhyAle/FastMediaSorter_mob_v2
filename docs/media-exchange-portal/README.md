@@ -11,7 +11,7 @@ each in English, Russian (`-ru`) and Ukrainian (`-uk`); they embed the pictures 
 page has its owner in `scripts/docs/portal-sections.json`.
 
 This folder holds the illustrations for the shared portal about media exchange and live broadcasting.
-Every product that takes part - FastMediaSorter for Android (phone, watch, TV, VR), Fast Media Sorter for
+Every product that takes part - Fast Media Sorter & Organizer for Android (phone, watch, TV, VR), Fast Media Sorter for
 Windows and StreamsPlayer - links to that one portal. This file is the picture brief: what each image
 shows, where it came from, what it may and may not claim, and where it belongs on a page.
 

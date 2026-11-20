@@ -512,6 +512,9 @@ class PlayerViewModel @Inject constructor(
      */
     fun syncAudioServiceIndex(serviceIndex: Int) = navigationCoordinator.syncAudioServiceIndex(serviceIndex)
 
+    /** Path-keyed variant for the audio-only service queue, whose index differs from [PlayerState.files]. */
+    fun syncAudioServicePath(sourcePath: String) = navigationCoordinator.syncAudioServicePath(sourcePath)
+
     fun jumpToIndex(index: Int, manual: Boolean = false) = navigationCoordinator.jumpToIndex(index, manual)
 
     fun nextFile(skipDocuments: Boolean = false, manual: Boolean = false) = navigationCoordinator.nextFile(skipDocuments, manual)

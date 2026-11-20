@@ -3,9 +3,11 @@ layout: doc
 title: "Fast Media Sorter & Organizer"
 permalink: /docs/README-hi.html
 ---
-<sub class="doc-stamp">26.10.15 19:27</sub>
+<sub class="doc-stamp">26.11.19 23:39</sub>
 
 <div lang="hi" dir="ltr" markdown="1">
+
+<img src="../assets/identity/out/readme-head-128.png" width="64" height="64" alt="">
 
 # Fast Media Sorter & Organizer 🚀 {#fastmediasorter-v2-}
 
@@ -13,7 +15,7 @@ permalink: /docs/README-hi.html
 ![Android](https://img.shields.io/badge/Platform-Android-green?style=flat-square&logo=android)
 ![License](https://img.shields.io/badge/License-Apache_2.0-blue?style=flat-square&logo=apache)
 
-**📦 डाउनलोड:** [<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" height="56">](https://apt.izzysoft.de/fdroid/index/apk/com.sza.fastmediasorter)
+**📦 डाउनलोड:** [GitHub Releases](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest)
 
 सीधे APK इंस्टॉल कर रहे हैं? Android एक ऐसे पैकेज के बारे में चेतावनी देता है जिसे उसने पहले नहीं देखा - [यह चेतावनी क्यों दिखती है, और क्या टैप करें](INSTALL_TRUST.md).
 

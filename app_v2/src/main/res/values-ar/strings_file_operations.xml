@@ -56,7 +56,7 @@
     <string name="export_logs_failed">فشل تصدير السجلات</string>
     <string name="export_logs_no_files">لا توجد ملفات سجل متاحة للتصدير</string>
     <string name="export_logs_no_share_target">لا يوجد تطبيق متاح لمشاركة أرشيف السجلات</string>
-    <string name="export_logs_subject">سجلات تصحيح أخطاء FastMediaSorter</string>
+    <string name="export_logs_subject">سجلات تصحيح أخطاء Fast Media Sorter &amp; Organizer</string>
     <string name="export_settings">تصدير جميع الإعدادات إلى ملف</string>
     <string name="export_settings_confirm_message">هل تريد إنشاء ملف تصدير بالإعدادات الحالية؟</string>
     <string name="export_settings_confirm_title">إعدادات التصدير</string>

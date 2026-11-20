@@ -384,4 +384,19 @@
     <string name="exchange_failure_bad_credentials_admin">Пароль администратора неверен. Введите его ещё раз - он задан на компьютере сервера.</string>
     <string name="exchange_failure_admin_session_ended">Сеанс администрирования завершён. Войдите снова, чтобы продолжить.</string>
     <string name="exchange_failure_e2e_missing_peer">Устройство, на котором это содержимое, пока не умеет передавать его защищённым, поэтому через сервер от него ничего не приходит.</string>
+    <string name="remote_command_consent_channel">Запросы с ваших устройств</string>
+    <string name="remote_command_consent_title">%1$s просит этот телефон</string>
+    <string name="remote_command_verb_playback_stop">Остановить звук, который играет</string>
+    <string name="remote_command_verb_cast_stop">Остановить показ на экране</string>
+    <string name="remote_command_verb_broadcast_stop">Завершить прямую трансляцию</string>
+    <string name="remote_command_verb_broadcast_start">Начать подготовленную трансляцию: %1$s</string>
+    <string name="remote_command_mode_audio">только звук</string>
+    <string name="remote_command_mode_video_audio">изображение и звук</string>
+    <string name="remote_command_mode_video">только изображение</string>
+    <string name="remote_command_verb_quit">Закрыть приложение</string>
+    <string name="remote_command_verb_status">Сообщить, работает ли приложение</string>
+    <string name="remote_command_verb_version">Сообщить версию приложения</string>
+    <string name="remote_command_verb_commands">Перечислить команды, которые принимает телефон</string>
+    <string name="remote_command_consent_allow">Разрешить</string>
+    <string name="remote_command_consent_decline">Отклонить</string>
 </resources>

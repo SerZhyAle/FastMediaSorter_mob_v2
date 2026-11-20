@@ -56,7 +56,7 @@
     <string name="export_logs_failed">Fehler beim Exportieren der Protokolle</string>
     <string name="export_logs_no_files">Es sind keine Protokolldateien zum Export verfügbar.</string>
     <string name="export_logs_no_share_target">Es ist keine App zum Teilen des Protokollarchivs verfügbar.</string>
-    <string name="export_logs_subject">FastMediaSorter-Debug-Protokolle</string>
+    <string name="export_logs_subject">Debug-Protokolle von Fast Media Sorter &amp; Organizer</string>
     <string name="export_settings">Alle Einstellungen in Datei exportieren</string>
     <string name="export_settings_confirm_message">Eine Exportdatei mit den aktuellen Einstellungen erstellen?</string>
     <string name="export_settings_confirm_title">Exporteinstellungen</string>

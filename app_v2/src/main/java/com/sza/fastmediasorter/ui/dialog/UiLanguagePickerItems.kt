@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.core.util.UiLanguageCatalog
 import com.sza.fastmediasorter.ui.player.helpers.LanguageItem
 import com.sza.fastmediasorter.ui.player.helpers.TranslationLanguageCatalog
+import java.text.Collator
 import java.util.Locale
 
 /**
@@ -18,14 +19,26 @@ import java.util.Locale
 object UiLanguagePickerItems {
 
     /**
-     * Rows for the interface-language picker: "follow system" first, then every declared language.
+     * Rows for the interface-language picker: "follow system" first, then every declared language
+     * sorted by its name in [displayLocale].
      *
      * [displayLocale] is the language the app is currently showing, so each row reads as
      * "German (Deutsch)" while the app is English and "Немецкий (Deutsch)" while it is Russian.
      */
     fun build(context: Context, displayLocale: Locale = Locale.getDefault()): List<LanguageItem> {
-        val languages = UiLanguageCatalog.supportedTags.map { tag -> item(tag, displayLocale) }
+        val languages = sortedLanguageItems(UiLanguageCatalog.supportedTags, displayLocale)
         return listOf(followSystemItem(context)) + languages
+    }
+
+    /**
+     * Alphabetical by the name the row shows first. `locales_config.xml` is a declaration, not a
+     * presentation order, so the sort lives here and the catalog keeps its declaration order. A
+     * locale-aware collator keeps accented and non-Latin names in their own alphabet's order.
+     */
+    internal fun sortedLanguageItems(tags: List<String>, displayLocale: Locale): List<LanguageItem> {
+        val collator = Collator.getInstance(displayLocale)
+        return tags.map { tag -> item(tag, displayLocale) }
+            .sortedWith { left, right -> collator.compare(left.localizedName, right.localizedName) }
     }
 
     /** The row for a single tag, used to render the current value outside the dialog as well. */

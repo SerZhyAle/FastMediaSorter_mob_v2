@@ -62,4 +62,19 @@ class BoundedGridPopupManagerTest {
     fun `no columns - the share is the whole width rather than a division by zero`() {
         assertEquals(1000 - 32, BoundedGridPopupManager.resolveCellMaxWidth(1000, 0, 32))
     }
+
+    @Test
+    fun `cells reach past the safe width - the overflow is the excess including the end padding`() {
+        assertEquals(754 - 704, BoundedGridPopupManager.resolveOverflow(746, 8, 704))
+    }
+
+    @Test
+    fun `cells end exactly at the safe width - no overflow`() {
+        assertEquals(0, BoundedGridPopupManager.resolveOverflow(696, 8, 704))
+    }
+
+    @Test
+    fun `cells well inside the safe width - overflow never goes negative`() {
+        assertEquals(0, BoundedGridPopupManager.resolveOverflow(300, 8, 704))
+    }
 }

@@ -9,7 +9,7 @@ permalink: /docs/media-exchange-portal/phone-sharing.html
 
 # The phone as a server
 
-A phone can be the device that keeps the folders: FastMediaSorter turns it into a small server that shares the folders you picked in the ordinary way for network folders, called SFTP (the switch in the app is named **SFTP server**), and your other devices open them. This page is about the server itself - how it starts, how long it lasts and what it costs. Reaching it from outside is on [Folders through the exchange server](folders-exchange-server.html) and [Home network](home-network.html).
+A phone can be the device that keeps the folders: Fast Media Sorter & Organizer turns it into a small server that shares the folders you picked in the ordinary way for network folders, called SFTP (the switch in the app is named **SFTP server**), and your other devices open them. This page is about the server itself - how it starts, how long it lasts and what it costs. Reaching it from outside is on [Folders through the exchange server](folders-exchange-server.html) and [Home network](home-network.html).
 
 ![Four steps: switch on the SFTP server in Share from phone, add the folders, leave it running - it lasts until you switch it off and resumes whenever the app is shown - and mind the mobile data other devices use.](diagrams/steps-phone-sharing-en.svg)
 
@@ -31,7 +31,7 @@ A notification "SFTP server is on" stays up while it runs, with the address and 
 
 ## Launcher mode
 
-When FastMediaSorter is the phone's home screen, the app is shown on every return to the home screen, so sharing resumes by itself all day. The launcher exists in the Standard and noLegal editions, see [Editions](editions.html); **Exit launcher mode** returns the phone to its usual home screen.
+When Fast Media Sorter & Organizer is the phone's home screen, the app is shown on every return to the home screen, so sharing resumes by itself all day. The launcher exists in the Standard and noLegal editions, see [Editions](editions.html); **Exit launcher mode** returns the phone to its usual home screen.
 
 ## The Android 15 limit
 

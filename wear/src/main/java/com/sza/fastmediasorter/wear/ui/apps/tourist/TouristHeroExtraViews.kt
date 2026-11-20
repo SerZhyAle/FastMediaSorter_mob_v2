@@ -49,7 +49,7 @@ private fun heroValue(metric: TouristMetricType, state: WearTouristState, isMetr
         }
         TouristMetricType.GPS_ACCURACY -> state.gpsAccuracyMeters?.let {
             "${lengthValue(it.toDouble(), isMetric)} ${lengthUnit(isMetric)}"
-        } ?: stringResource(R.string.wear_tourist_no_fix)
+        } ?: stringResource(gpsMissingTextRes(state))
         TouristMetricType.LEVEL -> {
             val pitch = state.pitchDegrees
             val roll = state.rollDegrees

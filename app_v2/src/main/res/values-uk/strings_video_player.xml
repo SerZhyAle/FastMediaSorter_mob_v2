@@ -117,4 +117,7 @@
     <string name="player_action_unavailable">Ця дія недоступна для цього файлу.</string>
     <string name="player_audio_track_single">Інших звукових доріжок немає.</string>
     <string name="player_frame_backward">Попередній кадр</string>
+    <string name="playback_control_low_speed_mute_title">Повільне відтворення</string>
+    <string name="playback_control_low_speed_mute_message">На швидкості нижче 0.5x звук спотворюється. Вимкнути звук?</string>
+    <string name="playback_control_low_speed_mute_cancel">Залишити звук</string>
 </resources>

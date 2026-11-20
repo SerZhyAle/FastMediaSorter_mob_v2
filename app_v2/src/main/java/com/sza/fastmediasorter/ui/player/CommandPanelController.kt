@@ -339,8 +339,17 @@ class CommandPanelController(
     /** Update command availability based on state */
     fun updateCommandAvailability(state: PlayerViewModel.PlayerState) {
         availabilityUpdater.update(state)
-        // S4676: the editor's actions live only in this menu, so it must stay reachable while editing.
-        if (callback.isTextEditorOpen()) safeViews.btnOverflowMenu.isVisible = true
+        if (callback.isTextEditorOpen()) {
+            // The editor hides these itself when it opens; the pass above re-shows whatever the planner
+            // put on the bar, and the big-buttons sync it posts reads visibility only after this returns.
+            Timber.d("S4724: editor open, editor-owned bar buttons held hidden after the layout pass")
+            safeViews.btnEditTextCmd.isVisible = false
+            safeViews.btnCopyTextCmd.isVisible = false
+            safeViews.btnTranslateTextCmd.isVisible = false
+            safeViews.btnSearchTextCmd.isVisible = false
+            // S4676: the editor's actions live only in this menu, so it must stay reachable while editing.
+            safeViews.btnOverflowMenu.isVisible = true
+        }
     }
 
     /**

@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.29 05:03</sub>
+<sub class="doc-stamp">26.11.20 20:17</sub>
 
 # Pointer - `BUILD-EVIDENCE`
 
 | | |
 | --- | --- |
 | **Id** | `BUILD-EVIDENCE` |
-| **Version** | 0.11, draft. Owner: this product |
+| **Version** | 0.12, draft. Owner: this product |
 | **Home** | `automated-checks/README.md` section 5, in the shared contracts catalog |
 | **Role here** | owner |
 
@@ -18,6 +18,10 @@
 - A release artifact rebuilt outside the tested build states its binding to it: tests in the
   publishing job, or the tested tree equal to the tagged tree plus a version read back from the
   published artifact (rule 8).
+- One disclosed repeat of an automated end-to-end UI flow after a failed assertion or an execution error is not a test
+  retry in the sense of rule 5.3 (0.12, item D, S4650): the attempt count, both statuses and both logs are kept, a pass
+  on the repeat is marked flaky beside the verdict, and a final failure or an application crash is classified as before;
+  the ban on re-running a unit test to green is unchanged.
 
 ## Where it lives here
 

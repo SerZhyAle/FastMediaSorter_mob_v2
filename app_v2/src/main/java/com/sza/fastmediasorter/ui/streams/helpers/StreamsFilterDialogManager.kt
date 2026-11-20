@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.streams.helpers
 
+import android.view.View
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.core.os.ConfigurationCompat
@@ -73,6 +74,7 @@ class StreamsFilterDialogManager(
         binding.rowCollection.isVisible = state.collections.isNotEmpty()
         // A catalog without topics would open an empty picker, so the row is hidden rather than dead.
         binding.rowTopic.isVisible = state.facets.topics.isNotEmpty()
+        renderFacetAvailability(binding, state.facets)
         binding.toggleMediaKind.check(mediaKindButtonId(binding, mediaKind))
         binding.checkPinnedOnly.isChecked = pinnedOnly
 
@@ -146,6 +148,26 @@ class StreamsFilterDialogManager(
             binding.checkPinnedOnly.isChecked = false
             applyFilters()
         }.show()
+    }
+
+    /**
+     * Category, language and country share a two-column row, so hiding one would leave its neighbour at half
+     * width; a facet with nothing to pick dims and disables its row instead, because the picker closes itself
+     * when it has no options and the tap would read as dead.
+     */
+    private fun renderFacetAvailability(
+        binding: DialogStreamsFilterBinding,
+        facets: StreamsViewModel.StreamsFacets,
+    ) {
+        timber.log.Timber.d("S4758: streams filter facet rows follow their option lists")
+        setRowAvailable(binding.rowCategory, facets.categories.isNotEmpty())
+        setRowAvailable(binding.rowLanguage, facets.languages.isNotEmpty())
+        setRowAvailable(binding.rowCountry, facets.countries.isNotEmpty())
+    }
+
+    private fun setRowAvailable(row: View, available: Boolean) {
+        row.isEnabled = available
+        row.alpha = if (available) 1f else DISABLED_ROW_ALPHA
     }
 
     private fun openPicker(
@@ -254,6 +276,8 @@ class StreamsFilterDialogManager(
         }
 
     private companion object {
+        const val DISABLED_ROW_ALPHA = 0.38f
+
         const val KEY_COLLECTION = "streams_filter_collection_pick"
         const val KEY_CATEGORY = "streams_filter_category_pick"
         const val KEY_TOPIC = "streams_filter_topic_pick"

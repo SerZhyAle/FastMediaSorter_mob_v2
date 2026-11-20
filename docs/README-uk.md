@@ -4,7 +4,9 @@ title: "Fast Media Sorter & Organizer"
 permalink: /docs/README-uk.html
 ---
 
-<sub class="doc-stamp">26.11.19 01:00</sub>
+<sub class="doc-stamp">26.11.19 23:39</sub>
+
+<img src="../assets/identity/out/readme-head-128.png" width="64" height="64" alt="">
 
 # Fast Media Sorter & Organizer 🚀 {#fastmediasorter-v2-}
 
@@ -12,7 +14,7 @@ permalink: /docs/README-uk.html
 ![Android](https://img.shields.io/badge/Platform-Android-green?style=flat-square&logo=android)
 ![License](https://img.shields.io/badge/License-Apache_2.0-blue?style=flat-square&logo=apache)
 
-**📦 Завантажити:** [<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" height="56">](https://apt.izzysoft.de/fdroid/index/apk/com.sza.fastmediasorter)
+**📦 Завантажити:** [GitHub Releases](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest)
 
 Встановлюєте APK напряму? Android попереджає про пакет, який бачить уперше, - [чому з'являється попередження і що натискати](INSTALL_TRUST-uk.md).
 

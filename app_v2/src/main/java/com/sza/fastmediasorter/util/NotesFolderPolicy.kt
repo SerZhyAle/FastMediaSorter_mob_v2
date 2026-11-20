@@ -19,6 +19,12 @@ object NotesFolderPolicy {
     fun notesDirectory(): File =
         File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), NOTES_DIRECTORY_NAME)
 
+    /**
+     * S4717: whether [path] is the notes folder itself, compared the way [notesDirectory] builds it, so a
+     * trailing separator does not make the same folder look like another one.
+     */
+    fun isNotesDirectory(path: String): Boolean = File(path).path == notesDirectory().path
+
     fun ensureNotesDirectory(): Result<File> {
         val dir = notesDirectory()
         if (dir.isDirectory) return Result.success(dir)

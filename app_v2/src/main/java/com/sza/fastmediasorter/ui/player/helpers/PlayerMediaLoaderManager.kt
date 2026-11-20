@@ -151,8 +151,17 @@ class PlayerMediaLoaderManager(
                 reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK ||
                 reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT
             if (shouldSync) {
+                // The playlist queue holds audio only, so its index is not the index in the player's
+                // mixed file list; every playlist item carries its source path instead. Items without
+                // one (single-item stream/fallback playback) keep the index sync.
+                val sourcePath = mediaItem?.mediaMetadata?.extras
+                    ?.getString(AudioServiceController.EXTRA_SOURCE_PATH)
+                    ?.takeIf { it.isNotBlank() }
                 val newIndex = audioServiceController?.player?.currentMediaItemIndex ?: -1
-                if (newIndex >= 0) {
+                if (sourcePath != null) {
+                    Timber.d("PlayerMediaLoaderManager: media item transition reason=$reason → path=$sourcePath")
+                    viewModel.syncAudioServicePath(sourcePath)
+                } else if (newIndex >= 0) {
                     Timber.d("PlayerMediaLoaderManager: media item transition reason=$reason → serviceIndex=$newIndex")
                     viewModel.syncAudioServiceIndex(newIndex)
                 }
@@ -395,6 +404,7 @@ class PlayerMediaLoaderManager(
     /** Route audio playback through AudioPlaybackService. Local files: builds playlist from all local audio files. Network files (SMB/SFTP/FTP): pre-caches current file to local storage, then plays via service. Cloud files: pre-caches current file to local storage via CloudStorageClient, then plays via service. */
     private fun playAudioViaService(path: String) {
         val controller = audioServiceController ?: return
+        startedServiceAudioHere = true
         val resourceType = determineResourceType(path, null)
 
         if (resourceType == ResourceType.LOCAL) {
@@ -869,6 +879,23 @@ class PlayerMediaLoaderManager(
     private fun unbindServicePlaybackListener() {
         servicePlaybackPlayer?.removeListener(servicePlaybackListener)
         servicePlaybackPlayer = null
+    }
+
+    // Swiping on from a service-played track to an image or a document leaves the service playing, so the
+    // exit flow must key on "this session handed a track to the service", not on the current file type.
+    private var startedServiceAudioHere = false
+
+    /**
+     * Whether the background service still holds a track this player session started, whatever file is
+     * on screen now. Unlike [isServiceAudioActive] it stays true under an image or a document. Music
+     * started elsewhere (the now-playing bar only connects for status) is deliberately not counted.
+     */
+    val hasLiveServiceAudio: Boolean
+        get() = isServiceAudioActive || (startedServiceAudioHere && serviceHoldsLiveTrack())
+
+    private fun serviceHoldsLiveTrack(): Boolean {
+        val player = audioServiceController?.takeIf { it.isConnected }?.player
+        return player != null && player.mediaItemCount > 0 && player.playbackState != Player.STATE_IDLE
     }
 
     /** Whether audio is currently playing through the persistent playback service */

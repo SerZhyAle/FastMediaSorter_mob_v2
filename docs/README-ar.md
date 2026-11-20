@@ -3,9 +3,11 @@ layout: doc
 title: "Fast Media Sorter & Organizer"
 permalink: /docs/README-ar.html
 ---
-<sub class="doc-stamp">26.10.15 19:27</sub>
+<sub class="doc-stamp">26.11.19 23:39</sub>
 
 <div lang="ar" dir="rtl" markdown="1">
+
+<img src="../assets/identity/out/readme-head-128.png" width="64" height="64" alt="">
 
 # Fast Media Sorter & Organizer 🚀 {#fastmediasorter-v2-}
 
@@ -13,7 +15,7 @@ permalink: /docs/README-ar.html
 ![Android](https://img.shields.io/badge/Platform-Android-green?style=flat-square&logo=android)
 ![الترخيص](https://img.shields.io/badge/License-Apache_2.0-blue?style=flat-square&logo=apache)
 
-**📦 تنزيل:** [<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="احصل عليه على IzzyOnDroid" height="56">](https://apt.izzysoft.de/fdroid/index/apk/com.sza.fastmediasorter)
+**📦 تنزيل:** [GitHub Releases](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest)
 
 هل تُثبّت ملف APK مباشرة؟ يُحذّرك Android من حزمة لم يسبق له رؤيتها من قبل - [لماذا يظهر التحذير، وماذا تنقر](INSTALL_TRUST.md).
 

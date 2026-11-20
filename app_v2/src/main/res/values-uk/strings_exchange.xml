@@ -384,4 +384,19 @@
     <string name="exchange_failure_bad_credentials_admin">Пароль адміністратора неправильний. Введіть його ще раз - він заданий на комп\'ютері сервера.</string>
     <string name="exchange_failure_admin_session_ended">Сеанс адміністрування завершено. Увійдіть знову, щоб продовжити.</string>
     <string name="exchange_failure_e2e_missing_peer">Пристрій, на якому цей вміст, поки не вміє передавати його захищеним, тому через сервер від нього нічого не надходить.</string>
+    <string name="remote_command_consent_channel">Запити з ваших пристроїв</string>
+    <string name="remote_command_consent_title">%1$s просить цей телефон</string>
+    <string name="remote_command_verb_playback_stop">Зупинити звук, що грає</string>
+    <string name="remote_command_verb_cast_stop">Зупинити показ на екрані</string>
+    <string name="remote_command_verb_broadcast_stop">Завершити пряму трансляцію</string>
+    <string name="remote_command_verb_broadcast_start">Почати підготовлену трансляцію: %1$s</string>
+    <string name="remote_command_mode_audio">лише звук</string>
+    <string name="remote_command_mode_video_audio">зображення і звук</string>
+    <string name="remote_command_mode_video">лише зображення</string>
+    <string name="remote_command_verb_quit">Закрити застосунок</string>
+    <string name="remote_command_verb_status">Повідомити, чи працює застосунок</string>
+    <string name="remote_command_verb_version">Повідомити версію застосунку</string>
+    <string name="remote_command_verb_commands">Перелічити команди, які приймає телефон</string>
+    <string name="remote_command_consent_allow">Дозволити</string>
+    <string name="remote_command_consent_decline">Відхилити</string>
 </resources>

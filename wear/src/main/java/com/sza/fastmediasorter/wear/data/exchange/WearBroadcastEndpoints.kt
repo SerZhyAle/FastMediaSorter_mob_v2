@@ -8,6 +8,8 @@ import com.sza.fastmediasorter.data.security.e2e.E2eRelayRecords
 import timber.log.Timber
 import java.net.URI
 import java.net.URISyntaxException
+import java.time.Instant
+import java.time.format.DateTimeParseException
 
 /** One endpoint of a broadcast descriptor the watch can reach, in the producer's order (contract 7.7). */
 sealed interface WearBroadcastEndpoint {
@@ -76,6 +78,11 @@ object WearBroadcastEndpoints {
     private const val KEY_URL = "url"
     private const val KEY_AUTH = "auth"
     private const val KEY_CERT_FINGERPRINT = "certFingerprint"
+    private const val KEY_PENDING = "pending"
+    private const val KEY_UNTIL = "until"
+
+    /** A pending link whose `until` does not parse has no time left to wait, rather than none to wait for. */
+    private const val UNREADABLE_UNTIL_MS = 0L
 
     private val playableModes = setOf(MODE_AUDIO_ONLY, MODE_VIDEO_AUDIO, MODE_VIDEO_ONLY)
 
@@ -92,6 +99,22 @@ object WearBroadcastEndpoints {
     /** Item M: a descriptor with an `auth` object demands the challenge be answered on every endpoint. */
     fun isProtected(descriptor: JsonObject?): Boolean =
         descriptor?.get(KEY_AUTH)?.takeIf(JsonElement::isJsonObject) != null
+
+    /**
+     * S4692, LIVE-BROADCAST item S: the epoch millis of `pending.until` in [descriptor], or null for a descriptor
+     * that is not pending. A pending member with no readable instant reads as already expired.
+     */
+    fun pendingUntilMs(descriptor: JsonObject?): Long? {
+        val pending = descriptor?.get(KEY_PENDING)?.takeIf(JsonElement::isJsonObject)?.asJsonObject ?: return null
+        return pending.text(KEY_UNTIL)?.let(::instantMs) ?: UNREADABLE_UNTIL_MS
+    }
+
+    private fun instantMs(value: String): Long? = try {
+        Instant.parse(value.trim()).toEpochMilli()
+    } catch (e: DateTimeParseException) {
+        Timber.w("WearBroadcastEndpoints: pending.until is not an RFC 3339 instant - %s", e.javaClass.simpleName)
+        null
+    }
 
     /**
      * The playable endpoints of [descriptor] in the order given; [recordMode] is the fallback of an unmarked one.

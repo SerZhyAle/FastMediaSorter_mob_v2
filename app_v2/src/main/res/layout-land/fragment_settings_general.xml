@@ -12,7 +12,7 @@
 
             <TextView android:id="@+id/textDeviceStorageValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_tiny" android:text=".." android:textSize="@dimen/device_storage_text_size" android:textColor="@color/text_color_secondary" />
 
-            <ImageButton android:id="@+id/btnDeviceStorageRefresh" android:layout_width="@dimen/device_storage_button_size" android:layout_height="@dimen/device_storage_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/btn_refresh_storage" android:src="@drawable/ic_refresh" app:tint="@color/text_color_secondary" />
+            <ImageButton android:id="@+id/btnDeviceStorageRefresh" android:layout_width="@dimen/device_storage_button_size" android:layout_height="@dimen/device_storage_button_size" android:padding="@dimen/device_storage_button_padding" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/btn_refresh_storage" android:src="@drawable/ic_refresh" app:tint="@color/text_color_secondary" />
 
         </LinearLayout>
 

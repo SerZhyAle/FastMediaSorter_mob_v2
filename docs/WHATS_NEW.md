@@ -4,7 +4,7 @@ title: "What's New in Fast Media Sorter & Organizer"
 permalink: /docs/WHATS_NEW.html
 ---
 
-<sub class="doc-stamp">26.10.29 21:45</sub>
+<sub class="doc-stamp">26.11.19 23:39</sub>
 
 # What's New in Fast Media Sorter & Organizer {#whats-new-in-fastmediasorter-v2}
 
@@ -1534,4 +1534,4 @@ Note: the step-counter desktop tile ships only in the sideload build for now.
 
 ---
 
-*Previous versions: [Development Changelog](../dev/CHANGELOG.md)*
+*Previous versions: [Product history](PRODUCT_HISTORY.md)*

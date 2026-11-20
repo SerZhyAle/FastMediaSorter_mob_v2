@@ -146,6 +146,9 @@
          counter column is capped so a long count wraps instead of squeezing the name. -->
     <dimen name="resource_row_icon_size">32dp</dimen>
     <dimen name="resource_row_count_max_width">120dp</dimen>
+    <!-- S4792: with inline actions the right-hand cluster is up to six 48dp buttons plus the drag handle and the
+         capped counter; a narrower cell leaves tvResourceName a zero-width constraint. -->
+    <dimen name="resource_row_inline_min_cell_width">640dp</dimen>
 
     <!-- S3241: padding of the action-bar container (Widget.FastMediaSorter.Bar.Action) whose children
          are 48dp icon buttons, so the container adds breathing room without growing the touch targets. -->
@@ -244,6 +247,7 @@
     <dimen name="settings_tab_corner_radius">8dp</dimen>
     <dimen name="settings_tab_bottom_cover_height">2dp</dimen>
     <dimen name="settings_tab_land_width">140dp</dimen>
+    <dimen name="settings_tab_fade_edge">24dp</dimen>
     <dimen name="control_button_spacing_small">8dp</dimen>
     <dimen name="control_button_play_width">96dp</dimen>
     <dimen name="dialog_padding_large">24dp</dimen>
@@ -316,6 +320,7 @@
     <dimen name="player_pdf_controls_padding_vertical">8dp</dimen>
     <dimen name="player_pdf_controls_padding_horizontal">2dp</dimen>
     <dimen name="player_text_viewer_padding">16dp</dimen>
+    <dimen name="player_text_file_name_plate_inset">28dp</dimen>
     <dimen name="player_text_edit_padding">8dp</dimen>
     <dimen name="player_lyrics_margin_top">56dp</dimen>
     <dimen name="player_lyrics_translate_offset_x">-56dp</dimen>
@@ -896,7 +901,8 @@
 
     <!-- S0070: Device storage info row -->
     <dimen name="device_storage_text_size">10sp</dimen>
-    <dimen name="device_storage_button_size">18dp</dimen>
+    <dimen name="device_storage_button_size">@dimen/touch_target_min_height</dimen>
+    <dimen name="device_storage_button_padding">15dp</dimen>
     <dimen name="device_storage_padding_vertical">0dp</dimen>
 
     <!-- Playback control sliders (S0619) -->

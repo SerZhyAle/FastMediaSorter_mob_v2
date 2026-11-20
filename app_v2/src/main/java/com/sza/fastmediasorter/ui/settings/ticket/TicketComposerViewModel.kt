@@ -1,7 +1,11 @@
 package com.sza.fastmediasorter.ui.settings.ticket
 
+import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.data.cloud.GoogleDriveAuthPlugin
+import com.sza.fastmediasorter.domain.identity.GoogleScope
+import com.sza.fastmediasorter.domain.identity.IdentitySignInResult
 import com.sza.fastmediasorter.domain.model.ticket.TicketOrigin
 import com.sza.fastmediasorter.domain.model.ticket.TicketOutboxEntry
 import com.sza.fastmediasorter.domain.model.ticket.TicketProject
@@ -11,6 +15,7 @@ import com.sza.fastmediasorter.domain.usecase.feedback.FeedbackFolderChoice
 import com.sza.fastmediasorter.domain.usecase.feedback.ObserveFeedbackFoldersUseCase
 import com.sza.fastmediasorter.domain.usecase.ticket.FileTicketUseCase
 import com.sza.fastmediasorter.domain.usecase.ticket.GetTicketProjectsUseCase
+import com.sza.fastmediasorter.domain.usecase.ticket.GrantTicketDriveAccessUseCase
 import com.sza.fastmediasorter.domain.usecase.ticket.ObserveTicketOutboxUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,6 +33,11 @@ sealed interface TicketComposerNotice {
     data object Queued : TicketComposerNotice
     data object EmptyDraft : TicketComposerNotice
     data class StageFailed(val reason: String) : TicketComposerNotice
+
+    /** S4765: the Drive consent screen ended with a grant, without one, or could not be shown. */
+    data object DriveAccessGranted : TicketComposerNotice
+    data object DriveAccessDeclined : TicketComposerNotice
+    data object DriveAccessFailed : TicketComposerNotice
 }
 
 /** S4554: what the composer shows; [projects] null means `projects.json` is not available. */
@@ -39,7 +49,9 @@ data class TicketComposerUiState(
     val notice: TicketComposerNotice? = null,
     val sentCount: Int = 0,
     /** S4663: the chosen destination's resource; null is Google Drive, the default on every open. */
-    val destinationId: Long? = null
+    val destinationId: Long? = null,
+    /** S4765: a Drive packet waits only for the consent no worker can ask for. */
+    val driveAccessNeeded: Boolean = false
 )
 
 @HiltViewModel
@@ -47,6 +59,7 @@ class TicketComposerViewModel @Inject constructor(
     private val fileTicket: FileTicketUseCase,
     private val getProjects: GetTicketProjectsUseCase,
     private val observeOutbox: ObserveTicketOutboxUseCase,
+    private val grantAccess: GrantTicketDriveAccessUseCase,
     observeFolders: ObserveFeedbackFoldersUseCase
 ) : ViewModel() {
 
@@ -63,11 +76,20 @@ class TicketComposerViewModel @Inject constructor(
     )
 
     init {
+        viewModelScope.launch { loadProjects() }
         viewModelScope.launch {
-            val projects = getProjects()
-            mutableState.update { it.copy(projects = projects, projectsLoaded = true) }
+            outbox.collect { rows ->
+                val needed = rows.any(TicketOutboxEntry::needsDriveAccess)
+                Timber.d("S4765: driveAccessNeeded=%b rows=%d", needed, rows.size)
+                mutableState.update { it.copy(driveAccessNeeded = needed) }
+            }
         }
         refresh()
+    }
+
+    private suspend fun loadProjects() {
+        val projects = getProjects()
+        mutableState.update { it.copy(projects = projects, projectsLoaded = true) }
     }
 
     fun addAttachments(sources: List<TicketAttachmentSource>) {
@@ -123,6 +145,27 @@ class TicketComposerViewModel @Inject constructor(
         mutableState.update { it.copy(destinationId = resourceId) }
     }
 
+    /** S4765: shows the Drive consent screen; a grant reloads the project list and asks for a delivery pass. */
+    fun grantDriveAccess(activity: Activity) {
+        if (mutableState.value.busy) return
+        Timber.d("S4765: grantDriveAccess tapped")
+        mutableState.update { it.copy(busy = true) }
+        viewModelScope.launch {
+            val result = grantAccess(activity, DRIVE_SCOPES, GoogleDriveAuthPlugin.DRIVE_SIGN_IN_SCOPES)
+            Timber.d("S4765: consent result=%s", result::class.simpleName)
+            if (result is IdentitySignInResult.Success) {
+                loadProjects()
+                refresh()
+            }
+            val notice = when (result) {
+                is IdentitySignInResult.Success -> TicketComposerNotice.DriveAccessGranted
+                IdentitySignInResult.Cancelled -> TicketComposerNotice.DriveAccessDeclined
+                is IdentitySignInResult.Failed -> TicketComposerNotice.DriveAccessFailed
+            }
+            mutableState.update { it.copy(busy = false, notice = notice) }
+        }
+    }
+
     fun refresh() {
         viewModelScope.launch { observeOutbox.refresh() }
     }
@@ -137,5 +180,9 @@ class TicketComposerViewModel @Inject constructor(
 
     private companion object {
         const val STOP_TIMEOUT_MS = 5_000L
+
+        // The identity scopes are already bound with the account; only the Drive ones can be missing.
+        val DRIVE_SCOPES: Set<GoogleScope> = GoogleDriveAuthPlugin.DRIVE_SIGN_IN_SCOPES -
+            setOf(GoogleScope.EMAIL, GoogleScope.PROFILE, GoogleScope.OPENID)
     }
 }

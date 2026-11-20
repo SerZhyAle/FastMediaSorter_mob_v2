@@ -2,7 +2,7 @@
 source_sha256: 014967305311957c399bdef820c92215e824ad41e415102aa8c8fbaa8e65e53b
 layout: doc
 title: "Редакції: у якому застосунку який спосіб обміну"
-description: "У якій редакції FastMediaSorter для Android є мережеві теки, «Мої пристрої», хмари, файли через Google Drive, пряма трансляція, Chromecast і компаньйон для годинника."
+description: "У якій редакції Fast Media Sorter & Organizer для Android є мережеві теки, «Мої пристрої», хмари, файли через Google Drive, пряма трансляція, Chromecast і компаньйон для годинника."
 category: "Обмін медіа"
 permalink: /docs/media-exchange-portal/editions-uk.html
 ---
@@ -10,7 +10,7 @@ permalink: /docs/media-exchange-portal/editions-uk.html
 
 # Редакції: у якому застосунку який спосіб обміну
 
-FastMediaSorter для Android виходить у кількох редакціях. Не в кожній редакції є кожен спосіб обміну: у редакції без можливості для неї немає навіть кнопки.
+Fast Media Sorter & Organizer для Android виходить у кількох редакціях. Не в кожній редакції є кожен спосіб обміну: у редакції без можливості для неї немає навіть кнопки.
 
 ## У якій редакції що є
 
@@ -45,7 +45,7 @@ FastMediaSorter для Android виходить у кількох редакці
 
 ## Покрокові інструкції
 
-- [Редакції FastMediaSorter](../../documentation/flavors/overview-and-comparison-uk.html)
-- [Установлення FastMediaSorter на годинник](../../documentation/wear/installation-and-pairing-uk.html)
+- [Редакції Fast Media Sorter & Organizer](../../documentation/flavors/overview-and-comparison-uk.html)
+- [Установлення Fast Media Sorter & Organizer на годинник](../../documentation/wear/installation-and-pairing-uk.html)
 
 Назад на [головну сторінку порталу](index-uk.html).

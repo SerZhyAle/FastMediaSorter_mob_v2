@@ -34,11 +34,12 @@ class WaterFlashlightExitGateTest {
     }
 
     @Test
-    fun `platform long press leaves however short the wall clock says it was`() {
+    fun `repeated downs of a short hold do not make it a long one`() {
         gate.onKeyDown(KEY, 1_000L)
-        gate.onKeyDown(KEY, 1_000L, longPress = true)
+        gate.onKeyDown(KEY, 1_100L)
+        gate.onKeyDown(KEY, 1_200L)
 
-        assertTrue(gate.onKeyUp(KEY, 1_000L))
+        assertFalse(gate.onKeyUp(KEY, 1_000L + WaterFlashlightExitGate.EXIT_HOLD_MS - 1))
     }
 
     @Test
@@ -50,9 +51,9 @@ class WaterFlashlightExitGateTest {
     }
 
     @Test
-    fun `a long press does not carry over to the next press`() {
-        gate.onKeyDown(KEY, 1_000L, longPress = true)
-        assertTrue(gate.onKeyUp(KEY, 1_000L))
+    fun `a held press does not carry over to the next press`() {
+        gate.onKeyDown(KEY, 1_000L)
+        assertTrue(gate.onKeyUp(KEY, 1_000L + WaterFlashlightExitGate.EXIT_HOLD_MS))
 
         gate.onKeyDown(KEY, 5_000L)
 

@@ -68,6 +68,12 @@ class StreamInlineAudioManager(
     // A paused station keeps currentSource, so its row stays the active one and re-tapping it stops.
     private var paused = false
 
+    private fun updatePaused(value: Boolean) {
+        if (paused == value) return
+        paused = value
+        callbacks.onPausedChanged(value)
+    }
+
     // False for a resume: the listening session was already counted when it started.
     private var countPlay = true
 
@@ -328,7 +334,7 @@ class StreamInlineAudioManager(
         player = null
         usingService = false
         currentSource = null
-        paused = false
+        updatePaused(false)
         nowPlaying.value = null
         callbacks.onPlayingChanged(null)
         views.miniControl.isVisible = false
@@ -352,7 +358,7 @@ class StreamInlineAudioManager(
         player = null
         usingService = false
         currentSource = null
-        paused = false
+        updatePaused(false)
         countPlay = true
         nowPlaying.value = null
         callbacks.onPlayingChanged(null)
@@ -382,7 +388,7 @@ class StreamInlineAudioManager(
             detachAndReleaseLocal()
             player = null
         }
-        paused = true
+        updatePaused(true)
         Timber.d("S4615: paused service=$usingService")
         // A paused station is not resumed after a restart, as a pause from the notification is not either.
         callbacks.onPlaybackStateChanged(null, false)
@@ -397,7 +403,7 @@ class StreamInlineAudioManager(
             startPlayback(source, usingService, countAsNewPlay = false)
             return
         }
-        paused = false
+        updatePaused(false)
         Timber.d("S4615: resume on the service player at the live edge")
         successReported = false
         countPlay = false
@@ -580,7 +586,7 @@ class StreamInlineAudioManager(
     /**
      * A live stream whose server closed the response cleanly ends here with no player error, so the
      * retry ladder never runs and the radio stops silently. The rule separates it from a track that
-     * finished (which keeps today's no-op); a reconnect is fed to the ladder as a lost connection and
+     * finished, which ends like a Stop; a reconnect is fed to the ladder as a lost connection and
      * answered exactly as [playerListener]'s error path answers it.
      *
      * A broadcast row has already left through [stopForBroadcast], so it is never offered to the rule.
@@ -593,7 +599,14 @@ class StreamInlineAudioManager(
             wasLiveOrDurationUnknown = liveWhilePlaying,
         )
         Timber.d("S4598: inline stream ended outcome=$outcome liveWhilePlaying=$liveWhilePlaying")
-        if (outcome != StreamEndedOutcome.RECONNECT) return
+        if (outcome != StreamEndedOutcome.RECONNECT) {
+            // A finished track has nothing left to pause or resume, so its bar and row would only advertise
+            // audio that is gone. A source that never played keeps its tolerance timer, which answers it
+            // with the failure dialog that stop() would cancel.
+            Timber.d("S4750: finite track ended played=$successReported service=$usingService")
+            if (successReported) stop()
+            return
+        }
         val decision = retryPolicy.onFailure(
             failure = StreamEndedRule.CONNECTION_LOST,
             hasEverPlayed = hasSuccessfulPlayback,

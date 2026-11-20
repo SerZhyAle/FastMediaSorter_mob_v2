@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.10 17:21</sub>
+<sub class="doc-stamp">26.11.20 01:28</sub>
 
 # Play publishing state
 
@@ -36,7 +36,7 @@ version again, the reader reads it with no change and the cell shows it.
 
 | Served version | Store `Updated on` | Updated at (UTC) | Detected by | Measured (UTC) |
 |----------------|--------------------|------------------|-------------|----------------|
-| not on the page | Oct 21, 2026 | `2026-10-21T00:12:12Z` | none - the listing page carries no version | 2026-10-28 |
+| not on the page | Oct 29, 2026 | `2026-10-29T22:06:04Z` | none - the listing page carries no version | 2026-11-19 |
 
 Reader exit code: 0.
 
@@ -57,13 +57,13 @@ keeps reporting `completed`, so review state is invisible from here and from the
 
 | Track | versionName | versionCode | Status | Measured (UTC) |
 |-------|-------------|-------------|--------|----------------|
-| `production` | `2.61.0202.359` | `261020235` | completed | 2026-10-28 |
-| `beta` | - | - | no release | 2026-10-28 |
-| `alpha` | - | - | no release | 2026-10-28 |
-| `internal` | `2.60.6222.324` | `260622232` | completed | 2026-10-28 |
-| `wear:beta` | - | - | no release | 2026-10-28 |
-| `wear:internal` | - | - | no release | 2026-10-28 |
-| `wear:production` | `2.61.0210.141` | `261021018` | completed | 2026-10-28 |
+| `production` | `2.61.1121.756` | `261112175` | completed | 2026-11-19 |
+| `beta` | - | - | no release | 2026-11-19 |
+| `alpha` | - | - | no release | 2026-11-19 |
+| `internal` | `2.60.6222.324` | `260622232` | completed | 2026-11-19 |
+| `wear:beta` | - | - | no release | 2026-11-19 |
+| `wear:internal` | - | - | no release | 2026-11-19 |
+| `wear:production` | `2.61.1121.733` | `261112178` | completed | 2026-11-19 |
 
 Reader exit code: 0.
 
@@ -211,6 +211,22 @@ Republished 2026-10-18: bundle `261018159` (`2.61.0181.546`) on the face's `wear
 three-locale listing committed, both **held** - Play refuses automatic review while the rejection
 stands, so nothing is in review until the owner sends it from `Publishing overview`. The face's
 `wear:internal` still holds the 2026-09-30 draft `260930119`, which carries the original icon.
+
+**Transcribed:** 2026-11-20, read by the agent from the `Policy status` page itself (S2294), not from a
+letter. This is the first reading of the page since 2026-08-31.
+
+- Banner `Update in review`: an update is submitted and the page is refreshed when the review ends.
+- `Policy issues` holds one group, `App updates with these issues will be rejected`, with one row:
+  `App must target Android 16 (API level 36) or higher` - `Enforced Aug 31, 2026`, `Warning sent Jul 21, 2026`.
+- No `Update rejected` group and no Wear row: the August rows and the letters recorded above are no
+  longer listed as standing claims.
+- `Issue details` of that row, verbatim in substance: "Your highest non-compliant target API level is
+  Android 15 (API level 35)". How to fix: target API 36 and "Publish a new version of your app to
+  production"; Play then notifies that the app is no longer affected.
+- The page names no track and no versionCode. Of all live track releases only `internal` `260622232`
+  (2026-06-22, before S1149) can carry API 35, and the `Internal testing` page reads it as
+  `Inactive - Latest release: 260622232 (2.60.6222.324)`, `Available to internal testers`, with only
+  `Manage release` and `Promote release` offered - no remove control for a completed release.
 
 ### Contacts Permission declaration (S4030)
 
@@ -446,6 +462,14 @@ of this step, so the step is done. What is **not** recorded is the sequence in `
 that produced the split - that is S2294's open question 1, and only an owner transcription answers it.
 Absent that, a future split is repeated from the outcome, not from a written procedure.
 
+**Read from the Console 2026-11-20 (S2294).** Once a batch is in review, each row of `Changes in
+review` offers only `View change`; the one control over the batch is `Remove changes`, which
+withdraws all of it. So a split can only be made before the batch is sent: under managed publishing,
+the watch artifact must be absent from `Changes ready to publish` at the moment of `Send for review`.
+On 2026-11-20 the batch in review carries both `Production` `2.61.1121.756` and `Production (Wear OS)`
+`2.61.1121.733` plus store-listing graphics, so the phone and the watch travel together again in this
+submission.
+
 ### Step 2 - Clear `App must target Android 16`
 
 **Executor:** owner (Play Console).
@@ -493,8 +517,24 @@ it did not even produce a row.** The owner's `Publishing overview` of 2026-09-12
 `260622232`. So this step is not merely unfinished - the API cannot finish it while a rejection
 stands. The June artifact is the last one below `targetSdk 36` and it remains on `internal`.
 
+**Re-run 2026-11-19 (S2294), same result.** The repo venv was rebuilt (`.venv`, with
+`google-api-python-client` and `google-auth`) and the same invocation again returned exit 0 with
+"1 release record(s) removed" (log: `temp/S2294/clear-internal-20261119.log`). The refresher run right
+after still reads `internal` = `2.60.6222.324` / `260622232`, `completed` (block 2, 2026-11-19). The
+rejection that forced the held commit is gone by now - `production` carries `261112175` - so the API
+route has failed under both conditions. Do not run it a third time; the Console is the only route.
+
 Route left: remove the release from the `internal` track in the Console by hand, or accept that the
 carrier of `App must target Android 16` is an internal-testing artifact rather than a served one.
+
+**Console read 2026-11-20 (S2294).** The row is still listed (block 3). Its `Issue details` give the
+offending level, API 35, and prescribe publishing a compliant version to `production`, not removing
+anything; the `Internal testing` page offers no remove control for the completed `260622232`, only
+`Manage release`, `Promote release` and `Pause track`. The `production` release `2.61.1121.756`
+(`targetSdk 36`) is in review now. Proof of this step is therefore the next `Policy status` reading
+after that review publishes: the row gone closes the step; the row still listed leaves `Pause track`
+on `Internal testing` or a new `internal` release from current code - each a submission, so the
+owner's go for that exact change.
 The same held-commit behaviour was measured on `wear:production` the same day (step 2a).
 
 ### Step 2a - Take the Wear artifact out of the pending batch

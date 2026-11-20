@@ -56,7 +56,7 @@
     <string name="export_logs_failed">लॉग निर्यात करने में विफल</string>
     <string name="export_logs_no_files">निर्यात के लिए कोई लॉग फ़ाइल उपलब्ध नहीं है</string>
     <string name="export_logs_no_share_target">लॉग संग्रह साझा करने के लिए कोई ऐप उपलब्ध नहीं है</string>
-    <string name="export_logs_subject">FastMediaSorter डीबग लॉग</string>
+    <string name="export_logs_subject">Fast Media Sorter &amp; Organizer डीबग लॉग</string>
     <string name="export_settings">सभी सेटिंग्स को फ़ाइल में निर्यात करें</string>
     <string name="export_settings_confirm_message">क्या वर्तमान सेटिंग्स के साथ एक निर्यात फ़ाइल बनानी है?</string>
     <string name="export_settings_confirm_title">निर्यात सेटिंग्स</string>

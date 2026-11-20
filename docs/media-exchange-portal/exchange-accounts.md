@@ -55,7 +55,7 @@ In short, by case:
 
 A folder or a broadcast of yours can go to someone who has no account of yours. There are two ways, and both are withdrawn on their own:
 
-- **A guest.** The person registers a guest account on your server with an invitation of the kind **Guest**, and sees only what you gave to that account - one folder or one broadcast. In FastMediaSorter: open **Access from outside** for the folder and choose **Invite a guest**.
+- **A guest.** The person registers a guest account on your server with an invitation of the kind **Guest**, and sees only what you gave to that account - one folder or one broadcast. In Fast Media Sorter & Organizer: open **Access from outside** for the folder and choose **Invite a guest**.
 - **A link with a password.** For a person with no account at all: open **Access from outside** for the folder and choose **Link with a password**. Send the link, and tell the password another way - by voice or in another messenger. The password is checked only by the device that shares the folder, and the server never holds it. A link never expires; **Withdraw** ends it and the sessions it opened.
 
 The same two ways exist for a broadcast.

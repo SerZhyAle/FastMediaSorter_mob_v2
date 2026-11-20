@@ -173,6 +173,8 @@ $script:PageIds = @()
 $script:Manifest = @{}
 $script:ImageCopies = [ordered]@{}
 $script:ImageOwners = @{}
+$script:ViewGlyphs = $null
+$script:GlyphCache = $null
 $script:Terms = @()
 $script:Cfg = $null
 
@@ -220,11 +222,16 @@ function ConvertTo-ParagraphsHtml {
 function ConvertTo-StepHtml {
     param([string]$Text, [string[]]$MarkerIds)
     $html = ConvertTo-HtmlText (ConvertTo-OneLine $Text)
-    return [regex]::Replace($html, '\((\d{1,2})\)', {
+    # The badge is an inline-grid box, an atomic inline, so a line may break between it and a ';' or ',' that follows
+    # it and strand the punctuation at the start of the next line; the punctuation joins the badge in a nowrap span.
+    return [regex]::Replace($html, '\((\d{1,2})\)([;,.:!?»]?)', {
             param($match)
             $n = [int]$match.Groups[1].Value
             if ($n -ge 1 -and $n -le $MarkerIds.Count) {
-                return "<a class=`"ref`" href=`"#$($MarkerIds[$n - 1])`">$n</a>"
+                $badge = "<a class=`"ref`" href=`"#$($MarkerIds[$n - 1])`">$n</a>"
+                $tail = $match.Groups[2].Value
+                if ($tail) { return "<span class=`"nb`">$badge$tail</span>" }
+                return $badge
             }
             return $match.Value
         })
@@ -590,11 +597,11 @@ function Resolve-ElementName {
 }
 
 function New-ElementHtml {
-    param([string]$Id, [int]$Number, [string]$Name, $Entry, $Ui)
+    param([string]$Id, [int]$Number, [string]$Name, $Entry, $Ui, [string]$Glyph = '')
     $lines = [System.Collections.Generic.List[string]]::new()
     $summary = ConvertTo-HtmlText (ConvertTo-OneLine ([string](Get-Prop $Entry 'summary')))
     $lines.Add("<details class=`"el`" id=`"$Id`">")
-    $lines.Add("<summary><span class=`"mk`">$Number</span><span><span class=`"name`">$(ConvertTo-HtmlText $Name)</span><span class=`"one`">$summary</span></span></summary>")
+    $lines.Add("<summary><span class=`"mk`">$Number</span><span><span class=`"name`">$Glyph$(ConvertTo-HtmlText $Name)</span><span class=`"one`">$summary</span></span></summary>")
     $lines.Add('<div class="full">')
     foreach ($paragraph in @(ConvertTo-ParagraphsHtml ([string](Get-Prop $Entry 'details')))) { $lines.Add($paragraph) }
     $undo = [string](Get-Prop $Entry 'undo')
@@ -695,9 +702,80 @@ function New-MarkImageHref {
     return Get-ImageHref $Target $File
 }
 
+$script:ProductMarkFile = 'product-mark.png'
+
+function New-ProductMarkHtml {
+    # PRODUCT-IDENTITY rule 8: the help.head rendition (written by scripts/identity/build-identity.ps1) beside the title.
+    # The title names the screen, not the product, so the picture stands alone and its alt is the product name (rule 11).
+    param([string]$HelpId, [string]$Target, [string]$ProductName)
+    $href = New-MarkImageHref $HelpId $Target $script:ProductMarkFile
+    return "<img class=`"product-mark`" src=`"$href`" width=`"48`" height=`"48`" alt=`"$(ConvertTo-HtmlText $ProductName)`">"
+}
+
+function Get-ViewGlyphTable {
+    # viewId -> the one drawable its views show, read once from every phone layout. A viewId whose views show
+    # different drawables maps to nothing: a guessed glyph would teach the wrong meaning.
+    if ($null -ne $script:ViewGlyphs) { return $script:ViewGlyphs }
+    $androidNs = 'http://schemas.android.com/apk/res/android'
+    $iconAttrs = @('icon', 'src', 'srcCompat', 'drawableStart', 'drawableLeft', 'drawableTop', 'navigationIcon')
+    $seen = @{}
+    $resRoot = Join-Path $script:Cfg.Root 'app_v2/src/main/res'
+    foreach ($dir in Get-ChildItem -LiteralPath $resRoot -Directory -Filter 'layout*') {
+        foreach ($file in Get-ChildItem -LiteralPath $dir.FullName -File -Filter '*.xml') {
+            try { $doc = [xml][System.IO.File]::ReadAllText($file.FullName) } catch { Write-Problem "layout $($file.Name) is not XML: $($_.Exception.Message)"; continue }
+            foreach ($node in $doc.SelectNodes('//*')) {
+                $idAttr = $node.Attributes.GetNamedItem('id', $androidNs)
+                if ($null -eq $idAttr -or $idAttr.Value -notmatch '^@\+?id/(.+)$') { continue }
+                $viewId = $Matches[1]
+                foreach ($attr in $node.Attributes) {
+                    if ($attr.LocalName -notin $iconAttrs -or $attr.Value -notmatch '^@drawable/(.+)$') { continue }
+                    if (-not $seen.ContainsKey($viewId)) { $seen[$viewId] = [System.Collections.Generic.HashSet[string]]::new() }
+                    $null = $seen[$viewId].Add($Matches[1])
+                }
+            }
+        }
+    }
+    $script:ViewGlyphs = @{}
+    foreach ($viewId in $seen.Keys) {
+        if ($seen[$viewId].Count -eq 1) { $script:ViewGlyphs[$viewId] = @($seen[$viewId])[0] }
+    }
+    return $script:ViewGlyphs
+}
+
+function Get-GlyphSvg {
+    # CONTEXT-HELP 0.6 item R: the glyph is the SVG export of the drawable the product ships (docs/icons/svg/),
+    # inlined so it takes the page's text colour in both themes. A drawable with no export, or one the icon
+    # declaration marks private identity artwork, has no glyph.
+    param($Element)
+    $explicit = [string](Get-Prop $Element 'glyph')
+    if ($explicit -eq 'none') { return '' }
+    $drawable = $explicit
+    if (-not $drawable) {
+        $viewId = [string](Get-Prop $Element 'viewId')
+        if (-not $viewId) { return '' }
+        $drawable = (Get-ViewGlyphTable)[$viewId]
+    }
+    if (-not $drawable) { return '' }
+    if ($null -eq $script:GlyphCache) { $script:GlyphCache = @{} }
+    if ($script:GlyphCache.ContainsKey($drawable)) { return $script:GlyphCache[$drawable] }
+    $svgPath = Join-Path $script:Cfg.Root "docs/icons/svg/$drawable.svg"
+    $html = ''
+    if (Test-Path -LiteralPath $svgPath -PathType Leaf) {
+        $text = [System.IO.File]::ReadAllText($svgPath)
+        if ($text -match '(?s)<svg[^>]*viewBox="([^"]+)"[^>]*>(.*)</svg>') {
+            $inner = ($Matches[2] -replace '\s*\n\s*', '').Trim()
+            $html = "<svg class=`"glyph`" viewBox=`"$($Matches[1])`" aria-hidden=`"true`" focusable=`"false`">$inner</svg>"
+        }
+    } elseif ($explicit) {
+        Add-Problem "element '$(Get-Prop $Element 'id')': glyph '$explicit' has no export at docs/icons/svg/$explicit.svg"
+    }
+    $script:GlyphCache[$drawable] = $html
+    return $html
+}
+
 function New-HeroHtml {
-    param([string]$HelpId, [string]$Target, [string]$Title, [string]$Mark)
-    $lines = @('<header class="hero">')
+    param([string]$HelpId, [string]$Target, [string]$Title, [string]$Mark, [string]$ProductName)
+    $lines = @('<header class="hero">', (New-ProductMarkHtml $HelpId $Target $ProductName))
     $text = ConvertTo-HtmlText $Title
     if ($Mark -eq 'head') {
         $lines += "<img class=`"exchange-head`" src=`"$(New-MarkImageHref $HelpId $Target 'mark-full-256.png')`" width=`"128`" height=`"128`" alt=`"Media Exchange Server`">"
@@ -722,7 +800,7 @@ function New-HelpPageBody {
     $body.Add("<nav class=`"help-crumbs`" aria-label=`"$(ConvertTo-HtmlText $ui.Index)`">")
     $body.Add("<a href=`"$indexHref`">$(ConvertTo-HtmlText $ui.Index)</a><span class=`"sep`" aria-hidden=`"true`">/</span><span>$(ConvertTo-HtmlText $title)</span>")
     $body.Add('</nav>')
-    foreach ($line in @(New-HeroHtml $HelpId $Target $title ([string](Get-Prop $Source 'mark')))) { $body.Add($line) }
+    foreach ($line in @(New-HeroHtml $HelpId $Target $title ([string](Get-Prop $Source 'mark')) $ProductName)) { $body.Add($line) }
 
     $body.Add("<h2>$($ui.Purpose)</h2>")
     foreach ($paragraph in @(ConvertTo-ParagraphsHtml ([string](Get-Prop $block 'purpose')) 'lead')) { $body.Add($paragraph) }
@@ -749,7 +827,7 @@ function New-HelpPageBody {
             if ($null -eq $entry) { continue }
             $number = [array]::IndexOf($markerIds, $id) + 1
             $name = Resolve-ElementName -Element $root -HelpId $HelpId -Locale $Locale -Entry $entry
-            $rendered[$id] = New-ElementHtml -Id $id -Number $number -Name $name -Entry $entry -Ui $ui
+            $rendered[$id] = New-ElementHtml -Id $id -Number $number -Name $name -Entry $entry -Ui $ui -Glyph (Get-GlyphSvg $root)
         }
         $groups = @(Get-Prop $block 'groups')
         if ($groups.Count -gt 0) {
@@ -859,6 +937,7 @@ function New-IndexPageBody {
     $title = ConvertTo-OneLine ([string](Get-Prop $block 'title'))
     $body = [System.Collections.Generic.List[string]]::new()
     $body.Add('<header class="hero">')
+    $body.Add((New-ProductMarkHtml 'index' $Target $ProductName))
     $body.Add("<h1>$(ConvertTo-HtmlText $title)</h1>")
     $body.Add('</header>')
     foreach ($paragraph in @(ConvertTo-ParagraphsHtml ([string](Get-Prop $block 'purpose')) 'lead')) { $body.Add($paragraph) }
@@ -893,6 +972,7 @@ function New-PageHtml {
     ) + $robots + @(
         "<title>$(ConvertTo-HtmlText $DocTitle)</title>",
         "<link rel=`"stylesheet`" href=`"$(Get-CssHref $Target)`">",
+        "<link rel=`"icon`" type=`"image/png`" href=`"$(Get-ImageHref $Target $script:ProductMarkFile)`">",
         '</head>',
         '<body class="help">',
         '<main class="container">'

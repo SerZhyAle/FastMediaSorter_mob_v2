@@ -83,7 +83,7 @@ permalink: /docs/ICON_LEGEND-uk.html
 
 | Значок | Значення |
 |---|---|
-| <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Info |
+| <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Усе про цей застосунок |
 | <img src="icons/svg/ic_apps.svg" alt="ic_apps" width="24" height="24"> | Додаткові програми та сценарії |
 | <img src="icons/svg/ic_cloud_upload.svg" alt="ic_cloud_upload" width="24" height="24"> | Резервні копії, відновлення й експорт |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Аудіо, обкладинки й фонові візуалізації |

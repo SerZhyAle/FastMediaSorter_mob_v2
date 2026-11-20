@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
+import com.sza.fastmediasorter.ui.browse.transfer.TransferDoneMessage
 import com.sza.fastmediasorter.ui.browse.transfer.TransferSkipSummary
 import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.utils.keepLongestWordOnOneLine
@@ -513,17 +514,11 @@ class FileOperationDestinationDialog(
         when (result) {
             is FileOperationResult.Success -> {
                 Timber.i("handleOperationResult: SUCCESS - processed ${result.processedCount} files")
-                val successMsgResId = when (operationType) {
-                    FileOperationType.COPY -> R.string.copied_n_files
-                    FileOperationType.MOVE -> R.string.moved_n_files
-                    else -> R.string.copied_n_files
-                }
-
                 Toast.makeText(
                     context,
                     TransferSkipSummary.append(
                         context,
-                        context.getString(successMsgResId, result.processedCount),
+                        TransferDoneMessage.format(context, operationType, result.processedCount),
                         result
                     ),
                     TransferSkipSummary.toastLength(result)

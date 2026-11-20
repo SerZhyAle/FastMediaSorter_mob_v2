@@ -72,6 +72,13 @@ object KnownAuthResources {
         // `GoogleDomainMatcher` (see ReceiveShareActivity guards inserted by S0281).
     )
 
+    /**
+     * One row per service for the add-authorization picker: a service that owns several domains
+     * (Threads: threads.net and threads.com) is listed once, with its first entry's login URL.
+     * [all] keeps every domain because [matchHost] must resolve each of them.
+     */
+    val pickerEntries: List<KnownAuthResource> = all.distinctBy { it.displayName }
+
     fun isPreviewSensitiveHost(host: String?): Boolean = matchHost(host)?.previewOnlyMeansLogin == true
 
     fun supportsEmbeddedJson(host: String?): Boolean = matchHost(host)?.supportsEmbeddedJson == true

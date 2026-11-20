@@ -1,0 +1,14 @@
+{
+  "schema": "1",
+  "builds": [
+    {
+      "package": "phone",
+      "flavor": "standard",
+      "kind": "debug",
+      "version": "2.60.9012.140",
+      "builtAt": "2026-11-20T22:24:45+01:00",
+      "artifact": "DOWNLOADS/FastMediaSorter_standard_debug.apk",
+      "sha256": "e6b7d2179c3a2cc80900f980ae977822986389c3954a37c7ef35609f7d0c13c0"
+    }
+  ]
+}

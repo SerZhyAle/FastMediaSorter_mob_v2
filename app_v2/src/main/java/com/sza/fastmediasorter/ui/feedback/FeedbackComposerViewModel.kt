@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.ticket.TicketAttachmentSource
+import com.sza.fastmediasorter.domain.usecase.feedback.AttachFeedbackLogsUseCase
 import com.sza.fastmediasorter.domain.usecase.feedback.FeedbackFolderChoice
 import com.sza.fastmediasorter.domain.usecase.feedback.ObserveFeedbackFoldersUseCase
 import com.sza.fastmediasorter.domain.usecase.feedback.SelectFeedbackFolderUseCase
@@ -25,6 +26,8 @@ sealed interface FeedbackNotice {
     data object VoiceFailed : FeedbackNotice
     data object Empty : FeedbackNotice
     data object Queued : FeedbackNotice
+    data object NoLogs : FeedbackNotice
+    data object LogsFailed : FeedbackNotice
     data class StageFailed(val reason: String) : FeedbackNotice
 }
 
@@ -43,6 +46,7 @@ data class FeedbackHandoff(
 data class FeedbackUiState(
     val attachments: List<TicketAttachmentSource> = emptyList(),
     val busy: Boolean = false,
+    val buildingLogs: Boolean = false,
     val notice: FeedbackNotice? = null,
     val handoff: FeedbackHandoff? = null,
 )
@@ -52,6 +56,7 @@ data class FeedbackUiState(
 class FeedbackComposerViewModel @Inject constructor(
     private val sendFeedback: SendFeedbackUseCase,
     private val selectFolder: SelectFeedbackFolderUseCase,
+    private val attachFeedbackLogs: AttachFeedbackLogsUseCase,
     observeFolders: ObserveFeedbackFoldersUseCase,
 ) : ViewModel() {
 
@@ -72,6 +77,32 @@ class FeedbackComposerViewModel @Inject constructor(
 
     fun removeAttachment(uri: String) {
         mutableState.update { state -> state.copy(attachments = state.attachments.filterNot { it.uri == uri }) }
+    }
+
+    /** S4685: builds the diagnostic archive off the main thread and adds it; the two empty-set and
+     *  build-failure outcomes are distinct notices, so the form never attaches a placeholder. */
+    fun attachLogs() {
+        val current = mutableState.value
+        if (current.buildingLogs || current.busy) return
+        mutableState.update { it.copy(buildingLogs = true) }
+        viewModelScope.launch {
+            val outcome = runCatching { attachFeedbackLogs() }
+            mutableState.update { state ->
+                outcome.fold(
+                    onSuccess = { source ->
+                        if (source == null) {
+                            state.copy(buildingLogs = false, notice = FeedbackNotice.NoLogs)
+                        } else {
+                            state.copy(
+                                buildingLogs = false,
+                                attachments = (state.attachments + source).distinctBy { it.uri },
+                            )
+                        }
+                    },
+                    onFailure = { state.copy(buildingLogs = false, notice = FeedbackNotice.LogsFailed) },
+                )
+            }
+        }
     }
 
     fun chooseFolder(resourceId: Long?) {

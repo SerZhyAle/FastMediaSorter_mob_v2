@@ -52,6 +52,10 @@ internal class TextEditorModeController(
     private val loadingIndicatorCoordinator: PlayerLoadingIndicatorCoordinator? = null,
 ) {
 
+    // A property, not a constructor parameter: the host command panel lays itself out around the
+    // editor state and the editor owns when that state changes, but the host wires this after construction.
+    var onEditorVisibilityChanged: () -> Unit = {}
+
     // The editor opens after an off-main draft read; a repeated tap or exitEditMode must cancel the pending open.
     private var pendingEnterJob: Job? = null
 
@@ -97,6 +101,55 @@ internal class TextEditorModeController(
             Toast.makeText(context, R.string.draft_restored, Toast.LENGTH_LONG).show()
         }
         safeViews.etTextContent.setText(textToEdit)
+        showEditorViews()
+        // S0189 Phase 09: bind dirty-state tracker to EditText and reset panel tint. Text watcher pumps content into [editContentFlow]; tracker compares against baseline we set via rebaseline().
+        editContentFlow.value = textToEdit
+        dirtyTracker.rebaseline(textToEdit)
+        attachEditorHelpers(filePath)
+    }
+
+    /**
+     * S4714: release every listener and helper bound to the current editor views before the host
+     * discards them. Visibility, the dirty baseline and the draft file are left alone: the editor is
+     * still open, only its views are being replaced.
+     */
+    fun detachFromViews() {
+        pendingEnterJob?.cancel()
+        pendingEnterJob = null
+        releaseEditorHelpers()
+    }
+
+    private fun releaseEditorHelpers() {
+        getUndoRedoManager()?.detach()
+        setUndoRedoManager(null)
+        getAutoSaveManager()?.stopAutoSave()
+        // S0189 Phase 09: once the editor closes, later EditText changes must not dirty the tracker.
+        safeViews.etTextContent.removeTextChangedListener(dirtyTextWatcher)
+        findReplaceManager.detachCursorPositionTracking()
+        // S0189 Phase 07: detach auto-fit font manager.
+        getAutoFitFontManager()?.detach()
+        setAutoFitFontManager(null)
+    }
+
+    /**
+     * S4714: re-open the editor on a re-inflated tree with the buffer carried from the outgoing one.
+     * Never reads the file or the draft - that would drop unsaved text - and never rebaselines the
+     * dirty tracker, so text that was unsaved before the rotation stays marked unsaved.
+     */
+    fun reattachEditor(text: String, selectionStart: Int, selectionEnd: Int) {
+        Timber.d("S4714: reattachEditor re-opens the editor with the carried buffer")
+        safeViews.etTextContent.setText(text)
+        showEditorViews()
+        editContentFlow.value = text
+        attachEditorHelpers(getCurrentFile()?.path.orEmpty())
+        safeViews.etTextContent.setSelection(
+            selectionStart.coerceIn(0, text.length),
+            selectionEnd.coerceIn(0, text.length),
+        )
+    }
+
+    private fun showEditorViews() {
+        Timber.d("S4722: showEditorViews editor panel shown below the file-name plate inset")
         safeViews.textScrollView.isVisible = false
         safeViews.btnCopyTextCmd.isVisible = false
         safeViews.btnEditTextCmd.isVisible = false
@@ -104,10 +157,12 @@ internal class TextEditorModeController(
         safeViews.btnSearchTextCmd.isVisible = false
         safeViews.textEditContainer.isVisible = true
         safeViews.etTextContent.requestFocus()
-        // S0189 Phase 09: bind dirty-state tracker to EditText and reset panel tint. Text watcher pumps content into [editContentFlow]; tracker compares against baseline we set via rebaseline().
+        onEditorVisibilityChanged()
+    }
+
+    /** Wires everything an open editor needs onto the current views; the caller has already set the text. */
+    private fun attachEditorHelpers(filePath: String) {
         safeViews.etTextContent.removeTextChangedListener(dirtyTextWatcher)
-        editContentFlow.value = textToEdit
-        dirtyTracker.rebaseline(textToEdit)
         safeViews.etTextContent.addTextChangedListener(dirtyTextWatcher)
         actionPanelManager.onEnterEditMode()
         // S0189 Phase 07: auto-fit font - uses max of persistent setting; locks on manual swipe.
@@ -143,21 +198,15 @@ internal class TextEditorModeController(
         pendingEnterJob = null
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(safeViews.etTextContent.windowToken, 0)
-        getUndoRedoManager()?.detach()
-        setUndoRedoManager(null)
-        getAutoSaveManager()?.stopAutoSave()
-        // S0189 Phase 09: detach text watcher (subsequent EditText changes don't dirty the tracker once editor is closed) and reset panel tint.
-        safeViews.etTextContent.removeTextChangedListener(dirtyTextWatcher)
+        releaseEditorHelpers()
         actionPanelManager.onExitEditMode()
-        // S0189 Phase 07: detach auto-fit font manager.
-        getAutoFitFontManager()?.detach()
-        setAutoFitFontManager(null)
         findReplaceManager.closeFindPanel()
         safeViews.textEditContainer.isVisible = false
         safeViews.textScrollView.isVisible = true
         safeViews.btnCopyTextCmd.isVisible = true
         safeViews.btnEditTextCmd.isVisible = true
         safeViews.btnSearchTextCmd.isVisible = true
+        onEditorVisibilityChanged()
     }
 
     fun saveEditedText(onSuccess: () -> Unit) {

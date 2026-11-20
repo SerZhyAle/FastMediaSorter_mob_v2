@@ -1,19 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- action.rename - a text field holding a line of typed text and an I-beam caret after it. It is deliberately
+     not a pencil: ic_edit is the pencil, and the two sit side by side in the player command panel, where a pencil
+     with an underline read as the same picture. The caret is an I-beam at the end of the text, never a lone bar in
+     the middle: a frame split by a centred bar is media.stereo-3d (ic_stereo_3d) at 16 px.
+     The inner box is wound against the outer one so the fill leaves the frame hollow. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
     android:viewportWidth="24"
-    android:viewportHeight="24">
-    <!-- S3433 fit: moves the ink into the 20-unit live area of the 24 grid (ICON-RENDER 0.10
-         item A); the path data is the original drawing, untouched. -->
-    <group
-        android:pivotX="12"
-        android:pivotY="13.5"
-        android:scaleX="0.991"
-        android:scaleY="0.991"
-        android:translateY="-1.995">
-        <path
-            android:fillColor="?attr/colorControlNormal"
-            android:pathData="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z M3 23h18v2H3z" />
-    </group>
+    android:viewportHeight="24"
+    android:tint="?attr/colorControlNormal">
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M3,5h18v14H3zM5,7v10h14V7zM7,11h5v2H7zM13,9h4v1h-1v4h1v1h-4v-1h1v-4h-1z" />
 </vector>

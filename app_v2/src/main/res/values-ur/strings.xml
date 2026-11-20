@@ -74,7 +74,6 @@
     <string name="copy_failed">فائلیں کاپی نہیں ہو سکیں۔</string>
     <string name="no_destinations_available">کوئی منزل وسیلہ تشکیل شدہ نہیں</string>
     <string name="moving_files">منتقل ہو رہا ہے..</string>
-    <string name="moved_n_files">%1$d فائلیں منتقل ہو گئیں۔</string>
     <string name="moved_n_of_m_files">%2$d میں سے %1$d فائلیں منتقل ہو گئیں۔</string>
     <string name="move_failed">فائلیں منتقل نہیں ہو سکیں۔</string>
     <string name="renaming_files">نام تبدیل ہو رہا ہے..</string>
@@ -240,7 +239,6 @@
     <string name="confirm_delete_safe_mode">حذف کرنے سے پہلے تصدیق کریں</string>
     <string name="confirm_move_safe_mode">منتقل کرنے سے پہلے تصدیق کریں</string>
     <string name="confirm_delete_title">فائلیں حذف کریں؟</string>
-    <string name="confirm_delete_message">%1$d فائل(یں) حذف کریں؟ یہ عمل واپس نہیں ہو سکتا۔</string>
     <string name="confirm_move_title">فائلیں منتقل کریں؟</string>
     <string name="confirm_move_message">%1$d فائل(یں) کو %2$s میں منتقل کریں؟</string>
     <string name="user_guide">صارف گائیڈ</string>
@@ -794,7 +792,6 @@
     <string name="error_copy_failed">فائل کاپی نہیں ہو سکی۔</string>
     <string name="error_file_exists_copy">فائل \"%1$s\" پہلے سے \"%2$s\" میں موجود ہے۔\n\nاگر آپ اسے تبدیل کرنا چاہتے ہیں تو سیٹنگز -&gt; کاپی اور منتقلی میں \"کاپی پر اوور رائٹ کریں\" آن کریں۔</string>
     <string name="msg_move_success">%1$s میں منتقل ہو گئی۔</string>
-    <string name="msg_move_success_count">%1$d فائلیں %2$s میں منتقل ہو گئیں۔</string>
     <string name="error_move_failed">فائل منتقل نہیں ہو سکی۔</string>
     <string name="error_file_exists_move">فائل \"%1$s\" پہلے سے \"%2$s\" میں موجود ہے۔\n\nاگر آپ اسے تبدیل کرنا چاہتے ہیں تو سیٹنگز -&gt; کاپی اور منتقلی میں \"منتقلی پر اوور رائٹ کریں\" آن کریں۔</string>
     <string name="msg_delete_success">حذف ہو گئی۔</string>
@@ -1969,7 +1966,7 @@
     <string name="stream_wait_reconnecting">دوبارہ جڑ رہا ہے..</string>
     <string name="streams_filter_pinned_only">صرف پن شدہ</string>
     <string name="streams_refresh_probing">سٹریمز جانچی جا رہی ہیں..</string>
-    <string name="streams_error_no_network">نیٹ ورک نہیں۔ سٹریمز چلانے کے لیے Wi-Fi یا موبائل ڈیٹا سے جڑیں۔</string>
+    <string name="streams_error_no_network">نیٹ ورک نہیں۔ سٹریمز چلانے کے لیے جڑیں۔</string>
     <string name="tile_screenshot_label">اسکرین شاٹ</string>
     <string name="camera_lens_front">سامنے</string>
     <string name="camera_lens_ultrawide">الٹرا وائیڈ</string>

@@ -45,6 +45,17 @@ class PlayerNavigationCoordinator(
         updateState { it.copy(currentIndex = serviceIndex) }
     }
 
+    /**
+     * Same as [syncAudioServiceIndex], keyed by the track's source path. The service queue holds
+     * audio files only, so its index no longer matches the index in the player's mixed file list.
+     * A path that is not in the list (file moved or deleted meanwhile) leaves the index untouched.
+     */
+    fun syncAudioServicePath(sourcePath: String) {
+        val index = stateFlow.value.files.indexOfFirst { it.path == sourcePath }
+        if (index < 0) return
+        syncAudioServiceIndex(index)
+    }
+
     fun jumpToIndex(index: Int, manual: Boolean = false) {
         val currentState = stateFlow.value
         if (index !in currentState.files.indices) {

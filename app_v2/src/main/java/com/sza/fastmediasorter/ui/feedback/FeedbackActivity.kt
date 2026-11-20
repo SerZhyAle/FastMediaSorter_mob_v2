@@ -92,6 +92,7 @@ class FeedbackActivity : AppCompatActivity() {
         inputs.feedbackPhotoButton.setOnClickListener { startPhoto() }
         inputs.feedbackVoiceButton.isVisible = voice.isAvailable()
         inputs.feedbackVoiceButton.setOnClickListener { toggleVoice() }
+        inputs.feedbackLogsButton.setOnClickListener { viewModel.attachLogs() }
         sendTo = FeedbackSendToManager(this, sendToMenuManager)
         val folders = FeedbackFolderPanelManager(inputs, viewModel::chooseFolder)
         inputs.feedbackSendButton.setOnClickListener {
@@ -111,6 +112,7 @@ class FeedbackActivity : AppCompatActivity() {
                 },
             )
             inputs.feedbackSendButton.isEnabled = !state.busy
+            inputs.feedbackLogsButton.isEnabled = !state.busy && !state.buildingLogs
             state.notice?.let { notice ->
                 showNotice(notice)
                 viewModel.consumeNotice()
@@ -175,6 +177,8 @@ class FeedbackActivity : AppCompatActivity() {
             FeedbackNotice.VoiceFailed -> getString(R.string.feedback_voice_failed)
             FeedbackNotice.Empty -> getString(R.string.feedback_empty)
             FeedbackNotice.Queued -> getString(R.string.feedback_queued)
+            FeedbackNotice.NoLogs -> getString(R.string.feedback_no_logs)
+            FeedbackNotice.LogsFailed -> getString(R.string.feedback_logs_failed)
             is FeedbackNotice.StageFailed -> getString(R.string.feedback_stage_failed, notice.reason)
         }
         Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()

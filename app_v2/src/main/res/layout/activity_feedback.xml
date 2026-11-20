@@ -12,7 +12,7 @@
         style="@style/Widget.FastMediaSorter.Toolbar.Flat"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:title="@string/feedback_title"
+        app:title="@string/feedback_title"
         app:navigationIcon="@drawable/ic_arrow_back"
         app:stbTitleIcon="@drawable/ic_send_plane" />
 

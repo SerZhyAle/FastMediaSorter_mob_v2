@@ -56,7 +56,7 @@
     <string name="export_logs_failed">Error al exportar los registros</string>
     <string name="export_logs_no_files">No hay archivos de registro disponibles para exportar.</string>
     <string name="export_logs_no_share_target">No hay ninguna aplicación disponible para compartir el archivo de registro.</string>
-    <string name="export_logs_subject">Registros de depuración de FastMediaSorter</string>
+    <string name="export_logs_subject">Registros de depuración de Fast Media Sorter &amp; Organizer</string>
     <string name="export_settings">Exportar todos los ajustes a un archivo.</string>
     <string name="export_settings_confirm_message">¿Crear un archivo de exportación con la configuración actual?</string>
     <string name="export_settings_confirm_title">Exportar configuración</string>

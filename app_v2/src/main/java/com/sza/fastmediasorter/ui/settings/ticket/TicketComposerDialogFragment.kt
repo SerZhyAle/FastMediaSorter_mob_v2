@@ -92,6 +92,7 @@ class TicketComposerDialogFragment : DialogFragment() {
             viewModel.send(text, form.spinnerTicketProject.selectedItemPosition)
         }
         binding.outbox.btnTicketRefresh.setOnClickListener { viewModel.refresh() }
+        binding.outbox.btnTicketGrantDrive.setOnClickListener { viewModel.grantDriveAccess(requireActivity()) }
 
         val attachments = TicketRowAdapter { row -> viewModel.removeAttachment(row.id) }
         attachmentsAdapter = attachments
@@ -143,6 +144,8 @@ class TicketComposerDialogFragment : DialogFragment() {
         destinationPicker?.render(shownDestinations ?: FeedbackFolderChoice(), state.destinationId)
         binding.outbox.progressTicket.isVisible = state.busy || !state.projectsLoaded
         binding.btnTicketSend.isEnabled = !state.busy
+        binding.outbox.btnTicketGrantDrive.isVisible = state.driveAccessNeeded
+        binding.outbox.btnTicketGrantDrive.isEnabled = !state.busy
         if (state.sentCount != handledSends) {
             handledSends = state.sentCount
             form.etTicketText.text = null
@@ -153,6 +156,9 @@ class TicketComposerDialogFragment : DialogFragment() {
                     TicketComposerNotice.Queued -> getString(R.string.ticket_inbox_queued_notice)
                     TicketComposerNotice.EmptyDraft -> getString(R.string.ticket_inbox_empty_draft)
                     is TicketComposerNotice.StageFailed -> getString(R.string.ticket_inbox_stage_failed, notice.reason)
+                    TicketComposerNotice.DriveAccessGranted -> getString(R.string.ticket_inbox_drive_access_granted)
+                    TicketComposerNotice.DriveAccessDeclined -> getString(R.string.ticket_inbox_drive_access_declined)
+                    TicketComposerNotice.DriveAccessFailed -> getString(R.string.ticket_inbox_drive_access_failed)
                 }
             )
             viewModel.consumeNotice()
@@ -199,7 +205,9 @@ class TicketComposerDialogFragment : DialogFragment() {
     private fun stateLine(entry: TicketOutboxEntry): String = when (entry.state) {
         TicketOutboxState.QUEUED -> getString(R.string.ticket_inbox_state_queued)
         TicketOutboxState.WAITING_ON_DRIVE ->
-            if (entry.inboxResourceId == null) {
+            if (entry.needsDriveAccess) {
+                getString(R.string.ticket_inbox_state_needs_access)
+            } else if (entry.inboxResourceId == null) {
                 getString(R.string.ticket_inbox_state_waiting, entry.failure.orEmpty())
             } else {
                 getString(R.string.ticket_inbox_state_folder_waiting, entry.failure.orEmpty())

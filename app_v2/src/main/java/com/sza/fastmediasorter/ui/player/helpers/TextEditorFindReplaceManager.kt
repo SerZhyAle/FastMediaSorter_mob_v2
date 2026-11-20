@@ -2,7 +2,11 @@ package com.sza.fastmediasorter.ui.player.helpers
 
 import android.content.Context
 import android.text.Editable
+import android.text.Selection
+import android.text.SpanWatcher
+import android.text.Spannable
 import android.text.Spanned
+import android.text.TextWatcher
 import android.text.style.BackgroundColorSpan
 import android.text.style.ForegroundColorSpan
 import android.view.inputmethod.InputMethodManager
@@ -31,6 +35,37 @@ class TextEditorFindReplaceManager(
     private var findCurrentIndex = -1
     private val matchSpans = mutableListOf<Any>()
     private val currentMatchSpans = mutableListOf<Any>()
+
+    // Cursor tracking state. The cache keeps unrelated span changes (find highlights) from rescanning the text.
+    private var lastSelectionStart = NO_SELECTION
+
+    private val selectionWatcher = object : SpanWatcher {
+        override fun onSpanAdded(text: Spannable, what: Any, start: Int, end: Int) {
+            refreshIfSelectionMoved(text)
+        }
+
+        override fun onSpanRemoved(text: Spannable, what: Any, start: Int, end: Int) = Unit
+
+        override fun onSpanChanged(
+            text: Spannable,
+            what: Any,
+            oldStart: Int,
+            oldEnd: Int,
+            newStart: Int,
+            newEnd: Int,
+        ) {
+            refreshIfSelectionMoved(text)
+        }
+    }
+
+    // A replacement that keeps the selection index can still change the cursor's line or column.
+    private val cursorTextWatcher = object : TextWatcher {
+        override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) = Unit
+        override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) = Unit
+        override fun afterTextChanged(s: Editable) {
+            updateCursorPosition()
+        }
+    }
 
     // ===== Editor toolbar setup =====
 
@@ -73,27 +108,55 @@ class TextEditorFindReplaceManager(
 
     /**
      * Attach cursor-position tracking to the edit text.
-     * Updates [safeViews.tvEditorCursorPos] on every cursor movement.
+     * Updates [safeViews.tvEditorCursorPos] on every cursor movement and text edit.
+     *
+     * The span watcher lives on the current `Editable`, so this must run after every `setText` on the
+     * edit text; the text watcher survives `setText` and is re-added here to stay single.
      */
     fun setupCursorPositionTracking() {
-        safeViews.etTextContent.setAccessibilityDelegate(null)
-        safeViews.etTextContent.post {
+        Timber.d("S4723: setupCursorPositionTracking attaches selection and text watchers")
+        val editText = safeViews.etTextContent
+        editText.setAccessibilityDelegate(null)
+        editText.accessibilityLiveRegion = android.view.View.ACCESSIBILITY_LIVE_REGION_NONE
+        editText.setOnClickListener { updateCursorPosition() }
+        editText.removeTextChangedListener(cursorTextWatcher)
+        editText.addTextChangedListener(cursorTextWatcher)
+        lastSelectionStart = NO_SELECTION
+        editText.text?.setSpan(selectionWatcher, 0, editText.text.length, Spanned.SPAN_INCLUSIVE_INCLUSIVE)
+        editText.post {
             updateCursorPosition()
         }
-        safeViews.etTextContent.setOnClickListener { updateCursorPosition() }
-        safeViews.etTextContent.accessibilityLiveRegion =
-            android.view.View.ACCESSIBILITY_LIVE_REGION_NONE
+    }
+
+    /** Remove the watchers added by [setupCursorPositionTracking]; the edit text stays usable. */
+    fun detachCursorPositionTracking() {
+        val editText = safeViews.etTextContent
+        editText.removeTextChangedListener(cursorTextWatcher)
+        editText.text?.removeSpan(selectionWatcher)
     }
 
     fun updateCursorPosition() {
         val text = safeViews.etTextContent.text ?: return
         val pos = safeViews.etTextContent.selectionStart.coerceIn(0, text.length)
-        val textBefore = text.subSequence(0, pos)
-        val line = textBefore.count { it == '\n' } + 1
-        val lastNewline = textBefore.lastIndexOf('\n')
-        val col = if (lastNewline >= 0) pos - lastNewline else pos + 1
+        var line = 1
+        var lineStart = 0
+        for (i in 0 until pos) {
+            if (text[i] == '\n') {
+                line++
+                lineStart = i + 1
+            }
+        }
+        val col = pos - lineStart + 1
         safeViews.tvEditorCursorPos.text =
             context.getString(R.string.cursor_position, line, col)
+    }
+
+    private fun refreshIfSelectionMoved(text: Spannable) {
+        val start = Selection.getSelectionStart(text)
+        if (start == lastSelectionStart) return
+        lastSelectionStart = start
+        Timber.d("S4723: selection moved to $start, counter refreshed")
+        updateCursorPosition()
     }
 
     // ===== Find panel lifecycle =====
@@ -287,5 +350,9 @@ class TextEditorFindReplaceManager(
         if (et.hasSelection()) {
             et.setSelection(et.selectionEnd)
         }
+    }
+
+    private companion object {
+        const val NO_SELECTION = -2
     }
 }

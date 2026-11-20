@@ -728,6 +728,9 @@
         <!-- S4116: Accept / Decline of a cast offered by another device of the account (DEVICE-EXCHANGE 7.8) -->
         <activity android:name=".ui.exchange.ExchangeCastOfferActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />
 
+        <!-- S4701: Allow / Decline of a request from another device of the account (REMOTE-CONTROL rule 10) -->
+        <activity android:name=".ui.remotecontrol.RemoteCommandConsentActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />
+
         <!-- Quick Camera Capture: per-widget target configuration activity (S0369) -->
         <activity android:name=".widget.CameraQuickCaptureConfigActivity" android:exported="true">
             <intent-filter>

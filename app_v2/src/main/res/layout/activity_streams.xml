@@ -2,6 +2,7 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true">
@@ -157,7 +158,7 @@
                 android:layout_marginStart="4dp"
                 android:src="@drawable/ic_filter"
                 app:tint="?attr/colorControlNormal"
-                android:background="?attr/selectableItemBackgroundBorderless"
+                android:background="@drawable/bg_icon_button_focus_quiet"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
                 android:nextFocusUp="@id/toolbar"
@@ -167,7 +168,10 @@
                 android:contentDescription="@string/streams_filter">
 
                 <!-- First touch-mode focus parks on Filter, not etSearch, so the soft keyboard
-                     does not auto-open on launch and cover short landscape screens. -->
+                     does not auto-open on launch and cover short landscape screens. S4752: the quiet
+                     background keeps that parked focus from leaving a grey ripple circle behind.
+                     S4756: StreamsActivity clears the touch-focusable flag after the first layout, because
+                     a touch-focusable button that lost focus spends its next tap on regaining it. -->
                 <requestFocus />
             </ImageButton>
 
@@ -249,11 +253,12 @@
         </LinearLayout>
 
         <!-- S1141: pinned-channels section - shown by StreamsSectionsManager only when >=1 pinned. -->
-        <LinearLayout
+        <!-- S4751: wraps to its rows under a cap that StreamsSectionsManager sets, so one pinned row leaves
+             no empty block; the manager re-shapes it to a fill section when the main section is closed. -->
+        <com.sza.fastmediasorter.ui.common.widget.MaxHeightLinearLayout
             android:id="@+id/streamsPinnedSection"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
             android:visibility="gone">
 
@@ -269,13 +274,16 @@
                 app:csh_expanded="true"
                 app:csh_title="@string/streams_section_pinned" />
 
+            <!-- wrap_content with weight 1 on purpose: under the section's cap the body shrinks to its rows, and
+                 in the fill section it stretches over it; a 0dp body would never wrap. -->
             <FrameLayout
                 android:id="@+id/streamsPinnedBody"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1">
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                tools:ignore="InefficientWeight">
 
-                <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+                <com.sza.fastmediasorter.ui.common.widget.WrapContentSwipeRefreshLayout
                     android:id="@+id/swipeStreamsPinned"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
@@ -290,16 +298,16 @@
                         android:paddingBottom="8dp"
                         android:scrollbars="vertical" />
 
-                </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+                </com.sza.fastmediasorter.ui.common.widget.WrapContentSwipeRefreshLayout>
             </FrameLayout>
-        </LinearLayout>
+        </com.sza.fastmediasorter.ui.common.widget.MaxHeightLinearLayout>
 
         <!-- S1141: main (unpinned) section - keeps the existing list/grid, empty-state and scroll buttons. -->
         <LinearLayout
             android:id="@+id/streamsMainSection"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="2"
+            android:layout_weight="1"
             android:orientation="vertical">
 
             <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader

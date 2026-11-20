@@ -22,30 +22,31 @@
             android:nextFocusDown="@+id/btnTicketVoice" />
     </com.google.android.material.textfield.TextInputLayout>
 
+    <!-- Stacked, not side by side: in a horizontal row a long localized voice label took the whole
+         width and crushed the attach button into a tall empty sliver. -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/margin_small"
-        android:orientation="horizontal">
+        android:orientation="vertical">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnTicketVoice"
             style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/margin_small"
             android:minHeight="@dimen/touch_target_min_height"
-            android:nextFocusRight="@+id/btnTicketAttach"
+            android:nextFocusUp="@+id/etTicketText"
             android:nextFocusDown="@+id/btnTicketAttach"
             android:text="@string/ticket_inbox_record_voice" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnTicketAttach"
             style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minHeight="@dimen/touch_target_min_height"
-            android:nextFocusLeft="@+id/btnTicketVoice"
+            android:nextFocusUp="@+id/btnTicketVoice"
             android:nextFocusDown="@+id/spinnerTicketProject"
             android:text="@string/ticket_inbox_attach" />
     </LinearLayout>

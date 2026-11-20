@@ -1415,6 +1415,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         layoutChrome.setCommandEligible(R.id.btnFavorites, settings.enableFavorites)
         resourceAdapter.setUseCompactElements(settings.useCompactElements)
         resourceAdapter.setOverflowModeEnabled(settings.resourceOpsInOverflowMenu) // S0160
+        layoutChrome.setResourceOpsInOverflow(settings.resourceOpsInOverflowMenu) // S4792
         // S2536: through the policy, not the raw setting. This was the last draw-side consumer still
         // reading the flag directly, which stopped mattering only while the two could not disagree -
         // a power-saving level now says "no animation" with the user's own switch still off.

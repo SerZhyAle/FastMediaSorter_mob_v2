@@ -39,8 +39,20 @@
 -keep class com.hierynomus.** { *; }
 -dontwarn com.hierynomus.**
 
-# MBassador event bus (used by SMBJ)
--keep class net.engio.mbassy.** { *; }
+# MBassador event bus (used by SMBJ). Narrowed from a whole-library keep to its reflective
+# surface: MetadataReader reads the listener annotations and their enum/class members at run
+# time, SubscriptionFactory builds the handler invocation through its SubscriptionContext
+# constructor, and Filter.value() is instantiated through a no-arg constructor.
+-keep @interface net.engio.mbassy.listener.** { *; }
+-keepclassmembers enum net.engio.mbassy.** {
+    <fields>;
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+}
+-keep class * implements net.engio.mbassy.dispatch.IHandlerInvocation {
+    public <init>(net.engio.mbassy.subscription.SubscriptionContext);
+}
+-keep class * implements net.engio.mbassy.listener.IMessageFilter { <init>(); }
 -dontwarn net.engio.mbassy.**
 
 # Keep event handler methods
@@ -104,8 +116,9 @@
 -dontwarn org.slf4j.impl.**
 -dontwarn java.lang.management.**
 
-# Apache Commons Net (FTP)
--keep class org.apache.commons.net.** { *; }
+# Apache Commons Net (FTP). No package keep: its only reflection is the Class.forName(key) in
+# DefaultFTPFileEntryParserFactory, reached only when the parser key is a class name, and this
+# app never configures one - a SYST reply falls through to the built-in name mapping.
 -dontwarn org.apache.commons.net.**
 
 # Google Drive API - keep only annotation-driven JSON fields instead of whole SDK packages.
@@ -128,14 +141,11 @@
 -keep class com.dropbox.core.oauth.DbxCredential { *; }
 -keep class com.dropbox.core.http.OkHttp3Requestor { *; }
 -keep class com.dropbox.core.v2.DbxClientV2 { *; }
--keep class com.dropbox.core.v2.files.** { *; }
--keep class com.dropbox.core.v2.users.** { *; }
--keep class com.dropbox.core.v2.auth.** { *; }
-# Internal framework classes needed by SDK (request/response routing, error handling)
--keep class com.dropbox.core.v2.common.** { *; }
--keep class com.dropbox.core.json.** { *; }
--keep class com.dropbox.core.util.** { *; }
--keep class com.dropbox.core.http.** { *; }
+# The files/users/auth/common, json, util and http families carry no package keep: the SDK
+# (de)serializes through generated Jackson-streaming StoneSerializers, which is plain code R8
+# traces, and trusted-certs.raw is loaded by absolute resource path. Its one reflective path,
+# DbxWrappedException.executeOtherBlocks (tag() plus declared fields of a route error), runs
+# only with a DbxGlobalCallbackFactory installed, which this app never does.
 -keep class com.dropbox.core.DbxApiException { *; }
 -keep class com.dropbox.core.InvalidAccessTokenException { *; }
 # team/teamcommon are intentionally NOT kept - R8 will strip them.

@@ -13,6 +13,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
 
 class LocalMediaScannerTest {
 
@@ -153,6 +154,83 @@ class LocalMediaScannerTest {
         // The path does not exist, so the legacy walk finds nothing - the point is that it ran and
         // returned instead of throwing.
         assertTrue("A real failure must degrade to the legacy walk, not propagate", result.isEmpty())
+    }
+
+    // ==================== Unmeasured MediaStore rows ====================
+
+    @Test
+    fun `scanFolder folder branch completes a zero size MediaStore row from the file on disk`() = runTest {
+        // S4727: MediaStore answers SIZE = 0 for a row its scanner has not measured yet, and the row
+        // then rendered "-" until the refresh re-registered the file.
+        val supportedTypes = setOf(MediaType.TEXT)
+        val onDisk = File.createTempFile("s4727", ".txt").apply { writeText("12345") }
+        try {
+            val unmeasured = MediaFile(
+                name = onDisk.name,
+                path = onDisk.absolutePath,
+                type = MediaType.TEXT,
+                size = 0L,
+                createdDate = 1700000000000L
+            )
+            coEvery {
+                mediaStoreRepository.getFilesInFolder(any(), any(), any(), any())
+            } returns listOf(unmeasured)
+
+            val result = scanner.scanFolder(
+                path = requireNotNull(onDisk.parent),
+                supportedTypes = supportedTypes,
+                sizeFilter = null,
+                credentialsId = null,
+                scanSubdirectories = false,
+                showHiddenFiles = false,
+                onProgress = null
+            )
+
+            assertEquals(1, result.size)
+            assertEquals(5L, result.first().size)
+        } finally {
+            onDisk.delete()
+        }
+    }
+
+    @Test
+    fun `scanFolder recent branch completes a zero size row only when the file exists`() = runTest {
+        val supportedTypes = setOf(MediaType.TEXT)
+        val onDisk = File.createTempFile("s4727", ".txt").apply { writeText("123") }
+        try {
+            val present = MediaFile(
+                name = onDisk.name,
+                path = onDisk.absolutePath,
+                type = MediaType.TEXT,
+                size = 0L,
+                createdDate = 1700000000000L
+            )
+            val missing = MediaFile(
+                name = "gone.txt",
+                path = "/storage/emulated/0/DefinitelyMissingFolderForTest/gone.txt",
+                type = MediaType.TEXT,
+                size = 0L,
+                createdDate = 1700000000000L
+            )
+            coEvery {
+                mediaStoreRepository.getRecentFiles(limit = 1000, allowedTypes = supportedTypes)
+            } returns listOf(present, missing)
+
+            val result = scanner.scanFolder(
+                path = LocalMediaScanner.VIRTUAL_PATH_RECENT,
+                supportedTypes = supportedTypes,
+                sizeFilter = null,
+                credentialsId = null,
+                scanSubdirectories = false,
+                showHiddenFiles = false,
+                onProgress = null
+            )
+
+            assertEquals(3L, result.first { it.path == present.path }.size)
+            assertEquals(0L, result.first { it.path == missing.path }.size)
+        } finally {
+            onDisk.delete()
+        }
     }
 
     // ==================== Virtual Aggregate Paths ====================

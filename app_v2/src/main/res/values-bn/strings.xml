@@ -74,7 +74,6 @@
     <string name="copy_failed">ফাইলগুলো কপি করা যায়নি।</string>
     <string name="no_destinations_available">কোনো গন্তব্য রিসোর্স কনফিগার করা নেই</string>
     <string name="moving_files">সরানো হচ্ছে..</string>
-    <string name="moved_n_files">%1$d ফাইল সরানো হয়েছে।</string>
     <string name="moved_n_of_m_files">%2$d এর মধ্যে %1$d ফাইল সরানো হয়েছে।</string>
     <string name="move_failed">ফাইলগুলো সরানো যায়নি।</string>
     <string name="renaming_files">নাম পরিবর্তন করা হচ্ছে..</string>
@@ -240,7 +239,6 @@
     <string name="confirm_delete_safe_mode">মুছে ফেলার আগে নিশ্চিত করুন</string>
     <string name="confirm_move_safe_mode">সরানোর আগে নিশ্চিত করুন</string>
     <string name="confirm_delete_title">ফাইল মুছে ফেলবেন?</string>
-    <string name="confirm_delete_message">%1$d টি ফাইল মুছে ফেলবেন? এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।</string>
     <string name="confirm_move_title">ফাইল সরাবেন?</string>
     <string name="confirm_move_message">%1$d টি ফাইল %2$s-এ সরাবেন?</string>
     <string name="user_guide">ব্যবহারকারী নির্দেশিকা</string>
@@ -794,7 +792,6 @@
     <string name="error_copy_failed">ফাইলটি কপি করা যায়নি।</string>
     <string name="error_file_exists_copy">\"%1$s\" ফাইলটি ইতিমধ্যে \"%2$s\"-এ আছে।\n\nএটি প্রতিস্থাপন করতে চাইলে সেটিংস -&gt; কপি ও স্থানান্তর-এ \"কপির সময় প্রতিস্থাপন করুন\" চালু করুন।</string>
     <string name="msg_move_success">%1$s-এ স্থানান্তর করা হয়েছে।</string>
-    <string name="msg_move_success_count">%2$s-এ %1$d-টি ফাইল স্থানান্তর করা হয়েছে।</string>
     <string name="error_move_failed">ফাইলটি স্থানান্তর করা যায়নি।</string>
     <string name="error_file_exists_move">\"%1$s\" ফাইলটি ইতিমধ্যে \"%2$s\"-এ আছে।\n\nএটি প্রতিস্থাপন করতে চাইলে সেটিংস -&gt; কপি ও স্থানান্তর-এ \"স্থানান্তরের সময় প্রতিস্থাপন করুন\" চালু করুন।</string>
     <string name="msg_delete_success">মুছে ফেলা হয়েছে।</string>
@@ -1967,7 +1964,7 @@
     <string name="stream_wait_reconnecting">পুনরায় সংযোগ হচ্ছে..</string>
     <string name="streams_filter_pinned_only">শুধু পিন করা</string>
     <string name="streams_refresh_probing">স্ট্রিম পরীক্ষা করা হচ্ছে..</string>
-    <string name="streams_error_no_network">নেটওয়ার্ক নেই। স্ট্রিম চালাতে Wi-Fi বা মোবাইল ডেটায় সংযোগ করুন।</string>
+    <string name="streams_error_no_network">নেটওয়ার্ক নেই। স্ট্রিম চালাতে সংযোগ করুন।</string>
     <string name="tile_screenshot_label">স্ক্রিনশট</string>
     <string name="camera_lens_front">সামনের</string>
     <string name="camera_lens_ultrawide">আল্ট্রা-ওয়াইড</string>

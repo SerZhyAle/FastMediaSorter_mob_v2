@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import androidx.core.content.getSystemService
 import androidx.core.os.bundleOf
@@ -25,7 +26,21 @@ import com.sza.fastmediasorter.ui.common.showSoftInputImplicitly
 import com.sza.fastmediasorter.ui.player.helpers.LanguageCapability
 import com.sza.fastmediasorter.ui.player.helpers.LanguageItem
 import com.sza.fastmediasorter.ui.player.helpers.TranslationLanguageCatalog
+import timber.log.Timber
 import java.util.Locale
+
+/**
+ * The lower-cased strings a query is matched against: the name in the interface language, the
+ * endonym, the code and the English name. The English name is what a user who cannot read the current
+ * interface language still knows ("Russian"), so it must match whichever language the app shows.
+ */
+internal fun languageSearchKeys(item: LanguageItem, locale: Locale = Locale.getDefault()): List<String> {
+    val englishName = Locale.forLanguageTag(item.code).getDisplayLanguage(Locale.ENGLISH)
+    return listOf(item.localizedName, item.nativeName, item.code, englishName)
+        .filter { it.isNotBlank() }
+        .map { it.lowercase(locale) }
+        .distinct()
+}
 
 /**
  * Searchable language picker. Returns the chosen language code to the host through a FragmentResult
@@ -65,6 +80,13 @@ class SearchableLanguagePickerDialog : DialogFragment() {
             .setTitle(titleRes())
             .setView(binding.root)
             .create()
+            .also { created ->
+                // A focused text field alone may raise the keyboard on some platform versions; the
+                // explicit hidden state makes "no keyboard until the field is tapped" deterministic.
+                if (!opensKeyboardOnShow()) {
+                    created.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN)
+                }
+            }
     }
 
     private fun titleRes(): Int = when (mode) {
@@ -95,16 +117,28 @@ class SearchableLanguagePickerDialog : DialogFragment() {
             isFocusable = true
         }
         languageAdapter.submit(languages)
+        Timber.d("S4708: language picker opened mode=$mode rows=${languages.size} keyboard=${opensKeyboardOnShow()}")
 
         binding.editLanguageSearch.doOnTextChanged { text, _, _, _ ->
-            languageAdapter.filter(text?.toString().orEmpty())
+            languageAdapter.filter(text?.toString().orEmpty()) { isEmpty ->
+                // The commit callback can outlive the view when the dialog closes mid-diff.
+                _binding?.tvLanguageEmpty?.isVisible = isEmpty
+                Timber.d("S4708: language picker filter emptyState=$isEmpty")
+            }
         }
         binding.editLanguageSearch.post {
-            binding.editLanguageSearch.requestFocus()
-            requireContext().getSystemService<InputMethodManager>()
-                ?.showSoftInputImplicitly(binding.editLanguageSearch)
+            val search = _binding?.editLanguageSearch ?: return@post
+            search.requestFocus()
+            if (opensKeyboardOnShow()) {
+                requireContext().getSystemService<InputMethodManager>()?.showSoftInputImplicitly(search)
+            }
         }
     }
+
+    // The interface-language list is thirteen rows: a keyboard forced up on a short screen leaves two
+    // of them visible, and scrolling beats typing for that few. Source/Target lists are long, so
+    // search stays the primary way in and the keyboard still opens by itself.
+    private fun opensKeyboardOnShow(): Boolean = mode != Mode.UI_LANGUAGE
 
     override fun onStart() {
         super.onStart()
@@ -182,6 +216,7 @@ class SearchableLanguagePickerDialog : DialogFragment() {
     ) : ListAdapter<LanguageItem, LanguageAdapter.LanguageViewHolder>(LanguageDiffCallback) {
 
         private var allItems: List<LanguageItem> = emptyList()
+        private var searchKeys: Map<String, List<String>> = emptyMap()
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LanguageViewHolder {
             val binding = ItemSearchableLanguageBinding.inflate(
@@ -199,23 +234,21 @@ class SearchableLanguagePickerDialog : DialogFragment() {
 
         fun submit(items: List<LanguageItem>) {
             allItems = items
+            searchKeys = items.associate { item -> item.code to languageSearchKeys(item) }
             submitList(items)
         }
 
-        fun filter(query: String) {
+        /** [onFiltered] reports, once the list has settled, whether the query left no row. */
+        fun filter(query: String, onFiltered: (isEmpty: Boolean) -> Unit) {
             val normalizedQuery = query.trim().lowercase(Locale.getDefault())
             val filtered = if (normalizedQuery.isEmpty()) {
                 allItems
             } else {
-                allItems.filter { item -> item.matches(normalizedQuery) }
+                allItems.filter { item ->
+                    searchKeys[item.code].orEmpty().any { key -> key.contains(normalizedQuery) }
+                }
             }
-            submitList(filtered)
-        }
-
-        private fun LanguageItem.matches(query: String): Boolean {
-            val searchableValues = listOf(localizedName, nativeName, code)
-                .map { it.lowercase(Locale.getDefault()) }
-            return searchableValues.any { it.startsWith(query) } || searchableValues.any { it.contains(query) }
+            submitList(filtered) { onFiltered(filtered.isEmpty()) }
         }
 
         private class LanguageViewHolder(

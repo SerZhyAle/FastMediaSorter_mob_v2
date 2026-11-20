@@ -79,3 +79,9 @@ The phone launcher clock (`app_v2/src/launcherEnabled/res/font/`) bundles the sa
 - `fms_dial_blackletter.ttf` - UnifrakturMaguntia, SIL Open Font License 1.1.
 - `fms_dial_bangers.ttf` - Bangers, SIL Open Font License 1.1.
 - `fms_dial_rubikmono.ttf` - Rubik Mono One, SIL Open Font License 1.1.
+
+## Family-mark lockup typeface (S4784)
+
+The product name in the generated lockups (store and social cards, TV banner, splash wordmark) is drawn as outlines of Manrope ExtraBold, the face the FastMediaSorter family names for its lockups. The font file is a generator input under `assets/identity/font/` and is not packaged; only its outlines reach the pictures.
+
+- Manrope ExtraBold (version 4.505, instanced at weight 800), Copyright 2018 The Manrope Project Authors, SIL Open Font License 1.1 (`assets/identity/font/OFL.txt`).

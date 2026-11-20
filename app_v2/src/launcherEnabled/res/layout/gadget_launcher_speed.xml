@@ -20,7 +20,7 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             android:autoSizeMaxTextSize="96sp"
-            android:autoSizeMinTextSize="12sp"
+            android:autoSizeMinTextSize="8dp"
             android:autoSizeTextType="uniform"
             android:ellipsize="end"
             android:fontFeatureSettings="tnum"

@@ -51,6 +51,9 @@
 
         <!-- S0536: every MaterialSwitch left outside SettingsToggleRow inherits one canonical look. -->
         <item name="materialSwitchStyle">@style/Widget.FastMediaSorter.Switch</item>
+
+        <!-- S4763: gives the toolbar overflow button a resource id (see Widget.FastMediaSorter.Toolbar.OverflowButton). -->
+        <item name="actionOverflowButtonStyle">@style/Widget.FastMediaSorter.Toolbar.OverflowButton</item>
     </style>
 
     <!-- S0569: custom accent themes. Applied via theme.applyStyle() in BaseActivity from
@@ -680,6 +683,13 @@
     <!-- S2898: primary toolbar theme overlay providing high-contrast text color and D-pad focus outlines. -->
     <style name="Widget.FastMediaSorter.Toolbar.ActionButton" parent="Widget.AppCompat.ActionButton">
         <item name="android:background">@drawable/toolbar_action_item_focus_selector</item>
+    </style>
+
+    <!-- S4763: the overflow button is built by ActionMenuPresenter with actionOverflowButtonStyle as its
+         defStyleAttr and no layout, so a style is the only place an id can reach it. The parent keeps the
+         stock glyph, description and actionBarItemBackground; only the id is added. -->
+    <style name="Widget.FastMediaSorter.Toolbar.OverflowButton" parent="Widget.AppCompat.ActionButton.Overflow">
+        <item name="android:id">@id/toolbarOverflowButton</item>
     </style>
 
     <style name="ThemeOverlay.FastMediaSorter.Toolbar.Primary" parent="ThemeOverlay.Material3.ActionBar">

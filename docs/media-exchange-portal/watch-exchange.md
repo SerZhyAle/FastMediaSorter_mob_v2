@@ -15,7 +15,7 @@ A watch can use your exchange account in two ways. **Through the phone**: the ph
 
 ## Before you start
 
-- **The watch app paired with the phone**, see [Putting FastMediaSorter on your watch](../../documentation/wear/installation-and-pairing.html).
+- **The watch app paired with the phone**, see [Putting Fast Media Sorter & Organizer on your watch](../../documentation/wear/installation-and-pairing.html).
 - **The Wear companion on** in the phone's **Settings**, or the phone refuses with "The Wear companion is off".
 - **An exchange server added and signed in on the phone**, see [Adding your exchange server in My devices](my-devices.html).
 

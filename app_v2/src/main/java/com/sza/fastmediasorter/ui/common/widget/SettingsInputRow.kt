@@ -27,6 +27,7 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ViewSettingsInputRowBinding
+import timber.log.Timber
 
 /**
  * Canonical reusable labelled input row for settings surfaces.
@@ -82,6 +83,9 @@ class SettingsInputRow @JvmOverloads constructor(
 
     // Only an inline row has a label column to share - a stacked one draws its caption on its own line.
     private var inlineLayout: Boolean = false
+
+    // The column width SettingsValueRowGroup last applied; zero while the row hugs its own content.
+    private var labelColumnWidthPx: Int = 0
 
     /**
      * Current input text.
@@ -203,6 +207,39 @@ class SettingsInputRow @JvmOverloads constructor(
         editText.isEnabled = enabled
         alpha = if (enabled) 1f else 0.5f
         if (!enabled) dismissOptions()
+    }
+
+    /**
+     * S4711: the weighted tail spacer makes `LinearLayout` measure the hugging title line against the
+     * whole row, so a long caption plus a fixed-width field used to lay the field out past the row's
+     * end. The title line is capped to what the field leaves, so the caption wraps instead. A label
+     * column width from [applyLabelColumnWidth] is left alone. The cap goes into the `LayoutParams.width`
+     * field, never through `setLayoutParams`, which would request another pass from inside this one.
+     */
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        if (inlineLayout && labelColumnWidthPx <= 0) capInlineTitleLine(widthMeasureSpec)
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+    }
+
+    private fun capInlineTitleLine(widthMeasureSpec: Int) {
+        val params = titleLine.layoutParams as LayoutParams
+        params.width = LayoutParams.WRAP_CONTENT
+        if (MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.UNSPECIFIED) return
+        val unbounded = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
+        val fieldParams = inputLayout.layoutParams as LayoutParams
+        val field = if (fieldWidthPx > 0) {
+            fieldWidthPx
+        } else {
+            inputLayout.measure(unbounded, unbounded)
+            inputLayout.measuredWidth
+        }
+        val available = MeasureSpec.getSize(widthMeasureSpec) - paddingStart - paddingEnd -
+            params.marginStart - params.marginEnd - field - fieldParams.marginStart - fieldParams.marginEnd
+        titleLine.measure(unbounded, unbounded)
+        if (titleLine.measuredWidth > available) {
+            params.width = available.coerceAtLeast(0)
+            Timber.d("S4711: SettingsInputRow caps title line %d -> %d px", titleLine.measuredWidth, params.width)
+        }
     }
 
     override fun onDetachedFromWindow() {
@@ -403,6 +440,7 @@ class SettingsInputRow @JvmOverloads constructor(
     override fun applyLabelColumnWidth(widthPx: Int) {
         if (!inlineLayout) return
         val column = widthPx > 0
+        labelColumnWidthPx = widthPx
         titleView.maxLines = if (column) 1 else Int.MAX_VALUE
         titleView.ellipsize = if (column) TextUtils.TruncateAt.END else null
         titleLine.updateLayoutParams<LayoutParams> {

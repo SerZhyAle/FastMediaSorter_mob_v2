@@ -88,6 +88,7 @@ internal class TextViewerLoader(
         safeViews.epubWebViewOrNull?.isVisible = false
         safeViews.setVisibleIfPresent(R.id.epubControlsLayout, false)
         safeViews.btnExitEpubFullscreenOrNull?.isVisible = false
+        Timber.d("S4722: text viewer shown below the file-name plate inset")
         safeViews.textViewerContainer.isVisible = true
         safeViews.textScrollView.isVisible = true
         safeViews.textEditContainer.isVisible = false

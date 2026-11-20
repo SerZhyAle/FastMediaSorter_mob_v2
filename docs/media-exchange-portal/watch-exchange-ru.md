@@ -16,7 +16,7 @@ permalink: /docs/media-exchange-portal/watch-exchange-ru.html
 
 ## Прежде чем начать
 
-- **Приложение для часов, сопряжённое с телефоном**, см. [Установка FastMediaSorter на часы](../../documentation/wear/installation-and-pairing-ru.html).
+- **Приложение для часов, сопряжённое с телефоном**, см. [Установка Fast Media Sorter & Organizer на часы](../../documentation/wear/installation-and-pairing-ru.html).
 - **Компаньон для часов включён** в **Настройках** телефона; иначе телефон ответит «Компаньон для часов выключен».
 - **Сервер обмена добавлен и выполнен вход на телефоне**, см. [Добавление сервера обмена в «Мои устройства»](my-devices-ru.html).
 

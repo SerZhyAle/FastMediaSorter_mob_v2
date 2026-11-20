@@ -3,9 +3,11 @@ layout: doc
 title: "Fast Media Sorter & Organizer"
 permalink: /docs/README-es.html
 ---
-<sub class="doc-stamp">26.10.15 19:27</sub>
+<sub class="doc-stamp">26.11.19 23:39</sub>
 
 <div lang="es" dir="ltr" markdown="1">
+
+<img src="../assets/identity/out/readme-head-128.png" width="64" height="64" alt="">
 
 # Fast Media Sorter & Organizer 🚀 {#fastmediasorter-v2-}
 
@@ -13,7 +15,7 @@ permalink: /docs/README-es.html
 ![Android](https://img.shields.io/badge/Platform-Android-green?style=flat-square&logo=android)
 ![Licencia](https://img.shields.io/badge/License-Apache_2.0-blue?style=flat-square&logo=apache)
 
-**📦 Descarga:** [<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Consíguelo en IzzyOnDroid" height="56">](https://apt.izzysoft.de/fdroid/index/apk/com.sza.fastmediasorter)
+**📦 Descarga:** [GitHub Releases](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest)
 
 ¿Vas a instalar el APK directamente? Android avisa sobre un paquete que no ha visto antes - [por qué aparece el aviso y qué debes pulsar](INSTALL_TRUST.md).
 

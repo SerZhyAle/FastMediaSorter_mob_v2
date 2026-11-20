@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,8 +24,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
+import timber.log.Timber
 
 private val INFORMATION_ROW_VERTICAL_PADDING = 2.dp
+
+// Wide enough that a right-aligned caption and a left-aligned value read as two items on a 192 dp
+// glass, where the 2 dp vertical padding used as a gap fused "Light" and "0 lx" into one word.
+private val INFORMATION_ROW_COLUMN_GAP = 8.dp
 
 /**
  * What one information row's two gestures do, when either differs from the default.
@@ -120,9 +126,12 @@ fun WearInformationRow(
             )
         }
     } else {
+        LaunchedEffect(labelRes) {
+            Timber.d("S4738: information row drawn side by side")
+        }
         Row(
             modifier = commonModifier,
-            horizontalArrangement = Arrangement.spacedBy(INFORMATION_ROW_VERTICAL_PADDING)
+            horizontalArrangement = Arrangement.spacedBy(INFORMATION_ROW_COLUMN_GAP)
         ) {
             Text(
                 text = label,

@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.15 18:53</sub>
+<sub class="doc-stamp">26.11.20 16:27</sub>
 
 # Contract pointers
 
@@ -29,6 +29,7 @@ catalog registry to one set of ids and versions.
 | [`SHARE-SESSION.md`](SHARE-SESSION.md) | `SHARE-SESSION` | client - the SFTP connection to a shared folder |
 | [`ANYWHERE-ACCESS.md`](ANYWHERE-ACCESS.md) | `ANYWHERE-ACCESS` | owner; reference producer (phone shares over rendezvous/tunnel) and consumer (reads others' shares) |
 | [`DEVICE-EXCHANGE.md`](DEVICE-EXCHANGE.md) | `DEVICE-EXCHANGE` | owner; phone - resource producer and consumer, broadcaster, receiver; watch - broadcaster of sound and receiver of sound and video |
+| [`REMOTE-CONTROL.md`](REMOTE-CONTROL.md) | `REMOTE-CONTROL` | target - the phone app answers commands from the account's other devices |
 | [`OCR-OVERLAY.md`](OCR-OVERLAY.md) | `OCR-OVERLAY` | consumer - the player's OCR + translation overlay |
 | [`LETTERBOX-FILL.md`](LETTERBOX-FILL.md) | `LETTERBOX-BARS`, `LETTERBOX-HALO` | consumer - the player's edge-extended background behind a fitted photo |
 | [`OCR-ACCURACY.md`](OCR-ACCURACY.md) | `OCR-ACCURACY` | owner of the record |
@@ -43,6 +44,7 @@ catalog registry to one set of ids and versions.
 | [`CHECK-PLACEMENT.md`](CHECK-PLACEMENT.md) | `CHECK-PLACEMENT` | owner |
 | [`BUILD-EVIDENCE.md`](BUILD-EVIDENCE.md) | `BUILD-EVIDENCE` | owner |
 | [`ICON-RENDER.md`](ICON-RENDER.md) | `ICON-RENDER` | owner and reference implementation; phone, launcher, watch, docs and site |
+| [`PRODUCT-IDENTITY.md`](PRODUCT-IDENTITY.md) | `PRODUCT-IDENTITY` | consumer - one master of the product mark, generated renditions, help head and glyphs |
 | [`PAGE-CONTENT.md`](PAGE-CONTENT.md) | `PAGE-CONTENT` | consumer - the product site |
 | [`PAGE-STYLE.md`](PAGE-STYLE.md) | `PAGE-STYLE` | consumer - the product site |
 | [`SITE-FAMILY-MAP.md`](SITE-FAMILY-MAP.md) | `SITE-FAMILY-MAP` | consumer - the product site's footer |
@@ -69,3 +71,4 @@ catalog registry to one set of ids and versions.
 | [`COLLAPSIBLE-GROUP.md`](COLLAPSIBLE-GROUP.md) | `COLLAPSIBLE-GROUP` | consumer - phone, launcher and watch (migration S4619) |
 | [`SETTINGS-NAVIGATION.md`](SETTINGS-NAVIGATION.md) | `SETTINGS-NAVIGATION` | consumer - main settings, settings dialogs and watch settings (migration S4619) |
 | [`EXCHANGE-MARK.md`](EXCHANGE-MARK.md) | `EXCHANGE-MARK` | consumer - mark of the exchange server on phone, watch, portal and docs |
+| [`RELEASE-LEDGER.md`](RELEASE-LEDGER.md) | `RELEASE-LEDGER` | adopter - the release ledger of the phone, watch app and watch face; the canon ships the only writer |

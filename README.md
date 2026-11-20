@@ -1,4 +1,6 @@
-<sub class="doc-stamp">26.11.19 01:00</sub>
+<sub class="doc-stamp">26.11.20 00:04</sub>
+
+<img src="assets/identity/out/readme-head-128.png" width="64" height="64" alt="">
 
 # Fast Media Sorter & Organizer 🚀
 
@@ -8,7 +10,7 @@
 
 **📖 Other Languages:** [🇷🇺 Русский](docs/README-ru.md) | [🇺🇦 Українська](docs/README-uk.md)
 
-**📦 Download:** [<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" height="56">](https://apt.izzysoft.de/fdroid/index/apk/com.sza.fastmediasorter)
+**📦 Download:** [GitHub Releases](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest)
 
 Installing the APK directly? Android warns about a package it has not seen before - [why the warning appears, and what to tap](docs/INSTALL_TRUST.md).
 

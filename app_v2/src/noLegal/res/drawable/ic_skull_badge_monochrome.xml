@@ -10,6 +10,13 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    <!-- S4784: the skull drawn at 62..108 units, scaled into the family badge box (upper leading,
+         31.5..41.5 units) because the lower trailing box belongs to the product signifier. -->
+    <group
+        android:scaleX="0.2174"
+        android:scaleY="0.2174"
+        android:translateX="18.02"
+        android:translateY="18.02">
 
     <path
         android:fillColor="@color/white"
@@ -27,4 +34,5 @@
                           M84,97 L84,106 L86,106 L86,97 Z
                           M91,97 L91,106 L93,106 L93,97 Z" />
 
+    </group>
 </vector>

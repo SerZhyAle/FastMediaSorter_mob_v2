@@ -73,6 +73,7 @@ class SyncNotesThroughExchangeUseCase @Inject constructor(
         folder: File = NotesFolderPolicy.notesDirectory(),
         deviceName: String = Build.MODEL.orEmpty(),
     ): NotesSyncOutcome = mutex.withLock {
+        Timber.d("S4572: notes sync run started")
         val entry = remote.entry() ?: return@withLock NotesSyncOutcome.Off
         val stored = store.read()
         // Revisions of one server mean nothing to another, so a new entry starts with every note new.

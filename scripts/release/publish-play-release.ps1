@@ -41,6 +41,13 @@
     Release notes in the Play Console paste format (<en-US>..</en-US> blocks). Required with a
     non-default -Package; optional otherwise, where it replaces the fastlane changelogs.
 
+.PARAMETER ListingRoot
+    Write the store listing under this folder (the layout publish-play-listing.ps1 reads) into the
+    same edit as the bundle, so the track and the listing reach Play as one commit and one review
+    submission. Two separate commits are two submissions, and the second cancels the first while it is
+    in review (contract GOOGLE-PLAY rule 28, S4799). The listing is checked before the edit is opened;
+    a missing file or a length-limit breach exits 1.
+
 .PARAMETER WhatIf
     Resolve and print the plan (package, track, bundle, notes) and exit 0 before any API call.
 
@@ -59,11 +66,16 @@
         -Package <face package> -Aab DOWNLOADS/FastMediaSorter_watchface_release.aab `
         -VersionCode 260930117 -NotesFile play/watchface/release-notes.txt
 
+.EXAMPLE
+    pwsh -File scripts/release/publish-play-release.ps1 -Track 'wear:production' `
+        -Aab DOWNLOADS/FastMediaSorter_wear_release.aab -VersionCode 26082322 -ListingRoot play/listing
+
 .NOTES
     Exit codes (mirrors publish-play-release.py, S2346):
       0 - the bundle is on the track and the edit was committed.
       1 - the release is at fault: the AAB is missing, an argument contradicts the artifact, a
-          non-default -Package has no notes file, or Play rejected the payload. The Foreground-service-permissions 403 on commit lands here
+          non-default -Package has no notes file, the -ListingRoot listing is incomplete or over a
+          length limit, or Play rejected the payload. The Foreground-service-permissions 403 on commit lands here
           on purpose - it is a build defect (the standard bundle gained a foreground-service type), fixed in the build
           by stripping the type, and must stay visible as a finding.
       2 - could not verify: the virtual environment is absent, or a sustained transient failure
@@ -83,7 +95,8 @@ param(
     [int] $VersionCode,
     [int] $NotesVersionCode,
     [string] $Package,
-    [string] $NotesFile
+    [string] $NotesFile,
+    [string] $ListingRoot
 )
 
 $ErrorActionPreference = "Stop"
@@ -107,6 +120,7 @@ if (-not [string]::IsNullOrWhiteSpace($Aab)) {
 if ($NotesVersionCode -gt 0) { $extraArgs += @('--notes-code', "$NotesVersionCode") }
 if (-not [string]::IsNullOrWhiteSpace($Package)) { $extraArgs += @('--package', $Package) }
 if (-not [string]::IsNullOrWhiteSpace($NotesFile)) { $extraArgs += @('--notes-file', $NotesFile) }
+if (-not [string]::IsNullOrWhiteSpace($ListingRoot)) { $extraArgs += @('--listing-root', $ListingRoot) }
 if ($WhatIfPreference) { $extraArgs += '--dry-run' }
 
 Write-Host "Invoking Google Play Console uploader (Track: $Track, Status: $Status)..." -ForegroundColor Cyan
@@ -114,8 +128,8 @@ $committed = $null
 & $venvPython $pyScript $Track $Status @extraArgs | ForEach-Object {
     $line = [string]$_
     Write-Host $line
-    if ($line -match '^PLAY-COMMITTED versionCode=(\d+) package=(\S+) track=(\S+) status=(\S+) held=([01])\s*$') {
-        $committed = [pscustomobject]@{ VersionCode = [long]$Matches[1]; Held = ($Matches[5] -eq '1') }
+    if ($line -match '^PLAY-COMMITTED versionCode=(\d+)(?: versionName=(\S*))? package=(\S+) track=(\S+) status=(\S+) held=([01])\s*$') {
+        $committed = [pscustomobject]@{ VersionCode = [long]$Matches[1]; VersionName = $Matches[2]; Held = ($Matches[6] -eq '1') }
     }
 }
 $pyExit = $LASTEXITCODE
@@ -138,6 +152,16 @@ if ($WhatIfPreference) {
     exit 0
 }
 Write-Host "Google Play Console publication completed." -ForegroundColor Green
+
+# S4679: record the channel step in the release ledger - pending while the commit is held,
+# submitted once handed over; the wrapper reports and never fails the release.
+if ($committed -and -not [string]::IsNullOrWhiteSpace([string]$committed.VersionName)) {
+    $ledgerKey = if ($Package -like '*watchface*') { 'play-watchface' } elseif ($Track -ne 'production') { 'play-wear' } else { 'play' }
+    $ledgerState = if ($committed.Held) { 'pending' } else { 'submitted' }
+    & (Join-Path $PSScriptRoot '..\utils\log-release-ledger-publish.ps1') -Key $ledgerKey -Version $committed.VersionName -State $ledgerState -Note "track $Track status $Status"
+} else {
+    Write-Warning "release ledger: the uploader reported no versionName; the Play publication is not recorded."
+}
 
 # Play carries the versionCode on production only after a commit that is not held; before that the
 # bundle's snapshot is just a build-time record and must not become anyone's baseline (S4499).

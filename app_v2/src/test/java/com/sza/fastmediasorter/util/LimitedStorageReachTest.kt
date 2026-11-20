@@ -85,6 +85,27 @@ class LimitedStorageReachTest {
     }
 
     @Test
+    fun `the notes folder is read through the file API so it is never limited`() {
+        assertFalse(
+            LimitedStorageReach.isReachLimited(
+                type = ResourceType.LOCAL,
+                path = "/storage/emulated/0/Documents/Notes",
+                promisedTypes = setOf(MediaType.TEXT),
+                allFilesAccessMissing = true,
+                notesFolder = true
+            )
+        )
+        assertTrue(
+            LimitedStorageReach.isReachLimited(
+                type = ResourceType.LOCAL,
+                path = "/storage/emulated/0/Documents/Notes",
+                promisedTypes = setOf(MediaType.TEXT),
+                allFilesAccessMissing = true
+            )
+        )
+    }
+
+    @Test
     fun `a network resource never reads through MediaProvider`() {
         assertFalse(
             LimitedStorageReach.isReachLimited(

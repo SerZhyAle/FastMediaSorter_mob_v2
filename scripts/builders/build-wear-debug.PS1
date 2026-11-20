@@ -135,6 +135,9 @@ $logEntry = "$timestamp | wear-debug | $destName"
 Add-Content -Path $journalPath -Value $logEntry
 Write-Host "Build logged to journal" -ForegroundColor Gray
 
+# S4679: record the build in the release ledger; the wrapper reports and never fails the build.
+& "$PSScriptRoot\..\utils\log-release-ledger-build.ps1" -Package wear -Flavor standard -Kind debug -Version $versionName -Artifact "$downloadsDir\$destName"
+
 # The watch APK reaches the Commander folder too, unlike its five siblings that mirror to Drive
 # alone: it is the one debug artifact routinely sideloaded from there onto a paired watch.
 & "$PSScriptRoot\..\utils\publish-artifact.ps1" -Path "$downloadsDir\$destName" -Name $destName

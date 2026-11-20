@@ -23,7 +23,7 @@ permalink: /docs/media-exchange-portal/exchange-clipboard-ru.html
 - **Часы:** своего буфера, который можно прочитать, у часов нет, поэтому они отправляют через **Отправить в..** - файл, картинку или голосовую запись. Полученное значение сохраняется на часах и открывается во встроенном плеере приложения часов: текст, PDF, картинка, анимация, звук или видео.
 - **Windows:** две кнопки в главном окне Share Manager и ярлыки на рабочем столе. Участвует и CyrFlip - небольшая программа для Windows от того же разработчика.
 
-Отправляют и получают FastMediaSorter на телефоне и часах, Fast Media Sorter & Sharing for Windows и CyrFlip. STREAMS Player и StreamsPlayer_mob не участвуют.
+Отправляют и получают Fast Media Sorter & Organizer на телефоне и часах, Fast Media Sorter & Sharing for Windows и CyrFlip. STREAMS Player и StreamsPlayer_mob не участвуют.
 
 ## Правила {#rules}
 

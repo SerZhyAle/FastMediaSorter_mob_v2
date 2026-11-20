@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.15 19:22</sub>
+<sub class="doc-stamp">26.11.20 18:13</sub>
 
 # scripts/release - Operator Handbook
 
@@ -21,6 +21,7 @@ Scripts that publish FastMediaSorter to GitHub Releases so that **GitHub Store**
 | `apply-github-store-metadata.ps1` | Apply repo `description`, `topics`, `homepage` from `PLAN/S0214_github-store-publication/DECISIONS.md` to GitHub via REST. Idempotent. |
 | `publish-github-release.ps1` | Publish a stable release: discover prebuilt APKs, stage them with deterministic names, create a GitHub Release tag from `main`, attach release notes from `docs/WHATS_NEW.md`, upload both APKs as assets. |
 | `publish-play-release.ps1` | Publish the standard AAB to Google Play Console: attach the bundle if its versionCode is already in the library else upload it, fetch generated Fastlane changelogs for that versionCode, update specified track (internal/alpha/beta/production) as draft/completed, and commit edit. |
+| `measure-wear-change.ps1` | Read-only: the watch source change since the `wear:production` release - shipping and test files changed from the last commit before that release; `/skill-release-wear` Step 0 reads it to decide whether the watch goes (S4799, contract `GOOGLE-PLAY` rule 31). |
 | `read-play-tracks.ps1` | Read-only: what each Play track **holds** - versionName, versionCode and status for `production`, `wear:production`, `internal`, `beta`, `alpha`. Needs `.venv` and `.secrets/play-console-key.json`. A track's `completed` status is not proof the release is served or that it passed review - a rejected release keeps reporting `completed`. |
 | `refresh-play-publishing-state.ps1` | The only writer of the measured half of `docs/PLAY_PUBLISHING_STATE.md`: runs both readers and rewrites the two `s2272:measured:*` regions, touching nothing outside them. `-Check` makes it a non-writing staleness probe (exit 1 = out of date). The `Policy status` block stays the owner's - the API serves no policy surface, so the script only reports how old that transcription is. Run it at every release and at every Play verdict. |
 | `clear-play-track-release.ps1` | One-way write, gated by `-Confirm` (dry run without it): empties one named Play track's release list, since the API has no "cancel release". Refuses a track holding anything but drafts unless `-AllowNonDraft`. While a rejection stands the commit falls back to `changesNotSentForReview` and only queues a change in `Publishing overview` - a `completed` record then survives until the batch is sent, and measured 2026-09-12 it may not take at all (`docs/PLAY_PUBLISHING_STATE.md`, recovery plan steps 2 and 2a). Read the result back with `read-play-tracks.ps1`. |

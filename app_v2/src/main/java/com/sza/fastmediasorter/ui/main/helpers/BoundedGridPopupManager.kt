@@ -11,8 +11,10 @@ import android.widget.GridLayout
 import android.widget.PopupWindow
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.children
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.PopupMainDropdownGridBinding
+import timber.log.Timber
 
 /**
  * Anchored grid popup whose height never leaves the system-bar/cutout safe area: when the cells are
@@ -83,6 +85,8 @@ class BoundedGridPopupManager {
             if (binding.root.measuredHeight > maxHeight) {
                 binding.scrollView.layoutParams = binding.scrollView.layoutParams.apply { height = maxHeight }
             }
+            if (!equalColumns) trimOverflowingCells(grid, maxWidth, columnCount, gridPadding)
+            Timber.d("S4796: wrapped=${cells.count { it is android.widget.TextView && it.lineCount > 1 }}")
         }
 
         activePopup = popup
@@ -105,8 +109,28 @@ class BoundedGridPopupManager {
         if (cellMaxWidth <= 0) return
         cells.forEach { cell ->
             if (measureCellWidth(cell) <= cellMaxWidth) return@forEach
-            cell.layoutParams = GridLayout.LayoutParams().apply { width = cellMaxWidth }
+            pinCellWidth(cell, cellMaxWidth)
         }
+    }
+
+    /**
+     * S4709: the pre-layout cap above trusts a measure taken before the popup is attached. On a 360dp
+     * ru screen it still left the left column wider than its share, so the right column ended past the
+     * popup edge and the window cut "Запись с диктофона" mid-word with no ellipsis. The laid-out right
+     * edge is the real figure: when it passes the safe width, every cell wider than its column share is
+     * pinned to that share, which hands the cut back to the cell's own `ellipsize`.
+     */
+    private fun trimOverflowingCells(grid: GridLayout, maxWidth: Int, columnCount: Int, gridPadding: Int) {
+        val laidOut = grid.children.toList()
+        val rightmost = laidOut.maxOfOrNull { it.right } ?: return
+        val share = resolveCellMaxWidth(maxWidth, columnCount, gridPadding)
+        if (share <= 0 || resolveOverflow(rightmost, grid.paddingRight, maxWidth) == 0) return
+        Timber.d("S4709: dropdown overflow trimmed, rightmost=$rightmost max=$maxWidth share=$share")
+        laidOut.filter { it.width > share }.forEach { pinCellWidth(it, share) }
+    }
+
+    private fun pinCellWidth(cell: View, cellWidth: Int) {
+        cell.layoutParams = GridLayout.LayoutParams().apply { width = cellWidth }
     }
 
     private fun measureCellWidth(cell: View): Int {
@@ -143,6 +167,10 @@ class BoundedGridPopupManager {
 
         internal fun resolveGridWidth(widestCell: Int, columnCount: Int, horizontalPadding: Int, maxWidth: Int): Int =
             minOf(widestCell * columnCount + horizontalPadding, maxWidth)
+
+        /** How far the laid-out cells reach past the safe width, counting the grid's end padding; 0 when they fit. */
+        internal fun resolveOverflow(rightmostCellEdge: Int, gridPaddingEnd: Int, maxWidth: Int): Int =
+            (rightmostCellEdge + gridPaddingEnd - maxWidth).coerceAtLeast(0)
 
         /** The width one column may take before the popup edge, not the cell's own ellipsize, does the cutting. */
         internal fun resolveCellMaxWidth(maxWidth: Int, columnCount: Int, horizontalPadding: Int): Int =

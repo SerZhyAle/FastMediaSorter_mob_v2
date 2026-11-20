@@ -24,7 +24,7 @@ In **Streams**, open the section **Broadcasts of my devices**: it lists what the
 ## 2. A link, a QR code or a file
 
 - **Scan the QR code** the sender shows: **Import stream (QR / file)**, **Scan QR Code**.
-- **Open the link** the sender sent; it opens in FastMediaSorter.
+- **Open the link** the sender sent; it opens in Fast Media Sorter & Organizer.
 - **Choose the descriptor file** (`.fmsbcast`): **Select Descriptor File**.
 
 Each of these adds a broadcast channel to your list. When the sender changes the address, importing the same broadcast again refreshes it.

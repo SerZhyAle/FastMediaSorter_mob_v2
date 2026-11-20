@@ -7,6 +7,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Help - Scheduled file operations</title>
 <link rel="stylesheet" href="../help.css">
+<link rel="icon" type="image/png" href="../img/product-mark.png">
 </head>
 <body class="help">
 <main class="container">
@@ -14,6 +15,7 @@
 <a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>Scheduled file operations</span>
 </nav>
 <header class="hero">
+<img class="product-mark" src="../img/product-mark.png" width="48" height="48" alt="Fast Media Sorter">
 <h1>Scheduled file operations</h1>
 </header>
 <h2>What this is for</h2>
@@ -24,12 +26,12 @@
 </figure>
 <h2>In this order</h2>
 <ol class="order">
-<li>Turn on Use scheduled operations <a class="ref" href="#enabled">2</a>. On Android 13 and later, press the notifications button <a class="ref" href="#notification-permission">3</a> if it shows up, so you can see when a run starts or fails.</li>
+<li>Turn on Use scheduled operations <span class="nb"><a class="ref" href="#enabled">2</a>.</span> On Android 13 and later, press the notifications button <a class="ref" href="#notification-permission">3</a> if it shows up, so you can see when a run starts or fails.</li>
 <li>Press Add <a class="ref" href="#add">4</a> and describe the job once: the source, the operation, the destination, which files to take, when to start and how often. Try a new job as Copy before you trust it with Move or Delete.</li>
-<li>Find the new card in the list <a class="ref" href="#list">11</a>. Its own switch <a class="ref" href="#op-switch">12</a> holds just that job without deleting it.</li>
+<li>Find the new card in the list <span class="nb"><a class="ref" href="#list">11</a>.</span> Its own switch <a class="ref" href="#op-switch">12</a> holds just that job without deleting it.</li>
 <li>Not sure it works? Press Run now <a class="ref" href="#op-run-now">15</a> on the card, then open its History <a class="ref" href="#op-history">14</a> to see what was done.</li>
 <li>A warning mark <a class="ref" href="#op-warning">13</a> means the last run failed or was skipped. History <a class="ref" href="#history">7</a> shows the log of all runs, the card's History <a class="ref" href="#op-history">14</a> the runs of one job.</li>
-<li>To hold everything for a while use Pause all <a class="ref" href="#pause">6</a>. Run all now <a class="ref" href="#run-all">5</a> starts every enabled job once, outside the schedule.</li>
+<li>To hold everything for a while use Pause all <span class="nb"><a class="ref" href="#pause">6</a>.</span> Run all now <a class="ref" href="#run-all">5</a> starts every enabled job once, outside the schedule.</li>
 <li>Edit <a class="ref" href="#op-edit">16</a> changes a job, Delete <a class="ref" href="#op-delete">17</a> removes one, and Clear all <a class="ref" href="#clear-all">8</a> removes them all. Clear log <a class="ref" href="#history-clear">10</a> empties the run history and leaves the jobs alone.</li>
 </ol>
 <h2>The elements</h2>
@@ -81,7 +83,7 @@
 </div>
 </details>
 <details class="el" id="history">
-<summary><span class="mk">7</span><span><span class="name">History</span><span class="one">Shows or hides the log of all runs.</span></span></summary>
+<summary><span class="mk">7</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M13,3c-4.97,0 -9,4.03 -9,9H1l3.89,3.89 0.07,0.14L9,12H6c0,-3.87 3.13,-7 7,-7s7,3.13 7,7 -3.13,7 -7,7c-1.93,0 -3.68,-0.79 -4.94,-2.06l-1.42,1.42C8.27,19.99 10.51,21 13,21c4.97,0 9,-4.03 9,-9s-4.03,-9 -9,-9zm-1,5v5l4.28,2.54 0.72,-1.21 -3.5,-2.08V8H12z" fill="currentColor"/></svg>History</span><span class="one">Shows or hides the log of all runs.</span></span></summary>
 <div class="full">
 <p>The Run history panel opens under the buttons with the newest runs first: when each run happened, which operation it was, from where to where, and what came of it. Failures are shown in the error color. Press the button again to hide the panel.</p>
 </div>
@@ -146,13 +148,13 @@
 </div>
 </details>
 <details class="el" id="op-edit">
-<summary><span class="mk">16</span><span><span class="name">Edit</span><span class="one">Changes the source, destination, files or times of this operation.</span></span></summary>
+<summary><span class="mk">16</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3,17.25V21h3.75L17.81,9.94l-3.75,-3.75L3,17.25zM20.71,7.04c0.39,-0.39 0.39,-1.02 0,-1.41l-2.34,-2.34c-0.39,-0.39 -1.02,-0.39 -1.41,0l-1.83,1.83 3.75,3.75 1.83,-1.83z" fill="currentColor"/></svg>Edit</span><span class="one">Changes the source, destination, files or times of this operation.</span></span></summary>
 <div class="full">
 <p>The same form as Add opens with the current settings. Save operation keeps your changes; closing the form without saving leaves the operation as it was.</p>
 </div>
 </details>
 <details class="el" id="op-delete">
-<summary><span class="mk">17</span><span><span class="name">Delete</span><span class="one">Removes this operation.</span></span></summary>
+<summary><span class="mk">17</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6,19c0,1.1 0.9,2 2,2h8c1.1,0 2,-0.9 2,-2L18,7H6v12ZM19,4h-3.5l-1,-1h-5l-1,1H5v2h14V4Z" fill="currentColor"/></svg>Delete</span><span class="one">Removes this operation.</span></span></summary>
 <div class="full">
 <p>The app asks Delete this scheduled operation? first. After you confirm, the operation and its schedule are removed, together with its own run list and a folder that was chosen only for this job. Your files are not touched.</p>
 <dl class="facts">
@@ -179,7 +181,7 @@
 <li><a href="index.html"><b>Help index</b></a></li>
 </ul>
 <footer class="help-foot">
-<span>Fast Media Sorter, 2026-11-15</span>
+<span>Fast Media Sorter, 2026-11-20</span>
 <a href="index.html">Help index</a>
 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
 </footer>

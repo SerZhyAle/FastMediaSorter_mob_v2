@@ -6,7 +6,7 @@ import android.os.Handler
 import android.os.Looper
 import android.text.SpannableString
 import android.text.Spanned
-import android.text.style.RelativeSizeSpan
+import android.text.style.AbsoluteSizeSpan
 import android.util.TypedValue
 import android.view.ContextThemeWrapper
 import android.view.Gravity
@@ -46,8 +46,12 @@ class CalculatorInputManager(
     private val engine = CalculatorEngine()
     private val mainHandler = Handler(Looper.getMainLooper())
     private var hasReturnableResult = false
-    private val historyStore: CalculatorHistoryStore =
+
+    // Lazy because filesDir creates the directory on first call, a disk read the main thread must not pay;
+    // every use is inside a storageExecutor task, so the path is resolved on that worker.
+    private val historyStore: CalculatorHistoryStore by lazy {
         FileCalculatorHistoryStore(File(context.applicationContext.filesDir, HISTORY_FILE_NAME))
+    }
     private var persistedHistorySize = 0
     private var historyLoaded = false
 
@@ -212,6 +216,7 @@ class CalculatorInputManager(
             }
             showHintOn(key, action.hint)
         }
+        Timber.d("S4712: calculator key hints bound at the shared key text size")
     }
 
     /**
@@ -229,8 +234,11 @@ class CalculatorInputManager(
         }
         val symbol = key.text?.toString().orEmpty().substringBefore('\n')
         val combined = SpannableString("$symbol\n$hintText")
+        // Sized from the shared key text size, not from the key's own: the plus key's glyph is larger than
+        // the others', and a span relative to it made "Копировать" wider than the key.
+        val keyTextSizePx = context.resources.getDimension(R.dimen.calculator_button_text_size)
         combined.setSpan(
-            RelativeSizeSpan(HINT_TEXT_SCALE),
+            AbsoluteSizeSpan((keyTextSizePx * HINT_TEXT_SCALE).roundToInt(), false),
             symbol.length + 1,
             combined.length,
             Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
@@ -266,6 +274,7 @@ class CalculatorInputManager(
 
     private fun loadPersistedMemory() {
         storageExecutor.executeUnlessShutdown {
+            Timber.d("S4716: calculator memory store opened on the storage worker")
             val stored = memoryStore.loadMemory()
             val expanded = memoryStore.loadRowExpanded()
             mainHandler.post {
@@ -297,6 +306,7 @@ class CalculatorInputManager(
 
     private fun loadPersistedHistory() {
         storageExecutor.executeUnlessShutdown {
+            Timber.d("S4716: calculator history store opened on the storage worker")
             val entries = historyStore.load()
             mainHandler.post {
                 if (!historyReplacedBeforeLoad) {

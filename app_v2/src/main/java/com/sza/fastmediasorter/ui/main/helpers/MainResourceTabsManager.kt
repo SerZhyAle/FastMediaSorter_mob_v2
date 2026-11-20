@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.main.ResourceTab
 import com.sza.fastmediasorter.utils.keepLongestWordOnOneLine
 import kotlinx.coroutines.CoroutineScope
+import timber.log.Timber
 
 /**
  * Owns the resource-type TabLayout: gate-aware tab construction, width-aware mode/gravity, and
@@ -134,6 +135,7 @@ class MainResourceTabsManager(
         val restWidth = resolveRestTabWidth(strip.childCount)
         val maxFirstWidth = tabLayout.resources.getDimensionPixelSize(R.dimen.main_panel_first_tab_width)
         val firstWidth = (restWidth * firstTabAccentRatio()).toInt().coerceAtMost(maxFirstWidth)
+        val labelPadding = tabLayout.resources.getDimensionPixelSize(R.dimen.padding_small)
         for (i in 0 until strip.childCount) {
             val tabView = strip.getChildAt(i)
             val target = if (i == 0) firstWidth else restWidth
@@ -143,7 +145,12 @@ class MainResourceTabsManager(
                 tabView.layoutParams = lp
             }
             tabView.minimumWidth = target
+            // S4709: Material's own tab padding left a 70dp tab only 46dp for its label, so "Локальные"
+            // hit the fitter's floor and still ended as "Локаль..". The tab width is unchanged; only the
+            // label's share of it grows. createTabs rebuilds the tab views, so rotation needs no undo.
+            tabView.setPaddingRelative(labelPadding, tabView.paddingTop, labelPadding, tabView.paddingBottom)
         }
+        Timber.d("S4709: portrait tab strip labelPadding=$labelPadding restWidth=$restWidth")
     }
 
     /**

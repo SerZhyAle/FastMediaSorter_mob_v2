@@ -78,7 +78,7 @@
     <string name="vr_info_video">Videocodec:</string>
     <string name="vr_install_cta_action">Im Geschäft öffnen</string>
     <string name="vr_install_cta_dismiss">Spiel trotzdem</string>
-    <string name="vr_install_cta_message">Für das beste Erlebnis probieren Sie die VR-Edition von FastMediaSorter auf Ihrem Quest-Headset aus.</string>
+    <string name="vr_install_cta_message">Für das beste Erlebnis probieren Sie die VR-Edition von Fast Media Sorter &amp; Organizer auf Ihrem Quest-Headset aus.</string>
     <string name="vr_install_cta_title">Dies ist ein 3D-Video.</string>
     <string name="vr_overlay_btn_bright_down">Hell -</string>
     <string name="vr_overlay_btn_bright_up">Hell +</string>

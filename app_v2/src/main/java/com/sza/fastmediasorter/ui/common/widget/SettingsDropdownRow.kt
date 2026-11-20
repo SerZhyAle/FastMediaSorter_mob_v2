@@ -22,6 +22,8 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ViewSettingsDropdownRowBinding
+import com.sza.fastmediasorter.utils.widestUnbreakableRunPx
+import timber.log.Timber
 import kotlin.math.ceil
 
 /**
@@ -215,9 +217,11 @@ class SettingsDropdownRow @JvmOverloads constructor(
      * edge (S0644). Hugging means the value is measured before the glyph and may take the whole row,
      * which is what left the one Streams entry long enough to wrap without a chevron (S2783).
      *
-     * A row outside a label column stacks the value under the caption when the room beside it is both
-     * too narrow for the value and under a third of the row: at a large accessibility font scale the caption
-     * alone nearly fills the row, and the value was left one glyph wide, wrapping per letter (S3863).
+     * A row outside a label column stacks the value under the caption when it does not fit beside it
+     * and the room is narrower than its widest word or under a third of the row: at a large accessibility
+     * font scale the caption alone nearly fills the row, and the value was left one glyph wide, wrapping
+     * per letter (S3863), or a column that split a word in the middle (S4788). The decision is
+     * [SettingsValueStackPolicy], shared with [SettingsSelectionRow].
      */
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         if (valueAsText && MeasureSpec.getMode(widthMeasureSpec) != MeasureSpec.UNSPECIFIED) {
@@ -230,9 +234,12 @@ class SettingsDropdownRow @JvmOverloads constructor(
                 measureLabelNaturalWidth()
             }
             val besideRoom = content - label - glyph - gap
-            val stack = labelColumnWidthPx <= 0 &&
-                besideRoom < measureValueNaturalWidth() &&
-                besideRoom < content / STACK_VALUE_ROOM_DIVISOR
+            val stack = labelColumnWidthPx <= 0 && SettingsValueStackPolicy.shouldStack(
+                content,
+                besideRoom,
+                measureValueNaturalWidth(),
+                valueTextView.widestUnbreakableRunPx(),
+            )
             setValueStacked(stack)
             val room = if (stack) content - glyph - gap else besideRoom
             val cap = room.coerceAtLeast(0)
@@ -416,6 +423,7 @@ class SettingsDropdownRow @JvmOverloads constructor(
     private fun setValueStacked(stacked: Boolean) {
         if (stacked == valueStacked) return
         valueStacked = stacked
+        Timber.d("S4788: SettingsDropdownRow value stacked=%b", stacked)
         binding.sdrTitleLine.orientation = if (stacked) VERTICAL else HORIZONTAL
         valueTextView.updateLayoutParams<LinearLayout.LayoutParams> {
             marginStart = if (stacked) 0 else resources.getDimensionPixelSize(R.dimen.settings_help_icon_margin)
@@ -490,11 +498,5 @@ class SettingsDropdownRow @JvmOverloads constructor(
             weight = 0f
             marginEnd = if (column) resources.getDimensionPixelSize(R.dimen.margin_medium) else 0
         }
-    }
-
-    private companion object {
-        // A third keeps the default-scale two-line value beside its caption (about 430 of 1036 px on
-        // the S21+) and stacks only the one-glyph column a 2.0 font scale produced (about 120 px).
-        const val STACK_VALUE_ROOM_DIVISOR = 3
     }
 }

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -14,6 +15,8 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.invisibleToUser
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
@@ -41,6 +44,11 @@ import timber.log.Timber
  * before Compose delivers it - so on the watch the one hardware button that reaches an application
  * took the whole screen away instead of lifting the lock (measured on Galaxy Watch 7, 2026-09-17).
  * [BackHandler] is what intercepts it in place and counts it towards the streak.
+ *
+ * The overlay is a focusable full-screen leaf, which Compose would otherwise treat as covering every node
+ * below it and drop the whole dashboard from the accessibility tree, so a screen reader would find no
+ * reading while the lock is on. It is therefore invisible to accessibility: the sink for pointer, key and
+ * rotary input stays as it is, and the readings underneath stay in the tree.
  */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -54,6 +62,10 @@ fun TouristLockOverlay(
         onUnlock()
     }
 
+    LaunchedEffect(Unit) {
+        Timber.d("S4744: tourist lock overlay shown, invisible to accessibility so the dashboard stays in the tree")
+    }
+
     BackHandler {
         if (exitGate.onBack(System.currentTimeMillis())) {
             currentUnlock()
@@ -63,6 +75,7 @@ fun TouristLockOverlay(
     Box(
         modifier = modifier
             .fillMaxSize()
+            .semantics { invisibleToUser() }
             .pointerInput(Unit) {
                 awaitPointerEventScope {
                     while (true) {

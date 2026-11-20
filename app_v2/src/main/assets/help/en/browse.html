@@ -7,6 +7,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Help - File browser</title>
 <link rel="stylesheet" href="../help.css">
+<link rel="icon" type="image/png" href="../img/product-mark.png">
 </head>
 <body class="help">
 <main class="container">
@@ -14,6 +15,7 @@
 <a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>File browser</span>
 </nav>
 <header class="hero">
+<img class="product-mark" src="../img/product-mark.png" width="48" height="48" alt="Fast Media Sorter">
 <h1>File browser</h1>
 </header>
 <h2>What this is for</h2>
@@ -25,12 +27,12 @@
 <h2>In this order</h2>
 <ol class="order">
 <li>Tap a file in the list <a class="ref" href="#file-list">17</a> to open it in the player. Tap a folder to step into it; the folder name <a class="ref" href="#path">2</a> then shows where you are, and Back <a class="ref" href="#back">1</a> climbs one level up.</li>
-<li>Order the folder with Sort <a class="ref" href="#sort">3</a>, narrow it down with Filter <a class="ref" href="#filter">4</a>, or type a few letters of a name into Search <a class="ref" href="#search">5</a>. Refresh <a class="ref" href="#refresh">6</a> rescans the folder after files changed outside the app.</li>
+<li>Order the folder with Sort <span class="nb"><a class="ref" href="#sort">3</a>,</span> narrow it down with Filter <span class="nb"><a class="ref" href="#filter">4</a>,</span> or type a few letters of a name into Search <span class="nb"><a class="ref" href="#search">5</a>.</span> Refresh <a class="ref" href="#refresh">6</a> rescans the folder after files changed outside the app.</li>
 <li>Switch between tiles and a list with <a class="ref" href="#toggle-view">7</a> when you want more thumbnails or more detail on the screen.</li>
-<li>Press and hold a file to start a selection, or use Select all <a class="ref" href="#select-all">8</a>. A bar of actions then appears at the bottom: Copy <a class="ref" href="#copy">18</a>, Move <a class="ref" href="#move">19</a>, Rename <a class="ref" href="#rename">20</a>, Delete <a class="ref" href="#delete">21</a>, Share <a class="ref" href="#share">23</a> and Archive <a class="ref" href="#archive">24</a>.</li>
+<li>Press and hold a file to start a selection, or use Select all <span class="nb"><a class="ref" href="#select-all">8</a>.</span> A bar of actions then appears at the bottom: Copy <span class="nb"><a class="ref" href="#copy">18</a>,</span> Move <span class="nb"><a class="ref" href="#move">19</a>,</span> Rename <span class="nb"><a class="ref" href="#rename">20</a>,</span> Delete <span class="nb"><a class="ref" href="#delete">21</a>,</span> Share <a class="ref" href="#share">23</a> and Archive <span class="nb"><a class="ref" href="#archive">24</a>.</span></li>
 <li>Undo <a class="ref" href="#undo">22</a> takes back the last delete or move for as long as the app still remembers it.</li>
 <li>Play <a class="ref" href="#play">15</a> starts the slideshow in the player, and Play random <a class="ref" href="#play-random">14</a> plays the files in a shuffled order.</li>
-<li>Create folder <a class="ref" href="#create-folder">10</a>, Create text note <a class="ref" href="#create-text-note">11</a>, Create drawing <a class="ref" href="#create-drawing">12</a> and the microphone <a class="ref" href="#mic-record">13</a> add new files right here; anything that did not fit on a narrow screen waits in the menu <a class="ref" href="#more-actions">16</a>, together with Help.</li>
+<li>Create folder <span class="nb"><a class="ref" href="#create-folder">10</a>,</span> Create text note <span class="nb"><a class="ref" href="#create-text-note">11</a>,</span> Create drawing <a class="ref" href="#create-drawing">12</a> and the microphone <a class="ref" href="#mic-record">13</a> add new files right here; anything that did not fit on a narrow screen waits in the menu <span class="nb"><a class="ref" href="#more-actions">16</a>,</span> together with Help.</li>
 </ol>
 <h2>The elements</h2>
 <div class="elements">
@@ -42,7 +44,7 @@
 </div>
 </details>
 <details class="el" id="path">
-<summary><span class="mk">2</span><span><span class="name">Current folder</span><span class="one">Shows the folder you are in and lets you jump to any folder above it.</span></span></summary>
+<summary><span class="mk">2</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10,4H4c-1.1,0 -1.99,0.9 -1.99,2L2,18c0,1.1 0.9,2 2,2h16c1.1,0 2,-0.9 2,-2V8c0,-1.1 -0.9,-2 -2,-2h-8l-2,-2z" fill="currentColor"/></svg>Current folder</span><span class="one">Shows the folder you are in and lets you jump to any folder above it.</span></span></summary>
 <div class="full">
 <p>It appears once you step into a subfolder. Tap it to open the list of folders from the resource down to where you are, and tap one of them to go straight there.</p>
 </div>
@@ -60,13 +62,13 @@
 </div>
 </details>
 <details class="el" id="search">
-<summary><span class="mk">5</span><span><span class="name">Search</span><span class="one">Finds a file by a few letters of its name.</span></span></summary>
+<summary><span class="mk">5</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="currentColor"/></svg>Search</span><span class="one">Finds a file by a few letters of its name.</span></span></summary>
 <div class="full">
 <p>A search box drops into the bar and the list narrows as you type, with no rescan. Close the box to see everything again.</p>
 </div>
 </details>
 <details class="el" id="refresh">
-<summary><span class="mk">6</span><span><span class="name">Refresh</span><span class="one">Rescans the folder for new and changed files.</span></span></summary>
+<summary><span class="mk">6</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" fill="currentColor"/></svg>Refresh</span><span class="one">Rescans the folder for new and changed files.</span></span></summary>
 <div class="full">
 <p>Use it after copying files in from another app or a computer, or when a network share was offline. Pulling the list down does the same.</p>
 </div>
@@ -103,20 +105,20 @@
 </div>
 </details>
 <details class="el" id="create-drawing">
-<summary><span class="mk">12</span><span><span class="name">Create drawing</span><span class="one">Opens a blank page of the drawing editor.</span></span></summary>
+<summary><span class="mk">12</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.59 6.89c.7-.71 1.4-1.35 1.71-1.22.5.2 0 1.03-.3 1.52-.25.42-2.86 3.89-2.86 6.31 0 1.28.48 2.34 1.34 2.98.75.56 1.74.73 2.64.46 1.07-.31 1.95-1.4 3.06-2.77 1.21-1.49 2.83-3.44 4.08-3.44 1.63 0 1.65 1.01 1.76 1.79-3.78.64-5.38 3.67-5.38 5.37 0 1.7 1.44 3.09 3.21 3.09 1.63 0 4.29-1.33 4.69-6.1H21v-2.5h-2.47c-.15-1.65-1.09-4.2-4.03-4.2-2.25 0-4.18 1.91-4.94 2.84-.58.73-2.06 2.48-2.29 2.72-.25.3-.68.84-1.11.84-.45 0-.72-.83-.36-1.92.35-1.09 1.4-2.86 1.85-3.52.78-1.14 1.3-1.92 1.3-3.28C8.95 3.69 7.31 3 6.44 3 5.12 3 3.97 4 3.72 4.25c-.36.36-.66.66-.88.93l1.75 1.71zm9.29 11.66c-.31 0-.74-.26-.74-.72 0-.6.73-2.2 2.87-2.76-.3 2.69-1.43 3.48-2.13 3.48z" fill="currentColor"/></svg>Create drawing</span><span class="one">Opens a blank page of the drawing editor.</span></span></summary>
 <div class="full">
 <p>The picture is saved straight into the current folder. The button is hidden on a read-only resource.</p>
 </div>
 </details>
 <details class="el" id="mic-record">
-<summary><span class="mk">13</span><span><span class="name">Microphone: record audio</span><span class="one">Records a voice note into the current folder.</span></span></summary>
+<summary><span class="mk">13</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g transform="translate(13 12.5) translate(-12 -12)"><path d="M12,14c1.66,0 3,-1.34 3,-3V5c0,-1.66 -1.34,-3 -3,-3S9,3.34 9,5v6C9,12.66 10.34,14 12,14zM17.91,11c0,3 -2.54,5.1 -5.91,5.1S6.09,14 6.09,11H4c0,3.41 2.72,6.23 6,6.72V21h2v-3.28c3.28,-0.49 6,-3.31 6,-6.72H17.91z" fill="currentColor"/></g></svg>Microphone: record audio</span><span class="one">Records a voice note into the current folder.</span></span></summary>
 <div class="full">
 <p>Press and hold to record and let go to stop; a short tap only reminds you to hold. You are asked for a file name when the recording ends.</p>
 </div>
 </details>
 <h3>Playback and menu</h3>
 <details class="el" id="play-random">
-<summary><span class="mk">14</span><span><span class="name">Play Random</span><span class="one">Plays the files in a random order.</span></span></summary>
+<summary><span class="mk">14</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6,3 H18 A3,3 0 0,1 21,6 V18 A3,3 0 0,1 18,21 H6 A3,3 0 0,1 3,18 V6 A3,3 0 0,1 6,3 Z M6,7.5 a1.5,1.5 0 1,0 3,0 a1.5,1.5 0 1,0 -3,0 M10.5,12 a1.5,1.5 0 1,0 3,0 a1.5,1.5 0 1,0 -3,0 M15,16.5 a1.5,1.5 0 1,0 3,0 a1.5,1.5 0 1,0 -3,0" fill="currentColor" fill-rule="evenodd"/></svg>Play Random</span><span class="one">Plays the files in a random order.</span></span></summary>
 <div class="full">
 <p>The button shows up when the folder holds one kind of media only, such as photos only or music only.</p>
 </div>
@@ -204,7 +206,7 @@
 <li><a href="index.html"><b>Help index</b></a></li>
 </ul>
 <footer class="help-foot">
-<span>Fast Media Sorter, 2026-11-15</span>
+<span>Fast Media Sorter, 2026-11-20</span>
 <a href="index.html">Help index</a>
 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
 </footer>

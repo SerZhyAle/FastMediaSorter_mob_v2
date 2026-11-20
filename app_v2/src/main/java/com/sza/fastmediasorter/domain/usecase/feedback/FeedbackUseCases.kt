@@ -1,6 +1,10 @@
 package com.sza.fastmediasorter.domain.usecase.feedback
 
+import android.content.Context
 import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
+import com.sza.fastmediasorter.core.di.IoDispatcher
+import com.sza.fastmediasorter.core.logging.LogExportHelper
+import com.sza.fastmediasorter.core.logging.LoggingHelper
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -11,12 +15,15 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.ticket.TicketAttachmentSource
 import com.sza.fastmediasorter.domain.ticket.TicketDraft
 import com.sza.fastmediasorter.domain.ticket.TicketInboxRepository
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /** S4573: one folder the feedback can be delivered into; [viaExchange] = reached through the exchange server. */
@@ -102,5 +109,31 @@ class SendFeedbackUseCase @Inject constructor(
             origin = TicketOrigin.FEEDBACK
         )
         return inbox.stage(draft).map { packetId -> FeedbackSendResult(packetId, current) }
+    }
+}
+
+/**
+ * S4685: the diagnostic archive as a LOG-role attachment, built by the same packaging the log export
+ * ships - its redaction, size bound and environment summary are inherited, not reimplemented (ADR-1).
+ * Null means the log set is empty, so the form reports that instead of attaching nothing; a build
+ * failure throws and is reported as its own notice, keeping the two cases apart.
+ */
+class AttachFeedbackLogsUseCase @Inject constructor(
+    @param:ApplicationContext private val context: Context,
+    @IoDispatcher private val io: CoroutineDispatcher,
+) {
+    suspend operator fun invoke(): TicketAttachmentSource? = withContext(io) {
+        if (LoggingHelper.getExportableLogFiles(context).isEmpty()) return@withContext null
+        val uri = LogExportHelper.buildLogsZipUri(context) ?: throw ArchiveBuildFailed()
+        val name = uri.lastPathSegment?.substringAfterLast('/').orEmpty().ifEmpty { FALLBACK_NAME }
+        TicketAttachmentSource(uri.toString(), name, ARCHIVE_MIME, TicketAttachmentRole.LOG)
+    }
+
+    /** The builder failed or produced no archive for a non-empty log set; never carries user data. */
+    class ArchiveBuildFailed : IllegalStateException("diagnostic archive build failed")
+
+    private companion object {
+        const val ARCHIVE_MIME = "application/zip"
+        const val FALLBACK_NAME = "logs.zip"
     }
 }

@@ -55,7 +55,7 @@
     <string name="export_logs_failed">导出日志失败</string>
     <string name="export_logs_no_files">没有可供导出的日志文件</string>
     <string name="export_logs_no_share_target">没有可用于共享日志存档的应用程序</string>
-    <string name="export_logs_subject">FastMediaSorter 调试日志</string>
+    <string name="export_logs_subject">Fast Media Sorter &amp; Organizer 调试日志</string>
     <string name="export_settings">将所有设置导出到文件</string>
     <string name="export_settings_confirm_message">使用当前设置创建导出文件？</string>
     <string name="export_settings_confirm_title">导出设置</string>

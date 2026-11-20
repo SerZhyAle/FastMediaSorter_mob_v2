@@ -20,6 +20,8 @@ import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.usecase.MergeDrawOverlayUseCase
 import com.sza.fastmediasorter.ui.player.PlayerActivity
+import com.sza.fastmediasorter.util.deleteFilesConfirmText
+import com.sza.fastmediasorter.util.deleteGoesToTrash
 import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
 import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.Dispatchers
@@ -100,14 +102,18 @@ class PlayerDrawingSaveHelper(
             Toast.makeText(activity, R.string.error_read_only, Toast.LENGTH_SHORT).show()
             return
         }
-        if (activity.viewModel.state.value.currentFile == null) {
+        val currentFile = activity.viewModel.state.value.currentFile
+        if (currentFile == null) {
             Toast.makeText(activity, R.string.msg_no_file_to_delete, Toast.LENGTH_SHORT).show()
             return
         }
         if (activity.isFinishing || activity.isDestroyed) return
+        val toTrash = deleteGoesToTrash(activity.viewModel.settings.value.useTrash, listOf(currentFile.path))
+        Timber.d("S4770: drawing helper delete confirm shown")
+        Timber.d("S4771: drawing helper delete confirm toTrash=$toTrash")
         MaterialAlertDialogBuilder(activity, R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
             .setTitle(R.string.confirm_delete_title)
-            .setMessage(activity.getString(R.string.confirm_delete_message, 1))
+            .setMessage(activity.resources.deleteFilesConfirmText(1, toTrash))
             .setPositiveButton(R.string.delete) { _, _ ->
                 activity.viewModel.deleteCurrentFileAndFinish()
             }

@@ -56,7 +56,7 @@
     <string name="export_logs_failed">Impossibile esportare i log</string>
     <string name="export_logs_no_files">Nessun file di registro disponibile per l\'esportazione.</string>
     <string name="export_logs_no_share_target">Nessuna app disponibile per condividere l\'archivio dei log</string>
-    <string name="export_logs_subject">Log di debug di FastMediaSorter</string>
+    <string name="export_logs_subject">Log di debug di Fast Media Sorter &amp; Organizer</string>
     <string name="export_settings">Esporta tutte le impostazioni in un file</string>
     <string name="export_settings_confirm_message">Creare un file di esportazione con le impostazioni correnti?</string>
     <string name="export_settings_confirm_title">Impostazioni di esportazione</string>

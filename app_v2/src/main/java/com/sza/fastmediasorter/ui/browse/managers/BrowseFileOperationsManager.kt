@@ -21,8 +21,10 @@ import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferProgressSnap
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferRequest
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferSource
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferTerminalEvent
+import com.sza.fastmediasorter.ui.browse.transfer.TransferDoneMessage
 import com.sza.fastmediasorter.ui.browse.transfer.TransferSkipSummary
 import com.sza.fastmediasorter.ui.browse.transfer.transferOverallPercent
+import com.sza.fastmediasorter.ui.browse.undo.UndoOfferPolicy
 import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
 import com.sza.fastmediasorter.ui.dialog.FileOperationProgressDialog
 import com.sza.fastmediasorter.util.directoryLandingPath
@@ -340,6 +342,7 @@ class BrowseFileOperationsManager(
                     event.processedCount,
                     event.skippedCount,
                     event.skippedNames,
+                    undoOffered(event.undoOperation),
                 )
             }
             is BrowseFileTransferTerminalEvent.PartialSuccess -> {
@@ -355,6 +358,7 @@ class BrowseFileOperationsManager(
                         event.processedCount,
                         event.skippedCount,
                         event.skippedNames,
+                        undoOffered(event.undoOperation),
                     )
                 }
                 val showStatic = {
@@ -402,17 +406,25 @@ class BrowseFileOperationsManager(
         processedCount: Int,
         skippedCount: Int,
         skippedNames: List<String>,
+        undoOffered: Boolean,
     ) {
-        val base = context.getString(doneMessageRes(operationType), processedCount)
+        Timber.d("S4719: terminal done message undoOffered=$undoOffered skipped=$skippedCount")
+        val base = TransferDoneMessage.format(context, operationType, processedCount)
         if (skippedCount > 0) {
             val text = TransferSkipSummary.append(context, base, skippedCount, skippedNames)
             Toast.makeText(context, text, Toast.LENGTH_LONG).show()
-        } else {
+        } else if (!undoOffered) {
             callbacks.onShowMessage(base)
         }
     }
 
-    private fun showDoneToast(base: String, result: FileOperationResult) {
+    // A system toast always draws above the Undo snackbar, which already states the same count and
+    // destination; only a record the undo manager will actually offer makes the toast redundant.
+    private fun undoOffered(undoOperation: UndoOperation?): Boolean =
+        undoOperation != null && UndoOfferPolicy.isOffered(undoOperation)
+
+    private fun showDoneToast(base: String, result: FileOperationResult, undoOffered: Boolean = false) {
+        if (undoOffered && TransferSkipSummary.skippedCount(result) == 0) return
         Toast.makeText(
             context,
             TransferSkipSummary.append(context, base, result),
@@ -424,12 +436,6 @@ class BrowseFileOperationsManager(
         FileOperationType.MOVE -> R.string.moving_files
         FileOperationType.DELETE -> R.string.deleting_files
         else -> R.string.copying_files
-    }
-
-    private fun doneMessageRes(operationType: FileOperationType): Int = when (operationType) {
-        FileOperationType.MOVE -> R.string.moved_n_files
-        FileOperationType.DELETE -> R.string.deleted_n_files
-        else -> R.string.copied_n_files
     }
 
     private fun failureMessageRes(operationType: FileOperationType): Int = when (operationType) {
@@ -490,11 +496,17 @@ class BrowseFileOperationsManager(
                     )
                     when (val result = fileOperationUseCase.execute(operation)) {
                         is FileOperationResult.Success -> {
-                            showDoneToast(context.getString(R.string.moved_n_files, result.processedCount), result)
+                            showDoneToast(
+                                TransferDoneMessage.format(context, FileOperationType.MOVE, result.processedCount),
+                                result
+                            )
                             callbacks.onSortOperationSuccess(result.processedCount)
                         }
                         is FileOperationResult.PartialSuccess -> {
-                            showDoneToast(context.getString(R.string.moved_n_files, result.processedCount), result)
+                            showDoneToast(
+                                TransferDoneMessage.format(context, FileOperationType.MOVE, result.processedCount),
+                                result
+                            )
                             // Surface the first error so access-denied / partial failures are not silently hidden
                             if (result.errors.isNotEmpty()) showPartialFirstError(result)
                         }
@@ -601,12 +613,6 @@ class BrowseFileOperationsManager(
                 when (result) {
                     is FileOperationResult.Success -> {
                         Timber.i("executeOperationToPath: SUCCESS - ${result.processedCount} files")
-                        val msgRes = when (operationType) {
-                            FileOperationType.COPY -> R.string.copied_n_files
-                            FileOperationType.MOVE -> R.string.moved_n_files
-                            else -> R.string.copied_n_files
-                        }
-                        showDoneToast(context.getString(msgRes, result.processedCount), result)
                         val undoOp = UndoOperation(
                             type = operationType,
                             sourceFiles = sourceFiles.map { it.absolutePath },
@@ -616,18 +622,22 @@ class BrowseFileOperationsManager(
                             timestamp = System.currentTimeMillis()
                         )
                         callbacks.saveUndoOperation(undoOp)
+                        Timber.d("S4719: path operation done undoOffered=${undoOffered(undoOp)}")
+                        showDoneToast(
+                            TransferDoneMessage.format(context, operationType, result.processedCount),
+                            result,
+                            undoOffered(undoOp)
+                        )
                         callbacks.clearSelection()
                         callbacks.onOperationCompleted()
                         callbacks.onSortOperationSuccess(result.processedCount)
                     }
                     is FileOperationResult.PartialSuccess -> {
                         Timber.w("executeOperationToPath: PARTIAL - ${result.processedCount}/${result.failedCount}")
-                        val msgRes = when (operationType) {
-                            FileOperationType.COPY -> R.string.copied_n_files
-                            FileOperationType.MOVE -> R.string.moved_n_files
-                            else -> R.string.copied_n_files
-                        }
-                        showDoneToast(context.getString(msgRes, result.processedCount), result)
+                        showDoneToast(
+                            TransferDoneMessage.format(context, operationType, result.processedCount),
+                            result
+                        )
                         callbacks.clearSelection()
                         callbacks.onOperationCompleted()
                         // Surface SFTP partial failure details (access-denied, copied-source-remains, etc.)

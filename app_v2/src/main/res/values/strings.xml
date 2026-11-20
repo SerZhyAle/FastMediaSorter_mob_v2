@@ -89,7 +89,6 @@
 
     <!-- Move Dialog -->
     <string name="moving_files">Moving..</string>
-    <string name="moved_n_files">Moved %1$d files.</string>
     <string name="moved_n_of_m_files">Moved %1$d of %2$d files.</string>
     <string name="move_failed">Could not move the files.</string>
 
@@ -293,7 +292,6 @@
     <string name="confirm_delete_safe_mode">Confirm before delete</string>
     <string name="confirm_move_safe_mode">Confirm before move</string>
     <string name="confirm_delete_title">Delete Files?</string>
-    <string name="confirm_delete_message">Delete %1$d file(s)? This action cannot be undone.</string>
     <string name="confirm_move_title">Move Files?</string>
     <string name="confirm_move_message">Move %1$d file(s) to %2$s?</string>
 
@@ -986,7 +984,6 @@
     <string name="error_copy_failed">Could not copy the file.</string>
     <string name="error_file_exists_copy">File \"%1$s\" is already in \"%2$s\".\n\nTurn on \"Overwrite on copy\" in Settings -&gt; Copy &amp; Move if you want to replace it.</string>
     <string name="msg_move_success">Moved to %1$s.</string>
-    <string name="msg_move_success_count">Moved %1$d files to %2$s.</string>
     <string name="error_move_failed">Could not move the file.</string>
     <string name="error_file_exists_move">File \"%1$s\" is already in \"%2$s\".\n\nTurn on \"Overwrite on move\" in Settings -&gt; Copy &amp; Move if you want to replace it.</string>
     <string name="msg_delete_success">Deleted.</string>
@@ -4744,4 +4741,19 @@
     <string name="perm_rationale_access_coarse_location_extended">Approximate location is used to write coordinates into the photos and videos you shoot in the app, and to place the map gadgets on the desktop: to draw a map they ask an online map service for a picture of your area and ask Android for the name of the place. Nothing else is sent anywhere, and we have no servers of our own.</string>
     <string name="perm_desc_access_coarse_location_extended">Approximate coordinates for photos you shoot in the app and for the desktop map gadgets</string>
     <string name="broadcast_import_secret_storage_failed">The broadcast key could not be stored securely on this device</string>
+    <string name="language_picker_no_results">No languages found</string>
+    <string name="tooltip_notes_title">Notes</string>
+    <string name="tooltip_notes_message">Adds Notes to the main menu. All your notes sit in one list with search, are kept on this device, and a new note is one tap away.</string>
+    <string name="tooltip_tourist_title">Tourist</string>
+    <string name="tooltip_tourist_message">Adds a navigation dashboard to the main menu: speed, altitude, compass, coordinates, steps, trip distance, sunrise and sunset. It shows your position on the map and shares your location.</string>
+    <string name="tooltip_network_monitor_title">Network Monitor</string>
+    <string name="tooltip_network_monitor_message">Adds a diagnostic program to the main menu. It shows the state of Wi-Fi, mobile network, Bluetooth, satellites and the internet, with the signal level and the network details, and keeps a history.</string>
+    <string name="tooltip_system_info_title">System information</string>
+    <string name="tooltip_system_info_message">Adds a system information screen to the programs panel and menu: hardware, system, battery, display and network. The full report can be copied or saved to Downloads.</string>
+    <string name="streams_error_no_network_refresh">No network. Connect to refresh channel status.</string>
+    <string name="stream_status_unconfirmed">Not confirmed online</string>
+    <string name="stream_info_outcome_unconfirmed">Not confirmed</string>
+    <string name="feedback_attach_logs">Attach the app\'s diagnostic logs</string>
+    <string name="feedback_no_logs">There are no logs to attach yet</string>
+    <string name="feedback_logs_failed">The log archive could not be built</string>
 </resources>

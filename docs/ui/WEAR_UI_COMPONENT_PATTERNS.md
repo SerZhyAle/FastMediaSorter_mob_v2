@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.14 21:47</sub>
+<sub class="doc-stamp">26.11.20 17:46</sub>
 
 # Wear UI Component Patterns and Unification Catalogue
 
@@ -148,6 +148,8 @@ The module's one toggle row, shipped in S3260 - it replaced the hand-rolled `Wea
 A full-width row wraps its label with no line cap (S3362): one line and an ellipsis truncated the settings labels on the 192 dp review emulator, which WO-V1 fails. A `narrow` cell keeps the two-line cap.
 
 A boolean row (`radio = false`) follows `BOOLEAN-OPTION` 2.1: the checkbox glyph leads the row inside the label slot, top-aligned with the caption's first line and 8 dp before it, and the row carries `Role.Checkbox` (S4627). The toolkit's trailing control box stays empty on that row, so the chip's end padding is dropped. A radio row is a single choice outside that contract and keeps the trailing radio glyph.
+
+Reading a boolean row in a uiautomator dump (S4736): the row node reports `checkable`, `checked` and class `android.view.View`, and the role is exposed one level down. Compose UI sets a role's legacy class only on a node that has no semantic children, and for a merged row that has some it adds a fake child node carrying the role, so the `Role.Checkbox` is the child with class `android.widget.CheckBox`. A `View` class on the row node itself is therefore the toolkit's normal shape and not a lost role. The Wear `ToggleChip` does not set a role for a toggleable row, so the `semantics { role = Role.Checkbox }` in `StandardWearToggleChip` is the only source of it and must stay. What TalkBack speaks is a device check; an emulator has no audio route to capture it.
 
 ```kotlin
 @Composable

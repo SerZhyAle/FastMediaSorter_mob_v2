@@ -6,11 +6,11 @@
     <string name="welcome_default_player_btn_docs">Documentos</string>
     <string name="welcome_default_player_btn_images">Imágenes</string>
     <string name="welcome_default_player_btn_video">Vídeo</string>
-    <string name="welcome_default_player_description">Establecer FastMediaSorter como reproductor multimedia predeterminado</string>
-    <string name="welcome_default_player_hint">Toque un botón de abajo y aparecerá un diálogo. Seleccione FastMediaSorter y toque <b>Siempre</b>.</string>
+    <string name="welcome_default_player_description">Establecer Fast Media Sorter &amp; Organizer como reproductor multimedia predeterminado</string>
+    <string name="welcome_default_player_hint">Toque un botón de abajo y aparecerá un diálogo. Seleccione Fast Media Sorter &amp; Organizer y toque <b>Siempre</b>.</string>
     <string name="welcome_default_player_title">Reproductor predeterminado</string>
     <string name="welcome_description_1">Su organizador multimedia todo en uno.\nExplore, ordene y gestione archivos en almacenamiento local, de red y en la nube, todo con gestos táctiles intuitivos.</string>
-    <string name="welcome_description_1_details">FastMediaSorter reúne todo tipo de contenido en un solo lugar. Abra fotos, vídeos, GIF y música desde su dispositivo, desde un recurso compartido de red o desde la nube, y ordénelos con toques rápidos en lugar de menús de pulsación larga.\n\nTodo lo que configure aquí se puede cambiar después en Ajustes, así que en esta pantalla no hay elección equivocada: toque Siguiente para continuar.</string>
+    <string name="welcome_description_1_details">Fast Media Sorter &amp; Organizer reúne todo tipo de contenido en un solo lugar. Abra fotos, vídeos, GIF y música desde su dispositivo, desde un recurso compartido de red o desde la nube, y ordénelos con toques rápidos en lugar de menús de pulsación larga.\n\nTodo lo que configure aquí se puede cambiar después en Ajustes, así que en esta pantalla no hay elección equivocada: toque Siguiente para continuar.</string>
     <string name="welcome_description_3" formatted="false">El reproductor usa 9 zonas táctiles (cuadrícula 3×3) para acciones rápidas. Toca las zonas para navegar, copiar, mover, eliminar archivos o acceder al panel de comandos. Consulta el esquema anterior para más detalles.</string>
     <string name="welcome_language_picker_hint">Seleccionar idioma de la aplicación</string>
     <string name="welcome_profile_audio_player_desc">Ideal para dispositivos solo de audio o reproductores MP3. Oculta fotos y vídeos; optimiza el audio en segundo plano y la pantalla de reproducción.</string>
@@ -37,7 +37,7 @@
     <string name="welcome_profile_vr_headset_desc">Ideal para dispositivos de realidad virtual. Activa de antemano los diseños 3D/360° y los controles inmersivos en los visores compatibles.</string>
     <string name="welcome_profile_vr_headset_title">Visor de RV</string>
     <string name="welcome_recommended_badge">(Recomendado)</string>
-    <string name="welcome_title_1">¡Bienvenido a FastMediaSorter!</string>
+    <string name="welcome_title_1">¡Bienvenido a Fast Media Sorter &amp; Organizer!</string>
     <string name="sysinfo_field_abis">ABI</string>
     <string name="sysinfo_field_android_version">Android</string>
     <string name="sysinfo_field_api_level">Nivel de API</string>
@@ -172,7 +172,7 @@
     <string name="welcome_role_sorting_detail">Envíe un archivo a su carpeta con un solo toque</string>
     <string name="welcome_role_more_detail">Cámara, widgets, gadgets y más - una sola app en lugar de muchas</string>
     <string name="welcome_description_1_shell">No solo una app multimedia - un entorno completo para tu dispositivo.\nPantalla de inicio, reproductor, gestor de archivos, streams y almacenamiento remoto en un mismo lugar.</string>
-    <string name="welcome_description_1_details_shell">FastMediaSorter puede gobernar todo el dispositivo: una pantalla de inicio con tus apps, widgets y accesos directos, un reproductor de fotos, vídeos, música y libros, un gestor de archivos para almacenamiento local, de red y en la nube, streams de internet y una app complementaria para Wear OS - y encima de todo ello, ordenación rápida con un toque.\n\n¿La quieres como pantalla de inicio? Activa el interruptor de arriba y el sistema te pedirá confirmación al terminar la configuración. Todo lo que elijas en esta pantalla se puede cambiar después en Ajustes, así que aquí no hay elección equivocada - solo toca Siguiente para continuar.</string>
+    <string name="welcome_description_1_details_shell">Fast Media Sorter &amp; Organizer puede gobernar todo el dispositivo: una pantalla de inicio con tus apps, widgets y accesos directos, un reproductor de fotos, vídeos, música y libros, un gestor de archivos para almacenamiento local, de red y en la nube, streams de internet y una app complementaria para Wear OS - y encima de todo ello, ordenación rápida con un toque.\n\n¿La quieres como pantalla de inicio? Activa el interruptor de arriba y el sistema te pedirá confirmación al terminar la configuración. Todo lo que elijas en esta pantalla se puede cambiar después en Ajustes, así que aquí no hay elección equivocada - solo toca Siguiente para continuar.</string>
     <string name="welcome_role_home_screen">Pantalla de inicio</string>
     <string name="welcome_role_home_screen_detail">Gobierna el dispositivo en lugar de un lanzador - apps, widgets y multimedia a mano</string>
     <string name="welcome_role_streams">Emisiones</string>

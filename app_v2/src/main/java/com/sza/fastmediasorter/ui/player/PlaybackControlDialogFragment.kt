@@ -13,6 +13,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogPlaybackControlBinding
 import com.sza.fastmediasorter.di.MediaCapabilitiesEntryPoint
@@ -56,6 +57,10 @@ class PlaybackControlDialogFragment : DialogFragment() {
     private val hueProgressCenter = 180
     private val brightnessProgressCenter = 50
     private var isUpdatingStereoControls = false
+
+    // S4683: the speed the dialog last committed for the player, so the mute offer fires on the
+    // crossing into slow playback instead of on every further low-speed adjustment.
+    private var lastCommittedSpeed: Float = 1.0f
 
     private val prefs by lazy {
         requireContext().getSharedPreferences(PlaybackControlPreferences.PREFS_NAME, Context.MODE_PRIVATE)
@@ -394,16 +399,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
                 )
                 applyVolumePreset(restorePercent / PERCENT_SCALE)
             } else {
-                prefs.edit()
-                    .putInt(
-                        PlaybackControlPreferences.KEY_LAST_NON_ZERO_VOLUME,
-                        (liveVolume * PERCENT_SCALE).roundToInt()
-                    )
-                    .apply()
-                host().setPlayerVolume(0f)
-                binding.seekVolume.progress = 0
-                updateVolumeLabel(0)
-                syncMuteToggleUi(0)
+                mutePlayer()
             }
         }
     }
@@ -418,6 +414,20 @@ class PlaybackControlDialogFragment : DialogFragment() {
         }
         updateVolumeLabel(percent)
         syncMuteToggleUi(percent)
+    }
+
+    // S2907 mute path shared by the volume toggle and the S4683 low-speed offer: remember the
+    // volume to restore, then silence the player.
+    private fun mutePlayer() {
+        val liveVolume = host().getPlayerVolume()
+        if (liveVolume <= VOLUME_MUTED) return
+        prefs.edit()
+            .putInt(
+                PlaybackControlPreferences.KEY_LAST_NON_ZERO_VOLUME,
+                (liveVolume * PERCENT_SCALE).roundToInt()
+            )
+            .apply()
+        applyVolumePreset(VOLUME_MUTED)
     }
 
     private fun syncMuteToggleUi(percent: Int) {
@@ -708,6 +718,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
         binding.seekSpeed.max = speedSteps.size - 1
         binding.seekSpeed.progress = selectedIndex
         updateSpeedLabel(speedSteps[selectedIndex])
+        lastCommittedSpeed = speedSteps[selectedIndex]
 
         binding.seekSpeed.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
@@ -719,7 +730,9 @@ class PlaybackControlDialogFragment : DialogFragment() {
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) = Unit
-            override fun onStopTrackingTouch(seekBar: SeekBar?) = Unit
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                host().videoPlayerHandle?.getPlaybackSpeed()?.let(::maybeOfferMuteForLowSpeed)
+            }
         })
 
         binding.btnResetSpeed.setOnClickListener {
@@ -736,6 +749,24 @@ class PlaybackControlDialogFragment : DialogFragment() {
         binding.seekSpeed.progress = index
         host().videoPlayerHandle?.setPlaybackSpeed(speed)
         updateSpeedLabel(speed)
+        maybeOfferMuteForLowSpeed(speed)
+    }
+
+    // S4683: below the threshold the audio track stops being intelligible, so offer to mute it once
+    // per crossing into slow speed. A muted player has nothing to offer; declining changes nothing.
+    private fun maybeOfferMuteForLowSpeed(speed: Float) {
+        val crossedIntoSlowSpeed =
+            speed < SPEED_MUTE_OFFER_THRESHOLD && lastCommittedSpeed >= SPEED_MUTE_OFFER_THRESHOLD
+        lastCommittedSpeed = speed
+        if (!crossedIntoSlowSpeed) return
+        if (host().getPlayerVolume() <= VOLUME_MUTED) return
+        Timber.d("S4683: low-speed mute offer shown")
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.playback_control_low_speed_mute_title)
+            .setMessage(R.string.playback_control_low_speed_mute_message)
+            .setPositiveButton(R.string.playback_control_mute) { _, _ -> mutePlayer() }
+            .setNegativeButton(R.string.playback_control_low_speed_mute_cancel, null)
+            .show()
     }
 
     private fun updateVolumeLabel(percent: Int) {
@@ -782,6 +813,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
         binding.seekSpeed.progress = defaultIndex
         host().videoPlayerHandle?.setPlaybackSpeed(defaultSpeed)
         updateSpeedLabel(defaultSpeed)
+        lastCommittedSpeed = defaultSpeed
     }
 
     /** Returns the host activity cast to [PlayerHostCapabilities]. Both [PlayerActivity] and
@@ -795,6 +827,9 @@ class PlaybackControlDialogFragment : DialogFragment() {
         private const val SLOWEST_VIDEO_SPEED = 0.1f
         private const val SLOW_VIDEO_SPEED = 0.3f
 
+        // S4683: below this speed the audio track stops being useful, so the dialog offers to mute.
+        private const val SPEED_MUTE_OFFER_THRESHOLD = 0.5f
+
         // S1267 ADR-1: the first number of a preset label is always the LEFT channel.
         private const val BALANCE_DEFAULT_GAIN = 1f
         private const val BALANCE_EVEN_GAIN = 0.5f
@@ -807,6 +842,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
         private const val HALF_VOLUME_PERCENT = 50
         private const val VOLUME_HALF = 0.5f
         private const val VOLUME_MAX = 1.0f
+        private const val VOLUME_MUTED = 0f
 
         fun newInstance(): PlaybackControlDialogFragment = PlaybackControlDialogFragment()
     }

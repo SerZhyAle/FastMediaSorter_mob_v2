@@ -481,8 +481,12 @@ object LocaleHelper {
     /**
      * Mark that the app should return to SettingsActivity after the next restart.
      * Call this immediately before any restart triggered from within SettingsActivity.
+     *
+     * Reads are allowed as well as writes: the first [Context.getSharedPreferences] call checks that the
+     * preferences directory exists, which StrictMode reports as a disk read. The flag has to be on disk before
+     * the restart that follows, so it stays synchronous - the same accepted exception as [consumeReturnToSettings].
      */
-    fun markReturnToSettings(context: Context) = StrictModeHelper.allowDiskWrites {
+    fun markReturnToSettings(context: Context) = StrictModeHelper.allowDiskIO {
         context.getSharedPreferences(RESTART_STATE_PREFS, Context.MODE_PRIVATE)
             .edit().putBoolean(PREF_RETURN_TO_SETTINGS, true).apply()
     }

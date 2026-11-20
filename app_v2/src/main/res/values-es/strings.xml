@@ -75,7 +75,6 @@
     <string name="copy_failed">No se pudieron copiar los archivos.</string>
     <string name="no_destinations_available">No hay recursos de destino configurados</string>
     <string name="moving_files">Moviendo..</string>
-    <string name="moved_n_files">Se movieron %1$d archivos.</string>
     <string name="moved_n_of_m_files">Se movieron %1$d de %2$d archivos.</string>
     <string name="move_failed">No se pudieron mover los archivos.</string>
     <string name="renaming_files">Renombrando..</string>
@@ -241,7 +240,6 @@
     <string name="confirm_delete_safe_mode">Confirmar antes de eliminar</string>
     <string name="confirm_move_safe_mode">Confirmar antes de mover</string>
     <string name="confirm_delete_title">¿Eliminar archivos?</string>
-    <string name="confirm_delete_message">¿Eliminar %1$d archivo(s)? Esta acción no se puede deshacer.</string>
     <string name="confirm_move_title">¿Mover archivos?</string>
     <string name="confirm_move_message">¿Mover %1$d archivo(s) a %2$s?</string>
     <string name="user_guide">Guía del usuario</string>
@@ -795,7 +793,6 @@
     <string name="error_copy_failed">No se pudo copiar el archivo.</string>
     <string name="error_file_exists_copy">El archivo \"%1$s\" ya está en \"%2$s\".\n\nActiva \"Sobrescribir al copiar\" en Ajustes -&gt; Copiar y mover si quieres reemplazarlo.</string>
     <string name="msg_move_success">Movido a %1$s.</string>
-    <string name="msg_move_success_count">Se movieron %1$d archivos a %2$s.</string>
     <string name="error_move_failed">No se pudo mover el archivo.</string>
     <string name="error_file_exists_move">El archivo \"%1$s\" ya está en \"%2$s\".\n\nActiva \"Sobrescribir al mover\" en Ajustes -&gt; Copiar y mover si quieres reemplazarlo.</string>
     <string name="msg_delete_success">Eliminado.</string>
@@ -1973,7 +1970,7 @@
     <string name="stream_wait_reconnecting">Reconectando..</string>
     <string name="streams_filter_pinned_only">Solo fijadas</string>
     <string name="streams_refresh_probing">Comprobando emisiones..</string>
-    <string name="streams_error_no_network">Sin red. Conéctate a Wi-Fi o a datos móviles para reproducir emisiones.</string>
+    <string name="streams_error_no_network">Sin red. Conéctate para reproducir emisiones.</string>
     <string name="tile_screenshot_label">Captura de pantalla</string>
     <string name="camera_lens_front">Frontal</string>
     <string name="camera_lens_ultrawide">Ultra gran angular</string>

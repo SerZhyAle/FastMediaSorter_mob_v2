@@ -29,4 +29,9 @@
     <string name="ticket_inbox_destination_drive">Google Drive</string>
     <string name="ticket_inbox_state_folder_waiting">Ждёт папку на компьютере: %1$s</string>
     <string name="ticket_inbox_state_folder_sent">В папке - ждёт компьютер</string>
+    <string name="ticket_inbox_grant_drive">Разрешить доступ к Google Drive</string>
+    <string name="ticket_inbox_state_needs_access">Нужен доступ к Google Drive - разрешите его кнопкой выше</string>
+    <string name="ticket_inbox_drive_access_granted">Доступ выдан - ожидающие тикеты уходят</string>
+    <string name="ticket_inbox_drive_access_declined">Доступ не выдан - тикеты останутся в списке, пока вы его не разрешите</string>
+    <string name="ticket_inbox_drive_access_failed">Google не смог показать окно доступа - попробуйте ещё раз чуть позже</string>
 </resources>

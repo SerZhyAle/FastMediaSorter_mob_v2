@@ -36,7 +36,8 @@ import timber.log.Timber
 /**
  * Renders the stream catalog. Row tap launches playback ([onPlay]); the pin affordance promotes the
  * source locally ([onPin]); long-press toggles pin/unpin (S0695). The now-playing indicator tracks the
- * id passed to [setPlayingId] so the inline-audio row is marked without rebuilding the list.
+ * id passed to [setPlayingId] so the inline-audio row is marked without rebuilding the list; a paused
+ * station keeps that row but reads "Paused" and stops rotating its icon ([setPlayingPaused]).
  *
  * S0660: the overflow (`три точки`) is the canonical surface for secondary channel commands - add to
  * home screen, edit (manual channels only), send link, remove. S0695 moved the destructive remove out
@@ -85,6 +86,10 @@ class StreamSourceAdapter(
 
     private var playingId: String? = null
 
+    // A paused station stays the active row (re-tapping it stops it), so the row has to show the pause
+    // itself: a still-spinning indicator contradicts the bar and keeps requesting frames while idle.
+    private var playingPaused = false
+
     /**
      * S1502: play outcome per channel id, pushed in from its own Flow instead of read off the row.
      * Only the rows whose outcome actually moved are repainted, and only their status bullet.
@@ -104,8 +109,19 @@ class StreamSourceAdapter(
         if (playingId == id) return
         val previous = playingId
         playingId = id
+        playingPaused = false
         currentList.forEachIndexed { index, item ->
             if (item.id == previous || item.id == id) notifyItemChanged(index)
+        }
+    }
+
+    /** Marks the active row as paused (or playing again), repainting only that row. */
+    fun setPlayingPaused(paused: Boolean) {
+        if (playingPaused == paused) return
+        Timber.d("S4749: row paused=$paused id=$playingId")
+        playingPaused = paused
+        currentList.forEachIndexed { index, item ->
+            if (item.id == playingId) notifyItemChanged(index)
         }
     }
 
@@ -165,8 +181,10 @@ class StreamSourceAdapter(
             binding.ivKind.setImageResource(kindIcon(source.mediaKind))
             bindFavicon(source)
             bindPlayStatus(playOutcomes[source.id])
+            val paused = isPlaying && playingPaused
+            binding.tvNowPlaying.setText(if (paused) R.string.streams_paused else R.string.streams_now_playing)
             binding.tvNowPlaying.visibility = if (isPlaying) View.VISIBLE else View.GONE
-            if (isPlaying) playbackAnimator.startNote() else playbackAnimator.stopNote()
+            if (isPlaying && !paused) playbackAnimator.startNote() else playbackAnimator.stopNote()
             val isLive = source.sourceOrigin == ObserveLiveBroadcastSourcesUseCase.SOURCE_ORIGIN_LIVE_BROADCAST
             if (isLive) {
                 binding.tvGeo.text = binding.root.context.getString(R.string.stream_source_live_badge)
@@ -190,6 +208,9 @@ class StreamSourceAdapter(
             binding.chipRow.visibility = if (anyChipVisible) View.VISIBLE else View.GONE
             bindPinState(source.pinned)
             binding.btnPin.isVisible = !isLive
+            // S4747: a live row hides Pin, so Left from Overflow must land on the row itself and
+            // not leave for the toolbar.
+            binding.btnOverflow.nextFocusLeftId = if (isLive) R.id.streamRow else R.id.btnPin
             binding.root.setOnClickListener { onPlay(source) }
             // S0695: long-press toggles pin/unpin (the destructive remove now lives only in the overflow
             // menu). The pin icon flips on rebind, so the gesture is self-evident without a confirmation.
@@ -305,6 +326,10 @@ class StreamSourceAdapter(
          * contentDescription), so the meaning survives colour-blindness and greyscale: a hollow ring =
          * not played yet, a check = played OK here, an exclamation = the last attempt failed, a stop square = the
          * broadcast was ended by its owner (S4444).
+         *
+         * S4754: the hollow ring covers two stored states - no outcome at all, and an inconclusive one
+         * (`UNKNOWN`, written by a failed sweep probe). The icon is shared by design, so the accessibility name
+         * is what tells them apart.
          */
         private fun bindPlayStatus(outcome: String?) {
             val (iconRes, colorRes, descRes) = when (outcome) {
@@ -318,6 +343,14 @@ class StreamSourceAdapter(
                     )
                 RecordStreamPlayOutcomeUseCase.OUTCOME_ENDED ->
                     Triple(R.drawable.ic_stop, R.color.stream_status_unknown, R.string.stream_status_ended)
+                RecordStreamPlayOutcomeUseCase.OUTCOME_UNKNOWN -> {
+                    Timber.d("S4754: list row bound as not confirmed")
+                    Triple(
+                        R.drawable.ic_stream_status_unknown,
+                        R.color.stream_status_unknown,
+                        R.string.stream_status_unconfirmed
+                    )
+                }
                 else ->
                     Triple(
                         R.drawable.ic_stream_status_unknown,
@@ -334,9 +367,16 @@ class StreamSourceAdapter(
             binding.ivPlayStatus.contentDescription = context.getString(descRes)
         }
 
-        /** S0588: a pinned row shows the filled accent pin; others the neutral outline. */
+        /**
+         * S0588: a pinned row shows the filled accent pin; others the neutral outline. The accessibility name
+         * names the action the tap performs, so it flips with the state like the icon (the layout's static
+         * description would keep announcing "Pin to top" on a row whose tap unpins it).
+         */
         private fun bindPinState(pinned: Boolean) {
             binding.btnPin.setImageResource(if (pinned) R.drawable.ic_pin else R.drawable.ic_pin_outline)
+            binding.btnPin.contentDescription = binding.btnPin.context.getString(
+                if (pinned) R.string.streams_unpin else R.string.streams_pin_to_top
+            )
             val attr = if (pinned) {
                 androidx.appcompat.R.attr.colorPrimary
             } else {

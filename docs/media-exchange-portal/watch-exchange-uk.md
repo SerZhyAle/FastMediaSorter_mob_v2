@@ -16,7 +16,7 @@ permalink: /docs/media-exchange-portal/watch-exchange-uk.html
 
 ## Перш ніж почати
 
-- **Застосунок для годинника, сполучений з телефоном**, див. [Встановлення FastMediaSorter на годинник](../../documentation/wear/installation-and-pairing-uk.html).
+- **Застосунок для годинника, сполучений з телефоном**, див. [Встановлення Fast Media Sorter & Organizer на годинник](../../documentation/wear/installation-and-pairing-uk.html).
 - **Компаньйон для годинника ввімкнено** в **Налаштуваннях** телефона; інакше телефон відповість «Компаньйон для годинника вимкнено».
 - **Сервер обміну додано й виконано вхід на телефоні**, див. [Додавання сервера обміну в «Мої пристрої»](my-devices-uk.html).
 

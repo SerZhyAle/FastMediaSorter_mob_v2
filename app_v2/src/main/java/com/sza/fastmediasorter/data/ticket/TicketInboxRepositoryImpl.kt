@@ -93,7 +93,9 @@ class TicketInboxRepositoryImpl @Inject constructor(
                     applyVerdict(packet, folderInbox.readVerdict(id, packet.entry.packetId))
                 }
             }
-            if (viaDrive.isNotEmpty() && !inbox.ensureSignedIn()) throw IOException(NOT_SIGNED_IN)
+            if (viaDrive.isNotEmpty() && !inbox.ensureSignedIn()) {
+                throw IOException(TicketOutboxEntry.NOT_SIGNED_IN_FAILURE)
+            }
             viaDrive.forEach { packet -> applyVerdict(packet, inbox.readVerdict(packet.entry.packetId)) }
         }.onFailure {
             it.rethrowIfCancellation()
@@ -135,7 +137,7 @@ class TicketInboxRepositoryImpl @Inject constructor(
 
     private suspend fun uploadFailure(packet: StagedTicketPacket, driveSignedIn: Boolean): String? {
         val resourceId = packet.entry.inboxResourceId
-        if (resourceId == null && !driveSignedIn) return NOT_SIGNED_IN
+        if (resourceId == null && !driveSignedIn) return TicketOutboxEntry.NOT_SIGNED_IN_FAILURE
         return try {
             if (resourceId == null) {
                 inbox.upload(packet.folder, packet.manifest)
@@ -157,8 +159,4 @@ class TicketInboxRepositoryImpl @Inject constructor(
     }
 
     private suspend fun <T> locked(block: suspend () -> T): T = withContext(io) { mutex.withLock { block() } }
-
-    private companion object {
-        const val NOT_SIGNED_IN = "Google Drive is not signed in"
-    }
 }

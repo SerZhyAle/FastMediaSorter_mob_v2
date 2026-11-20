@@ -103,8 +103,9 @@ class DeviceExchangeEnvelopeTest {
             assertEquals(envelope, DeviceExchangeEnvelope.decode(envelope.encode()))
         }
         // 37 through the account amendments, plus the eight clipboard envelopes of 22 items BW and BY, plus the
-        // four admin envelopes (admin-auth, admin-auth-ok, admin-request, admin-reply).
-        assertEquals(49, DeviceExchangeEnvelope.KNOWN_TYPES.size)
+        // four admin envelopes (admin-auth, admin-auth-ok, admin-request, admin-reply), plus the two command frames
+        // of 1.18 item GC.
+        assertEquals(51, DeviceExchangeEnvelope.KNOWN_TYPES.size)
         assertFalse(DeviceExchangeEnvelope.decode("""{"schemaVersion":2,"type":"ping"}""").isKnown)
     }
 

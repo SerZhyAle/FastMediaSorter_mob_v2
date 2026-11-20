@@ -1,0 +1,1336 @@
+{
+  "schemaVersion": 1,
+  "product": "Fast Media Sorter",
+  "family": "fastmediasorter",
+  "family.sha256": "56b21ae5e88f672afa38301ce8d3bc026b8d13ec256f702202976ad51e8a6958",
+  "master": {
+    "svg": "assets/identity/master/mark.svg",
+    "small": "assets/identity/family/masters/mark-small.svg",
+    "mono": "assets/identity/master/mark-mono.svg",
+    "reduced": [
+      {
+        "name": "small-16",
+        "path": "assets/identity/family/masters/mark-small-16.svg",
+        "minPx": 16,
+        "maxPx": 16
+      },
+      {
+        "name": "small-20",
+        "path": "assets/identity/family/masters/mark-small-20.svg",
+        "minPx": 20,
+        "maxPx": 20
+      },
+      {
+        "name": "small-24",
+        "path": "assets/identity/family/masters/mark-small-24.svg",
+        "minPx": 24,
+        "maxPx": 24
+      },
+      {
+        "name": "small-32",
+        "path": "assets/identity/family/masters/mark-small-32.svg",
+        "minPx": 32,
+        "maxPx": 32
+      }
+    ],
+    "background": "#EFF6FF",
+    "sha256": "27abebee18f74f5da455fdc2275a3bd3dd70502fe2814cc41b239a57e43bd656"
+  },
+  "generator": "pwsh -NoProfile -File scripts/identity/build-identity.ps1",
+  "renditions": [
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/main/res/mipmap-mdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 108,
+      "height": 108,
+      "sha256": "e1ee02572def4328151695441460c83709f85a01b7fa7187ba6fffe44fda9e2a"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/main/res/mipmap-mdpi/ic_launcher_adaptive_back.png",
+      "format": "png",
+      "width": 108,
+      "height": 108,
+      "sha256": "9a98a44c8192fa851933b7aa8dc8efdc026646869c527226d39cf0eb61df31dd"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/main/res/mipmap-mdpi/ic_launcher.png",
+      "format": "png",
+      "width": 48,
+      "height": 48,
+      "sha256": "1c2cbad3a03d20ad5cde7134222837dd5df977039e19bc7d847f39c9f3103311"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/main/res/mipmap-hdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 162,
+      "height": 162,
+      "sha256": "6c810ec7a098924e063950ffed7f63d6360f508f814cc9bbfc0603da55dc81a5"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/main/res/mipmap-hdpi/ic_launcher_adaptive_back.png",
+      "format": "png",
+      "width": 162,
+      "height": 162,
+      "sha256": "ad921ceb480b04bfd69577189b39956dab8759ab3217e9791f2d0616c61d6970"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/main/res/mipmap-hdpi/ic_launcher.png",
+      "format": "png",
+      "width": 72,
+      "height": 72,
+      "sha256": "319c8e8f885ed8348cc25d89135642f4674b7d1179a400dd4771301875cd803a"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/main/res/mipmap-xhdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 216,
+      "height": 216,
+      "sha256": "a23c6f98572aada04641ebdbba4e8e29c8b3d17a29037659637fa0b1fdf8e145"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/main/res/mipmap-xhdpi/ic_launcher_adaptive_back.png",
+      "format": "png",
+      "width": 216,
+      "height": 216,
+      "sha256": "926cd9b5c7492dbf57f911e71b55cf3c9f0e7ad1c1fe251fa8dd4db27f255087"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/main/res/mipmap-xhdpi/ic_launcher.png",
+      "format": "png",
+      "width": 96,
+      "height": 96,
+      "sha256": "229ec9460b78fdb88bde1904e66ddd45b5e2e415271fb3cf6d17c1134ee86e57"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/main/res/mipmap-xxhdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 324,
+      "height": 324,
+      "sha256": "7b2b380731219bfb18b33fe5dcbd222475ea75d55a70f97d49270b8c177c73b8"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/main/res/mipmap-xxhdpi/ic_launcher_adaptive_back.png",
+      "format": "png",
+      "width": 324,
+      "height": 324,
+      "sha256": "9e2824221d85b6a2fe8f8bf8c86da896496a91be91cbdea55ebd7599fb1c451a"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/main/res/mipmap-xxhdpi/ic_launcher.png",
+      "format": "png",
+      "width": 144,
+      "height": 144,
+      "sha256": "a3856c3e0bc0629e804a6c2cebf5ca1ecb3d6962f56f595af6644b1e475afbce"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/main/res/mipmap-xxxhdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 432,
+      "height": 432,
+      "sha256": "e5db18c3210eef350434e9a56d4468c15e41b3ffbd967c68d7a94c6cc23939f2"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/main/res/mipmap-xxxhdpi/ic_launcher_adaptive_back.png",
+      "format": "png",
+      "width": 432,
+      "height": 432,
+      "sha256": "d18893bcde6ec5691643240c83b11e719043b5202090f575625d6a34b0ca7810"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/main/res/mipmap-xxxhdpi/ic_launcher.png",
+      "format": "png",
+      "width": 192,
+      "height": 192,
+      "sha256": "c3962adb0ea1ef0456b71cbd4606a114efb10a9d0cec155cc06957957c197a91"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/noLegalDebug/res/mipmap-mdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 108,
+      "height": 108,
+      "sha256": "e1ee02572def4328151695441460c83709f85a01b7fa7187ba6fffe44fda9e2a"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/noLegalDebug/res/mipmap-mdpi/ic_launcher_adaptive_back.png",
+      "format": "png",
+      "width": 108,
+      "height": 108,
+      "sha256": "9a98a44c8192fa851933b7aa8dc8efdc026646869c527226d39cf0eb61df31dd"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/noLegalDebug/res/mipmap-mdpi/ic_launcher.png",
+      "format": "png",
+      "width": 48,
+      "height": 48,
+      "sha256": "1c2cbad3a03d20ad5cde7134222837dd5df977039e19bc7d847f39c9f3103311"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/noLegalDebug/res/mipmap-hdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 162,
+      "height": 162,
+      "sha256": "6c810ec7a098924e063950ffed7f63d6360f508f814cc9bbfc0603da55dc81a5"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/noLegalDebug/res/mipmap-hdpi/ic_launcher_adaptive_back.png",
+      "format": "png",
+      "width": 162,
+      "height": 162,
+      "sha256": "ad921ceb480b04bfd69577189b39956dab8759ab3217e9791f2d0616c61d6970"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/noLegalDebug/res/mipmap-hdpi/ic_launcher.png",
+      "format": "png",
+      "width": 72,
+      "height": 72,
+      "sha256": "319c8e8f885ed8348cc25d89135642f4674b7d1179a400dd4771301875cd803a"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/noLegalDebug/res/mipmap-xhdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 216,
+      "height": 216,
+      "sha256": "a23c6f98572aada04641ebdbba4e8e29c8b3d17a29037659637fa0b1fdf8e145"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/noLegalDebug/res/mipmap-xhdpi/ic_launcher_adaptive_back.png",
+      "format": "png",
+      "width": 216,
+      "height": 216,
+      "sha256": "926cd9b5c7492dbf57f911e71b55cf3c9f0e7ad1c1fe251fa8dd4db27f255087"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/noLegalDebug/res/mipmap-xhdpi/ic_launcher.png",
+      "format": "png",
+      "width": 96,
+      "height": 96,
+      "sha256": "229ec9460b78fdb88bde1904e66ddd45b5e2e415271fb3cf6d17c1134ee86e57"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/noLegalDebug/res/mipmap-xxhdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 324,
+      "height": 324,
+      "sha256": "7b2b380731219bfb18b33fe5dcbd222475ea75d55a70f97d49270b8c177c73b8"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/noLegalDebug/res/mipmap-xxhdpi/ic_launcher_adaptive_back.png",
+      "format": "png",
+      "width": 324,
+      "height": 324,
+      "sha256": "9e2824221d85b6a2fe8f8bf8c86da896496a91be91cbdea55ebd7599fb1c451a"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/noLegalDebug/res/mipmap-xxhdpi/ic_launcher.png",
+      "format": "png",
+      "width": 144,
+      "height": 144,
+      "sha256": "a3856c3e0bc0629e804a6c2cebf5ca1ecb3d6962f56f595af6644b1e475afbce"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/noLegalDebug/res/mipmap-xxxhdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 432,
+      "height": 432,
+      "sha256": "e5db18c3210eef350434e9a56d4468c15e41b3ffbd967c68d7a94c6cc23939f2"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/noLegalDebug/res/mipmap-xxxhdpi/ic_launcher_adaptive_back.png",
+      "format": "png",
+      "width": 432,
+      "height": 432,
+      "sha256": "d18893bcde6ec5691643240c83b11e719043b5202090f575625d6a34b0ca7810"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/noLegalDebug/res/mipmap-xxxhdpi/ic_launcher.png",
+      "format": "png",
+      "width": 192,
+      "height": 192,
+      "sha256": "c3962adb0ea1ef0456b71cbd4606a114efb10a9d0cec155cc06957957c197a91"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/lite/res/mipmap-mdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 108,
+      "height": 108,
+      "sha256": "1e57ac6049863f2d0c0b76f0a9b41a3eb6eed325ee04c75048a86ee622bead36"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/lite/res/mipmap-mdpi/ic_launcher.png",
+      "format": "png",
+      "width": 48,
+      "height": 48,
+      "sha256": "5d4649e7e9e0dd81c3a8699633451cbec45d223ae753a074782727f7aaa2a257"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/lite/res/mipmap-mdpi/ic_launcher_round.png",
+      "format": "png",
+      "width": 48,
+      "height": 48,
+      "sha256": "5d4649e7e9e0dd81c3a8699633451cbec45d223ae753a074782727f7aaa2a257"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/lite/res/mipmap-hdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 162,
+      "height": 162,
+      "sha256": "2af661201111c33d4320faf75538e7688a54cc31d36f2029a9856d3b1a74ca0e"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/lite/res/mipmap-hdpi/ic_launcher.png",
+      "format": "png",
+      "width": 72,
+      "height": 72,
+      "sha256": "277ef767f079c3d83b2abdc085c6430e23b3f68b193721c2c7a5f9e10d83d5e4"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/lite/res/mipmap-hdpi/ic_launcher_round.png",
+      "format": "png",
+      "width": 72,
+      "height": 72,
+      "sha256": "277ef767f079c3d83b2abdc085c6430e23b3f68b193721c2c7a5f9e10d83d5e4"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/lite/res/mipmap-xhdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 216,
+      "height": 216,
+      "sha256": "c63b3cc4c82abcf5d5944cbdfe32fc6a2e607735ff8394051075d0323007b0d8"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/lite/res/mipmap-xhdpi/ic_launcher.png",
+      "format": "png",
+      "width": 96,
+      "height": 96,
+      "sha256": "bc26e3aaded2b6b79c52acf24e5456d70f9a7983e4004bc9c14d8012352b1a61"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/lite/res/mipmap-xhdpi/ic_launcher_round.png",
+      "format": "png",
+      "width": 96,
+      "height": 96,
+      "sha256": "bc26e3aaded2b6b79c52acf24e5456d70f9a7983e4004bc9c14d8012352b1a61"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/lite/res/mipmap-xxhdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 324,
+      "height": 324,
+      "sha256": "0f3b96638b9f19e2e317b3b823a2e314b98a680e5e8190d0f528961a57522b7a"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/lite/res/mipmap-xxhdpi/ic_launcher.png",
+      "format": "png",
+      "width": 144,
+      "height": 144,
+      "sha256": "9ac624a8803393acced22badc40f55570a5915c094a04966fe8e7dfe940aa28a"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/lite/res/mipmap-xxhdpi/ic_launcher_round.png",
+      "format": "png",
+      "width": 144,
+      "height": 144,
+      "sha256": "9ac624a8803393acced22badc40f55570a5915c094a04966fe8e7dfe940aa28a"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/lite/res/mipmap-xxxhdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 432,
+      "height": 432,
+      "sha256": "631403710c093992907551e2cb5ac1a22b9629c9909898d1b2ccdcd5db507305"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/lite/res/mipmap-xxxhdpi/ic_launcher.png",
+      "format": "png",
+      "width": 192,
+      "height": 192,
+      "sha256": "08ed9284c9e3d0cfb4795f41a71cb76c13e9e62d42888a517713716769c8ddb3"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/lite/res/mipmap-xxxhdpi/ic_launcher_round.png",
+      "format": "png",
+      "width": 192,
+      "height": 192,
+      "sha256": "08ed9284c9e3d0cfb4795f41a71cb76c13e9e62d42888a517713716769c8ddb3"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/photos/res/mipmap-mdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 108,
+      "height": 108,
+      "sha256": "650acd55572adb2a78f925066b23eb3b480bab47e066ffde3bd516f9c7c52a8e"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/photos/res/mipmap-mdpi/ic_launcher.png",
+      "format": "png",
+      "width": 48,
+      "height": 48,
+      "sha256": "e1e21c5c19dbbc695d37e2fec2ad5d6d85990f86b5483726934a7b6e64dc8439"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/photos/res/mipmap-mdpi/ic_launcher_round.png",
+      "format": "png",
+      "width": 48,
+      "height": 48,
+      "sha256": "e1e21c5c19dbbc695d37e2fec2ad5d6d85990f86b5483726934a7b6e64dc8439"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/photos/res/mipmap-hdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 162,
+      "height": 162,
+      "sha256": "a6714328cae88bb903927087a3d11f8cef2ca4b3f8db28e1d2be4532cb424e44"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/photos/res/mipmap-hdpi/ic_launcher.png",
+      "format": "png",
+      "width": 72,
+      "height": 72,
+      "sha256": "5fdbe53f9e93c2091c40fa332deee2dab06445fc9a294b6634be6c3d694458f0"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/photos/res/mipmap-hdpi/ic_launcher_round.png",
+      "format": "png",
+      "width": 72,
+      "height": 72,
+      "sha256": "5fdbe53f9e93c2091c40fa332deee2dab06445fc9a294b6634be6c3d694458f0"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/photos/res/mipmap-xhdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 216,
+      "height": 216,
+      "sha256": "4df268078cf178d537ff0f27dac4e4482118a23239981835bfc276dd6a7f1028"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/photos/res/mipmap-xhdpi/ic_launcher.png",
+      "format": "png",
+      "width": 96,
+      "height": 96,
+      "sha256": "bc74f3b63e9702e1e50faf12fdc8e34cfa59b9c550bdd116a0c84eb939558317"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/photos/res/mipmap-xhdpi/ic_launcher_round.png",
+      "format": "png",
+      "width": 96,
+      "height": 96,
+      "sha256": "bc74f3b63e9702e1e50faf12fdc8e34cfa59b9c550bdd116a0c84eb939558317"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/photos/res/mipmap-xxhdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 324,
+      "height": 324,
+      "sha256": "3f843a0b0f89e8017fe499c044fea02b9072168ce404c437616dc09837110f4a"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/photos/res/mipmap-xxhdpi/ic_launcher.png",
+      "format": "png",
+      "width": 144,
+      "height": 144,
+      "sha256": "003b538b3ccd8897f973506ee3ad01b29795e8e0ed3d06f6aaac395dc76a696f"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/photos/res/mipmap-xxhdpi/ic_launcher_round.png",
+      "format": "png",
+      "width": 144,
+      "height": 144,
+      "sha256": "003b538b3ccd8897f973506ee3ad01b29795e8e0ed3d06f6aaac395dc76a696f"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/photos/res/mipmap-xxxhdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 432,
+      "height": 432,
+      "sha256": "2a93b5dd2582e9a9968730657a55c0b85947458bc27079d400a314f291c49b6e"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/photos/res/mipmap-xxxhdpi/ic_launcher.png",
+      "format": "png",
+      "width": 192,
+      "height": 192,
+      "sha256": "fdd630306fd14bcf583446efbe590eda50a5c0c9e50524e34e08727caabf9aee"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/photos/res/mipmap-xxxhdpi/ic_launcher_round.png",
+      "format": "png",
+      "width": 192,
+      "height": 192,
+      "sha256": "fdd630306fd14bcf583446efbe590eda50a5c0c9e50524e34e08727caabf9aee"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/legacy/res/mipmap-mdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 108,
+      "height": 108,
+      "sha256": "a9d4da5d98d296af89a2acc9f3535a959f825dfc6f97009576b3eebcc2b0042c"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/legacy/res/mipmap-mdpi/ic_launcher.png",
+      "format": "png",
+      "width": 48,
+      "height": 48,
+      "sha256": "bcd0b339e27dfba480997dffec67d851d3d4ecdcc016746dccad8f9727658ef0"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/legacy/res/mipmap-mdpi/ic_launcher_round.png",
+      "format": "png",
+      "width": 48,
+      "height": 48,
+      "sha256": "bcd0b339e27dfba480997dffec67d851d3d4ecdcc016746dccad8f9727658ef0"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/legacy/res/mipmap-hdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 162,
+      "height": 162,
+      "sha256": "5c976533ad42004864b51587061e244716874967770b00f7dc6a601c34f4e570"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/legacy/res/mipmap-hdpi/ic_launcher.png",
+      "format": "png",
+      "width": 72,
+      "height": 72,
+      "sha256": "1f3562cc5fba3d5207c7d26afc2ed5ea6491567b58765655f9a5b6fa55c238b9"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/legacy/res/mipmap-hdpi/ic_launcher_round.png",
+      "format": "png",
+      "width": 72,
+      "height": 72,
+      "sha256": "1f3562cc5fba3d5207c7d26afc2ed5ea6491567b58765655f9a5b6fa55c238b9"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/legacy/res/mipmap-xhdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 216,
+      "height": 216,
+      "sha256": "228875e21a3d50420dd1cd6e6cfbaffd3eb7a40671f1c5b00bdb6c47adc55b6c"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/legacy/res/mipmap-xhdpi/ic_launcher.png",
+      "format": "png",
+      "width": 96,
+      "height": 96,
+      "sha256": "795702c8067584c515f93056b7fdd8e911f41ffe6533c2fc1b10f329615f54f5"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/legacy/res/mipmap-xhdpi/ic_launcher_round.png",
+      "format": "png",
+      "width": 96,
+      "height": 96,
+      "sha256": "795702c8067584c515f93056b7fdd8e911f41ffe6533c2fc1b10f329615f54f5"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/legacy/res/mipmap-xxhdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 324,
+      "height": 324,
+      "sha256": "59a635fa6b1b5333032fe9390009b098bfd5a7163d1c1087da5ed9d83f70b55a"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/legacy/res/mipmap-xxhdpi/ic_launcher.png",
+      "format": "png",
+      "width": 144,
+      "height": 144,
+      "sha256": "15132be77a610bd2ed70b3522ec45e27b89fa04d9e0c83fdf39d806cf806b2c3"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/legacy/res/mipmap-xxhdpi/ic_launcher_round.png",
+      "format": "png",
+      "width": 144,
+      "height": 144,
+      "sha256": "15132be77a610bd2ed70b3522ec45e27b89fa04d9e0c83fdf39d806cf806b2c3"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/legacy/res/mipmap-xxxhdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 432,
+      "height": 432,
+      "sha256": "983bc8b59c42c1a88137b7402623d92cb0740498303a7f8d20f17f05471bef70"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/legacy/res/mipmap-xxxhdpi/ic_launcher.png",
+      "format": "png",
+      "width": 192,
+      "height": 192,
+      "sha256": "683ba5f3266585090064b063150624238192e9e998604568a6d5c7422d6cdda9"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/legacy/res/mipmap-xxxhdpi/ic_launcher_round.png",
+      "format": "png",
+      "width": 192,
+      "height": 192,
+      "sha256": "683ba5f3266585090064b063150624238192e9e998604568a6d5c7422d6cdda9"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/foss/res/mipmap-mdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 108,
+      "height": 108,
+      "sha256": "329e2108a95aa91c5e84f0588c768ace736279667deccdd7abb1c63bfde47e18"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/foss/res/mipmap-mdpi/ic_launcher.png",
+      "format": "png",
+      "width": 48,
+      "height": 48,
+      "sha256": "47e910bd4fd1a0a2e49933f3f514fb3bc442945f910d479ecb31627ee9e8f2df"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/foss/res/mipmap-mdpi/ic_launcher_round.png",
+      "format": "png",
+      "width": 48,
+      "height": 48,
+      "sha256": "47e910bd4fd1a0a2e49933f3f514fb3bc442945f910d479ecb31627ee9e8f2df"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/foss/res/mipmap-hdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 162,
+      "height": 162,
+      "sha256": "45d8db8c60ad22f96fb627e10f22270d86a145e0232537a9505fb7669a6e913f"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/foss/res/mipmap-hdpi/ic_launcher.png",
+      "format": "png",
+      "width": 72,
+      "height": 72,
+      "sha256": "f004fe0dd9dfde1220f966f5f2f6a6714ac5cbaad09478473a47020f4f391684"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/foss/res/mipmap-hdpi/ic_launcher_round.png",
+      "format": "png",
+      "width": 72,
+      "height": 72,
+      "sha256": "f004fe0dd9dfde1220f966f5f2f6a6714ac5cbaad09478473a47020f4f391684"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/foss/res/mipmap-xhdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 216,
+      "height": 216,
+      "sha256": "310e5f0ad2e4aff6544fb817de7a8d6420bd1946ca2c58e7e3fa732c874788ae"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/foss/res/mipmap-xhdpi/ic_launcher.png",
+      "format": "png",
+      "width": 96,
+      "height": 96,
+      "sha256": "7bb0659658ca9e5cf3aab27d8316cea517cb962b18323e80e0a16494ae9b5884"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/foss/res/mipmap-xhdpi/ic_launcher_round.png",
+      "format": "png",
+      "width": 96,
+      "height": 96,
+      "sha256": "7bb0659658ca9e5cf3aab27d8316cea517cb962b18323e80e0a16494ae9b5884"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/foss/res/mipmap-xxhdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 324,
+      "height": 324,
+      "sha256": "6e4e206fd651f1bbfea9c6fd543032504af6fe3713b64ef932e33f68df26fa6c"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/foss/res/mipmap-xxhdpi/ic_launcher.png",
+      "format": "png",
+      "width": 144,
+      "height": 144,
+      "sha256": "3f9ecf14b1a36229d360ab3cb1f8e6de1f0741fe016530ed5f3dff51eeca4be2"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/foss/res/mipmap-xxhdpi/ic_launcher_round.png",
+      "format": "png",
+      "width": 144,
+      "height": 144,
+      "sha256": "3f9ecf14b1a36229d360ab3cb1f8e6de1f0741fe016530ed5f3dff51eeca4be2"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/foss/res/mipmap-xxxhdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 432,
+      "height": 432,
+      "sha256": "d8d004e2a721da77d50814cb09af11e25cd0f44380cdaa3ece713ed21ebd764d"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/foss/res/mipmap-xxxhdpi/ic_launcher.png",
+      "format": "png",
+      "width": 192,
+      "height": 192,
+      "sha256": "21263e335bf203056f3768e3df88867e6e8eedd8d28844a8e408085822b4e6cf"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/foss/res/mipmap-xxxhdpi/ic_launcher_round.png",
+      "format": "png",
+      "width": 192,
+      "height": 192,
+      "sha256": "21263e335bf203056f3768e3df88867e6e8eedd8d28844a8e408085822b4e6cf"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/debug/res/mipmap-mdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 108,
+      "height": 108,
+      "sha256": "e259b25b0cb180a024341e488bc45f730a08f1dda2a659df9a6a8170757796de"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/debug/res/mipmap-mdpi/ic_launcher.png",
+      "format": "png",
+      "width": 48,
+      "height": 48,
+      "sha256": "bf274d2df87fc86aee1fb4edc6504c5dc011e8ab14d3a8c4426786a47d6d4db6"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/debug/res/mipmap-hdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 162,
+      "height": 162,
+      "sha256": "1a49c5c2f9fc269d28b4a93a9f97fd16a16451aa369244321588218baa125e68"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/debug/res/mipmap-hdpi/ic_launcher.png",
+      "format": "png",
+      "width": 72,
+      "height": 72,
+      "sha256": "894f0f2c137475976f30b7b374a6ff3b8a00845c31471c243bdbb6e808c951c7"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/debug/res/mipmap-xhdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 216,
+      "height": 216,
+      "sha256": "41bfb320bd00a30ad0d22d545745fd06f9204a8559dbae7b70f1698d31221003"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/debug/res/mipmap-xhdpi/ic_launcher.png",
+      "format": "png",
+      "width": 96,
+      "height": 96,
+      "sha256": "6b68c32736bc3f58490c817ae15fce051f43dea2a0937cbb94be4ceda71f1613"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/debug/res/mipmap-xxhdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 324,
+      "height": 324,
+      "sha256": "9324553701fe0a319b3a16979ff90e719de3fdba2e8d490f52cf2557d3e5ddca"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/debug/res/mipmap-xxhdpi/ic_launcher.png",
+      "format": "png",
+      "width": 144,
+      "height": 144,
+      "sha256": "58bc3a7e79fe91ead3d77aeaf2d7174b1885e26b648be5ad4886d97510b3cfe0"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/debug/res/mipmap-xxxhdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 432,
+      "height": 432,
+      "sha256": "be253fa2e62628498f5694bb41e33b9defdf190f5651b328c8d8491fffec01a3"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/debug/res/mipmap-xxxhdpi/ic_launcher.png",
+      "format": "png",
+      "width": 192,
+      "height": 192,
+      "sha256": "8b2ffe8a8df2303e6bd058ae1891eaff2dc9ab15fa1ff5aa268c06d2e1e92841"
+    },
+    {
+      "surface": "app.wear",
+      "path": "wear/src/main/res/mipmap-mdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 108,
+      "height": 108,
+      "sha256": "345441a02443078c793c2cf505851bf322e4b069eaa5d88e42222bf79a310292"
+    },
+    {
+      "surface": "app.wear",
+      "path": "wear/src/main/res/mipmap-mdpi/ic_launcher_adaptive_back.png",
+      "format": "png",
+      "width": 108,
+      "height": 108,
+      "sha256": "de5db4e76cacf1168b28528bdbee4b4768252f63301a8cc55b454fe909c25ad5"
+    },
+    {
+      "surface": "app.wear",
+      "path": "wear/src/main/res/mipmap-mdpi/ic_launcher.png",
+      "format": "png",
+      "width": 48,
+      "height": 48,
+      "sha256": "1a162b3253f21f821f76c5a864d60e3145a07e44ba1ed7d39492ad110e304516"
+    },
+    {
+      "surface": "app.wear",
+      "path": "wear/src/debug/res/mipmap-mdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 108,
+      "height": 108,
+      "sha256": "b7eb7f82f20c73b779b11bcb33f73dc940b5c46252ec20451c139d805bf83d48"
+    },
+    {
+      "surface": "app.wear",
+      "path": "wear/src/debug/res/mipmap-mdpi/ic_launcher.png",
+      "format": "png",
+      "width": 48,
+      "height": 48,
+      "sha256": "c09e6402b8f1d826766b7bdcead0aef67b4af76a5e2bbfab4cc3c087657a89e0"
+    },
+    {
+      "surface": "app.wear",
+      "path": "wear/src/main/res/mipmap-hdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 162,
+      "height": 162,
+      "sha256": "5155852251cf59126cf89a6ec9fd0f6c2283de8606bfc98117f76c79fcb3f124"
+    },
+    {
+      "surface": "app.wear",
+      "path": "wear/src/main/res/mipmap-hdpi/ic_launcher_adaptive_back.png",
+      "format": "png",
+      "width": 162,
+      "height": 162,
+      "sha256": "7c4e5c08eb2d98ff9b257c023c6402e9f15a6619d077c4e752eb80237c5cf75a"
+    },
+    {
+      "surface": "app.wear",
+      "path": "wear/src/main/res/mipmap-hdpi/ic_launcher.png",
+      "format": "png",
+      "width": 72,
+      "height": 72,
+      "sha256": "b0d22267402f357ae889d1aeb409af59c7f8d5ebc5b4b2ce8f6d72704b3e40f3"
+    },
+    {
+      "surface": "app.wear",
+      "path": "wear/src/debug/res/mipmap-hdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 162,
+      "height": 162,
+      "sha256": "3447a5dea4fc0f9e562df11501758ee92ee8724221ad6c09bd792cee7465ea32"
+    },
+    {
+      "surface": "app.wear",
+      "path": "wear/src/debug/res/mipmap-hdpi/ic_launcher.png",
+      "format": "png",
+      "width": 72,
+      "height": 72,
+      "sha256": "42b1d4c91292bb7266dfaead5f77c87f280731ac273aaa6a91f4705375b85c22"
+    },
+    {
+      "surface": "app.wear",
+      "path": "wear/src/main/res/mipmap-xhdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 216,
+      "height": 216,
+      "sha256": "c1007e2fb818f14b1075359b1927be6588ed7f2866a9e9c470fbed574ef74765"
+    },
+    {
+      "surface": "app.wear",
+      "path": "wear/src/main/res/mipmap-xhdpi/ic_launcher_adaptive_back.png",
+      "format": "png",
+      "width": 216,
+      "height": 216,
+      "sha256": "167cc98c4962894b85b9183dbd97bd19cf943b370c2ee5351a279000b6379ff6"
+    },
+    {
+      "surface": "app.wear",
+      "path": "wear/src/main/res/mipmap-xhdpi/ic_launcher.png",
+      "format": "png",
+      "width": 96,
+      "height": 96,
+      "sha256": "002310e5ae60457122f489ecf05e616c8fc8129785ceb7c14dc247497ac7bd35"
+    },
+    {
+      "surface": "app.wear",
+      "path": "wear/src/debug/res/mipmap-xhdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 216,
+      "height": 216,
+      "sha256": "f317f1f2da2fb0838a33bd7c1a258611ae5f9c9c0e9a4332514fb8d418a40bb4"
+    },
+    {
+      "surface": "app.wear",
+      "path": "wear/src/debug/res/mipmap-xhdpi/ic_launcher.png",
+      "format": "png",
+      "width": 96,
+      "height": 96,
+      "sha256": "078c1548a7cef1924e782fd70da45a3e0227aab6793fec7618c9e5cf240dcdf1"
+    },
+    {
+      "surface": "app.wear",
+      "path": "wear/src/main/res/mipmap-xxhdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 324,
+      "height": 324,
+      "sha256": "a6f5b58f12c70601ff33c5411992b7086146cc089f973aca11551aee61bff7cd"
+    },
+    {
+      "surface": "app.wear",
+      "path": "wear/src/main/res/mipmap-xxhdpi/ic_launcher_adaptive_back.png",
+      "format": "png",
+      "width": 324,
+      "height": 324,
+      "sha256": "dff57e22333d07d3109afe8576ea1bd6d9358ac4e4c9c33005cacbd760da4c35"
+    },
+    {
+      "surface": "app.wear",
+      "path": "wear/src/main/res/mipmap-xxhdpi/ic_launcher.png",
+      "format": "png",
+      "width": 144,
+      "height": 144,
+      "sha256": "fbd391d35b80b32a63039e52902757b57c3d82d7024db97f7ef2bf8e1325e448"
+    },
+    {
+      "surface": "app.wear",
+      "path": "wear/src/debug/res/mipmap-xxhdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 324,
+      "height": 324,
+      "sha256": "52fc68b6a65bab6c11b34b66a6b6cc1ca51e21a32047524383c779bc96fdc8e9"
+    },
+    {
+      "surface": "app.wear",
+      "path": "wear/src/debug/res/mipmap-xxhdpi/ic_launcher.png",
+      "format": "png",
+      "width": 144,
+      "height": 144,
+      "sha256": "cff204c8a5b32fa802dd1e9aa6b9a02d8d12ec5901952bf69c93e3becedda409"
+    },
+    {
+      "surface": "app.wear",
+      "path": "wear/src/main/res/mipmap-xxxhdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 432,
+      "height": 432,
+      "sha256": "abb0fb6e93cba486f9d8a7f3fa045722b674607da04e9025f49a3bca889b13d9"
+    },
+    {
+      "surface": "app.wear",
+      "path": "wear/src/main/res/mipmap-xxxhdpi/ic_launcher_adaptive_back.png",
+      "format": "png",
+      "width": 432,
+      "height": 432,
+      "sha256": "595afb58981f25e78ac46a18080b3e76f07e3795ca3910640b1466698eb888f7"
+    },
+    {
+      "surface": "app.wear",
+      "path": "wear/src/main/res/mipmap-xxxhdpi/ic_launcher.png",
+      "format": "png",
+      "width": 192,
+      "height": 192,
+      "sha256": "fdf370e2c40d73d014c685d86ff139cc488aa54b29e7152317bd911ccdff0efa"
+    },
+    {
+      "surface": "app.wear",
+      "path": "wear/src/debug/res/mipmap-xxxhdpi/ic_launcher_adaptive_fore.png",
+      "format": "png",
+      "width": 432,
+      "height": 432,
+      "sha256": "0c4d3d2ba348990e5451f5a21efcbf2ca36c3dfca3d0b41fa887aac6592257d7"
+    },
+    {
+      "surface": "app.wear",
+      "path": "wear/src/debug/res/mipmap-xxxhdpi/ic_launcher.png",
+      "format": "png",
+      "width": 192,
+      "height": 192,
+      "sha256": "7b1826e2280dae6a77b2c19304b1388d3a52aa0b97f5bc7990a22f3233b56aec"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/main/res/drawable/ic_launcher_badge_monochrome.xml",
+      "format": "xml",
+      "sha256": "86029ddc9d95b53061a9c1859cdeeef5205abda0b43c32c61d096e6c4786b2b7"
+    },
+    {
+      "surface": "app.wear",
+      "path": "wear/src/main/res/drawable/ic_launcher_badge_monochrome.xml",
+      "format": "xml",
+      "sha256": "86029ddc9d95b53061a9c1859cdeeef5205abda0b43c32c61d096e6c4786b2b7"
+    },
+    {
+      "surface": "play.icon",
+      "path": "store_assets/icon_512.png",
+      "format": "png",
+      "width": 512,
+      "height": 512,
+      "sha256": "395ccf33a39a9c8cb75e14b7eaa42d1b18b2ce9cb312bdf0974185b62a4a5dbe"
+    },
+    {
+      "surface": "play.icon",
+      "path": "play/listing/en-US/images/icon.png",
+      "format": "png",
+      "width": 512,
+      "height": 512,
+      "sha256": "395ccf33a39a9c8cb75e14b7eaa42d1b18b2ce9cb312bdf0974185b62a4a5dbe"
+    },
+    {
+      "surface": "play.icon",
+      "path": "fastlane/metadata/android/en-US/images/icon.png",
+      "format": "png",
+      "width": 512,
+      "height": 512,
+      "sha256": "395ccf33a39a9c8cb75e14b7eaa42d1b18b2ce9cb312bdf0974185b62a4a5dbe"
+    },
+    {
+      "surface": "web.favicon-ico",
+      "path": "favicon.ico",
+      "format": "ico",
+      "width": 48,
+      "height": 48,
+      "sha256": "6175a32fd2e77c874fd24e0bba9bb7ae603277c21c4448e67b1f0df7cd9269f2"
+    },
+    {
+      "surface": "web.favicon-svg",
+      "path": "favicon.svg",
+      "format": "svg",
+      "sha256": "d7ba5f65d19e58e226e0f3c46b9f1ddce7ff0808e4bdc929c2315b69f3a9acee"
+    },
+    {
+      "surface": "other.favicon-png",
+      "path": "favicon-16x16.png",
+      "format": "png",
+      "width": 16,
+      "height": 16,
+      "sha256": "caa902934df1bf3ac150290fbe38c25f82a2e4dd3aafc10f31b18783c7c23f43"
+    },
+    {
+      "surface": "other.favicon-png",
+      "path": "favicon-32x32.png",
+      "format": "png",
+      "width": 32,
+      "height": 32,
+      "sha256": "1a9a17be2191800f6d9fd6a22872a32ec51529f1345f0c7c4b0b01e281961e89"
+    },
+    {
+      "surface": "web.apple-touch",
+      "path": "apple-touch-icon.png",
+      "format": "png",
+      "width": 180,
+      "height": 180,
+      "sha256": "40daeaf7b0ab1f8433c7c576d191f2e361f8beb37bc0fb4d0a7e34504dce6405"
+    },
+    {
+      "surface": "site.identity",
+      "path": "icon.png",
+      "format": "png",
+      "width": 192,
+      "height": 192,
+      "sha256": "c3962adb0ea1ef0456b71cbd4606a114efb10a9d0cec155cc06957957c197a91"
+    },
+    {
+      "surface": "web.manifest-192",
+      "path": "assets/identity/out/web/icon-192.png",
+      "format": "png",
+      "width": 192,
+      "height": 192,
+      "sha256": "c3962adb0ea1ef0456b71cbd4606a114efb10a9d0cec155cc06957957c197a91"
+    },
+    {
+      "surface": "web.manifest-512",
+      "path": "assets/identity/out/web/icon-512.png",
+      "format": "png",
+      "width": 512,
+      "height": 512,
+      "sha256": "d3f162ff6eee81a90eefaf4fcc8f3b5c03d547872abdd3371a4e283f09b7b526"
+    },
+    {
+      "surface": "web.maskable-512",
+      "path": "assets/identity/out/web/maskable-512.png",
+      "format": "png",
+      "width": 512,
+      "height": 512,
+      "sha256": "9557d811e3b8ead55807497d88dda1766785c7701f0d45f95faf28ac48ee87c9"
+    },
+    {
+      "surface": "web.og-image",
+      "path": "assets/og/og-image.png",
+      "format": "png",
+      "width": 1200,
+      "height": 630,
+      "sha256": "33db8fffa5b6b408b08ebdc45c21d7e72e5023e8b2ea5deb033a3d9707ce80c8"
+    },
+    {
+      "surface": "github.social-preview",
+      "path": "assets/identity/out/github-social-preview.png",
+      "format": "png",
+      "width": 1280,
+      "height": 640,
+      "sha256": "cc5001b535a7eafe8aa7d524ee69c5c33a9eec8b3658f7145f40880db6bec3a4"
+    },
+    {
+      "surface": "readme.head",
+      "path": "assets/identity/out/readme-head-128.png",
+      "format": "png",
+      "width": 128,
+      "height": 128,
+      "sha256": "179a7f2ead3453e82dd25886a794499ea412fd74742563c28abf02177d619445"
+    },
+    {
+      "surface": "hub.card",
+      "path": "assets/identity/out/hub-card-256.png",
+      "format": "png",
+      "width": 256,
+      "height": 256,
+      "sha256": "78993e217bf2d446a2e029d3acb0343a0653a8dc077ec151f310b2a3ed21e949"
+    },
+    {
+      "surface": "help.head",
+      "path": "app_v2/src/main/assets/help/img/product-mark.png",
+      "format": "png",
+      "width": 96,
+      "height": 96,
+      "sha256": "4950fc516bfc26b96dba41b199b1542e80c18c90e912ba1394c2bababa57f782"
+    },
+    {
+      "surface": "other.identity-colors",
+      "path": "app_v2/src/main/res/values/identity_colors.xml",
+      "format": "xml",
+      "sha256": "a78a9e0db795812a6a80bcce4fe2cfcc9d52ce307eb06df277c574244ed9bc23"
+    },
+    {
+      "surface": "other.identity-colors",
+      "path": "app_v2/src/main/res/values-night/identity_colors.xml",
+      "format": "xml",
+      "sha256": "fe82af1104044f94b1c008c4da2b45c83ece1096cd0fd8aee4e56ae881937ed6"
+    },
+    {
+      "surface": "app.tv-banner",
+      "path": "app_v2/src/main/res/drawable-mdpi/tv_banner.png",
+      "format": "png",
+      "width": 160,
+      "height": 90,
+      "sha256": "02c40effd9bb5d5919afd2049d2c1b21e6957109ebb17842cda8282b071e9525"
+    },
+    {
+      "surface": "app.tv-banner",
+      "path": "app_v2/src/main/res/drawable-hdpi/tv_banner.png",
+      "format": "png",
+      "width": 240,
+      "height": 135,
+      "sha256": "b0269dda499737481b5124ac5905e7ca062a1cdd121d29beed0fde04ca05c57d"
+    },
+    {
+      "surface": "app.tv-banner",
+      "path": "app_v2/src/main/res/drawable-xhdpi/tv_banner.png",
+      "format": "png",
+      "width": 320,
+      "height": 180,
+      "sha256": "3afd8393491e2e225567495a42a089820b0df732273ca72e1e25c44dc35558e3"
+    },
+    {
+      "surface": "app.tv-banner",
+      "path": "app_v2/src/main/res/drawable-xxhdpi/tv_banner.png",
+      "format": "png",
+      "width": 480,
+      "height": 270,
+      "sha256": "b0a83c5f0dc367bb566384dcad8f492023cc7a7be774ddbcd5045f6a69d7391a"
+    },
+    {
+      "surface": "app.tv-banner",
+      "path": "app_v2/src/main/res/drawable-xxxhdpi/tv_banner.png",
+      "format": "png",
+      "width": 640,
+      "height": 360,
+      "sha256": "72862f1d52312dac2b712a60d51c8f483377c2df5247187cbca991c3a31f41d6"
+    },
+    {
+      "surface": "app.launcher",
+      "path": "app_v2/src/main/res/drawable/ic_launcher_monochrome.xml",
+      "format": "xml",
+      "sha256": "b6d44d6dadb4fdd77f748def98e157479f034939050df06d9ae817ebd9271fba"
+    },
+    {
+      "surface": "other.notification",
+      "path": "app_v2/src/main/res/drawable/ic_notification_app_logo.xml",
+      "format": "xml",
+      "sha256": "11125e9554d1e4234172f105cf235db1a9410d0585dd342cef9bd367b292f1ed"
+    },
+    {
+      "surface": "other.glyph",
+      "path": "app_v2/src/main/res/drawable/ic_app_logo.xml",
+      "format": "xml",
+      "sha256": "3c799aadc807b12910caf60f281c49d1dc9bbf9018aca9584a25e7787ce71daf"
+    },
+    {
+      "surface": "app.wear",
+      "path": "wear/src/main/res/drawable/ic_launcher_monochrome.xml",
+      "format": "xml",
+      "sha256": "b6d44d6dadb4fdd77f748def98e157479f034939050df06d9ae817ebd9271fba"
+    },
+    {
+      "surface": "app.wear",
+      "path": "wear/src/main/res/drawable/ic_notification_app_logo.xml",
+      "format": "xml",
+      "sha256": "11125e9554d1e4234172f105cf235db1a9410d0585dd342cef9bd367b292f1ed"
+    },
+    {
+      "surface": "other.wear-glyph",
+      "path": "wear/src/main/res/drawable/ic_product_mark_mono.xml",
+      "format": "xml",
+      "sha256": "3040c9b00fd557b5710ca38102318265c86054f8b3456e4bedfe4fae7af48001"
+    },
+    {
+      "surface": "other.provider-dropbox",
+      "path": "app_v2/src/main/res/drawable/ic_provider_dropbox.png",
+      "format": "png",
+      "width": 640,
+      "height": 596,
+      "sha256": "6937db3905c70de97ea060720a1ccd6f7ec4736b94c07aadf27909dbff73cefd",
+      "source": "Dropbox brand mark (third party, ICON-EXTERNAL)",
+      "licence": "trademark of Dropbox, Inc.; shown only to name the service"
+    },
+    {
+      "surface": "other.provider-google-drive",
+      "path": "app_v2/src/main/res/drawable/ic_provider_google_drive.png",
+      "format": "png",
+      "width": 32,
+      "height": 29,
+      "sha256": "d199dd414188ede92dcc54237baf2aac04ee9d94719b78d4bfd4486f46c08e73",
+      "source": "Google Drive brand mark (third party, ICON-EXTERNAL)",
+      "licence": "trademark of Google LLC; shown only to name the service"
+    },
+    {
+      "surface": "other.provider-onedrive",
+      "path": "app_v2/src/main/res/drawable/ic_provider_onedrive.png",
+      "format": "png",
+      "width": 640,
+      "height": 640,
+      "sha256": "07f5375af0c943d938f1cb062ed17342fa320a517809a2575e928fc951a974c0",
+      "source": "Microsoft OneDrive brand mark (third party, ICON-EXTERNAL)",
+      "licence": "trademark of Microsoft Corporation; shown only to name the service"
+    },
+    {
+      "surface": "other.author-logo",
+      "path": "app_v2/src/main/res/drawable/ic_logo.png",
+      "format": "png",
+      "width": 48,
+      "height": 48,
+      "sha256": "6995c3a84f58643137219f2d88f5588117cfafdc241ddb2716f796f0bd012187",
+      "source": "the author's SZ mark, platform splash branding slot",
+      "licence": "own work"
+    },
+    {
+      "surface": "other.touch-zones-scheme",
+      "path": "app_v2/src/main/res/drawable/touch_zones_scheme.png",
+      "format": "png",
+      "width": 256,
+      "height": 256,
+      "sha256": "b64b32ec81595261d90e7e45161871675cf80c382c747e8fae363dea28589ab2",
+      "source": "generated by scripts/docs/render-touch-zones-scheme.py",
+      "licence": "own work"
+    },
+    {
+      "surface": "other.hero-supported-devices",
+      "path": "store_assets/hero-supported-devices.png",
+      "format": "png",
+      "width": 1942,
+      "height": 809,
+      "sha256": "1e3733813f13cd872a53aa73051e5023833b119219d89f503287c5adf61bae41",
+      "source": "unknown - promotion picture, no source in the repository",
+      "licence": "unknown"
+    }
+  ]
+}

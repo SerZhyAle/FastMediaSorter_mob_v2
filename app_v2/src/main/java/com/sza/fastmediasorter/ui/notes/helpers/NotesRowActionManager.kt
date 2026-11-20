@@ -3,6 +3,8 @@ package com.sza.fastmediasorter.ui.notes.helpers
 import android.view.View
 import android.widget.PopupMenu
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.share.ShareableContent
@@ -70,7 +72,19 @@ class NotesRowActionManager(
         }
     }
 
+    /**
+     * The search field takes focus when the screen opens, so its keyboard is still up when the row menu
+     * hands over to the dialog; a confirmation has no field to type into.
+     */
+    private fun hideSearchKeyboard() {
+        val focused = activity.currentFocus ?: activity.window.decorView
+        focused.clearFocus()
+        WindowCompat.getInsetsController(activity.window, focused).hide(WindowInsetsCompat.Type.ime())
+    }
+
     private fun confirmDelete(note: NoteSummary) {
+        Timber.d("S4720: note delete confirmation requested, keyboard hidden first")
+        hideSearchKeyboard()
         AppDialog.destructive(
             owner = activity,
             context = activity,

@@ -78,7 +78,6 @@
     <string name="copy_failed">تعذر نسخ الملفات.</string>
     <string name="no_destinations_available">لم تُعدَّ أي موارد وجهة</string>
     <string name="moving_files">جارٍ النقل..</string>
-    <string name="moved_n_files">تم نقل %1$d ملف.</string>
     <string name="moved_n_of_m_files">تم نقل %1$d من %2$d ملف.</string>
     <string name="move_failed">تعذر نقل الملفات.</string>
     <string name="renaming_files">جارٍ إعادة التسمية..</string>
@@ -244,7 +243,6 @@
     <string name="confirm_delete_safe_mode">التأكيد قبل الحذف</string>
     <string name="confirm_move_safe_mode">التأكيد قبل النقل</string>
     <string name="confirm_delete_title">حذف الملفات؟</string>
-    <string name="confirm_delete_message">حذف %1$d ملف (ملفات)؟ لا يمكن التراجع عن هذا الإجراء.</string>
     <string name="confirm_move_title">نقل الملفات؟</string>
     <string name="confirm_move_message">نقل %1$d ملف (ملفات) إلى %2$s؟</string>
     <string name="user_guide">دليل المستخدم</string>
@@ -798,7 +796,6 @@
     <string name="error_copy_failed">تعذّر نسخ الملف.</string>
     <string name="error_file_exists_copy">الملف \"%1$s\" موجود بالفعل في \"%2$s\".\n\nفعّل \"الكتابة فوق الملفات عند النسخ\" في الإعدادات -&gt; النسخ والنقل إذا كنت تريد استبداله.</string>
     <string name="msg_move_success">تم النقل إلى %1$s.</string>
-    <string name="msg_move_success_count">تم نقل %1$d ملف إلى %2$s.</string>
     <string name="error_move_failed">تعذّر نقل الملف.</string>
     <string name="error_file_exists_move">الملف \"%1$s\" موجود بالفعل في \"%2$s\".\n\nفعّل \"الكتابة فوق الملفات عند النقل\" في الإعدادات -&gt; النسخ والنقل إذا كنت تريد استبداله.</string>
     <string name="msg_delete_success">تم الحذف.</string>
@@ -1987,7 +1984,7 @@
     <string name="stream_wait_reconnecting">جارٍ إعادة الاتصال..</string>
     <string name="streams_filter_pinned_only">المثبّتة فقط</string>
     <string name="streams_refresh_probing">جارٍ فحص البث..</string>
-    <string name="streams_error_no_network">لا توجد شبكة. اتصل بشبكة Wi-Fi أو ببيانات الجوال لتشغيل البث.</string>
+    <string name="streams_error_no_network">لا توجد شبكة. اتصل بالإنترنت لتشغيل البث.</string>
     <string name="tile_screenshot_label">لقطة شاشة</string>
     <string name="camera_lens_front">أمامية</string>
     <string name="camera_lens_ultrawide">فائقة الاتساع</string>

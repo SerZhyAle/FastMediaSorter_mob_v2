@@ -29,4 +29,9 @@
     <string name="ticket_inbox_destination_drive">Google Drive</string>
     <string name="ticket_inbox_state_folder_waiting">Waiting for the folder on the computer: %1$s</string>
     <string name="ticket_inbox_state_folder_sent">In the folder - waiting for the computer</string>
+    <string name="ticket_inbox_grant_drive">Allow access to Google Drive</string>
+    <string name="ticket_inbox_state_needs_access">Needs access to Google Drive - allow it with the button above</string>
+    <string name="ticket_inbox_drive_access_granted">Access granted - the waiting tickets go out now</string>
+    <string name="ticket_inbox_drive_access_declined">Access was not granted - the tickets stay in the list until you allow it</string>
+    <string name="ticket_inbox_drive_access_failed">Google could not show the access screen - try again in a moment</string>
 </resources>

@@ -21,6 +21,24 @@ object TextNoteSaveDialog {
     private val FORBIDDEN_CHARS = setOf('/', '\\', ':', '*', '?', '"', '<', '>', '|')
 
     /**
+     * Completes a typed name. A name with no extension takes the extension of [defaultName]: the Notes
+     * list shows only `.txt` files, so a note saved as a bare "meeting" would silently leave it. A typed
+     * extension is never touched. A trailing dot is an explicit "no extension" and is dropped, because
+     * share servers strip it anyway.
+     */
+    internal fun completeTypedName(chosen: String, defaultName: String): String = when {
+        chosen.isEmpty() || chosen == defaultName -> chosen
+        chosen.endsWith('.') -> chosen.trimEnd('.')
+        chosen.lastIndexOf('.') > 0 -> chosen
+        else -> chosen + extensionOf(defaultName)
+    }
+
+    private fun extensionOf(name: String): String {
+        val dot = name.lastIndexOf('.')
+        return if (dot > 0 && dot < name.lastIndex) name.substring(dot) else ""
+    }
+
+    /**
      * Shows the save-name dialog.
      *
      * @param context     Activity context (must not be finishing or destroyed).
@@ -61,7 +79,7 @@ object TextNoteSaveDialog {
             .setTitle(R.string.text_note_save_dialog_title)
             .setView(tilWrapper)
             .setPositiveButton(R.string.text_note_save_dialog_ok) { _, _ ->
-                val chosen = inputEdit.text.toString().trim()
+                val chosen = completeTypedName(inputEdit.text.toString().trim(), defaultName)
                 if (chosen.isNotEmpty() && chosen.none { it in FORBIDDEN_CHARS }) {
                     onConfirm(chosen)
                 }
@@ -75,7 +93,7 @@ object TextNoteSaveDialog {
         // Disable OK button on invalid input; enable when valid
         val positiveButton = dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE)
         val validate = {
-            val text = inputEdit.text?.toString()?.trim() ?: ""
+            val text = completeTypedName(inputEdit.text?.toString()?.trim() ?: "", defaultName)
             val valid = text.isNotEmpty() && text.none { it in FORBIDDEN_CHARS }
             positiveButton.isEnabled = valid
         }

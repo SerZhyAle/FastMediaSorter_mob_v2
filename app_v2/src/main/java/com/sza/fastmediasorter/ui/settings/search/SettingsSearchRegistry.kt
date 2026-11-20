@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.settings.search
 
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.ui.settings.SettingsSearchIndex
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -13,7 +14,8 @@ import javax.inject.Singleton
  *
  * The heavy work (XML scan + per-locale string resolution) runs on the first access to
  * `entries` or `search()` - typically the moment the user opens the search overlay,
- * not on app cold start.
+ * not on app cold start. The XML scan is kept for the process life; the enriched titles are
+ * rebuilt when the app language changes, which applies live without a process restart.
  */
 @Singleton
 class SettingsSearchRegistry @Inject constructor(
@@ -25,14 +27,31 @@ class SettingsSearchRegistry @Inject constructor(
     private val mediaCapabilities: MediaCapabilities
 ) {
 
-    private val allEntries: List<SettingsSearchIndex> by lazy {
-        val raw = source.collect()
-        val enriched = raw.mapNotNull { collector.enrich(it) }
-        enriched
+    private val rawEntries: List<RawSettingsSearchEntry> by lazy { source.collect() }
+
+    private val enrichLock = Any()
+
+    // Enriched entries paired with the display language their titles were resolved in.
+    @Volatile
+    private var enriched: Pair<String, List<SettingsSearchIndex>>? = null
+
+    private fun allEntries(): List<SettingsSearchIndex> {
+        val language = collector.displayLanguage()
+        val hit = enriched
+        if (hit != null && hit.first == language) return hit.second
+        return synchronized(enrichLock) {
+            val again = enriched
+            if (again != null && again.first == language) {
+                again.second
+            } else {
+                Timber.d("S4787: settings search index rebuilt for language=$language")
+                rawEntries.mapNotNull { collector.enrich(it, language) }.also { enriched = language to it }
+            }
+        }
     }
 
     val entries: List<SettingsSearchIndex>
-        get() = allEntries.filter { entry ->
+        get() = allEntries().filter { entry ->
             availability.isAvailable(entry) &&
                 capabilityGate.isAvailable(entry) &&
                 deviceFeatureGate.isAvailable(entry.key) &&

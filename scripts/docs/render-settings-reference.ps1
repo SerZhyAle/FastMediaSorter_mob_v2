@@ -116,7 +116,7 @@ $docScopeSections = @('launcher','gestures','defaultApps','camera','translation'
 $docScopePath = @{
     launcher    = @{ en='Settings -> General -> System launcher settings'; ru='Настройки -> Общие -> Настройки системного лаунчера'; uk='Налаштування -> Загальні -> Налаштування системного лаунчера' }
     gestures    = @{ en='Settings -> Destinations -> Configure gestures'; ru='Настройки -> Назначения -> Настроить жесты'; uk='Налаштування -> Призначення -> Налаштувати жести' }
-    defaultApps = @{ en='Settings -> Destinations -> Set as default'; ru='Настройки -> Назначения -> Задать по-умолчанию'; uk='Налаштування -> Призначення -> Задати за замовчуванням' }
+    defaultApps = @{ en='Settings -> Destinations -> Set as default'; ru='Настройки -> Назначения -> Задать по умолчанию'; uk='Налаштування -> Призначення -> Задати за замовчуванням' }
     camera      = @{ en='Reached from the camera capture screen, not from Settings.'; ru='Доступно с экрана съёмки камерой, не из Настроек.'; uk='Доступно з екрана зйомки камерою, не з Налаштувань.' }
     translation = @{ en='Reached from the on-screen translation overlay, not from Settings.'; ru='Доступно из панели перевода на экране, не из Настроек.'; uk='Доступно з панелі перекладу на екрані, не з Налаштувань.' }
     networkMonitor = @{ en='Reached from Network Monitor -> Satellites, not from Settings.'; ru='Доступно из Монитора сети -> Спутники, не из Настроек.'; uk='Доступно з Монітора мережі -> Супутники, не з Налаштувань.' }

@@ -108,6 +108,27 @@ class RawPreferencesStoreTest {
     }
 
     @Test
+    fun `S4794 e2e key and trust families are exported by no name and restored by none`() {
+        val e2eEntries = listOf(
+            "device_exchange_e2e_key_0123456789abcdef",
+            "device_exchange_e2e_trusted_fedcba9876543210",
+            "device_exchange_e2e_grant_senders_0123456789abcdef"
+        )
+        val source = mutablePreferencesOf(label to "kept")
+        e2eEntries.forEach { source[stringPreferencesKey(it)] = "e2e-material" }
+
+        assertEquals(listOf("label"), RawPreferencesStore.export(source).map { it.key })
+
+        val target = mutablePreferencesOf()
+        RawPreferencesStore.apply(
+            target,
+            e2eEntries.map { BackupPreference(it, "S", "e2e-material") } + BackupPreference("label", "S", "kept")
+        )
+        assertEquals("kept", target[label])
+        e2eEntries.forEach { assertNull(target[stringPreferencesKey(it)]) }
+    }
+
+    @Test
     fun `S4238 a key that only resembles a secret family is an ordinary setting`() {
         val source = mutablePreferencesOf(stringPreferencesKey("exchange_resource_note") to "x")
 

@@ -1,7 +1,7 @@
 ---
 layout: doc
 title: "How to delete an account"
-description: "How to delete your account on an exchange server of FastMediaSorter: in the app, or without it by asking whoever runs the server - what is erased at once, what stays, and what to do when the phone is lost."
+description: "How to delete your account on an exchange server of Fast Media Sorter & Organizer: in the app, or without it by asking whoever runs the server - what is erased at once, what stays, and what to do when the phone is lost."
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/account-deletion.html
 ---
@@ -9,11 +9,11 @@ permalink: /docs/media-exchange-portal/account-deletion.html
 
 # How to delete an account
 
-This page is about the exchange server account you made with the app **FastMediaSorter** for Android, published by its developer **SerZhyAle**. The account lives on an exchange server - the one you run, or the one a person you know runs for you. The developer runs no server, so the account is deleted on that server, by you in the app or by whoever runs it.
+This page is about the exchange server account you made with the app **Fast Media Sorter & Organizer** for Android, published by its developer **SerZhyAle**. The account lives on an exchange server - the one you run, or the one a person you know runs for you. The developer runs no server, so the account is deleted on that server, by you in the app or by whoever runs it.
 
 ## Delete it in the app {#in-the-app}
 
-1. Open FastMediaSorter and then **My devices**.
+1. Open Fast Media Sorter & Organizer and then **My devices**.
 2. Open the menu of the server's card and choose **Delete my account**.
 3. Type the account password and choose **Delete account**.
 
@@ -25,7 +25,7 @@ Use this when the phone is lost, reset or broken, or you cannot sign in:
 
 - **Ask whoever runs the server.** The owner of a server can delete any account on it, and the erasure is the same as the one you do in the app. Tell the owner your login; it is on the server's card in the app, and in the invitation you registered with if you kept it. The person who gave you the invitation is the owner or knows who is.
 - **If you run the server yourself,** open Share Manager of [Fast Media Sorter & Sharing for Windows](windows-servers.html), go to the Media Exchange Server page and remove the account there.
-- **Or use another phone.** Install FastMediaSorter, add the server, sign in with the login and the password, and delete the account as above.
+- **Or use another phone.** Install Fast Media Sorter & Organizer, add the server, sign in with the login and the password, and delete the account as above.
 
 The developer of the app cannot delete an account on a server the developer does not run. If you do not know who runs the server, write to <sza@ukr.net> and you will be told what the app and the server can do - but nobody at that address can reach the server.
 

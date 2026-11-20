@@ -8,7 +8,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <!-- Title line: title + helper inline. -->
-    <LinearLayout
+    <com.sza.fastmediasorter.ui.common.widget.SettingsTitleLine
         android:id="@+id/sir_titleLine"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -51,7 +51,7 @@
             android:layout_height="1dp"
             android:layout_weight="1" />
 
-    </LinearLayout>
+    </com.sza.fastmediasorter.ui.common.widget.SettingsTitleLine>
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/sir_inputLayout"

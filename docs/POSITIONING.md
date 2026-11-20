@@ -13,7 +13,7 @@ The pillar order below is fixed. Wherever a surface lists what the product does,
 
 ## 1. What the product is
 
-**FastMediaSorter is a complete shell for an Android device: it takes over the home screen, plays your media, opens live streams, launches your apps, talks to your watch, keeps an eye on the device, and manages every file you own.**
+**Fast Media Sorter & Organizer is a complete shell for an Android device: it takes over the home screen, plays your media, opens live streams, launches your apps, talks to your watch, keeps an eye on the device, and manages every file you own.**
 
 You install one app and stop needing several. It sits where the stock launcher used to sit, so everything starts from it: the photos and videos on the phone, the films on the network drive, the radio and TV streams from the internet, the apps you use every day, the watch on your wrist. Nothing has to be handed to another program to be opened. Managing and sorting files across local, network and cloud storage is part of what it does - it is the foundation the rest is built on, not the whole of it.
 

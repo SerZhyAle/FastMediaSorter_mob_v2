@@ -84,7 +84,7 @@ Devices need one address to dial. Take the first that fits:
 
 ## Check that it works {#check}
 
-1. **From the phone, on the same network.** In FastMediaSorter open **My devices**, tap **Add server**, paste the connection string (or **Scan QR**, or **Choose file**), then enter the login and the password. The server's card says **Connected, devices: 1** or more.
+1. **From the phone, on the same network.** In Fast Media Sorter & Organizer open **My devices**, tap **Add server**, paste the connection string (or **Scan QR**, or **Choose file**), then enter the login and the password. The server's card says **Connected, devices: 1** or more.
 2. **From another network.** Switch the phone to mobile data and open **My devices** again. A card that connects is the proof that the server is reachable from outside.
 3. **If it does not connect**, the app says at which step it broke and what to do. The usual causes, in the order to check them:
    - the PC with the server is asleep or off;

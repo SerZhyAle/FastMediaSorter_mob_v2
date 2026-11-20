@@ -51,6 +51,8 @@
              stock M3 alert dialog in dark mode, losing the DialogConfirm/DialogCancel pair entirely. -->
         <item name="materialAlertDialogTheme">@style/ThemeOverlay.FastMediaSorter.MaterialAlertDialog</item>
         <item name="materialSwitchStyle">@style/Widget.FastMediaSorter.Switch</item>
+        <!-- S4763: same seam as the day theme; a values-night style replaces the day one whole. -->
+        <item name="actionOverflowButtonStyle">@style/Widget.FastMediaSorter.Toolbar.OverflowButton</item>
     </style>
 
     <!-- Pre-35 transparent bars. enableEdgeToEdge() sets these at runtime, but release R8 strips

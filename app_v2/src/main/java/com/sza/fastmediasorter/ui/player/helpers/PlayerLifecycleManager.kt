@@ -443,13 +443,17 @@ class PlayerLifecycleManager(
     /**
      * Exit the player, respecting the saved background-audio exit behavior preference.
      * If service audio is connected but already paused, treat exit as an implicit stop and finish
-     * silently regardless of the saved preference.
+     * silently regardless of the saved preference. A track this session handed to the service still
+     * counts while an image or a document is on screen (see `hasLiveServiceAudio`).
      * - ALWAYS_STOP: stops service and finishes without a dialog.
      * - ALWAYS_CONTINUE: finishes without stopping service and without a dialog.
      * - ASK (default): shows a 4-item dialog (Stop / Keep Playing / Always Stop / Always Continue).
      */
     fun exitPlayerWithAudioCheck(withTransition: Boolean = false) {
-        if (!activity.isMediaLoaderManagerInitialized || !activity.mediaLoaderManager.isServiceAudioActive) {
+        val liveServiceAudio = activity.isMediaLoaderManagerInitialized &&
+            activity.mediaLoaderManager.hasLiveServiceAudio
+        Timber.d("S4773: exit check liveServiceAudio=$liveServiceAudio")
+        if (!liveServiceAudio) {
             warnIfBackgroundHandoffMissed()
             doFinish(withTransition)
             return

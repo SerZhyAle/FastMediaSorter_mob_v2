@@ -229,7 +229,7 @@
         <service
             android:name=".complication.WearFaceSlot1ComplicationService"
             android:exported="true"
-            android:icon="@mipmap/ic_launcher"
+            android:icon="@drawable/ic_product_mark_mono"
             android:label="@string/wear_complication_face_slot_1_label"
             android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
             <intent-filter>
@@ -246,7 +246,7 @@
         <service
             android:name=".complication.WearFaceSlot2ComplicationService"
             android:exported="true"
-            android:icon="@mipmap/ic_launcher"
+            android:icon="@drawable/ic_product_mark_mono"
             android:label="@string/wear_complication_face_slot_2_label"
             android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
             <intent-filter>
@@ -263,7 +263,7 @@
         <service
             android:name=".complication.WearFaceSlot3ComplicationService"
             android:exported="true"
-            android:icon="@mipmap/ic_launcher"
+            android:icon="@drawable/ic_product_mark_mono"
             android:label="@string/wear_complication_face_slot_3_label"
             android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
             <intent-filter>
@@ -280,7 +280,7 @@
         <service
             android:name=".complication.WearFaceSlot4ComplicationService"
             android:exported="true"
-            android:icon="@mipmap/ic_launcher"
+            android:icon="@drawable/ic_product_mark_mono"
             android:label="@string/wear_complication_face_slot_4_label"
             android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
             <intent-filter>
@@ -486,7 +486,7 @@
         <service
             android:name=".complication.WearClockStyleComplicationService"
             android:exported="true"
-            android:icon="@mipmap/ic_launcher"
+            android:icon="@drawable/ic_product_mark_mono"
             android:label="@string/wear_complication_clock_style_label"
             android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
             <intent-filter>
@@ -507,7 +507,7 @@
         <service
             android:name=".complication.WearFacePhotoComplicationService"
             android:exported="true"
-            android:icon="@mipmap/ic_launcher"
+            android:icon="@drawable/ic_product_mark_mono"
             android:label="@string/wear_complication_face_photo_label"
             android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
             <intent-filter>

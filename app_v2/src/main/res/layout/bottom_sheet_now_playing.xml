@@ -11,16 +11,6 @@
         android:orientation="vertical"
         android:background="?attr/colorSurface">
 
-        <!-- Drag handle -->
-        <View
-            android:layout_width="32dp"
-            android:layout_height="4dp"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="4dp"
-            android:background="@drawable/bg_bottom_sheet_handle"
-            android:importantForAccessibility="no" />
-
         <!-- ===== PANEL A: NOW PLAYING ===== -->
         <LinearLayout
             android:id="@+id/panelNowPlaying"

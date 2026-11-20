@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.11.15 15:52</sub>
+<sub class="doc-stamp">26.11.20 20:19</sub>
 
 # Pointer - `ICON-SET`
 
 | | |
 | --- | --- |
 | **Id** | `ICON-SET` |
-| **Version** | 0.41, draft. Owner: this product |
+| **Version** | 0.44, draft. Owner: this product |
 | **Home** | `iconography/README.md` section 2 in the shared contracts catalog |
 | **Role here** | owner and reference implementation - phone, launcher, watch, documentation and the website |
 
@@ -33,6 +33,10 @@
   `ICON-RENDER` section 25 (0.40, section 26, S4570): `view.compact`, `app.animations`, `app.units`,
   `media.visualizer`, `view.full-resolution` and `view.halo`. Each turns `active` on the first shipped report
   (rule 6), and no existing record's picture, name or `distinct` set changes.
+- Open (S4804): 0.42 enters twelve `proposed` meanings for the settings destinations of the Share Manager, the Exchange
+  Server window and the remote administration window (Windows surfaces), 0.43 replaces the cog drawings of
+  `system.service` and `feature.remote-admin`, and 0.44 (breaking) redraws `app.logo` from the FastMediaSorter family
+  mark of `PRODUCT-IDENTITY` 0.2 section 3.3; the exporter run and the `app.logo` carrier are owed by this product.
 - The documentation and the site show the meaning's glyph beside its name - never an emoji, never a
   picture chosen to decorate the page.
 - The glyphs, looks, `palette.json`, `CATALOG.md` and `gallery.html` are regenerated from this

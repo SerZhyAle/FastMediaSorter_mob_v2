@@ -9,7 +9,7 @@ permalink: /docs/wear/
 
 [📱 Main App Home](../README.md) | [📖 All Step-by-Step Guides](../howto/index.md) | [📘 Watch documentation](https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/#wear) | [Русский](index-ru.md) | [Українська](index-uk.md)
 
-Welcome to the **FastMedia Wear OS Web Portal** - your complete guide to the standalone media player, network resource browser, and smartwatch companion for Wear OS. FastMedia Wear pairs seamlessly with the [FastMediaSorter Main Application](../README.md) for phones and tablets.
+Welcome to the **FastMedia Wear OS Web Portal** - your complete guide to the standalone media player, network resource browser, and smartwatch companion for Wear OS. FastMedia Wear pairs seamlessly with the [Fast Media Sorter & Organizer Main Application](../README.md) for phones and tablets.
 
 ---
 
@@ -62,7 +62,7 @@ A part marked **"Full version only"** is not in the version distributed through 
 
 ### 📲 Paired Phone Integration
 
-- **Rows That Follow the Phone:** Resources, Phone and Phone camera appear on the home screen only while a phone with FastMediaSorter is connected; a short line under the home rows says whether to connect the phone or install the app on it. Resources stays whenever a network resource is saved on the watch itself. The watch offers once to open the phone app's store page on the phone, and the same link waits in **Settings - About**.
+- **Rows That Follow the Phone:** Resources, Phone and Phone camera appear on the home screen only while a phone with Fast Media Sorter & Organizer is connected; a short line under the home rows says whether to connect the phone or install the app on it. Resources stays whenever a network resource is saved on the watch itself. The watch offers once to open the phone app's store page on the phone, and the same link waits in **Settings - About**.
 - **Phone Media Browsing:** Recents, Videos, Audio, Images, Documents, All and Browse - the same categories, under the same names and colours, that your watch's own storage and your network shares offer. **All** is a flat list of media files, newest first and without folders; **Browse** walks the folders of your smartphone and shows everything in them. If no resource on your phone is set up to hold a category, opening it says so instead of showing an empty list.
 - **Selective Resource Transfer:** Choose which network resources on your phone - SMB, FTP or SFTP - to make available on your watch.
 - **Remote Log Diagnostics:** Send watch diagnostic logs to the developer via the paired phone app.
@@ -103,8 +103,8 @@ A part marked **"Full version only"** is not in the version distributed through 
 
 - **What it shows:** a large time, the date, waves and drifting particles, and battery bars.
 - **Battery bars:** the thin top bar is the watch's charge and the bottom bar is the paired phone's. A bar is white above 25%, amber from 11% to 25% and red at 10% and below. While that device charges - even at 100% - its bar turns green and gets a white outline, so the state reads without relying on color. A bar that has no fresh phone report shows only its empty track. Both bars hide in the always-on screen. Update the watch app and the face together: an older face does not show the phone's charging state.
-- **Up to eight round buttons:** shortcuts to FastMediaSorter or other watch data. The buttons appear together with the FastMediaSorter watch app.
-- **How to get it:** search for FastMediaSorter in Google Play on the watch, or open the Wear settings of the phone app, which offers to open the page on the watch. Then pick the face in the watch's face picker.
+- **Up to eight round buttons:** shortcuts to FastMedia Wear or other watch data. The buttons appear together with the FastMedia Wear app.
+- **How to get it:** search for FastMediaSorter Watch Face in Google Play on the watch, or open the Wear settings of the phone app, which offers to open the page on the watch. Then pick the face in the watch's face picker.
 
 ---
 
@@ -139,7 +139,7 @@ FastMedia Wear adapts dynamically to every smartwatch screen shape and density.
 
 ## 🔗 Phone & Watch Integration
 
-FastMedia Wear operates both as an independent standalone smartwatch app and as a companion to the [FastMediaSorter Main Phone App](../README.md).
+FastMedia Wear operates both as an independent standalone smartwatch app and as a companion to the [Fast Media Sorter & Organizer Main Phone App](../README.md).
 
 | Feature | Standalone Watch App | Paired with Phone App |
 |---------|----------------------|-----------------------|
@@ -153,7 +153,7 @@ FastMedia Wear operates both as an independent standalone smartwatch app and as 
 The table describes the full version. The Google Play version leaves out the health programs, the water flashlight and the distress signal.
 
 ### Learn More About the Phone & Tablet App
-- [Main Application Documentation](../README.md) - Complete overview of FastMediaSorter for Android phones, tablets, and TV.
+- [Main Application Documentation](../README.md) - Complete overview of Fast Media Sorter & Organizer for Android phones, tablets, and TV.
 - [First Launch & Device Profiles](../QUICK_START.md#first-launch-choose-your-device-profile-30-seconds-) - Pre-configure your phone for Photo Frame, In-Car Music, or Home Cinema.
 - [All Step-by-Step Scenario Guides](../howto/index.md) - 15+ guides for network shares, camera backups, and media organization.
 

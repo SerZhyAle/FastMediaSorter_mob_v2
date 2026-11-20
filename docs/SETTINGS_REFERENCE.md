@@ -52,10 +52,10 @@ _Generated from the app. Do not edit by hand._
 | New access link | Issues a new access link: every code shared before stops opening this server through the exchange server. |
 | About access from outside the home network | Opens the portal page about reaching your shared folders from outside the home network, step by step. |
 | Add folder | Picks a folder through the system picker and adds it to the folders the server shares. |
-| Code for older app versions | Shows the pairing code without the exchange server part, for a FastMediaSorter too old to read the new code; it connects on the local network only. |
+| Code for older app versions | Shows the pairing code without the exchange server part, for a Fast Media Sorter & Organizer too old to read the new code; it connects on the local network only. |
 | New password | Replaces the server login password with a new random one; clients need the new password afterwards. |
 | About the phone as a server | Opens the portal page about the phone as a server: how long it keeps running, launcher mode and mobile data. |
-| Show pairing code | Shows a pairing code with the address, login and host key fingerprint for another FastMediaSorter to scan. |
+| Show pairing code | Shows a pairing code with the address, login and host key fingerprint for another Fast Media Sorter & Organizer to scan. |
 | Share Debug Logs | Shares the current debug log via the system share sheet. |
 | Show Log | Opens the full app log for review within the app. |
 | Current Session Log | Opens the log for the current app session only. |
@@ -101,7 +101,7 @@ _Generated from the app. Do not edit by hand._
 | Settings | Chooses app settings as the data set to export or import. |
 | Pinned streams | Chooses the pinned stream list as the data set to export or import. |
 | Language/Язык/Мова | Opens a searchable list of the interface languages. On a Play install the chosen language is downloaded first; if it cannot be fetched, the app keeps the language it is using. The change takes effect at once, with no restart. |
-| Primary startup window | Selects what opens when FastMediaSorter launches or when the Home button is pressed: the device home screen, the in-app desktop without replacing the system home screen, or the resource list. On a Googlebook the device home screen is not offered and the in-app desktop is the default. |
+| Primary startup window | Selects what opens when Fast Media Sorter & Organizer launches or when the Home button is pressed: the device home screen, the in-app desktop without replacing the system home screen, or the resource list. On a Googlebook the device home screen is not offered and the in-app desktop is the default. |
 | System launcher settings | Opens the system launcher settings dialog for shaping the home-screen desktop, taskbar and grid density. |
 | Statistics | Opens the usage statistics screen. |
 | Power saving mode | Chooses when power saving mode is activated: off, on, or automatically when battery drops below 30%. |
@@ -411,29 +411,29 @@ _Settings -> Destinations -> Configure gestures_
 | General gesture settings | Section header for the general edge-gesture settings - screenshot destination, clipboard copy, and the app-launch panel editor. |
 | Save screenshots to clipboard | Also copies every captured screenshot to the clipboard, ready to paste. |
 | Down gesture action | Assigns the action triggered by swiping down from the left edge's lower gesture zone. |
-| App to launch | Chooses the app or web address opened by swiping down in the left edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping down in the left edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer. |
 | Right gesture action | Assigns the action triggered by swiping right from the left edge's lower gesture zone. |
-| App to launch | Chooses the app or web address opened by swiping right in the left edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping right in the left edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer. |
 | Up gesture action | Assigns the action triggered by swiping up from the left edge's lower gesture zone. |
-| App to launch | Chooses the app or web address opened by swiping up in the left edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping up in the left edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer. |
 | Down gesture action | Assigns the action triggered by swiping down from the left edge's upper gesture zone. |
-| App to launch | Chooses the app or web address opened by swiping down in the left edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping down in the left edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer. |
 | Right gesture action | Assigns the action triggered by swiping right from the left edge's upper gesture zone. |
-| App to launch | Chooses the app or web address opened by swiping right in the left edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping right in the left edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer. |
 | Up gesture action | Assigns the action triggered by swiping up from the left edge's upper gesture zone. |
-| App to launch | Chooses the app or web address opened by swiping up in the left edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping up in the left edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer. |
 | Down gesture action | Assigns the action triggered by swiping down from the right edge's lower gesture zone. |
-| App to launch | Chooses the app or web address opened by swiping down in the right edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping down in the right edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer. |
 | Right gesture action | Assigns the action triggered by swiping right from the right edge's lower gesture zone. |
-| App to launch | Chooses the app or web address opened by swiping right in the right edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping right in the right edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer. |
 | Up gesture action | Assigns the action triggered by swiping up from the right edge's lower gesture zone. |
-| App to launch | Chooses the app or web address opened by swiping up in the right edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping up in the right edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer. |
 | Down gesture action | Assigns the action triggered by swiping down from the right edge's upper gesture zone. |
-| App to launch | Chooses the app or web address opened by swiping down in the right edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping down in the right edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer. |
 | Right gesture action | Assigns the action triggered by swiping right from the right edge's upper gesture zone. |
-| App to launch | Chooses the app or web address opened by swiping right in the right edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping right in the right edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer. |
 | Up gesture action | Assigns the action triggered by swiping up from the right edge's upper gesture zone. |
-| App to launch | Chooses the app or web address opened by swiping up in the right edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping up in the right edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer. |
 | Left edge - lower band | Enables the edge-gesture zone at the left edge's lower band. |
 | Show the gesture strip | Shows the semi-transparent gesture-strip guide for the left edge's lower zone. |
 | Left edge - upper band | Enables the edge-gesture zone at the left edge's upper band. |

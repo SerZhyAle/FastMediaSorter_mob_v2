@@ -52,6 +52,7 @@ These are the icons FastMedia draws on the Wear OS watch, each beside the one na
 
 | Icon | Meaning |
 |---|---|
+| <img src="../icons/svg/wear/ic_exchange_mono.svg" alt="" width="24" height="24"> | Exchange server |
 | <img src="../icons/svg/wear/ic_resource_favorites.svg" alt="" width="24" height="24"> | Favorites |
 | <img src="../icons/svg/wear/ic_resource_ftp.svg" alt="" width="24" height="24"> | FTP server |
 | <img src="../icons/svg/wear/ic_resource_smb.svg" alt="" width="24" height="24"> | Network folder |
@@ -73,6 +74,7 @@ These are the icons FastMedia draws on the Wear OS watch, each beside the one na
 |---|---|
 | <img src="../icons/svg/wear/ic_info.svg" alt="" width="24" height="24"> | Information |
 | <img src="../icons/svg/wear/ic_notification_app_logo.svg" alt="" width="24" height="24"> | FastMediaSorter |
+| <img src="../icons/svg/wear/ic_product_mark_mono.svg" alt="" width="24" height="24"> | FastMediaSorter |
 | <img src="../icons/svg/wear/ic_night_mode.svg" alt="" width="24" height="24"> | Night mode |
 
 ## System
@@ -104,6 +106,7 @@ These are the icons FastMedia draws on the Wear OS watch, each beside the one na
 | <img src="../icons/svg/wear/ic_audio.svg" alt="" width="24" height="24"> | Audio player |
 | <img src="../icons/svg/wear/ic_profile_personal_smartphone.svg" alt="" width="24" height="24"> | Phone |
 | <img src="../icons/svg/wear/ic_image.svg" alt="" width="24" height="24"> | Photo frame |
+| <img src="../icons/svg/wear/ic_watch.svg" alt="" width="24" height="24"> | Wear OS watch |
 
 ## Camera
 

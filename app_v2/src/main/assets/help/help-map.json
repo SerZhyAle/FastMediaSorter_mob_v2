@@ -190,6 +190,8 @@
       "reason": "A routing proxy with no window: an old share shortcut or external intent lands on the broadcast control screen through it, and it closes at once (CONTEXT-HELP rule 4)." },
     { "id": "ExchangeCastOfferActivity", "name": "Cast offer answer", "form": "none",
       "reason": "A transparent target of the Accept and Decline buttons of a cast notification; it draws nothing of its own and closes after the answer (CONTEXT-HELP rule 4)." },
+    { "id": "RemoteCommandConsentActivity", "name": "Remote request answer", "form": "none",
+      "reason": "A transparent target of the Allow and Decline buttons of a request from another device; it draws nothing of its own and closes after the answer (CONTEXT-HELP rule 4)." },
     { "id": "ExchangeClipboardActivity", "name": "Clipboard exchange", "form": "none",
       "reason": "A translucent window behind sending the clipboard to the server and getting it back; only its progress and result dialogs are visible, and their text is the whole explanation (CONTEXT-HELP rule 4)." },
     { "id": "ReceiveShareActivity", "name": "Receive a shared file", "form": "none",

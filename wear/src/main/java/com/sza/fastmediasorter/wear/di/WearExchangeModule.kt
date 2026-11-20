@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.wear.data.exchange.EncryptedWearBroadcastPassStor
 import com.sza.fastmediasorter.wear.data.exchange.EncryptedWearExchangeE2eStore
 import com.sza.fastmediasorter.wear.data.exchange.EncryptedWearExchangeEntryStore
 import com.sza.fastmediasorter.wear.data.exchange.EncryptedWearResourcePinStore
+import com.sza.fastmediasorter.wear.data.exchange.PinnedWearRelayStatusProbe
 import com.sza.fastmediasorter.wear.data.exchange.SocketWearLanEndpointProbe
 import com.sza.fastmediasorter.wear.data.exchange.TlsWearExchangeConnector
 import com.sza.fastmediasorter.wear.data.exchange.WearBroadcastPassStore
@@ -14,6 +15,7 @@ import com.sza.fastmediasorter.wear.data.exchange.WearExchangeDeviceProfile
 import com.sza.fastmediasorter.wear.data.exchange.WearExchangeE2eStore
 import com.sza.fastmediasorter.wear.data.exchange.WearExchangeEntryStore
 import com.sza.fastmediasorter.wear.data.exchange.WearLanEndpointProbe
+import com.sza.fastmediasorter.wear.data.exchange.WearRelayStatusProbe
 import com.sza.fastmediasorter.wear.data.exchange.WearResourcePinStore
 import com.sza.fastmediasorter.wear.data.exchange.WearServerClipboardRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearAccountBroadcastRepositoryImpl
@@ -51,6 +53,10 @@ abstract class WearExchangeModule {
     // S4229: the account's broadcast list and the probe that tells a reachable LAN endpoint from a far one.
     @Binds
     abstract fun bindLanEndpointProbe(impl: SocketWearLanEndpointProbe): WearLanEndpointProbe
+
+    // S4692: the status line of a pending link's relay, read over the pinned connector.
+    @Binds
+    abstract fun bindRelayStatusProbe(impl: PinnedWearRelayStatusProbe): WearRelayStatusProbe
 
     @Binds
     abstract fun bindAccountBroadcastRepository(

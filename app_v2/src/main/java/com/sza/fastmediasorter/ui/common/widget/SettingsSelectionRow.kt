@@ -18,6 +18,9 @@ import androidx.core.content.res.use
 import androidx.core.view.updateLayoutParams
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ViewSettingsSelectionRowBinding
+import com.sza.fastmediasorter.utils.widestUnbreakableRunPx
+import timber.log.Timber
+import kotlin.math.ceil
 
 /**
  * Canonical reusable clickable selection row for settings fragments and forms.
@@ -36,6 +39,10 @@ import com.sza.fastmediasorter.databinding.ViewSettingsSelectionRowBinding
  *
  * Inside a [SettingsValueRowGroup] the row shares one label column with its siblings, so their values
  * line up while each value still sits right beside its own caption - see [applyLabelColumnWidth].
+ *
+ * Outside a label column a value that would split a word beside its caption moves under the caption
+ * instead, the form [SettingsDropdownRow] already has - see [setValueStacked] and
+ * [SettingsValueStackPolicy] (S4788).
  *
  * Public XML attributes use the `ssr_` prefix (see `attrs.xml`).
  *
@@ -66,6 +73,12 @@ class SettingsSelectionRow @JvmOverloads constructor(
 
     /** Last form [applyTextGroupWidth] applied; null until the first call. */
     private var textGroupHugged: Boolean? = null
+
+    /** Width of the shared label column [applyLabelColumnWidth] applied; zero while the row sizes itself. */
+    private var labelColumnWidthPx = 0
+
+    /** Whether the value sits under the caption instead of beside it. */
+    private var valueStacked = false
 
     /**
      * `true` when the optional help icon is visible.
@@ -227,6 +240,97 @@ class SettingsSelectionRow @JvmOverloads constructor(
         alpha = if (enabled) 1f else 0.5f
     }
 
+    /**
+     * S4711: in the hug form the text group is `wrap_content` and measured before the fixed-size
+     * chevron, so a long value used to take the whole row and lay the chevron out past its end. The
+     * group is capped to what the leading icon, trailing slot and chevron leave, so the value wraps
+     * inside the row instead. The cap goes into the `LayoutParams.width` field, never through
+     * `setLayoutParams`, which would request another pass from inside this one.
+     */
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        if (MeasureSpec.getMode(widthMeasureSpec) != MeasureSpec.UNSPECIFIED) {
+            setValueStacked(shouldStackValue(widthMeasureSpec))
+        }
+        if (textGroupHugged == true) capHuggedTextGroup(widthMeasureSpec)
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+    }
+
+    private fun capHuggedTextGroup(widthMeasureSpec: Int) {
+        val group = binding.ssrTextGroup
+        val params = group.layoutParams as LayoutParams
+        if (MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.UNSPECIFIED) {
+            params.width = LayoutParams.WRAP_CONTENT
+            return
+        }
+        val unbounded = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
+        val available = MeasureSpec.getSize(widthMeasureSpec) - paddingStart - paddingEnd -
+            params.marginStart - params.marginEnd - widthBesideTextGroup()
+        params.width = LayoutParams.WRAP_CONTENT
+        group.measure(unbounded, unbounded)
+        if (group.measuredWidth > available) {
+            params.width = available.coerceAtLeast(0)
+            Timber.d("S4711: SettingsSelectionRow caps text group %d -> %d px", group.measuredWidth, params.width)
+        }
+    }
+
+    /** What the leading icon, trailing slot and chevron take of the row, margins included. */
+    private fun widthBesideTextGroup(): Int {
+        val group = binding.ssrTextGroup
+        val unbounded = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
+        var used = 0
+        for (index in 0 until childCount) {
+            val child = getChildAt(index)
+            if (child === group || child.visibility == View.GONE) continue
+            val childParams = child.layoutParams as LayoutParams
+            val width = if (childParams.width >= 0) {
+                childParams.width
+            } else {
+                child.measure(unbounded, unbounded)
+                child.measuredWidth
+            }
+            used += width + childParams.marginStart + childParams.marginEnd
+        }
+        return used
+    }
+
+    /**
+     * S4788: whether the value must leave the caption's line. The caption cluster is measured first and
+     * keeps what its caption needs, so at a large font scale the value was left a column narrower than
+     * its own longest word and the line breaker split the word. A row in a label column is never asked:
+     * the group applied that column because every value fits at full length.
+     *
+     * Every input is an unbounded natural width or the row width, never the width this method's own
+     * result produces, so the answer cannot flip back and forth between two passes.
+     */
+    private fun shouldStackValue(widthMeasureSpec: Int): Boolean {
+        if (valueView.visibility == View.GONE || labelColumnWidthPx > 0) return false
+        val gap = resources.getDimensionPixelSize(R.dimen.settings_help_icon_margin)
+        val content = MeasureSpec.getSize(widthMeasureSpec) - paddingStart - paddingEnd
+        val besideRoom = content - widthBesideTextGroup() - measureLabelNaturalWidth() - gap
+        val text = valueView.text ?: ""
+        val natural = ceil(valueView.paint.measureText(text, 0, text.length)).toInt() +
+            valueView.compoundPaddingLeft + valueView.compoundPaddingRight
+        return SettingsValueStackPolicy.shouldStack(content, besideRoom, natural, valueView.widestUnbreakableRunPx())
+    }
+
+    /**
+     * Moves the value under the caption or back beside it. Called from [onMeasure], so it touches the
+     * layout only when the form flips - the pass that flips it measures the new form directly. A stacked
+     * value needs the whole row width below the caption, so the text group stops hugging then and the
+     * chevron stays at the row's end.
+     */
+    private fun setValueStacked(stacked: Boolean) {
+        if (stacked == valueStacked) return
+        valueStacked = stacked
+        Timber.d("S4788: SettingsSelectionRow value stacked=%b", stacked)
+        binding.ssrTitleLine.orientation = if (stacked) VERTICAL else HORIZONTAL
+        valueView.updateLayoutParams<LinearLayout.LayoutParams> {
+            marginStart = if (stacked) 0 else resources.getDimensionPixelSize(R.dimen.settings_help_icon_margin)
+        }
+        applyTextGroupWidth()
+        binding.ssrTitleLineSpacer.visibility = if (textGroupHugged == true || stacked) View.GONE else View.VISIBLE
+    }
+
     private fun bindRowClick() {
         setOnClickListener { view ->
             if (!isEnabled) return@setOnClickListener
@@ -319,6 +423,7 @@ class SettingsSelectionRow @JvmOverloads constructor(
      */
     override fun applyLabelColumnWidth(widthPx: Int) {
         val column = widthPx > 0
+        labelColumnWidthPx = widthPx
         titleView.maxLines = if (column) 1 else Int.MAX_VALUE
         titleView.ellipsize = if (column) TextUtils.TruncateAt.END else null
         binding.ssrTitleCluster.updateLayoutParams<LinearLayout.LayoutParams> {
@@ -350,9 +455,12 @@ class SettingsSelectionRow @JvmOverloads constructor(
      * it anyway through [applyInlineLayout] - which is what shipped a row whose second half no user
      * ever saw, in both orientations. Resolving it here rather than at each caller also makes the
      * order independent: a host that sets the subtitle after navigation mode gets the same layout.
+     *
+     * S4788: a stacked value ([setValueStacked]) also ends the hug, because the value below the caption
+     * needs the row's whole width and the chevron belongs at the row's end then.
      */
     private fun applyTextGroupWidth() {
-        val hug = hugContentRequested && subtitleView.visibility == View.GONE
+        val hug = hugContentRequested && subtitleView.visibility == View.GONE && !valueStacked
         // The subtitle is rewritten on every settings emission, and updateLayoutParams always requests
         // a layout pass - so re-apply only when the form actually changes.
         if (hug == textGroupHugged) return
@@ -364,6 +472,6 @@ class SettingsSelectionRow @JvmOverloads constructor(
         binding.ssrTitleLine.updateLayoutParams<ViewGroup.LayoutParams> {
             width = if (hug) ViewGroup.LayoutParams.WRAP_CONTENT else ViewGroup.LayoutParams.MATCH_PARENT
         }
-        binding.ssrTitleLineSpacer.visibility = if (hug) View.GONE else View.VISIBLE
+        binding.ssrTitleLineSpacer.visibility = if (hug || valueStacked) View.GONE else View.VISIBLE
     }
 }

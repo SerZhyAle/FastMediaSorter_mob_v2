@@ -463,7 +463,9 @@ class DeviceExchangeAccountClient @Inject constructor(
         addProperty(KEY_PRODUCT_VERSION, enrollment.productVersion)
         addProperty(KEY_PLATFORM, SftpRendezvousDevice.PLATFORM_ANDROID)
         add(KEY_ROLES, JsonArray().apply { enrollment.roles.forEach(::add) })
-        val capabilities = enrollment.capabilities + listOfNotNull(key?.let { E2eDeviceKey.CAPABILITY })
+        // DEVICE-EXCHANGE 1.18 item GC: `command-v1` only beside `e2e-v1`, so a keyless device is never asked.
+        val capabilities = enrollment.capabilities +
+            (key?.let { listOf(E2eDeviceKey.CAPABILITY, "command-v1") } ?: emptyList())
         if (capabilities.isNotEmpty()) {
             add(KEY_CAPABILITIES, JsonArray().apply { capabilities.distinct().forEach(::add) })
         }

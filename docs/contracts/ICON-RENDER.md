@@ -1,12 +1,12 @@
-<sub class="doc-stamp">26.11.14 13:36</sub>
+<sub class="doc-stamp">26.11.20 20:19</sub>
 
 # Pointer - `ICON-RENDER`
 
 | | |
 | --- | --- |
 | **Id** | `ICON-RENDER` |
-| **Version** | 0.25, draft. Owner: this product |
-| **Home** | `iconography/README.md` sections 3, 10 and 25 in the shared contracts catalog |
+| **Version** | 0.26, draft. Owner: this product |
+| **Home** | `iconography/README.md` sections 3, 10, 25 and 28 in the shared contracts catalog |
 | **Role here** | owner and reference implementation - phone, launcher, watch, documentation and the website |
 
 ## What this repository must do to stay conformant
@@ -22,7 +22,8 @@
   phone and the watch are untouched by it and keep the mono look on a command button.
 - One drawing at every size tier (16, 20, 24, 32, 40, 48); a plate changes the scale, never the shape.
 - A glyph-only control carries its meaning's canonical name as its accessible name.
-- Every edition's launcher icon is adaptive and has a monochrome layer.
+- Every edition's launcher icon is adaptive and has a monochrome layer - except the `debug` build type and the
+  watch module, which have none yet (S4695).
 - The `state.warning` day tone is `#EF6C00` with a white on-plate colour (section 10 item D); the
   `warning_color` resource carries it and the exporter reads it from there.
 - A sibling set draws a glyph on every member or on none (0.25, section 25): one level of a menu, the group headers of
@@ -30,6 +31,10 @@
   menu, and a header and its rows are separate sets; a missing external picture shows its `ICON-EXTERNAL` stand-in; a
   row-level "no glyph" allowance of another contract holds only where the whole set carries none. New and reworked
   surfaces conform at once; this product's own mixed sets are its dated migration under S4570.
+- Since 0.26 (section 28 items I and J): the commands of a toolbar are not held to that rule as one set when a command
+  is a text action that `BUTTONS` permits to be text-only, and a select or another input is not a member of the set of
+  commands; a mark of an item's current state - the group triangle, a now-playing disc over a favicon - is not a member
+  of a sibling set while the item's own picture is drawn on every member or on none.
 - The deviations currently open are recorded as exceptions in the catalog's registry.
 
 ## Where it lives here

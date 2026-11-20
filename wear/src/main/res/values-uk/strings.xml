@@ -1163,4 +1163,10 @@
     <string name="wear_audio_fetching">Завантаження треку..</string>
     <string name="wear_stream_ended">Ця трансляція більше не в ефірі. Повторіть, коли вона знову почнеться.</string>
     <string name="wear_tourist_lock_exit_hint">Заблоковано. Для розблокування 3 рази швидко змахніть назад</string>
+    <string name="wear_broadcast_waiting_until">Трансляція ще не почалася. Посилання діє до %1$s</string>
+    <string name="wear_broadcast_started">Трансляція почалася</string>
+    <string name="wear_broadcast_expired">Це посилання більше не діє</string>
+    <string name="wear_broadcast_play">Відтворити</string>
+    <string name="wear_tourist_no_fix_approximate">Пошук місцезнаходження..</string>
+    <string name="wear_tourist_precise_needed">Потрібна точна геолокація</string>
 </resources>

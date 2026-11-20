@@ -16,7 +16,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import androidx.core.os.bundleOf
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.share.ShareableContent
@@ -36,6 +38,7 @@ import com.sza.fastmediasorter.domain.usecase.ResolveOpenInFmsTargetUseCase
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferRequest
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferSource
+import com.sza.fastmediasorter.ui.browse.transfer.TransferSkipSummary
 import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.player.PlayerActivity
@@ -103,6 +106,18 @@ class StandaloneFileOperationsHandler(
                 KEY_PENDING_FILE_NAME to pendingDeleteFileName,
                 KEY_PENDING_URI to pendingDeleteUri?.toString(),
             )
+        }
+        announceSkippedTransfers()
+    }
+
+    // The coordinator-backed transfer only toasts "Copying to .." on enqueue; its terminal event is the
+    // one place a skipped same-name file is reported while the viewer is on screen.
+    private fun announceSkippedTransfers() {
+        val coordinator = browseTransferCoordinator ?: return
+        activity.lifecycleScope.launch {
+            activity.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                coordinator.terminalEvents.collect { event -> TransferSkipSummary.announce(activity, event) }
+            }
         }
     }
 
@@ -488,13 +503,10 @@ class StandaloneFileOperationsHandler(
                     } else {
                         FileOperation.Copy(sources, dest, overwrite = settings.overwriteOnCopy)
                     }
-                    when (useCase.execute(operation)) {
+                    val result = useCase.execute(operation)
+                    when (result) {
                         is FileOperationResult.Success,
-                        is FileOperationResult.PartialSuccess -> {
-                            val successRes = if (isMove) R.string.msg_move_success else R.string.msg_copy_success
-                            Toast.makeText(activity, activity.getString(successRes, label), Toast.LENGTH_SHORT).show()
-                            if (isMove) activity.finish()
-                        }
+                        is FileOperationResult.PartialSuccess -> toastTransferDone(result, label, isMove)
                         else ->
                             Toast.makeText(activity, activity.getString(failedRes), Toast.LENGTH_LONG).show()
                     }
@@ -505,6 +517,20 @@ class StandaloneFileOperationsHandler(
                 }
             }
         }
+    }
+
+    // A same-name file with overwrite off reports Success with nothing transferred; for a move that also
+    // means the shown file is still there, so the viewer stays open.
+    private fun toastTransferDone(result: FileOperationResult, label: String, isMove: Boolean) {
+        val skipLine = TransferSkipSummary.format(activity, result)
+        if (skipLine != null) {
+            Timber.d("S4718: standalone direct transfer skipped, skip toast shown")
+            Toast.makeText(activity, skipLine, Toast.LENGTH_LONG).show()
+            return
+        }
+        val successRes = if (isMove) R.string.msg_move_success else R.string.msg_copy_success
+        Toast.makeText(activity, activity.getString(successRes, label), Toast.LENGTH_SHORT).show()
+        if (isMove) activity.finish()
     }
 
     // ── Rename ────────────────────────────────────────────────────────────

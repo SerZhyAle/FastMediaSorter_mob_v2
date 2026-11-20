@@ -7,6 +7,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Справка - Редактировать ресурс</title>
 <link rel="stylesheet" href="../help.css">
+<link rel="icon" type="image/png" href="../img/product-mark.png">
 </head>
 <body class="help">
 <main class="container">
@@ -14,18 +15,19 @@
 <a href="index.html">Оглавление справки</a><span class="sep" aria-hidden="true">/</span><span>Редактировать ресурс</span>
 </nav>
 <header class="hero">
+<img class="product-mark" src="../img/product-mark.png" width="48" height="48" alt="Fast Media Sorter">
 <h1>Редактировать ресурс</h1>
 </header>
 <h2>Для чего этот экран</h2>
 <p class="lead">«Редактировать ресурс» меняет уже добавленный ресурс: его название и значок, адрес или путь, какие файлы он показывает и как себя ведёт. Откройте его из списка ресурсов - удержанием ресурса или кнопкой редактирования в его строке. Этот же экран настраивает новую интернет-трансляцию и сохраняет копию ресурса.</p>
 <h2>Порядок действий</h2>
 <ol class="order">
-<li>Начните с названия <a class="ref" href="#name">6</a>. Названия должны быть уникальными: если ваше занято, приложение скажет об этом и предложит «Использовать предложенное имя» <a class="ref" href="#use-suggested-name">7</a>.</li>
-<li>Откройте «Параметры подключения» <a class="ref" href="#connection">8</a>, чтобы поправить путь, адрес и порт, данные для входа или адрес трансляции. Для сетевого или облачного ресурса проверьте новые значения кнопкой «Проверить подключение» <a class="ref" href="#test-connection">9</a>; «Повторить попытку» <a class="ref" href="#retry">10</a> повторяет последнее действие после неудачи.</li>
-<li>Решите, что ресурс показывает: «Условия сканирования содержимого» <a class="ref" href="#scanning">11</a> и типы файлов в «Типах медиа» <a class="ref" href="#media-types">12</a>. «Профиль ресурса» <a class="ref" href="#profile">13</a> одним нажатием подставляет готовый набор.</li>
+<li>Начните с названия <span class="nb"><a class="ref" href="#name">6</a>.</span> Названия должны быть уникальными: если ваше занято, приложение скажет об этом и предложит «Использовать предложенное имя» <span class="nb"><a class="ref" href="#use-suggested-name">7</a>.</span></li>
+<li>Откройте «Параметры подключения» <span class="nb"><a class="ref" href="#connection">8</a>,</span> чтобы поправить путь, адрес и порт, данные для входа или адрес трансляции. Для сетевого или облачного ресурса проверьте новые значения кнопкой «Проверить подключение» <span class="nb"><a class="ref" href="#test-connection">9</a>;</span> «Повторить попытку» <a class="ref" href="#retry">10</a> повторяет последнее действие после неудачи.</li>
+<li>Решите, что ресурс показывает: «Условия сканирования содержимого» <a class="ref" href="#scanning">11</a> и типы файлов в «Типах медиа» <span class="nb"><a class="ref" href="#media-types">12</a>.</span> «Профиль ресурса» <a class="ref" href="#profile">13</a> одним нажатием подставляет готовый набор.</li>
 <li>В «Настройках назначения» <a class="ref" href="#destination">14</a> ресурс можно использовать для быстрой сортировки или сделать только для чтения, а в «Расширенных настройках» <a class="ref" href="#advanced">15</a> - задать комментарий, ПИН-код и интервал слайд-шоу.</li>
-<li>Выберите значок <a class="ref" href="#pick-icon">3</a>, если хотите выделить ресурс в списке.</li>
-<li>Нажмите «Сохранить изменения» <a class="ref" href="#save">5</a>; кнопка не работает, пока нет допустимых изменений. «Сохранить как копию» <a class="ref" href="#save-as-copy">4</a> оставляет оригинал и сохраняет правки как новый ресурс, а «Сбросить изменения» <a class="ref" href="#reset-changes">2</a> возвращает сохранённые значения.</li>
+<li>Выберите значок <span class="nb"><a class="ref" href="#pick-icon">3</a>,</span> если хотите выделить ресурс в списке.</li>
+<li>Нажмите «Сохранить изменения» <span class="nb"><a class="ref" href="#save">5</a>;</span> кнопка не работает, пока нет допустимых изменений. «Сохранить как копию» <a class="ref" href="#save-as-copy">4</a> оставляет оригинал и сохраняет правки как новый ресурс, а «Сбросить изменения» <a class="ref" href="#reset-changes">2</a> возвращает сохранённые значения.</li>
 <li>«Статистика» <a class="ref" href="#statistics">16</a> показывает, когда ресурс создан и открывался, а «Добавить на домашний экран» <a class="ref" href="#add-to-home">17</a> ставит на него ярлык.</li>
 </ol>
 <h2>Элементы</h2>
@@ -50,13 +52,13 @@
 </div>
 </details>
 <details class="el" id="pick-icon">
-<summary><span class="mk">3</span><span><span class="name">Выбрать иконку ресурса</span><span class="one">Выбирает картинку, которая обозначает ресурс в списках.</span></span></summary>
+<summary><span class="mk">3</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10,4H4c-1.1,0 -1.99,0.9 -1.99,2L2,18c0,1.1 0.9,2 2,2h16c1.1,0 2,-0.9 2,-2V8c0,-1.1 -0.9,-2 -2,-2h-8l-2,-2z" fill="currentColor"/></svg>Выбрать иконку ресурса</span><span class="one">Выбирает картинку, которая обозначает ресурс в списках.</span></span></summary>
 <div class="full">
 <p>Открывает окно «Выбор иконки»; на самой кнопке показан текущий значок ресурса. Новый значок сохранится, когда вы нажмёте «Сохранить изменения». Если вы меняете профиль и не выбирали значок вручную в этом сеансе, значок подстраивается под профиль сам.</p>
 </div>
 </details>
 <details class="el" id="save-as-copy">
-<summary><span class="mk">4</span><span><span class="name">Сохранить как копию</span><span class="one">Сохраняет правки как новый ресурс, а оригинал оставляет как есть.</span></span></summary>
+<summary><span class="mk">4</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M16,1L4,1C2.9,1 2,1.9 2,3L2,17L4,17L4,3L16,3L16,1ZM19,5L8,5C6.9,5 6,5.9 6,7L6,21C6,22.1 6.9,23 8,23L19,23C20.1,23 21,22.1 21,21L21,7C21,5.9 20.1,5 19,5ZM19,21L8,21L8,7L19,7L19,21Z" fill="currentColor"/></svg>Сохранить как копию</span><span class="one">Сохраняет правки как новый ресурс, а оригинал оставляет как есть.</span></span></summary>
 <div class="full">
 <p>Доступно при редактировании существующего ресурса. Копия получает свободное название на основе исходного, а после этого редактор остаётся на оригинале. Кнопка неактивна, пока в форме есть ошибки или идёт проверка либо сохранение.</p>
 </div>
@@ -176,7 +178,7 @@
 <li><a href="index.html"><b>Оглавление справки</b></a></li>
 </ul>
 <footer class="help-foot">
-<span>Fast Media Sorter, 2026-11-15</span>
+<span>Fast Media Sorter, 2026-11-20</span>
 <a href="index.html">Оглавление справки</a>
 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Задать вопрос или сообщить о проблеме</a>
 </footer>

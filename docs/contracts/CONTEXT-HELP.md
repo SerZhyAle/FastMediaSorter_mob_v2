@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.11.14 16:01</sub>
+<sub class="doc-stamp">26.11.20 20:18</sub>
 
 # Pointer - `CONTEXT-HELP`
 
 | | |
 | --- | --- |
 | **Id** | `CONTEXT-HELP` |
-| **Version** | 0.4, draft. Owner: shared |
+| **Version** | 0.6, draft. Owner: shared |
 | **Home** | `in-app-help/README.md` in the shared contracts catalog |
 | **Role here** | consumer - the phone app `app_v2`, adoption `partial` (first slice: Main, the four Settings tabs, Welcome); and the watch app `wear`, which meets rule 4 with a reasoned `none` row per route |
 
@@ -23,6 +23,12 @@
   trivial surface (rule 4). The phone and the watch of this product share `com.sza.fastmediasorter`, so `inherit` is
   open to the watch rows. The 59 rows were re-read on 2026-11-14 (S4600) and all stay `none`: `inherit` needs the
   companion page to name each watch screen, and the `wear-companion` page names the companion panel only.
+- Since 0.5 (section 10 item P) a product whose help is organised per page may open the anchor of the map's `pages` row
+  for the page the person is on, from the help button and from F1 alike, never the anchor of the button's own entry; it
+  is an option and none of the rules above changes with it.
+- Since 0.6 (section 11 items Q and R): the page title carries the product's `help.head` picture, the favicon is the
+  product's, and an element entry that names a control with an `ICON-SET` meaning shows that glyph beside the name -
+  the generator writes all three, as `PRODUCT-IDENTITY` rule 8 records.
 
 ## Decisions taken here (the contract delegates them to the product)
 

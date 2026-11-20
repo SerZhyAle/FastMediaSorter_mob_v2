@@ -74,7 +74,6 @@
     <string name="copy_failed">Die Dateien konnten nicht kopiert werden.</string>
     <string name="no_destinations_available">Keine Zielressourcen konfiguriert</string>
     <string name="moving_files">Verschieben..</string>
-    <string name="moved_n_files">%1$d Dateien verschoben.</string>
     <string name="moved_n_of_m_files">%1$d von %2$d Dateien verschoben.</string>
     <string name="move_failed">Die Dateien konnten nicht verschoben werden.</string>
     <string name="renaming_files">Umbenennen..</string>
@@ -240,7 +239,6 @@
     <string name="confirm_delete_safe_mode">Vor dem Löschen bestätigen</string>
     <string name="confirm_move_safe_mode">Vor dem Verschieben bestätigen</string>
     <string name="confirm_delete_title">Dateien löschen?</string>
-    <string name="confirm_delete_message">%1$d Datei(en) löschen? Diese Aktion kann nicht rückgängig gemacht werden.</string>
     <string name="confirm_move_title">Dateien verschieben?</string>
     <string name="confirm_move_message">%1$d Datei(en) nach %2$s verschieben?</string>
     <string name="user_guide">Benutzerhandbuch</string>
@@ -794,7 +792,6 @@
     <string name="error_copy_failed">Datei konnte nicht kopiert werden.</string>
     <string name="error_file_exists_copy">Die Datei „%1$s“ befindet sich bereits in „%2$s“.\n\nAktiviere „Beim Kopieren überschreiben“ unter Einstellungen -&gt; Kopieren &amp; Verschieben, wenn du sie ersetzen möchtest.</string>
     <string name="msg_move_success">Nach %1$s verschoben.</string>
-    <string name="msg_move_success_count">%1$d Dateien nach %2$s verschoben.</string>
     <string name="error_move_failed">Datei konnte nicht verschoben werden.</string>
     <string name="error_file_exists_move">Die Datei „%1$s“ befindet sich bereits in „%2$s“.\n\nAktiviere „Beim Verschieben überschreiben“ unter Einstellungen -&gt; Kopieren &amp; Verschieben, wenn du sie ersetzen möchtest.</string>
     <string name="msg_delete_success">Gelöscht.</string>
@@ -1968,7 +1965,7 @@
     <string name="stream_wait_reconnecting">Neu verbinden..</string>
     <string name="streams_filter_pinned_only">Nur angeheftete</string>
     <string name="streams_refresh_probing">Streams werden geprüft..</string>
-    <string name="streams_error_no_network">Kein Netzwerk. Mit WLAN oder mobilen Daten verbinden, um Streams abzuspielen.</string>
+    <string name="streams_error_no_network">Kein Netzwerk. Verbinden, um Streams abzuspielen.</string>
     <string name="tile_screenshot_label">Screenshot</string>
     <string name="camera_lens_front">Front</string>
     <string name="camera_lens_ultrawide">Ultraweit</string>

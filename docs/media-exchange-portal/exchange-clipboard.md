@@ -22,7 +22,7 @@ Copy something on one device, press one button, and paste it on another. The [ex
 - **Watch:** the watch has no clipboard of its own to read, so it sends through **Send to..** - a file, a picture or a voice recording. Getting the value saves it on the watch and opens it in the watch app's own player: text, PDF, picture, animation, audio or video.
 - **Windows:** two buttons in the main window of Share Manager and shortcuts on the desktop. CyrFlip, a small Windows program of the same developer, takes part too.
 
-FastMediaSorter on the phone and the watch, Fast Media Sorter & Sharing for Windows and CyrFlip send and receive. STREAMS Player and StreamsPlayer_mob do not take part.
+Fast Media Sorter & Organizer on the phone and the watch, Fast Media Sorter & Sharing for Windows and CyrFlip send and receive. STREAMS Player and StreamsPlayer_mob do not take part.
 
 ## The rules {#rules}
 

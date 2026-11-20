@@ -67,7 +67,7 @@ FastMedia Launcher перетворює будь-який Android-пристрі
 
 ## 📥 Завантаження та магазини застосунків
 
-Застосунок FastMediaSorter із режимом Лаунчера доступний в офіційних магазинах:
+Застосунок Fast Media Sorter & Organizer із режимом Лаунчера доступний в офіційних магазинах:
 
 ### Завантаження та збірки
 - [**Google Play Store**](https://play.google.com/store/apps) - Завантаження з офіційного магазину Google Play.

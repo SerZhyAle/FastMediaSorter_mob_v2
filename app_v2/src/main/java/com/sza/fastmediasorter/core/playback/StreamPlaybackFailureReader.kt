@@ -37,11 +37,18 @@ internal object StreamPlaybackFailureReader {
         return causes(error).filterIsInstance<HttpDataSource.InvalidResponseCodeException>().firstOrNull()?.responseCode
     }
 
-    // A handshake that merely broke off (a reset mid-handshake) carries no certificate verdict and stays
-    // transient; only a rejected certificate or a host name it does not cover is hard.
-    private fun isUntrustedCertificate(error: PlaybackException): Boolean = causes(error).any { cause ->
-        cause is CertificateException || cause is CertPathValidatorException || cause is SSLPeerUnverifiedException
-    }
+    /**
+     * A handshake that merely broke off (a reset mid-handshake) carries no certificate verdict and stays
+     * transient; only a rejected certificate or a host name it does not cover is hard. Takes any link of
+     * the chain, not only a [PlaybackException], so the loader retry policy (S4759) reads the same
+     * evidence before the player error exists.
+     */
+    internal fun isUntrustedCertificate(error: Throwable?): Boolean =
+        generateSequence(error) { it.cause }.any { cause ->
+            cause is CertificateException ||
+                cause is CertPathValidatorException ||
+                cause is SSLPeerUnverifiedException
+        }
 
     private fun causes(error: PlaybackException): Sequence<Throwable> = generateSequence(error.cause) { it.cause }
 }

@@ -7,7 +7,8 @@ commits the edit. Both reuse the same service-account key.
 
 Usage:
     python publish-play-release.py [track] [status] [--aab PATH] [--version-code N] [--notes-code N]
-                                   [--package NAME] [--notes-file PATH] [--dry-run]
+                                   [--package NAME] [--notes-file PATH] [--listing-root PATH]
+                                   [--dry-run]
 
 --package addresses another Play app (the watch face, S4009); the default is the phone package.
 The fastlane changelogs belong to the default package only: another package reads its release notes
@@ -15,20 +16,28 @@ from --notes-file and nowhere else, so a face release never borrows the phone's 
 holds the Play Console paste format - `<en-US>..</en-US>` blocks, one per language; a file with no
 block is filed as en-US. --dry-run resolves and prints the plan, then exits before any API call.
 
+--listing-root writes that store listing (texts and images, the folder layout of
+publish-play-listing.py) into the same edit as the bundle, so the track and the listing reach Play as
+one commit and one review submission. Two commits made one after another are two submissions, and the
+second cancels the first while it is in review (contract GOOGLE-PLAY rule 28, S4799). The listing is
+read and checked before the edit is opened.
+
 Exit codes:
     0 - the bundle is on the track and the edit was committed (Play may route it via review), or
         --dry-run printed the plan.
-    1 - the release is at fault: the AAB is missing, a non-default package has no notes file, or
-        Play rejected the payload. That includes
+    1 - the release is at fault: the AAB is missing, a non-default package has no notes file, the
+        --listing-root listing is missing a file or breaks a length limit, or Play rejected the
+        payload. That includes
         the Foreground-service-permissions 403 on commit, which is a build defect - the standard
         bundle gained a foreground-service type - fixed in the build (strip the type, re-version,
         rebuild, republish) and has to stay visible as a finding rather than as "could not verify".
 
 After a successful commit the script prints one machine line, read by publish-play-release.ps1:
-    PLAY-COMMITTED versionCode=<n> package=<name> track=<track> status=<status> held=<0|1>
+    PLAY-COMMITTED versionCode=<n> versionName=<v|empty> package=<name> track=<track> status=<status> held=<0|1>
     2 - could not verify: a sustained transient failure (5xx, rate limit, network). The release is
         NOT implicated - re-run when the API recovers.
 """
+import importlib.util
 import json
 import os
 import re
@@ -195,6 +204,7 @@ def parse_args(argv):
     notes_code = None
     package_name = PACKAGE_NAME
     notes_file = None
+    listing_root = None
     dry_run = False
     positional = []
     i = 0
@@ -205,6 +215,9 @@ def parse_args(argv):
             i += 2
         elif arg == '--notes-file':
             notes_file = os.path.abspath(argv[i + 1])
+            i += 2
+        elif arg == '--listing-root':
+            listing_root = os.path.abspath(argv[i + 1])
             i += 2
         elif arg == '--dry-run':
             dry_run = True
@@ -231,6 +244,7 @@ def parse_args(argv):
         'notes_code': notes_code,
         'package_name': package_name,
         'notes_file': notes_file,
+        'listing_root': listing_root,
         'dry_run': dry_run,
     }
 
@@ -326,6 +340,33 @@ def read_notes_file(notes_path):
     return [{'language': lang, 'text': text} for lang, text in blocks if text.strip()]
 
 
+def load_listing_module():
+    """The listing publisher, loaded by path because its file name carries hyphens."""
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'publish-play-listing.py')
+    spec = importlib.util.spec_from_file_location('publish_play_listing', path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def prepare_listing(listing_module, listing_root):
+    """((locales, payloads), None) for a listing root, or (None, reason) - before any API call."""
+    locales, reason = listing_module.resolve_locales(listing_root)
+    if locales is None:
+        return None, reason
+    payloads = {}
+    over_limit = []
+    for folder in locales:
+        listing, over = listing_module.load_listing(folder, listing_root)
+        if listing is None:
+            return None, '; '.join(over)
+        over_limit.extend(over)
+        payloads[folder] = listing
+    if over_limit:
+        return None, 'char-limit violations: ' + '; '.join(over_limit)
+    return (locales, payloads), None
+
+
 def main():
     args = parse_args(sys.argv[1:])
     track_name = args['track']
@@ -354,12 +395,24 @@ def main():
         print(f"ERROR: {notes_file} holds no release text.")
         sys.exit(1)
 
+    listing_root = args['listing_root']
+    listing_module = None
+    listing_plan = None
+    if listing_root:
+        listing_module = load_listing_module()
+        listing_plan, reason = prepare_listing(listing_module, listing_root)
+        if listing_plan is None:
+            print(f"ERROR: listing {listing_root}: {reason}")
+            sys.exit(1)
+
     print(f"Target track: {track_name} (status: {status})")
     print(f"Service account key: {KEY_FILE}")
     print(f"Package name: {package_name}")
     print(f"AAB Path: {aab_path} ({os.path.getsize(aab_path) / 1024 / 1024:.2f} MB)")
     if notes_file:
         print(f"Notes file: {notes_file}")
+    if listing_plan is not None:
+        print(f"Listing: {listing_root} ({', '.join(listing_plan[0])}) - same edit, one commit")
 
     if args['dry_run']:
         print("DRY RUN: no edit opened, nothing uploaded, nothing committed.")
@@ -465,6 +518,17 @@ def main():
         ).execute(num_retries=API_NUM_RETRIES)
         print("Track updated successfully.")
 
+        if listing_plan is not None:
+            locales, payloads = listing_plan
+            print("\nWriting the store listing into the same edit...")
+            for folder, language in locales.items():
+                service.edits().listings().update(
+                    packageName=package_name, editId=edit_id,
+                    language=language, body=payloads[folder]).execute(num_retries=API_NUM_RETRIES)
+                imgs = listing_module.upload_images(
+                    service, edit_id, folder, language, package_name, listing_root)
+                print(f"  {folder} -> {language}: listing updated, images uploaded: {imgs}")
+
         # 6. Commit Edit
         # Which review mode Play accepts is a property of the app's state, not a constant:
         # normally changesNotSentForReview is rejected with HTTP 400, but while the app is under
@@ -497,7 +561,9 @@ def main():
             print(f"SUCCESS: Edit transaction committed. AAB version {version_code} is now published on '{track_name}' track as '{status}'!")
         # Read by publish-play-release.ps1 to confirm the release's FGS snapshot (S4499); a held
         # commit is not served yet, so the wrapper leaves the snapshot pending for it.
-        print(f"PLAY-COMMITTED versionCode={version_code} package={package_name} track={track_name} status={status} held={int(held)}")
+        # versionName (S4679) is the bundle's own name (get_version_name) - the release-ledger
+        # publish event records it; empty when this commit carried no AAB.
+        print(f"PLAY-COMMITTED versionCode={version_code} versionName={version_name if version_name else ''} package={package_name} track={track_name} status={status} held={int(held)}")
         if held and track_name == 'production' and package_name == PACKAGE_NAME:
             print("FGS snapshot stays pending until the held changes are sent; then run "
                   f"scripts/release/confirm-fgs-snapshot.ps1 -VersionCode {version_code}")

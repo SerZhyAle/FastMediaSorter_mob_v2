@@ -69,7 +69,6 @@
 
     <!-- Move Dialog -->
     <string name="moving_files">Переміщуємо..</string>
-    <string name="moved_n_files">Перемістили %1$d файлів.</string>
     <string name="moved_n_of_m_files">Перемістили %1$d з %2$d файлів.</string>
     <string name="move_failed">Не вдалося перемістити файли.</string>
 
@@ -306,7 +305,6 @@
     <string name="confirm_delete_safe_mode">Підтверджувати видалення</string>
     <string name="confirm_move_safe_mode">Підтверджувати переміщення</string>
     <string name="confirm_delete_title">Видалити файли?</string>
-    <string name="confirm_delete_message">Видалити %1$d файл(ів)? Цю дію не можна скасувати.</string>
     <string name="confirm_move_title">Перемістити файли?</string>
     <string name="confirm_move_message">Перемістити %1$d файл(ів) у %2$s?</string>
 
@@ -882,7 +880,6 @@
     <string name="error_copy_failed">Не вдалося скопіювати файл.</string>
     <string name="error_file_exists_copy">Файл \"%1$s\" вже є в \"%2$s\".\n\nЯкщо хочете замінити його, увімкніть \"Перезапис при копіюванні\" в Налаштування -&gt; Копіювання та переміщення.</string>
     <string name="msg_move_success">Перемістили до %1$s.</string>
-    <string name="msg_move_success_count">Перемістили %1$d файлів до %2$s.</string>
     <string name="error_move_failed">Не вдалося перемістити файл.</string>
     <string name="error_queued_operation_move">Не вдалося перемістити \"%1$s\". Спробуйте ще раз.</string>
     <string name="error_queued_operation_delete">Не вдалося видалити \"%1$s\". Спробуйте ще раз.</string>
@@ -1372,7 +1369,7 @@
     <string name="cd_playback_speed">Швидкість відтворення</string>
     <string name="subtitle_track">Субтитри</string>
     <string name="volume_50_percent">50%</string>
-    <string name="volume_max">MAX</string>
+    <string name="volume_max">МАКС</string>
     <string name="success_count">Готово: %d</string>
     <string name="table_of_contents">Зміст</string>
     <string name="technical_details">Технічні подробиці</string>
@@ -2333,7 +2330,7 @@
     <string name="stream_wait_reconnecting">Відновлення з\'єднання..</string>
     <string name="streams_filter_pinned_only">Лише закріплені</string>
     <string name="streams_refresh_probing">Перевірка трансляцій..</string>
-    <string name="streams_error_no_network">Немає мережі. Підключіться до Wi-Fi або мобільної мережі, щоб відтворювати трансляції.</string>
+    <string name="streams_error_no_network">Немає мережі. Підключіться, щоб відтворити трансляцію.</string>
     <string name="tile_screenshot_label">Знімок екрана</string>
     <string name="camera_lens_front">Фронт</string>
     <string name="camera_lens_ultrawide">Ультраширик</string>
@@ -4668,4 +4665,19 @@
     <string name="perm_rationale_access_coarse_location_extended">Приблизне місцезнаходження потрібне, щоб записати координати у зняті в застосунку фото та відео і розмістити гаджети карти на робочому столі: щоб намалювати карту, вони запитують зображення вашої місцевості в онлайн-сервісу карт і питають в Android назву місця. Більше нікуди нічого не надсилається, і власних серверів у нас немає.</string>
     <string name="perm_desc_access_coarse_location_extended">Приблизні координати для знятих у застосунку фото та гаджетів карти на робочому столі</string>
     <string name="broadcast_import_secret_storage_failed">Не вдалося безпечно зберегти ключ трансляції на цьому пристрої</string>
+    <string name="language_picker_no_results">Мови не знайдено</string>
+    <string name="tooltip_notes_title">Нотатки</string>
+    <string name="tooltip_notes_message">Додає «Нотатки» до головного меню. Усі нотатки лежать одним списком із пошуком, зберігаються на цьому пристрої, а нова нотатка - одним натисканням.</string>
+    <string name="tooltip_tourist_title">Турист</string>
+    <string name="tooltip_tourist_message">Додає до головного меню панель навігації: швидкість, висота, компас, координати, кроки, пройдений шлях, схід і захід сонця. Показує ваше розташування на мапі та надсилає координати.</string>
+    <string name="tooltip_network_monitor_title">Мережевий монітор</string>
+    <string name="tooltip_network_monitor_message">Додає до головного меню програму діагностики. Показує стан Wi-Fi, мобільної мережі, Bluetooth, супутників та інтернету, рівень сигналу й параметри мережі, а також веде історію.</string>
+    <string name="tooltip_system_info_title">Відомості про систему</string>
+    <string name="tooltip_system_info_message">Додає до панелі та меню програм екран із відомостями про систему: обладнання, система, батарея, екран і мережа. Повний звіт можна скопіювати або зберегти в «Завантаження».</string>
+    <string name="streams_error_no_network_refresh">Немає мережі. Підключіться, щоб оновити стан каналів.</string>
+    <string name="stream_status_unconfirmed">Не підтверджено онлайн</string>
+    <string name="stream_info_outcome_unconfirmed">Не підтверджено</string>
+    <string name="feedback_attach_logs">Додати діагностичні журнали застосунку</string>
+    <string name="feedback_no_logs">Журналів для додавання поки немає</string>
+    <string name="feedback_logs_failed">Не вдалося зібрати архів журналів</string>
 </resources>
