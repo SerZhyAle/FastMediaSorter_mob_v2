@@ -43,6 +43,7 @@ class RemoteCommandConsentNotifier @Inject constructor(
 
     override suspend fun ask(controllerName: String, handler: RemoteVerbHandler, args: JsonObject): Boolean {
         val entry = Pending(keys.incrementAndGet())
+        Timber.d("S4701: consent asked verb=%s", handler.spec.name)
         pending.set(entry)
         val shown = post(entry.key, controllerName, handler.describe(context, args))
         val accepted = shown &&

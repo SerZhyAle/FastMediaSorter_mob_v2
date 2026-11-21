@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.data.ticket
 import android.content.Context
 import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
+import com.sza.fastmediasorter.domain.model.ticket.TicketDestination
 import com.sza.fastmediasorter.domain.model.ticket.TicketOutboxEntry
 import com.sza.fastmediasorter.domain.model.ticket.TicketOutboxState
 import com.sza.fastmediasorter.domain.model.ticket.TicketProject
@@ -57,12 +58,12 @@ class TicketInboxRepositoryImpl @Inject constructor(
     @Suppress("TooGenericExceptionCaught")
     override suspend fun deliverQueued(): TicketDeliveryReport = locked {
         val pending = store.list().filter {
-            it.entry.state == TicketOutboxState.QUEUED || it.entry.state == TicketOutboxState.WAITING_ON_DRIVE
+            it.entry.state == TicketOutboxState.QUEUED || it.entry.state == TicketOutboxState.WAITING
         }
         var delivered = 0
         if (pending.isNotEmpty()) {
             // S4573: a packet bound for a resource folder needs no Drive sign-in, so only ask when one goes to Drive.
-            val signedIn = pending.any { it.entry.inboxResourceId == null } && try {
+            val signedIn = pending.any { it.entry.destination == TicketDestination.Drive } && try {
                 inbox.ensureSignedIn()
             } catch (e: Exception) {
                 e.rethrowIfCancellation()
@@ -75,7 +76,7 @@ class TicketInboxRepositoryImpl @Inject constructor(
                     delivered++
                     packet.entry.copy(state = TicketOutboxState.SENT, failure = null)
                 } else {
-                    packet.entry.copy(state = TicketOutboxState.WAITING_ON_DRIVE, failure = failure)
+                    packet.entry.copy(state = TicketOutboxState.WAITING, failure = failure)
                 }
                 store.update(packet, next)
             }
@@ -87,10 +88,13 @@ class TicketInboxRepositoryImpl @Inject constructor(
     override suspend fun syncStatuses(): Result<Unit> = locked {
         val sent = store.list().filter { it.entry.state == TicketOutboxState.SENT }
         val outcome = runCatching {
-            val (viaDrive, viaFolder) = sent.partition { it.entry.inboxResourceId == null }
-            viaFolder.forEach { packet ->
-                packet.entry.inboxResourceId?.let { id ->
-                    applyVerdict(packet, folderInbox.readVerdict(id, packet.entry.packetId))
+            val viaDrive = sent.filter { it.entry.destination == TicketDestination.Drive }
+            sent.forEach { packet ->
+                when (val destination = packet.entry.destination) {
+                    is TicketDestination.Folder ->
+                        applyVerdict(packet, folderInbox.readVerdict(destination.resourceId, packet.entry.packetId))
+                    // Drive is read below after its sign-in check; the direct channel has no reader yet.
+                    TicketDestination.Drive, TicketDestination.ExchangeDirect -> Unit
                 }
             }
             if (viaDrive.isNotEmpty() && !inbox.ensureSignedIn()) {
@@ -136,19 +140,25 @@ class TicketInboxRepositoryImpl @Inject constructor(
     }
 
     private suspend fun uploadFailure(packet: StagedTicketPacket, driveSignedIn: Boolean): String? {
-        val resourceId = packet.entry.inboxResourceId
-        if (resourceId == null && !driveSignedIn) return TicketOutboxEntry.NOT_SIGNED_IN_FAILURE
-        return try {
-            if (resourceId == null) {
-                inbox.upload(packet.folder, packet.manifest)
-            } else {
-                folderInbox.upload(resourceId, packet.folder, packet.manifest)
-            }
-            null
-        } catch (error: IOException) {
-            Timber.w(error, "Ticket packet upload failed")
-            error.message ?: error.javaClass.simpleName
+        return when (val destination = packet.entry.destination) {
+            TicketDestination.Drive ->
+                if (driveSignedIn) {
+                    attemptUpload { inbox.upload(packet.folder, packet.manifest) }
+                } else {
+                    TicketOutboxEntry.NOT_SIGNED_IN_FAILURE
+                }
+            is TicketDestination.Folder ->
+                attemptUpload { folderInbox.upload(destination.resourceId, packet.folder, packet.manifest) }
+            TicketDestination.ExchangeDirect -> DIRECT_CHANNEL_UNAVAILABLE
         }
+    }
+
+    private suspend fun attemptUpload(upload: suspend () -> Unit): String? = try {
+        upload()
+        null
+    } catch (error: IOException) {
+        Timber.w(error, "Ticket packet upload failed")
+        error.message ?: error.javaClass.simpleName
     }
 
     private fun refusalLine(verdict: TicketInboxVerdict.Failed): String =
@@ -159,4 +169,8 @@ class TicketInboxRepositoryImpl @Inject constructor(
     }
 
     private suspend fun <T> locked(block: suspend () -> T): T = withContext(io) { mutex.withLock { block() } }
+
+    private companion object {
+        const val DIRECT_CHANNEL_UNAVAILABLE = "Direct channel is not available in this build"
+    }
 }

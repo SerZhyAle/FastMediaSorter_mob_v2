@@ -73,7 +73,7 @@ class FeedbackFolderPanelManager(
 
     private fun stateLine(entry: TicketOutboxEntry): String = when (entry.state) {
         TicketOutboxState.QUEUED -> context.getString(R.string.feedback_state_queued)
-        TicketOutboxState.WAITING_ON_DRIVE ->
+        TicketOutboxState.WAITING ->
             context.getString(R.string.feedback_state_waiting, entry.failure.orEmpty())
         TicketOutboxState.SENT -> context.getString(R.string.feedback_state_sent)
         TicketOutboxState.PROCESSED ->

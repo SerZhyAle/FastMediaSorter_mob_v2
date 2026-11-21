@@ -2114,6 +2114,16 @@
     "ru": "Открывает «Мои устройства», где вы добавляете, переносите, передаёте и удаляете свои серверы обмена.",
     "uk": "Відкриває «Мої пристрої», де ви додаєте, переносите, передаєте й видаляєте свої сервери обміну."
   },
+  "rowRemoteControlEnabled": {
+    "en": "Lets your other devices on this account ask this phone to act - for example to stop the audio or close the app. Off by default and after a reset; the phone only answers a request. It needs a connected exchange server that carries commands, and turning it off keeps your list of devices and their rights. The latest requests are listed below the switch.",
+    "ru": "Позволяет другим вашим устройствам этой учётной записи просить телефон о действиях - например, остановить звук или закрыть приложение. По умолчанию и после сброса выключено; телефон лишь отвечает на запрос. Нужен подключённый сервер обмена, который передаёт команды; при выключении список устройств и их права сохраняются. Последние запросы показаны под переключателем.",
+    "uk": "Дозволяє іншим вашим пристроям цього облікового запису просити телефон про дії - наприклад, зупинити звук або закрити застосунок. За замовчуванням і після скидання вимкнено; телефон лише відповідає на запит. Потрібен підключений сервер обміну, який передає команди; після вимкнення список пристроїв і їхні права зберігаються. Останні запити показано під перемикачем."
+  },
+  "btnRemoteControlControllers": {
+    "en": "Opens the list of your account's devices that can be asked to control this phone. A new device may run safe commands only; you allow each further kind one by one, and choose whether this phone asks you first or always allows it.",
+    "ru": "Открывает список устройств вашей учётной записи, которым можно разрешить управлять этим телефоном. Новое устройство получает только безопасные команды; каждый следующий вид вы разрешаете отдельно и выбираете, спрашивать ли вас сначала или разрешать всегда.",
+    "uk": "Відкриває список пристроїв вашого облікового запису, яким можна дозволити керувати цим телефоном. Новий пристрій отримує лише безпечні команди; кожен наступний вид ви дозволяєте окремо та обираєте, питати вас спершу чи дозволяти завжди."
+  },
   "btnSftpExchangePortal": {
     "en": "Opens the portal page about reaching your shared folders from outside the home network, step by step.",
     "ru": "Открывает страницу портала о том, как добраться до ваших общих папок не из домашней сети, шаг за шагом.",

@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.ticket
 
 import com.sza.fastmediasorter.domain.model.ticket.TicketAttachmentRole
+import com.sza.fastmediasorter.domain.model.ticket.TicketDestination
 import com.sza.fastmediasorter.domain.model.ticket.TicketOrigin
 import com.sza.fastmediasorter.domain.model.ticket.TicketOutboxEntry
 import com.sza.fastmediasorter.domain.model.ticket.TicketProject
@@ -19,8 +20,8 @@ data class TicketDraft(
     val text: String,
     val project: String?,
     val attachments: List<TicketAttachmentSource>,
-    /** S4573: the resource whose root is the inbox; null = the Drive inbox. */
-    val inboxResourceId: Long? = null,
+    /** S4806: where the packet is delivered; Drive unless the surface chose a folder or the direct channel. */
+    val destination: TicketDestination = TicketDestination.Drive,
     /** S4663: the surface that stages the draft; the feedback channel passes its own explicitly. */
     val origin: TicketOrigin = TicketOrigin.TICKET
 )

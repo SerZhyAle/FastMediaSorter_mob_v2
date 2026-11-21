@@ -8,6 +8,8 @@ import com.sza.fastmediasorter.core.logging.LoggingHelper
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.ticket.TicketAttachmentRole
+import com.sza.fastmediasorter.domain.model.ticket.TicketDestination
 import com.sza.fastmediasorter.domain.model.ticket.TicketOrigin
 import com.sza.fastmediasorter.domain.model.ticket.TicketOutboxEntry
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
@@ -105,7 +107,7 @@ class SendFeedbackUseCase @Inject constructor(
             text = text,
             project = null,
             attachments = attachments,
-            inboxResourceId = folderId,
+            destination = TicketDestination.Folder(folderId),
             origin = TicketOrigin.FEEDBACK
         )
         return inbox.stage(draft).map { packetId -> FeedbackSendResult(packetId, current) }

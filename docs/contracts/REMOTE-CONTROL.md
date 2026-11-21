@@ -5,7 +5,7 @@
 | | |
 | --- | --- |
 | **Id** | `REMOTE-CONTROL` |
-| **Version** | 0.4, draft - 2026-11-20 (the version this product is built against) |
+| **Version** | 0.6, draft. The phone implementation is built against 0.4. |
 | **Home** | `remote-control/README.md` in the shared contracts catalog |
 | **Role here** | target - the phone app answers commands from the account's other devices; the watch app is not a target |
 

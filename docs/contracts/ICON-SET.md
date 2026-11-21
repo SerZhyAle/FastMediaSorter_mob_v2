@@ -5,7 +5,7 @@
 | | |
 | --- | --- |
 | **Id** | `ICON-SET` |
-| **Version** | 0.44, draft. Owner: this product |
+| **Version** | 0.45, draft. Owner: this product |
 | **Home** | `iconography/README.md` section 2 in the shared contracts catalog |
 | **Role here** | owner and reference implementation - phone, launcher, watch, documentation and the website |
 
@@ -37,6 +37,7 @@
   Server window and the remote administration window (Windows surfaces), 0.43 replaces the cog drawings of
   `system.service` and `feature.remote-admin`, and 0.44 (breaking) redraws `app.logo` from the FastMediaSorter family
   mark of `PRODUCT-IDENTITY` 0.2 section 3.3; the exporter run and the `app.logo` carrier are owed by this product.
+- The 0.45 catalog amendment redraws `action.rename`. The product carrier is tracked separately.
 - The documentation and the site show the meaning's glyph beside its name - never an emoji, never a
   picture chosen to decorate the page.
 - The glyphs, looks, `palette.json`, `CATALOG.md` and `gallery.html` are regenerated from this

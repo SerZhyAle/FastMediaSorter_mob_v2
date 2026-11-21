@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.11.20 18:16</sub>
+<sub class="doc-stamp">26.11.21 03:19</sub>
 
 # Pointer - `GOOGLE-PLAY`
 
 | | |
 | --- | --- |
 | **Id** | `GOOGLE-PLAY` |
-| **Version** | 0.3, draft. Owner: this product |
+| **Version** | 0.4, draft. Owner: this product |
 | **Home** | `google-play/README.md` in the shared contracts catalog |
 | **Role here** | owner and publisher - the console apps `com.sza.fastmediasorter` (phone and watch app) and `com.sza.fastmediasorter.watchface` |
 
@@ -14,9 +14,9 @@
 - Keep the phone and watch app on one application id and one app signing key; the watch face is its own console app and its own review batch (rule 1).
 - Record the app signing and upload key fingerprints of each console app - certificate fingerprints only, never key material (rules 2-3).
 - Never delete a ReTrace mapping row in the console; recover a mapping from the shipped bundle (rule 5).
-- Before every upload: a versionCode above every code the app used, the target-API floors read that release, no required feature the previous release did not carry, no new foreground-service type in the store build (rules 6, 8, 9, 22).
-- Publish with one edit per application at a time; try the automatic commit, fall back to the held one only on a refusal that names `changesNotSentForReview`, never retry a commit (rules 18-19).
-- Prove a publication by the public store page, never by the API alone (rule 20); split the phone and the watch into separate review batches with "Save for later" when one must not hold the other (rules 16-17).
+- Before every upload, check versionCode, the current target-API floor, device reach and new foreground-service types (rules 6, 8, 9, 22). Apply the first-artifact and first-declaration stops in section 8C.
+- Serialize publishers, edit-based probes and Console writes per app (rule 19 and section 8A). Apply the rule 18 commit modes with the rule 29 review guard in both requests. Reconcile an uncertain result by read-back.
+- Record track data, lifecycle summaries, Console review and public serving as separate evidence (rule 20 and section 8B). Split the phone and the watch into separate review batches with "Save for later" when one must not hold the other (rules 16-17).
 - Publish a release as one submission: the track, the listing (only when it changed) and the release notes in one edit, committed once (`publish-play-release.ps1 -ListingRoot`); commit nothing while a submission is in review; never cancel a submission to add a change; a submission past seven days goes to Play support, not back into the queue (rules 28-30).
 - Publish the watch only when its sources changed materially since its last release, as its own submission after the phone release is published or on alternate releases, so a phone fix never waits on a watch review (rule 31; `/skill-release-wear` Step 0 asks, from `measure-wear-change.ps1`).
 - Prove a watch quality claim on the store flavor at 192 and 227 dp, mid-gesture; capture the watch face's icons from the face itself (rules 24-25).

@@ -202,6 +202,13 @@ This section applies when you connect your own devices to each other, the way yo
 - Only the devices of your own account receive it, and it is one value at a time: text, an image or one file. A send goes to every account the device is signed in to, except a guest account.
 - The Google Drive way of sending the clipboard is a separate option, off until you switch it on. The value is then one file in the hidden folder of your own Google Account, and it stays there until a newer value replaces it.
 
+### Commands from your other devices
+
+- This is off until you switch on "Accept commands from my devices", and it needs an exchange server you connected. Only the devices of your own account that hold a key can ask, only the ones you choose in "Who can control", and only for the kinds of command you allow.
+- A request and the phone's answer travel encrypted between the two devices. The exchange server sees only that a request happened, when, and how large it was, never what it asked.
+- The decisions - the switch, the devices you chose and what each may do - the list of requests already handled and the log of the latest requests stay on this phone. They are not part of the Android backup, of the settings export or of an import, and clearing the app's data erases them. Nothing from the log is sent anywhere, and the log does not keep the details of a request.
+- A command that needs your say asks you in a notification with Allow and Decline; with no answer in a minute, or with notifications off, it is declined.
+
 ### Via Google Drive
 
 - Files you send between your own devices, the clipboard, the requests that browse a folder of another of your devices, and the announcements of folders and broadcasts, travel through the hidden app folder of your own Google Account when you switch this channel on. No exchange server and no direct address is involved.

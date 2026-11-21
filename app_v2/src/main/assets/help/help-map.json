@@ -32,6 +32,8 @@
       "reason": "A composer opened from one settings row; the settings page explains that row." },
     { "id": "DataTransferDialogFragment", "name": "Data transfer", "form": "inherit", "parent": "SettingsActivity",
       "reason": "Opened only from the General settings tab; its page explains the export and import entry." },
+    { "id": "dialog_remote_control_controllers", "name": "Who can control this phone", "form": "inherit", "parent": "SettingsActivity",
+      "reason": "Opened from the Accept commands rows of the General settings tab; the settings page explains those rows." },
     { "id": "DefaultAppsDialogFragment", "name": "Default apps", "form": "inherit", "parent": "SettingsActivity",
       "reason": "Opened only from the General settings tab; its page explains the default apps entry." },
     { "id": "EdgeGestureConfigDialogFragment", "name": "Edge gestures", "form": "inherit", "parent": "SettingsActivity",

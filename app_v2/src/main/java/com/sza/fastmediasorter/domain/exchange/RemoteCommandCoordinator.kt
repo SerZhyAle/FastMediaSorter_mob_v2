@@ -55,6 +55,7 @@ class RemoteCommandCoordinator @Inject constructor(
 
     private fun enqueue(origin: DeviceExchangeAccountEntry?, envelope: DeviceExchangeEnvelope) {
         if (envelope.type != DeviceExchangeEnvelope.TYPE_COMMAND_REQUEST) return
+        Timber.d("S4701: command-request arrived viaTunnel=%b", origin == null)
         // A full queue drops the newest: the controller's own time-out answers it, as for a box that does not open.
         if (queue.trySend(IncomingCommand(origin, envelope)).isFailure) {
             Timber.w("RemoteCommandCoordinator: request queue full, a command-request was dropped")

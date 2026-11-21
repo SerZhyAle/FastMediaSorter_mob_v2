@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.domain.identity.GoogleScope
 import com.sza.fastmediasorter.domain.identity.IdentityFailureReason
 import com.sza.fastmediasorter.domain.identity.IdentitySignInResult
 import com.sza.fastmediasorter.domain.identity.PrimaryGoogleAccount
+import com.sza.fastmediasorter.domain.model.ticket.TicketDestination
 import com.sza.fastmediasorter.domain.model.ticket.TicketOutboxEntry
 import com.sza.fastmediasorter.domain.model.ticket.TicketOutboxState
 import com.sza.fastmediasorter.domain.usecase.feedback.FeedbackFolderChoice
@@ -54,8 +55,8 @@ class TicketComposerViewModelTest {
 
     private fun entry(
         failure: String?,
-        inboxResourceId: Long? = null,
-        state: TicketOutboxState = TicketOutboxState.WAITING_ON_DRIVE
+        destination: TicketDestination = TicketDestination.Drive,
+        state: TicketOutboxState = TicketOutboxState.WAITING
     ) = TicketOutboxEntry(
         packetId = "p1",
         createdAtEpochMs = 0L,
@@ -63,7 +64,7 @@ class TicketComposerViewModelTest {
         project = null,
         state = state,
         failure = failure,
-        inboxResourceId = inboxResourceId
+        destination = destination
     )
 
     @Test
@@ -80,7 +81,11 @@ class TicketComposerViewModelTest {
         advanceUntilIdle()
         assertFalse(viewModel.state.value.driveAccessNeeded)
 
-        outboxRows.value = listOf(entry(TicketOutboxEntry.NOT_SIGNED_IN_FAILURE, inboxResourceId = 7L))
+        outboxRows.value = listOf(entry(TicketOutboxEntry.NOT_SIGNED_IN_FAILURE, TicketDestination.Folder(7L)))
+        advanceUntilIdle()
+        assertFalse(viewModel.state.value.driveAccessNeeded)
+
+        outboxRows.value = listOf(entry(TicketOutboxEntry.NOT_SIGNED_IN_FAILURE, TicketDestination.ExchangeDirect))
         advanceUntilIdle()
         assertFalse(viewModel.state.value.driveAccessNeeded)
 

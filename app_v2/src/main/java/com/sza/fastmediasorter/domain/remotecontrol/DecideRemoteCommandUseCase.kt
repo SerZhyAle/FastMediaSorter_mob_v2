@@ -44,6 +44,7 @@ class DecideRemoteCommandUseCase internal constructor(
         turn.withLock { decide(request, directory) }
 
     private suspend fun decide(request: RemoteCommandRequest, directory: RemoteControllerDirectory): RemoteDecision {
+        Timber.d("S4701: decide verb=%s", request.verb)
         val grant = currentGrant(request.fromDeviceId)
         val handler = handlers.firstOrNull { it.spec.name == request.verb }
         val refusal = refusal(request, grant, handler, directory)

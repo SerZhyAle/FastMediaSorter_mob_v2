@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.data.cloud.GoogleDriveAuthPlugin
 import com.sza.fastmediasorter.domain.identity.GoogleScope
 import com.sza.fastmediasorter.domain.identity.IdentitySignInResult
+import com.sza.fastmediasorter.domain.model.ticket.TicketDestination
 import com.sza.fastmediasorter.domain.model.ticket.TicketOrigin
 import com.sza.fastmediasorter.domain.model.ticket.TicketOutboxEntry
 import com.sza.fastmediasorter.domain.model.ticket.TicketProject
@@ -118,7 +119,7 @@ class TicketComposerViewModel @Inject constructor(
                 text = text,
                 project = project,
                 attachments = current.attachments,
-                inboxResourceId = current.destinationId,
+                destination = current.destinationId?.let(TicketDestination::Folder) ?: TicketDestination.Drive,
                 origin = TicketOrigin.TICKET
             )
             val staged = fileTicket(draft)

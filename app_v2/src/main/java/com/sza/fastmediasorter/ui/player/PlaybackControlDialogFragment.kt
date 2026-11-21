@@ -760,7 +760,6 @@ class PlaybackControlDialogFragment : DialogFragment() {
         lastCommittedSpeed = speed
         if (!crossedIntoSlowSpeed) return
         if (host().getPlayerVolume() <= VOLUME_MUTED) return
-        Timber.d("S4683: low-speed mute offer shown")
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.playback_control_low_speed_mute_title)
             .setMessage(R.string.playback_control_low_speed_mute_message)

@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.20 01:28</sub>
+<sub class="doc-stamp">26.11.21 03:19</sub>
 
 # Play publishing state
 
@@ -49,9 +49,11 @@ Reader exit code: 0.
 What each track holds. Produced by
 `pwsh -NoProfile -File scripts/release/read-play-tracks.ps1 -Json`.
 
-A track's `completed` status says only that a rollout was configured. It is **not** evidence that the
-release is publicly served, and it is **not** evidence that it passed review - a rejected release
-keeps reporting `completed`, so review state is invisible from here and from the API entirely.
+A track's `completed` status shows the configured rollout. For release lifecycle summaries on a
+specific track, Google documents a separate GET outside an edit. For the app-wide review batch and
+policy claims, use the Console. For public availability, use the served store page. The table below
+comes from the edit-based track reader. See GOOGLE-PLAY section 8B and the
+[release lifecycle reference](https://developers.google.com/android-publisher/api-ref/rest/v3/applications.tracks.releases/list).
 
 <!-- s2272:measured:tracks:begin -->
 

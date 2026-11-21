@@ -17,7 +17,8 @@ What each package was built as last, what each channel carries, and every public
 
 | Package | Flavor | Kind | Version | Built | Artifact |
 | --- | --- | --- | --- | --- | --- |
-| phone | standard | debug | 2.60.9012.140 | 2026-11-20 22:24:45+01:00 | DOWNLOADS/FastMediaSorter_standard_debug.apk |
+| phone | nolegal | debug | 2.61.1210.259 | 2026-11-21 03:09:45+01:00 | DOWNLOADS/FastMediaSorter_nolegal_debug.apk |
+| phone | standard | debug | 2.60.9012.140 | 2026-11-21 00:00:34+01:00 | DOWNLOADS/FastMediaSorter_standard_debug.apk |
 
 ## History
 

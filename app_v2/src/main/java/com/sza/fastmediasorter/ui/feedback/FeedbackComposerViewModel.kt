@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.feedback
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.ticket.TicketAttachmentSource
 import com.sza.fastmediasorter.domain.usecase.feedback.AttachFeedbackLogsUseCase
@@ -9,6 +10,7 @@ import com.sza.fastmediasorter.domain.usecase.feedback.FeedbackFolderChoice
 import com.sza.fastmediasorter.domain.usecase.feedback.ObserveFeedbackFoldersUseCase
 import com.sza.fastmediasorter.domain.usecase.feedback.SelectFeedbackFolderUseCase
 import com.sza.fastmediasorter.domain.usecase.feedback.SendFeedbackUseCase
+import com.sza.fastmediasorter.domain.usecase.ticket.DeliverQueuedTicketsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -57,6 +59,7 @@ class FeedbackComposerViewModel @Inject constructor(
     private val sendFeedback: SendFeedbackUseCase,
     private val selectFolder: SelectFeedbackFolderUseCase,
     private val attachFeedbackLogs: AttachFeedbackLogsUseCase,
+    private val deliverQueued: DeliverQueuedTicketsUseCase,
     observeFolders: ObserveFeedbackFoldersUseCase,
 ) : ViewModel() {
 
@@ -84,9 +87,11 @@ class FeedbackComposerViewModel @Inject constructor(
     fun attachLogs() {
         val current = mutableState.value
         if (current.buildingLogs || current.busy) return
+        Timber.d("S4685: attach logs pressed")
         mutableState.update { it.copy(buildingLogs = true) }
         viewModelScope.launch {
             val outcome = runCatching { attachFeedbackLogs() }
+            outcome.exceptionOrNull()?.rethrowIfCancellation()
             mutableState.update { state ->
                 outcome.fold(
                     onSuccess = { source ->
@@ -132,6 +137,13 @@ class FeedbackComposerViewModel @Inject constructor(
                             notice = if (staged) FeedbackNotice.Queued else null,
                             handoff = FeedbackHandoff(text.trim(), attachments, result.settings, clearForm = staged),
                         )
+                    }
+                    // S4685: the upload starts in this session, not on the next worker pass; the
+                    // worker enqueue from stage() stays the fallback, so a cancelled pass only
+                    // leaves the packet QUEUED for it.
+                    if (staged) {
+                        Timber.d("S4685: immediate delivery pass started packetId=${result.packetId}")
+                        launch { runCatching { deliverQueued() }.onFailure { it.rethrowIfCancellation() } }
                     }
                 },
                 onFailure = { error ->

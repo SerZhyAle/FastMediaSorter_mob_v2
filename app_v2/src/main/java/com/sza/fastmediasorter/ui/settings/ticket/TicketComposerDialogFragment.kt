@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogTicketComposerBinding
+import com.sza.fastmediasorter.domain.model.ticket.TicketDestination
 import com.sza.fastmediasorter.domain.model.ticket.TicketOrigin
 import com.sza.fastmediasorter.domain.model.ticket.TicketOutboxEntry
 import com.sza.fastmediasorter.domain.model.ticket.TicketOutboxState
@@ -183,7 +184,7 @@ class TicketComposerDialogFragment : DialogFragment() {
     private fun renderOutbox(all: List<TicketOutboxEntry>) {
         // S4663: a feedback form's folder-bound packet stays that form's to show; whatever this
         // composer filed - Drive or a folder - is listed here with its state.
-        val entries = all.filter { it.inboxResourceId == null || it.origin == TicketOrigin.TICKET }
+        val entries = all.filter { it.destination == TicketDestination.Drive || it.origin == TicketOrigin.TICKET }
         Timber.d("S4663: outbox rows total=%d shown=%d", all.size, entries.size)
         binding.outbox.tvTicketOutboxEmpty.isVisible = entries.isEmpty()
         outboxAdapter?.submitList(
@@ -204,16 +205,16 @@ class TicketComposerDialogFragment : DialogFragment() {
 
     private fun stateLine(entry: TicketOutboxEntry): String = when (entry.state) {
         TicketOutboxState.QUEUED -> getString(R.string.ticket_inbox_state_queued)
-        TicketOutboxState.WAITING_ON_DRIVE ->
+        TicketOutboxState.WAITING ->
             if (entry.needsDriveAccess) {
                 getString(R.string.ticket_inbox_state_needs_access)
-            } else if (entry.inboxResourceId == null) {
+            } else if (entry.destination == TicketDestination.Drive) {
                 getString(R.string.ticket_inbox_state_waiting, entry.failure.orEmpty())
             } else {
                 getString(R.string.ticket_inbox_state_folder_waiting, entry.failure.orEmpty())
             }
         TicketOutboxState.SENT ->
-            if (entry.inboxResourceId == null) {
+            if (entry.destination == TicketDestination.Drive) {
                 getString(R.string.ticket_inbox_state_sent)
             } else {
                 getString(R.string.ticket_inbox_state_folder_sent)

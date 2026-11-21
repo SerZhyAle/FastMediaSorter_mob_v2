@@ -88,10 +88,10 @@ data class TicketPacketResult(val tickets: List<String>, val verdict: String?)
 /** `reason.json` of a packet the PC moved to `failed/`; [error] is a reason name of INBOX-PACKET 4. */
 data class TicketPacketRefusal(val error: String, val detail: String?)
 
-/** Where a locally queued packet stands. */
+/** Where a locally queued packet stands; [WAITING] is a failed attempt on any destination, retried later. */
 enum class TicketOutboxState {
     QUEUED,
-    WAITING_ON_DRIVE,
+    WAITING,
     SENT,
     PROCESSED,
     FAILED
@@ -101,9 +101,22 @@ enum class TicketOutboxState {
 enum class TicketOrigin { FEEDBACK, TICKET }
 
 /**
- * One packet of the phone outbox as the composer lists it. [inboxResourceId] names the resource whose
- * root holds the inbox spools (S4573); null keeps the S4554 destination, the Drive inbox.
+ * S4806: where a packet is delivered. Named explicitly because a missing resource id means the Drive
+ * inbox (S4554), so a further transport stored as one more id value would be misrouted to Drive by
+ * every reader that predates it.
  */
+sealed interface TicketDestination {
+    /** The Drive inbox, the S4554 destination. */
+    data object Drive : TicketDestination
+
+    /** A resource whose root holds the inbox spools (S4573). */
+    data class Folder(val resourceId: Long) : TicketDestination
+
+    /** The account's exchange server, received by the person's computer. */
+    data object ExchangeDirect : TicketDestination
+}
+
+/** One packet of the phone outbox as the composer lists it; [destination] is where it is delivered. */
 data class TicketOutboxEntry(
     val packetId: String,
     val createdAtEpochMs: Long,
@@ -112,14 +125,18 @@ data class TicketOutboxEntry(
     val state: TicketOutboxState,
     val tickets: List<String> = emptyList(),
     val failure: String? = null,
-    val inboxResourceId: Long? = null,
+    val destination: TicketDestination = TicketDestination.Drive,
     // A state.json without the key predates the composer, and every such packet is the feedback form's.
     val origin: TicketOrigin = TicketOrigin.FEEDBACK
 ) {
+    /** The folder resource this packet is bound for, null for every other destination. */
+    val inboxResourceId: Long?
+        get() = (destination as? TicketDestination.Folder)?.resourceId
+
     /** S4765: a Drive packet stopped only because the silent sign-in found no usable Drive grant. */
     val needsDriveAccess: Boolean
-        get() = state == TicketOutboxState.WAITING_ON_DRIVE &&
-            inboxResourceId == null &&
+        get() = state == TicketOutboxState.WAITING &&
+            destination == TicketDestination.Drive &&
             failure == NOT_SIGNED_IN_FAILURE
 
     companion object {
