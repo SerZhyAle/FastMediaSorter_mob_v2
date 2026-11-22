@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
 import com.sza.fastmediasorter.domain.identity.GoogleScope
 import com.sza.fastmediasorter.domain.identity.IdentityFailureReason
 import com.sza.fastmediasorter.domain.identity.IdentitySignInResult
+import com.sza.fastmediasorter.domain.identity.NeedsResignInReason
 import com.sza.fastmediasorter.domain.identity.PrimaryGoogleAccount
 import com.sza.fastmediasorter.domain.identity.PrimaryGoogleAccountState
 import io.mockk.coEvery
@@ -17,7 +18,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.time.Instant
 
-/** S4765: a bound account takes the grant alone, an unbound phone the full sign-in; the result is never reshaped. */
+/** S4765, S4814: a bound account takes the grant alone, any other state the full sign-in with the chooser forced. */
 class GrantTicketDriveAccessUseCaseTest {
 
     private val context = mockk<Context>()
@@ -43,12 +44,24 @@ class GrantTicketDriveAccessUseCaseTest {
     }
 
     @Test
-    fun `an unbound phone runs the full sign-in and a cancel comes back as a cancel`() = runTest {
-        coEvery { identity.signInPrimary(context, signInScopes, false) } returns IdentitySignInResult.Cancelled
+    fun `an unbound phone forces the account chooser and a cancel comes back as a cancel`() = runTest {
+        coEvery { identity.signInPrimary(context, signInScopes, true) } returns IdentitySignInResult.Cancelled
 
         val result = useCase(PrimaryGoogleAccountState.Unbound)(context, driveScopes, signInScopes)
 
         assertEquals(IdentitySignInResult.Cancelled, result)
+        coVerify(exactly = 0) { identity.grantScopes(any(), any()) }
+    }
+
+    @Test
+    fun `a phone that needs a re-sign-in forces the account chooser too`() = runTest {
+        val signedIn = IdentitySignInResult.Success(account)
+        coEvery { identity.signInPrimary(context, signInScopes, true) } returns signedIn
+
+        val state = PrimaryGoogleAccountState.NeedsResignIn(account, NeedsResignInReason.TokenExpired)
+        val result = useCase(state)(context, driveScopes, signInScopes)
+
+        assertEquals(signedIn, result)
         coVerify(exactly = 0) { identity.grantScopes(any(), any()) }
     }
 

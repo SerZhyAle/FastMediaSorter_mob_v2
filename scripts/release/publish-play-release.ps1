@@ -1,175 +1,159 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    Publish a FastMediaSorter standard AAB release to Google Play Console.
+    Publish one application's FastMediaSorter Google Play release batch.
 
 .DESCRIPTION
-    Wired as part of the automated Google Play Console publishing pipeline.
-    Calls publish-play-release.py in the project virtual environment.
-
-    After a committed, not held production release with status completed of the default package, the
-    script runs confirm-fgs-snapshot.ps1 for the committed versionCode (S4499): only then does that
-    release's foreground-service type snapshot become the baseline of assert-fgs-types-vs-previous.ps1.
-    A confirmation failure only warns and prints the by-hand command; it never changes the exit code.
+    Stage tracks, notes and optional listing changes in one guarded edit. A completed phone
+    production record that was sent for review triggers the existing FGS snapshot check.
 
 .PARAMETER Track
-    Target track in Google Play. Default: production.
-    Supported: internal, alpha, beta, production.
+    Exact Google Play track for a single release. Defaults to production.
 
 .PARAMETER Status
-    Rollout status. Default: completed (automated rollout).
-    Supported: completed, draft.
+    Single-track release status. Supports completed and draft. Both commit the edit.
 
 .PARAMETER Aab
-    Path to the bundle to publish. Default: the standard phone AAB in DOWNLOADS.
-    Supply the watch bundle to publish the Wear OS form factor (S1707).
+    Single-track bundle. Defaults to the standard phone AAB in DOWNLOADS.
 
 .PARAMETER VersionCode
-    The versionCode carried by -Aab. Only needed with -Aab: without it the script reads the phone
-    bundle's own AGP output-metadata.json, which describes that artifact and not this one.
+    Required with a custom AAB in single-track mode.
+
+.PARAMETER VersionName
+    Version name from the artifact in single-track mode. The default uses matching build metadata.
 
 .PARAMETER NotesVersionCode
-    Read the fastlane changelogs filed under this versionCode instead of the artifact's own.
-    A form-factor release ships the phone release's notes, which are filed under the phone code.
+    Fall back to the fastlane changelog for this versionCode if the artifact has no changelog.
 
 .PARAMETER Package
-    Play application to publish to. Default: the phone package the uploader declares. Another
-    package (the watch face, S4009) never reads the phone's fastlane changelogs and requires
-    -NotesFile.
+    Single-track application id. The default phone id includes its Wear tracks.
 
 .PARAMETER NotesFile
-    Release notes in the Play Console paste format (<en-US>..</en-US> blocks). Required with a
-    non-default -Package; optional otherwise, where it replaces the fastlane changelogs.
+    Play Console paste-format release notes. Required for apps other than the default package.
 
 .PARAMETER ListingRoot
-    Write the store listing under this folder (the layout publish-play-listing.ps1 reads) into the
-    same edit as the bundle, so the track and the listing reach Play as one commit and one review
-    submission. Two separate commits are two submissions, and the second cancels the first while it is
-    in review (contract GOOGLE-PLAY rule 28, S4799). The listing is checked before the edit is opened;
-    a missing file or a length-limit breach exits 1.
+    Stage listing changes from this root in the same edit as the single-track release.
+
+.PARAMETER Batch
+    JSON file with one packageName, a releases array and optional listingRoot.
+    Paths in this file are relative to the file. Supply only Batch, Preflight and WhatIf in this mode.
+
+.PARAMETER Preflight
+    Approved exact operations, accepted artifact and foreground-service declaration evidence.
 
 .PARAMETER WhatIf
-    Resolve and print the plan (package, track, bundle, notes) and exit 0 before any API call.
+    Print the local release plan without credentials or an API call.
 
 .EXAMPLE
-    pwsh -File scripts/release/publish-play-release.ps1
+    pwsh -NoProfile -File scripts/release/publish-play-release.ps1 -Batch batch.json -WhatIf
 
 .EXAMPLE
-    pwsh -File scripts/release/publish-play-release.ps1 -Track internal -Status draft
-
-.EXAMPLE
-    pwsh -File scripts/release/publish-play-release.ps1 -Track 'wear:production' `
-        -Aab DOWNLOADS/FastMediaSorter_wear_release.aab -VersionCode 26082322 -NotesVersionCode 260823225
-
-.EXAMPLE
-    pwsh -File scripts/release/publish-play-release.ps1 -Track 'wear:internal' -Status completed `
-        -Package <face package> -Aab DOWNLOADS/FastMediaSorter_watchface_release.aab `
-        -VersionCode 260930117 -NotesFile play/watchface/release-notes.txt
-
-.EXAMPLE
-    pwsh -File scripts/release/publish-play-release.ps1 -Track 'wear:production' `
-        -Aab DOWNLOADS/FastMediaSorter_wear_release.aab -VersionCode 26082322 -ListingRoot play/listing
+    pwsh -NoProfile -File scripts/release/publish-play-release.ps1 -Track internal -Status draft -WhatIf
 
 .NOTES
-    Exit codes (mirrors publish-play-release.py, S2346):
-      0 - the bundle is on the track and the edit was committed.
-      1 - the release is at fault: the AAB is missing, an argument contradicts the artifact, a
-          non-default -Package has no notes file, the -ListingRoot listing is incomplete or over a
-          length limit, or Play rejected the payload. The Foreground-service-permissions 403 on commit lands here
-          on purpose - it is a build defect (the standard bundle gained a foreground-service type), fixed in the build
-          by stripping the type, and must stay visible as a finding.
-      2 - could not verify: the virtual environment is absent, or a sustained transient failure
-          (5xx, rate limit, network). The release is NOT implicated - re-run later.
-
-    Code 2 must survive the trip out of Python. Under $ErrorActionPreference = 'Stop' a `throw`
-    kills the process with 1, so wrapping the child's exit code in one collapses the distinction
-    the Python side just made and no caller - including /skill-release, which files a non-zero
-    code as a failed publication - can ever see it.
+    Exit codes: 0 planned or committed, 1 invalid or rejected payload, 2 could not verify.
 #>
 
 [CmdletBinding(SupportsShouldProcess)]
 param(
-    [string] $Track = "production",
-    [string] $Status = "completed",
+    [string] $Track = 'production',
+    [string] $Status = 'completed',
     [string] $Aab,
     [int] $VersionCode,
+    [string] $VersionName,
     [int] $NotesVersionCode,
     [string] $Package,
     [string] $NotesFile,
-    [string] $ListingRoot
+    [string] $ListingRoot,
+    [string] $Batch,
+    [string] $Preflight
 )
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = 'Stop'
+$repoRoot = Resolve-Path (Join-Path $PSScriptRoot '..\..')
+$venvPython = Join-Path $repoRoot '.venv\Scripts\python.exe'
+$pyScript = Join-Path $PSScriptRoot 'publish-play-release.py'
 
-$repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
-$venvPython = Join-Path $repoRoot ".venv\Scripts\python.exe"
-$pyScript = Join-Path $PSScriptRoot "publish-play-release.py"
-
-if (-not (Test-Path $venvPython)) {
+if (-not (Test-Path -LiteralPath $venvPython)) {
     Write-Warning "Virtual environment not found at $venvPython. Configure the project virtual environment first."
-    Write-Warning "COULD NOT VERIFY the publication without it - this says nothing about the release itself."
     exit 2
 }
 
-$extraArgs = @()
-if (-not [string]::IsNullOrWhiteSpace($Aab)) {
-    if (-not (Test-Path $Aab)) { throw "AAB not found at $Aab" }
-    if ($VersionCode -le 0) { throw "-VersionCode is required with -Aab: the fallback reads app_v2, which describes a different artifact." }
-    $extraArgs += @('--aab', (Resolve-Path $Aab).Path, '--version-code', "$VersionCode")
+if ($Batch) {
+    $singleParameters = 'Track', 'Status', 'Aab', 'VersionCode', 'VersionName', 'NotesVersionCode', 'Package', 'NotesFile', 'ListingRoot'
+    foreach ($parameter in $singleParameters) {
+        if ($PSBoundParameters.ContainsKey($parameter)) {
+            throw "-Batch supplies the release inputs. Remove -$parameter."
+        }
+    }
+    $uploaderArgs = @('--batch', $Batch)
+} else {
+    $uploaderArgs = @($Track, $Status)
+    if ($Aab) { $uploaderArgs += @('--aab', $Aab) }
+    if ($VersionCode) { $uploaderArgs += @('--version-code', "$VersionCode") }
+    if ($VersionName) { $uploaderArgs += @('--version-name', $VersionName) }
+    if ($NotesVersionCode) { $uploaderArgs += @('--notes-code', "$NotesVersionCode") }
+    if ($Package) { $uploaderArgs += @('--package', $Package) }
+    if ($NotesFile) { $uploaderArgs += @('--notes-file', $NotesFile) }
+    if ($ListingRoot) { $uploaderArgs += @('--listing-root', $ListingRoot) }
 }
-if ($NotesVersionCode -gt 0) { $extraArgs += @('--notes-code', "$NotesVersionCode") }
-if (-not [string]::IsNullOrWhiteSpace($Package)) { $extraArgs += @('--package', $Package) }
-if (-not [string]::IsNullOrWhiteSpace($NotesFile)) { $extraArgs += @('--notes-file', $NotesFile) }
-if (-not [string]::IsNullOrWhiteSpace($ListingRoot)) { $extraArgs += @('--listing-root', $ListingRoot) }
-if ($WhatIfPreference) { $extraArgs += '--dry-run' }
+if ($Preflight) { $uploaderArgs += @('--preflight', $Preflight) }
+if ($WhatIfPreference) { $uploaderArgs += '--dry-run' }
 
-Write-Host "Invoking Google Play Console uploader (Track: $Track, Status: $Status)..." -ForegroundColor Cyan
-$committed = $null
-& $venvPython $pyScript $Track $Status @extraArgs | ForEach-Object {
+$commits = @(& $venvPython -B -u $pyScript @uploaderArgs | ForEach-Object {
     $line = [string]$_
     Write-Host $line
-    if ($line -match '^PLAY-COMMITTED versionCode=(\d+)(?: versionName=(\S*))? package=(\S+) track=(\S+) status=(\S+) held=([01])\s*$') {
-        $committed = [pscustomobject]@{ VersionCode = [long]$Matches[1]; VersionName = $Matches[2]; Held = ($Matches[6] -eq '1') }
+    if ($line -match '^PLAY-COMMITTED versionCode=(?<code>\d+) versionName=(?<name>.*?) package=(?<package>\S+) track=(?<track>\S+) status=(?<status>\S+) held=(?<held>[01])$') {
+        [pscustomobject]@{
+            VersionCode = [long]$Matches.code
+            VersionName = $Matches.name
+            Package = $Matches.package
+            Track = $Matches.track
+            Status = $Matches.status
+            Held = ($Matches.held -eq '1')
+        }
     }
-}
+})
 $pyExit = $LASTEXITCODE
-
-# The child already distinguishes "the release is at fault" from "could not verify"; this only has
-# to carry the distinction outward intact. Anything unexpected is reported as a fault rather than
-# silently promoted to "could not verify" - an unknown code is not evidence of innocence.
 if ($pyExit -eq 2) {
-    Write-Warning "Google Play publication could NOT be verified (Track: $Track). The release is not implicated - read the uploader's output above before re-running."
+    Write-Warning "Google Play publication stopped. Follow the uploader's instructions before another attempt."
     exit 2
 }
-
 if ($pyExit -ne 0) {
-    Write-Error "Google Play Console publication failed (Track: $Track, uploader exit $pyExit)." -ErrorAction Continue
+    Write-Error "Google Play publication failed (uploader exit $pyExit)." -ErrorAction Continue
     exit 1
 }
-
 if ($WhatIfPreference) {
-    Write-Host "Dry run completed - nothing was published." -ForegroundColor Yellow
     exit 0
 }
-Write-Host "Google Play Console publication completed." -ForegroundColor Green
 
-# S4679: record the channel step in the release ledger - pending while the commit is held,
-# submitted once handed over; the wrapper reports and never fails the release.
-if ($committed -and -not [string]::IsNullOrWhiteSpace([string]$committed.VersionName)) {
-    $ledgerKey = if ($Package -like '*watchface*') { 'play-watchface' } elseif ($Track -ne 'production') { 'play-wear' } else { 'play' }
-    $ledgerState = if ($committed.Held) { 'pending' } else { 'submitted' }
-    & (Join-Path $PSScriptRoot '..\utils\log-release-ledger-publish.ps1') -Key $ledgerKey -Version $committed.VersionName -State $ledgerState -Note "track $Track status $Status"
-} else {
-    Write-Warning "release ledger: the uploader reported no versionName; the Play publication is not recorded."
-}
+# The ledger and FGS baseline are keyed by the committed record, including in an app-wide batch.
+$phonePackage = 'com.sza.fastmediasorter'
+$ledgerScript = Join-Path $PSScriptRoot '..\utils\log-release-ledger-publish.ps1'
+foreach ($commit in $commits) {
+    $ledgerKey = switch ("$($commit.Package)/$($commit.Track)") {
+        "$phonePackage/production" { 'play' }
+        "${phonePackage}/wear:production" { 'play-wear' }
+        "${phonePackage}.watchface/wear:production" { 'play-watchface' }
+        "${phonePackage}.watchface/production" { 'play-watchface' }
+    }
+    if ($ledgerKey -and $commit.VersionName) {
+        $state = if ($commit.Held) { 'pending' } else { 'submitted' }
+        & $ledgerScript -Key $ledgerKey -Version $commit.VersionName -State $state -Note "track $($commit.Track) status $($commit.Status)"
+    } elseif ($ledgerKey) {
+        Write-Warning "Release ledger: no versionName in the committed record for $($commit.Track)."
+    }
 
-# Play carries the versionCode on production only after a commit that is not held; before that the
-# bundle's snapshot is just a build-time record and must not become anyone's baseline (S4499).
-if ($committed -and -not $committed.Held -and $Track -eq 'production' -and $Status -eq 'completed' -and [string]::IsNullOrWhiteSpace($Package)) {
-    $confirmScript = Join-Path $PSScriptRoot 'confirm-fgs-snapshot.ps1'
-    & $confirmScript -VersionCode $committed.VersionCode
-    if ($LASTEXITCODE -ne 0) {
-        Write-Warning "The FGS snapshot of versionCode $($committed.VersionCode) is not confirmed (confirm exit $LASTEXITCODE); the publication itself succeeded. Re-run: pwsh -NoProfile -File scripts/release/confirm-fgs-snapshot.ps1 -VersionCode $($committed.VersionCode)"
+    if ($commit.Package -eq $phonePackage -and $commit.Track -eq 'production' -and $commit.Status -eq 'completed') {
+        if ($commit.Held) {
+            Write-Host "Confirm the FGS snapshot after sending the held release (versionCode $($commit.VersionCode))."
+        } else {
+            $confirmScript = Join-Path $PSScriptRoot 'confirm-fgs-snapshot.ps1'
+            & $confirmScript -VersionCode $commit.VersionCode
+            if ($LASTEXITCODE -ne 0) {
+                Write-Warning "FGS snapshot needs confirmation. Run confirm-fgs-snapshot.ps1 -VersionCode $($commit.VersionCode)."
+            }
+        }
     }
 }
 exit 0

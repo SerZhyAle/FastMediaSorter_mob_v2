@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeRefusedExcepti
 import com.sza.fastmediasorter.data.remote.exchange.DeviceExchangeSession
 import com.sza.fastmediasorter.data.remote.exchange.ExchangeBroadcastPublication
 import com.sza.fastmediasorter.data.remote.exchange.ExchangeGrantAudiences
+import com.sza.fastmediasorter.data.remote.exchange.ExchangeKeepalivePacer
 import com.sza.fastmediasorter.data.remote.exchange.ExchangeLocalFailureClassifier
 import com.sza.fastmediasorter.data.remote.exchange.ExchangeNotesEnvelopes
 import com.sza.fastmediasorter.data.security.e2e.E2eRecipient
@@ -363,7 +364,7 @@ class SftpServerTunnelManager @Inject constructor(
         entry: DeviceExchangeAccountEntry,
         onFailure: (IOException) -> Unit,
     ): DeviceExchangeSession? = try {
-        client.openAuthenticated(entry, KEEPALIVE_SECONDS)
+        client.openAuthenticated(entry, ExchangeKeepalivePacer.PROPOSED_SECONDS)
     } catch (e: IOException) {
         onFailure(e)
         null
@@ -414,9 +415,10 @@ class SftpServerTunnelManager @Inject constructor(
         sharePort: Int?,
     ): SessionOutcome {
         val session = control.session
-        val intervalMs = (session.welcome.keepaliveSeconds ?: KEEPALIVE_SECONDS).toLong() * MILLIS_PER_SECOND
-        val lastHeard = LastHeard()
-        val keepalive = tunnels.launch(ioDispatcher) { keepalive(session, intervalMs, lastHeard) }
+        val intervalMs = (session.welcome.keepaliveSeconds ?: ExchangeKeepalivePacer.PROPOSED_SECONDS).toLong() *
+            MILLIS_PER_SECOND
+        val pacer = ExchangeKeepalivePacer(intervalMs)
+        val keepalive = tunnels.launch(ioDispatcher) { keepalive(session, pacer) }
         var outcome = SessionOutcome(wasWelcomed = true)
         var end: ControlStreamEnd? = null
         try {
@@ -445,7 +447,7 @@ class SftpServerTunnelManager @Inject constructor(
             var envelope = session.receive()
             var refusedHere = false
             while (envelope != null) {
-                lastHeard.touch()
+                pacer.heard()
                 val refused = handle(tunnels, control, envelope, entry, sharePort)
                 if (refused != null) outcome = refused.copy(wasWelcomed = true)
                 refusedHere = refused != null
@@ -454,11 +456,11 @@ class SftpServerTunnelManager @Inject constructor(
             // A refusal reports its own row; any other way out of the loop is the server closing the stream.
             if (!refusedHere) {
                 end = ControlStreamEnd.SERVER_CLOSED
-                end.report(null, lastHeard.sessionAgeMs(), lastHeard.silentFor())
+                end.report(null, pacer.sessionAgeMs(), pacer.silentForMs())
             }
         } catch (e: IOException) {
-            end = ControlStreamEnd.of(e, lastHeard.keepaliveClosed, detached = !currentCoroutineContext().isActive)
-            end.report(e, lastHeard.sessionAgeMs(), lastHeard.silentFor())
+            end = ControlStreamEnd.of(e, pacer.ended, detached = !currentCoroutineContext().isActive)
+            end.report(e, pacer.sessionAgeMs(), pacer.silentForMs())
         } finally {
             keepalive.cancel()
         }
@@ -619,16 +621,11 @@ class SftpServerTunnelManager @Inject constructor(
         return broadcast?.takeIf { it.record.broadcastId == broadcastId }?.localPorts?.get(scheme)
     }
 
-    // The server answers every keepalive, so three silent intervals mean a dead stream that TCP alone
+    // Paced in real time (ExchangeKeepalivePacer): a dead stream is found by the server's window, which TCP alone
     // could take many minutes to notice (contract section 7.3).
-    private suspend fun keepalive(control: DeviceExchangeSession, intervalMs: Long, lastHeard: LastHeard) {
-        var alive = true
-        while (alive) {
-            delay(intervalMs)
-            alive = lastHeard.silentFor() <= intervalMs * KEEPALIVE_WINDOW && sendQuietly(control, KEEPALIVE)
-        }
+    private suspend fun keepalive(control: DeviceExchangeSession, pacer: ExchangeKeepalivePacer) {
+        pacer.pace { sendQuietly(control, KEEPALIVE) }
         Timber.i("SftpServerTunnelManager: keepalive window missed or write failed")
-        lastHeard.keepaliveClosed = true
         close(control.connection)
     }
 
@@ -884,25 +881,6 @@ class SftpServerTunnelManager @Inject constructor(
 
     private data class SentGrant(val grantId: String, val broadcast: Boolean)
 
-    private class LastHeard {
-        private val startedAt = System.nanoTime()
-
-        @Volatile
-        private var at = startedAt
-
-        /** Set by the keepalive before it closes the socket, so the read failure after it is not blamed on the net. */
-        @Volatile
-        var keepaliveClosed = false
-
-        fun touch() {
-            at = System.nanoTime()
-        }
-
-        fun silentFor(): Long = (System.nanoTime() - at) / NANOS_PER_MILLI
-
-        fun sessionAgeMs(): Long = (System.nanoTime() - startedAt) / NANOS_PER_MILLI
-    }
-
     private data class SessionOutcome(
         /** A `welcome` was received, so the next attempt starts from the shortest backoff again. */
         val wasWelcomed: Boolean = false,
@@ -912,8 +890,6 @@ class SftpServerTunnelManager @Inject constructor(
 
     private companion object {
         const val LOOPBACK = "127.0.0.1"
-        const val KEEPALIVE_SECONDS = 30
-        const val KEEPALIVE_WINDOW = 3
         const val KEY_RESOURCE = "resource"
         const val KEY_BROADCAST = "broadcast"
         const val KEY_MAX_LISTENERS = "maxListeners"
@@ -922,7 +898,6 @@ class SftpServerTunnelManager @Inject constructor(
         const val INITIAL_BACKOFF_MS = 2_000L
         const val MAX_BACKOFF_MS = 120_000L
         const val MILLIS_PER_SECOND = 1_000L
-        const val NANOS_PER_MILLI = 1_000_000L
         const val BUFFER_SIZE = 32 * 1024
         const val EVENT_BUFFER = 16
         const val LOGGED_ID_CHARS = 8

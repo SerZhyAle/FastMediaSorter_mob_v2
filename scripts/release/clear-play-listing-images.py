@@ -19,12 +19,13 @@ Exit codes:
   3 - nothing to do: no image of that type exists in any requested locale
 """
 import argparse
+import json
 import os
 import sys
+from play_publishing import commit_edit, probe_edit, publishing_edit
 
 PACKAGE_NAME = "com.sza.fastmediasorter"
 KEY_PATH = os.path.join(".secrets", "play-console-key.json")
-SCOPE = "https://www.googleapis.com/auth/androidpublisher"
 IMAGE_TYPES = (
     "phoneScreenshots", "sevenInchScreenshots", "tenInchScreenshots",
     "wearScreenshots", "tvScreenshots", "featureGraphic", "icon", "tvBanner",
@@ -37,109 +38,58 @@ def parse_args(argv):
     parser.add_argument("--locales", default="",
                         help="Comma-separated BCP-47 tags. Empty means every locale the listing has.")
     parser.add_argument("--package", default=PACKAGE_NAME)
-    parser.add_argument("--key", default=KEY_PATH)
+    parser.add_argument("--key", default=KEY_PATH, help="Legacy key for read-only previews.")
+    parser.add_argument("--preflight", help="Approved preflight JSON required for writes.")
     parser.add_argument("--dry-run", action="store_true",
                         help="Report what would be deleted, then delete the edit unchanged.")
     return parser.parse_args(argv)
 
 
+def clear_images(service, edit_id, args, locales):
+    if not locales:
+        listings = service.edits().listings().list(
+            packageName=args.package, editId=edit_id
+        ).execute().get("listings", []) or []
+        locales = [entry["language"] for entry in listings]
+
+    found = 0
+    for language in locales:
+        images = service.edits().images().list(
+            packageName=args.package, editId=edit_id, language=language, imageType=args.image_type
+        ).execute().get("images", []) or []
+        if not images:
+            continue
+        found += len(images)
+        print(f"  {language}: {len(images)} {args.image_type} image(s)")
+        if not args.dry_run:
+            service.edits().images().deleteall(
+                packageName=args.package, editId=edit_id, language=language, imageType=args.image_type
+            ).execute()
+    return found
+
+
 def main(argv):
     args = parse_args(argv)
-
-    if not os.path.exists(args.key):
-        print(f"clear-play-listing-images: service-account key not found at '{args.key}'.", file=sys.stderr)
-        return 2
-
+    locales = [tag.strip() for tag in args.locales.split(",") if tag.strip()]
+    operations = [{"clearImageType": args.image_type, "locales": locales}]
+    print(f"Planned operations: {json.dumps(operations)}")
     try:
-        from google.oauth2 import service_account
-        from googleapiclient.discovery import build
-    except ImportError as exc:
-        print(f"clear-play-listing-images: Google API client unavailable ({exc}).", file=sys.stderr)
-        return 2
-
-    try:
-        creds = service_account.Credentials.from_service_account_file(args.key, scopes=[SCOPE])
-        service = build("androidpublisher", "v3", credentials=creds, cache_discovery=False)
-        edit_id = service.edits().insert(packageName=args.package, body={}).execute()["id"]
-    except Exception as exc:
-        print(f"clear-play-listing-images: could not open a Play edit ({exc}).", file=sys.stderr)
-        return 2
-
-    committed = False
-    try:
-        if args.locales.strip():
-            locales = [t.strip() for t in args.locales.split(",") if t.strip()]
-        else:
-            try:
-                listings = service.edits().listings().list(
-                    packageName=args.package, editId=edit_id).execute().get("listings", []) or []
-                locales = [entry["language"] for entry in listings]
-            except Exception as exc:
-                print(f"clear-play-listing-images: could not list locales ({exc}).", file=sys.stderr)
-                return 2
-
-        found = 0
-        for language in locales:
-            try:
-                images = service.edits().images().list(
-                    packageName=args.package, editId=edit_id,
-                    language=language, imageType=args.image_type).execute().get("images", []) or []
-            except Exception as exc:
-                print(f"clear-play-listing-images: could not read {args.image_type} for {language} ({exc}).",
-                      file=sys.stderr)
-                return 2
-
-            if not images:
-                continue
-            found += len(images)
-            print(f"  {language}: {len(images)} {args.image_type} image(s)")
-
-            if args.dry_run:
-                continue
-            try:
-                service.edits().images().deleteall(
-                    packageName=args.package, editId=edit_id,
-                    language=language, imageType=args.image_type).execute()
-            except Exception as exc:
-                print(f"clear-play-listing-images: could not delete {args.image_type} for {language} ({exc}).",
-                      file=sys.stderr)
-                return 2
-
-        if found == 0:
-            print(f"clear-play-listing-images: no {args.image_type} image in any requested locale.")
-            return 3
-
         if args.dry_run:
-            print(f"clear-play-listing-images: dry run - would delete {found} image(s).")
-            return 0
-
-        try:
-            # A standing policy rejection makes Play refuse an automatic review, exactly as it does
-            # for the track publisher next door; the change then waits in Publishing overview.
-            try:
-                service.edits().commit(packageName=args.package, editId=edit_id).execute()
-            except Exception as exc:
-                if "changesNotSentForReview" not in str(exc):
-                    raise
-                print("clear-play-listing-images: Play refused an automatic review - committing with "
-                      "changesNotSentForReview, so the change waits in Publishing overview.")
-                service.edits().commit(
-                    packageName=args.package, editId=edit_id, changesNotSentForReview=True).execute()
-            committed = True
-        except Exception as exc:
-            print(f"clear-play-listing-images: could not commit ({exc}).", file=sys.stderr)
-            return 2
-
-        print(f"clear-play-listing-images: deleted {found} {args.image_type} image(s) "
-              f"across {len(locales)} locale(s).")
+            with probe_edit(args.package, args.key) as (service, edit_id):
+                count = clear_images(service, edit_id, args, locales)
+                print(f"Would delete {count} {args.image_type} image(s).")
+                return 0 if count else 3
+        with publishing_edit(args.package, operations, args.preflight) as (service, edit, root, evidence, http):
+            count = clear_images(service, edit["id"], args, locales)
+            if not count:
+                print(f"No {args.image_type} images found.")
+                return 3
+            held = commit_edit(service, args.package, edit, root, evidence, http)
+        print(f"Committed the deletion of {count} {args.image_type} image(s) (held={int(held)}).")
         return 0
-    finally:
-        if not committed:
-            try:
-                service.edits().delete(packageName=args.package, editId=edit_id).execute()
-            except Exception as exc:
-                print(f"clear-play-listing-images: warning - edit {edit_id} was not deleted ({exc}).",
-                      file=sys.stderr)
+    except Exception as exc:
+        print(f"clear-play-listing-images: stopped ({exc}).", file=sys.stderr)
+        return 2
 
 
 if __name__ == "__main__":

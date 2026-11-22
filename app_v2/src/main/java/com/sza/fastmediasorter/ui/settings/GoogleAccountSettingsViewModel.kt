@@ -89,7 +89,8 @@ class GoogleAccountSettingsViewModel @Inject constructor(
 
     fun signInPrimary(activity: Activity) {
         viewModelScope.launch {
-            val result = identityRepository.signInPrimary(activity, primaryScopes())
+            // S4814: a re-sign-in has to offer an account the authorized-only pass no longer lists.
+            val result = identityRepository.signInPrimary(activity, primaryScopes(), preferAccountChooser = true)
             // On success, clear needs_sign_in for resources bound to this email.
             if (result is com.sza.fastmediasorter.domain.identity.IdentitySignInResult.Success) {
                 resourceDao.clearNeedsSignInForCredentials(result.account.email)

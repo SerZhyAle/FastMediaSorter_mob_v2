@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
 import com.sza.fastmediasorter.domain.identity.GoogleScope
 import com.sza.fastmediasorter.domain.identity.IdentitySignInResult
 import com.sza.fastmediasorter.domain.identity.PrimaryGoogleAccountState
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -12,7 +13,9 @@ import javax.inject.Inject
  * consent screen, which no worker can show.
  *
  * A bound account takes the grant alone, because the account chooser of a full sign-in could replace
- * the binding with another account; an unbound phone has nothing to keep and takes the full sign-in.
+ * the binding with another account. Every other state has no binding to keep and takes the full sign-in
+ * with the account chooser forced: the authorized-accounts-only first pass answers with the accounts Google
+ * already lists for the app, which hides the account that needs the sign-in (S4814).
  */
 class GrantTicketDriveAccessUseCase @Inject constructor(
     private val identityRepository: GoogleIdentityRepository
@@ -31,6 +34,7 @@ class GrantTicketDriveAccessUseCase @Inject constructor(
         if (identityRepository.state.value is PrimaryGoogleAccountState.Bound) {
             identityRepository.grantScopes(activityContext, driveScopes)
         } else {
-            identityRepository.signInPrimary(activityContext, signInScopes)
+            Timber.d("S4814: ticket sign-in forces the account chooser")
+            identityRepository.signInPrimary(activityContext, signInScopes, preferAccountChooser = true)
         }
 }

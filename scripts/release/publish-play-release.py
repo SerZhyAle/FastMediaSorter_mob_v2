@@ -1,65 +1,39 @@
 #!/usr/bin/env python
-"""Publish a FastMediaSorter AAB to a Google Play track (bundle + track + commit).
+"""Stage one application's Google Play tracks, release notes and optional listing in one edit.
 
-Separate from publish-play-listing.py, which pushes the store listing texts and images. This
-script uploads the bundle, attaches it to a track together with the fastlane changelogs, and
-commits the edit. Both reuse the same service-account key.
+Single-track usage: [track] [status] [--aab PATH --version-code N] [--version-name NAME]
+                    [--package NAME] [--notes-file PATH | --notes-code N] [--listing-root PATH]
+Batch usage: --batch PATH (JSON with packageName, releases and optional listingRoot).
 
-Usage:
-    python publish-play-release.py [track] [status] [--aab PATH] [--version-code N] [--notes-code N]
-                                   [--package NAME] [--notes-file PATH] [--listing-root PATH]
-                                   [--dry-run]
+Use --dry-run to print the operation list locally. Real edits require --preflight with the matching
+operations and SZA_PLAY_SERVICE_ACCOUNT_JSON. Another application supplies its own release notes.
+Each successfully committed track emits one PLAY-COMMITTED record for the PowerShell wrapper.
 
---package addresses another Play app (the watch face, S4009); the default is the phone package.
-The fastlane changelogs belong to the default package only: another package reads its release notes
-from --notes-file and nowhere else, so a face release never borrows the phone's text. The notes file
-holds the Play Console paste format - `<en-US>..</en-US>` blocks, one per language; a file with no
-block is filed as en-US. --dry-run resolves and prints the plan, then exits before any API call.
-
---listing-root writes that store listing (texts and images, the folder layout of
-publish-play-listing.py) into the same edit as the bundle, so the track and the listing reach Play as
-one commit and one review submission. Two commits made one after another are two submissions, and the
-second cancels the first while it is in review (contract GOOGLE-PLAY rule 28, S4799). The listing is
-read and checked before the edit is opened.
-
-Exit codes:
-    0 - the bundle is on the track and the edit was committed (Play may route it via review), or
-        --dry-run printed the plan.
-    1 - the release is at fault: the AAB is missing, a non-default package has no notes file, the
-        --listing-root listing is missing a file or breaks a length limit, or Play rejected the
-        payload. That includes
-        the Foreground-service-permissions 403 on commit, which is a build defect - the standard
-        bundle gained a foreground-service type - fixed in the build (strip the type, re-version,
-        rebuild, republish) and has to stay visible as a finding rather than as "could not verify".
-
-After a successful commit the script prints one machine line, read by publish-play-release.ps1:
-    PLAY-COMMITTED versionCode=<n> versionName=<v|empty> package=<name> track=<track> status=<status> held=<0|1>
-    2 - could not verify: a sustained transient failure (5xx, rate limit, network). The release is
-        NOT implicated - re-run when the API recovers.
+Exit codes: 0 planned or committed; 1 invalid or rejected payload (including an FGS 403);
+2 unable to verify preconditions or API outcome.
 """
+import argparse
 import importlib.util
 import json
 import os
+from pathlib import Path
 import re
 import socket
 import ssl
 import sys
 import httplib2
 from google.auth.exceptions import TransportError
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
+from googleapiclient.http import MediaIoBaseUpload
+
+from play_publishing import (
+    API_NUM_RETRIES, PlayStop, commit_edit, connect_publisher, file_sha256, json_sha256,
+    package_id, publishing_edit, read_object, validate_edit,
+)
 
 # Increase default timeout for slow connections during large file uploads
 socket.setdefaulttimeout(120)
 
 PACKAGE_NAME = 'com.sza.fastmediasorter'
-
-# Passed to every .execute() that is safe to repeat. google-api-python-client carries its own
-# randomized exponential backoff, but it engages only when the caller asks for it: with no
-# num_retries the first refusal is raised straight out. Which calls are excluded, and why the
-# commit is one of them, is written at the call sites (S2346).
-API_NUM_RETRIES = 5
 
 # A failure carrying one of these is Google's or the network's, never the release's, so it maps onto
 # exit 2 - "could not verify" - instead of exit 1. Deliberately narrow, and the narrowness earns its
@@ -100,17 +74,6 @@ REPO_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, '..', '..'))
 # local build, never the release, and its changelogs for a new versionCode appear only after
 # the post-publish commit lands on main and merges back.
 RELEASE_WORKTREE = os.path.abspath(os.path.join(REPO_ROOT, '..', 'FastMediaSorter_release'))
-SECRETS_DIR = os.path.join(REPO_ROOT, '.secrets')
-KEY_FILE = next(
-    (
-        path for path in (
-            os.path.join(SECRETS_DIR, 'play-console-key.json'),
-            os.path.join(REPO_ROOT, 'play-console-key.json'),
-        )
-        if os.path.exists(path)
-    ),
-    os.path.join(SECRETS_DIR, 'play-console-key.json'),
-)
 AAB_PATH = os.path.join(REPO_ROOT, 'DOWNLOADS', 'FastMediaSorter_standard_release.aab')
 
 def bundle_metadata_path(aab_path):
@@ -186,107 +149,30 @@ def read_bundle_metadata_element(aab_path):
     return None
 
 
-def get_version_name(aab_path):
-    """Reads the versionName the release build packaged into the bundle being uploaded."""
-    element = read_bundle_metadata_element(aab_path)
-    return element['versionName'] if element else None
-
 def parse_args(argv):
-    """Positional track/status, plus the flags a non-standard artifact needs.
-
-    The phone AAB is the default because it is the only artifact this script published for
-    its first two years. The watch bundle goes to its own form-factor track under the same
-    applicationId, carries its own versionCode, and is not described by the phone bundle's
-    output-metadata.json - hence the explicit --aab / --version-code pair (S1707).
-    """
-    aab_path = AAB_PATH
-    version_code = None
-    notes_code = None
-    package_name = PACKAGE_NAME
-    notes_file = None
-    listing_root = None
-    dry_run = False
-    positional = []
-    i = 0
-    while i < len(argv):
-        arg = argv[i]
-        if arg == '--package':
-            package_name = argv[i + 1]
-            i += 2
-        elif arg == '--notes-file':
-            notes_file = os.path.abspath(argv[i + 1])
-            i += 2
-        elif arg == '--listing-root':
-            listing_root = os.path.abspath(argv[i + 1])
-            i += 2
-        elif arg == '--dry-run':
-            dry_run = True
-            i += 1
-        elif arg == '--aab':
-            aab_path = os.path.abspath(argv[i + 1])
-            i += 2
-        elif arg == '--version-code':
-            version_code = int(argv[i + 1])
-            i += 2
-        elif arg == '--notes-code':
-            notes_code = int(argv[i + 1])
-            i += 2
-        else:
-            positional.append(arg)
-            i += 1
-    track = positional[0] if positional else 'production'
-    status = positional[1] if len(positional) > 1 else 'completed'
-    return {
-        'track': track,
-        'status': status,
-        'aab_path': aab_path,
-        'version_code': version_code,
-        'notes_code': notes_code,
-        'package_name': package_name,
-        'notes_file': notes_file,
-        'listing_root': listing_root,
-        'dry_run': dry_run,
-    }
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('track', nargs='?')
+    parser.add_argument('status', nargs='?')
+    parser.add_argument('--aab')
+    parser.add_argument('--version-code', type=int)
+    parser.add_argument('--version-name')
+    parser.add_argument('--notes-code', type=int)
+    parser.add_argument('--notes-file')
+    parser.add_argument('--package', dest='package_name')
+    parser.add_argument('--listing-root')
+    parser.add_argument('--batch')
+    parser.add_argument('--preflight')
+    parser.add_argument('--dry-run', action='store_true')
+    return vars(parser.parse_args(argv))
 
 
-def get_expected_version_code(aab_path):
-    """Reads the versionCode the release build actually packaged into the bundle.
+def list_existing_bundles(service, package, edit_id):
+    response = service.edits().bundles().list(
+        packageName=package, editId=edit_id
+    ).execute(num_retries=API_NUM_RETRIES)
+    return {int(bundle['versionCode']): (bundle.get('sha256') or '').lower()
+            for bundle in response.get('bundles', [])}
 
-    S1873: this used to parse `defaultAppVersionCode` out of app_v2/build.gradle.kts, on the
-    assumption that the release build had just written it there. ADR-4 removed that writer - the
-    version travels to gradle as a property and the checked-in constants are a deliberate
-    non-releasable sentinel - so the build file would now answer with a code no AAB carries, and
-    the Play pre-check would compare the library against a version nobody built.
-
-    AGP writes output-metadata.json beside the bundle it produced, so that file cannot disagree
-    with the artifact. Used to pre-check the Play library without uploading first. Returns the int
-    code, or None if it cannot be resolved.
-    """
-    element = read_bundle_metadata_element(aab_path)
-    return int(element['versionCode']) if element else None
-
-def list_existing_bundle_codes(service, edit_id, package_name=PACKAGE_NAME):
-    """Returns the set of versionCodes already present in the App Bundle Explorer.
-
-    A re-run after a rejected commit (e.g. the Foreground-service-permissions 403)
-    finds the previously uploaded bundle here, so we can attach it instead of
-    re-uploading a versionCode Play would refuse as a duplicate.
-    """
-    try:
-        response = service.edits().bundles().list(
-            packageName=package_name, editId=edit_id
-        ).execute(num_retries=API_NUM_RETRIES)
-        return {int(b['versionCode']) for b in response.get('bundles', [])}
-    except Exception as e:
-        # A transient refusal here means "the library is unreadable", not "the library is empty",
-        # and the two lead opposite ways: falling back to upload would push a versionCode that may
-        # already be published, and Play's refusal of the duplicate would then be reported against
-        # the artifact. Nothing has been uploaded at this point, so re-raising costs only an
-        # abandoned edit, which expires on its own (S2346).
-        if _is_transient(e):
-            raise
-        print(f"Warning: Could not list existing bundles ({e}). Falling back to upload.")
-        return set()
 
 def get_release_notes(version_code):
     """Checks for fastlane changelogs for the given version_code.
@@ -349,241 +235,226 @@ def load_listing_module():
     return module
 
 
-def prepare_listing(listing_module, listing_root):
-    """((locales, payloads), None) for a listing root, or (None, reason) - before any API call."""
-    locales, reason = listing_module.resolve_locales(listing_root)
-    if locales is None:
-        return None, reason
-    payloads = {}
-    over_limit = []
-    for folder in locales:
-        listing, over = listing_module.load_listing(folder, listing_root)
-        if listing is None:
-            return None, '; '.join(over)
-        over_limit.extend(over)
-        payloads[folder] = listing
-    if over_limit:
-        return None, 'char-limit violations: ' + '; '.join(over_limit)
-    return (locales, payloads), None
+def path_in(base, value):
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError("Expected a file or directory path in the release plan.")
+    return (base / value).resolve()
 
 
-def main():
-    args = parse_args(sys.argv[1:])
-    track_name = args['track']
-    status = args['status']
-    aab_path = args['aab_path']
-    forced_version_code = args['version_code']
-    notes_code = args['notes_code']
-    package_name = args['package_name']
-    notes_file = args['notes_file']
-
-    if not os.path.exists(aab_path):
-        print(f"ERROR: AAB file not found at {aab_path}")
-        sys.exit(1)
-
-    # Checked before any API call: a missing notes file for another app is the release's fault,
-    # and an edit opened first would only have to be abandoned.
-    if package_name != PACKAGE_NAME and not notes_file:
-        print(f"ERROR: package {package_name} reads release notes from --notes-file only "
-              "- the phone's fastlane changelogs are not its text.")
-        sys.exit(1)
-    if notes_file and not os.path.exists(notes_file):
-        print(f"ERROR: notes file not found at {notes_file}")
-        sys.exit(1)
-    file_notes = read_notes_file(notes_file) if notes_file else None
-    if file_notes is not None and not file_notes:
-        print(f"ERROR: {notes_file} holds no release text.")
-        sys.exit(1)
-
-    listing_root = args['listing_root']
-    listing_module = None
-    listing_plan = None
-    if listing_root:
-        listing_module = load_listing_module()
-        listing_plan, reason = prepare_listing(listing_module, listing_root)
-        if listing_plan is None:
-            print(f"ERROR: listing {listing_root}: {reason}")
-            sys.exit(1)
-
-    print(f"Target track: {track_name} (status: {status})")
-    print(f"Service account key: {KEY_FILE}")
-    print(f"Package name: {package_name}")
-    print(f"AAB Path: {aab_path} ({os.path.getsize(aab_path) / 1024 / 1024:.2f} MB)")
+def release_notes(package, version, notes_file, fallback):
     if notes_file:
-        print(f"Notes file: {notes_file}")
-    if listing_plan is not None:
-        print(f"Listing: {listing_root} ({', '.join(listing_plan[0])}) - same edit, one commit")
+        notes = read_notes_file(notes_file)
+        if not notes:
+            raise ValueError(f"Notes file holds no release text: {notes_file}")
+        print(f"Release notes for {version}: {notes_file}")
+        return notes
+    if package != PACKAGE_NAME:
+        raise ValueError(f"Package {package} requires its own release notes file.")
 
-    if args['dry_run']:
-        print("DRY RUN: no edit opened, nothing uploaded, nothing committed.")
-        sys.exit(0)
+    notes = get_release_notes(version)
+    if not notes and fallback is not None:
+        notes = get_release_notes(fallback)
+        if notes:
+            print(f"Release notes for {version}: fallback changelog {fallback}")
+    return notes
 
-    # Read by the handler below to tell "the run never got that far" from "the bundle is in the
-    # library and only the commit is unaccounted for" - two situations that need opposite first
-    # moves from the operator, and which one exit code alone cannot separate (S2346).
-    commit_started = False
 
-    try:
-        # 1. Initialize API Service
-        creds = service_account.Credentials.from_service_account_file(
-            KEY_FILE, 
-            scopes=['https://www.googleapis.com/auth/androidpublisher']
-        )
-        service = build('androidpublisher', 'v3', credentials=creds)
+def prepare_release(entry, package, base, batch):
+    if not isinstance(entry, dict) or set(entry) - {
+        'track', 'status', 'aab', 'versionCode', 'versionName', 'notesFile', 'notesVersionCode'
+    }:
+        raise ValueError("Each batch entry must describe one track of the application.")
+    track = entry.get('track')
+    status = entry.get('status', 'completed')
+    if not isinstance(track, str) or not re.fullmatch(r'\S+', track):
+        raise ValueError("A release needs a track without whitespace.")
+    if status not in ('draft', 'completed'):
+        raise ValueError(f"Unsupported track status for {track}: {status}")
 
-        # 2. Start Edit Transaction
-        print("\nStarting new edit transaction...")
-        edit = service.edits().insert(packageName=package_name, body={}).execute(
-            num_retries=API_NUM_RETRIES)
-        edit_id = edit['id']
-        print(f"Edit transaction created: {edit_id}")
+    path = path_in(base, entry.get('aab'))
+    if not path.is_file():
+        raise ValueError(f"AAB file not found: {path}")
+    expected = entry.get('versionCode')
+    if (batch or expected is not None) and (type(expected) is not int or expected <= 0):
+        raise ValueError(f"Track {track} requires a positive integer versionCode.")
 
-        # 3. Attach existing bundle or upload a fresh one.
-        # If the build's versionCode is already in the App Bundle Explorer (e.g. a
-        # prior run uploaded it but the commit was rejected by the FGS-permissions
-        # gate), skip the upload and attach that bundle to the track - Play refuses
-        # re-uploading a versionCode that already exists. Otherwise upload as usual.
-        expected_version_code = forced_version_code if forced_version_code else get_expected_version_code(aab_path)
-        existing_codes = list_existing_bundle_codes(service, edit_id, package_name)
-        version_code = None
+    version_name = entry.get('versionName')
+    if batch and not version_name:
+        raise ValueError(f"Track {track} requires the artifact's own versionName.")
+    if not batch and (expected is None or version_name is None):
+        element = read_bundle_metadata_element(path)
+        if element:
+            metadata_code = int(element['versionCode'])
+            if expected is None:
+                expected = metadata_code
+            if version_name is None and expected == metadata_code:
+                version_name = element.get('versionName')
+    if expected is None or expected <= 0:
+        raise ValueError(f"Track {track} needs version metadata for this artifact or --version-code.")
+    if version_name is not None and (
+        not isinstance(version_name, str) or not version_name.strip()
+        or '\r' in version_name or '\n' in version_name
+    ):
+        raise ValueError(f"Invalid versionName for track {track}.")
 
-        if expected_version_code is not None and expected_version_code in existing_codes:
-            version_code = expected_version_code
-            print(f"\nBundle {version_code} already in library - skipping upload, attaching existing bundle.")
-        else:
-            if expected_version_code is not None:
-                print(f"\nBundle {expected_version_code} not in library (have: {sorted(existing_codes) or 'none'}) - uploading.")
-            print("\nUploading AAB (resumable, library-managed retry)...")
-            media = MediaFileUpload(aab_path, mimetype='application/octet-stream', resumable=True)
-            request = service.edits().bundles().upload(packageName=package_name, editId=edit_id, media_body=media)
+    notes_file = path_in(base, entry['notesFile']) if entry.get('notesFile') is not None else None
+    fallback = entry.get('notesVersionCode')
+    if fallback is not None and (type(fallback) is not int or fallback <= 0):
+        raise ValueError(f"Invalid notesVersionCode for track {track}.")
+    notes = release_notes(package, expected, notes_file, fallback)
 
-            # The retry belongs to the library, not to this loop. A resumable upload addresses a
-            # repeated chunk by the byte offset the server confirms, so retrying one is safe - and
-            # next_chunk's own backoff is randomized and spread out. The hand-rolled loop this
-            # replaced retried ANY exception five times with no pause at all, which spent five extra
-            # requests on payload Play had already rejected and gave a real 5xx five instant
-            # attempts instead of spaced ones (S2346).
-            response = None
-            while response is None:
-                status_progress, response = request.next_chunk(num_retries=API_NUM_RETRIES)
-                if status_progress:
-                    print(f"  Uploaded: {status_progress.progress() * 100:.1f}%")
+    body = {'versionCodes': [str(expected)], 'status': status}
+    if version_name:
+        body['name'] = version_name
+    if notes:
+        body['releaseNotes'] = notes
+    operation = {
+        'track': track, 'status': status, 'versionCode': expected, 'versionName': version_name,
+        'aabSha256': file_sha256(path),
+        'releaseNotesSha256': json_sha256(notes),
+        'releaseNotesLanguages': [note['language'] for note in notes],
+    }
+    return {'path': path, 'body': body, 'operation': operation}
 
-            version_code = response['versionCode']
-            print(f"SUCCESS: AAB uploaded. Version Code: {version_code}")
 
-        # 4. Read release notes
-        # The artifact's OWN changelog wins, and --notes-code is only the fallback for an artifact
-        # that has none of its own - a form-factor build that ships the phone's text rather than no
-        # text at all. It used to be the other way round, and that left a watch release exactly one
-        # place to put watch-specific notes: on top of the phone changelog the fallback names. The
-        # watch notes of 2026-09-05 landed in the phone's 260902195.txt that way, where they were
-        # what Play and IzzyOnDroid showed for the phone version until a merge collided (S3027).
-        if file_notes is not None:
-            release_notes = file_notes
-            print(f"Release notes: {len(release_notes)} language(s) from {notes_file}")
-        else:
-            release_notes = get_release_notes(version_code)
-            if release_notes:
-                print(f"Release notes: from this artifact's own versionCode {version_code}")
-            elif notes_code:
-                release_notes = get_release_notes(notes_code)
-                if release_notes:
-                    print(f"Release notes: none under {version_code}, falling back to --notes-code {notes_code}")
-        if not release_notes:
-            print("Release notes: none found - the release is committed without notes")
-        version_name = get_version_name(aab_path)
-
-        # 5. Update Track
-        print(f"\nAdding bundle {version_code} to track '{track_name}' as {status}...")
-        release_body = {
-            'versionCodes': [str(version_code)],
-            'status': status
+def prepare_plan(args):
+    if args['batch']:
+        if any(args[key] is not None for key in (
+            'track', 'status', 'package_name', 'aab', 'version_code', 'version_name',
+            'notes_code', 'notes_file', 'listing_root'
+        )):
+            raise ValueError("--batch supplies the package, tracks, artifacts, notes and listing by itself.")
+        batch = Path(args['batch']).resolve()
+        plan = read_object(batch)
+        if set(plan) - {'packageName', 'releases', 'listingRoot'}:
+            raise ValueError("A batch accepts packageName, releases and an optional listingRoot.")
+        base = batch.parent
+    else:
+        batch = None
+        base = Path.cwd()
+        if args['aab'] and args['version_code'] is None:
+            raise ValueError("--version-code is required with --aab.")
+        plan = {
+            'packageName': args['package_name'] or PACKAGE_NAME,
+            'listingRoot': args['listing_root'],
+            'releases': [{
+                'track': args['track'] or 'production', 'status': args['status'] or 'completed',
+                'aab': args['aab'] or AAB_PATH, 'versionCode': args['version_code'],
+                'versionName': args['version_name'], 'notesFile': args['notes_file'],
+                'notesVersionCode': args['notes_code'],
+            }],
         }
-        if version_name:
-            release_body['name'] = version_name
-        if release_notes:
-            release_body['releaseNotes'] = release_notes
 
-        track_body = {
-            'track': track_name,
-            'releases': [release_body]
-        }
+    package = package_id(plan.get('packageName') or '')
+    entries = plan.get('releases')
+    if not isinstance(entries, list) or not entries:
+        raise ValueError("A batch must contain at least one release track.")
+    releases = [prepare_release(entry, package, base, bool(batch)) for entry in entries]
+    operations = [release['operation'] for release in releases]
+    if len({operation['track'] for operation in operations}) != len(operations):
+        raise ValueError("A batch can update each track only once.")
+    identities = {}
+    for operation in operations:
+        code = operation['versionCode']
+        identity = (operation['aabSha256'], operation['versionName'])
+        if identities.setdefault(code, identity) != identity:
+            raise ValueError(f"VersionCode {code} refers to conflicting artifact identities.")
 
+    listing_module = listings = None
+    if plan.get('listingRoot') is not None:
+        listing_module = load_listing_module()
+        listings = listing_module.prepare_listing(str(path_in(base, plan['listingRoot'])))
+        operations.append(listing_module.listing_operation(listings))
+    return package, releases, listing_module, listings, operations
+
+
+def upload_bundle(service, package, edit_id, release):
+    operation = release['operation']
+    path = release['path']
+    if file_sha256(path) != operation['aabSha256']:
+        raise ValueError(f"AAB changed after preflight: {path}")
+    print(f"Uploading AAB {operation['versionCode']} with resumable upload.")
+    with path.open('rb') as stream:
+        media = MediaIoBaseUpload(stream, mimetype='application/octet-stream', resumable=True)
+        request = service.edits().bundles().upload(packageName=package, editId=edit_id, media_body=media)
+        response = None
+        while response is None:
+            progress, response = request.next_chunk(num_retries=API_NUM_RETRIES)
+            if progress:
+                print(f"  Uploaded: {progress.progress() * 100:.1f}%")
+
+    version = operation['versionCode']
+    if int(response['versionCode']) != version:
+        raise ValueError(f"Play uploaded versionCode {response['versionCode']}, but the plan expects {version}.")
+    if (response.get('sha256') or '').lower() != operation['aabSha256']:
+        raise ValueError(f"Play returned a different SHA-256 for AAB {version}.")
+
+
+def stage_releases(service, package, edit_id, releases):
+    bundles = list_existing_bundles(service, package, edit_id)
+    for release in releases:
+        operation = release['operation']
+        code = operation['versionCode']
+        if code in bundles and bundles[code] != operation['aabSha256']:
+            raise ValueError(f"Play library versionCode {code} does not match the planned AAB SHA-256.")
+
+    for release in releases:
+        operation = release['operation']
+        code = operation['versionCode']
+        digest = operation['aabSha256']
+        if code in bundles:
+            print(f"Attaching verified library bundle {code}.")
+        else:
+            upload_bundle(service, package, edit_id, release)
+            bundles[code] = digest
+
+    for release in releases:
+        operation = release['operation']
+        track = operation['track']
         service.edits().tracks().update(
-            packageName=package_name,
-            editId=edit_id,
-            track=track_name,
-            body=track_body
+            packageName=package, editId=edit_id, track=track,
+            body={'track': track, 'releases': [release['body']]}
         ).execute(num_retries=API_NUM_RETRIES)
-        print("Track updated successfully.")
+        print(f"Staged versionCode {operation['versionCode']} on {track} as {operation['status']}.")
 
-        if listing_plan is not None:
-            locales, payloads = listing_plan
-            print("\nWriting the store listing into the same edit...")
-            for folder, language in locales.items():
-                service.edits().listings().update(
-                    packageName=package_name, editId=edit_id,
-                    language=language, body=payloads[folder]).execute(num_retries=API_NUM_RETRIES)
-                imgs = listing_module.upload_images(
-                    service, edit_id, folder, language, package_name, listing_root)
-                print(f"  {folder} -> {language}: listing updated, images uploaded: {imgs}")
 
-        # 6. Commit Edit
-        # Which review mode Play accepts is a property of the app's state, not a constant:
-        # normally changesNotSentForReview is rejected with HTTP 400, but while the app is under
-        # a policy enforcement the commit is rejected WITHOUT it. Both refusals name the
-        # parameter, so try the automatic path first and fall back to holding the changes
-        # (S1989 - this was hardcoded to the automatic path and stopped working on 2026-08-24).
-        print("\nCommitting changes to Google Play Console...")
-        held = False
-        commit_started = True
-        try:
-            # No num_retries on either commit, unlike every call above. The commit is the one
-            # one-way step: if a response is lost after Play has already accepted the edit, the
-            # retry arrives at an edit that no longer exists and comes back 4xx - which reads
-            # from outside as a rejected release. That is the same false accusation this ticket
-            # removes, entering through the other door (S2346).
-            service.edits().commit(packageName=package_name, editId=edit_id).execute()
-        except Exception as exc:  # noqa: BLE001 - the API surfaces this as a generic HttpError
-            if 'changesNotSentForReview' not in str(exc):
-                raise
-            print("Play refuses automatic review for this app - committing with changes held.")
-            service.edits().commit(
-                packageName=package_name, editId=edit_id, changesNotSentForReview=True
-            ).execute()
-            held = True
+def main(argv=None):
+    args = parse_args(argv)
+    try:
+        package, releases, listing_module, listings, operations = prepare_plan(args)
+        print(f"Release plan for {package}")
+        print(f"Planned operations: {json.dumps(operations)}")
+        if args['dry_run']:
+            print("Dry run completed without an API call.")
+            return 0
 
-        if held:
-            print(f"SUCCESS: AAB version {version_code} committed to '{track_name}' as '{status}', but HELD.")
-            print("Send it from the Console: Publishing overview -> Send changes for review.")
-        else:
-            print(f"SUCCESS: Edit transaction committed. AAB version {version_code} is now published on '{track_name}' track as '{status}'!")
-        # Read by publish-play-release.ps1 to confirm the release's FGS snapshot (S4499); a held
-        # commit is not served yet, so the wrapper leaves the snapshot pending for it.
-        # versionName (S4679) is the bundle's own name (get_version_name) - the release-ledger
-        # publish event records it; empty when this commit carried no AAB.
-        print(f"PLAY-COMMITTED versionCode={version_code} versionName={version_name if version_name else ''} package={package_name} track={track_name} status={status} held={int(held)}")
-        if held and track_name == 'production' and package_name == PACKAGE_NAME:
-            print("FGS snapshot stays pending until the held changes are sent; then run "
-                  f"scripts/release/confirm-fgs-snapshot.ps1 -VersionCode {version_code}")
+        with publishing_edit(package, operations, args['preflight'], connect_publisher) as (
+            service, edit, root, evidence, http
+        ):
+            stage_releases(service, package, edit['id'], releases)
+            if listing_module is not None:
+                listing_module.stage_listing(service, package, edit['id'], listings)
+            validate_edit(service, package, edit['id'])
+            held = commit_edit(service, package, edit, root, evidence, http)
 
-    except Exception as e:  # noqa: BLE001 - surface the API error and pick the honest exit code
-        if _is_transient(e):
-            print(f"\nCOULD NOT VERIFY: the Play API refused the request transiently: {e}")
-            print(f"Already retried {API_NUM_RETRIES} times with backoff, so this is a sustained")
-            print("outage rather than one hiccup. The release itself is not implicated.")
-            if commit_started:
-                print("\nThe failure happened AT THE COMMIT, so the bundle is already in the")
-                print("App Bundle Explorer and only the edit's fate is unknown. Open Publishing")
-                print("overview in the Console before re-running: a re-run attaches the uploaded")
-                print("versionCode instead of uploading it again, but it cannot tell you whether")
-                print("the previous commit landed.")
-            else:
-                print("Nothing was committed - re-run when the API recovers.")
-            sys.exit(2)
-        print(f"\nERROR: {e}")
-        sys.exit(1)
+        print(f"Edit committed for {package} (held={int(held)}). Verify disposition in Publishing overview.")
+        for release in releases:
+            operation = release['operation']
+            name = operation['versionName'] or ''
+            print(f"PLAY-COMMITTED versionCode={operation['versionCode']} versionName={name} "
+                  f"package={package} track={operation['track']} status={operation['status']} held={int(held)}")
+        return 0
+    except PlayStop as exc:
+        print(f"Google Play stopped: {exc}", file=sys.stderr)
+        return 2
+    except Exception as exc:
+        if _is_transient(exc):
+            print(f"Could not verify the release because the Play request failed transiently: {exc}",
+                  file=sys.stderr)
+            return 2
+        print(f"Release rejected: {exc}", file=sys.stderr)
+        return 1
+
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())

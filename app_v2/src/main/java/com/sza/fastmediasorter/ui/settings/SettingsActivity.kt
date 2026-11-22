@@ -269,7 +269,6 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             tab.text = getString(adapter.getTabTitleResId(position))
         }.attach()
         if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] TabLayoutMediator attached")
-        Timber.d("S4634: four-tab strip attached tabs=${binding.tabLayout.tabCount}")
         setupConnectedTabs(adapter)
 
         val initialTab = intent.getIntExtra(EXTRA_INITIAL_TAB, -1)

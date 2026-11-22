@@ -24,7 +24,7 @@ The server erases the account at once. Nothing has to be requested and nobody ha
 Use this when the phone is lost, reset or broken, or you cannot sign in:
 
 - **Ask whoever runs the server.** The owner of a server can delete any account on it, and the erasure is the same as the one you do in the app. Tell the owner your login; it is on the server's card in the app, and in the invitation you registered with if you kept it. The person who gave you the invitation is the owner or knows who is.
-- **If you run the server yourself,** open Share Manager of [Fast Media Sorter & Sharing for Windows](windows-servers.html), go to the Media Exchange Server page and remove the account there.
+- **If you run the server yourself,** open [FastMediaSorter for Web](https://serzhyale.github.io/FastMediaSorter_WEB/) in a browser, sign in to your server and remove the account there. You can also use Share Manager of [Fast Media Sorter & Sharing for Windows](windows-servers.html), on its Media Exchange Server page.
 - **Or use another phone.** Install Fast Media Sorter & Organizer, add the server, sign in with the login and the password, and delete the account as above.
 
 The developer of the app cannot delete an account on a server the developer does not run. If you do not know who runs the server, write to <sza@ukr.net> and you will be told what the app and the server can do - but nobody at that address can reach the server.

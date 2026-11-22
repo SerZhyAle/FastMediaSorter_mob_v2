@@ -27,6 +27,7 @@
 {"kind":"address","address":"documentation/index-ru.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/SupportIntentFactory.kt"]}
 {"kind":"address","address":"documentation/index-uk.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/SupportIntentFactory.kt"]}
 {"kind":"address","address":"index.html","holders":["store_assets/post.md"]}
+{"kind":"sibling","address":"https://serzhyale.github.io/FastMediaSorter_WEB/","holders":["README.md","docs/README*.md"]}
 {"kind":"sibling","address":"https://serzhyale.github.io/FastMediaSorter_Lite/","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/SupportIntentFactory.kt"]}
 {"kind":"sibling","address":"https://serzhyale.github.io/FastMediaSorter_Lite/publish-folders-android.html","holders":["app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/SupportIntentFactory.kt","docs/README*.md","README.md"]}
 {"kind":"sibling","address":"https://serzhyale.github.io/universal-agent-kit/","holders":["docs/README*.md","README.md"]}

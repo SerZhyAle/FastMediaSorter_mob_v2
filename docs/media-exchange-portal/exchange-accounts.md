@@ -63,7 +63,7 @@ The same two ways exist for a broadcast.
 ## Changing a password {#change-password}
 
 - **You know the password.** Open **My devices**, the menu of the server's card, **Change password**, then type the current password and the new one. This device stays signed in; every other device of the account signs out and asks for the new password, and its place in the list stays.
-- **The owner resets it.** The owner of the server can set a new password for any account. The effect is the same, with no device spared: all of them ask for the new password.
+- **The owner resets it.** The owner of the server can set a new password for any account in [FastMediaSorter for Web](https://serzhyale.github.io/FastMediaSorter_WEB/) in a browser. The effect is the same, with no device spared: all of them ask for the new password.
 - **You forgot it.** It cannot be recovered: there is no e-mail in the account to send a link to. Ask the owner of the server to reset it, or create a new account with a new invitation.
 
 ## A lost or sold device {#lost-device}

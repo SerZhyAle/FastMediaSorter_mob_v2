@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.21 03:19</sub>
+<sub class="doc-stamp">26.11.21 14:21</sub>
 
 # Pointer - `GOOGLE-PLAY`
 
@@ -17,15 +17,15 @@
 - Before every upload, check versionCode, the current target-API floor, device reach and new foreground-service types (rules 6, 8, 9, 22). Apply the first-artifact and first-declaration stops in section 8C.
 - Serialize publishers, edit-based probes and Console writes per app (rule 19 and section 8A). Apply the rule 18 commit modes with the rule 29 review guard in both requests. Reconcile an uncertain result by read-back.
 - Record track data, lifecycle summaries, Console review and public serving as separate evidence (rule 20 and section 8B). Split the phone and the watch into separate review batches with "Save for later" when one must not hold the other (rules 16-17).
-- Publish a release as one submission: the track, the listing (only when it changed) and the release notes in one edit, committed once (`publish-play-release.ps1 -ListingRoot`); commit nothing while a submission is in review; never cancel a submission to add a change; a submission past seven days goes to Play support, not back into the queue (rules 28-30).
+- Publish each same-app release in one edit with its tracks, release notes and changed listing. Commit once with the required guard while the app is clear of review. Escalate a review past seven days to Play support (rules 28-30).
 - Publish the watch only when its sources changed materially since its last release, as its own submission after the phone release is published or on alternate releases, so a phone fix never waits on a watch review (rule 31; `/skill-release-wear` Step 0 asks, from `measure-wear-change.ps1`).
 - Prove a watch quality claim on the store flavor at 192 and 227 dp, mid-gesture; capture the watch face's icons from the face itself (rules 24-25).
 - A Play refusal no rule predicted is amended in the catalog first, as the owner.
 
 ## Where it lives here
 
-- `scripts/release/publish-play-release.ps1` and `publish-play-release.py` - the bundle upload and the two commit modes.
-- `scripts/release/publish-play-listing.ps1` - the listing upload on its own; a release carries its listing through `publish-play-release.ps1 -ListingRoot` instead.
+- [Play publishing procedure](../../scripts/release/README.md#google-play-publishing-procedure) - operator preconditions, per-app release planning and evidence.
+- The bundle and listing clients carry the review guard in both commit modes. S4811 tracks the owner-authorized live verification required before resuming API publication.
 - `scripts/release/measure-wear-change.ps1` - the watch change since its last release (rule 31).
 - `scripts/release/read-play-tracks.ps1`, `read-play-public-serve.ps1`, `refresh-play-publishing-state.ps1` - the read-back.
 - `scripts/release/assert-play-review-batches.ps1` - the batch split plan.

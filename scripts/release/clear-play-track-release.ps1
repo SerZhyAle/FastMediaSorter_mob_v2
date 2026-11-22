@@ -48,7 +48,8 @@ param(
     [string] $Track,
     [switch] $Confirm,
     [switch] $AllowNonDraft,
-    [string] $Package = 'com.sza.fastmediasorter'
+    [string] $Package = 'com.sza.fastmediasorter',
+    [string] $Preflight
 )
 
 $ErrorActionPreference = 'Stop'
@@ -69,6 +70,7 @@ if (-not (Test-Path -LiteralPath $pyScript)) {
 $pyArgs = @($pyScript, '--track', $Track, '--package', $Package)
 if (-not $Confirm) { $pyArgs += '--dry-run' }
 if ($AllowNonDraft) { $pyArgs += '--allow-non-draft' }
+if ($Preflight) { $pyArgs += @('--preflight', (Resolve-Path -LiteralPath $Preflight).Path) }
 
 if (-not $Confirm) {
     Write-Host "clear-play-track-release: DRY RUN - pass -Confirm to actually clear '$Track'." -ForegroundColor Yellow

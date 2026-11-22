@@ -1,8 +1,8 @@
-<sub class="doc-stamp">26.11.20 18:13</sub>
+<sub class="doc-stamp">26.11.21 14:21</sub>
 
 # scripts/release - Operator Handbook
 
-Scripts that publish FastMediaSorter to GitHub Releases so that **GitHub Store** (OpenHub-Store/GitHub-Store) can index and rank the project. Spec: **S0214 - github-store-publication**.
+Operating procedures for FastMediaSorter releases on Google Play and GitHub Releases.
 
 ---
 
@@ -20,7 +20,7 @@ Scripts that publish FastMediaSorter to GitHub Releases so that **GitHub Store**
 | `confirm-fgs-snapshot.ps1` | Promote a release's `fgs-types.pending.json` to `fgs-types.json` once Play production carries its versionCode. `publish-play-release.ps1` calls it after a completed, not held production commit; run it by hand after held changes were sent (S4499). |
 | `apply-github-store-metadata.ps1` | Apply repo `description`, `topics`, `homepage` from `PLAN/S0214_github-store-publication/DECISIONS.md` to GitHub via REST. Idempotent. |
 | `publish-github-release.ps1` | Publish a stable release: discover prebuilt APKs, stage them with deterministic names, create a GitHub Release tag from `main`, attach release notes from `docs/WHATS_NEW.md`, upload both APKs as assets. |
-| `publish-play-release.ps1` | Publish the standard AAB to Google Play Console: attach the bundle if its versionCode is already in the library else upload it, fetch generated Fastlane changelogs for that versionCode, update specified track (internal/alpha/beta/production) as draft/completed, and commit edit. |
+| `publish-play-release.ps1` | Plan an AAB release and stage the tracks and listing changes for one application. See [current client eligibility](#current-local-clients) before use. |
 | `measure-wear-change.ps1` | Read-only: the watch source change since the `wear:production` release - shipping and test files changed from the last commit before that release; `/skill-release-wear` Step 0 reads it to decide whether the watch goes (S4799, contract `GOOGLE-PLAY` rule 31). |
 | `read-play-tracks.ps1` | Read-only: what each Play track **holds** - versionName, versionCode and status for `production`, `wear:production`, `internal`, `beta`, `alpha`. Needs `.venv` and `.secrets/play-console-key.json`. A track's `completed` status is not proof the release is served or that it passed review - a rejected release keeps reporting `completed`. |
 | `refresh-play-publishing-state.ps1` | The only writer of the measured half of `docs/PLAY_PUBLISHING_STATE.md`: runs both readers and rewrites the two `s2272:measured:*` regions, touching nothing outside them. `-Check` makes it a non-writing staleness probe (exit 1 = out of date). The `Policy status` block stays the owner's - the API serves no policy surface, so the script only reports how old that transcription is. Run it at every release and at every Play verdict. |
@@ -51,7 +51,7 @@ Scripts that publish FastMediaSorter to GitHub Releases so that **GitHub Store**
 
 ## Invocation Order
 
-Normal release publication is owned by `/skill-release`. Use the manual sequence below only for a repair window or an operator-driven release completion.
+Normal phone publication follows `/skill-release`. For Google Play, apply the [publishing procedure](#google-play-publishing-procedure) before preparing a live release. Use the sequence below for an authorized GitHub repair or release completion.
 
 ```powershell
 # 1. Prepare repo metadata (one-time, re-run if DECISIONS.md changes).
@@ -65,10 +65,6 @@ pwsh -NoProfile -File scripts/release/apply-github-store-metadata.ps1
 # 3. Publish GitHub Store source release.
 pwsh -NoProfile -File scripts/release/publish-github-release.ps1 -DryRun
 pwsh -NoProfile -File scripts/release/publish-github-release.ps1
-
-# 4. Publish Google Play standard_release in the same release window.
-# (Track defaults to "production", Status defaults to "completed" - automated rollout).
-pwsh -NoProfile -File scripts/release/publish-play-release.ps1
 
 # Deobfuscation retention has no step here on purpose: step 2 already performed it.
 # Confirm rather than repeat, and only repair if this reports a miss.
@@ -101,8 +97,11 @@ pwsh -NoProfile -File scripts/quality/assert-deobfuscation-retained.ps1
 
 | Flag | Effect |
 |------|--------|
-| `-Track <name>` | Target track in Google Play. Default: `production`. Supported: `internal`, `alpha`, `beta`, `production`. |
-| `-Status <status>` | Rollout status. Default: `completed`. Supported: `completed` (fully rolled out to track), `draft` (requires manual review in Play Console). |
+| `-Track <name>` | Exact target track in Google Play for a single-track release, including form-factor tracks such as `wear:production`. Default: `production`. |
+| `-Status <status>` | Track release status. Default: `completed`. A live call commits both `completed` and `draft` edits. |
+| `-Batch <file>` | JSON plan for one application. List each track, its AAB, version and notes. Include `listingRoot` to stage the listing in the same edit. |
+| `-Preflight <file>` | Approved operation list and release evidence. Required before opening a publishing edit. |
+| `-WhatIf` | Resolve the local release inputs and exit before opening a Play edit. |
 
 ### `retain-deobfuscation.ps1`
 
@@ -165,15 +164,90 @@ Until then the watch exits 2 with that instruction and writes nothing. Two value
 
 ---
 
-## Order of Operations (publish-play-release.ps1)
+## Google Play publishing procedure
 
-1. **Prerequisite Check** - verify project virtual environment `.venv` contains `google-api-python-client` and `google-auth`.
-2. **Version & Path Discovery** - retrieve `versionName` and `versionCode` from the release bundle's AGP metadata at `app_v2/build/outputs/bundle/standardRelease/output-metadata.json`. S1873: the build no longer writes the version into `app_v2/build.gradle.kts`, so the checked-in constants there are a deliberate non-releasable sentinel and reading them would answer with a version no artifact carries. Locate standard AAB at `DOWNLOADS/FastMediaSorter_standard_release.aab`.
-3. **Edit Transaction** - open an API edit session in the Google Play Console for package `com.sza.fastmediasorter` using the service account credentials from `.secrets/play-console-key.json` (root fallback supported).
-4. **Attach-or-Upload** - list bundles already in the App Bundle Explorer (`edits().bundles().list()`). If the build's `versionCode` is already present (e.g. a prior run uploaded it but the commit was rejected by the Foreground-service-permissions gate), skip the upload and attach that bundle - Play refuses re-uploading an existing `versionCode`. Otherwise upload the AAB via resumable chunk transfers with automatic socket retry guards and read the `versionCode` from the response. This makes a post-FGS re-run finish the release instead of failing on a duplicate.
-5. **Release Notes Discovery** - check `fastlane/metadata/android/*/changelogs/<versionCode>.txt` for English, Russian, and Ukrainian release notes generated during the build.
-6. **Track Update** - apply the bundle, release name, and changelogs to the target track (`internal`, `alpha`, `beta`, `production`) with the specified status (`completed` or `draft`).
-7. **API Commit** - commit the edit transaction. `changesNotSentForReview` is deliberately omitted: Play rejects it (HTTP 400) for apps whose changes are auto-sent for review, so omitting it lets the release follow the standard automatic review flow.
+Apply the SZA canon's `CHANNEL_MATRIX` and `store-publish` Google Play reference, section 7, together with [GOOGLE-PLAY](../../docs/contracts/GOOGLE-PLAY.md), including amendment 0.4. The procedure applies per application id for Android phone, Wear OS and watch-face releases. Read section 7 from the canon checkout if the installed plugin predates it.
+
+1. **Bind the release.** Record the owner's order, the pre-flight PASS for each artifact, signed AAB path, application id, upload signer, version code and name, localized notes, and the exact app and track. Apply the current target-API and required-feature checks. Confirm the service account can upload and commit for each app. Point `SZA_PLAY_SERVICE_ACCOUNT_JSON` at a key file outside all repositories for the shared probe and updated publishers.
+2. **Confirm publisher eligibility.** The client must send `changesInReviewBehavior=ERROR_IF_IN_REVIEW` on both commit modes and stage all tracks and changed listing material for the intended same-app batch in one edit. Stop before the first publishing edit if it lacks either capability. [Current local clients](#current-local-clients).
+3. **Verify first-use prerequisites.** Find an accepted prior artifact for the exact app. Missing evidence stops API upload and commit. Google's edits guide describes a first APK in Console. First-AAB acceptance through the API remains unverified. Compare the merged release manifest to the prior release and confirm every required new foreground-service declaration is saved in App content before upload. An unavailable form stops the API write sequence. Close any active edit before a Console write. Use draft and held commits only after the first-use checks pass. A Console bootstrap or continuation needs a documented procedure and separate owner authorization for the exact upload, Console save, commit or review submission. [Edits guide](https://developers.google.com/android-publisher/edits), [FGS declarations](https://support.google.com/googleplay/android-developer/answer/13392821).
+4. **Serialize and select the batch.** Coordinate publishers, Console writes and readers that open edits by application id. Finish and delete track-discovery edits before opening the publishing edit. Review the pending items in Publishing overview and stop if they differ from the authorized batch. FMS phone and Wear share `com.sza.fastmediasorter`. Apply rules 28-31 to their separate release cadence. Any authorized joint batch for the same id uses one edit and one successful commit. The watch face has its own app id and review batch. [Play edit concurrency](https://developers.google.com/android-publisher/concurrency-considerations).
+5. **Stage and commit.** In one edit, attach each artifact to its verified track with that artifact's notes and include any listing changes in the same release. Verify the identity of an existing bundle before reuse. Validate the edit when supported. Before each commit, confirm Publishing overview is clear of app-wide review and the pending batch matches the release. Use the guard on the automatic request and again on the held fallback. Add `changesNotSentForReview=true` only for the documented refusal naming that parameter. Stop on `CHANGES_ALREADY_IN_REVIEW` or unknown review state. After an indeterminate commit, reconcile via independent read-back before any subsequent write. Record the landed commit mode and result. [Commit API](https://developers.google.com/android-publisher/api-ref/rest/v3/edits/commit).
+6. **Read back and prove.** After the publishing edit ends, check package, exact track, version, rollout status and notes languages. Record the track lifecycle and observation time if the [release lifecycle GET](https://developers.google.com/android-publisher/api-ref/rest/v3/applications.tracks.releases/list) is available. Confirm the app-wide batch in Publishing overview and declarations in App content. Verify public serving against the store page and the served artifact. Check an update over a prior install where applicable. A held commit requires the separately authorized Console review action.
+
+### Current local clients
+
+Both publishers carry `ERROR_IF_IN_REVIEW` in the automatic and held requests. The release publisher stages all authorized tracks and optional listing changes for one application in one edit. The standalone listing publisher validates or commits a listing-only batch. The live API publication hold stays in force until an owner-authorized release demonstrates the guarded client and is read back in Play. Use `-WhatIf` for local checks during the hold (S4811).
+
+Use the batch form when the owner authorizes several tracks as one submission. Keep the watch face in its own batch. In the JSON below, paths are relative to the plan file. Each bundle needs its own version code and name. `notesFile` uses Play Console note blocks, and `notesVersionCode` is an optional fastlane fallback for the default application.
+
+```json
+{
+  "packageName": "com.sza.fastmediasorter",
+  "releases": [
+    {
+      "track": "internal",
+      "aab": "phone.aab",
+      "versionCode": 261121103,
+      "versionName": "2.61.1211.103",
+      "notesFile": "phone-notes.txt"
+    },
+    {
+      "track": "wear:internal",
+      "aab": "wear.aab",
+      "versionCode": 26112110,
+      "versionName": "2.61.1211.10",
+      "notesFile": "wear-notes.txt"
+    }
+  ],
+  "listingRoot": "listing"
+}
+```
+
+```powershell
+pwsh -NoProfile -File scripts/release/publish-play-release.ps1 -Batch batch.json -WhatIf
+pwsh -NoProfile -File scripts/release/publish-play-listing.ps1 -WhatIf
+```
+
+For an authorized live operation, set `SZA_PLAY_SERVICE_ACCOUNT_JSON` to a key file outside all repositories and supply `-Preflight`. In that JSON, include `packageName` and copy the exact array printed after `Planned operations:` into `operations`. The hashes bind the AABs, notes, listing texts and supplied image slots to the plan. Include these evidence fields.
+
+| Field | Evidence |
+|-------|----------|
+| `authorization` | Reference to the owner's authorization for this exact operation and application. |
+| `acceptedArtifact` | Dated evidence of an accepted prior artifact for this application. |
+| `manifestComparison` | Reference to the merged-manifest comparison for the affected bundles. For listing-only edits, record that the batch carries no bundle. |
+| `newForegroundServices` | Object mapping every new foreground-service type to dated evidence of its saved App content declaration. Use `{}` when the comparison found no new types. |
+
+During an authorized run, inspect Publishing overview in the app and type the exact application, edit id and mode requested by the publisher. Repeat the inspection if Play specifically requires the held mode. A review refusal stops the run. A draft changes the track status and still commits the edit. Use listing-only commit only for its own authorized batch.
+
+The publishers, cleanup utilities and `read-play-tracks.ps1` share an application lock across worktrees under the same OS user. Coordinate other users, other workstations and Console writes separately. A failed edit cleanup blocks the next insert until the old edit closes. The track reader refuses to open a new edit while an unresolved commit's edit is still open. The cleanup utilities require `-Preflight` with `-Confirm`.
+
+An uncertain commit leaves a `.pending.json` record at the path reported by the publisher and stops later writes for that application. Read Publishing overview and the applicable track or listing independently. After the outcome is established, record it locally from the project virtual environment.
+
+```powershell
+& .venv/Scripts/python.exe scripts/release/play_publishing.py reconcile --package com.sza.fastmediasorter --edit-id EDIT_ID --outcome committed --evidence "Dated Play read-back record"
+```
+
+Use `not-committed` only when the independent evidence establishes that the commit did not land. A committed receipt prevents replay of the same authorized batch. A track read establishes its configured release. Publishing overview establishes app-wide review, and the storefront establishes public serving.
+
+The no-write regressions exercise both commit modes, preflight stops, same-app contention and recovery from a lost response.
+
+```powershell
+& .venv/Scripts/python.exe -B -m unittest discover -s scripts/release/play-publishing.tests
+pwsh -NoProfile -File scripts/release/publish-play-release.tests/Run-Tests.ps1
+pwsh -NoProfile -File scripts/release/publish-play-listing.tests/Run-Tests.ps1
+```
+
+### StreamsPlayer first release plan
+
+After the StreamsPlayer sweep passes, bind the signed artifacts and their own version codes, upload fingerprints and localized notes. The captured notes candidate is `temp/S0047/play-release-notes.txt` in the StreamsPlayer checkout, with `en-US`, `ru-RU` and `uk` blocks. Confirm it matches the authorized version.
+
+| Application id | Artifacts | Proposed tracks to confirm |
+|---|---|---|
+| `com.sza.streamsplayer` | Phone and Wear AABs | `internal` and `wear:internal` |
+| `com.sza.streamsplayer.watchface` | Watch-face AAB | `wear:internal` |
+
+Owner stated that the shared service account read both apps' empty tracks successfully. For each id, establish accepted prior artifact history and upload/commit permission separately. Confirm exact track ids in the app before an edit. Group phone and Wear in one edit when the owner orders them as one release. Give the face its own edit and review batch. Where first artifact history is missing or an FGS form is unavailable, stop at step 3 and obtain a separately authorized, documented bootstrap or Google guidance. Use an eligible client with the product's own release inputs after those checks pass.
 
 ---
 
@@ -197,12 +271,9 @@ pwsh -NoProfile -File scripts/release/publish-github-release.ps1
 
 ### Google Play Release
 
-Publishing the compiled AAB to the production track as a completed automated rollout:
+Preview the local plan after preparing the matching artifact and notes.
 
 ```powershell
-# Publish AAB with full automated rollout
-pwsh -NoProfile -File scripts/release/publish-play-release.ps1
-
-# Alternative: upload AAB as a draft to the internal track for manual review
-pwsh -NoProfile -File scripts/release/publish-play-release.ps1 -Track internal -Status draft
+pwsh -NoProfile -File scripts/release/publish-play-release.ps1 -WhatIf
+pwsh -NoProfile -File scripts/release/publish-play-release.ps1 -Track internal -Status draft -WhatIf
 ```

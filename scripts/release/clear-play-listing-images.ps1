@@ -47,7 +47,8 @@ param(
     [string] $ImageType,
     [string] $Locales = '',
     [switch] $Confirm,
-    [string] $Package = 'com.sza.fastmediasorter'
+    [string] $Package = 'com.sza.fastmediasorter',
+    [string] $Preflight
 )
 
 $ErrorActionPreference = 'Stop'
@@ -67,6 +68,7 @@ if (-not (Test-Path -LiteralPath $pyScript)) {
 
 $pyArgs = @($pyScript, '--image-type', $ImageType, '--package', $Package)
 if ($Locales) { $pyArgs += @('--locales', $Locales) }
+if ($Preflight) { $pyArgs += @('--preflight', (Resolve-Path -LiteralPath $Preflight).Path) }
 if (-not $Confirm) {
     $pyArgs += '--dry-run'
     Write-Host "clear-play-listing-images: DRY RUN - pass -Confirm to actually delete '$ImageType'." -ForegroundColor Yellow

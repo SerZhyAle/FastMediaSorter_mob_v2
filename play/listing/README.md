@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.15 10:03</sub>
+<sub class="doc-stamp">26.11.21 13:29</sub>
 
 # Google Play listing source
 
@@ -211,20 +211,18 @@ raw pixels.
 - **Pick a bright image for `image-viewer`.** The corpus artwork darkens towards the top of each
   frame, so a dark palette leaves the toolbar sitting on near-black.
 
-```
-pwsh -NoProfile -File scripts/release/publish-play-listing.ps1 -Mode validate   # no commit, validates payload
-pwsh -NoProfile -File scripts/release/publish-play-listing.ps1 -Mode commit      # publishes the listing (owner-gated)
-```
+Follow the [Play publishing procedure](../../scripts/release/README.md#google-play-publishing-procedure).
+Include changed listing content in the AAB release edit. A separately authorized listing-only
+publication requires an eligible guarded client. The current listing client omits the review guard
+and is blocked on S4811 for live commits.
 
-`validate` never commits; it confirms auth + payload. `commit` publishes the listing (Play may route it
-through review). The live `commit` is an owner-gated operational step.
+Legacy `-Mode validate` opens an edit and stages listing and image changes for validation. Coordinate
+the operation by application id and establish that the edit has ended before any publisher or Console
+write. A validation result confirms only the staged payload. Use the local locale and screenshot
+gates to check source assets.
 
-**Read the exit code before blaming the listing (S2345).** `0` means validated or committed. `1` means
-the listing is at fault - a missing text file, a text over its Play limit, or a payload Play rejected -
-and the run names which. `2` means the check could not happen at all: the listing is not implicated and
-nothing here needs editing, so re-run later. The publisher already retries a 5xx, a rate limit and a
-dropped connection five times with exponential backoff, so a `2` reports a sustained outage rather than
-one hiccup - two clean runs died on a single unretried 503 on 2026-09-02, both reporting `1`.
+For any indeterminate commit, check independent read-back before another Play action. Record the
+track or listing result, app-wide review and public serving separately.
 
 A screenshot type whose local folder is missing or empty is skipped, and its live set on Play is left
 alone - so a phone-only refresh cannot wipe the tablet screenshots already published.

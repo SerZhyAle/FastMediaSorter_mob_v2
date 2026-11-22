@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.21 03:20</sub>
+<sub class="doc-stamp">26.11.21 20:26</sub>
 
 # Development Changelog
 
@@ -38359,3 +38359,25 @@ Format: | datetime | file | target | description |
 | 2026-11-21 03:01:26 | `PLAN/S4810_resolve-google-play-api-first-upload.md` | `S4810` | Capture Draft S4810 resolve-google-play-api-first-upload [branch: DEBUG-v049] |
 | 2026-11-21 03:20:45 | `docs/contracts/GOOGLE-PLAY.md` | `S4810` | Record the GOOGLE-PLAY 0.4 draft disposition, first-use stops and guarded commit rules, and sync the product pointers and release evidence note [set of 3: docs/CROSS_PROJECT_CONTRACTS.md, docs/PLAY_PUBLISHING_STATE.md] [branch: DEBUG-v049] |
 | 2026-11-21 03:50:21 | `PLAN/S4811_guard-play-publishers.md` | `S4811` | Capture Draft S4811 guard-play-publishers [branch: DEBUG-v049] |
+| 2026-11-21 13:32:26 | `scripts/release/README.md` | `S4809` | Adopt GOOGLE-PLAY 0.4 in the Android release runbooks, document the StreamsPlayer handoff and stop live use of unguarded Play clients [set of 12: docs/contracts/GOOGLE-PLAY.md, .claude/commands/release.md, .claude/commands/skill-release.md, .claude/commands/skill-release-wear.md, .claude/reference/skill-release.md, docs/HOW_TO_DEVELOP_AND_RELEASE-ru.md, +5 more] [branch: DEBUG-v049] |
+| 2026-11-21 14:21:57 | `scripts/release/play_publishing.py` | `S4811` | Guard Google Play edits and stage same-application releases as one verified batch [set of 16: scripts/release/read-play-tracks.py, scripts/release/clear-play-track-release.py, scripts/release/clear-play-listing-images.py, scripts/release/clear-play-track-release.ps1, scripts/release/clear-play-listing-images.ps1, scripts/release/play-publishing.tests/test_play_publishing.py, +9 more] [branch: DEBUG-v049] |
+| 2026-11-21 20:26:00 | `docs/site-held-addresses.jsonl` | `S4278` | registered the FMS_Web sibling address and its README holders [branch: DEBUG-v049] |
+| 2026-11-21 20:33:01 | `PLAN/S4278_portal-links-to-fms-web.md` | `spec-dev` | Completed the account portal link phase [branch: DEBUG-v049] |
+| 2026-11-21 20:33:02 | `docs/site-held-addresses.jsonl` | `site-held-addresses` | Registered the FMS_Web sibling URL and README holders [branch: DEBUG-v049] |
+| 2026-11-21 20:36:45 | `PLAN/archive/S4278_portal-links-to-fms-web.md` | `spec-check` | Verified localized FMS_Web links, held address inventory, and stable account-deletion URLs [branch: DEBUG-v049] |
+| 2026-11-22 01:21:40 | `PLAN/S4812_device-exchange-rung2-offline-reason-and-race.md` | `S4812` | Capture Draft S4812 device-exchange-rung2-offline-reason-and-race [branch: DEBUG-v049] |
+| 2026-11-22 01:31:00 | `PLAN/S4812_device-exchange-rung2-offline-reason-and-race.md` | `S4812` | Recorded the Android DEVICE-EXCHANGE codec proof and item BB disposition for FMSWIN-0252 [set of 2: P:/Contracts/_meta/REGISTRY.md] [branch: DEBUG-v049] |
+| 2026-11-22 22:09:34 | `PLAN/S4813_register-ip-manager-windows-version-family.md` | `S4813` | Capture Draft S4813 register-ip-manager-windows-version-family [branch: DEBUG-v049] |
+| 2026-11-22 22:16:01 | `P:/Contracts/package-versioning/README.md` | `S4813` | Register IP Manager Windows version family [set of 3: P:/Contracts/package-versioning/PROPOSAL-2026-11-22-ip-manager-windows-family.md, P:/Contracts/_meta/REGISTRY.md] [branch: DEBUG-v049] |
+| 2026-11-22 22:41:06 | `PLAN/S4814_bugfix-ticket-drive-sign-in-account-chooser.md` | `S4814` | Capture Draft S4814 bugfix-ticket-drive-sign-in-account-chooser [branch: DEBUG-v049] |
+| 2026-11-22 22:44:19 | `PLAN/S4815_bugfix-anywhere-tunnel-idle-reconnect-churn.md` | `S4815` | Capture Draft S4815 bugfix-anywhere-tunnel-idle-reconnect-churn [branch: DEBUG-v049] |
+| 2026-11-22 22:51:58 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/exchange/ExchangeKeepalivePacer.kt` | `S4815` | New real-time keepalive pacer: elapsedRealtime clock, 120 s proposal, awake-time tick that sends at the first wake after the interval [branch: DEBUG-v049] |
+| 2026-11-22 22:51:59 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/anywhere/SftpServerTunnelManager.kt` | `S4815` | Control stream keepalive paced by ExchangeKeepalivePacer instead of nanoTime and delay, so a sleeping phone is not dropped every 96 s [branch: DEBUG-v049] |
+| 2026-11-22 22:52:00 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/exchange/ExchangeReceiverControlStreams.kt` | `S4815` | Receiver control streams use the same real-time keepalive pacer [branch: DEBUG-v049] |
+| 2026-11-22 22:52:00 | `app_v2/src/test/java/com/sza/fastmediasorter/data/remote/exchange/ExchangeKeepalivePacerTest.kt` | `S4815` | Unit tests for the pacer over a fake clock [branch: DEBUG-v049] |
+| 2026-11-22 22:52:01 | `PLAN/S4815_bugfix-anywhere-tunnel-idle-reconnect-churn.md` | `S4815` | Compact spec, phase 01 done; status -> BlockNeedUserTest [branch: DEBUG-v049] |
+| 2026-11-22 22:56:11 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ticket/GrantTicketDriveAccessUseCase.kt` | `S4814` | Ticket Drive sign-in outside a bound account forces the Credential Manager account chooser [branch: DEBUG-v049] |
+| 2026-11-22 22:56:14 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/GoogleAccountSettingsViewModel.kt` | `S4814` | Settings Google account sign-in and re-sign-in force the account chooser [branch: DEBUG-v049] |
+| 2026-11-22 22:56:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/BackupRestoreViewModel.kt` | `S4814` | Backup and restore sign-in forces the account chooser [branch: DEBUG-v049] |
+| 2026-11-22 22:56:16 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/ticket/GrantTicketDriveAccessUseCaseTest.kt` | `S4814` | Use case test pins the forced chooser and covers NeedsResignIn [branch: DEBUG-v049] |
+| 2026-11-22 22:56:17 | `PLAN/S4814_bugfix-ticket-drive-sign-in-account-chooser.md` | `S4814` | Compact spec, phase 01 done; status -> BlockNeedUserTest [branch: DEBUG-v049] |

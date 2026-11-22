@@ -1,37 +1,28 @@
 #!/usr/bin/env python
-"""Publish the Google Play store listing (texts + images) from play/listing/.
+"""Stage Google Play listing texts and images for one application.
 
-Separate from publish-play-release.py (which uploads the AAB + changelogs). This script only
-touches the store listing: edits().listings() for title/short/full and edits().images() for
-screenshots / feature graphic. Reuses the same service-account key.
+Use --dry-run to print the listing plan without credentials or an API call. Validate and commit
+require --preflight evidence for the exact operation list and SZA_PLAY_SERVICE_ACCOUNT_JSON.
+Only supplied locales and image slots are considered. Existing matching content remains untouched.
 
-Usage:
-    python publish-play-listing.py [validate|commit] [--package NAME] [--listing-root PATH]
-
-    validate (default) - create an edit, push listing+images, call edits().validate(), do NOT commit.
-    commit             - same, then edits().commit() -> listing goes live (Play may route via review).
-
---package and --listing-root address another Play app and its own listing tree (the watch face,
-S4009). The default root must hold every locale of LOCALES. Any other root publishes exactly the
-locale folders it holds - a Play language it has no folder for is never touched, never deleted.
-
-Exit codes:
-    0 - the listing was validated, or committed in commit mode.
-    1 - the listing is at fault: a missing text file, a text over its Play limit, a listing root with
-        no publishable locale or a folder Play has no language for, or a payload Play rejected.
-        Fix the listing.
-    2 - could not verify: an unknown mode, Play refusing to validate under enforcement, or a
-        sustained transient failure (5xx / rate limit / network). The listing is NOT implicated.
+Exit codes: 0 planned, validated or committed; 1 invalid or rejected listing;
+2 unable to verify preconditions or API outcome.
 """
+import argparse
+import json
 import os
+from pathlib import Path
 import ssl
 import sys
 import socket
 import httplib2
 from google.auth.exceptions import TransportError
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
+
+from play_publishing import (
+    API_NUM_RETRIES, PlayStop, commit_edit, connect_publisher, file_sha256, json_sha256,
+    package_id, publishing_edit, validate_edit,
+)
 
 socket.setdefaulttimeout(120)
 
@@ -49,15 +40,6 @@ for _stream in (sys.stdout, sys.stderr):
 
 PACKAGE_NAME = 'com.sza.fastmediasorter'
 
-# Passed to every .execute() below. google-api-python-client carries its own randomized exponential
-# backoff, but it engages only when the caller asks for it - with no num_retries the first refusal is
-# raised straight out. That matters more here than in a one-call script: a run makes one insert, then
-# per locale a listings().update() plus a deleteall+upload pair for every non-empty image slot, so a
-# full pass is over sixty calls inside ONE edit transaction and a single 5xx anywhere in it discards
-# the whole transaction. Measured 2026-09-02: two consecutive runs died exactly that way, on a
-# different locale each time (S2345).
-API_NUM_RETRIES = 5
-
 # A failure carrying one of these is Google's or the network's, never the listing's, so it maps onto
 # exit 2 - "could not verify" - instead of exit 1. Deliberately narrow: the rest of 4xx stays a
 # defect, because a 400 from listings().update() IS rejected payload (a language code Play does not
@@ -67,19 +49,7 @@ TRANSIENT_STATUSES = frozenset((408, 429, 500, 502, 503, 504))
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, '..', '..'))
-SECRETS_DIR = os.path.join(REPO_ROOT, '.secrets')
 LISTING_ROOT = os.path.join(REPO_ROOT, 'play', 'listing')
-
-KEY_FILE = next(
-    (
-        path for path in (
-            os.path.join(SECRETS_DIR, 'play-console-key.json'),
-            os.path.join(REPO_ROOT, 'play-console-key.json'),
-        )
-        if os.path.exists(path)
-    ),
-    os.path.join(SECRETS_DIR, 'play-console-key.json'),
-)
 
 # folder name under play/listing/ -> Play Console language (BCP-47) code.
 #
@@ -169,95 +139,103 @@ def load_listing(locale, listing_root=LISTING_ROOT):
     return out, over
 
 
-def upload_images(service, edit_id, folder, language,
-                  package_name=PACKAGE_NAME, listing_root=LISTING_ROOT):
-    """Replace screenshots + single images for a locale if present. Returns count uploaded.
+def listing_images(folder, listing_root):
+    """Return the supplied image slots with file paths and their approved hashes."""
+    directory = Path(listing_root) / folder / 'images'
+    slots = {}
+    for image_type in SCREENSHOT_TYPES:
+        slot = directory / image_type
+        if slot.is_dir():
+            files = sorted(path for path in slot.iterdir()
+                           if path.is_file() and path.suffix.lower() in IMAGE_MIME)
+            if files:
+                slots[image_type] = [(path, file_sha256(path)) for path in files]
+    for image_type, name in SINGLE_IMAGES.items():
+        path = directory / name
+        if path.is_file():
+            slots[image_type] = [(path, file_sha256(path))]
+    return slots
 
-    `folder` is the listing root's subdir name; `language` is the Play BCP-47 code.
-    """
-    images_dir = os.path.join(listing_root, folder, 'images')
-    uploaded = 0
 
-    for shot_type in SCREENSHOT_TYPES:
-        shots_dir = os.path.join(images_dir, shot_type)
-        if not os.path.isdir(shots_dir):
+def prepare_listing(listing_root):
+    locales, reason = resolve_locales(listing_root)
+    if locales is None:
+        raise ValueError(reason)
+
+    listings = {}
+    errors = []
+    for folder, language in locales.items():
+        payload, violations = load_listing(folder, listing_root)
+        errors.extend(violations)
+        if payload is not None:
+            listings[language] = (payload, listing_images(folder, listing_root))
+    if errors:
+        raise ValueError('; '.join(errors))
+    return listings
+
+
+def listing_operation(listings):
+    return {"listing": [
+        {"language": language, "textSha256": json_sha256(payload), "imageSha256": {
+            kind: [digest for _, digest in files] for kind, files in images.items()
+        }}
+        for language, (payload, images) in sorted(listings.items())
+    ]}
+
+
+def stage_images(service, fields, slots):
+    count = 0
+    for kind, files in slots.items():
+        slot = {**fields, 'imageType': kind}
+        existing = service.edits().images().list(**slot).execute(num_retries=API_NUM_RETRIES)
+        if [image.get('sha256', '').lower() for image in existing.get('images', [])] == [
+            digest for _, digest in files
+        ]:
             continue
-        shots = sorted(f for f in os.listdir(shots_dir)
-                       if os.path.splitext(f)[1].lower() in IMAGE_MIME)
-        if not shots:
-            continue
-        service.edits().images().deleteall(
-            packageName=package_name, editId=edit_id,
-            language=language, imageType=shot_type).execute(num_retries=API_NUM_RETRIES)
-        for name in shots:
-            path = os.path.join(shots_dir, name)
-            mime = IMAGE_MIME[os.path.splitext(name)[1].lower()]
-            service.edits().images().upload(
-                packageName=package_name, editId=edit_id,
-                language=language, imageType=shot_type,
-                media_body=MediaFileUpload(path, mimetype=mime)).execute(num_retries=API_NUM_RETRIES)
-            uploaded += 1
 
-    for image_type, fname in SINGLE_IMAGES.items():
-        path = os.path.join(images_dir, fname)
-        if os.path.exists(path):
-            mime = IMAGE_MIME[os.path.splitext(fname)[1].lower()]
-            service.edits().images().deleteall(
-                packageName=package_name, editId=edit_id,
-                language=language, imageType=image_type).execute(num_retries=API_NUM_RETRIES)
-            service.edits().images().upload(
-                packageName=package_name, editId=edit_id,
-                language=language, imageType=image_type,
-                media_body=MediaFileUpload(path, mimetype=mime)).execute(num_retries=API_NUM_RETRIES)
-            uploaded += 1
-
-    return uploaded
+        service.edits().images().deleteall(**slot).execute(num_retries=API_NUM_RETRIES)
+        for path, digest in files:
+            if file_sha256(path) != digest:
+                raise ValueError(f"Listing image changed after preflight: {path}")
+            media = MediaFileUpload(str(path), mimetype=IMAGE_MIME[path.suffix.lower()])
+            result = service.edits().images().upload(**slot, media_body=media).execute(
+                num_retries=API_NUM_RETRIES
+            )
+            if result.get('image', {}).get('sha256', '').lower() != digest:
+                raise ValueError(f"Play returned a different hash for listing image {path.name}.")
+            count += 1
+    return count
 
 
-def _execute_or_hold(request_factory):
-    """Run an edits() call, retrying once with changesNotSentForReview when Play demands it.
-
-    Which of the two modes Play accepts is a property of the app's current state, not of this
-    script: normally an edit is sent for review automatically and passing the flag is rejected
-    with HTTP 400, but while the app is under a policy enforcement the opposite holds and the
-    call is rejected without it. Both refusals name the parameter in the message, so the mode is
-    discovered rather than guessed - a hardcoded choice is wrong half the time, and it was
-    hardcoded to the wrong half on 2026-08-24 (S1989).
-
-    Returns True when the changes were committed but held for a manual send from the Console.
-    """
-    try:
-        request_factory().execute(num_retries=API_NUM_RETRIES)
-        return False
-    except Exception as exc:  # noqa: BLE001 - the API surfaces this as a generic HttpError
-        if 'changesNotSentForReview' not in str(exc):
-            raise
-        print("\nPlay refuses automatic review for this app - retrying with the changes held.")
-        request_factory(changesNotSentForReview=True).execute(num_retries=API_NUM_RETRIES)
-        return True
+def stage_listing(service, package, edit_id, listings):
+    fields = {'packageName': package, 'editId': edit_id}
+    existing = service.edits().listings().list(**fields).execute(num_retries=API_NUM_RETRIES)
+    by_language = {entry['language']: entry for entry in existing.get('listings', [])}
+    changed = False
+    for language, (payload, slots) in listings.items():
+        old = by_language.get(language, {})
+        updates = {key: value for key, value in payload.items() if old.get(key) != value}
+        locale = {**fields, 'language': language}
+        if updates and old:
+            service.edits().listings().patch(**locale, body=updates).execute(num_retries=API_NUM_RETRIES)
+        elif updates:
+            service.edits().listings().update(**locale, body=payload).execute(num_retries=API_NUM_RETRIES)
+        images = stage_images(service, locale, slots)
+        if updates or images:
+            print(f"  {language}: {len(updates)} text field(s) changed, {images} image(s) uploaded")
+            changed = True
+    return changed
 
 
 def parse_args(argv):
-    """Positional mode, plus --package / --listing-root with the phone app's values as defaults."""
-    mode = 'validate'
-    package_name = PACKAGE_NAME
-    listing_root = LISTING_ROOT
-    positional = []
-    i = 0
-    while i < len(argv):
-        arg = argv[i]
-        if arg == '--package':
-            package_name = argv[i + 1]
-            i += 2
-        elif arg == '--listing-root':
-            listing_root = os.path.abspath(argv[i + 1])
-            i += 2
-        else:
-            positional.append(arg)
-            i += 1
-    if positional:
-        mode = positional[0]
-    return {'mode': mode, 'package_name': package_name, 'listing_root': listing_root}
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('mode', nargs='?', default='validate')
+    parser.add_argument('--package', default=PACKAGE_NAME)
+    parser.add_argument('--listing-root', type=os.path.abspath, default=LISTING_ROOT)
+    parser.add_argument('--preflight')
+    parser.add_argument('--dry-run', action='store_true')
+    args = parser.parse_args(argv)
+    return {**vars(args), 'package_name': args.package}
 
 
 def resolve_locales(listing_root):
@@ -281,101 +259,50 @@ def resolve_locales(listing_root):
     return {d: LOCALES[d] for d in folders}, None
 
 
-def main():
-    args = parse_args(sys.argv[1:])
+def main(argv=None):
+    args = parse_args(argv)
     mode = args['mode']
-    package_name = args['package_name']
-    listing_root = args['listing_root']
     if mode not in ('validate', 'commit'):
-        print(f"ERROR: unknown mode '{mode}' (expected 'validate' or 'commit')")
-        sys.exit(2)
-
-    locales, reason = resolve_locales(listing_root)
-    if locales is None:
-        print(f"ERROR: {reason}")
-        sys.exit(1)
-
-    print(f"Mode: {mode}")
-    print(f"Service account key: {KEY_FILE}")
-    print(f"Package name: {package_name}")
-    print(f"Listing source: {listing_root}")
-    print(f"Locales: {', '.join(locales)}")
-
-    # Load + validate all locales before touching the API.
-    payloads = {}
-    over_limit = []
-    for folder in locales:
-        listing, over = load_listing(folder, listing_root)
-        if over and any('missing' in o for o in over):
-            print(f"ERROR: {folder}: {'; '.join(over)}")
-            sys.exit(1)
-        over_limit.extend(over)
-        payloads[folder] = listing
-    if over_limit:
-        print("ERROR: char-limit violations:")
-        for o in over_limit:
-            print(f"  - {o}")
-        sys.exit(1)
+        print(f"Unknown mode '{mode}'. Choose 'validate' or 'commit'.")
+        return 2
 
     try:
-        creds = service_account.Credentials.from_service_account_file(
-            KEY_FILE, scopes=['https://www.googleapis.com/auth/androidpublisher'])
-        service = build('androidpublisher', 'v3', credentials=creds)
+        package = package_id(args['package_name'])
+        listings = prepare_listing(args['listing_root'])
+        operations = [listing_operation(listings)]
+        print(f"Listing plan for {package} ({mode}): {', '.join(listings)}")
+        print(f"Planned operations: {json.dumps(operations)}")
+        if args['dry_run']:
+            print("Dry run completed without an API call.")
+            return 0
 
-        print("\nStarting new edit transaction...")
-        edit = service.edits().insert(
-            packageName=package_name, body={}).execute(num_retries=API_NUM_RETRIES)
-        edit_id = edit['id']
-        print(f"Edit transaction created: {edit_id}")
-
-        for folder, language in locales.items():
-            service.edits().listings().update(
-                packageName=package_name, editId=edit_id,
-                language=language, body=payloads[folder]).execute(num_retries=API_NUM_RETRIES)
-            imgs = upload_images(service, edit_id, folder, language, package_name, listing_root)
-            title = payloads[folder]['title']
-            print(f"  {folder} -> {language}: listing updated (title='{title}'), images uploaded: {imgs}")
-
-        if mode == 'validate':
-            # validate() has no changesNotSentForReview parameter - only commit() does. So while
-            # the app is under enforcement there is no way to validate at all, and saying so is
-            # the honest answer: exit 2 means "could not verify", not "found a problem" (S1989).
-            try:
-                service.edits().validate(
-                    packageName=package_name, editId=edit_id).execute(num_retries=API_NUM_RETRIES)
-            except Exception as exc:  # noqa: BLE001 - the API surfaces this as a generic HttpError
-                if 'changesNotSentForReview' not in str(exc):
-                    raise
-                print("\nCANNOT VALIDATE: Play refuses automatic review while the app is under")
-                print("enforcement, and validate() cannot hold changes the way commit() can.")
-                print("The local checks above all passed. Use 'commit' to push, then send the")
-                print("changes for review from Publishing overview in the Console.")
-                sys.exit(2)
-            print("\nSUCCESS: edit validated. NOT committed (validate mode).")
-            print("Run with 'commit' to publish the listing live.")
-        else:
-            held = _execute_or_hold(
-                lambda **kw: service.edits().commit(
-                    packageName=package_name, editId=edit_id, **kw
-                )
-            )
-            if held:
-                print("\nSUCCESS: edit committed, but HELD - not sent for review.")
-                print("Play refuses automatic review while the app is under enforcement.")
-                print("Send it from the Console: Publishing overview -> Send changes for review.")
-            else:
-                print("\nSUCCESS: edit committed. Listing is now published (Play may route via review).")
-
-    except Exception as e:  # noqa: BLE001 - surface the API error and fail non-zero
-        if _is_transient(e):
-            print(f"\nCOULD NOT VERIFY: the Play API refused the request transiently: {e}")
-            print(f"Already retried {API_NUM_RETRIES} times with backoff, so this is a sustained")
-            print("outage rather than one hiccup. The local content checks above all passed and")
-            print("the listing itself is not implicated - re-run when the API recovers.")
-            sys.exit(2)
-        print(f"\nERROR: {e}")
-        sys.exit(1)
+        with publishing_edit(package, operations, args['preflight'], connect_publisher) as (
+            service, edit, root, evidence, http
+        ):
+            changed = stage_listing(service, package, edit['id'], listings)
+            if mode == 'commit' and not changed:
+                print("Listing matches the requested content. No commit was needed.")
+                return 0
+            validated = validate_edit(service, package, edit['id'])
+            if mode == 'validate':
+                if not validated:
+                    raise PlayStop("Play requires the held mode, which validate cannot request.")
+                print("Listing edit validated. The edit will be discarded.")
+                return 0
+            held = commit_edit(service, package, edit, root, evidence, http)
+        print(f"Listing edit committed (held={int(held)}). Check Publishing overview for its disposition.")
+        return 0
+    except PlayStop as exc:
+        print(f"Google Play stopped: {exc}", file=sys.stderr)
+        return 2
+    except Exception as exc:
+        if _is_transient(exc):
+            print(f"Could not verify the listing because the Play request failed transiently: {exc}",
+                  file=sys.stderr)
+            return 2
+        print(f"Listing rejected: {exc}", file=sys.stderr)
+        return 1
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
