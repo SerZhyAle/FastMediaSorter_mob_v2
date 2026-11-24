@@ -4241,4 +4241,6 @@
     <string name="main_destination_legend">Un marco de color y → marcan un destino de Clasificación rápida: los archivos que clasificas van allí.</string>
     <string name="main_first_step_hint_text">Añade una carpeta para empezar: elige una carpeta del dispositivo, un recurso de red o una carpeta en la nube con tus archivos.</string>
     <string name="main_first_step_hint_action">Añadir carpeta</string>
+    <string name="share_to_none_enabled">No hay ningún destino de «Enviar a..» activado para este tipo de elemento. Active uno en Ajustes - %1$s - %2$s</string>
+    <string name="streams_added_shown_in_own">Emisora añadida a «Propios»</string>
 </resources>

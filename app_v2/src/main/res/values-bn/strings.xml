@@ -4240,4 +4240,6 @@
     <string name="main_destination_legend">রঙিন ফ্রেম ও → চিহ্ন একটি Quick Sort গন্তব্য বোঝায়: আপনার সাজানো ফাইল সেখানে যায়।</string>
     <string name="main_first_step_hint_text">শুরু করতে একটি ফোল্ডার যোগ করুন: ডিভাইসের ফোল্ডার, নেটওয়ার্ক শেয়ার বা ক্লাউড ফোল্ডার বেছে নিন, যেখানে আপনার ফাইল আছে।</string>
     <string name="main_first_step_hint_action">ফোল্ডার যোগ করুন</string>
+    <string name="share_to_none_enabled">এই ধরনের আইটেমের জন্য কোনো “এখানে পাঠান..” গন্তব্য চালু নেই। একটি চালু করুন: সেটিংস - %1$s - %2$s</string>
+    <string name="streams_added_shown_in_own">স্টেশন “নিজের” তালিকায় যোগ হয়েছে</string>
 </resources>

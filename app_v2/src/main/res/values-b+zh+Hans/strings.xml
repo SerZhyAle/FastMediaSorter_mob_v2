@@ -4238,4 +4238,6 @@
     <string name="main_destination_legend">彩色边框和 → 标记快速分类的目标位置：你分类的文件会放到那里。</string>
     <string name="main_first_step_hint_text">添加一个文件夹即可开始：选择设备文件夹、网络共享或存放文件的云端文件夹。</string>
     <string name="main_first_step_hint_action">添加文件夹</string>
+    <string name="share_to_none_enabled">此类项目没有启用任何“发送到..”目标。请开启一个：设置 - %1$s - %2$s</string>
+    <string name="streams_added_shown_in_own">电台已添加到“自有”</string>
 </resources>

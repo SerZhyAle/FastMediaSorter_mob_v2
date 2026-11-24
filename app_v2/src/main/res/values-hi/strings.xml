@@ -4237,4 +4237,6 @@
     <string name="main_destination_legend">रंगीन फ़्रेम और → त्वरित सॉर्ट गंतव्य को चिह्नित करते हैं: आप जिन फ़ाइलों को छाँटते हैं, वे वहीं जाती हैं।</string>
     <string name="main_first_step_hint_text">शुरू करने के लिए फ़ोल्डर जोड़ें: अपनी फ़ाइलों वाला डिवाइस फ़ोल्डर, नेटवर्क शेयर या क्लाउड फ़ोल्डर चुनें।</string>
     <string name="main_first_step_hint_action">फ़ोल्डर जोड़ें</string>
+    <string name="share_to_none_enabled">इस प्रकार के आइटम के लिए कोई “यहां भेजें..” लक्ष्य चालू नहीं है। एक चालू करें: सेटिंग्स - %1$s - %2$s</string>
+    <string name="streams_added_shown_in_own">स्टेशन “अपने” में जोड़ा गया</string>
 </resources>

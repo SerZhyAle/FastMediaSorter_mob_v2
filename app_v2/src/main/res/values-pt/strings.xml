@@ -4240,4 +4240,6 @@
     <string name="main_destination_legend">Uma moldura colorida e → marcam um destino da Classificação rápida: os arquivos que você classifica vão para lá.</string>
     <string name="main_first_step_hint_text">Adicione uma pasta para começar: escolha uma pasta do dispositivo, um compartilhamento de rede ou uma pasta na nuvem com seus arquivos.</string>
     <string name="main_first_step_hint_action">Adicionar pasta</string>
+    <string name="share_to_none_enabled">Nenhum destino de «Enviar para..» está ativado para este tipo de item. Ative um em Configurações - %1$s - %2$s</string>
+    <string name="streams_added_shown_in_own">Estação adicionada a «Próprios»</string>
 </resources>

@@ -4238,4 +4238,6 @@
     <string name="main_destination_legend">Una cornice colorata e → indicano una destinazione dello smistamento rapido: i file che smisti vanno lì.</string>
     <string name="main_first_step_hint_text">Aggiungi una cartella per iniziare: scegli una cartella del dispositivo, una condivisione di rete o una cartella cloud con i tuoi file.</string>
     <string name="main_first_step_hint_action">Aggiungi cartella</string>
+    <string name="share_to_none_enabled">Nessuna destinazione di «Invia a..» è attiva per questo tipo di elemento. Attivane una in Impostazioni - %1$s - %2$s</string>
+    <string name="streams_added_shown_in_own">Stazione aggiunta a «Propri»</string>
 </resources>

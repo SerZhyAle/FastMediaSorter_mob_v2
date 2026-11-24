@@ -4223,4 +4223,6 @@
     <string name="main_destination_legend">Ein farbiger Rahmen und → markieren ein Ziel der Schnellsortierung: Dateien, die du sortierst, landen dort.</string>
     <string name="main_first_step_hint_text">Füge zum Starten einen Ordner hinzu: Wähle einen Gerätordner, eine Netzwerkfreigabe oder einen Cloud-Ordner mit deinen Dateien.</string>
     <string name="main_first_step_hint_action">Ordner hinzufügen</string>
+    <string name="share_to_none_enabled">Für diese Art von Element ist kein Ziel von „Senden an..“ aktiviert. Aktiviere eines unter Einstellungen - %1$s - %2$s</string>
+    <string name="streams_added_shown_in_own">Sender zu „Eigene“ hinzugefügt</string>
 </resources>

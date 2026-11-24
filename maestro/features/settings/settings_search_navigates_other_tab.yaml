@@ -41,8 +41,10 @@ appId: com.sza.fastmediasorter.debug
 - assertNotVisible:
     id: "com.sza.fastmediasorter.debug:id/searchEmptyText"
 
+# The result row is titled in the app locale and the sweep runs the app in Russian; the search matches
+# the English query through the row's keywords, so both titles are accepted.
 - tapOn:
-    text: "Allow rename"
+    text: "Allow rename|Разрешить переименование"
 - extendedWaitUntil:
     visible:
       id: "com.sza.fastmediasorter.debug:id/rowAllowRename"

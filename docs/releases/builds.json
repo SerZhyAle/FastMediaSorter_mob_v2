@@ -5,10 +5,10 @@
       "package": "phone",
       "flavor": "nolegal",
       "kind": "debug",
-      "version": "2.61.1241.616",
-      "builtAt": "2026-11-24T16:19:12+01:00",
+      "version": "2.61.1241.837",
+      "builtAt": "2026-11-24T18:41:12+01:00",
       "artifact": "DOWNLOADS/FastMediaSorter_nolegal_debug.apk",
-      "sha256": "121268fb20705d0707a23cb41c24c759a044b4a04193fb896ba09a9a38f19b7f"
+      "sha256": "d08668b1319f24947ee2fd0f5cd33b14d15cbfaba46dc1e1b1717ac381f2ee91"
     },
     {
       "package": "phone",

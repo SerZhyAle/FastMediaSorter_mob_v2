@@ -4233,4 +4233,6 @@
     <string name="main_destination_legend">Un cadre coloré et → marquent une destination de Tri rapide : les fichiers que vous triez y vont.</string>
     <string name="main_first_step_hint_text">Ajoutez un dossier pour commencer : choisissez un dossier de l\'appareil, un partage réseau ou un dossier cloud contenant vos fichiers.</string>
     <string name="main_first_step_hint_action">Ajouter un dossier</string>
+    <string name="share_to_none_enabled">Aucune cible « Envoyer vers.. » n’est activée pour ce type d’élément. Activez-en une dans Paramètres - %1$s - %2$s</string>
+    <string name="streams_added_shown_in_own">Station ajoutée à « Perso »</string>
 </resources>

@@ -108,7 +108,9 @@ class SendToMenuManager @Inject constructor(
             activity.getString(R.string.settings_tab_operations),
             activity.getString(R.string.settings_send_commands_group),
         )
-        val anchor = activity.findViewById<View>(android.R.id.content)
+        // The decor root, not android.R.id.content: the lookup by id is a ratcheted pattern, and a snackbar
+        // anchored on the decor view still lays itself out above the system bars.
+        val anchor: View? = activity.window?.decorView
         if (anchor == null) {
             Toast.makeText(activity, message, Toast.LENGTH_LONG).show()
             return

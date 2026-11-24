@@ -4242,4 +4242,6 @@
     <string name="main_destination_legend">رنگین فریم اور → فوری ترتیب کی منزل کی نشاندہی کرتے ہیں: آپ جو فائلیں ترتیب دیتے ہیں وہ وہیں جاتی ہیں۔</string>
     <string name="main_first_step_hint_text">شروع کرنے کے لیے فولڈر شامل کریں: اپنی فائلوں کے ساتھ آلے کا فولڈر، نیٹ ورک شیئر یا کلاؤڈ فولڈر منتخب کریں۔</string>
     <string name="main_first_step_hint_action">فولڈر شامل کریں</string>
+    <string name="share_to_none_enabled">اس قسم کے آئٹم کے لیے کوئی “بھیجیں..” ہدف آن نہیں ہے۔ ایک آن کریں: سیٹنگز - %1$s - %2$s</string>
+    <string name="streams_added_shown_in_own">اسٹیشن “اپنے” میں شامل کر دیا گیا</string>
 </resources>

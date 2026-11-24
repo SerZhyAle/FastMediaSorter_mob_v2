@@ -4263,4 +4263,6 @@
     <string name="main_destination_legend">الإطار الملوّن وعلامة → يحدّدان وجهة الفرز السريع: الملفات التي تفرزها تذهب إليها.</string>
     <string name="main_first_step_hint_text">أضف مجلدًا للبدء: اختر مجلدًا على الجهاز أو مشاركة شبكية أو مجلدًا سحابيًا يحتوي على ملفاتك.</string>
     <string name="main_first_step_hint_action">إضافة مجلد</string>
+    <string name="share_to_none_enabled">لا توجد وجهة «إرسال إلى..» مفعّلة لهذا النوع من العناصر. فعّل واحدة في الإعدادات - %1$s - %2$s</string>
+    <string name="streams_added_shown_in_own">تمت إضافة المحطة إلى «خاصة»</string>
 </resources>
