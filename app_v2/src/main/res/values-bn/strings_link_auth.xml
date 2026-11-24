@@ -23,4 +23,5 @@
     <string name="s0157_dismissed_label">অনুমোদিত নয় (আপনি প্রত্যাখ্যান করেছেন)</string>
     <string name="s0157_last_used_never">এখনো ব্যবহৃত হয়নি</string>
     <string name="s0157_last_used_fmt">সর্বশেষ ব্যবহৃত %1$s</string>
+    <string name="s4581_pick_account_add_new">+ অ্যাকাউন্ট যোগ করুন</string>
 </resources>

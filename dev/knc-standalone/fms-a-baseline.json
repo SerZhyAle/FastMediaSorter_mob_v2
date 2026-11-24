@@ -1,0 +1,938 @@
+{
+  "schema": "knc-fms-a-baseline/1",
+  "ticket": "S4859",
+  "capturedOn": "2026-11-24",
+  "game": "Kryvavitsa and the Monster (KnC)",
+  "referenceProduct": "FMS_A (app_v2, standard flavor)",
+  "hashAlgorithm": "SHA-256 of the file bytes on disk at capture time",
+  "sources": [
+    {
+      "id": "phone.models",
+      "area": "models",
+      "path": "app_v2/src/main/java/com/sza/fastmediasorter/domain/game/GameModels.kt",
+      "sha256": "d4c46789f2c0bee7e634e6413db34957a1bb35fab51ffb8e1db0798f08d4e45d"
+    },
+    {
+      "id": "phone.generator",
+      "area": "board-generation",
+      "path": "app_v2/src/main/java/com/sza/fastmediasorter/domain/game/GameBoardGenerator.kt",
+      "sha256": "44076f8290c57ae8d6bd019144c9e86a96f0de6611628430a678760ab81af263"
+    },
+    {
+      "id": "phone.rules",
+      "area": "rules",
+      "path": "app_v2/src/main/java/com/sza/fastmediasorter/domain/game/GameRulesEngine.kt",
+      "sha256": "dd8331e0007f7430cc6eca4d2059fe11079e382c1637bbe785575c8f7833e09f"
+    },
+    {
+      "id": "phone.scoring",
+      "area": "scoring",
+      "path": "app_v2/src/main/java/com/sza/fastmediasorter/domain/game/GameScoring.kt",
+      "sha256": "423496eb3792eabd8950ba613ae35888dfa774a57e8948d5ab07b07cc4fbec75"
+    },
+    {
+      "id": "phone.snapshot",
+      "area": "persistence",
+      "path": "app_v2/src/main/java/com/sza/fastmediasorter/domain/game/GameStateSnapshot.kt",
+      "sha256": "0562927cbb524a2aa63c6c24c53ebcee0ee18dcf117da14fd038a70c84479646"
+    },
+    {
+      "id": "phone.repository-port",
+      "area": "persistence",
+      "path": "app_v2/src/main/java/com/sza/fastmediasorter/domain/game/GameStateRepository.kt",
+      "sha256": "5a11af56795c34ebc8a4fbbb1d509f6e041e5fe0ac34af5d60bcaa7037076168"
+    },
+    {
+      "id": "phone.repository-impl",
+      "area": "persistence",
+      "path": "app_v2/src/main/java/com/sza/fastmediasorter/data/game/GameStateRepositoryImpl.kt",
+      "sha256": "3f6fa7dc4fd8e4b226d2f14432525db9621c2414ea48c8ec29f4b6d1aee27950"
+    },
+    {
+      "id": "phone.viewmodel",
+      "area": "level-progression",
+      "path": "app_v2/src/main/java/com/sza/fastmediasorter/ui/game/GameViewModel.kt",
+      "sha256": "e54152fe5e565e48fa935780a55b2d1e7df9f8ae3ab9650b299b77fe555b329b"
+    },
+    {
+      "id": "phone.ui-state",
+      "area": "presentation",
+      "path": "app_v2/src/main/java/com/sza/fastmediasorter/ui/game/GameUiState.kt",
+      "sha256": "f193badf54e249cfc0a6ecc87139def15c7fd528ac78054e90c037ccc9543703"
+    },
+    {
+      "id": "phone.activity",
+      "area": "presentation",
+      "path": "app_v2/src/main/java/com/sza/fastmediasorter/ui/game/GameActivity.kt",
+      "sha256": "c4dd9a52452dd73f4519de78f1bdb517df531f54af63acf5dfb6c6b5e53c15ce"
+    },
+    {
+      "id": "phone.board-view",
+      "area": "appearance",
+      "path": "app_v2/src/main/java/com/sza/fastmediasorter/ui/game/GameBoardView.kt",
+      "sha256": "0a020173e6038ee9b9a45fdc9f761e9c71c58aa84b5d7569b99e5b29ddfd597a"
+    },
+    {
+      "id": "phone.help",
+      "area": "presentation",
+      "path": "app_v2/src/main/java/com/sza/fastmediasorter/ui/game/GameHelpActivity.kt",
+      "sha256": "c56ba4a7b2ef4d0b57a17769ed88d021817ec4f6f3857fdac0dd9fa7feeb0f86"
+    },
+    {
+      "id": "phone.render-mapper",
+      "area": "appearance",
+      "path": "app_v2/src/main/java/com/sza/fastmediasorter/ui/game/helpers/GameBoardRenderMapper.kt",
+      "sha256": "35e5c49a1c8f23e29304e9abafd303494627b706d8be2c4f4811e23018e5b678"
+    },
+    {
+      "id": "phone.theme",
+      "area": "appearance",
+      "path": "app_v2/src/main/java/com/sza/fastmediasorter/ui/game/helpers/GameBoardTheme.kt",
+      "sha256": "8164cbfe1a1c58a668a1a4d5edcea143aab7e87d62814bf7feef6dd9d28d3bbf"
+    },
+    {
+      "id": "phone.input",
+      "area": "input",
+      "path": "app_v2/src/main/java/com/sza/fastmediasorter/ui/game/helpers/GameInputManager.kt",
+      "sha256": "0398639fc3ef79d34ab6120fae49b102c7942c2b2fb250f8837ee64807e1c81c"
+    },
+    {
+      "id": "phone.mode-menu",
+      "area": "appearance",
+      "path": "app_v2/src/main/java/com/sza/fastmediasorter/ui/game/helpers/GameModeMenuManager.kt",
+      "sha256": "0289c30ae9695a22cc376b33ebdbc027457849628d1d24ddb2b6c29d3a5baa5a"
+    },
+    {
+      "id": "phone.scaling",
+      "area": "appearance",
+      "path": "app_v2/src/main/java/com/sza/fastmediasorter/ui/game/helpers/GameScalingManager.kt",
+      "sha256": "35e64509d5a5f6f550c8713b319b668849ca73f817c0804224004c3434a6542d"
+    },
+    {
+      "id": "phone.strings",
+      "area": "resources",
+      "path": "app_v2/src/main/res/values/strings_game.xml",
+      "sha256": "6c6f16121aa21b0726e00a7f28a1b6bb6b9f7a7d1087ea5ade6473c4b400bc26"
+    },
+    {
+      "id": "wear.models",
+      "area": "models",
+      "path": "wear/src/main/java/com/sza/fastmediasorter/wear/domain/game/GameModels.kt",
+      "sha256": "48ab3757e8e5a11e90fda1c72f3e09fb8f5f1f217b0e1b99668515a3f805f00d"
+    },
+    {
+      "id": "wear.generator",
+      "area": "board-generation",
+      "path": "wear/src/main/java/com/sza/fastmediasorter/wear/domain/game/GameBoardGenerator.kt",
+      "sha256": "8560b23d4f05704f82cba938f18560e20d93e986c05088901786b720dd8ac1c7"
+    },
+    {
+      "id": "wear.rules",
+      "area": "rules",
+      "path": "wear/src/main/java/com/sza/fastmediasorter/wear/domain/game/GameRulesEngine.kt",
+      "sha256": "66ec5158b019d8b7b1a21ea190e2e3f9e4f99513f405fe0466ac9e033075c0d3"
+    },
+    {
+      "id": "wear.scoring",
+      "area": "scoring",
+      "path": "wear/src/main/java/com/sza/fastmediasorter/wear/domain/game/GameScoring.kt",
+      "sha256": "694e9bf68514a4fe29de36f35a78bf59d4ecf311811e542db7d502f99b7f565d"
+    },
+    {
+      "id": "wear.snapshot",
+      "area": "persistence",
+      "path": "wear/src/main/java/com/sza/fastmediasorter/wear/domain/game/GameStateSnapshot.kt",
+      "sha256": "03522ce025043634feb2ff01df76996710b6fc386547ee5731b86bad8b0b2f03"
+    },
+    {
+      "id": "wear.seed-source",
+      "area": "board-generation",
+      "path": "wear/src/main/java/com/sza/fastmediasorter/wear/domain/game/GameSeedSource.kt",
+      "sha256": "e36abd2c74fd7064bd5a5aadbb6c4e919df729759fc74d3e6c8b0aa49df20af1"
+    },
+    {
+      "id": "wear.guide-arrow",
+      "area": "presentation",
+      "path": "wear/src/main/java/com/sza/fastmediasorter/wear/domain/game/GameGuideArrow.kt",
+      "sha256": "e7d26753538de71929903c8b0fca8110cca1a394950646129233bd08527c1f42"
+    },
+    {
+      "id": "wear.viewmodel",
+      "area": "level-progression",
+      "path": "wear/src/main/java/com/sza/fastmediasorter/wear/ui/apps/game/GameViewModel.kt",
+      "sha256": "8fcd5e834a58756d72669be713d24e230e7c019fb354b07b00f4cb610190873a"
+    },
+    {
+      "id": "wear.screen",
+      "area": "input",
+      "path": "wear/src/main/java/com/sza/fastmediasorter/wear/ui/apps/game/GameScreen.kt",
+      "sha256": "d13ffa35d3c077efd27ed5c87ad994042ce78532c530e09a1b253052cb63f2cd"
+    },
+    {
+      "id": "wear.canvas",
+      "area": "appearance",
+      "path": "wear/src/main/java/com/sza/fastmediasorter/wear/ui/apps/game/GameBoardCanvas.kt",
+      "sha256": "3964e805a97be73bd97554c5b3ee2bbe2e7459837a3734360b4a98a8ceb89f03"
+    }
+  ],
+  "tests": [
+    {
+      "id": "test.phone.generator",
+      "path": "app_v2/src/test/java/com/sza/fastmediasorter/domain/game/GameBoardGeneratorTest.kt",
+      "sha256": "e63048ac43b8b5a5c6ff3a5b51bb2520eb757abb225584e4ee2ff6e0a5287eb6"
+    },
+    {
+      "id": "test.phone.rules",
+      "path": "app_v2/src/test/java/com/sza/fastmediasorter/domain/game/GameRulesEngineTest.kt",
+      "sha256": "45729319a9138cc0bf84d01188ac300da41b1752719bf0f964b7871487e00bec"
+    },
+    {
+      "id": "test.phone.mode",
+      "path": "app_v2/src/test/java/com/sza/fastmediasorter/domain/game/GameModeTest.kt",
+      "sha256": "52e7a24973fd3f90c61f68084e70e1f054540ce937d5e9076c5fc0a89a0fe103"
+    },
+    {
+      "id": "test.wear.generator",
+      "path": "wear/src/test/java/com/sza/fastmediasorter/wear/domain/game/GameBoardGeneratorTest.kt",
+      "sha256": "89767e43841e86e62d6a509650179b0508ec213e8c5f477bfaf50c6f88faa902"
+    },
+    {
+      "id": "test.wear.rules",
+      "path": "wear/src/test/java/com/sza/fastmediasorter/wear/domain/game/GameRulesEngineTest.kt",
+      "sha256": "20185b9e04c2211bd70f0af59f6bd543bfd79e54c0d7b16836576d1bccfa5566"
+    },
+    {
+      "id": "test.wear.advance",
+      "path": "wear/src/test/java/com/sza/fastmediasorter/wear/domain/game/GameRulesEngineAdvanceTest.kt",
+      "sha256": "7ed0dcbfd02f345e869409c0884592e03453533a80ee723c562a77e01ff179fa"
+    },
+    {
+      "id": "test.wear.snapshot",
+      "path": "wear/src/test/java/com/sza/fastmediasorter/wear/domain/game/GameStateSnapshotTest.kt",
+      "sha256": "d0ea907ec9111f4c257b731a048a200d3421c8c0319be25bee956b529fff5d0b"
+    }
+  ],
+  "stateAndScoreInputs": {
+    "description": "Everything that decides the board, a turn's outcome or the score. A ranked run is comparable only when every item here is identical.",
+    "items": [
+      {
+        "id": "cells",
+        "source": "phone.models",
+        "fact": "Cells are FLOOR, WALL, EXIT. Board is a width x height grid; moves are orthogonal only (UP, DOWN, LEFT, RIGHT)."
+      },
+      {
+        "id": "actors",
+        "source": "phone.models",
+        "fact": "One player, exactly one KRYVAVITSA enemy (id 'kryvavitsa'), zero or more SHADOW enemies (ids 'shadow_1'..)."
+      },
+      {
+        "id": "config",
+        "source": "phone.models",
+        "fact": "GameLevelConfig = levelNumber, difficulty (stored, not read by the generator), width, height, shadowCount, seed."
+      },
+      {
+        "id": "generator-normalize",
+        "source": "phone.generator",
+        "fact": "width/height clamped to 8..100; shadowCount clamped to 1..max(1, floor(w*h*0.30))."
+      },
+      {
+        "id": "generator-attempts",
+        "source": "phone.generator",
+        "fact": "Up to 1500 attempts, attempt k uses kotlin.random.Random(seed + k*7919); exhaustion throws."
+      },
+      {
+        "id": "generator-placement",
+        "source": "phone.generator",
+        "fact": "Player random; exit at Manhattan > min(w,h)/4; L-shaped reserved corridors (random horizontal-first or vertical-first) player->exit and player->Kryvavitsa; Kryvavitsa at > min(w,h)/3 off the exit corridor; shadows at > min(w,h)/4 off reserved cells."
+      },
+      {
+        "id": "generator-walls",
+        "source": "phone.generator",
+        "fact": "Wall count = ceil(cells*0.30) + nextInt(floor(cells*0.10)+1), drawn by shuffled(random) from the non-reserved, unoccupied cells; validated density 0.30..0.40, reachable exit and Kryvavitsa, a legal first move, distance minimums."
+      },
+      {
+        "id": "rng-dependency",
+        "source": "phone.generator",
+        "fact": "Board identity depends on the exact kotlin.random.Random (XorWow) sequence and on the order of every nextInt/nextBoolean/shuffled call. A port in another language must reproduce that sequence bit for bit, or seeds stop being portable."
+      },
+      {
+        "id": "turn-order",
+        "source": "phone.rules",
+        "fact": "Player acts, score ticks, capture by stepping into an enemy ends the game, stepping on EXIT wins before enemies move; then Kryvavitsa (captures without moving if already adjacent, else HUNT), then shadows in an order shuffled by Random(config.seed + stats.turns), each WANDER; orthogonal adjacency after an enemy's action captures."
+      },
+      {
+        "id": "blocked-move",
+        "source": "phone.rules",
+        "fact": "A blocked move (edge, wall that cannot move) is ACCEPTED: the turn is counted and charged, enemies act. Only a non-orthogonal delta or a finished level is rejected."
+      },
+      {
+        "id": "wall-push",
+        "source": "phone.rules",
+        "fact": "Pushing a wall onto floor moves it (+10 bonus); onto a shadow crushes the shadow (+50) and moves the wall; onto EXIT destroys the wall (no push bonus); onto a wall, Kryvavitsa or off-board is blocked."
+      },
+      {
+        "id": "hunt",
+        "source": "phone.rules",
+        "fact": "Kryvavitsa candidate order: greedy toward player (horizontal before vertical), greedy toward the first exit, then all four directions shuffled; first floor cell not occupied wins, else she stays."
+      },
+      {
+        "id": "skip-turn",
+        "source": "phone.rules",
+        "fact": "Skip = turn ticked with the normal penalty, enemies act."
+      },
+      {
+        "id": "scoring",
+        "source": "phone.scoring",
+        "fact": "Turn -10, wall push +10, shadow crush +50, floor 0; level completed +1000 and streak+1; restart (lost or voluntary) -500 floor 0 and streak 0; highScore = running max."
+      },
+      {
+        "id": "progression-phone",
+        "source": "phone.viewmodel",
+        "fact": "Phone level N: square board 8 + N/3 capped at 20, shadowCount = N, difficulty NORMAL, fresh seed = clock(nanoTime xor currentTimeMillis) + nonce*104729 + N on every new level and every restart."
+      },
+      {
+        "id": "persistence-phone",
+        "source": "phone.repository-impl",
+        "fact": "One Gson-serialized GameStateSnapshot (schemaVersion 1) under DataStore key 'embedded_game_state'; mode under 'embedded_game_mode'. A won or lost snapshot is healed into a playable level on resume."
+      }
+    ]
+  },
+  "presentationChoices": {
+    "description": "Things that change how the game looks or is driven, never the board or the score.",
+    "items": [
+      {
+        "id": "modes",
+        "source": "phone.models",
+        "fact": "GameMode CLASSIC, KRYVAVITSA, CONTRAST: a skin over unchanged logic, persisted separately; switching never resets a game. Unknown stored name -> CLASSIC."
+      },
+      {
+        "id": "phone-input",
+        "source": "phone.input",
+        "fact": "D-pad, WASD and numpad 8/2/4/6 keys; touch controls; skip turn; restart; gamepad through the app-wide translator."
+      },
+      {
+        "id": "phone-render",
+        "source": "phone.board-view",
+        "fact": "Custom View drawing cells and actors from drawables bg_game_ball_*, ic_game_fig_*, ic_game_door, ic_game_triangle_*; per-turn actor move animation; defeat connection line; exit guide arrow."
+      },
+      {
+        "id": "phone-surfaces",
+        "source": "phone.activity",
+        "fact": "GameActivity, GameHelpActivity, launcher widget GameLaunchWidgetProvider; 54 game strings in strings_game.xml, authored EN/RU/UK and fanned out to 13 locales."
+      },
+      {
+        "id": "wear-input",
+        "source": "wear.screen",
+        "fact": "Swipe-to-move on the board, side controls, long-press menu; rotary swallowed; edge swipe left to the platform."
+      },
+      {
+        "id": "wear-render",
+        "source": "wear.canvas",
+        "fact": "Compose canvas with a stats ring and a rules screen."
+      }
+    ]
+  },
+  "wearDifferences": [
+    {
+      "id": "WD-01",
+      "kind": "rule-variation",
+      "fmsAReference": "phone.models",
+      "wear": "wear.models",
+      "fact": "Wear adds a VOID cell kind: contains() is false on it, so it acts as off-board for player moves and wall pushes.",
+      "scopeQuestion": "Q-PAR-02"
+    },
+    {
+      "id": "WD-02",
+      "kind": "configuration-difference",
+      "fmsAReference": "phone.viewmodel",
+      "wear": "wear.viewmodel",
+      "fact": "Wear board is 12x11 round (VOID corners) or 10x9 round compact or 9x9 square, fixed for every level; phone is square 8..20 growing with the level.",
+      "scopeQuestion": "Q-PAR-01"
+    },
+    {
+      "id": "WD-03",
+      "kind": "configuration-difference",
+      "fmsAReference": "phone.viewmodel",
+      "wear": "wear.viewmodel",
+      "fact": "Wear shadowCount = min(5, 2 + (N-1)/3); phone shadowCount = N.",
+      "scopeQuestion": "Q-PAR-01"
+    },
+    {
+      "id": "WD-04",
+      "kind": "configuration-difference",
+      "fmsAReference": "phone.viewmodel",
+      "wear": "wear.viewmodel",
+      "fact": "Wear difficulty band EASY <4, NORMAL <10, HARD after; phone always NORMAL. Neither generator reads it.",
+      "scopeQuestion": "Q-RNK-02"
+    },
+    {
+      "id": "WD-05",
+      "kind": "rule-variation",
+      "fmsAReference": "phone.generator",
+      "wear": "wear.generator",
+      "fact": "Wear reserves corridors by randomized BFS over the playable template instead of the phone's L-shaped path, and draws positions through the template; the random sequence is consumed differently, so one config and one seed do NOT give one board on both devices despite the ADR-1 comment.",
+      "scopeQuestion": "Q-PAR-03"
+    },
+    {
+      "id": "WD-06",
+      "kind": "rule-variation",
+      "fmsAReference": "phone.generator",
+      "wear": "wear.generator",
+      "fact": "Wall density and shadow capacity are computed over playable (non-VOID) cells on Wear, over all cells on the phone.",
+      "scopeQuestion": "Q-PAR-02"
+    },
+    {
+      "id": "WD-07",
+      "kind": "configuration-difference",
+      "fmsAReference": "phone.generator",
+      "wear": "wear.generator",
+      "fact": "Exhausted generation returns null on Wear (board left unchanged), throws on the phone.",
+      "scopeQuestion": "Q-DEV-03"
+    },
+    {
+      "id": "WD-08",
+      "kind": "configuration-difference",
+      "fmsAReference": "phone.models",
+      "wear": "wear.models",
+      "fact": "Wear fromRows maps ' ', '-', '_' to VOID and degrades an unknown char to FLOOR with a warning; the phone throws.",
+      "scopeQuestion": "Q-DEV-03"
+    },
+    {
+      "id": "WD-09",
+      "kind": "presentation-choice",
+      "fmsAReference": "phone.models",
+      "wear": "wear.models",
+      "fact": "Wear has no GameMode skins.",
+      "scopeQuestion": "Q-FUT-01"
+    },
+    {
+      "id": "WD-10",
+      "kind": "presentation-choice",
+      "fmsAReference": "phone.repository-impl",
+      "wear": "wear.snapshot",
+      "fact": "Wear stores the snapshot as its own delimited string (schema 1) in the watch settings store; the phone stores Gson JSON. The two saves are not interchangeable.",
+      "scopeQuestion": "Q-FST-04"
+    },
+    {
+      "id": "WD-11",
+      "kind": "presentation-choice",
+      "fmsAReference": "phone.board-view",
+      "wear": "wear.guide-arrow",
+      "fact": "Wear guide arrow targets the nearest exit by Manhattan distance; it is a hint only.",
+      "scopeQuestion": "Q-PAR-04"
+    },
+    {
+      "id": "WD-12",
+      "kind": "rule-variation",
+      "fmsAReference": "phone.scoring",
+      "wear": "wear.scoring",
+      "fact": "Scoring constants and formula are identical (only the expression is split into locals).",
+      "scopeQuestion": "none - parity holds"
+    },
+    {
+      "id": "WD-13",
+      "kind": "rule-variation",
+      "fmsAReference": "phone.rules",
+      "wear": "wear.rules",
+      "fact": "Rules engine is line-identical except the VOID branch (move into VOID -> blocked OUT_OF_BOUNDS, counted as a turn).",
+      "scopeQuestion": "Q-PAR-02"
+    }
+  ],
+  "gapsForOptionsMatrix": [
+    "Two hand-maintained copies of the domain already drift (WD-05, WD-06): any standalone layout must make one canonical rules source.",
+    "Seed portability depends on kotlin.random.Random's exact sequence (rng-dependency): a non-Kotlin port (Web in JS, Windows in C#) needs a specified, versioned PRNG.",
+    "Board geometry differs per device (WD-02): ranked play needs a per-game-type geometry independent of the screen, or separate leaderboards per geometry.",
+    "Seeds are clock-derived on the client: a shared leaderboard needs server-issued or verifiable seeds and a replayable move log.",
+    "Two incompatible save formats (WD-10) and no carry-over path to a standalone app.",
+    "Visual modes exist only on the phone (WD-09)."
+  ],
+  "referenceCases": [
+    {
+      "id": "RC-GEN-01",
+      "area": "generation",
+      "evidence": "test.phone.generator#generatedBoardIsDeterministicForSameSeed",
+      "input": {
+        "config": {
+          "width": 10,
+          "height": 10,
+          "shadowCount": 2,
+          "seed": 123
+        }
+      },
+      "action": "createInitialState twice",
+      "expected": "identical board, player and enemies",
+      "evidenceStatus": "sourced"
+    },
+    {
+      "id": "RC-GEN-02",
+      "area": "generation",
+      "evidence": "test.phone.generator#generatedBoardPassesCustomValidation",
+      "input": {
+        "config": {
+          "width": 10,
+          "height": 10,
+          "shadowCount": 3,
+          "seed": 99
+        }
+      },
+      "action": "createInitialState then validateCustomBoard",
+      "expected": "valid, no errors",
+      "evidenceStatus": "sourced"
+    },
+    {
+      "id": "RC-GEN-03",
+      "area": "generation",
+      "evidence": "test.phone.generator#generatedBoardUsesLevelAsShadowCountAndReferenceWallDensity",
+      "input": {
+        "config": {
+          "width": 10,
+          "height": 10,
+          "shadowCount": 4,
+          "seed": 101
+        }
+      },
+      "action": "createInitialState",
+      "expected": "4 shadows, wall density in 0.30..0.40",
+      "evidenceStatus": "sourced"
+    },
+    {
+      "id": "RC-GEN-04",
+      "area": "generation",
+      "evidence": "test.phone.generator#generatedBoardKeepsKryvavitsaReachableFromPlayer",
+      "input": {
+        "config": {
+          "width": 12,
+          "height": 12,
+          "shadowCount": 3,
+          "seedRange": "0..24"
+        }
+      },
+      "action": "createInitialState per seed",
+      "expected": "Kryvavitsa reachable from the player for every seed",
+      "evidenceStatus": "sourced"
+    },
+    {
+      "id": "RC-GEN-05",
+      "area": "generation",
+      "evidence": "test.phone.generator",
+      "input": {
+        "config": {
+          "width": 10,
+          "height": 10,
+          "shadowCount": 2,
+          "seed": 123
+        }
+      },
+      "action": "createInitialState; serialize board rows, player, enemies",
+      "expected": "golden board string - not recorded yet",
+      "evidenceStatus": "pending",
+      "requiredCheck": "Run the phone generator for this config and store the rows as the cross-platform golden board; every port must reproduce it byte for byte. Release-tier (unit test run)."
+    },
+    {
+      "id": "RC-GEN-06",
+      "area": "generation",
+      "evidence": "WD-05",
+      "input": {
+        "config": {
+          "width": 10,
+          "height": 10,
+          "shadowCount": 2,
+          "seed": 123
+        }
+      },
+      "action": "phone generator vs wear generator, same config",
+      "expected": "boards differ (expected divergence by code reading)",
+      "evidenceStatus": "pending",
+      "requiredCheck": "Execute both generators on one config and record whether the boards match; confirms or refutes the ADR-1 claim. Release-tier."
+    },
+    {
+      "id": "RC-VAL-01",
+      "area": "generation",
+      "evidence": "test.phone.generator#customValidationRejectsUnreachableExit / #customValidationRejectsUnreachableKryvavitsa / #customValidationRejectsEnemyAdjacentStart / #customValidationRequiresPlayerKryvavitsaAndExit",
+      "input": "boards in the cited tests",
+      "action": "validateCustomBoard",
+      "expected": "EXIT_NOT_REACHABLE / KRYVAVITSA_NOT_REACHABLE / PLAYER_START_ADJACENT_TO_ENEMY / MISSING_PLAYER+MISSING_KRYVAVITSA+MISSING_EXIT",
+      "evidenceStatus": "sourced"
+    },
+    {
+      "id": "RC-TURN-01",
+      "area": "rejected-turn",
+      "evidence": "test.phone.rules#rejectsDiagonalAndNoOpDelta",
+      "input": {
+        "board": "default 5x5 '#####','#...#','#..E#','#...#','#####'",
+        "player": [
+          3,
+          2
+        ],
+        "kryvavitsa": [
+          1,
+          1
+        ]
+      },
+      "action": "applyMoveDelta(-1,1) and (0,0)",
+      "expected": "accepted=false, INVALID_DIRECTION",
+      "evidenceStatus": "sourced"
+    },
+    {
+      "id": "RC-TURN-02",
+      "area": "accepted-turn",
+      "evidence": "test.phone.rules#pushesWallWhenDestinationIsFloor",
+      "input": {
+        "board": [
+          "#####",
+          "#...#",
+          "#..E#",
+          "#.W.#",
+          "#####"
+        ],
+        "player": [
+          3,
+          1
+        ],
+        "kryvavitsa": [
+          1,
+          1
+        ],
+        "seed": 11,
+        "shadowOrderSeed": 1
+      },
+      "action": "RIGHT",
+      "expected": "player (3,2); (3,2) FLOOR; (3,3) WALL; WallPushed; wallPushes=1",
+      "evidenceStatus": "sourced"
+    },
+    {
+      "id": "RC-TURN-03",
+      "area": "accepted-turn",
+      "evidence": "test.phone.rules#pushesWallIntoExit",
+      "input": {
+        "board": [
+          "#####",
+          "#K..#",
+          "#PWE#",
+          "#...#",
+          "#####"
+        ],
+        "player": [
+          2,
+          1
+        ],
+        "kryvavitsa": [
+          1,
+          1
+        ]
+      },
+      "action": "RIGHT",
+      "expected": "player (2,2); wall destroyed; (2,3) still EXIT; wallPushes=0",
+      "evidenceStatus": "sourced"
+    },
+    {
+      "id": "RC-TURN-04",
+      "area": "accepted-turn",
+      "evidence": "test.phone.rules#blockedMoveCountsTurnAndRunsEnemyCycle",
+      "input": {
+        "board": [
+          ".....",
+          ".....",
+          "..E..",
+          ".....",
+          "....."
+        ],
+        "player": [
+          0,
+          0
+        ],
+        "kryvavitsa": [
+          4,
+          4
+        ],
+        "shadowOrderSeed": 1
+      },
+      "action": "LEFT",
+      "expected": "accepted; player stays (0,0); turns=1; PlayerBlocked; an enemy event",
+      "evidenceStatus": "sourced"
+    },
+    {
+      "id": "RC-TURN-05",
+      "area": "scoring",
+      "evidence": "test.phone.rules#pushingWallIntoShadowCrushesShadowAndScoresBonus",
+      "input": {
+        "board": [
+          "########",
+          "#K.....#",
+          "#......#",
+          "#PWS.E.#",
+          "#......#",
+          "########"
+        ],
+        "player": [
+          3,
+          1
+        ],
+        "kryvavitsa": [
+          1,
+          1
+        ],
+        "shadows": [
+          [
+            3,
+            3
+          ]
+        ],
+        "shadowOrderSeed": 3
+      },
+      "action": "RIGHT",
+      "expected": "ShadowCrushed; no shadows left; score 50",
+      "evidenceStatus": "sourced"
+    },
+    {
+      "id": "RC-TURN-06",
+      "area": "accepted-turn",
+      "evidence": "test.phone.rules#movingIntoEnemyAcceptsTurnAndEndsGame",
+      "input": {
+        "board": [
+          "#####",
+          "#PK.#",
+          "#..E#",
+          "#...#",
+          "#####"
+        ],
+        "player": [
+          1,
+          1
+        ],
+        "kryvavitsa": [
+          1,
+          2
+        ]
+      },
+      "action": "RIGHT",
+      "expected": "GAME_OVER; PlayerCaptured; score 0",
+      "evidenceStatus": "sourced"
+    },
+    {
+      "id": "RC-TURN-07",
+      "area": "accepted-turn",
+      "evidence": "test.phone.rules#kryvavitsaUsesHorizontalGreedyPriorityBeforeVertical",
+      "input": {
+        "board": "7x7 floor, EXIT at (3,6)",
+        "player": [
+          1,
+          1
+        ],
+        "kryvavitsa": [
+          2,
+          4
+        ],
+        "shadowOrderSeed": 1
+      },
+      "action": "UP",
+      "expected": "Kryvavitsa moves (2,4)->(2,3)",
+      "evidenceStatus": "sourced"
+    },
+    {
+      "id": "RC-TURN-08",
+      "area": "accepted-turn",
+      "evidence": "test.phone.rules#kryvavitsaCapturesWhenPlayerEndsMoveAdjacentInsteadOfEscapingTowardExit",
+      "input": {
+        "board": [
+          ".....",
+          ".....",
+          ".P.K.",
+          ".....",
+          "...E."
+        ],
+        "player": [
+          2,
+          1
+        ],
+        "kryvavitsa": [
+          2,
+          3
+        ],
+        "shadowOrderSeed": 1
+      },
+      "action": "RIGHT",
+      "expected": "GAME_OVER; Kryvavitsa stays at (2,3); EnemyStayed then PlayerCaptured",
+      "evidenceStatus": "sourced"
+    },
+    {
+      "id": "RC-TURN-09",
+      "area": "accepted-turn",
+      "evidence": "test.phone.rules#enemyCapturesOnlyAfterEnemyActionByOrthogonalAdjacency",
+      "input": {
+        "board": [
+          "#######",
+          "#.....#",
+          "#....E#",
+          "#.....#",
+          "#######"
+        ],
+        "player": [
+          3,
+          1
+        ],
+        "kryvavitsa": [
+          3,
+          4
+        ],
+        "shadowOrderSeed": 7
+      },
+      "action": "RIGHT",
+      "expected": "GAME_OVER; PlayerCaptured",
+      "evidenceStatus": "sourced"
+    },
+    {
+      "id": "RC-TURN-10",
+      "area": "advance",
+      "evidence": "test.phone.rules#steppingOntoExitWinsBeforeEnemyTurn",
+      "input": {
+        "board": [
+          "#####",
+          "#K..#",
+          "#..E#",
+          "#...#",
+          "#####"
+        ],
+        "player": [
+          2,
+          2
+        ],
+        "kryvavitsa": [
+          1,
+          1
+        ]
+      },
+      "action": "RIGHT",
+      "expected": "LEVEL_WON; ExitReached; no EnemyMoved; levelsCompleted 1; score 1000",
+      "evidenceStatus": "sourced"
+    },
+    {
+      "id": "RC-TURN-11",
+      "area": "scoring",
+      "evidence": "test.phone.rules#scoringAppliesTurnPenaltyAndWallBonusWithZeroFloor",
+      "input": {
+        "board": [
+          "######",
+          "#K...#",
+          "#..W.#",
+          "#...E#",
+          "#....#",
+          "#....#",
+          "######"
+        ],
+        "player": [
+          2,
+          2
+        ],
+        "kryvavitsa": [
+          1,
+          1
+        ],
+        "shadowOrderSeed": 5
+      },
+      "action": "RIGHT",
+      "expected": "score 0; turns 1; wallPushes 1",
+      "evidenceStatus": "sourced"
+    },
+    {
+      "id": "RC-TURN-12",
+      "area": "accepted-turn",
+      "evidence": "test.phone.rules#movesPlayerThenKryvavitsaBeforeShadows",
+      "input": {
+        "board": "default 5x5",
+        "player": [
+          3,
+          2
+        ],
+        "kryvavitsa": [
+          1,
+          1
+        ],
+        "shadows": [
+          [
+            1,
+            3
+          ],
+          [
+            3,
+            1
+          ]
+        ],
+        "shadowOrderSeed": 42
+      },
+      "action": "RIGHT",
+      "expected": "first event PlayerMoved; first EnemyMoved is kryvavitsa",
+      "evidenceStatus": "sourced"
+    },
+    {
+      "id": "RC-TURN-13",
+      "area": "accepted-turn",
+      "evidence": "test.wear.advance#a skipped turn is spent and priced as an ordinary turn",
+      "input": "wear test fixture",
+      "action": "skip turn",
+      "expected": "turn counted with -10, enemies act",
+      "evidenceStatus": "sourced"
+    },
+    {
+      "id": "RC-RST-01",
+      "area": "restart",
+      "evidence": "test.phone.rules#restartLevelKeepsCurrentProgressWithPenalty",
+      "input": {
+        "stats": {
+          "score": 900,
+          "highScore": 900
+        },
+        "status": "GAME_OVER"
+      },
+      "action": "restartLevel",
+      "expected": "PLAYING; score 400; highScore 900",
+      "evidenceStatus": "sourced"
+    },
+    {
+      "id": "RC-RST-02",
+      "area": "restart",
+      "evidence": "test.phone.rules#voluntaryRestartCostsTheSameAsDying",
+      "input": {
+        "stats": {
+          "score": 900,
+          "highScore": 900
+        },
+        "status": "PLAYING"
+      },
+      "action": "restartLevelVoluntarily",
+      "expected": "same score, highScore and streak as restartLevel: score 400",
+      "evidenceStatus": "sourced"
+    },
+    {
+      "id": "RC-RST-03",
+      "area": "restart",
+      "evidence": "test.phone.rules#voluntaryRestartRejectsALostLevel",
+      "input": {
+        "status": "GAME_OVER"
+      },
+      "action": "restartLevelVoluntarily",
+      "expected": "IllegalArgumentException",
+      "evidenceStatus": "sourced"
+    },
+    {
+      "id": "RC-ADV-01",
+      "area": "advance",
+      "evidence": "test.wear.advance#advancing carries the accumulated stats into the next level",
+      "input": "wear test fixture",
+      "action": "advanceLevel",
+      "expected": "stats carried over, status PLAYING",
+      "evidenceStatus": "sourced"
+    },
+    {
+      "id": "RC-MODE-01",
+      "area": "presentation",
+      "evidence": "test.phone.mode#unknown storage name falls back to classic",
+      "input": {
+        "storedMode": "unknown"
+      },
+      "action": "GameMode.fromStorageName",
+      "expected": "CLASSIC",
+      "evidenceStatus": "sourced"
+    }
+  ]
+}

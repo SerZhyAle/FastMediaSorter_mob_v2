@@ -99,6 +99,7 @@ internal class AddResourceScanManager(
     // ========== Folder Selection Dialog ==========
 
     fun showFolderSelectionDialog() {
+        Timber.d("S4846: folder selection dialog opened, wide window and chip flow")
         val dialogView = activity.layoutInflater.inflate(R.layout.dialog_folder_selection, null)
 
         val dialog = MaterialAlertDialogBuilder(activity)
@@ -216,6 +217,7 @@ internal class AddResourceScanManager(
         if (!hasAvailableChoice) {
             // Already-added resources must not push the usable folder choices below the fold.
             folderBinding.headerSpecialFolders.setExpanded(false, notify = false)
+            folderBinding.headerSpecialFolders.setSummary(R.string.folder_selection_virtual_all_added)
             folderBinding.containerSpecialFolders.isVisible = false
         }
     }
@@ -228,7 +230,7 @@ internal class AddResourceScanManager(
         val safeHeight = host.height - (safeInsets?.top ?: 0) - (safeInsets?.bottom ?: 0)
         // The measured host bounds also respect split-screen; display metrics do not.
         val height = safeHeight.takeIf { it > 0 } ?: ViewGroup.LayoutParams.WRAP_CONTENT
-        DialogWindowSizer.applyTo(dialog, height)
+        DialogWindowSizer.applyTo(dialog, height, wide = true)
     }
 
     /**

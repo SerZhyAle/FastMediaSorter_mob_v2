@@ -12,6 +12,11 @@
     comments and touches no byte outside them, so the surrounding prose, the recovery plan and the
     drift notes survive a refresh.
 
+    The track table carries one row per release, not per track, because a track holds several at once;
+    rows of one track are ordered live-first (`completed`, `inProgress`, `halted`, `draft`, then any
+    other status) and by version code descending inside a rank, so a track's first row is what it
+    serves (S4881). A release's every version code is rendered.
+
     The third block is `Policy status`. The Play Developer API exposes no policy or rejection surface,
     so that block is transcribed by the owner and no script can refresh it. Silently carrying it
     forward would make the record read as current when its most consequential half is not, so this
@@ -136,6 +141,22 @@ function Build-ServeBlock {
     return $rows
 }
 
+# A track holds several releases at once - on 2026-11-24 `internal` carried a draft of 261112175 beside
+# the completed 260622232 that was still serving internal testers. Rendering only the first release
+# dropped the live one and made the record read as though the stale artifact were gone (S4881). The top
+# row of a track is what a hurried reader takes as the answer, and the API does not document a stable
+# release order, so rank the live statuses above `draft` rather than trusting the order as received.
+function Get-ReleaseStatusRank {
+    param([string] $Status)
+    switch ($Status) {
+        'completed' { return 0 }
+        'inProgress' { return 1 }
+        'halted' { return 2 }
+        'draft' { return 3 }
+        default { return 4 }
+    }
+}
+
 function Build-TracksBlock {
     param($Reader, [string] $Stamp)
     $rows = @(
@@ -143,14 +164,20 @@ function Build-TracksBlock {
         '|-------|-------------|-------------|--------|----------------|'
     )
     foreach ($track in $Reader.Data.tracks) {
-        $release = @($track.releases)[0]
-        if ($null -eq $release) {
+        $releases = @($track.releases) | Where-Object { $null -ne $_ }
+        if ($releases.Count -eq 0) {
             $rows += "| ``$($track.track)`` | - | - | no release | $Stamp |"
             continue
         }
-        $version = Get-VersionName -RawName $release.name
-        $code = @($release.versionCodes)[0]
-        $rows += "| ``$($track.track)`` | ``$version`` | ``$code`` | $($release.status) | $Stamp |"
+        $ordered = $releases | Sort-Object `
+            @{ Expression = { Get-ReleaseStatusRank -Status $_.status } }, `
+            @{ Expression = { [int64] (@($_.versionCodes)[0]) }; Descending = $true }
+        foreach ($release in $ordered) {
+            $version = Get-VersionName -RawName $release.name
+            # A release may carry several version codes; all of them are what the track holds.
+            $code = (@($release.versionCodes) | ForEach-Object { "``$_``" }) -join ', '
+            $rows += "| ``$($track.track)`` | ``$version`` | $code | $($release.status) | $Stamp |"
+        }
     }
     $rows += ''
     $rows += 'Reader exit code: 0.'

@@ -158,7 +158,7 @@
     0 - OK
     1 - adb not found, or bad arguments
     2 - no online device
-    3 - multiple online devices and -DeviceId not supplied (for verbs needing a device)
+    3 - automatic selection is ambiguous or cannot claim a device
     4 - target package not installed (for app verbs)
     5 - a destructive verb was refused: `clear` (removed), or `wipe-data`/`uninstall` without -Yes.
         Nothing was executed on the device
@@ -430,6 +430,7 @@ $script:ModuleWasNamed = $PSBoundParameters.ContainsKey('Module')
 # share one discovery order instead of hand-rolling their own hardcoded fallback.
 
 . "$PSScriptRoot/lib/find-adb.ps1"
+. "$PSScriptRoot/lib/device-lease-client.ps1"
 . "$PSScriptRoot/../utils/find-build-artifact.ps1"
 . "$PSScriptRoot/../utils/get-device-abi.ps1"
 
@@ -458,6 +459,19 @@ function Get-OnlineDevices {
     return @($devs)
 }
 
+$script:autoLeaseKeys = @()
+
+function Confirm-AutoDevice {
+    param([string]$Serial, [string[]]$Candidates)
+    $keys = @(Get-FmsDeviceLeaseKeys -Adb $adb -Serial $Serial -OnlineSerials $Candidates)
+    if ($keys.Count -eq 0) { Fail 3 "could not resolve a lease key for '$Serial'; pass -DeviceId after obtaining a lease" }
+    try { $claim = Request-FmsDeviceLease -Keys $keys -Reason "adb $Verb" }
+    catch { Fail 1 "could not claim the selected device: $($_.Exception.Message)" }
+    if (-not $claim.Acquired) { Fail 3 "device '$Serial' is now leased; retry selection or run device-lease.ps1 -Verb Status" }
+    $script:autoLeaseKeys = @($script:autoLeaseKeys + $claim.NewKeys)
+    return $Serial
+}
+
 function Select-Device {
     # @() guards the single-device case: a one-element array returned from a function
     # unwraps to a scalar string on assignment, and $devs[0] would then index a char.
@@ -467,6 +481,12 @@ function Select-Device {
         if ($devs -notcontains $DeviceId) { Fail 2 "device '$DeviceId' is not online (online: $($devs -join ', '))" }
         return $DeviceId
     }
+    $online = $devs
+    try { $free = @(Get-FmsUnleasedDeviceSerials -Adb $adb -Serials $online) }
+    catch { Fail 1 "could not read device leases: $($_.Exception.Message)" }
+    if ($free.Count -eq 0) { Fail 3 'no unleased device could be selected; run device-lease.ps1 -Verb Status' }
+    $devs = $free
+
     if ($devs.Count -gt 1) {
         # A caller that named -Module has already said which KIND of device it means, and the
         # watch is distinguishable without asking the user: ro.build.characteristics carries
@@ -480,7 +500,7 @@ function Select-Device {
             $matched = @($devs | Where-Object { (Test-WatchDevice $_) -eq $wantWatch })
             if ($matched.Count -eq 1) {
                 Write-Host "Selected $($matched[0]) - the only online device matching -Module $Module." -ForegroundColor Gray
-                return $matched[0]
+                return (Confirm-AutoDevice -Serial $matched[0] -Candidates $online)
             }
             # Wireless ADB can list the SAME physical device twice: the literal ip:port a user
             # `adb connect`-ed to, and the mDNS-advertised "adb-<serial>-xxxx._adb-tls-connect._tcp"
@@ -508,13 +528,13 @@ function Select-Device {
                     $preferred = $sameDevice | Where-Object { $_ -notmatch '\._tcp$' -and $_ -notlike 'adb-*' } | Select-Object -First 1
                     $chosen = if ($preferred) { $preferred } else { $sameDevice[0] }
                     Write-Host "Selected $chosen - one physical -Module $Module device online under $($sameDevice.Count) connection names ($($sameDevice -join ', '))." -ForegroundColor Gray
-                    return $chosen
+                    return (Confirm-AutoDevice -Serial $chosen -Candidates $online)
                 }
             }
         }
         Fail 3 "multiple online devices ($($devs -join ', ')); pass -DeviceId"
     }
-    return $devs[0]
+    return (Confirm-AutoDevice -Serial $devs[0] -Candidates $online)
 }
 
 # Run an `adb -s <id> ...` command, returning its raw stdout. Fails (7) on non-zero exit.
@@ -1033,6 +1053,7 @@ function Get-DisplayShape {
 
 # ---------- verbs ----------
 
+try {
 switch ($Verb.ToLowerInvariant()) {
 
     'help' {
@@ -1931,4 +1952,8 @@ switch ($Verb.ToLowerInvariant()) {
     default {
         Fail 1 "unknown verb '$Verb' (run with no verb, or 'help', for the list)"
     }
+}
+}
+finally {
+    Release-FmsDeviceLease -Keys $script:autoLeaseKeys
 }

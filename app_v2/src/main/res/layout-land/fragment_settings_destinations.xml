@@ -500,7 +500,7 @@
 
 
         <!-- GROUP: Behaviour (collapsible) - primary player, shared files, resume on next launch -->
-        <com.google.android.material.card.MaterialCardView android:id="@+id/cardBehaviour" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
+        <com.google.android.material.card.MaterialCardView android:id="@+id/cardBehaviour" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/settings_margin_standard" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
@@ -584,7 +584,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <!-- GROUP: Photography (S0882) - split from former Other features (S0318). -->
-        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/settings_margin_standard" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
@@ -711,7 +711,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <!-- GROUP: Video recording (S0882) - split from former Other features (S0318). -->
-        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/settings_margin_standard" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
@@ -804,7 +804,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <!-- GROUP: Voice recorder (S0882) - split from former Other features (S0318). -->
-        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/settings_margin_standard" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
@@ -896,7 +896,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <!-- GROUP: Screen recording (S0882) - split from former Other features (S0318). -->
-        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/settings_margin_standard" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
@@ -973,7 +973,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <!-- GROUP: Wear OS (S1883) - the watch half of the app in one place. The card carries its own id because the whole card is hidden in builds without the watch bridge: hiding only the header and the container would leave an empty elevated card on screen. Landscape: two equal-weight columns - left is the switch and its explanation, right is the link and the button that opens the companion. -->
-        <com.google.android.material.card.MaterialCardView android:id="@+id/cardWear" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
+        <com.google.android.material.card.MaterialCardView android:id="@+id/cardWear" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/settings_margin_standard" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
@@ -1064,7 +1064,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <!-- GROUP: Additional programs and scenarios (S0649) - moved from Other features. Landscape: two height-balanced columns (ColumnFlowLayout). Fast camera translation + nested Recognition stay together as one flow child; when OCR/translation is unavailable that child collapses via applyFlavorRestrictions() and the rest rebalance. -->
-        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/settings_margin_standard" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
@@ -1291,7 +1291,7 @@
             android:id="@+id/groupSystemApps"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/margin_small"
+            android:layout_marginHorizontal="@dimen/settings_margin_standard"
             app:cardCornerRadius="@dimen/card_corner_radius"
             app:cardElevation="@dimen/card_elevation"
             app:contentPadding="0dp">
@@ -1522,7 +1522,7 @@
             android:id="@+id/groupScreenGestures"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/margin_small"
+            android:layout_marginHorizontal="@dimen/settings_margin_standard"
             app:cardCornerRadius="@dimen/card_corner_radius"
             app:cardElevation="@dimen/card_elevation"
             app:contentPadding="0dp">
@@ -1577,7 +1577,7 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/margin_small"
+            android:layout_marginHorizontal="@dimen/settings_margin_standard"
             android:layout_marginTop="@dimen/margin_small"
             app:cardCornerRadius="@dimen/card_corner_radius"
             app:cardElevation="@dimen/card_elevation"

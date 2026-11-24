@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.11.20 16:26</sub>
+<sub class="doc-stamp">26.11.24 13:15</sub>
 
 # Pointer - `REMOTE-CONTROL`
 
 | | |
 | --- | --- |
 | **Id** | `REMOTE-CONTROL` |
-| **Version** | 0.6, draft. The phone implementation is built against 0.4. |
+| **Version** | 0.8, draft. The Android target implements the External control screen of rule 18. |
 | **Home** | `remote-control/README.md` in the shared contracts catalog |
 | **Role here** | target - the phone app answers commands from the account's other devices; the watch app is not a target |
 
@@ -20,6 +20,12 @@
 - Publish the remote verbs in APP-COMMANDS shape with a `remote` member at `docs/cli-commands.json`; no verb takes a path, file name, shell command, script or secret (rules 6 and 7).
 - Keep the switch, the grants, the ring and the log out of Android backup, the settings export and import, and any server record.
 
+## External control
+
+- Open External control from the exchange server group in General settings. The group contains the listening switch and the action that opens the screen.
+- WINDOW.md sections 1 to 7 define the target sections, screen layout, consent wording and help. The screen and consent notification answer the same pending request.
+- Read the latest 20 requests or open the retained log on this device. Control of the listening switch and grants stays with the person using this phone (R12).
+
 ## Where it lives here
 
 - Domain: `app_v2/src/main/java/com/sza/fastmediasorter/domain/remotecontrol/`.
@@ -29,3 +35,4 @@
 ## Ticket
 
 - S4701 - remote-control target on the phone.
+- S4817 - External control screen. Device evidence for W1 to W7 and R12 is pending.

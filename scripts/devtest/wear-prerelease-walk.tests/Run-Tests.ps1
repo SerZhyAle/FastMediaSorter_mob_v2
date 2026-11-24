@@ -903,8 +903,15 @@ function Invoke-FakeWalk {
         [ordered]@{ start = 'home'; versionName = '2.61.0141.503-DEBUG'; packages = @($Packages); front = $Front; screens = $Screens } |
             ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $dir 'scenario.json') -Encoding UTF8
 
+        $deviceReady = Join-Path $dir 'fixture-readiness.ps1'
+        @"
+param([string]$([char]36)Module, [switch]$([char]36)ClaimFree, [switch]$([char]36)Json)
+'{"ready":true,"selectedDevice":"fixture-watch","newLeaseKeys":[]}'
+exit 0
+"@ | Set-Content -LiteralPath $deviceReady -Encoding utf8
+
         $env:FAKE_ADB_DIR = $dir
-        $out = & pwsh -NoProfile -File $walk -AdbWrapper $adb -ScreenList $list -OutDir (Join-Path $dir 'out') `
+        $out = & pwsh -NoProfile -File $walk -AdbWrapper $adb -DeviceReady $deviceReady -ScreenList $list -OutDir (Join-Path $dir 'out') `
             -SettleMs 0 -MinBatteryPct 0 -SkipLogAudit -SkipShapeCheck -Json @WalkArgs 2>&1
         $exit = $LASTEXITCODE
         $parsed = $null

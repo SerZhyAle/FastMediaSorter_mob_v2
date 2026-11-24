@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.repository
 
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.data.link.auth.AccountIdentityExtractor
+import com.sza.fastmediasorter.data.link.auth.KnownAuthResources
 import com.sza.fastmediasorter.data.link.cookie.EncryptedCookieStore
 import com.sza.fastmediasorter.data.link.cookie.registrableDomainOrNull
 import com.sza.fastmediasorter.domain.repository.AuthAccountDomain
@@ -284,7 +285,14 @@ class AuthSessionRepositoryImpl @Inject constructor(
         savedAt = savedAt ?: fallbackNow,
         lastUsedAt = lastUsedAt,
         isDismissed = isDismissed,
+        hasSessionCookie = holdsSessionCookie(host),
     )
+
+    // A host that declares no session cookie names cannot be judged, so its records always pass.
+    private fun EncryptedCookieStore.AccountEntry.holdsSessionCookie(host: String): Boolean {
+        val sessionNames = KnownAuthResources.matchHost(host)?.sessionCookieNames.orEmpty()
+        return sessionNames.isEmpty() || cookieNames.any { it in sessionNames }
+    }
 
     private companion object {
         const val LEGACY_DISPLAY_NAME = "Account 1"

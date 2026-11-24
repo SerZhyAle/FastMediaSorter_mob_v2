@@ -226,6 +226,7 @@ $texts = foreach ($finding in $findings) {
 $inputs = @($journalRel, $gateRel) + @($findings | ForEach-Object { $_.File })
 if (-not (Test-FixedInputsChargeable -ChangedFiles $ChangedFiles -InputPaths $inputs)) {
     Write-NotChargedVerdict -GateName 'assert-set-baseline-rise' -Findings @($texts)
+    Write-Host 'assert-set-baseline-rise: PASS WITH ADVISORIES (see the findings above)'
     exit 3
 }
 

@@ -51,10 +51,31 @@ class ResolveResourceIconUseCaseTest {
 
     @Test
     fun `NONE profile falls through to type heuristic producing an Other set icon`() {
-        // Type heuristic maps every type to the OTHER set → random valid icon id.
+        // Type heuristic maps remote/cloud types to the OTHER set -> random valid icon id.
         val id = useCase("/x", ResourceProfile.NONE, ResourceType.SMB)
         assertNotNull(id)
         assertTrue("unexpected id $id", id!!.matches(Regex("ico-\\d{2}-\\d{3}")))
+    }
+
+    @Test
+    fun `NONE profile for LOCAL resource returns null so composer uses folder icon`() {
+        org.junit.Assert.assertNull(useCase("/storage/emulated/0/src", ResourceProfile.NONE, ResourceType.LOCAL))
+    }
+
+    @Test
+    fun `random OTHER default never selects spinner-like placeholders`() {
+        val random = kotlin.random.Random(42)
+        val generated = (1..200).mapNotNull { useCase("/x", ResourceProfile.NONE, ResourceType.SMB) }.toSet()
+        org.junit.Assert.assertFalse("ico-05-001" in generated)
+        org.junit.Assert.assertFalse("ico-05-009" in generated)
+        val directRandom = (1..200).map {
+            com.sza.fastmediasorter.ui.icon.ResourceIconRegistry.randomIdFor(
+                com.sza.fastmediasorter.ui.icon.ResourceIconSet.OTHER,
+                random,
+            )
+        }.toSet()
+        org.junit.Assert.assertFalse("ico-05-001" in directRandom)
+        org.junit.Assert.assertFalse("ico-05-009" in directRandom)
     }
 
     @Test

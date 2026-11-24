@@ -16,6 +16,11 @@ class AccountSelectionManager(
     private val repository: AuthSessionRepository,
 ) {
 
+    /**
+     * A record without its host's session cookie is left out before the size branch (S4876): it cannot
+     * sign a download in, so it must neither fill the picker nor win the single-record auto-select.
+     * The settings list keeps it, so the owner can still remove it there.
+     */
     suspend fun selectAccount(
         host: String,
         activity: AppCompatActivity,
@@ -24,7 +29,7 @@ class AccountSelectionManager(
         onCancelled: () -> Unit,
         onAddAccount: (() -> Unit)? = null,
     ) {
-        val accounts = repository.listAccountsForHost(host).filter { !it.isDismissed }
+        val accounts = repository.listAccountsForHost(host).filter { !it.isDismissed && it.hasSessionCookie }
         Timber.i("AccountSelectionManager: host=%s accounts=%d", host, accounts.size)
         when {
             accounts.isEmpty() -> onNoneAvailable()

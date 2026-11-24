@@ -6,7 +6,7 @@ import android.widget.ArrayAdapter
 import android.widget.Spinner
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.domain.usecase.feedback.FeedbackFolderChoice
+import com.sza.fastmediasorter.domain.model.feedback.FeedbackFolderChoice
 import android.R as AndroidR
 
 /**

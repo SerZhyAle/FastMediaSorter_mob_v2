@@ -30,4 +30,8 @@
     <string name="filler_result_busy">Das Füllen läuft bereits.</string>
     <string name="filler_settings_toggle_subtitle">Füllt den freien Speicherplatz eines Speichergeräts mit temporären Dateien und löscht sie anschließend</string>
     <string name="filler_settings_toggle_subtitle_pending">Temporäre Dateien eines früheren Durchlaufs liegen noch auf dem Speicher. Das Programm bleibt in der Liste, bis du sie dort löschst.</string>
+    <string name="filler_estimate">%1$d %% erledigt, verbleibende Zeit: %2$s</string>
+    <string name="filler_estimate_calculating">%1$d %% erledigt, verbleibende Zeit: wird berechnet..</string>
+    <string name="filler_reserve_slider_description">Für das System freigehaltener Speicherplatz</string>
+    <string name="filler_confirm_reserve_lowered">Das ist weniger als die üblichen %1$s, daher haben das System und andere Apps während des Laufs weniger Platz.</string>
 </resources>

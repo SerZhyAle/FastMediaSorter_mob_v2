@@ -190,6 +190,7 @@ class BrowseObserverManager(
     }
 
     private fun renderEmptyState(ctx: android.content.Context, state: BrowseState) {
+        Timber.d("S4852: renderEmptyState searchActive=${!state.filter?.nameContains.isNullOrBlank()}")
         val resource = state.resource
         val isFavorites = resource?.id == -100L
         if (isFavorites) {
@@ -199,20 +200,7 @@ class BrowseObserverManager(
             return
         }
 
-        // S1584/S1696: a filter, not an empty folder, produced this list. Saying "we checked twice"
-        // here reads as a promise the folder really holds nothing, so the user stops looking. Size is
-        // tested first because it is the narrower claim, and only one cause is worth naming at once.
-        val filterExplanation = when {
-            state.filteredOutCount > 0 -> Pair(
-                ctx.getString(R.string.browse_empty_filtered_out, state.filteredOutCount),
-                ctx.getString(R.string.browse_empty_filtered_out_hint)
-            )
-            state.typeGatedOutCount > 0 -> Pair(
-                ctx.getString(R.string.browse_empty_type_gated, state.typeGatedOutCount),
-                ctx.getString(R.string.browse_empty_type_gated_hint)
-            )
-            else -> null
-        }
+        val filterExplanation = hiddenFilesExplanation(ctx, state)
         if (filterExplanation != null) {
             binding.tvEmptyStateMessage.text = filterExplanation.first
             binding.tvEmptyStateHint.isVisible = true
@@ -230,6 +218,33 @@ class BrowseObserverManager(
             }
         } else {
             binding.tvEmptyStateHint.isVisible = false
+        }
+    }
+
+    /**
+     * S1584/S1696: a filter, not an empty folder, produced this list. Saying "we checked twice"
+     * here reads as a promise the folder really holds nothing, so the user stops looking. Size is
+     * tested first because it is the narrower claim, and only one cause is worth naming at once.
+     *
+     * S4852: a typed name query is the third such cause. It comes last because the two settings
+     * above hide files whatever is typed, so naming the query there would be the wrong explanation.
+     */
+    private fun hiddenFilesExplanation(ctx: android.content.Context, state: BrowseState): Pair<String, String>? {
+        val searchQuery = state.filter?.nameContains?.takeIf { it.isNotBlank() }
+        return when {
+            state.filteredOutCount > 0 -> Pair(
+                ctx.getString(R.string.browse_empty_filtered_out, state.filteredOutCount),
+                ctx.getString(R.string.browse_empty_filtered_out_hint)
+            )
+            state.typeGatedOutCount > 0 -> Pair(
+                ctx.getString(R.string.browse_empty_type_gated, state.typeGatedOutCount),
+                ctx.getString(R.string.browse_empty_type_gated_hint)
+            )
+            searchQuery != null -> Pair(
+                ctx.getString(R.string.browse_empty_search_no_match, searchQuery),
+                ctx.getString(R.string.browse_empty_search_no_match_hint)
+            )
+            else -> null
         }
     }
 

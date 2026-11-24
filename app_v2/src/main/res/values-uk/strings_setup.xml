@@ -34,7 +34,6 @@
     <string name="welcome_profile_video_player_title">Відеоплеєр</string>
     <string name="welcome_profile_vr_headset_desc">Для VR-окулярів та шоломів. Попередньо вмикає 3D/360°-інтерфейси та імерсивне керування на підтримуваних пристроях.</string>
     <string name="welcome_profile_vr_headset_title">VR-шолом</string>
-    <string name="welcome_recommended_badge">(Рекомендується)</string>
     <string name="welcome_title_1">Ласкаво просимо до Fast Media Sorter &amp; Organizer!</string>
     <string name="sysinfo_field_abis">ABI</string>
     <string name="sysinfo_field_android_version">Android</string>
@@ -142,7 +141,7 @@
     <string name="welcome_func_download_failed">Не вдалося завантажити - натисніть для повтору</string>
     <string name="welcome_func_download_done">Готово</string>
     <!-- S0402 permissions page -->
-    <string name="welcome_permissions_title">\"Кілька\" дозволів</string>
+    <string name="welcome_permissions_title">Кілька дозволів</string>
     <string name="welcome_permissions_subtitle">Надайте доступ, щоб застосунок показував ваші медіа.</string>
     <string name="welcome_func_streams">Трансляції</string>
     <string name="welcome_streams_catalog_done">Каталог завантажено</string>

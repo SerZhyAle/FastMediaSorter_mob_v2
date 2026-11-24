@@ -101,12 +101,22 @@ class PlayerBroadcastEndManager @Inject constructor(
         return true
     }
 
-    /** True when [path] is a broadcast row whose failure outlived the retry ladder; it is answered here. */
+    /**
+     * True when [path] is a broadcast row whose failure outlived the retry ladder; it is answered here. A removal held
+     * while it delivered makes the failure the end it is (item U).
+     */
     fun onFailureSurfaced(path: String): Boolean {
         val session = BroadcastPlaybackSessions.forUrl(path)
         val host = activity
         if (session == null || host == null) return false
-        showUnavailable(host, session)
+        pending?.cancel()
+        Timber.d("S4874: player broadcast failure surfaced, reading the held removal")
+        if (hold.atFailure()) {
+            Timber.i("PlayerBroadcastEndManager: broadcast failed after the directory removed it - ended")
+            pending = host.lifecycleScope.launch { showEnded(host, session) }
+        } else {
+            showUnavailable(host, session)
+        }
         return true
     }
 

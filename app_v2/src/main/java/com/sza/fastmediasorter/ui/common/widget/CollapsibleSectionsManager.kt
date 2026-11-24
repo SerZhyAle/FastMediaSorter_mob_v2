@@ -104,6 +104,16 @@ class CollapsibleSectionsManager(
         }
     }
 
+    /**
+     * The saved state of a section whose header is not a [CollapsibleSectionHeader] - a group row inside a list
+     * draws its own header, so it cannot be [register]ed and reads and writes its state directly.
+     */
+    fun isExpanded(key: String, defaultExpanded: Boolean): Boolean = store.isExpanded(key, defaultExpanded)
+
+    fun setExpanded(key: String, expanded: Boolean) {
+        store.setExpanded(key, expanded)
+    }
+
     /** S4394: whether at least one registered section is expanded right now. */
     fun hasExpandedSection(): Boolean = registeredHeaders.any { it.isExpanded() }
 

@@ -10,7 +10,10 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.job
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -30,11 +33,12 @@ class BrowseSortFilterManagerFilterTest {
     private val state = MutableStateFlow(BrowseState(resource = resource()))
     private var loading = false
     private var loadCalls = 0
+    private val managerScope = CoroutineScope(Dispatchers.Unconfined)
 
     private val manager = BrowseSortFilterManager(
         updateResourceUseCase = mockk(relaxed = true),
         getResourcesUseCase = mockk(relaxed = true),
-        scope = CoroutineScope(Dispatchers.Unconfined),
+        scope = managerScope,
         ioDispatcher = Dispatchers.Unconfined,
         stateFlow = state,
         updateState = { update -> state.value = update(state.value) },
@@ -47,6 +51,7 @@ class BrowseSortFilterManagerFilterTest {
 
     @After
     fun clear() {
+        runBlocking { managerScope.coroutineContext.job.cancelAndJoin() }
         MediaFilesCacheManager.clearAllCaches()
     }
 

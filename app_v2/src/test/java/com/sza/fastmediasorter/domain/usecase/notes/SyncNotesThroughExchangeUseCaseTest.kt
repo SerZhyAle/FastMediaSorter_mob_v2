@@ -6,11 +6,13 @@ import com.sza.fastmediasorter.data.notes.NotePayload
 import com.sza.fastmediasorter.data.notes.NotePayloadCodec
 import com.sza.fastmediasorter.data.notes.NotesSyncStateStore
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
+import com.sza.fastmediasorter.domain.model.notes.NotesSyncOutcome
 import com.sza.fastmediasorter.domain.repository.NotesListOutcome
 import com.sza.fastmediasorter.domain.repository.NotesPutOutcome
 import com.sza.fastmediasorter.domain.repository.NotesSyncRemote
 import com.sza.fastmediasorter.domain.repository.RemoteNote
 import com.sza.fastmediasorter.domain.repository.RemoteNoteContent
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -28,7 +30,11 @@ class SyncNotesThroughExchangeUseCaseTest {
     private val notesDir: File get() = File(temp.root, "Notes").also { it.mkdirs() }
 
     private fun useCase(remote: FakeNotesRemote) =
-        SyncNotesThroughExchangeUseCase(remote, NotesSyncStateStore(File(temp.root, "state/state.json")))
+        SyncNotesThroughExchangeUseCase(
+            remote,
+            NotesSyncStateStore(File(temp.root, "state/state.json")),
+            Dispatchers.Unconfined,
+        )
 
     private suspend fun SyncNotesThroughExchangeUseCase.sync() = invoke(notesDir, DEVICE)
 

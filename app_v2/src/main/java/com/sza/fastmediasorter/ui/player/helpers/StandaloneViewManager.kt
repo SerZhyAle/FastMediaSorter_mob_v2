@@ -858,6 +858,8 @@ class StandaloneViewManager(
 
         override fun onVideoSizeChanged(videoSize: androidx.media3.common.VideoSize) {
             if (videoSize.width <= 0 || videoSize.height <= 0) return
+            // The turned picture is fitted from the video size, which is unknown until this callback.
+            VideoSurfaceRotationApplier.apply(safeViews.playerView, contentRotationDegrees)
             if (!standaloneVideoSizeKnown) {
                 standaloneVideoSizeKnown = true
                 Timber.d("StandaloneViewManager: onVideoSizeChanged ${videoSize.width}x${videoSize.height}")

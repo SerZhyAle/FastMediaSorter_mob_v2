@@ -25,6 +25,7 @@ $targetScripts = @(
     'scripts/devtest/adb.ps1',
     'scripts/devtest/device-ready.ps1',
     'scripts/devtest/device-lease.ps1',
+    'scripts/devtest/lib/device-lease-local.ps1',
     'scripts/devtest/find-recent-screenshots.ps1',
     'scripts/devtest/maestro-run.ps1',
     'scripts/devtest/prerelease-configure.ps1',

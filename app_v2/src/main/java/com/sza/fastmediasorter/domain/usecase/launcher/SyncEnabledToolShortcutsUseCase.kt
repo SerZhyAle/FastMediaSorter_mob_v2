@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository
 import com.sza.fastmediasorter.domain.repository.LauncherShortcutSyncRepository
 import com.sza.fastmediasorter.domain.usecase.panel.ResolvePanelRouteAvailabilityUseCase
 import kotlinx.coroutines.flow.first
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -66,6 +67,9 @@ class SyncEnabledToolShortcutsUseCase @Inject constructor(
     private suspend fun syncOnce() {
         val launchable = launchableShortcutRoutes()
         val baseline = syncBaseline.syncedRoutes()
+        val registeredRoutes = SubProgramCatalog.forSurface(SubProgramSurface.LAUNCHER_SHORTCUT)
+            .mapTo(mutableSetOf()) { it.routeKey }
+        removeCellsFor(registeredRoutes - launchable)
 
         if (baseline == null) {
             // First run on this install: adopt what is launchable now without placing anything. The
@@ -80,9 +84,7 @@ class SyncEnabledToolShortcutsUseCase @Inject constructor(
             syncBaseline.setSyncedRoutes(launchable)
         } else {
             val newlyLaunchable = launchable - baseline
-            val noLongerLaunchable = baseline - launchable
             if (newlyLaunchable.isNotEmpty()) placeCellsFor(newlyLaunchable)
-            if (noLongerLaunchable.isNotEmpty()) removeCellsFor(noLongerLaunchable)
             // S2664, ADR-1: the launchable set replaces the baseline instead of joining it. The union was
             // there so a route that stopped being launchable stayed accounted for and its return could not
             // restore a cell the user had deleted on purpose; the owner ruling of 2026-09-06 reverses that -
@@ -111,11 +113,20 @@ class SyncEnabledToolShortcutsUseCase @Inject constructor(
      * already in the state this is asking for.
      */
     private suspend fun removeCellsFor(routeKeys: Set<String>) {
+        if (routeKeys.isEmpty()) return
+        Timber.d("S4828: removing disabled shortcuts and closing gaps for $routeKeys")
         val targets = routeKeys.mapTo(mutableSetOf()) { LauncherCellCommand.Feature(it).encode() }
+        val state = desktop.state()
         for (orientation in listOf(LauncherOrientation.PORTRAIT, LauncherOrientation.LANDSCAPE)) {
+            val storedColumns = if (orientation == LauncherOrientation.PORTRAIT) {
+                state.columnsPortrait
+            } else {
+                state.columnsLandscape
+            }
+            val columns = resolveColumns(orientation, storedColumns)
             desktop.observeCells(orientation).first()
                 .filter { it.target in targets }
-                .forEach { desktop.removeCell(it.id) }
+                .forEach { desktop.removeCellAndCloseGap(it.id, columns) }
         }
     }
 

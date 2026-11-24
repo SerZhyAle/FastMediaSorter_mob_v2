@@ -279,7 +279,8 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
             ?: TranslationLanguageCatalog.findLanguage("en", displayLocale)
         if (item != null) {
             LanguageFlagFormatter.applyLabel(view, item)
-            view.contentDescription = "${getString(titleRes)}: ${LanguageFlagFormatter.plainLabel(item)}"
+            view.contentDescription =
+                "${getString(titleRes)}: ${LanguageFlagFormatter.plainLabel(requireContext(), item)}"
         } else {
             val fallback = code.uppercase(Locale.ROOT)
             view.text = fallback

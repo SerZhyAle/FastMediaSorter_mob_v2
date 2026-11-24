@@ -1,17 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- S4865: the row background carries the activated (selected) highlight; the ripple moves to the foreground. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/selectableItemBackground"
+    android:background="@drawable/bg_list_selection_row"
     android:clickable="true"
     android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
     android:gravity="center_vertical"
-    android:minHeight="64dp"
+    android:minHeight="@dimen/notes_row_min_height"
     android:orientation="horizontal"
     android:paddingStart="@dimen/margin_large"
     android:paddingTop="@dimen/margin_medium"
     android:paddingEnd="@dimen/margin_small"
     android:paddingBottom="@dimen/margin_medium">
+
+    <androidx.appcompat.widget.AppCompatCheckBox
+        android:id="@+id/noteSelect"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/margin_medium"
+        android:background="@null"
+        android:button="@drawable/selector_checkbox_select"
+        android:clickable="false"
+        android:focusable="false"
+        android:importantForAccessibility="no"
+        android:visibility="gone"
+        app:buttonTint="@null" />
 
     <LinearLayout
         android:layout_width="0dp"
@@ -56,8 +72,8 @@
 
     <ImageButton
         android:id="@+id/noteMore"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="@dimen/token_touch_target_min"
+        android:layout_height="@dimen/token_touch_target_min"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/notes_row_more"
         android:focusable="true"

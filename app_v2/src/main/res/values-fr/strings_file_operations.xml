@@ -74,6 +74,7 @@
     <string name="delete_confirmation">Supprimer des fichiers ?</string>
     <string name="delete_failed">Impossible de supprimer les fichiers.</string>
     <string name="delete_folder_confirm">Supprimer le dossier « %1$s » et tout son contenu ? Cette opération est irréversible.</string>
+    <string name="delete_folder_trash_confirm">Supprimer le dossier \"%1$s\" et tout son contenu ? Il est déplacé dans la corbeille au lieu d\'être effacé.</string>
     <string name="delete_n_files_from_network_title">Supprimer %d fichiers du réseau ?</string>
     <string name="delete_n_folders_confirm">Supprimer les dossiers %1$d et tout leur contenu ? Cette opération est irréversible.</string>
     <string name="delete_old_files">Supprimer les anciens fichiers</string>

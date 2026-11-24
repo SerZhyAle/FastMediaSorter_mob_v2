@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase.ticket
 
 import android.content.Context
+import com.sza.fastmediasorter.data.cloud.GoogleDriveAuthPlugin
 import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
 import com.sza.fastmediasorter.domain.identity.GoogleScope
 import com.sza.fastmediasorter.domain.identity.IdentitySignInResult
@@ -28,8 +29,8 @@ class GrantTicketDriveAccessUseCase @Inject constructor(
      */
     suspend operator fun invoke(
         activityContext: Context,
-        driveScopes: Set<GoogleScope>,
-        signInScopes: Set<GoogleScope>
+        driveScopes: Set<GoogleScope> = DRIVE_SCOPES,
+        signInScopes: Set<GoogleScope> = GoogleDriveAuthPlugin.DRIVE_SIGN_IN_SCOPES
     ): IdentitySignInResult =
         if (identityRepository.state.value is PrimaryGoogleAccountState.Bound) {
             identityRepository.grantScopes(activityContext, driveScopes)
@@ -37,4 +38,10 @@ class GrantTicketDriveAccessUseCase @Inject constructor(
             Timber.d("S4814: ticket sign-in forces the account chooser")
             identityRepository.signInPrimary(activityContext, signInScopes, preferAccountChooser = true)
         }
+
+    companion object {
+        // The identity scopes are already bound with the account; only the Drive ones can be missing.
+        val DRIVE_SCOPES: Set<GoogleScope> = GoogleDriveAuthPlugin.DRIVE_SIGN_IN_SCOPES -
+            setOf(GoogleScope.EMAIL, GoogleScope.PROFILE, GoogleScope.OPENID)
+    }
 }

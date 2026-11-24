@@ -78,6 +78,9 @@ interface LauncherDesktopRepository {
 
     suspend fun removeCell(id: Long)
 
+    /** Removes a shortcut and closes its contiguous gap without moving other sections. */
+    suspend fun removeCellAndCloseGap(id: Long, columns: Int)
+
     /**
      * S2301: moves the cell [cellId] of [orientation] onto [screenIndex], which is what the edit-mode
      * menu offers per screen. Returns whether anything moved - false for an unknown id, for a cell of

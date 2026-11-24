@@ -1,10 +1,10 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.net.Uri
-import androidx.media3.datasource.DataSource
-import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
+import androidx.media3.datasource.DataSource
+import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
@@ -13,6 +13,8 @@ import com.sza.fastmediasorter.data.network.datasource.TsPacketFormat
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import com.sza.fastmediasorter.utils.SmbPathUtils
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
@@ -59,11 +61,13 @@ internal suspend fun VideoPlayerManager.playSmbVideo(
 
     Timber.d("VideoPlayerManager: Resolved SMB target - share='$targetShare', remotePath='$targetRemotePath'")
 
+    // The password getter decrypts through the AndroidKeyStore, which is disk I/O; this runs on Main.
+    val password = withContext(Dispatchers.IO) { credentials.password }
     val connectionInfo = SmbConnectionInfo(
         server = credentials.server,
         shareName = targetShare,
         username = credentials.username,
-        password = credentials.password,
+        password = password,
         domain = credentials.domain,
         port = credentials.port
     )

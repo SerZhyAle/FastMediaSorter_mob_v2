@@ -54,6 +54,15 @@ class TextEditorAutoFitFontManager(
         currentSizeSp = newSizeSp
     }
 
+    /**
+     * S4863: apply a remembered size and lock auto-fit to it. The lock is what keeps the size - without it
+     * the next text change would re-fit the content and discard what the user chose last time.
+     */
+    fun lockToSize(sizeSp: Float) {
+        editText.setTextSize(TypedValue.COMPLEX_UNIT_SP, sizeSp)
+        notifyManualOverride(sizeSp)
+    }
+
     /** Re-enable auto-fit and snap back to [maxSizeSp]; triggers one recompute pass. */
     fun reset() {
         autoFitEnabled = true

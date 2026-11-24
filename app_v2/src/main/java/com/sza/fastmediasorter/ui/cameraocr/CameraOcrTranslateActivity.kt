@@ -417,7 +417,7 @@ class CameraOcrTranslateActivity :
         if (item != null) {
             LanguageFlagFormatter.applyLabel(view, item)
             view.contentDescription =
-                "${getString(titleRes)}: ${LanguageFlagFormatter.plainLabel(item)}"
+                "${getString(titleRes)}: ${LanguageFlagFormatter.plainLabel(this, item)}"
         } else {
             val fallback = code.uppercase(Locale.ROOT)
             view.text = fallback

@@ -5,13 +5,15 @@ description: "How an account on an exchange server is created from an invitation
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/exchange-accounts.html
 ---
-<sub class="doc-stamp">26.10.22 01:29</sub>
+<sub class="doc-stamp">26.11.23 11:22</sub>
 
 # Accounts, invitations and passwords
 
 <img src="exchange-mark/full-256.png" alt="Media Exchange Server" width="128">
 
 An account on an exchange server is a login and a password. It holds the list of your devices and what they publish, and it exists on one server only: the one you run or the one a person you know runs for you. The developer of the app keeps no accounts and has no server.
+
+Already have an exchange account? [Sign in to STREAMS Player for Windows](streamsplayer.html#sign-in).
 
 ## Getting an account {#invitation}
 

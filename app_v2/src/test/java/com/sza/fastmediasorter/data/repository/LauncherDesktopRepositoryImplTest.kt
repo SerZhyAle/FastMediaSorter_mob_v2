@@ -572,6 +572,43 @@ class LauncherDesktopRepositoryImplTest {
     // subject: this class covers where ONE cell may sit, that one covers a band of rows moving as a unit.
     // The raw-entity seeding helper went with them - only those cases wrote a row past the repository.
 
+    @Test
+    fun `removing a shortcut fills its gap from contiguous neighbours`() = runTest {
+        val removed = add(cell(row = 1, col = 1))!!
+        val next = add(cell(row = 1, col = 2))!!
+        val last = add(cell(row = 1, col = 3))!!
+
+        repository.removeCellAndCloseGap(removed, COLUMNS)
+
+        assertNull(storedCell(removed))
+        assertEquals(1, storedCell(next)!!.colIndex)
+        assertEquals(2, storedCell(last)!!.colIndex)
+    }
+
+    @Test
+    fun `gap closing stops at a multi-cell obstacle`() = runTest {
+        val removed = add(cell(row = 1, col = 1))!!
+        val obstacle = add(gadget(row = 1, col = 2))!!
+        val later = add(cell(row = 1, col = 3))!!
+
+        repository.removeCellAndCloseGap(removed, COLUMNS)
+
+        assertEquals(2, storedCell(obstacle)!!.colIndex)
+        assertEquals(3, storedCell(later)!!.colIndex)
+    }
+
+    @Test
+    fun `gap closing stops at a section header`() = runTest {
+        val removed = add(cell(row = 0, col = 1))!!
+        val header = add(section(row = 0, col = 2))!!
+        val later = add(cell(row = 0, col = 4))!!
+
+        repository.removeCellAndCloseGap(removed, COLUMNS)
+
+        assertEquals(2, storedCell(header)!!.colIndex)
+        assertEquals(4, storedCell(later)!!.colIndex)
+    }
+
     private companion object {
         /** Wide enough that no seeding call is refused for width alone. */
         const val COLUMNS = 8

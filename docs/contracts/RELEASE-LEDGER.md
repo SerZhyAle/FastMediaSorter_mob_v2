@@ -1,9 +1,11 @@
+<sub class="doc-stamp">26.11.24 12:37</sub>
+
 # Pointer - `RELEASE-LEDGER`
 
 | | |
 | --- | --- |
 | **Id** | `RELEASE-LEDGER` |
-| **Version** | 0.1, draft. Owner: sza-unified-rules (the canon) |
+| **Version** | 0.2, draft. Owner: sza-unified-rules (the canon) |
 | **Home** | `release-ledger/README.md` in the shared contracts catalog (`P:\Contracts\`) |
 | **Role here** | adopter - the release ledger of this product's packages and channels; the canon ships the only writer |
 
@@ -15,6 +17,10 @@
 - Every channel step of a release calls `release-ledger publish`, through `scripts/utils/log-release-ledger-publish.ps1` wired inside the two publishers: a published GitHub release records `live` with the tag and the release page, a Play commit records `submitted` - or `pending` while the commit is held. A channel no probe can see is confirmed by hand with `confirm -Url <public page>`; the URL is the evidence.
 - `probe` (after every release, and whenever a `submitted` publication waits for its review) and the one-time adoption `import` are read-only: they write nothing for a channel they cannot see, and they never write to a channel.
 - Never in the ledger: a token, a key, a seller, tenant or client id, an absolute local path, a machine or user name.
+- Since 0.2 (breaking for readers, wire unchanged, rule 12): a Play API reading of a track or of a release lifecycle is
+  not a publication, so the Play probe writes no event and the fold skips the legacy Play rows the 0.1 probe wrote from
+  such readings; those rows stay in `history.jsonl`. The fold lives in the shipped writer and no ledger is migrated, so
+  nothing in this repository changes: no script here derives a status from a Play reading.
 
 ## Where it lives here
 

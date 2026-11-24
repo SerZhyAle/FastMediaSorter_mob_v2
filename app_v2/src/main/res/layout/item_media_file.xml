@@ -34,7 +34,6 @@
         android:maxLines="2"
         android:textSize="@dimen/item_subtitle_text_size"
         android:textStyle="bold"
-        app:layout_constraintWidth_min="72dp"
         app:layout_constraintVertical_chainStyle="packed"
         app:layout_constraintBottom_toTopOf="@+id/tvFileInfo"
         app:layout_constraintEnd_toStartOf="@+id/barrierActions"
@@ -50,7 +49,6 @@
         android:includeFontPadding="true"
         android:textColor="?attr/colorOnSurfaceVariant"
         android:textSize="@dimen/item_detail_text_size"
-        app:layout_constraintWidth_min="72dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/barrierActions"
         app:layout_constraintStart_toStartOf="@+id/tvFileName"
@@ -154,10 +152,12 @@
         app:tint="@color/selector_themed_button_tint"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/btnPlayInline"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:visibility="visible" />
 
+    <!-- Leftmost of the action cluster: only audio rows show it, so anchoring it at the end edge shifted
+         the star and the overflow button left on those rows alone. -->
     <ImageButton
         android:id="@+id/btnPlayInline"
         android:layout_width="32dp"
@@ -171,7 +171,7 @@
         app:tint="@color/selector_themed_button_tint"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/btnFavorite"
         app:layout_constraintTop_toTopOf="parent"
         tools:visibility="visible" />
 

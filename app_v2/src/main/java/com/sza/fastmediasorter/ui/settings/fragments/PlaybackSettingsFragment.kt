@@ -18,6 +18,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.databinding.FragmentSettingsPlaybackBinding
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import com.sza.fastmediasorter.domain.model.SortMode
@@ -27,7 +28,7 @@ import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -44,6 +45,10 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
     // (CLAUDE.md Rule 14) - this screen used to read the build flag itself, which is what the
     // contract's own KDoc already claimed it did not.
     @Inject lateinit var capabilityAvailability: com.sza.fastmediasorter.core.capability.CapabilityAvailability
+
+    @Inject
+    @IoDispatcher
+    lateinit var ioDispatcher: CoroutineDispatcher
 
     // S0439: player rotation toggle is hidden on devices without an orientation sensor.
     private val hasAccelerometer: Boolean by lazy {
@@ -468,7 +473,7 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
         // Bound to the view: leaving the screen before the flag arrives drops a hint nobody can see.
         viewLifecycleOwner.lifecycleScope.launch {
             timber.log.Timber.d("S4678: battery hint flag read moved to the IO dispatcher")
-            val (prefs, alreadyShown) = withContext(Dispatchers.IO) {
+            val (prefs, alreadyShown) = withContext(ioDispatcher) {
                 val hintPrefs = appContext.getSharedPreferences(PREFS_NAME_HINT, Context.MODE_PRIVATE)
                 hintPrefs to hintPrefs.getBoolean(KEY_HAS_SHOWN_BATTERY_HINT, false)
             }

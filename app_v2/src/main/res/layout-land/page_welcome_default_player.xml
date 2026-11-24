@@ -17,6 +17,7 @@
          root is a ScrollView. -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layoutContent"
+        android:paddingHorizontal="@dimen/margin_large"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         app:layout_constraintWidth_max="@dimen/welcome_content_max_width"

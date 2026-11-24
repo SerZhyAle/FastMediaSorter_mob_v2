@@ -43,7 +43,7 @@
     <string name="settings_default_document_type_pdf">PDF</string>
     <string name="settings_default_document_type_title">Tipo de documento</string>
     <string name="settings_default_player_dialog_confirm">Abrir configurações</string>
-    <string name="settings_default_player_dialog_message">Você será levado às configurações do sistema Android, onde poderá escolher o Fast Media Sorter &amp; Organizer como aplicativo padrão para esse tipo de arquivo.</string>
+    <string name="settings_default_player_dialog_message">Você será redirecionado às configurações do sistema Android, onde poderá selecionar o Fast Media Sorter &amp; Organizer como aplicativo padrão para este tipo de arquivo.</string>
     <string name="settings_default_player_dialog_title">Definir como padrão</string>
     <string name="settings_general_actions">Ações</string>
     <string name="settings_general_behavior">Comportamento do aplicativo</string>
@@ -278,7 +278,7 @@
     <string name="setting_mic_recording_destination_default_recordings">Padrão: pasta Gravações (Música no Android 11 e anteriores)</string>
     <string name="setting_screen_recording_destination_default_movies">Padrão: pasta Filmes</string>
     <string name="drive_channel_enabled_title">Arquivos pelo Google Drive</string>
-    <string name="drive_channel_enabled_subtitle">Envie e receba arquivos entre os seus dispositivos pelo seu Google Drive, sem o servidor de intercâmbio</string>
+    <string name="drive_channel_enabled_subtitle">Envie e receba arquivos entre os seus próprios dispositivos pelo seu Google Drive e anuncie suas difusões a eles, sem o servidor de intercâmbio</string>
     <string name="drive_channel_background_title">Verificar pelo Google Drive em segundo plano</string>
     <string name="drive_channel_background_subtitle">A cada 15 minutos, para que os seus outros dispositivos possam abrir as pastas compartilhadas deste telefone com o app fechado</string>
     <string name="drive_channel_row_from">De %1$s</string>

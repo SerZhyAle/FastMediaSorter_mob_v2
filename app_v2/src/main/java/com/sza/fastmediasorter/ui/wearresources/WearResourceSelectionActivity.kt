@@ -11,9 +11,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
-import com.sza.fastmediasorter.data.local.preferences.SharedPreferencesCollapsibleSectionStore
 import com.sza.fastmediasorter.databinding.ActivityWearResourceSelectionBinding
 import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -28,7 +28,7 @@ class WearResourceSelectionActivity : BaseActivity<ActivityWearResourceSelection
         onSelectionChanged = { resource, selected -> viewModel.setSelected(resource.id, selected) }
     )
 
-    private val sectionStore by lazy { SharedPreferencesCollapsibleSectionStore(this) }
+    private val sectionStore by lazy { CollapsibleSectionsManager(this) }
 
     /** S0289: multimodal surface marker - the picker is reached from the settings host. */
     @Suppress("unused")

@@ -83,6 +83,11 @@ data class AuthAccountDomain(
     val savedAt: Instant,
     val lastUsedAt: Instant?,
     val isDismissed: Boolean = false,
+    /**
+     * False only when the host declares session cookie names and the record holds none of them (S4876),
+     * for example an Instagram record with a csrf token and no `sessionid`: it cannot sign a download in.
+     */
+    val hasSessionCookie: Boolean = true,
 )
 
 /**

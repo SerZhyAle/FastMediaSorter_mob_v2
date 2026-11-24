@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -41,10 +42,14 @@ class NotesActivity : AppCompatActivity() {
     private lateinit var binding: ActivityNotesBinding
     private lateinit var adapter: NotesListAdapter
 
+    /** S4865: enabled only while notes are selected, so back leaves the selection mode before the screen. */
+    private val selectionBackCallback = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() = viewModel.clearSelection()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        Timber.d("S4568: Notes screen opened")
         ColorThemePrefs.applyThemeOverlay(this)
         binding = ActivityNotesBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -55,13 +60,28 @@ class NotesActivity : AppCompatActivity() {
             sendToMenu = sendToMenuManager,
             settings = viewModel::currentSettings,
             onDeleteConfirmed = viewModel::delete,
+            onSelect = viewModel::toggleSelection,
+            onDeleteSelectedConfirmed = viewModel::deleteSelected,
         )
-        adapter = NotesListAdapter(onOpen = viewModel::open, onMore = rowActions::show)
+        adapter = NotesListAdapter(
+            onOpen = viewModel::open,
+            onMore = rowActions::show,
+            onToggle = viewModel::toggleSelection,
+        )
         binding.notesRecyclerView.adapter = adapter
-        binding.notesToolbar.setNavigationOnClickListener { finish() }
+        // The arrow and the system back share one path, so the selection mode is left before the screen is.
+        binding.notesToolbar.setUpNavigation(this)
+        onBackPressedDispatcher.addCallback(this, selectionBackCallback)
         binding.notesToolbar.inflateMenu(R.menu.menu_notes)
         binding.notesToolbar.setOnMenuItemClickListener { item ->
-            (item.itemId == R.id.action_notes_sync_now).also { if (it) viewModel.syncNow() }
+            when (item.itemId) {
+                R.id.action_notes_sync_now -> viewModel.syncNow()
+                R.id.action_notes_select_all -> viewModel.selectAll()
+                R.id.action_notes_delete_selected ->
+                    rowActions.confirmDeleteSelected(viewModel.state.value.selected.size)
+                else -> return@setOnMenuItemClickListener false
+            }
+            true
         }
         binding.notesNewButton.setOnClickListener { viewModel.createNote() }
         binding.notesSearchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
@@ -75,23 +95,43 @@ class NotesActivity : AppCompatActivity() {
 
         collectOnLifecycle(viewModel.state) { state ->
             adapter.tooLarge = state.tooLarge
+            adapter.selected = state.selected
             adapter.submitList(state.notes)
             val empty = !state.loading && state.notes.isEmpty()
             binding.notesEmptyText.visibility = if (empty) View.VISIBLE else View.GONE
-            renderSync(state.sync)
+            renderSelection(state.selected.size)
+            renderSync(state.sync, selecting = state.selected.isNotEmpty())
         }
         collectOnLifecycle(viewModel.events) { event -> handle(event) }
     }
 
     override fun onResume() {
         super.onResume()
+        Timber.d("S4721: focus=${currentFocus?.javaClass?.simpleName} touch=${window.decorView.isInTouchMode}")
         // Returning from the editor is the moment a note was created or changed, so the list is re-read.
         viewModel.start(getString(R.string.notes_title))
-        Timber.d("S4721: focus=${currentFocus?.javaClass?.simpleName} touch=${binding.root.isInTouchMode}")
     }
 
-    private fun renderSync(sync: NotesSyncStatus) {
-        binding.notesToolbar.menu.findItem(R.id.action_notes_sync_now)?.isVisible = sync != NotesSyncStatus.Off
+    /** S4865: the title bar, the New note button and the back gesture follow the selection mode. */
+    private fun renderSelection(count: Int) {
+        val selecting = count > 0
+        selectionBackCallback.isEnabled = selecting
+        val toolbar = binding.notesToolbar
+        toolbar.title = if (selecting) {
+            getString(R.string.notes_selected_count, count)
+        } else {
+            getString(R.string.notes_title)
+        }
+        toolbar.setNavigationIcon(if (selecting) R.drawable.ic_clear else R.drawable.ic_arrow_back)
+        toolbar.navigationContentDescription = if (selecting) getString(R.string.notes_selection_cancel) else null
+        toolbar.menu.findItem(R.id.action_notes_select_all)?.isVisible = selecting
+        toolbar.menu.findItem(R.id.action_notes_delete_selected)?.isVisible = selecting
+        binding.notesNewButton.visibility = if (selecting) View.GONE else View.VISIBLE
+    }
+
+    private fun renderSync(sync: NotesSyncStatus, selecting: Boolean) {
+        binding.notesToolbar.menu.findItem(R.id.action_notes_sync_now)?.isVisible =
+            sync != NotesSyncStatus.Off && !selecting
         binding.notesToolbar.subtitle = when (sync) {
             NotesSyncStatus.Off -> null
             NotesSyncStatus.Syncing -> getString(R.string.notes_sync_status_syncing)
@@ -112,6 +152,7 @@ class NotesActivity : AppCompatActivity() {
                 val message = when (event.kind) {
                     NotesError.FOLDER_UNAVAILABLE -> R.string.notes_error_folder
                     NotesError.DELETE_FAILED -> R.string.notes_error_delete
+                    NotesError.DELETE_SELECTED_FAILED -> R.string.notes_error_delete_selected
                 }
                 Toast.makeText(this, message, Toast.LENGTH_LONG).show()
             }

@@ -41,7 +41,6 @@ object VideoSurfaceRotationApplier {
     fun apply(playerView: PlayerView?, angleDegrees: Int) {
         val host = playerView ?: return
         val angle = ((angleDegrees % FULL_TURN_DEGREES) + FULL_TURN_DEGREES) % FULL_TURN_DEGREES
-        Timber.d("S4682: surface rotate requested=$angleDegrees normalized=$angle host=${host.width}x${host.height}")
         if (angle == 0 && !angles.containsKey(host)) return
         angles[host] = angle
         // addOnLayoutChangeListener ignores a listener that is already registered, so repeating this is safe.
@@ -73,12 +72,46 @@ object VideoSurfaceRotationApplier {
         // Before the first layout there is nothing to fit; the layout listener calls back with real sizes.
         if (minOf(hostWidth, hostHeight, frameWidth, frameHeight) <= 0f) return
         val quarterTurn = angle % HALF_TURN_DEGREES != 0
-        val fitScale = if (quarterTurn) minOf(hostWidth / frameHeight, hostHeight / frameWidth) else 1f
-        Timber.d("S4682: fit angle=$angle host=${hostWidth}x$hostHeight frame=${frameWidth}x$frameHeight s=$fitScale")
+        val fitScale = if (quarterTurn) {
+            val picture = pictureSize(host, frameWidth, frameHeight)
+            minOf(hostWidth / picture.second, hostHeight / picture.first)
+        } else {
+            1f
+        }
         frame.pivotX = frameWidth * CENTER_FRACTION
         frame.pivotY = frameHeight * CENTER_FRACTION
         frame.rotation = angle.toFloat()
         frame.scaleX = fitScale
         frame.scaleY = fitScale
+        Timber.d("S4682: fit a=$angle host=${hostWidth}x$hostHeight s=$fitScale")
+    }
+
+    /**
+     * Width and height of the picture as drawn inside the frame container.
+     *
+     * The container is not always the picture: the internal player lets Media3 shrink it to the video's
+     * aspect ratio, but the standalone host keeps it as large as the whole `PlayerView` while the picture
+     * is letterboxed inside it. Fitting the container then shrinks the turned picture to a fraction of the
+     * slot (measured 0.657 in portrait and 0.195 in landscape on the S21+). The picture rectangle is
+     * therefore derived from the player's own video size, centred in the container like the fit resize
+     * mode every host layout declares; an unknown video size falls back to the container itself.
+     */
+    private fun pictureSize(host: PlayerView, frameWidth: Float, frameHeight: Float): Pair<Float, Float> {
+        val aspect = videoAspect(host) ?: return frameWidth to frameHeight
+        return if (frameWidth / frameHeight > aspect) {
+            frameHeight * aspect to frameHeight
+        } else {
+            frameWidth to frameWidth / aspect
+        }
+    }
+
+    /** Displayed width over height of the current video, or null while the player has no video size yet. */
+    private fun videoAspect(host: PlayerView): Float? {
+        val videoSize = host.player?.videoSize
+        if (videoSize == null || videoSize.width <= 0 || videoSize.height <= 0) return null
+        val displayWidth = videoSize.width * videoSize.pixelWidthHeightRatio
+        val displayHeight = videoSize.height.toFloat()
+        val quarterUnapplied = videoSize.unappliedRotationDegrees % HALF_TURN_DEGREES != 0
+        return if (quarterUnapplied) displayHeight / displayWidth else displayWidth / displayHeight
     }
 }

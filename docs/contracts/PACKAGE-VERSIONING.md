@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.11.20 20:17</sub>
+<sub class="doc-stamp">26.11.23 14:23</sub>
 
 # Pointer - `PACKAGE-VERSIONING`
 
 | | |
 | --- | --- |
 | **Id** | `PACKAGE-VERSIONING` |
-| **Version** | 0.9, draft. Owner: this product |
+| **Version** | 0.10, draft. Owner: this product |
 | **Home** | `package-versioning/README.md` in the shared contracts catalog |
 | **Role here** | owner and reference implementation (the version stamps of the phone app, the watch app and the watch face) |
 
@@ -25,6 +25,7 @@
   admits an edition label `-<Edition>` after the stamped name, the stamped part being what rules 1, 4 and 8 compare. The
   XR edition is such a family: `xrVersionCodeOffset = 1_000_000_000` in `app_v2/build.gradle.kts`. The families `lite`
   and `fdroid` join the table when each first ships to a channel.
+- 0.10 (section 10, S4813): registers IP Manager in the Windows desktop dotted rendering for its GitHub and WinGet releases; no rules 1-8 statements change, no bands change, and this product's derivation is unaffected.
 - Never repeat and never lower a versionCode within one application id; an out-of-scheme installed build is replaced by uninstall or a strictly greater code, recorded as a dated registry exception (rule 4).
 
 ## Where it lives here

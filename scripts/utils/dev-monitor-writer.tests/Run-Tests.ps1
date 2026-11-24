@@ -191,18 +191,18 @@ try {
     Assert-That 'shell is UTF-8 without BOM' (-not ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF)) ''
 
     Write-Host 'Devices block (S2855)'
-    # Seed both device stores with a test serial, write one snapshot, and expect one merged devices
-    # row carrying the mark. The stores live in the real temp/ (no root override exists), so the
-    # case removes what it seeded and restores the directories it created - the top-level invariant
-    # below would otherwise see them as new artifacts on a fresh machine.
+# Seed the local installation mark and lease the same fixture through the shared CLI.
     $registryDir = Join-Path $repoRoot 'temp/DEVICE.REGISTRY'
-    $leaseDir = Join-Path $repoRoot 'temp/DEVICE.LEASES'
+    $previousPortfolio = $env:SZA_PORTFOLIO_ROOT
+    $portfolioRoot = Join-Path ([IO.Path]::GetTempPath()) "fms-monitor-leases-$([guid]::NewGuid().ToString('N'))"
+    $env:SZA_PORTFOLIO_ROOT = $portfolioRoot
+    $leaseCli = Join-Path $repoRoot 'scripts/devtest/device-lease.ps1'
     $regExisted = Test-Path -LiteralPath $registryDir
-    $leaseExisted = Test-Path -LiteralPath $leaseDir
     $seedSerial = 'test-park-device'
     try {
         New-Item -ItemType Directory -Path $registryDir -Force | Out-Null
-        New-Item -ItemType Directory -Path $leaseDir -Force | Out-Null
+        $claim = & $leaseCli -Verb Claim -Id $seedSerial -Reason 'monitor fixture' -Json | ConvertFrom-Json
+        if ($LASTEXITCODE -ne 0 -or $claim.outcome -ne 'claimed') { throw 'Could not claim fixture device.' }
         [pscustomobject]@{
             schema      = 1
             id          = $seedSerial
@@ -242,19 +242,28 @@ try {
         ) (($rawData2 -split '"devices":')[-1].Substring(0, [math]::Min(40, (($rawData2 -split '"devices":')[-1]).Length)))
         Assert-That 'the snapshot carries a devices row for the seeded serial' (
             $once2.Code -eq 0 -and $null -ne $row -and $row.mark.versionName -eq '9.9.9-seed' -and
-            $row.mark.package -eq 'com.sza.fastmediasorter.debug' -and $row.model -eq 'Seed Model'
+            $row.mark.package -eq 'com.sza.fastmediasorter.debug' -and $row.model -eq 'Seed Model' -and
+            $row.lease.sessionId -eq $claim.sessionId -and $row.lease.reason -eq 'monitor fixture'
         ) "exit=$($once2.Code) row=$($null -ne $row)"
-        # Read-only proof: the write added no file to either store and removed none.
+        # Read-only proof: the registry is unchanged and the shared lease still belongs to its holder.
         $filesAfter = @(Get-ChildItem -LiteralPath $registryDir -File -ErrorAction SilentlyContinue).Count
-        Assert-That 'the writer left both device stores exactly as it found them' (
-            (Test-Path -LiteralPath (Join-Path $leaseDir "$seedSerial.json")) -eq $false -and $filesAfter -eq $filesBefore
+        $leaseAfter = @(& $leaseCli -Verb Status -Json | ConvertFrom-Json | Where-Object { $_.id -eq $seedSerial })
+        Assert-That 'the writer left the install record and the shared lease in place' (
+            $leaseAfter.Count -eq 1 -and $leaseAfter[0].sessionId -eq $claim.sessionId -and $filesAfter -eq $filesBefore
         ) "before=$filesBefore after=$filesAfter"
     }
     finally {
         Remove-Item -LiteralPath (Join-Path $registryDir "$seedSerial.json") -Force -ErrorAction SilentlyContinue
-        Remove-Item -LiteralPath (Join-Path $leaseDir "$seedSerial.json") -Force -ErrorAction SilentlyContinue
+        & $leaseCli -Verb Release -Id $seedSerial -Json | Out-Null
+        $env:SZA_PORTFOLIO_ROOT = $previousPortfolio
+        if (Test-Path -LiteralPath $portfolioRoot -PathType Container) {
+            $resolved = (Resolve-Path -LiteralPath $portfolioRoot).Path
+            $expectedParent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd([IO.Path]::DirectorySeparatorChar)
+            if ((Split-Path -Parent $resolved) -eq $expectedParent -and (Split-Path -Leaf $resolved) -like 'fms-monitor-leases-*') {
+                Remove-Item -LiteralPath $resolved -Recurse -Force
+            }
+        }
         if (-not $regExisted) { Remove-Item -LiteralPath $registryDir -Force -ErrorAction SilentlyContinue }
-        if (-not $leaseExisted) { Remove-Item -LiteralPath $leaseDir -Force -ErrorAction SilentlyContinue }
     }
 
     Write-Host 'Status before start'

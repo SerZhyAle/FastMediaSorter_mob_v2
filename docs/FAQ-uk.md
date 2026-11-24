@@ -5,7 +5,7 @@ permalink: /docs/FAQ-uk.html
 lang: uk
 ---
 
-<sub class="doc-stamp">26.11.15 03:00</sub>
+<sub class="doc-stamp">26.11.24 14:50</sub>
 
 <div lang="uk" markdown="1">
 
@@ -426,6 +426,6 @@ WorkManager не є точним будильником. Батарея, мер�
 - 🐛 **Повідомити про помилку:** [GitHub Issues](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues) - бажано для відтворюваних багів; вкажіть версію Android і що ви робили в момент помилки
 - 📖 **Повна документація:** [Портал документації](https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html)
 
-> **Хочете функцію, якої ще немає?** Напишіть - багато функцій у додатку з'явилися саме тому, що хтось попросив. Якщо ідея розумна, вона буде реалізована.
+> **Бракує функції?** Створіть issue на [GitHub](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues) або напишіть на sza@ukr.net.
 
 </div>

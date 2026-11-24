@@ -95,13 +95,12 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot '..\utils\agent-identity.ps1')
 . (Join-Path $PSScriptRoot 'lib\find-adb.ps1')
 . (Join-Path $PSScriptRoot 'lib\device-store-paths.ps1')
+. (Join-Path $PSScriptRoot 'lib/device-lease-client.ps1')
 
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $registryDir = Get-DeviceStoreDir -RepoRoot $root -Store Registry
-$leaseDir = Get-DeviceStoreDir -RepoRoot $root -Store Lease
 
-# Same serial grammar and file-name encoding as the lease store (S1926): one key, one shape, so a
-# serial found in either store is spelled identically in both.
+# The registry still stores install records by ADB serial.
 $SerialPattern = '^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$'
 $HistoryLimit = 5
 
@@ -114,7 +113,7 @@ function Test-SerialShape {
 }
 
 function ConvertTo-RecordFileName {
-    # Delegates to the store declaration (S3036), which is also what the lease store calls - one
+    # Keep the serial encoding in the repository-local path helper.
     # serial, one spelling on disk, whichever store it is found in.
     param([Parameter(Mandatory)][string]$Serial)
     return (ConvertTo-DeviceSerialFileName -Serial $Serial)
@@ -129,28 +128,6 @@ function Read-Record {
     param([Parameter(Mandatory)][string]$Path)
     try { return (Get-Content -LiteralPath $Path -Raw -ErrorAction Stop | ConvertFrom-Json) }
     catch { return $null }
-}
-
-function Read-LeaseQuiet {
-    # The registry only LOOKS at the lease store, read-only, and a missing or unreadable lease
-    # costs its row's lease column - never the verb.
-    param([Parameter(Mandatory)][string]$Path)
-    try { return (Get-Content -LiteralPath $Path -Raw -ErrorAction Stop | ConvertFrom-Json) }
-    catch { return $null }
-}
-
-function Get-LeaseLivenessQuiet {
-    # Get-AgentTicketLiveness owns the liveness rule; the shim maps the lease's field names onto
-    # it exactly as device-lease.ps1 does - a third liveness implementation is the drift S1621
-    # banned.
-    param([Parameter(Mandatory)]$Lease)
-    $shim = [pscustomobject]@{
-        sessionId      = $Lease.sessionId
-        transcriptPath = $Lease.transcriptPath
-        lastSeenAt     = $Lease.lastSeenAt
-        enqueuedAt     = $Lease.claimedAt
-    }
-    try { return (Get-AgentTicketLiveness -Ticket $shim) } catch { return 'undetermined' }
 }
 
 function Write-RecordFile {
@@ -204,33 +181,14 @@ function Invoke-ParkRows {
             }
         }
     }
-    if (Test-Path -LiteralPath $leaseDir) {
-        foreach ($file in (Get-ChildItem -LiteralPath $leaseDir -Filter '*.json' -ErrorAction SilentlyContinue)) {
-            $lease = Read-LeaseQuiet -Path $file.FullName
-            if ($null -eq $lease) { continue }
-            $liveness = Get-LeaseLivenessQuiet -Lease $lease
-            if ($liveness -eq 'foreign-stale' -or $liveness -eq 'undetermined') { continue }
-            $ageMinutes = $null
-            if ($lease.claimedAt) {
-                $claimed = [DateTimeOffset]::FromUnixTimeMilliseconds([int64]$lease.claimedAt).LocalDateTime
-                $ageMinutes = [math]::Round(((Get-Date) - $claimed).TotalMinutes, 1)
-            }
-            $sid = [string]$lease.id
-            if (-not $rows.Contains($sid)) {
-                $rows[$sid] = [pscustomobject]@{
-                    id = $sid; model = ''; role = ''; mark = $null; updatedAt = $null; lease = $null
-                }
-            }
-            $rows[$sid].lease = [pscustomobject]@{
-                sessionId  = [string]$lease.sessionId
-                host       = [string]$lease.host
-                reason     = [string]$lease.reason
-                claimedAt  = $lease.claimedAt
-                ageMinutes = $ageMinutes
-                liveness   = $liveness
-                mine       = ($liveness -eq 'self')
+    foreach ($lease in (Get-FmsDeviceLeaseRows)) {
+        $key = [string]$lease.id
+        if (-not $rows.Contains($key)) {
+            $rows[$key] = [pscustomobject]@{
+                id = $key; model = ''; role = ''; mark = $null; updatedAt = $null; lease = $null
             }
         }
+        $rows[$key].lease = $lease
     }
     return @($rows.Values | Sort-Object id)
 }

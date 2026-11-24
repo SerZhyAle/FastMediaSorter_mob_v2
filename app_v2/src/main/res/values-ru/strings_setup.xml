@@ -34,7 +34,6 @@
     <string name="welcome_profile_video_player_title">Видеоплеер</string>
     <string name="welcome_profile_vr_headset_desc">Для VR-очков и шлемов. Предварительно включает 3D/360°-интерфейсы и иммерсивное управление на поддерживаемых устройствах.</string>
     <string name="welcome_profile_vr_headset_title">VR-шлем</string>
-    <string name="welcome_recommended_badge">(Рекомендуется)</string>
     <string name="welcome_title_1">Добро пожаловать в Fast Media Sorter &amp; Organizer!</string>
     <string name="sysinfo_field_abis">ABI</string>
     <string name="sysinfo_field_android_version">Android</string>
@@ -142,7 +141,7 @@
     <string name="welcome_func_download_failed">Не удалось загрузить - нажмите для повтора</string>
     <string name="welcome_func_download_done">Готово</string>
     <!-- S0402 permissions page -->
-    <string name="welcome_permissions_title">\"Несколько\" разрешений</string>
+    <string name="welcome_permissions_title">Несколько разрешений</string>
     <string name="welcome_permissions_subtitle">Дайте доступ, чтобы приложение показывало ваши медиа.</string>
     <string name="welcome_func_streams">Трансляции</string>
     <string name="welcome_streams_catalog_done">Каталог загружен</string>

@@ -10,12 +10,19 @@ import os
 from pathlib import Path
 import re
 import sys
+import time
 from urllib.parse import parse_qs, urlsplit
 
 
 SCOPE = "https://www.googleapis.com/auth/androidpublisher"
 GUARD = "ERROR_IF_IN_REVIEW"
 API_NUM_RETRIES = 5
+LOCK_POLL_SECONDS = 0.25
+# A reader only measures state; waiting this long rides out a short writer instead of failing every measurement.
+PROBE_LOCK_WAIT_SECONDS = 15.0
+PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+ERROR_ACCESS_DENIED = 5
+STILL_ACTIVE = 259
 
 
 class PlayStop(Exception):
@@ -44,23 +51,117 @@ def state_root():
     return Path.home() / ".local" / "state" / "sza" / "play-publishing"
 
 
+def try_lock(lock):
+    lock.seek(0)
+    if os.name == "nt":
+        import msvcrt
+        msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
+    else:
+        import fcntl
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+
+
+def holder_path(root, package):
+    return root / f"{package}.holder.json"
+
+
+def process_alive(pid):
+    if os.name == "nt":
+        import ctypes
+        from ctypes import wintypes
+        # os.kill(pid, 0) would terminate the process on Windows, so ask the process table instead.
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel32.OpenProcess.restype = wintypes.HANDLE
+        handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
+        if not handle:
+            return ctypes.get_last_error() == ERROR_ACCESS_DENIED
+        try:
+            code = wintypes.DWORD()
+            return bool(kernel32.GetExitCodeProcess(handle, ctypes.byref(code))) and code.value == STILL_ACTIVE
+        finally:
+            kernel32.CloseHandle(handle)
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
+
+
+def format_age(seconds):
+    seconds = max(int(seconds), 0)
+    if seconds < 60:
+        return f"{seconds} s"
+    if seconds < 3600:
+        return f"{seconds // 60} min"
+    return f"{seconds // 3600} h {seconds % 3600 // 60} min"
+
+
+def describe_holder(path):
+    try:
+        record = read_object(path)
+        pid = record["pid"]
+        if not isinstance(pid, int) or isinstance(pid, bool) or pid <= 0:
+            raise ValueError("pid")
+        command = " ".join(str(part) for part in record["argv"])
+        age = (datetime.now(timezone.utc) - datetime.fromisoformat(record["acquiredAt"])).total_seconds()
+    except (ValueError, KeyError, TypeError):
+        return ("No usable holder record sits beside the lock, so the holder is unknown; the lock was taken "
+                "by a process that predates holder records, or it was released a moment ago.")
+    facts = f"pid {pid}, took the lock {format_age(age)} ago, command: {command}."
+    if process_alive(pid):
+        return f"Holder is running - {facts}"
+    return (f"Holder record is stale - {facts} That process is no longer running, yet the lock is still held, "
+            "so the real holder is unknown.")
+
+
+def describe_lock_refusal(root, package, lock_path):
+    message = (f"Another process on this workstation holds the local publishing lock for {package} "
+               f"({lock_path}); this is a local file lock, not a Play-side condition. "
+               f"{describe_holder(holder_path(root, package))}")
+    active = root / f"{package}.active.json"
+    try:
+        edit_id = read_object(active)["editId"]
+    except (ValueError, KeyError):
+        return message
+    return f"{message} Open Play edit recorded in {active}: {edit_id}."
+
+
+def record_holder(path):
+    # Diagnostic only: a failed write must not stop the publishing step that the lock itself protects.
+    try:
+        save_record(path, {"pid": os.getpid(), "argv": [sys.executable, *sys.argv], "acquiredAt": utc_now()})
+    except OSError:
+        pass
+
+
 @contextmanager
-def app_lock(package):
+def app_lock(package, wait=0.0):
     root = state_root()
     root.mkdir(mode=0o700, parents=True, exist_ok=True)
+    lock_path = root / f"{package_id(package)}.lock"
+    holder = holder_path(root, package)
     # Keep the lock file in place so waiters and future processes lock the same inode.
-    with (root / f"{package_id(package)}.lock").open("a+b") as lock:
-        lock.seek(0)
+    with lock_path.open("a+b") as lock:
+        deadline = time.monotonic() + wait
+        while True:
+            try:
+                try_lock(lock)
+                break
+            except OSError as exc:
+                if time.monotonic() >= deadline:
+                    raise PlayStop(describe_lock_refusal(root, package, lock_path)) from exc
+            time.sleep(LOCK_POLL_SECONDS)
+        # The record sits beside the lock, never inside it: a Windows byte-range lock makes that byte unreadable.
+        record_holder(holder)
         try:
-            if os.name == "nt":
-                import msvcrt
-                msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
-            else:
-                import fcntl
-                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except OSError as exc:
-            raise PlayStop(f"Another Google Play edit user holds the lock for {package}.") from exc
-        yield root
+            yield root
+        finally:
+            try:
+                holder.unlink(missing_ok=True)
+            except OSError:
+                pass
 
 
 def read_object(path):
@@ -224,8 +325,15 @@ def status_code(exc):
 
 
 def is_edit_invalidated(exc):
+    # S4818: a committed edit answers every later call with "already been successfully committed",
+    # which is the same fact as "deleted" for every caller here - the edit is closed and cannot be
+    # discarded. Without this arm, a lost commit response leaves the active record naming an edit
+    # that discard_edit can never close, so open_edit refuses forever and even a track READ is
+    # impossible. Observed 2026-11-24 after a dropped response to a committed internal-track edit.
     return status_code(exc) in (400, 404, 409) and bool(
         re.search(r"\b(?:this |the )?edit (?:has been|was) deleted\b", str(exc), re.IGNORECASE)
+        or re.search(r"\b(?:this |the )?edit has already been successfully committed\b",
+                     str(exc), re.IGNORECASE)
     )
 
 
@@ -325,7 +433,7 @@ def ensure_probe_allowed(service, root, package):
 
 @contextmanager
 def probe_edit(package, legacy_key):
-    with app_lock(package) as root:
+    with app_lock(package, wait=PROBE_LOCK_WAIT_SECONDS) as root:
         service = connect_reader(legacy_key)
         ensure_probe_allowed(service, root, package)
         with open_edit(service, package, root) as edit:

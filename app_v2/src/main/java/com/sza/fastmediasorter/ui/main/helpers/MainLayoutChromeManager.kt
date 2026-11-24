@@ -19,10 +19,13 @@ import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.databinding.ActivityMainBinding
+import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceGridCellSize
+import com.sza.fastmediasorter.ui.common.MediaTypeColorCatalog
 import com.sza.fastmediasorter.ui.main.FilterResourceDialog
 import com.sza.fastmediasorter.ui.main.MainState
+import com.sza.fastmediasorter.ui.main.ResourceAdapter
 import timber.log.Timber
 
 /**
@@ -560,12 +563,52 @@ class MainLayoutChromeManager(
 
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.rvResources) { view, insets ->
             val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
-            view.setPadding(view.paddingLeft, view.paddingTop, view.paddingRight, navBar.bottom)
+            val bottom = if (binding.tvMediaTypeLegend.isVisible) 0 else navBar.bottom
+            view.setPadding(view.paddingLeft, view.paddingTop, view.paddingRight, bottom)
             (view as? android.view.ViewGroup)?.clipToPadding = true
-            Timber.d("S4710: rvResources clipped at nav bar, bottom inset=${navBar.bottom}")
+            Timber.d("S4710: rvResources clipped at nav bar, bottom inset=$bottom")
             insets
         }
         androidx.core.view.ViewCompat.requestApplyInsets(binding.rvResources)
+
+        val legendBaseBottom = binding.tvMediaTypeLegend.paddingBottom
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.tvMediaTypeLegend) { view, insets ->
+            val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
+            view.setPadding(
+                view.paddingLeft,
+                view.paddingTop,
+                view.paddingRight,
+                legendBaseBottom + navBar.bottom,
+            )
+            insets
+        }
+        androidx.core.view.ViewCompat.requestApplyInsets(binding.tvMediaTypeLegend)
+    }
+
+    /** Shows colored media-type letter meanings below the list when any visible row uses letter badges. */
+    fun updateMediaTypeLegend(resources: List<MediaResource>, isTableShowing: Boolean) {
+        val usedTypes = LinkedHashSet<MediaType>()
+        if (!isTableShowing) {
+            resources.forEach { resource ->
+                if (resource.id != FAVORITES_ENTRY_ID &&
+                    ResourceAdapter.usesLetterBadges(resource.supportedMediaTypes, resource.allFiles)
+                ) {
+                    usedTypes.addAll(resource.supportedMediaTypes)
+                }
+            }
+        }
+        val wasVisible = binding.tvMediaTypeLegend.isVisible
+        if (usedTypes.isEmpty()) {
+            binding.tvMediaTypeLegend.text = ""
+            binding.tvMediaTypeLegend.isVisible = false
+        } else {
+            binding.tvMediaTypeLegend.text = MediaTypeColorCatalog.formatColoredLegend(activity, usedTypes)
+            binding.tvMediaTypeLegend.isVisible = true
+        }
+        if (wasVisible != binding.tvMediaTypeLegend.isVisible) {
+            androidx.core.view.ViewCompat.requestApplyInsets(binding.rvResources)
+        }
+        Timber.d("S4847: main legend visible=${binding.tvMediaTypeLegend.isVisible} types=${usedTypes.size}")
     }
 
     /**
@@ -596,6 +639,7 @@ class MainLayoutChromeManager(
     private companion object {
         /** Marks the Space cells this class owns, so a re-sync can tell them from layout children. */
         const val SEPARATOR_TAG = "s1549_control_bar_separator"
+        const val FAVORITES_ENTRY_ID = -100L
     }
 }
 

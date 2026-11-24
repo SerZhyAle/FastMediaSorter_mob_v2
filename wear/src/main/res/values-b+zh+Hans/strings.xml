@@ -1105,4 +1105,11 @@
     <string name="wear_scheduled_message_channel_name">定时消息</string>
     <string name="wear_audio_fetching">正在加载曲目..</string>
     <string name="wear_stream_ended">此直播已停播。请在重新开播时重试。</string>
+    <string name="wear_tourist_lock_exit_hint">已锁定。快速连续滑动返回 3 次即可解锁</string>
+    <string name="wear_broadcast_waiting_until">广播尚未开始。链接在 %1$s 前有效</string>
+    <string name="wear_broadcast_started">广播已开始</string>
+    <string name="wear_broadcast_expired">此链接已失效</string>
+    <string name="wear_broadcast_play">播放</string>
+    <string name="wear_tourist_no_fix_approximate">正在搜索位置..</string>
+    <string name="wear_tourist_precise_needed">需要精确位置</string>
 </resources>

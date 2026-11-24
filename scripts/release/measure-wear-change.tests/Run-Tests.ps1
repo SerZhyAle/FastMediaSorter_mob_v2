@@ -121,6 +121,6 @@ finally {
     Remove-Item -LiteralPath $work -Recurse -Force -ErrorAction SilentlyContinue
 }
 
-Write-Host ("measure-wear-change.tests: {0} passed, {1} failed" -f $script:pass, $script:fail)
+Write-Host ("measure-wear-change.tests: {0} (run={1} skipped=0)" -f $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }), ($script:pass + $script:fail))
 if ($script:fail -gt 0) { exit 1 }
 exit 0

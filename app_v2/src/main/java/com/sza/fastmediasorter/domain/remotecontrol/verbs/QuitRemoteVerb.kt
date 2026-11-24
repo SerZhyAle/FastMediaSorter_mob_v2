@@ -1,20 +1,19 @@
 package com.sza.fastmediasorter.domain.remotecontrol.verbs
 
 import android.content.Context
-import android.content.Intent
 import android.os.Process
 import com.google.gson.JsonObject
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.broadcast.AnnounceBroadcastEndUseCase
 import com.sza.fastmediasorter.broadcast.BroadcastSourceController
 import com.sza.fastmediasorter.broadcast.BroadcastState
+import com.sza.fastmediasorter.core.playback.BackgroundAudioStopper
 import com.sza.fastmediasorter.domain.remotecontrol.RemoteCommandAnswer
 import com.sza.fastmediasorter.domain.remotecontrol.RemoteConfirm
 import com.sza.fastmediasorter.domain.remotecontrol.RemoteRiskClass
 import com.sza.fastmediasorter.domain.remotecontrol.RemoteVerbExit
 import com.sza.fastmediasorter.domain.remotecontrol.RemoteVerbHandler
 import com.sza.fastmediasorter.domain.remotecontrol.RemoteVerbSpec
-import com.sza.fastmediasorter.ui.player.AudioPlaybackService
 import com.sza.fastmediasorter.widget.QuickAudioRecorderService
 import com.sza.fastmediasorter.worker.ScheduledOperationsWorker
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -46,7 +45,7 @@ class QuitRemoteVerb @Inject constructor(
 
     override suspend fun afterAnswer(answer: RemoteCommandAnswer) {
         if (answer.status != RemoteCommandAnswer.STATUS_DONE) return
-        if (AudioPlaybackService.isRunning) context.stopService(Intent(context, AudioPlaybackService::class.java))
+        BackgroundAudioStopper.stopIfRunning(context)
         if (broadcast.state.value is BroadcastState.Live) {
             broadcast.stop()
             withTimeoutOrNull(AnnounceBroadcastEndUseCase.EXIT_WAIT_TIMEOUT_MS) {

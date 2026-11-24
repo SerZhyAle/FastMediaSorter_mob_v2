@@ -483,6 +483,9 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
         cellDao.deleteById(id)
     }
 
+    override suspend fun removeCellAndCloseGap(id: Long, columns: Int) =
+        sectionOps.removeCellAndCloseGap(id, columns)
+
     override suspend fun moveCellToScreen(
         orientation: LauncherOrientation,
         cellId: Long,

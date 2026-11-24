@@ -103,4 +103,7 @@
     <string name="player_action_unavailable">Diese Aktion ist für diese Datei nicht verfügbar.</string>
     <string name="player_audio_track_single">Keine weitere Tonspur verfügbar.</string>
     <string name="player_frame_backward">Vorheriges Bild</string>
+    <string name="playback_control_low_speed_mute_title">Langsame Wiedergabe</string>
+    <string name="playback_control_low_speed_mute_message">Audio unter 0.5x ist schwer zu verstehen. Stummschalten?</string>
+    <string name="playback_control_low_speed_mute_cancel">Ton behalten</string>
 </resources>

@@ -6,9 +6,9 @@ import android.widget.ArrayAdapter
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FeedbackInputsPanelBinding
+import com.sza.fastmediasorter.domain.model.feedback.FeedbackFolderChoice
 import com.sza.fastmediasorter.domain.model.ticket.TicketOutboxEntry
 import com.sza.fastmediasorter.domain.model.ticket.TicketOutboxState
-import com.sza.fastmediasorter.domain.usecase.feedback.FeedbackFolderChoice
 import android.R as AndroidR
 
 /**

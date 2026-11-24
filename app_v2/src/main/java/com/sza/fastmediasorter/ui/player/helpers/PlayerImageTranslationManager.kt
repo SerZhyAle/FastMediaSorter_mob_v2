@@ -239,7 +239,6 @@ class PlayerImageTranslationManager(
     private fun tintTranslateButtons(active: Boolean) {
         val button = activity.safeViews.btnTranslateImage
         val commandButton = activity.activityBinding.btnTranslateImageCmd
-        Timber.d("S4682: translate command tint requested active=$active")
         if (active) {
             val tint = ColorStateList.valueOf(MaterialColors.getColor(button, androidx.appcompat.R.attr.colorError))
             button.imageTintList = tint

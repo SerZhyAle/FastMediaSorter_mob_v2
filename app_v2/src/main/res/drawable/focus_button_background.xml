@@ -7,7 +7,9 @@
 -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <item android:state_focused="true">
+    <!-- A view keeps its focused state while a modal window holds the input focus; requiring window focus
+         stops the button behind a dialog from drawing a second ring. -->
+    <item android:state_focused="true" android:state_window_focused="true">
         <shape android:shape="rectangle">
             <stroke android:width="2dp" android:color="@color/focus_button_stroke" />
             <solid android:color="@android:color/transparent" />

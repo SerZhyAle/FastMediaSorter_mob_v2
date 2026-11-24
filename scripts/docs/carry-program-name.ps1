@@ -191,5 +191,8 @@ if ($Json) {
     "carry-program-name: $mode - $rewritableTotal rewritable, $($reportLines.Count) ambiguous, $($results.Count) file(s)"
 }
 
-if ($Check -and $rewritableTotal -gt 0) { exit 1 }
+if ($Check -and $rewritableTotal -gt 0) {
+    Write-Error "carry-program-name: $rewritableTotal rewritable occurrence(s) remain - run without -Check to rewrite them" -ErrorAction Continue
+    exit 1
+}
 exit 0

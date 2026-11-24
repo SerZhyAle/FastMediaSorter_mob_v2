@@ -51,6 +51,9 @@ data class StreamInlineAudioCallbacks(
     // S4444, LIVE-BROADCAST item T: a broadcast row's stream ended or answered a bad status. Retrying blindly would
     // keep reconnecting to a broadcast its owner stopped, so the host decides between ended and reconnect.
     val onBroadcastStopped: (StreamSourceEntity, BroadcastStopSignal) -> Unit = { _, _ -> },
+    // LIVE-BROADCAST item U: a broadcast row's failure that outlived the retry ladder replaces onError, so the host
+    // can read a directory removal held while it played and show the end instead of "unavailable".
+    val onBroadcastFailed: (StreamSourceEntity, StreamFailureReason?) -> Unit = { _, _ -> },
     // Fired whenever the station enters or leaves the user-paused state. A paused station stays the active
     // row (re-tapping it stops it), so the host needs this to show the row as paused and halt its rotation.
     val onPausedChanged: (Boolean) -> Unit = {},

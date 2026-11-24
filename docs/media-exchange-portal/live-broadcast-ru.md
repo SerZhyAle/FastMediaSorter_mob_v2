@@ -1,12 +1,12 @@
 ---
-source_sha256: fe43604c0ff4791e76ac7e8c886993086b0d9600167df25ed8d7494f6ecae8aa
+source_sha256: 0e4b72086538f55a0a04c14e2f2204e96dc9070c4610c1140096c6ceb60fa968
 layout: doc
 title: "Живая трансляция: любое устройство в эфире, остальные слушают"
 description: "Кто может выйти в эфир и кто может воспроизвести живую трансляцию, как она идёт в одной сети Wi-Fi и через сервер обмена, Chromecast и cast между вашими устройствами."
 category: "Обмен медиа"
 permalink: /docs/media-exchange-portal/live-broadcast-ru.html
 ---
-<sub class="doc-stamp">26.11.15 15:28</sub>
+<sub class="doc-stamp">26.11.23 11:23</sub>
 
 # Живая трансляция: любое устройство в эфире, остальные слушают
 
@@ -18,14 +18,14 @@ permalink: /docs/media-exchange-portal/live-broadcast-ru.html
 
 - **Телефон Android** - камера и микрофон: видео со звуком, только видео или только звук; объектив можно переключить прямо в эфире. Ещё экран телефона и готовый файл, а камера продолжает работать в фоне в редакциях Standard и noLegal. Есть в редакциях Standard, noLegal и Legacy, см. [Редакции](editions-ru.html). Как это делается: [Выход в эфир](broadcast-start-ru.html).
 - **Часы Wear OS** - свой микрофон, до четырёх слушателей одновременно, с плитки или из сетки программ часов.
-- **ПК с Windows** - экран, камера и системный звук.
+- **ПК с Windows** - [транслируйте экран, камеру, микрофон или системный звук в STREAMS Player](streamsplayer-ru.html#broadcast-from-this-pc).
 
 ## Кто её воспроизводит
 
 - **Другой телефон или планшет Android** - в разделе «Трансляции» Fast Media Sorter & Organizer: список **Трансляции моих устройств**, QR-код трансляции, присланная ссылка на трансляцию или файл `.fmsbcast`. См. [Приём трансляции](broadcast-receive-ru.html).
 - **Часы Wear OS** - список трансляций аккаунта, cast или идущая трансляция, которую экран трансляции на телефоне отправляет на привязанные часы.
 - **Android TV или VR-шлем** - в разделе «Трансляции» Fast Media Sorter & Organizer, так же как на телефоне.
-- **ПК с Windows** - в [STREAMS Player](https://serzhyale.github.io/StreamsPlayer/).
+- **ПК с Windows** - [откройте список трансляций в STREAMS Player](streamsplayer-ru.html#open-the-broadcast-list).
 
 ## Как она идёт
 

@@ -405,16 +405,28 @@ class StreamsViewModel @Inject constructor(
      * SQLiteConstraintException crash when the url already exists.
      *
      * S4606: [category] is the free-text label typed in the dialog; the use case trims it and stores blank as null.
+     *
+     * S4886: a manual row never lives in the Audio, Video or Recent bucket, so adding one under those left the
+     * screen saying "no streams yet". The filter moves to wherever the new row is visible, and the user is told.
      */
     fun onAdd(url: String, title: String?, category: String?) = viewModelScope.launch {
         Timber.d("S4606: onAdd categoryTyped=${!category.isNullOrBlank()}")
-        when (addStreamSource(url, title, category = category)) {
+        when (val result = addStreamSource(url, title, category = category)) {
             AddStreamSourceUseCase.AddResult.InvalidUrl ->
                 _events.send(StreamsEvent.Message(R.string.streams_error_invalid_url))
             AddStreamSourceUseCase.AddResult.Duplicate ->
                 _events.send(StreamsEvent.Message(R.string.streams_error_duplicate_url))
-            AddStreamSourceUseCase.AddResult.Success -> Unit
+            is AddStreamSourceUseCase.AddResult.Success -> revealAdded(result.source)
         }
+    }
+
+    private suspend fun revealAdded(source: StreamSourceEntity) {
+        val previousKind = _filter.value.mediaKind
+        val revealed = revealFilterFor(source, _filter.value) ?: return
+        Timber.d("S4886: added row hidden under $previousKind, revealing under ${revealed.mediaKind}")
+        _filter.value = revealed
+        afterFilterApplied(previousKind, revealed.mediaKind)
+        _events.send(StreamsEvent.Message(R.string.streams_added_shown_in_own))
     }
 
     /**
@@ -958,6 +970,23 @@ class StreamsViewModel @Inject constructor(
             val collectionHit = matchesCollection(source, filter)
             return queryHit && categoryHit && languageHit && countryHit && mediaHit && topicHit &&
                 pinnedHit && collectionHit
+        }
+
+        /**
+         * S4886: the filter that shows a row the user has just added, or null when [filter] already shows it.
+         *
+         * Own is the one bucket every manual row belongs to, so it is tried first and keeps the dialog facets.
+         * Those facets are cleared only when Own alone still hides the row. The query and the selected
+         * collection are left alone: their own widgets display them, and the filter state cannot reset them.
+         */
+        internal fun revealFilterFor(source: StreamSourceEntity, filter: StreamsFilter): StreamsFilter? {
+            val passes: (StreamsFilter) -> Boolean = { matchesFacets(source, it, it.query.trim()) { label -> label } }
+            val own = filter.copy(mediaKind = MediaKindFilter.OWN)
+            return when {
+                passes(filter) -> null
+                passes(own) -> own
+                else -> own.copy(category = null, topic = null, language = null, country = null, pinnedOnly = false)
+            }
         }
 
         private fun matchesMediaCategory(

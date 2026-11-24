@@ -5,19 +5,19 @@
       "package": "phone",
       "flavor": "nolegal",
       "kind": "debug",
-      "version": "2.61.1222.258",
-      "builtAt": "2026-11-22T23:02:41+01:00",
+      "version": "2.61.1241.616",
+      "builtAt": "2026-11-24T16:19:12+01:00",
       "artifact": "DOWNLOADS/FastMediaSorter_nolegal_debug.apk",
-      "sha256": "2238e6adb587f4f34b779c5ba0a169f0c5eaf7875ea618be37a1fdc7e453399e"
+      "sha256": "121268fb20705d0707a23cb41c24c759a044b4a04193fb896ba09a9a38f19b7f"
     },
     {
       "package": "phone",
       "flavor": "standard",
       "kind": "debug",
       "version": "2.60.9012.140",
-      "builtAt": "2026-11-21T00:00:34+01:00",
+      "builtAt": "2026-11-23T14:56:51+01:00",
       "artifact": "DOWNLOADS/FastMediaSorter_standard_debug.apk",
-      "sha256": "881d5fb4aa8ed81a0bcdc3a5f5c62267cc60d6837369b57dce0aff256016dc27"
+      "sha256": "4027f7077fd96434a45abe2da900a155951bc75f37e4a37f9197aad493c3bd03"
     }
   ]
 }

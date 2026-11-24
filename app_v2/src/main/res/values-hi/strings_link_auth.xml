@@ -22,4 +22,5 @@
     <string name="s0157_dismissed_label">अधिकृत नहीं (आपने मना कर दिया)</string>
     <string name="s0157_last_used_never">अभी तक उपयोग नहीं किया गया</string>
     <string name="s0157_last_used_fmt">अंतिम बार उपयोग किया गया %1$s</string>
+    <string name="s4581_pick_account_add_new">+ खाता जोड़ें</string>
 </resources>

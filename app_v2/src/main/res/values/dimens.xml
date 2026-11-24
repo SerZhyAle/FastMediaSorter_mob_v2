@@ -277,8 +277,8 @@
     <!-- Visible button height cap. Must be >= browse_cmd_icon_size (32dp) so the glyph is not vertically clamped by MaterialButton. -->
     <dimen name="browse_cmd_button_min_height">32dp</dimen>  <!-- S3433: was 29dp, follows the icon tier -->
     <dimen name="browse_cmd_button_max_height">32dp</dimen>  <!-- S3433: was 29dp, follows the icon tier -->
-    <!-- Tap-target width bounds (32dp / 100dp base ×1.2). -->
-    <dimen name="browse_cmd_button_min_width">38dp</dimen>
+    <!-- Tap-target width bounds. The minimum is the 48dp touch target: the wrap_content width of a bare icon button (glyph plus paddings) is about 42dp. -->
+    <dimen name="browse_cmd_button_min_width">48dp</dimen>
     <dimen name="browse_cmd_button_max_width">120dp</dimen>
     <!-- Icon glyph size: the 32 tier, the nearest to S0374's 24dp x 1.2 that keeps a 2-unit line crisp. -->
     <dimen name="browse_cmd_icon_size">@dimen/icon_tier_32</dimen>
@@ -320,6 +320,8 @@
     <dimen name="player_pdf_controls_padding_vertical">8dp</dimen>
     <dimen name="player_pdf_controls_padding_horizontal">2dp</dimen>
     <dimen name="player_text_viewer_padding">16dp</dimen>
+    <!-- Preserve visible note space in landscape beside the Copy and Move panels. -->
+    <dimen name="player_media_content_area_min_height_land">140dp</dimen>
     <dimen name="player_text_file_name_plate_inset">28dp</dimen>
     <dimen name="player_text_edit_padding">8dp</dimen>
     <dimen name="player_lyrics_margin_top">56dp</dimen>
@@ -452,6 +454,10 @@
     <!-- Dialog Layouts -->
     <dimen name="dialog_min_width">150dp</dimen>
     <dimen name="dialog_max_width">300dp</dimen>
+    <!-- S4846: ceiling for a chip-grid dialog (DialogWindowSizer wide = true); larger of this and dialog_max_width wins. -->
+    <dimen name="dialog_wide_max_width">560dp</dimen>
+    <!-- S4835: Material's short-screen side inset, used in every orientation (themes.xml MaterialAlertDialog.FastMediaSorter). -->
+    <dimen name="dialog_background_inset_horizontal">10dp</dimen>
     <dimen name="dialog_field_spacing">2dp</dimen>
     <dimen name="dialog_button_spacing">2dp</dimen>
     <!-- Unified dialog action pair (S0538): touch-friendly height + a deliberate gap so confirm/cancel cannot be confused by a blind finger tap.
@@ -1079,4 +1085,11 @@
     <dimen name="resource_table_chip_padding_vertical">2dp</dimen>
     <!-- S4521: the filler column is inset from the wide landscape edges so its lines stay readable. -->
     <dimen name="filler_content_padding_horizontal_land">48dp</dimen>
+    <!-- External control: the sections column stops growing on wide windows so its rows stay readable. -->
+    <dimen name="external_control_content_max_width">720dp</dimen>
+    <!-- Notes list: room kept clear of the New note FAB - below the last row in portrait, beside the rows in
+         landscape, where the extended FAB sits over the list's end instead of under it. -->
+    <dimen name="notes_list_fab_clearance_bottom">96dp</dimen>
+    <dimen name="notes_list_fab_clearance_end_land">200dp</dimen>
+    <dimen name="notes_row_min_height">64dp</dimen>
 </resources>

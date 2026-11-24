@@ -43,4 +43,33 @@ class UiLanguagePickerItemsTest {
         assertTrue("the endonym must stay searchable", keys.contains("русский"))
         assertTrue("the code must stay searchable", keys.contains("ru"))
     }
+
+    @Test
+    fun `dialog width keeps narrow portrait screen and caps wide landscape`() {
+        assertEquals(720, computeLanguagePickerDialogWidthPx(screenWidthPx = 720, density = 2f))
+        assertEquals(1160, computeLanguagePickerDialogWidthPx(screenWidthPx = 1280, density = 2f))
+    }
+
+    @Test
+    fun `dialog height cap shrinks to available height above keyboard in both orientations`() {
+        val portraitWithIme = computeLanguagePickerMaxHeightPx(
+            visibleHeightPx = 612,
+            verticalWindowInsetsPx = 96,
+            maxScrollCapPx = 1000,
+        )
+        val landscapeWithIme = computeLanguagePickerMaxHeightPx(
+            visibleHeightPx = 268,
+            verticalWindowInsetsPx = 40,
+            maxScrollCapPx = 1000,
+        )
+        val portraitNoIme = computeLanguagePickerMaxHeightPx(
+            visibleHeightPx = 1136,
+            verticalWindowInsetsPx = 96,
+            maxScrollCapPx = 1000,
+        )
+
+        assertEquals(516, portraitWithIme)
+        assertEquals(228, landscapeWithIme)
+        assertEquals(1000, portraitNoIme)
+    }
 }

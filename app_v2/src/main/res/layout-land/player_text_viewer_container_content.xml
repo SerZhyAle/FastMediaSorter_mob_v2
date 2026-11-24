@@ -107,7 +107,7 @@
         android:id="@+id/textEditContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="@dimen/player_text_file_name_plate_inset"
+        android:layout_marginTop="0dp"
         android:orientation="vertical"
         android:visibility="gone">
 
@@ -167,15 +167,15 @@
                 android:src="@drawable/ic_find_replace"
                 app:tint="@color/white" />
 
-            <View
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
-
+            <!-- Weighted and ellipsized so the extra Save button never pushes Cancel off a narrow screen. -->
             <TextView
                 android:id="@+id/tvEditorCursorPos"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="end"
+                android:maxLines="1"
+                android:ellipsize="end"
                 android:textColor="@color/player_overlay_text_secondary"
                 android:textSize="11sp"
                 android:paddingHorizontal="8dp" />
@@ -193,7 +193,6 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:focusable="true"
                 android:clickable="true"
-                android:visibility="gone"
                 android:contentDescription="@string/text_editor_action_save"
                 android:src="@drawable/ic_save"
                 app:tint="@color/white" />
@@ -381,7 +380,8 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:padding="@dimen/player_text_viewer_padding">
+            android:paddingHorizontal="@dimen/player_text_viewer_padding"
+            android:paddingVertical="@dimen/token_spacing_4">
 
             <EditText
                 android:id="@+id/etTextContent"

@@ -78,7 +78,7 @@
     <string name="vr_info_video">Codec de vídeo:</string>
     <string name="vr_install_cta_action">Aberto na loja</string>
     <string name="vr_install_cta_dismiss">Jogue mesmo assim</string>
-    <string name="vr_install_cta_message">Para a melhor experiência, experimente a versão VR do Fast Media Sorter &amp; Organizer no seu headset Quest.</string>
+    <string name="vr_install_cta_message">Para uma experiência melhor, experimente a edição VR do Fast Media Sorter &amp; Organizer no seu headset Quest.</string>
     <string name="vr_install_cta_title">Este é um vídeo em 3D.</string>
     <string name="vr_overlay_btn_bright_down">Brilhante -</string>
     <string name="vr_overlay_btn_bright_up">Brilhante +</string>

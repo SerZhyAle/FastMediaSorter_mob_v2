@@ -23,6 +23,7 @@ import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
+import com.sza.fastmediasorter.util.showBoundTo
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -765,7 +766,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
             .setMessage(R.string.playback_control_low_speed_mute_message)
             .setPositiveButton(R.string.playback_control_mute) { _, _ -> mutePlayer() }
             .setNegativeButton(R.string.playback_control_low_speed_mute_cancel, null)
-            .show()
+            .showBoundTo(this)
     }
 
     private fun updateVolumeLabel(percent: Int) {

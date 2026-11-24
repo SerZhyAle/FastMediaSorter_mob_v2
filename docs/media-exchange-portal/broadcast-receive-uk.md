@@ -1,12 +1,12 @@
 ---
-source_sha256: fed01593ea4d507d4dd1b10e804cabe42f61d36843a838a06849f064dc9419a8
+source_sha256: 813946dd336a6fb366024daa986023c5a6ad52372bfa0a4678aea1befc577bfa
 layout: doc
 title: "Приймання трансляції: список, посилання, пароль і cast на ваш пристрій"
 description: "Чотири способи відкрити пряму трансляцію на пристрої - список «Трансляції моїх пристроїв», посилання, QR-код чи файл, посилання з паролем і cast з іншого вашого пристрою - і чим cast відрізняється від Google Cast."
 category: "Обмін медіа"
 permalink: /docs/media-exchange-portal/broadcast-receive-uk.html
 ---
-<sub class="doc-stamp">26.11.15 15:28</sub>
+<sub class="doc-stamp">26.11.23 11:23</sub>
 
 # Приймання трансляції
 
@@ -61,7 +61,7 @@ permalink: /docs/media-exchange-portal/broadcast-receive-uk.html
 
 - **Телефон, планшет, ТБ і VR-шолом на Android** відтворюють трансляції в **Трансляціях**.
 - **Годинник Wear OS** показує трансляції свого акаунта, згруповані за пристроєм, що мовить, і відтворює звук чи відео; на cast він спершу питає; телефон також може надіслати на нього трансляцію, що йде, з екрана **Мовлення**. Див. [Годинник в акаунті](watch-exchange-uk.html).
-- **ПК з Windows** відтворює трансляції в [STREAMS Player](https://serzhyale.github.io/StreamsPlayer/).
+- **ПК з Windows** відтворює трансляції у STREAMS Player. [Увімкніть доступ через свій акаунт](streamsplayer-uk.html#receive-through-your-account) і [відкрийте список трансляцій](streamsplayer-uk.html#open-the-broadcast-list).
 
 ## Покрокові інструкції
 

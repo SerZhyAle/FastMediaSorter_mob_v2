@@ -8,7 +8,6 @@ import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.ui.BaseViewModel
 import com.sza.fastmediasorter.core.ui.UiState
 import com.sza.fastmediasorter.data.capture.SaveResult
-import com.sza.fastmediasorter.data.companion.CompanionConfigException
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -485,8 +484,8 @@ class MainViewModel @Inject constructor(
 
     // S4649: the unpinned-server refusal is actionable, so it names its own fix; every other export
     // failure keeps the generic share message.
-    private fun shareExportErrorRes(e: Throwable): Int = when ((e as? CompanionConfigException)?.reason) {
-        CompanionConfigException.Reason.UNPINNED_HOST_KEY -> R.string.companion_share_unpinned_error
+    private fun shareExportErrorRes(e: Throwable): Int = when {
+        exportCompanionConfigUseCase.isUnpinnedHostKey(e) -> R.string.companion_share_unpinned_error
         else -> R.string.sftp_share_export_failed
     }
 

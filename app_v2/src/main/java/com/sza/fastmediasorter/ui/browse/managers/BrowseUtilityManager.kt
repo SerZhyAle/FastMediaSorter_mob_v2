@@ -4,7 +4,10 @@ import android.content.Context
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.ui.browse.BrowseState
+import com.sza.fastmediasorter.ui.main.helpers.mediaTypeLabelRes
+import com.sza.fastmediasorter.util.LimitedStorageReach
 import com.sza.fastmediasorter.util.VirtualPathUtils
+import timber.log.Timber
 
 /**
  * Utility functions for BrowseActivity UI string formatting.
@@ -75,16 +78,26 @@ class BrowseUtilityManager(
             buildBreadcrumb(state)
         } ?: buildRootPathDisplay(resource.path, resource.name, state.isCloudResource)
 
-        val modeLabel = if (resource.allFiles) {
-            " • " + context.getString(R.string.all_files)
-        } else {
-            ""
+        // "All files" is the resource's promise; without all-files access only the media rows come
+        // back, and the strip under the list says so - the label has to name what is delivered.
+        val modeLabel = when {
+            !resource.allFiles -> ""
+            LimitedStorageReach.isReachLimited(context, resource) -> " • " + reachableTypesLabel()
+            else -> " • " + context.getString(R.string.all_files)
         }
 
         // S0906: pathDisplay is blank for a cloud resource at root (no meaningful hierarchical
         // path to show) - omit its bullet segment instead of leaving a dangling "• •".
         val pathSegment = pathDisplay.takeIf { it.isNotBlank() }?.let { "$it • " } ?: ""
         return "${resource.name}$fileCount • $pathSegment$sortMode$modeLabel$selected"
+    }
+
+    private fun reachableTypesLabel(): String {
+        Timber.d("S4838: info line names reachable types instead of all files")
+        return LimitedStorageReach.TYPES_REACHABLE_WITHOUT_ALL_FILES
+            .sortedBy { it.ordinal }
+            .mapNotNull { mediaTypeLabelRes(it) }
+            .joinToString(", ") { context.getString(it) }
     }
 
     // S0906: a cloud resource's path is an opaque provider id (e.g. "cloud://google_drive/<id>"),

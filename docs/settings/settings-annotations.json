@@ -2115,14 +2115,64 @@
     "uk": "Відкриває «Мої пристрої», де ви додаєте, переносите, передаєте й видаляєте свої сервери обміну."
   },
   "rowRemoteControlEnabled": {
-    "en": "Lets your other devices on this account ask this phone to act - for example to stop the audio or close the app. Off by default and after a reset; the phone only answers a request. It needs a connected exchange server that carries commands, and turning it off keeps your list of devices and their rights. The latest requests are listed below the switch.",
-    "ru": "Позволяет другим вашим устройствам этой учётной записи просить телефон о действиях - например, остановить звук или закрыть приложение. По умолчанию и после сброса выключено; телефон лишь отвечает на запрос. Нужен подключённый сервер обмена, который передаёт команды; при выключении список устройств и их права сохраняются. Последние запросы показаны под переключателем.",
-    "uk": "Дозволяє іншим вашим пристроям цього облікового запису просити телефон про дії - наприклад, зупинити звук або закрити застосунок. За замовчуванням і після скидання вимкнено; телефон лише відповідає на запит. Потрібен підключений сервер обміну, який передає команди; після вимкнення список пристроїв і їхні права зберігаються. Останні запити показано під перемикачем."
+    "en": "Lets your other devices on this account send commands to this phone. It is off by default. Turning it on opens the device list in External control.",
+    "ru": "Разрешает другим устройствам вашей учётной записи отправлять команды этому телефону. По умолчанию выключено. При включении открывается список устройств на экране «Внешнее управление».",
+    "uk": "Дозволяє іншим пристроям вашого облікового запису надсилати команди цьому телефону. Типово вимкнено. Увімкнення відкриває список пристроїв на екрані «Зовнішнє керування»."
   },
-  "btnRemoteControlControllers": {
-    "en": "Opens the list of your account's devices that can be asked to control this phone. A new device may run safe commands only; you allow each further kind one by one, and choose whether this phone asks you first or always allows it.",
-    "ru": "Открывает список устройств вашей учётной записи, которым можно разрешить управлять этим телефоном. Новое устройство получает только безопасные команды; каждый следующий вид вы разрешаете отдельно и выбираете, спрашивать ли вас сначала или разрешать всегда.",
-    "uk": "Відкриває список пристроїв вашого облікового запису, яким можна дозволити керувати цим телефоном. Новий пристрій отримує лише безпечні команди; кожен наступний вид ви дозволяєте окремо та обираєте, питати вас спершу чи дозволяти завжди."
+  "btnOpenExternalControl": {
+    "en": "Opens the list of devices, consent requests, commands and log in External control. You can open it even while listening is off.",
+    "ru": "Открывает экран «Внешнее управление» со списком устройств, запросами на подтверждение, командами и журналом. Экран доступен и при выключенном приёме.",
+    "uk": "Відкриває екран «Зовнішнє керування» зі списком пристроїв, запитами на підтвердження, командами й журналом. Екран доступний і з вимкненим прийманням."
+  },
+  "headerExternalControlThis": {
+    "en": "Shows whether this phone is ready to listen.",
+    "ru": "Показывает, готов ли телефон принимать команды.",
+    "uk": "Показує, чи готовий телефон приймати команди."
+  },
+  "rowExternalControlListening": {
+    "en": "Changes the same listening switch that appears under Exchange server.",
+    "ru": "Изменяет тот же переключатель приёма команд, что и в настройках сервера обмена.",
+    "uk": "Змінює той самий перемикач приймання команд, що й у налаштуваннях сервера обміну."
+  },
+  "btnExternalControlStateAction": {
+    "en": "Opens exchange settings or opens sign-in again, depending on what the connection needs.",
+    "ru": "Открывает настройки обмена или повторный вход, в зависимости от состояния подключения.",
+    "uk": "Відкриває налаштування обміну або повторний вхід, залежно від стану підключення."
+  },
+  "headerExternalControlWaiting": {
+    "en": "Shows the request that needs your answer.",
+    "ru": "Показывает запрос, который ждёт вашего ответа.",
+    "uk": "Показує запит, який чекає на вашу відповідь."
+  },
+  "btnExternalControlDecline": {
+    "en": "Declines the current request.",
+    "ru": "Отклоняет текущий запрос.",
+    "uk": "Відхиляє поточний запит."
+  },
+  "btnExternalControlAllow": {
+    "en": "Allows the current request.",
+    "ru": "Разрешает текущий запрос.",
+    "uk": "Дозволяє поточний запит."
+  },
+  "headerExternalControlControllers": {
+    "en": "Lists account devices and the kinds of commands each can send.",
+    "ru": "Показывает устройства учётной записи и виды команд, которые каждое может отправлять.",
+    "uk": "Показує пристрої облікового запису й види команд, які кожен може надсилати."
+  },
+  "headerExternalControlCommands": {
+    "en": "Lists the commands this app accepts and their kinds.",
+    "ru": "Показывает команды, которые принимает приложение, и их виды.",
+    "uk": "Показує команди, які приймає застосунок, і їхні види."
+  },
+  "headerExternalControlLog": {
+    "en": "Shows the latest 20 requests on this phone.",
+    "ru": "Показывает 20 последних запросов на этом телефоне.",
+    "uk": "Показує 20 останніх запитів на цьому телефоні."
+  },
+  "btnExternalControlFullLog": {
+    "en": "Shows every saved request, newest first.",
+    "ru": "Показывает все сохранённые запросы, сначала самые новые.",
+    "uk": "Показує всі збережені запити, спочатку найновіші."
   },
   "btnSftpExchangePortal": {
     "en": "Opens the portal page about reaching your shared folders from outside the home network, step by step.",

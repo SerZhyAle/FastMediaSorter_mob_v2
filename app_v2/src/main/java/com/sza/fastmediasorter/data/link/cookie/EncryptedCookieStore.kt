@@ -306,7 +306,8 @@ class EncryptedCookieStore @Inject constructor(
         return runCatching {
             val root = JSONObject(raw)
             val now = System.currentTimeMillis()
-            val cookieCount = countLiveCookies(root.optJSONArray("cookies"), now)
+            val cookieArray = root.optJSONArray("cookies")
+            val cookieCount = countLiveCookies(cookieArray, now)
             val savedMs = root.optLong("savedAtEpochMillis", -1L)
             val lastUsedMs = root.optLong("lastUsedAtEpochMillis", 0L)
             AccountEntry(
@@ -316,8 +317,32 @@ class EncryptedCookieStore @Inject constructor(
                 lastUsedAt = if (lastUsedMs > 0L) Instant.ofEpochMilli(lastUsedMs) else null,
                 cookieCount = cookieCount,
                 type = root.optString("type", TYPE_ACTIVE),
+                cookieNames = liveCookieNames(cookieArray, now),
             )
         }.getOrNull()
+    }
+
+    /**
+     * Names of the cookies [countLiveCookies] counts, so "holds the session cookie" and
+     * "has cookies" agree on expiry.
+     */
+    private fun liveCookieNames(array: JSONArray?, nowEpochMillis: Long): Set<String> {
+        if (array == null) return emptySet()
+        val names = mutableSetOf<String>()
+        for (index in 0 until array.length()) {
+            val node = array.optJSONObject(index) ?: continue
+            val name = node.optString("name").orEmpty()
+            if (name.isBlank()) continue
+            val expires = if (node.has("expiresAtEpochMillis") && !node.isNull("expiresAtEpochMillis")) {
+                node.optLong("expiresAtEpochMillis", -1L).takeIf { it > 0L }
+            } else {
+                null
+            }
+            if (expires == null || expires >= nowEpochMillis) {
+                names += name
+            }
+        }
+        return names
     }
 
     private fun countLiveCookies(array: JSONArray?, nowEpochMillis: Long): Int {
@@ -405,6 +430,7 @@ class EncryptedCookieStore @Inject constructor(
         val lastUsedAt: Instant?,
         val cookieCount: Int,
         val type: String = TYPE_ACTIVE,
+        val cookieNames: Set<String> = emptySet(),
     )
 
     companion object {

@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.wear.ui.streams
 
-import android.text.format.DateUtils
 import android.widget.Toast
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,6 +24,8 @@ import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearBroadcastStartState
+import com.sza.fastmediasorter.wear.ui.common.LocalWearDateTimeFormatter
+import com.sza.fastmediasorter.wear.ui.common.LocalWearUnitSystem
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
@@ -101,11 +102,7 @@ private fun StartStateText(state: WearBroadcastStartState) {
     val text = when (state) {
         is WearBroadcastStartState.Waiting -> stringResource(
             R.string.wear_broadcast_waiting_until,
-            DateUtils.formatDateTime(
-                LocalContext.current,
-                state.untilMs,
-                DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME,
-            ),
+            LocalWearDateTimeFormatter.current.formatDateTime(state.untilMs, LocalWearUnitSystem.current),
         )
         WearBroadcastStartState.Started -> stringResource(R.string.wear_broadcast_started)
         WearBroadcastStartState.Expired -> stringResource(R.string.wear_broadcast_expired)

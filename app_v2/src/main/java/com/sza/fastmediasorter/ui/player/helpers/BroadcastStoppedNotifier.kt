@@ -18,7 +18,8 @@ import javax.inject.Inject
 /**
  * S4609: the one line a broadcast left to the background audio service leaves behind when it cannot go on - a
  * password, a refused certificate, an ended or unreachable broadcast. The service has no window to ask from, so
- * the tap opens the Streams screen, which explains a refusal (S4160).
+ * the tap opens the Streams screen, which explains a refusal (S4160). An ended broadcast says so (LIVE-BROADCAST
+ * item T, DEVICE-EXCHANGE item DY), and the Streams screen shows its ended dialog with Reconnect when it opens.
  */
 class BroadcastStoppedNotifier @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -26,7 +27,7 @@ class BroadcastStoppedNotifier @Inject constructor(
 
     // S3155 pattern: a POST_NOTIFICATIONS check first and runCatching for a revocation between it and the post.
     @SuppressLint("MissingPermission")
-    fun show(channelTitle: String) {
+    fun show(channelTitle: String, ended: Boolean = false) {
         val manager = NotificationManagerCompat.from(context)
         if (!manager.areNotificationsEnabled()) {
             Timber.i("BroadcastStoppedNotifier: notifications not allowed, the stop cannot be shown")
@@ -41,7 +42,9 @@ class BroadcastStoppedNotifier @Inject constructor(
             intent,
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
-        val text = context.getString(R.string.s4609_broadcast_stopped_text)
+        val text = context.getString(
+            if (ended) R.string.s4874_broadcast_ended_text else R.string.s4609_broadcast_stopped_text,
+        )
         val notification = NotificationCompat.Builder(context, MediaNotificationManager.NOTIFICATION_CHANNEL_ID)
             .setSmallIcon(NotificationIcons.STATUS_BAR)
             .setContentTitle(channelTitle)

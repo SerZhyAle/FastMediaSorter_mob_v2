@@ -13,6 +13,7 @@ import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MotionEvent
 import android.view.ViewGroup
+import androidx.appcompat.widget.TooltipCompat
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.recyclerview.widget.DiffUtil
@@ -37,6 +38,7 @@ import com.sza.fastmediasorter.ui.common.tintIconsFromTheme
 import com.sza.fastmediasorter.ui.icon.ResourceIconComposer
 import com.sza.fastmediasorter.util.LimitedStorageReach
 import com.sza.fastmediasorter.util.VirtualPathUtils
+import com.sza.fastmediasorter.utils.SafHelper
 import com.sza.fastmediasorter.utils.keepLongestWordOnOneLine
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import com.sza.fastmediasorter.utils.setOnLongClickListenerDebounced
@@ -220,18 +222,11 @@ class ResourceAdapter(
         private val DOCUMENT_TYPES = setOf(MediaType.TEXT, MediaType.PDF, MediaType.EPUB, MediaType.OFFICE_DOCUMENT)
         private val IMAGE_TYPES = setOf(MediaType.IMAGE, MediaType.GIF)
 
+        private const val FAVORITES_ENTRY_ID = -100L
+
         // Badge order is the on-screen order of the letters; the letter carries the sub-type, which is
         // why sub-types of one family may share that family's colour (S2046).
-        private val BADGE_LETTERS = listOf(
-            MediaType.IMAGE to "I",
-            MediaType.VIDEO to "V",
-            MediaType.AUDIO to "A",
-            MediaType.GIF to "G",
-            MediaType.TEXT to "T",
-            MediaType.PDF to "P",
-            MediaType.EPUB to "E",
-            MediaType.OFFICE_DOCUMENT to "O",
-        )
+        private val BADGE_LETTERS = MediaTypeColorCatalog.badgeEntries.map { it.type to it.letter }
 
         private fun categoryColor(context: android.content.Context, category: MediaColorCategory): Int =
             ContextCompat.getColor(context, MediaTypeColorCatalog.colorFor(category))
@@ -422,10 +417,35 @@ class ResourceAdapter(
             chip.setTextColor(if (luminance > LIGHT_CHIP_LUMINANCE) DARK_TEXT_COLOR else android.graphics.Color.WHITE)
         }
 
-        /** The address a row shows: a cloud resource names its provider and account, not a folder id. */
+        /** True when [formatMediaTypes] renders multi-type letter badges rather than All or a single icon. */
+        fun usesLetterBadges(types: Set<MediaType>, allFiles: Boolean): Boolean {
+            val isSingleCategory = types == setOf(MediaType.AUDIO) ||
+                types == setOf(MediaType.VIDEO) ||
+                (types.isNotEmpty() && types.all { it in DOCUMENT_TYPES }) ||
+                (types.isNotEmpty() && types.all { it in IMAGE_TYPES })
+            return !allFiles && !isSingleCategory && BADGE_LETTERS.any { it.first in types }
+        }
+
+        internal fun bindMediaTypeDescription(view: android.widget.TextView, resource: MediaResource) {
+            val description = if (resource.id == FAVORITES_ENTRY_ID) {
+                ""
+            } else {
+                MediaTypeColorCatalog.formatDescription(
+                    view.context,
+                    resource.supportedMediaTypes,
+                    resource.allFiles,
+                )
+            }
+            view.contentDescription = description.ifEmpty { null }
+            TooltipCompat.setTooltipText(view, description.ifEmpty { null })
+        }
+
+        /** The address a row shows: SAF URIs are formatted cleanly; cloud names its provider and account. */
         fun displayPath(resource: MediaResource): String {
             val provider = resource.cloudProvider
-            if (resource.type != ResourceType.CLOUD || provider == null) return resource.path
+            if (resource.type != ResourceType.CLOUD || provider == null) {
+                return SafHelper.formatDisplayPath(resource.path)
+            }
             val account = resource.accountId?.takeIf { it.isNotEmpty() }
             return if (account != null) "${provider.name} ($account)" else "${provider.name} / ${resource.name}"
         }
@@ -707,7 +727,12 @@ class ResourceAdapter(
                     android.view.View.GONE
                 }
 
-                tvMediaTypes.text = if (resource.id == -100L) "" else formatMediaTypes(root.context, resource.supportedMediaTypes, resource.allFiles)
+                tvMediaTypes.text = if (resource.id == FAVORITES_ENTRY_ID) {
+                    ""
+                } else {
+                    formatMediaTypes(root.context, resource.supportedMediaTypes, resource.allFiles)
+                }
+                bindMediaTypeDescription(tvMediaTypes, resource)
                 root.setOnClickListenerDebounced { onItemClick(resource) }
                 root.setOnLongClickListenerDebounced {
                     if (resource.id != -100L) {
@@ -817,6 +842,7 @@ class ResourceAdapter(
                 }
 
                 tvResourcePath.text = displayPath(resource)
+                Timber.d("S4847: row=${resource.name} path=${tvResourcePath.text} iconId=${resource.iconId}")
 
                 if (!resource.comment.isNullOrBlank()) {
                     tvResourceComment.text = resource.comment
@@ -903,7 +929,12 @@ class ResourceAdapter(
                     ivResourceTypeIcon.layoutParams.height = iconSize
                 }
 
-                tvMediaTypes.text = if (resource.id == -100L) "" else formatMediaTypes(root.context, resource.supportedMediaTypes, resource.allFiles)
+                tvMediaTypes.text = if (resource.id == FAVORITES_ENTRY_ID) {
+                    ""
+                } else {
+                    formatMediaTypes(root.context, resource.supportedMediaTypes, resource.allFiles)
+                }
+                bindMediaTypeDescription(tvMediaTypes, resource)
 
                 tvDestinationMark.text = if (resource.isDestination) "→" else ""
 

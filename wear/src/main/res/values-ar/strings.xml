@@ -767,7 +767,7 @@
     <string name="wear_cast_phone_busy">لم يستجب هاتفك - تأكد من وجوده بالقرب منك</string>
     <string name="wear_cast_not_castable">يمكن فقط عرض البث والملفات من مصدر الهاتف على TV</string>
     <string name="wear_stream_stalled">توقّف البث عن الإرسال. تم إيقاف التشغيل لتوفير البطارية.</string>
-    <string name="phone_resource_companion_disabled">مفتاح رفيق الساعة معطّل على هاتفك. فعّله في إعدادات Fast Media Sorter &amp; Organizer، ثم أعد المحاولة.</string>
+    <string name="phone_resource_companion_disabled">مفتاح تطبيق Wear المرافق معطّل على هاتفك. فعّله في إعدادات Fast Media Sorter &amp; Organizer، ثم أعد المحاولة.</string>
     <string name="wear_tourist_app">سائح</string>
     <string name="wear_tourist_metric_speed">السرعة</string>
     <string name="wear_tourist_metric_altitude">الارتفاع</string>
@@ -1109,4 +1109,11 @@
     <string name="wear_scheduled_message_channel_name">الرسائل المجدولة</string>
     <string name="wear_audio_fetching">جارٍ تحميل المقطع..</string>
     <string name="wear_stream_ended">لم يعد هذا البث على الهواء. أعد المحاولة عندما يبدأ من جديد.</string>
+    <string name="wear_tourist_lock_exit_hint">مقفل. اسحب للخلف 3 مرات بسرعة لإلغاء القفل</string>
+    <string name="wear_broadcast_waiting_until">لم تبدأ الإذاعة بعد. يعمل الرابط حتى %1$s</string>
+    <string name="wear_broadcast_started">بدأت الإذاعة</string>
+    <string name="wear_broadcast_expired">لم يعد هذا الرابط يعمل</string>
+    <string name="wear_broadcast_play">تشغيل</string>
+    <string name="wear_tourist_no_fix_approximate">جارٍ البحث عن الموقع..</string>
+    <string name="wear_tourist_precise_needed">الموقع الدقيق مطلوب</string>
 </resources>

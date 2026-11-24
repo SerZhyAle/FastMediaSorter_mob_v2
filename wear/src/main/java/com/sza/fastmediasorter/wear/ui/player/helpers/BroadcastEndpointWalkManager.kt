@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearBroadcastPlayback
 import com.sza.fastmediasorter.wear.domain.model.WearBroadcastRoute
 import com.sza.fastmediasorter.wear.domain.model.WearNetworkChannel
 import com.sza.fastmediasorter.wear.domain.model.WearNetworkChannelKind
+import com.sza.fastmediasorter.wear.domain.playback.WearAfterEndAnswer
 import com.sza.fastmediasorter.wear.domain.playback.WearStreamFailure
 import com.sza.fastmediasorter.wear.domain.usecase.WalkWearBroadcastEndpointsUseCase
 import kotlinx.coroutines.CoroutineScope
@@ -53,18 +54,40 @@ class BroadcastEndpointWalkManager(
         }
     }
 
-    /** Replaces any walk in flight; the newest failure or reconnect is the one that decides what plays. */
-    fun walk(route: WearBroadcastRoute, fromTop: Boolean, failure: WearStreamFailure) {
+    /**
+     * Replaces any walk in flight; the newest failure or reconnect is the one that decides what plays. A walk that
+     * followed a broadcast which played ([afterPlay]) and ran out asks the one after-end reconnect (DEVICE-EXCHANGE
+     * item DY): a relay `410` or a closed port reaches the player only as an unreached endpoint, so the player error
+     * alone cannot tell an ended producer from a lost link.
+     */
+    fun walk(route: WearBroadcastRoute, fromTop: Boolean, failure: WearStreamFailure, afterPlay: Boolean = false) {
         Timber.d("S4610: broadcast endpoint walk fromTop=$fromTop after index ${route.endpointIndex}")
         job?.cancel()
         job = scope.launch {
             val next = walkEndpoints(route, fromTop)
-            if (next == null) {
-                Timber.i("BroadcastEndpointWalkManager: no endpoint after %s plays", route)
-                onExhausted(failure)
-            } else {
-                onMoved(next)
+            when {
+                next != null -> onMoved(next)
+                afterPlay -> askAfterEnd(route, failure)
+                else -> {
+                    Timber.i("BroadcastEndpointWalkManager: no endpoint after %s plays", route)
+                    onExhausted(failure)
+                }
             }
+        }
+    }
+
+    private suspend fun askAfterEnd(route: WearBroadcastRoute, failure: WearStreamFailure) {
+        val answer = walkEndpoints.afterEnd(route.record)
+        Timber.d("S4874: wear walk after play ran out, after-end answer=$answer")
+        Timber.i("BroadcastEndpointWalkManager: walk after play ran out, after-end answer %s", answer)
+        when (answer) {
+            WearAfterEndAnswer.ENDED -> onExhausted(WearStreamFailure.ENDED)
+            // Answered with a status: resolve from the top once more, with no second question.
+            WearAfterEndAnswer.ALIVE -> {
+                val next = walkEndpoints(route, fromTop = true)
+                if (next != null) onMoved(next) else onExhausted(failure)
+            }
+            WearAfterEndAnswer.NO_ANSWER -> onExhausted(failure)
         }
     }
 

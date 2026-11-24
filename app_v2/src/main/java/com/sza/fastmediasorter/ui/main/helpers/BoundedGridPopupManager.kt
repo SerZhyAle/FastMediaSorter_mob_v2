@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.main.helpers
 
 import android.content.Context
+import android.graphics.Rect
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.util.TypedValue
@@ -9,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.GridLayout
 import android.widget.PopupWindow
+import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.children
@@ -54,7 +56,9 @@ class BoundedGridPopupManager {
             ?.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
         val metrics = context.resources.displayMetrics
 
-        val maxWidth = metrics.widthPixels - (safe?.left ?: 0) - (safe?.right ?: 0) - POPUP_MARGIN_PX
+        // S4837: one margin per side - a popup as wide as the screen minus a single margin is pushed
+        // flush to the right edge by the window manager, which leaves the gap on one side only.
+        val maxWidth = metrics.widthPixels - (safe?.left ?: 0) - (safe?.right ?: 0) - 2 * POPUP_MARGIN_PX
         val gridPadding = grid.paddingLeft + grid.paddingRight
         if (equalColumns) {
             val widest = cells.maxOfOrNull { measureCellWidth(it) } ?: 0
@@ -89,9 +93,33 @@ class BoundedGridPopupManager {
             Timber.d("S4796: wrapped=${cells.count { it is android.widget.TextView && it.lineCount > 1 }}")
         }
 
+        val popupWidth = measurePopupWidth(binding.root, popup, equalColumns, maxWidth)
+        val offset = resolveAnchorOffset(anchor, popupWidth, metrics.widthPixels, safe)
+        Timber.d("S4837: dropdown popup width=$popupWidth offset=$offset screen=${metrics.widthPixels}")
         activePopup = popup
-        popup.showAsDropDown(anchor)
+        popup.showAsDropDown(anchor, offset, 0)
         return popup
+    }
+
+    private fun measurePopupWidth(root: View, popup: PopupWindow, equalColumns: Boolean, maxWidth: Int): Int {
+        if (equalColumns) return popup.width
+        root.measure(
+            View.MeasureSpec.makeMeasureSpec(maxWidth, View.MeasureSpec.AT_MOST),
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+        )
+        val backgroundPadding = Rect()
+        popup.background?.getPadding(backgroundPadding)
+        return root.measuredWidth + backgroundPadding.left + backgroundPadding.right
+    }
+
+    private fun resolveAnchorOffset(anchor: View, popupWidth: Int, screenWidth: Int, safe: Insets?): Int {
+        val anchorLeft = IntArray(2).also { anchor.getLocationOnScreen(it) }[0]
+        val defaultLeft = if (anchor.layoutDirection == View.LAYOUT_DIRECTION_RTL) {
+            anchorLeft + anchor.width - popupWidth
+        } else {
+            anchorLeft
+        }
+        return resolveHorizontalOffset(defaultLeft, popupWidth, screenWidth, safe?.left ?: 0, safe?.right ?: 0)
     }
 
     fun dismiss() {
@@ -163,6 +191,22 @@ class BoundedGridPopupManager {
             val below = screenHeight - anchorBottom - bottomInset - POPUP_MARGIN_PX
             val safeArea = screenHeight - topInset - bottomInset - POPUP_MARGIN_PX
             return below.coerceAtLeast(MIN_POPUP_HEIGHT_PX).coerceAtMost(safeArea)
+        }
+
+        /**
+         * Offset from the popup's default left edge that keeps it inside both safe margins, moving it
+         * the least distance. A popup wider than the span keeps its left margin and loses the right one.
+         */
+        internal fun resolveHorizontalOffset(
+            defaultLeft: Int,
+            popupWidth: Int,
+            screenWidth: Int,
+            safeLeft: Int,
+            safeRight: Int,
+        ): Int {
+            val minLeft = safeLeft + POPUP_MARGIN_PX
+            val maxLeft = screenWidth - safeRight - POPUP_MARGIN_PX - popupWidth
+            return defaultLeft.coerceAtMost(maxLeft).coerceAtLeast(minLeft) - defaultLeft
         }
 
         internal fun resolveGridWidth(widestCell: Int, columnCount: Int, horizontalPadding: Int, maxWidth: Int): Int =

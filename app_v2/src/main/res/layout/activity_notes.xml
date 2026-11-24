@@ -39,7 +39,7 @@
                 android:clipToPadding="false"
                 android:focusable="true"
                 android:nextFocusUp="@id/notesSearchView"
-                android:paddingBottom="96dp"
+                android:paddingBottom="@dimen/notes_list_fab_clearance_bottom"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
             <TextView

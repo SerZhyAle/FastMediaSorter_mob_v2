@@ -489,7 +489,7 @@
     <!-- Language Change -->
     <string name="restart_app_title">Restart Application</string>
     <string name="restart_app_cache_message">To apply the new cache size (%1$d MB), the application needs to restart. Continue?</string>
-    <string name="restart_app_compact_elements_message">To apply the new player controls size, the application needs to restart. Continue?</string>
+    <string name="restart_app_compact_elements_message">To apply the new size of interface elements, the application needs to restart. Continue?</string>
     <string name="restart">Restart</string>
 
     <!-- Error Dialog -->
@@ -1351,13 +1351,6 @@
     <string name="fragment_settings_video_tilVideoSizeMax_hint">Max (KB)</string>
     <string name="fragment_settings_video_tilVideoSizeMin_hint">Min (KB)</string>
     <string name="item_folder_tvFolderName_text">Folder Name</string>
-    <string name="item_resource_to_add_btnTypeAudio_text">A</string>
-    <string name="item_resource_to_add_btnTypeGif_text">G</string>
-    <string name="item_resource_to_add_btnTypeImage_text">I</string>
-    <string name="item_resource_to_add_btnTypePdf_text">P</string>
-    <string name="item_resource_to_add_btnTypeOffice_text">D</string>
-    <string name="item_resource_to_add_btnTypeText_text">T</string>
-    <string name="item_resource_to_add_btnTypeVideo_text">V</string>
     <string name="item_resource_tvAvailabilityIndicator_text">N/A</string>
     <string name="item_resource_tvWritableIndicator_text">🔒</string>
 
@@ -3674,7 +3667,7 @@
     <string name="exif_orientation_rotate_270">Rotated 270° clockwise</string>
     <string name="exif_orientation_unknown">Unknown (%1$d)</string>
     <string name="storage_reach_limited_browse">Only photos, video and audio are available in this folder. To view documents, add the folder again and select it in the system folder window.</string>
-    <string name="reach_limited_nothing_readable">Documents cannot be read</string>
+    <string name="reach_limited_nothing_readable">Add a folder to see documents</string>
     <string name="storage_reach_limited_virtual">Documents and other files on this device are not visible to the app. To open them, add the folder you need through the system folder window.</string>
     <string name="storage_reach_limited_browse_reconnect">Only photos, video and audio are available in this folder. To view documents, open the three-dots menu on the folder row in the resource list and select Reconnect resource.</string>
     <string name="wear_settings_group_media_types">Media types</string>
@@ -4756,4 +4749,25 @@
     <string name="feedback_attach_logs">Attach the app\'s diagnostic logs</string>
     <string name="feedback_no_logs">There are no logs to attach yet</string>
     <string name="feedback_logs_failed">The log archive could not be built</string>
+    <string name="local_folder_guidance">Scan finds folders with media. Or choose a folder manually, then add the selected folders.</string>
+    <string name="folder_selection_virtual_all_added">All already added</string>
+    <string name="browse_empty_search_no_match">No files match “%1$s”</string>
+    <string name="browse_empty_search_no_match_hint">Check the spelling or clear the search.</string>
+    <string name="language_auto_detect">Auto-detect</string>
+    <string name="cd_switch_to_grid_view">Switch to grid view</string>
+    <string name="cd_switch_to_list_view">Switch to list view</string>
+    <string name="notes_row_select">Select</string>
+    <string name="notes_select_all">Select all</string>
+    <string name="notes_selected_count">Selected: %1$d</string>
+    <string name="notes_delete_selected">Delete selected</string>
+    <string name="notes_delete_selected_title">Delete notes?</string>
+    <string name="notes_delete_selected_confirm">The selected notes (%1$d) will be deleted from the device.</string>
+    <string name="notes_selection_cancel">Cancel selection</string>
+    <string name="notes_error_delete_selected">Some of the selected notes could not be deleted.</string>
+    <string name="s4874_broadcast_ended_text">The broadcast has ended.</string>
+    <string name="main_destination_legend">A coloured frame and → mark a Quick Sort destination: files you sort go there.</string>
+    <string name="main_first_step_hint_text">Add a folder to start: pick a device folder, a network share or a cloud folder with your files.</string>
+    <string name="main_first_step_hint_action">Add folder</string>
+    <string name="share_to_none_enabled">No Send to.. target is turned on for this kind of item. Turn one on in Settings - %1$s - %2$s</string>
+    <string name="streams_added_shown_in_own">Station added to Own</string>
 </resources>

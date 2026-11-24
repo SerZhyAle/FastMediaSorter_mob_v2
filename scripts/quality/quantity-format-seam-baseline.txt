@@ -26,9 +26,11 @@ app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/ScrollableTextDialog.kt |
 app_v2/src/main/java/com/sza/fastmediasorter/ui/systeminfo/helpers/SystemInfoWindowManager.kt | INTERNAL | exported report file name
 app_v2/src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt | INTERNAL | received-file name
 app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/helpers/CameraOcrFlowManager.kt | INTERNAL | OCR output file name
+app_v2/src/main/java/com/sza/fastmediasorter/core/clipboard/ExchangeClipboardFileNames.kt | INTERNAL | generated clipboard-<UTC yyyyMMdd-HHmmss> file name for a received value without a usable name (DEVICE-EXCHANGE 22 item EL)
 
 app_v2/src/main/java/com/sza/fastmediasorter/core/logging/LoggingHelper.kt | INTERNAL | log file names and log line stamps
 app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsLogHelper.kt | INTERNAL | log artefact naming
+app_v2/src/main/java/com/sza/fastmediasorter/core/logging/DiagnosticArchive.kt | INTERNAL | diagnostic zip file name (yyyyMMdd-HHmmss, matched by isArchiveName) and the UTC ISO 8601 stamp of the greppable environment summary inside it, Locale.US
 wear/src/main/java/com/sza/fastmediasorter/wear/core/logging/WearLogTree.kt | INTERNAL | log line stamps
 app_v2/src/main/java/com/sza/fastmediasorter/core/util/CacheStatusHelper.kt | INTERNAL | startup diagnostic dump into Timber, no surface reads it
 app_v2/src/main/java/com/sza/fastmediasorter/core/util/MediaMetadataHelper.kt | INTERNAL | parses the EXIF input format
@@ -55,6 +57,7 @@ wear/src/main/java/com/sza/fastmediasorter/wear/data/recorder/VoiceNoteFileFacto
 wear/src/main/java/com/sza/fastmediasorter/wear/data/recorder/VoiceNotePublisher.kt | INTERNAL | note file name
 wear/src/main/java/com/sza/fastmediasorter/wear/domain/files/WearFileNameConflictResolver.kt | INTERNAL | suffix that keeps a name unique
 wear/src/main/java/com/sza/fastmediasorter/wear/data/wear/PixelCopyWearScreenCapture.kt | INTERNAL | screenshot file name
+wear/src/main/java/com/sza/fastmediasorter/wear/data/files/WearServerClipboardSlot.kt | INTERNAL | file name of a server clipboard value received without a usable name, UTC yyyyMMdd-HHmmss
 
 app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/GatherSystemInfoUseCase.kt | DEVICE | a fixed-width diagnostic report pasted into bug reports: one field reports the DEVICE's own clock setting and must keep doing so, and the two stamps beside it are pinned to Locale.US so two reports stay comparable
 wear/src/main/java/com/sza/fastmediasorter/wear/complication/WearFaceSlotSystemReader.kt | DEVICE | reports next alarm time using the system's own clock setting

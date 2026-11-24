@@ -8,6 +8,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Button
 import android.widget.TextView
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.commit
 import com.sza.fastmediasorter.R
@@ -18,6 +19,7 @@ import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.settings.fragments.WearSyncSettingsFragment
 import com.sza.fastmediasorter.ui.wear.helpers.WearCompanionHeaderHost
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 /**
  * S1735: the window the Wear companion opens in, so it can be a sub-program like the calculator.
@@ -54,7 +56,9 @@ class WearCompanionActivity : AppCompatActivity(), WearCompanionHeaderHost {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        Timber.d("S4879: WearCompanionActivity onCreate with enableEdgeToEdge")
         binding = ActivityWearCompanionBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)

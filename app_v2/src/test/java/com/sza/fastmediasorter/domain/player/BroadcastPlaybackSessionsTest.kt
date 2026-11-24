@@ -23,6 +23,25 @@ class BroadcastPlaybackSessionsTest {
     }
 
     @Test
+    fun anEndedRecord_isReadOnce() {
+        BroadcastPlaybackSessions.markEndedInService(row("row-e", null))
+
+        assertEquals("row-e", BroadcastPlaybackSessions.consumeEndedInService()?.id)
+        assertNull(BroadcastPlaybackSessions.consumeEndedInService())
+    }
+
+    @Test
+    fun aNewStartOfTheSameRow_dropsTheEndedRecord_anotherRowKeepsIt() {
+        BroadcastPlaybackSessions.markEndedInService(row("row-e", null))
+        BroadcastPlaybackSessions.register("$PLAYED/other", row("row-o", null))
+        assertNotNull(BroadcastPlaybackSessions.consumeEndedInService())
+
+        BroadcastPlaybackSessions.markEndedInService(row("row-e", null))
+        BroadcastPlaybackSessions.register("$PLAYED/again", row("row-e", null))
+        assertNull(BroadcastPlaybackSessions.consumeEndedInService())
+    }
+
+    @Test
     fun theBroadcastId_comesFromTheRelayTheTunnelOrALiveRowId() {
         BroadcastPlaybackSessions.register("$PLAYED/relay", row("r", listOf(lan(), relay())))
         BroadcastPlaybackSessions.register("$PLAYED/tunnel", row("t", listOf(tunnel())))

@@ -1,12 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.sza.fastmediasorter.ui.common.widget.MaxHeightLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/languagePickerRoot"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="@dimen/padding_normal">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/margin_small"
+        android:baselineAligned="false"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvLanguagePickerTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textAppearance="@style/TextAppearance.FastMediaSorter.Dialog.Title" />
+
+        <include layout="@layout/view_dialog_help_button" />
+    </LinearLayout>
+
     <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/margin_small"
@@ -20,19 +42,22 @@
             android:layout_height="wrap_content"
             android:imeOptions="actionSearch|flagNoExtractUi"
             android:inputType="text"
+            android:nextFocusDown="@+id/recyclerLanguages"
             android:singleLine="true" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="@dimen/dialog_list_max_height">
+        android:layout_height="wrap_content">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerLanguages"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
             android:minHeight="@dimen/button_height"
+            android:nextFocusUp="@+id/editLanguageSearch"
             android:overScrollMode="ifContentScrolls"
             android:scrollbars="vertical" />
 
@@ -45,10 +70,10 @@
             android:gravity="center"
             android:padding="@dimen/padding_normal"
             android:text="@string/language_picker_no_results"
+            android:textAppearance="@style/TextAppearance.FastMediaSorter.Dialog.Body"
             android:textColor="?attr/colorOnSurfaceVariant"
-            android:textSize="@dimen/resource_card_desc_text_size"
             android:visibility="gone" />
 
     </FrameLayout>
 
-</LinearLayout>
+</com.sza.fastmediasorter.ui.common.widget.MaxHeightLinearLayout>

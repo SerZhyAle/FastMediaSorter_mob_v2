@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
+import android.os.Build
 import android.view.ViewGroup
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -8,6 +9,7 @@ import androidx.core.view.updatePadding
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityBrowseBinding
 import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
+import timber.log.Timber
 
 /**
  * Applies edge-to-edge window insets to BrowseActivity layout.
@@ -34,10 +36,19 @@ object BrowseEdgeToEdgeHelper {
 
         val fabOrigBottomMargin = (binding.barScrollBottom.layoutParams as? ViewGroup.MarginLayoutParams)
             ?.bottomMargin ?: binding.root.resources.getDimensionPixelSize(R.dimen.margin_small)
+        val rootOrigPaddingBottom = binding.root.paddingBottom
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
             val statusBarHeight = insets.getStatusBarHeightSafe(binding.root.resources)
             val navBar = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+
+            // S4852: nothing else lifts the bottom strips above the keyboard on an edge-to-edge window,
+            // so the "Filters: .." line sat under it exactly while a search was being typed.
+            val rootBottom = rootOrigPaddingBottom + imeBottom(insets)
+            if (binding.root.paddingBottom != rootBottom) {
+                Timber.d("S4852: root lifted above keyboard rootBottom=$rootBottom")
+                binding.root.updatePadding(bottom = rootBottom)
+            }
 
             binding.layoutControls.setPadding(
                 topBarOrigPaddingLeft,
@@ -76,11 +87,28 @@ object BrowseEdgeToEdgeHelper {
      * insets listener alone does not fire on those.
      */
     fun applyBottomInsets(binding: ActivityBrowseBinding) {
-        val navBottom = ViewCompat.getRootWindowInsets(binding.root)
-            ?.getInsets(WindowInsetsCompat.Type.navigationBars())?.bottom ?: 0
+        val rootInsets = ViewCompat.getRootWindowInsets(binding.root)
+        // The keyboard covers the navigation-bar band and the root is already lifted above it, so
+        // counting the nav inset again would leave an empty band between the strip and the keyboard.
+        val navBottom = if (rootInsets == null || imeBottom(rootInsets) > 0) {
+            0
+        } else {
+            rootInsets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+        }
         applyBottomStripInsets(binding, navBottom)
         applyListBottomInset(binding, navBottom)
     }
+
+    /**
+     * Below API 30 the platform resizes the window for the keyboard itself, so the inset would be
+     * applied on top of a window that already shrank.
+     */
+    private fun imeBottom(insets: WindowInsetsCompat): Int =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+        } else {
+            0
+        }
 
     /**
      * Bottom strips stack upward from the parent bottom: filter warning, transfer indicator (S1227),

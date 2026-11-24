@@ -549,9 +549,10 @@ class YtDlpExtractionStrategy @Inject constructor(
 
     /**
      * With a `sessionid` cookie yt-dlp's Instagram extractor takes a logged-in branch that recovers
-     * from a refused session only as an HTTP error. Instagram answers with a login page that ends
-     * 200 HTML, so the parse failure aborts the extraction before the logged-out branch, which can
-     * read a public reel, ever runs. Dropping the cookies is the only way to reach that branch.
+     * from a refused session only as a redirect to the login page. Instagram answers either with a
+     * page that ends 200 HTML or with a plain 401, and both abort the extraction before the
+     * logged-out branch, which can read a public reel, ever runs. Dropping the cookies is the only
+     * way to reach that branch.
      */
     private fun extractInfo(
         ytdlp: PyObject,
@@ -714,10 +715,16 @@ class YtDlpExtractionStrategy @Inject constructor(
         private const val MAX_BATCH_ITEMS = 50
         private const val UNPARSABLE_ANSWER_MARKER = "Failed to parse JSON"
 
+        // A revoked session is answered `401 {"require_login":true}`; yt-dlp re-raises it because
+        // only a redirect to the login page sends it down the logged-out branch.
+        private const val UNAUTHORIZED_ANSWER_MARKER = "HTTP Error 401"
+
         internal fun isRefusedInstagramSession(host: String, errorMessage: String?): Boolean {
             val normalizedHost = host.lowercase()
             val isInstagram = normalizedHost == "instagram.com" || normalizedHost.endsWith(".instagram.com")
-            return isInstagram && errorMessage.orEmpty().contains(UNPARSABLE_ANSWER_MARKER)
+            val message = errorMessage.orEmpty()
+            return isInstagram &&
+                (message.contains(UNPARSABLE_ANSWER_MARKER) || message.contains(UNAUTHORIZED_ANSWER_MARKER))
         }
 
         /**

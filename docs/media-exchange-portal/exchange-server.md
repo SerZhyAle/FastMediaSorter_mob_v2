@@ -5,7 +5,7 @@ description: "One account for all your devices and access from any network witho
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/exchange-server.html
 ---
-<sub class="doc-stamp">26.11.19 01:01</sub>
+<sub class="doc-stamp">26.11.23 11:22</sub>
 
 # Exchange server: your devices from any network
 
@@ -108,6 +108,7 @@ An account is a login and a password on one server. You create it from an invita
 - [Deploy your own exchange server](exchange-server-quick-start.html)
 - [Installing and checking your exchange server](exchange-server-install.html)
 - [Accounts, invitations and passwords](exchange-accounts.html)
+- [Sign in to STREAMS Player on Windows](streamsplayer.html#sign-in) or [check its connection](streamsplayer.html#connection-troubleshooting).
 - [Clipboard on the server](exchange-clipboard.html)
 - [How to delete an account](account-deletion.html)
 - [Turning the phone into an SFTP server](../../documentation/network/phone-as-sftp-server.html)

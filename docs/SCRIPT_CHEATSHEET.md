@@ -1321,7 +1321,7 @@ scripts/devtest/adb.ps1
     -GeometryMode         [String]  {ORIGINAL|STORE}
     -ScreenDp             [Int32]
     -NoRestore            [SwitchParameter]
-  Exit: 0 - OK; 1 - adb not found, or bad arguments; 2 - no online device; 3 - multiple online devices and -DeviceId not supplied (for verbs needing a device); 4 - target package not installed (for app verbs); 5 - a destructive verb was refused: `clear` (removed), or `wipe-data`/`uninstall` without -Yes.
+  Exit: 0 - OK; 1 - adb not found, or bad arguments; 2 - no online device; 3 - automatic selection is ambiguous or cannot claim a device; 4 - target package not installed (for app verbs); 5 - a destructive verb was refused: `clear` (removed), or `wipe-data`/`uninstall` without -Yes.
 ```
 
 ### camera-wysiwyg-selftest.ps1
@@ -1361,18 +1361,19 @@ scripts/devtest/camera-wysiwyg-sweep.ps1
 ```
 
 ### device-lease.ps1
-Device leases for parallel agent sessions (S1926).
+Coordinate device access through the machine-wide SZA device lease tool.
 
 ```
 scripts/devtest/device-lease.ps1
-  Device leases for parallel agent sessions (S1926).
+  Coordinate device access through the machine-wide SZA device lease tool.
   Params:
     -Verb          (req)  [String]  {Claim|Release|List|Status|Sweep}
-    -Id                   [String]
+    -Id                   [String[]]
     -Reason               [String] = 'device-lease'
     -Json                 [SwitchParameter]
     -StaleMinutes         [Int32] = 0
-  Exit: 0 - done: claimed, released, or reported.; 1 - error: unreadable store, bad argument shape, write failure.; 3 - claim lost: a live foreign session already holds this device.; 4 - release refused: a live foreign session owns this lease.
+    -Any                  [SwitchParameter]
+    -All                  [SwitchParameter]
 ```
 
 ### device-ready.ps1
@@ -1706,6 +1707,49 @@ scripts/devtest/ui-sweep-walk.ps1
   Exit: 0 - every declared combination walked: every row observed or legitimately skipped; 1 - at least one product defect observed - a screen opened and its expected token was absent; 2 - could not verify: at least one row is unreachable, manual or a run-level refusal
 ```
 
+### walk.ps1
+Agent-driven device walks: stage a device, act, capture one frame per checkpoint, and check what the app did against the files on the device. The agent judges the frames; nothing here goes green.
+
+```
+scripts/devtest/walk.ps1
+  Agent-driven device walks: stage a device, act, capture one frame per checkpoint, and check what the app did against the files on the device. The agent judges the frames; nothing here goes green.
+  Params:
+    -Verb                [String] = 'help'
+    -Scenario            [String]
+    -DeviceId            [String]
+    -Package             [String] = 'com.sza.fastmediasorter.debug'
+    -Root                [String] = '/sdcard/Download/FastMediaSorter_Walk'
+    -RunDir              [String]
+    -Name                [String]
+    -Tap                 [String]
+    -TapLabel            [String]
+    -Field               [String]
+    -Text                [String]
+    -Key                 [String]
+    -Scroll              [String]  {up|down|left|right}
+    -LongPress           [SwitchParameter]
+    -Exact               [SwitchParameter]
+    -Index               [Int32] = 1
+    -Settle              [Int32] = 900
+    -LabelCap            [Int32] = 0
+    -Bottom              [SwitchParameter]
+    -Quick               [SwitchParameter]
+    -Note                [String]
+    -System              [SwitchParameter]
+    -Path                [String]
+    -Expect              [String]
+    -Absent              [String]
+    -Count               [Int32] = -1
+    -Recurse             [SwitchParameter]
+    -Fresh               [SwitchParameter]
+    -Yes                 [SwitchParameter]
+    -NoSeedApp           [SwitchParameter]
+    -NoVideo             [SwitchParameter]
+    -Regenerate          [SwitchParameter]
+    -CleanDevice         [SwitchParameter]
+  Exit: 0 - done; for step and fs, nothing flagged.; 1 - bad invocation: unknown verb or scenario, conflicting actions, -Fresh without -Yes.; 2 - could not proceed: no adb, no device or an ambiguous one, the app not installed, no open
+```
+
 ### wear-ink-clip.ps1
 S2757 - judge a captured frame the way a Play reviewer does: is anything DRAWN outside the glass.
 
@@ -1762,6 +1806,7 @@ scripts/devtest/wear-prerelease-walk.ps1
     -SkipShapeCheck                 [SwitchParameter]
     -Json                           [SwitchParameter]
     -AdbWrapper                     [String]
+    -DeviceReady                    [String]
   Exit: 0 every declared screen was observed, no OFF-GLASS finding (unless SkipShapeCheck), and log audit found nothing.; 1 at least one screen failed or was unreachable, an OFF-GLASS finding was recorded, or the
 ```
 
@@ -1846,13 +1891,12 @@ scripts/devtest/adb.tests/stub/adb-stub.ps1
 ## scripts\devtest\device-lease.tests
 
 ### Run-Tests.ps1
-Regression tests for the device lease sweep (S1926).
+Exercise the public device lease CLI in an isolated portfolio.
 
 ```
 scripts/devtest/device-lease.tests/Run-Tests.ps1
-  Regression tests for the device lease sweep (S1926).
+  Exercise the public device lease CLI in an isolated portfolio.
   (no param block)
-  Exit: 0 - every case passed.; 1 - a case failed.
 ```
 
 ## scripts\devtest\device-ready.tests
@@ -2140,6 +2184,29 @@ Pure planning functions of the parallel pre-release halves (S4249): device roles
 scripts/devtest/lib/device-half-plan.ps1
   Pure planning functions of the parallel pre-release halves (S4249): device roles, stage timing records and the exit-code fold of the phone and watch halves.
   (no param block)
+```
+
+### device-lease-client.ps1
+
+```
+scripts/devtest/lib/device-lease-client.ps1
+  (no param block)
+```
+
+### device-lease-local.ps1
+Compatibility implementation for installations without the shared device-lease tool.
+
+```
+scripts/devtest/lib/device-lease-local.ps1
+  Compatibility implementation for installations without the shared device-lease tool.
+  Params:
+    -Verb          (req)  [String]  {Claim|Release|List|Status|Sweep}
+    -Id                   [String]
+    -Reason               [String] = 'device-lease'
+    -Json                 [SwitchParameter]
+    -StaleMinutes         [Int32] = 0
+    -ReadOnly             [SwitchParameter]
+  Exit: 0 - done: claimed, released, or reported.; 1 - error: unreadable store, bad argument shape, write failure.; 3 - claim lost: a live foreign session already holds this device.; 4 - release refused: a live foreign session owns this lease.
 ```
 
 ### device-state-journal.ps1
@@ -2441,6 +2508,18 @@ scripts/devtest/resolve-ticket-module.tests/Run-Tests.ps1
   S2611 contract suite for scripts/devtest/resolve-ticket-module.ps1.
   (no param block)
   Exit: 0 - every case passed; 1 - at least one case failed; 2 - the suite could not run (the subject script is missing)
+```
+
+## scripts\devtest\walk.tests
+
+### Run-Tests.ps1
+Contract suite for the agent-walk driver and its scenario files: the invocation refusals that need no device, the on-screen digest, and the shape every scenario must keep. # Subject: scripts/devtest/walk.ps1, scripts/devtest/walks/*.md
+
+```
+scripts/devtest/walk.tests/Run-Tests.ps1
+  Contract suite for the agent-walk driver and its scenario files: the invocation refusals that need no device, the on-screen digest, and the shape every scenario must keep. # Subject: scripts/devtest/walk.ps1, scripts/devtest/walks/*.md
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
 ```
 
 ## scripts\devtest\wear-ink-clip.tests
@@ -8170,21 +8249,23 @@ scripts/release/clear-play-listing-images.ps1
     -Locales           [String] = ''
     -Confirm           [SwitchParameter]
     -Package           [String] = 'com.sza.fastmediasorter'
+    -Preflight         [String]
   Exit: 0 - the images were deleted (or, without -Confirm, the dry run reported what it would delete); 2 - could not verify: no virtual environment, no service-account key, or the API call failed; 3 - nothing to do: no image of that type exists in any requested locale
 ```
 
 ### clear-play-track-release.ps1
-Remove the release records from one Google Play track - a one-way write, gated by -Confirm.
+Remove the draft release records from one Google Play track - a one-way write, gated by -Confirm.
 
 ```
 scripts/release/clear-play-track-release.ps1
-  Remove the release records from one Google Play track - a one-way write, gated by -Confirm.
+  Remove the draft release records from one Google Play track - a one-way write, gated by -Confirm.
   Params:
     -Track          (req)  [String]
     -Confirm               [SwitchParameter]
     -AllowNonDraft         [SwitchParameter]
     -Package               [String] = 'com.sza.fastmediasorter'
-  Exit: 0 - the track was cleared (or, without -Confirm, the dry run reported what it would clear); 1 - refused: the track carries a non-draft release and -AllowNonDraft was not given; 2 - could not verify: no virtual environment, no service-account key, or the API call failed; 3 - nothing to do: the track already holds no release records
+    -Preflight             [String]
+  Exit: 0 - the track was cleared (or, without -Confirm, the dry run reported what it would clear); 1 - refused: the track carries a release that is not a draft, and Play removes drafts only; 2 - could not verify: no virtual environment, no service-account key, or the API call failed; 3 - nothing to do: the track already holds no release records
 ```
 
 ### cluster-registry.ps1
@@ -8300,25 +8381,28 @@ scripts/release/publish-play-listing.ps1
     -Mode                [String] = 'validate'  {validate|commit}
     -Package             [String]
     -ListingRoot         [String]
+    -Preflight           [String]
   Exit: 0 - the listing was validated, or committed in commit mode.; 1 - the listing is at fault: a missing text file, a text over its Play limit, a listing root
 ```
 
 ### publish-play-release.ps1
-Publish a FastMediaSorter standard AAB release to Google Play Console.
+Publish one application's FastMediaSorter Google Play release batch.
 
 ```
 scripts/release/publish-play-release.ps1
-  Publish a FastMediaSorter standard AAB release to Google Play Console.
+  Publish one application's FastMediaSorter Google Play release batch.
   Params:
-    -Track                    [String] = "production"
-    -Status                   [String] = "completed"
+    -Track                    [String] = 'production'
+    -Status                   [String] = 'completed'
     -Aab                      [String]
     -VersionCode              [Int32]
+    -VersionName              [String]
     -NotesVersionCode         [Int32]
     -Package                  [String]
     -NotesFile                [String]
     -ListingRoot              [String]
-  Exit: 0 - the bundle is on the track and the edit was committed.; 1 - the release is at fault: the AAB is missing, an argument contradicts the artifact, a
+    -Batch                    [String]
+    -Preflight                [String]
 ```
 
 ### read-play-public-serve.ps1
@@ -10482,6 +10566,35 @@ scripts/utils/lock-status.ps1
     -WaitTimeoutSeconds         [Int32] = 900
     -PollSeconds                [Int32] = 2
   Exit: 2 = could not determine (lock file unreadable), or -Wait ran out of time.; 1 = held, ONLY under -StrictExit.
+```
+
+### log-release-ledger-build.ps1
+Record a successful build in the release ledger (RELEASE-LEDGER 0.1). Never fails the caller.
+
+```
+scripts/utils/log-release-ledger-build.ps1
+  Record a successful build in the release ledger (RELEASE-LEDGER 0.1). Never fails the caller.
+  Params:
+    -Package          [String]
+    -Kind             [String]
+    -Version          [String]
+    -Flavor           [String]
+    -Artifact         [String]
+```
+
+### log-release-ledger-publish.ps1
+Record a release channel step in the release ledger (RELEASE-LEDGER 0.1). Never fails the caller.
+
+```
+scripts/utils/log-release-ledger-publish.ps1
+  Record a release channel step in the release ledger (RELEASE-LEDGER 0.1). Never fails the caller.
+  Params:
+    -Key             [String]
+    -Version         [String]
+    -State           [String]
+    -Ref             [String]
+    -Url             [String]
+    -Note            [String]
 ```
 
 ### measure-build-lock-wait.ps1

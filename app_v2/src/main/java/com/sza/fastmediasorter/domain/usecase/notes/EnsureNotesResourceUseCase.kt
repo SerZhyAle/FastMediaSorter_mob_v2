@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase.notes
 
+import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -7,7 +8,7 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.usecase.AddResourceUseCase
 import com.sza.fastmediasorter.util.NotesFolderPolicy
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -22,6 +23,7 @@ import javax.inject.Inject
 class EnsureNotesResourceUseCase @Inject constructor(
     private val resourceRepository: ResourceRepository,
     private val addResourceUseCase: AddResourceUseCase,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) {
 
     data class Outcome(val resourceId: Long, val created: Boolean)
@@ -30,7 +32,7 @@ class EnsureNotesResourceUseCase @Inject constructor(
      * @param name used only when the resource is created; an existing row keeps the name the user may
      *   have given it in the resource editor.
      */
-    suspend operator fun invoke(name: String): Result<Outcome> = withContext(Dispatchers.IO) {
+    suspend operator fun invoke(name: String): Result<Outcome> = withContext(ioDispatcher) {
         runCatching {
             val folder = NotesFolderPolicy.ensureNotesDirectory().getOrThrow()
             val existing = resourceRepository.getAllResources().first()

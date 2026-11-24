@@ -26,7 +26,7 @@
 <li>Tap New note <a class="ref" href="#new-note">6</a> to start writing. The editor opens on an empty note; type, then save, and the note appears at the top of the list.</li>
 <li>Tap a note in the list <a class="ref" href="#list">3</a> to open it in the editor. Each row shows the first line as the title, the next line below it and the time of the last change.</li>
 <li>To find a note, type in the search field <span class="nb"><a class="ref" href="#search">2</a>.</span> Only the notes whose text contains what you typed stay in the list.</li>
-<li>The button at the end of a row <a class="ref" href="#row-more">4</a> sends the note's text through Send to.. or deletes the note. Deleting asks first.</li>
+<li>The button at the end of a row <a class="ref" href="#row-more">4</a> sends the note's text through Send to.., starts a selection of several notes <a class="ref" href="#selection">9</a> or deletes the note. Deleting asks first.</li>
 <li>The back arrow <a class="ref" href="#back">1</a> closes the screen. When there are no notes yet, a hint <a class="ref" href="#empty">5</a> says how to write the first one.</li>
 <li>To keep the notes on your other devices too, open My devices, open the menu of your exchange server and turn on Sync notes through the exchange server. The notes are encrypted for your own devices only; whoever runs the server sees only how many notes there are, their sizes and times. Once it is on, the title shows the sync state and Sync now <a class="ref" href="#sync-now">7</a> runs a sync at once.</li>
 <li>A note changed on two devices at the same time is kept twice, so no text is lost. A note that is too large to sync carries a mark <a class="ref" href="#too-large">8</a> and stays on this device.</li>
@@ -50,7 +50,7 @@
 <details class="el" id="list">
 <summary><span class="mk">3</span><span><span class="name">List of notes</span><span class="one">Every note of the Notes folder, newest first.</span></span></summary>
 <div class="full">
-<p>The first line of a note is its title and the next line is shown under it, so most notes need no name. Tap a row to open the note in the text editor; a long press opens the same actions as the button at the end of the row.</p>
+<p>The first line of a note is its title and the next line is shown under it, so most notes need no name. Tap a row to open the note in the text editor; a long press starts a selection of several notes.</p>
 </div>
 </details>
 <details class="el" id="row-more">
@@ -85,6 +85,13 @@
 <p>Such a note stays on this device and is not sent. Shorten it, or split it into two notes, and it syncs with the next sync.</p>
 </div>
 </details>
+<h3>Several notes at once</h3>
+<details class="el" id="selection">
+<summary><span class="mk">9</span><span><span class="name">Delete selected</span><span class="one">Lets you work on several notes at once: select all, or delete the selected ones.</span></span></summary>
+<div class="full">
+<p>A long press on a note, or Select in the menu at the end of its row, starts the mode and selects that note. Tap other notes to add or remove them; every note shows a check box and the title shows how many are selected. Select all in the title bar selects every note the list shows, so with a search typed it selects only the matching notes. Delete selected asks once for the whole set and then removes those files from the device. The cross in the title bar, or back, leaves the mode and deletes nothing; deselecting the last note leaves it too.</p>
+</div>
+</details>
 </div>
 <h2>Related</h2>
 <ul class="related">
@@ -94,7 +101,7 @@
 <li><a href="index.html"><b>Help index</b></a></li>
 </ul>
 <footer class="help-foot">
-<span>Fast Media Sorter, 2026-11-20</span>
+<span>Fast Media Sorter, 2026-11-24</span>
 <a href="index.html">Help index</a>
 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
 </footer>

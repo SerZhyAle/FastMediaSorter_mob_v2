@@ -110,6 +110,12 @@ $env:ANDROID_HOME     = ''
 $env:ANDROID_SDK_ROOT = ''
 $env:PATH             = (Join-Path $runDir 'stub') + [System.IO.Path]::PathSeparator + $env:PATH
 $env:FMS_STUB_HOME    = $runDir
+# The stub emulator is named Pixel_9, the same lease key a real sweep holds on this machine, so the
+# machine-wide lease store made the lease-taking verbs exit 3 whenever a session leased that AVD.
+# The harness refuses a portfolio root inside a git working tree, hence the system temp directory.
+$leaseRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("adb-json-suite-leases-{0}" -f $PID)
+New-Item -ItemType Directory -Path $leaseRoot -Force | Out-Null
+$env:SZA_PORTFOLIO_ROOT = $leaseRoot
 
 $stubDefaults = @{
     FMS_STUB_DEVICES  = 'emulator-5554'
@@ -800,6 +806,7 @@ if (Test-Path -LiteralPath $missFile) {
 }
 
 Remove-Item -LiteralPath $runDir -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath $leaseRoot -Recurse -Force -ErrorAction SilentlyContinue
 
 Write-Host ""
 Write-Host "adb.tests: $(if ($script:failed -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:passed + $script:failed) skipped=0)"

@@ -281,7 +281,7 @@
     <string name="setting_mic_recording_destination_default_recordings">الافتراضي: مجلد Recordings (Music في Android 11 والإصدارات الأقدم)</string>
     <string name="setting_screen_recording_destination_default_movies">الافتراضي: مجلد Movies</string>
     <string name="drive_channel_enabled_title">الملفات عبر Google Drive</string>
-    <string name="drive_channel_enabled_subtitle">أرسل الملفات واستقبلها بين أجهزتك عبر Google Drive الخاص بك، دون خادم التبادل</string>
+    <string name="drive_channel_enabled_subtitle">أرسل الملفات واستقبلها بين أجهزتك عبر Google Drive الخاص بك، وأعلِم أجهزتك بإذاعاتك، دون خادم التبادل</string>
     <string name="drive_channel_background_title">التحقق عبر Google Drive في الخلفية</string>
     <string name="drive_channel_background_subtitle">كل 15 دقيقة، لتتمكن أجهزتك الأخرى من فتح المجلدات المشتركة لهذا الهاتف أثناء إغلاق التطبيق</string>
     <string name="drive_channel_row_from">من %1$s</string>

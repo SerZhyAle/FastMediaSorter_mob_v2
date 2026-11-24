@@ -32,6 +32,7 @@ object BroadcastPlaybackSessions {
     /** Records that [playedUrl] plays the stored row [source]. */
     @Synchronized
     fun register(playedUrl: String, source: StreamSourceEntity) {
+        if (endedInService?.id == source.id) endedInService = null
         byPlayedUrl.remove(playedUrl)
         byPlayedUrl[playedUrl] = BroadcastPlaybackSession(source, broadcastIdOf(source))
     }
@@ -64,6 +65,21 @@ object BroadcastPlaybackSessions {
 
     @Synchronized
     fun isLeftToService(playedUrl: String): Boolean = playedUrl == leftToService && byPlayedUrl[playedUrl] != null
+
+    /**
+     * LIVE-BROADCAST item T: the row of a broadcast the background service ended with no screen holding it. Service
+     * and Streams screen share this process, so the screen reads it when it opens and shows the ended dialog; it lives
+     * only until then, and a new start of the same row drops it, so no dialog lands over a broadcast playing again.
+     */
+    private var endedInService: StreamSourceEntity? = null
+
+    @Synchronized
+    fun markEndedInService(source: StreamSourceEntity) {
+        endedInService = source
+    }
+
+    @Synchronized
+    fun consumeEndedInService(): StreamSourceEntity? = endedInService.also { endedInService = null }
 
     private fun broadcastIdOf(source: StreamSourceEntity): String? =
         BroadcastExchangeEndpoints.playOrder(source.broadcastEndpoints, source.url).firstNotNullOfOrNull {

@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.wear.domain.usecase
 
 import com.sza.fastmediasorter.wear.data.exchange.WearBroadcastPlaybackResolver
+import com.sza.fastmediasorter.wear.data.exchange.WearDirectoryBroadcast
 import com.sza.fastmediasorter.wear.domain.model.WearBroadcastPlayback
 import com.sza.fastmediasorter.wear.domain.model.WearBroadcastRoute
+import com.sza.fastmediasorter.wear.domain.playback.WearAfterEndAnswer
 import javax.inject.Inject
 
 /**
@@ -12,7 +14,11 @@ import javax.inject.Inject
  */
 class WalkWearBroadcastEndpointsUseCase @Inject constructor(
     private val resolver: WearBroadcastPlaybackResolver,
+    private val checkAfterEnd: CheckWearBroadcastAfterEndUseCase,
 ) {
+
+    /** DEVICE-EXCHANGE item DY: the one reconnect asked when a walk after a played broadcast ran out. */
+    suspend fun afterEnd(record: WearDirectoryBroadcast): WearAfterEndAnswer = checkAfterEnd(record)
 
     /** The next playable endpoint with its route, or null when the list holds no endpoint that plays. */
     suspend operator fun invoke(route: WearBroadcastRoute, fromTop: Boolean): WearBroadcastPlayback.Playable? {

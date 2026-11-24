@@ -39,6 +39,8 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 
+private val PATH_OPERATION_URI_SCHEMES = setOf("smb", "sftp", "ftp", "cloud", "content")
+
 /** Pending move operation for retry after permission grant. Includes pre-selected destination. */
 data class PendingMoveOperation(
     val selectedPaths: List<String>,
@@ -552,17 +554,21 @@ class BrowseFileOperationsManager(
      * @param destinationPath The absolute path (local) or protocol-prefixed path for the destination
      * @param sourceCredentialsId Credentials ID for the source resource (may be null for local)
      * @param overwriteFiles Whether to overwrite existing files at destination
+     * @param transferScope Keeps the file operation in the same batch as the folder operations
+     * @param onFilesChanged Reports a committed file result, including partial success
      */
     fun executeOperationToPath(
         operationType: FileOperationType,
         sourceFiles: List<File>,
         destinationPath: String,
         sourceCredentialsId: String?,
-        overwriteFiles: Boolean = false
+        overwriteFiles: Boolean,
+        transferScope: CoroutineScope,
+        onFilesChanged: () -> Unit,
     ) {
         Timber.i("executeOperationToPath: $operationType → $destinationPath (${sourceFiles.size} files)")
 
-        coroutineScope.launch {
+        transferScope.launch {
             try {
                 // The caller is an ActivityResult callback on Main; stat() per source is disk I/O.
                 val totalSize = withContext(Dispatchers.IO) {
@@ -578,12 +584,8 @@ class BrowseFileOperationsManager(
                     Toast.makeText(context, context.getString(msgRes, folderName), Toast.LENGTH_LONG).show()
                 }
 
-                val destinationFolder = if (destinationPath.startsWith("smb://") ||
-                    destinationPath.startsWith("sftp://") ||
-                    destinationPath.startsWith("ftp://") ||
-                    destinationPath.startsWith("cloud://") ||
-                    destinationPath.startsWith("content://")
-                ) {
+                val destinationScheme = destinationPath.substringBefore("://", missingDelimiterValue = "")
+                val destinationFolder = if (destinationScheme in PATH_OPERATION_URI_SCHEMES) {
                     object : File(destinationPath) {
                         override fun getAbsolutePath(): String = destinationPath
                         override fun getPath(): String = destinationPath
@@ -608,64 +610,83 @@ class BrowseFileOperationsManager(
                     else -> throw IllegalArgumentException("Unsupported operation: $operationType")
                 }
 
-                val result = withContext(Dispatchers.IO) { fileOperationUseCase.execute(operation) }
-
-                when (result) {
-                    is FileOperationResult.Success -> {
-                        Timber.i("executeOperationToPath: SUCCESS - ${result.processedCount} files")
-                        val undoOp = UndoOperation(
-                            type = operationType,
-                            sourceFiles = sourceFiles.map { it.absolutePath },
-                            destinationFolder = destinationPath,
-                            copiedFiles = result.copiedFilePaths,
-                            oldNames = null,
-                            timestamp = System.currentTimeMillis()
-                        )
-                        callbacks.saveUndoOperation(undoOp)
-                        Timber.d("S4719: path operation done undoOffered=${undoOffered(undoOp)}")
-                        showDoneToast(
-                            TransferDoneMessage.format(context, operationType, result.processedCount),
-                            result,
-                            undoOffered(undoOp)
-                        )
-                        callbacks.clearSelection()
-                        callbacks.onOperationCompleted()
-                        callbacks.onSortOperationSuccess(result.processedCount)
-                    }
-                    is FileOperationResult.PartialSuccess -> {
-                        Timber.w("executeOperationToPath: PARTIAL - ${result.processedCount}/${result.failedCount}")
-                        showDoneToast(
-                            TransferDoneMessage.format(context, operationType, result.processedCount),
-                            result
-                        )
-                        callbacks.clearSelection()
-                        callbacks.onOperationCompleted()
-                        // Surface SFTP partial failure details (access-denied, copied-source-remains, etc.)
-                        if (result.errors.isNotEmpty()) showPartialFirstError(result)
-                    }
-                    is FileOperationResult.Failure -> {
-                        Timber.e("executeOperationToPath: FAILURE - ${result.error}")
-                        val messageRes = when (operationType) {
-                            FileOperationType.COPY -> R.string.copy_failed
-                            FileOperationType.MOVE -> R.string.move_failed
-                            else -> R.string.error_operation_failed
+                val result = withContext(Dispatchers.IO) {
+                    fileOperationUseCase.execute(operation).also { outcome ->
+                        val processedCount = when (outcome) {
+                            is FileOperationResult.Success -> outcome.processedCount
+                            is FileOperationResult.PartialSuccess -> outcome.processedCount
+                            else -> 0
                         }
-                        showFailureError(messageRes, result)
-                    }
-                    is FileOperationResult.AuthenticationRequired -> {
-                        Timber.w("executeOperationToPath: Auth required for ${result.provider}")
-                        callbacks.onAuthRequest(result.provider)
-                    }
-                    is FileOperationResult.PermissionRequired -> {
-                        Timber.w("executeOperationToPath: Permission required")
-                        callbacks.onPermissionRequired(result.pendingIntent)
+                        if (processedCount > 0) onFilesChanged()
                     }
                 }
+
+                handlePathOperationResult(operationType, sourceFiles, destinationPath, result)
             } catch (e: CancellationException) {
                 Timber.w("executeOperationToPath: cancelled")
+                throw e
             } catch (e: Exception) {
                 Timber.e(e, "executeOperationToPath: exception")
                 showUnexpectedError(R.string.error_operation_failed)
+            }
+        }
+    }
+
+    private fun handlePathOperationResult(
+        operationType: FileOperationType,
+        sourceFiles: List<File>,
+        destinationPath: String,
+        result: FileOperationResult,
+    ) {
+        when (result) {
+            is FileOperationResult.Success -> {
+                Timber.i("executeOperationToPath: SUCCESS - ${result.processedCount} files")
+                val undoOp = UndoOperation(
+                    type = operationType,
+                    sourceFiles = sourceFiles.map { it.absolutePath },
+                    destinationFolder = destinationPath,
+                    copiedFiles = result.copiedFilePaths,
+                    oldNames = null,
+                    timestamp = System.currentTimeMillis()
+                )
+                callbacks.saveUndoOperation(undoOp)
+                Timber.d("S4719: path operation done undoOffered=${undoOffered(undoOp)}")
+                showDoneToast(
+                    TransferDoneMessage.format(context, operationType, result.processedCount),
+                    result,
+                    undoOffered(undoOp)
+                )
+                callbacks.clearSelection()
+                callbacks.onOperationCompleted()
+                callbacks.onSortOperationSuccess(result.processedCount)
+            }
+            is FileOperationResult.PartialSuccess -> {
+                Timber.w("executeOperationToPath: PARTIAL - ${result.processedCount}/${result.failedCount}")
+                showDoneToast(
+                    TransferDoneMessage.format(context, operationType, result.processedCount),
+                    result
+                )
+                callbacks.clearSelection()
+                callbacks.onOperationCompleted()
+                // Surface SFTP partial failure details (access-denied, copied-source-remains, etc.)
+                if (result.errors.isNotEmpty()) showPartialFirstError(result)
+            }
+            is FileOperationResult.Failure -> {
+                Timber.e("executeOperationToPath: FAILURE - ${result.error}")
+                val messageRes = when (operationType) {
+                    FileOperationType.COPY -> R.string.copy_failed
+                    FileOperationType.MOVE -> R.string.move_failed
+                    else -> R.string.error_operation_failed
+                }
+                showFailureError(messageRes, result)
+            }
+            is FileOperationResult.AuthenticationRequired -> {
+                Timber.w("executeOperationToPath: Auth required for ${result.provider}")
+                callbacks.onAuthRequest(result.provider)
+            }
+            is FileOperationResult.PermissionRequired -> {
+                Timber.w("executeOperationToPath: Permission required")
+                callbacks.onPermissionRequired(result.pendingIntent)
             }
         }
     }

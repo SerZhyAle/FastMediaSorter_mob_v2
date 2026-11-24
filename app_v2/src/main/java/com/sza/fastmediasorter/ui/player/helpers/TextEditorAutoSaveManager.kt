@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.widget.EditText
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -20,7 +21,9 @@ import java.io.File
  */
 class TextEditorAutoSaveManager(
     private val tempDir: File,
-    private val coroutineScope: CoroutineScope
+    private val coroutineScope: CoroutineScope,
+    // Defaulted because the unit test builds it without one, so its draft writes race on the real IO pool.
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
 
     companion object {
@@ -52,7 +55,7 @@ class TextEditorAutoSaveManager(
             lastSavedHash = editText.text.hashCode()
         }
 
-        autoSaveJob = coroutineScope.launch(Dispatchers.IO) {
+        autoSaveJob = coroutineScope.launch(ioDispatcher) {
             while (isActive) {
                 delay(AUTO_SAVE_INTERVAL_MS)
                 if (!isActive) break
@@ -92,7 +95,7 @@ class TextEditorAutoSaveManager(
     suspend fun stopAutoSaveAndDeleteDraft() {
         autoSaveJob?.cancel()
         autoSaveJob = null
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             synchronized(ioLock) {
                 val draft = synchronized(stateLock) {
                     val current = currentDraftFile
@@ -111,7 +114,7 @@ class TextEditorAutoSaveManager(
     /**
      * Check if a draft exists for the given source file.
      */
-    suspend fun hasDraft(sourceFilePath: String): Boolean = withContext(Dispatchers.IO) {
+    suspend fun hasDraft(sourceFilePath: String): Boolean = withContext(ioDispatcher) {
         synchronized(ioLock) {
             getDraftFile(sourceFilePath).exists()
         }
@@ -140,7 +143,7 @@ class TextEditorAutoSaveManager(
      * Force save current content immediately.
      */
     fun forceSave(text: String) {
-        coroutineScope.launch(Dispatchers.IO) {
+        coroutineScope.launch(ioDispatcher) {
             saveDraft(text)
         }
     }
@@ -149,7 +152,7 @@ class TextEditorAutoSaveManager(
      * Delete draft for a given source file (e.g., after successful save).
      */
     suspend fun deleteDraft(sourceFilePath: String) {
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             synchronized(ioLock) {
                 val draftFile = getDraftFile(sourceFilePath)
                 if (draftFile.exists()) {

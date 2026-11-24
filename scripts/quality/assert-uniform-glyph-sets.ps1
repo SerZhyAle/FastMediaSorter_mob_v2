@@ -77,7 +77,7 @@ $UndrawnMenus = @{
 
 $srcRoot = Join-Path $Root 'app_v2/src'
 if (-not (Test-Path -LiteralPath $srcRoot)) {
-    Write-Output "assert-uniform-glyph-sets: could not verify - $srcRoot is missing"
+    Write-Output "assert-uniform-glyph-sets: COULD NOT VERIFY - $srcRoot is missing"
     exit 2
 }
 
@@ -88,6 +88,13 @@ Write-CheckSubject -Axes ([ordered]@{
         module = 'app_v2'
         scope  = $(if ($changed.Count -gt 0) { 'changed-set' } else { 'tree' })
     })
+
+# CHECK-VERDICT rule 2.12: a declared set holding no app_v2 XML can be charged nothing, so it is not a tree scan.
+if ($changed.Count -gt 0 -and -not ($changed | Where-Object { $_ -match '^app_v2/src/.+\.xml$' })) {
+    . (Join-Path $PSScriptRoot 'lib/changed-files.ps1')
+    Write-EmptySetPass -GateName 'assert-uniform-glyph-sets'
+    exit 0
+}
 
 function Get-RelPath([string] $full) {
     [IO.Path]::GetRelativePath($Root, $full).Replace('\', '/')

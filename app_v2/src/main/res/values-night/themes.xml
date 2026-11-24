@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.FastMediaSorter.App" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Primary colors - same blue_500 as light theme; colorOnPrimary=white for contrast on #1976D2 -->
+        <!-- Night blue_500 is the light #64B5F6; white on it is ~2:1 (toolbar, unselected settings tabs), so the foreground is black -->
         <item name="colorPrimary">@color/blue_500</item>
         <item name="colorPrimaryVariant">@color/blue_700</item>
-        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorOnPrimary">@color/black</item>
 
         <!-- Secondary colors - Lighter teal accent -->
         <item name="colorSecondary">@color/teal_700</item>

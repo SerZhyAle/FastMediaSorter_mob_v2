@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase.apps
 
 import com.sza.fastmediasorter.domain.model.launcher.AppCategory
 import com.sza.fastmediasorter.domain.model.launcher.AppCategoryCatalog
+import com.sza.fastmediasorter.domain.model.launcher.AppCategoryNameTakenException
 import com.sza.fastmediasorter.domain.repository.AppCategoryRepository
 import javax.inject.Inject
 
@@ -37,7 +38,3 @@ class RenameAppCategoryUseCase @Inject constructor(
     private fun AppCategoryCatalog.withName(categoryId: String, name: String): AppCategoryCatalog =
         copy(categories = categories.map { if (it.id == categoryId) it.copy(name = name) else it })
 }
-
-/** S4563: another category already shows this name; the catalog was left as it was. */
-class AppCategoryNameTakenException(name: String) :
-    IllegalArgumentException("A category named \"$name\" already exists")

@@ -5,10 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.launcher.AppCategory
 import com.sza.fastmediasorter.domain.model.launcher.AppCategoryCatalog
+import com.sza.fastmediasorter.domain.model.launcher.AppCategoryNameTakenException
 import com.sza.fastmediasorter.domain.model.launcher.InstalledApp
 import com.sza.fastmediasorter.domain.model.launcher.InstalledAppSortOrder
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import com.sza.fastmediasorter.domain.usecase.apps.AppCategoryNameTakenException
 import com.sza.fastmediasorter.domain.usecase.apps.ApplyAllAppsSortDefaultUseCase
 import com.sza.fastmediasorter.domain.usecase.apps.CreateAppCategoryUseCase
 import com.sza.fastmediasorter.domain.usecase.apps.MoveAppCategoryUseCase

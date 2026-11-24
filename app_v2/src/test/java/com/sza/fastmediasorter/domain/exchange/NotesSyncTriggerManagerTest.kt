@@ -6,8 +6,8 @@ import com.sza.fastmediasorter.data.remote.exchange.ExchangeNotesEnvelopes
 import com.sza.fastmediasorter.data.remote.exchange.ExchangeReceiverControlStreams
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpServerTunnelManager
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
+import com.sza.fastmediasorter.domain.model.notes.NotesSyncOutcome
 import com.sza.fastmediasorter.domain.repository.NotesSyncRemote
-import com.sza.fastmediasorter.domain.usecase.notes.NotesSyncOutcome
 import com.sza.fastmediasorter.domain.usecase.notes.SyncNotesThroughExchangeUseCase
 import com.sza.fastmediasorter.util.NotesFolderPolicy
 import io.mockk.coEvery
@@ -19,9 +19,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.job
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.After
@@ -51,6 +53,9 @@ class NotesSyncTriggerManagerTest {
     private val receivers = mockk<ExchangeReceiverControlStreams> { every { events } returns receiverEvents }
     private val sync = mockk<SyncNotesThroughExchangeUseCase>()
 
+    // Unconfined, so a collector is subscribed when start() returns and the test's emits are not lost.
+    private val managerScope = CoroutineScope(Dispatchers.Unconfined)
+
     @Before
     fun setUp() {
         // The use case's default folder is read from the platform, which a JVM test has none of.
@@ -64,6 +69,7 @@ class NotesSyncTriggerManagerTest {
 
     @After
     fun tearDown() {
+        runBlocking { managerScope.coroutineContext.job.cancelAndJoin() }
         unmockkObject(NotesFolderPolicy)
     }
 
@@ -144,9 +150,7 @@ class NotesSyncTriggerManagerTest {
     private fun managerWith(picked: DeviceExchangeAccountEntry?): NotesSyncTriggerManager {
         val remote = mockk<NotesSyncRemote>()
         coEvery { remote.entry() } returns picked
-        // Unconfined, so a collector is subscribed when start() returns and the test's emits are not lost.
-        val scope = CoroutineScope(Dispatchers.Unconfined)
-        return NotesSyncTriggerManager(tunnel, receivers, remote, sync, scope, Dispatchers.Unconfined)
+        return NotesSyncTriggerManager(tunnel, receivers, remote, sync, managerScope, Dispatchers.Unconfined)
     }
 
     private suspend fun awaitRuns(count: Int) = withTimeout(TIMEOUT_MS) {

@@ -43,11 +43,24 @@ switch -Regex ($sig) {
 
     '^start-server$' { exit 0 }
 
+    '^emu avd name$' {
+        if ($serial -eq $env:FMS_STUB_WATCH_AVD_PORT) { 'Fixture_Watch' }
+        else { 'Fixture_Phone' }
+        'OK'
+        exit 0
+    }
+
     '^devices$' {
         Write-Output 'List of devices attached'
         foreach ($d in $devices) { Write-Output "$d`tdevice" }
         exit 0
     }
+
+    '^shell getprop ro\.product\.model$' { 'Fixture'; exit 0 }
+    '^shell getprop ro\.build\.version\.release$' { '15'; exit 0 }
+    '^shell getprop ro\.build\.version\.sdk$' { '35'; exit 0 }
+    '^shell wm density$' { 'Physical density: 420'; exit 0 }
+    '^shell wm size$' { 'Physical size: 1080x2400'; exit 0 }
 
     '^shell getprop ro\.build\.characteristics$' {
         # The real shapes, copied from the 2026-09-05 measurement recorded in S2600 section 6.1.

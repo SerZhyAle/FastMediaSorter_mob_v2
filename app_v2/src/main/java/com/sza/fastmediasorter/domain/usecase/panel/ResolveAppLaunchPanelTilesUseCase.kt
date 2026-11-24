@@ -22,9 +22,10 @@ import com.sza.fastmediasorter.util.getApplicationInfoCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -39,20 +40,34 @@ class ResolveAppLaunchPanelTilesUseCase @Inject constructor(
     private val radioControl: RadioControlContract,
     @ApplicationContext private val context: Context,
 ) {
+    /**
+     * S4828: combined with the settings-driven availability, not only the tile table, because the
+     * picker reads the same availability live - a panel redrawn only on tile writes kept showing a
+     * program switched off while it was open.
+     */
     operator fun invoke(): Flow<List<AppLaunchPanelTileUi>> =
-        repository.observeTiles()
-            .map { tiles -> resolve(tiles) }
-            .flowOn(Dispatchers.IO)
+        combine(repository.observeTiles(), resolveRouteAvailability.observeAll()) { tiles, availability ->
+            resolve(tiles, availability)
+        }.flowOn(Dispatchers.IO)
 
-    private suspend fun resolve(tiles: List<AppLaunchPanelTile>): List<AppLaunchPanelTileUi> {
+    private suspend fun resolve(
+        tiles: List<AppLaunchPanelTile>,
+        availability: Map<String, ResolvePanelRouteAvailabilityUseCase.Availability>,
+    ): List<AppLaunchPanelTileUi> {
         val bySlot = tiles.associateBy { it.slotIndex }
+        Timber.d("S4828: resolving quick-launch slots against current program availability")
         return (0 until APP_LAUNCH_PANEL_SLOT_COUNT).map { slot ->
             val tile = bySlot[slot]
-            if (tile == null) emptySlot(slot) else resolveTile(tile) ?: emptySlot(slot)
+            if (tile == null) emptySlot(slot) else resolveTile(tile, availability) ?: emptySlot(slot)
         }
     }
 
-    private suspend fun resolveTile(tile: AppLaunchPanelTile): AppLaunchPanelTileUi? {
+    // Each early return is one unresolvable target degrading to an empty slot.
+    @Suppress("ReturnCount")
+    private suspend fun resolveTile(
+        tile: AppLaunchPanelTile,
+        availability: Map<String, ResolvePanelRouteAvailabilityUseCase.Availability>,
+    ): AppLaunchPanelTileUi? {
         val pm = context.packageManager
         return when (tile.type) {
             AppLaunchPanelTileType.OWN_APP -> {
@@ -85,18 +100,22 @@ class ResolveAppLaunchPanelTilesUseCase @Inject constructor(
                     tintable = false,
                 )
             }
-            AppLaunchPanelTileType.INTERNAL_ROUTE -> resolveInternalRoute(tile)
+            AppLaunchPanelTileType.INTERNAL_ROUTE -> resolveInternalRoute(tile, availability)
             // Empty-slot sentinel: rendered as an empty cell.
             AppLaunchPanelTileType.RESERVED -> null
         }
     }
 
-    private suspend fun resolveInternalRoute(tile: AppLaunchPanelTile): AppLaunchPanelTileUi? {
+    // Each early return is one unresolvable target degrading to an empty slot.
+    @Suppress("ReturnCount")
+    private suspend fun resolveInternalRoute(
+        tile: AppLaunchPanelTile,
+        availability: Map<String, ResolvePanelRouteAvailabilityUseCase.Availability>,
+    ): AppLaunchPanelTileUi? {
         return when (val target = AppLaunchPanelRouteTarget.decode(tile.targetId)) {
             is AppLaunchPanelRouteTarget.Feature -> {
                 val route = InternalRouteCatalog.byKey(target.routeKey) ?: return null
-                // Degrade a feature that is not compiled into this build.
-                if (!isRouteVisible(target.routeKey)) return null
+                if (!isRouteVisible(target.routeKey, availability)) return null
                 // Feature glyphs are monochrome (ic_calculator, ic_stream, ..) - tint to stay legible.
                 // S2510: a sub-program is tinted to its own accent rather than the neutral on-surface.
                 val accent = SubProgramAccentCatalog.accentFor(target.routeKey)
@@ -111,7 +130,7 @@ class ResolveAppLaunchPanelTilesUseCase @Inject constructor(
             }
             is AppLaunchPanelRouteTarget.FeatureSection -> {
                 val route = InternalRouteCatalog.byKey(target.routeKey) ?: return null
-                if (!isRouteVisible(target.routeKey)) return null
+                if (!isRouteVisible(target.routeKey, availability)) return null
                 tileUi(
                     tile,
                     context.getString(route.labelRes),
@@ -150,16 +169,15 @@ class ResolveAppLaunchPanelTilesUseCase @Inject constructor(
     }
 
     /**
-     * S1433 is intentionally stricter than the historic panel behaviour for disabled features: its
-     * Monitor shortcut disappears instead of leading to Settings. Other feature shortcuts retain that
-     * established Settings hand-off when their runtime toggle is off.
+     * S4828 extends S1433's Monitor rule to every feature: a program switched off renders as an empty
+     * slot instead of a Settings hand-off, so the panel agrees with the picker's off state. Only the
+     * rendering degrades - the stored tile is left alone, so switching the program back on restores
+     * the user's assignment in the same slot.
      */
-    private suspend fun isRouteVisible(routeKey: String): Boolean {
-        val availability = resolveRouteAvailability(routeKey)
-        return availability.availableInBuild && (
-            routeKey != InternalRouteCatalog.KEY_NETWORK_MONITOR || availability.enabledAtRuntime
-            )
-    }
+    private fun isRouteVisible(
+        routeKey: String,
+        availability: Map<String, ResolvePanelRouteAvailabilityUseCase.Availability>,
+    ): Boolean = availability[routeKey]?.isLaunchable == true
 
     /**
      * S1441: the same off-state rule the launcher desktop applies, read once here instead of combined into

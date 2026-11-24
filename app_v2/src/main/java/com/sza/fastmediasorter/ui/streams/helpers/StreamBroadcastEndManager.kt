@@ -102,6 +102,42 @@ class StreamBroadcastEndManager @Inject constructor(
         }
     }
 
+    /**
+     * The screen came to the front: a broadcast the background service ended while no screen held it gets its ended
+     * dialog now. The service already stopped the sound and counted the outcome.
+     */
+    fun onScreenStarted(owner: AppCompatActivity, host: Host) {
+        val source = BroadcastPlaybackSessions.consumeEndedInService() ?: return
+        Timber.d("S4874: Streams opened on a broadcast the service ended, showing the ended dialog")
+        val session = BroadcastPlaybackSession(source, null)
+        StreamUnavailableDialog.showEnded(
+            activity = owner,
+            channelTitle = source.title,
+            removable = !source.id.startsWith(ObserveLiveBroadcastSourcesUseCase.ID_PREFIX),
+            onReconnect = { host.replayFromTop(session) },
+            onRemove = { host.remove(session) },
+            onDismiss = {},
+        )
+    }
+
+    /**
+     * A broadcast row's failure that outlived the retry ladder: the ended dialog when the directory removed the
+     * broadcast while it delivered (item U), else the unavailable one. False for any other row.
+     */
+    fun onFailureSurfaced(owner: AppCompatActivity, playedUrl: String, host: Host): Boolean {
+        val session = BroadcastPlaybackSessions.forUrl(playedUrl) ?: return false
+        pending?.cancel()
+        Timber.d("S4874: inline broadcast failure surfaced, reading the held removal")
+        if (hold.atFailure()) {
+            Timber.i("StreamBroadcastEndManager: broadcast failed after the directory removed it - ended")
+            pending = owner.lifecycleScope.launch { showEnded(owner, session, host) }
+        } else {
+            stopWatching()
+            host.showUnavailable(session)
+        }
+        return true
+    }
+
     private suspend fun retryOrAsk(session: BroadcastPlaybackSession, host: Host) {
         if (budget.tryConsume()) {
             delay(budget.delayMs())

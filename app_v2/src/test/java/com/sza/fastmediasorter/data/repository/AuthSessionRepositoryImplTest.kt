@@ -54,7 +54,16 @@ class AuthSessionRepositoryImplTest {
         lastUsedAt: Instant? = null,
         cookieCount: Int = 1,
         type: String = EncryptedCookieStore.TYPE_ACTIVE,
-    ) = EncryptedCookieStore.AccountEntry(accountId, displayName, savedAt, lastUsedAt, cookieCount, type)
+        cookieNames: Set<String> = emptySet(),
+    ) = EncryptedCookieStore.AccountEntry(
+        accountId,
+        displayName,
+        savedAt,
+        lastUsedAt,
+        cookieCount,
+        type,
+        cookieNames,
+    )
 
     @Test
     fun `saveSession skips when host accountId or cookies are empty`() = runTest {
@@ -218,6 +227,41 @@ class AuthSessionRepositoryImplTest {
         val accounts = repo().listAccountsForHost("vm.tiktok.com")
 
         assertTrue(accounts.isEmpty())
+    }
+
+    @Test
+    fun `listAccountsForHost marks an instagram record holding only a csrf token as sessionless`() = runTest {
+        every { store.listAccounts("www.instagram.com") } returns listOf(
+            entry(accountId = "csrf-only", cookieNames = setOf("csrftoken")),
+        )
+
+        val accounts = repo().listAccountsForHost("www.instagram.com")
+
+        assertFalse(accounts.single().hasSessionCookie)
+    }
+
+    @Test
+    fun `listAccountsForHost marks an instagram record holding sessionid as signed in`() = runTest {
+        every { store.listAccounts("www.instagram.com") } returns listOf(
+            entry(accountId = "signed-in", cookieNames = setOf("csrftoken", "sessionid")),
+        )
+
+        val accounts = repo().listAccountsForHost("www.instagram.com")
+
+        assertTrue(accounts.single().hasSessionCookie)
+    }
+
+    @Test
+    fun `listAccountsForHost never judges a host that declares no session cookie names`() = runTest {
+        every { store.listAccounts("www.tiktok.com") } returns listOf(
+            entry(accountId = "any-cookies", cookieNames = setOf("tt_chain_token")),
+            entry(accountId = "no-names"),
+        )
+
+        val accounts = repo().listAccountsForHost("www.tiktok.com")
+
+        assertEquals(2, accounts.size)
+        assertTrue(accounts.all { it.hasSessionCookie })
     }
 
     @Test

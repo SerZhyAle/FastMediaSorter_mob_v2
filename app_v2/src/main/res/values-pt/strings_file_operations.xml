@@ -56,7 +56,7 @@
     <string name="export_logs_failed">Falha ao exportar os registros.</string>
     <string name="export_logs_no_files">Não há arquivos de log disponíveis para exportação.</string>
     <string name="export_logs_no_share_target">Não há aplicativo disponível para compartilhar o arquivo de logs.</string>
-    <string name="export_logs_subject">Registros de depuração do Fast Media Sorter &amp; Organizer</string>
+    <string name="export_logs_subject">Logs de depuração do Fast Media Sorter &amp; Organizer</string>
     <string name="export_settings">Exportar todas as configurações para um arquivo</string>
     <string name="export_settings_confirm_message">Criar um arquivo de exportação com as configurações atuais?</string>
     <string name="export_settings_confirm_title">Configurações de exportação</string>
@@ -74,6 +74,7 @@
     <string name="delete_confirmation">Apagar arquivos?</string>
     <string name="delete_failed">Não foi possível excluir os arquivos.</string>
     <string name="delete_folder_confirm">Apagar a pasta \"%1$s\" e todo o seu conteúdo? Esta ação é irreversível.</string>
+    <string name="delete_folder_trash_confirm">Excluir a pasta \"%1$s\" e todo o seu conteúdo? Ela vai para a lixeira em vez de ser apagada.</string>
     <string name="delete_n_files_from_network_title">Excluir %d arquivos da rede?</string>
     <string name="delete_n_folders_confirm">Excluir as pastas %1$d e todo o seu conteúdo? Esta ação é irreversível.</string>
     <string name="delete_old_files">Apague os arquivos antigos</string>

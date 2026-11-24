@@ -71,12 +71,11 @@ object SettingsDocScopeCatalog {
             SettingsSearchDestination.GENERAL,
             "rowCrossDevicePackets"
         ),
-        // S4701: the per-controller grants live in the "Who can control" dialog, opened by btnRemoteControlControllers.
         DocScopeSurface(
-            R.layout.dialog_remote_control_controllers,
+            R.layout.external_control_content,
             "general",
             SettingsSearchDestination.GENERAL,
-            "btnRemoteControlControllers"
+            "btnOpenExternalControl"
         ),
         DocScopeSurface(
             R.layout.dialog_edge_gesture_config,

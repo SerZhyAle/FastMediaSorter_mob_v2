@@ -57,11 +57,9 @@ class AddStreamSourceUseCaseTest {
 
     @Test
     fun manualTypeAndCategory_areStoredInsteadOfUrlGuess() = runTest {
-        assertEquals(
-            AddStreamSourceUseCase.AddResult.Success,
-            useCase("https://host/live", "Video", mediaKind = "VIDEO", category = " News "),
-        )
+        val result = useCase("https://host/live", "Video", mediaKind = "VIDEO", category = " News ")
         val stored = dao.getByUrl("https://host/live")!!
+        assertEquals(AddStreamSourceUseCase.AddResult.Success(stored), result)
         assertEquals("VIDEO", stored.mediaKind)
         assertEquals("News", stored.category)
     }
@@ -75,8 +73,9 @@ class AddStreamSourceUseCaseTest {
     @Test
     fun newUrl_isAdded_andReportsSuccess() = runTest {
         val result = useCase("http://host/a.mp3", null)
-        assertEquals(AddStreamSourceUseCase.AddResult.Success, result)
-        assertNotNull(dao.getByUrl("http://host/a.mp3"))
+        val stored = dao.getByUrl("http://host/a.mp3")
+        assertNotNull(stored)
+        assertEquals(AddStreamSourceUseCase.AddResult.Success(stored!!), result)
         assertEquals(1, stats.count(StatsEvent.StreamAdded))
     }
 

@@ -113,6 +113,8 @@ class CommandPanelController(
         fun onReopenEncodingClicked()
         fun onToggleMarkdownClicked()
         fun onReaderSettingsClicked()
+        fun onTextZoomInClicked()
+        fun onTextZoomOutClicked()
         fun onReadAloudClicked()
         fun onPdfScrollModeClicked()
         fun onPdfColorModeClicked()
@@ -381,7 +383,6 @@ class CommandPanelController(
     /** Update slideshow button visual state (color/alpha) based on active state */
     fun updateSlideshowButtonColor(isActive: Boolean) {
         val button = binding.btnSlideshowCmd
-        Timber.d("S4682: slideshow tint requested active=$isActive")
         button.alpha = if (isActive) 1.0f else 0.5f
         // The top panel stays dark in both themes, so idle takes the panel's own tint selector. A
         // theme-following overlay colour is black at night and hid the icon on the black panel; active
@@ -815,6 +816,8 @@ class CommandPanelController(
             R.id.menu_reopen_encoding -> callback.onReopenEncodingClicked()
             R.id.menu_toggle_markdown -> callback.onToggleMarkdownClicked()
             R.id.menu_reader_settings -> callback.onReaderSettingsClicked()
+            R.id.menu_text_zoom_in -> callback.onTextZoomInClicked()
+            R.id.menu_text_zoom_out -> callback.onTextZoomOutClicked()
             R.id.menu_read_aloud -> callback.onReadAloudClicked()
             R.id.menu_pdf_scroll_mode -> callback.onPdfScrollModeClicked()
             R.id.menu_pdf_color_mode -> callback.onPdfColorModeClicked()

@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase.apps
 
 import com.sza.fastmediasorter.domain.model.launcher.AppCategory
 import com.sza.fastmediasorter.domain.model.launcher.AppCategoryCatalog
+import com.sza.fastmediasorter.domain.model.launcher.AppCategoryNameTakenException
 import com.sza.fastmediasorter.domain.model.launcher.InstalledApp
 import com.sza.fastmediasorter.domain.repository.AppCategoryRepository
 import com.sza.fastmediasorter.domain.repository.InstalledAppsRepository

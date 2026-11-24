@@ -262,4 +262,10 @@
     <string name="kbm_help_player_audio_track">المسار الصوتي التالي</string>
     <string name="kbm_help_player_slideshow">عرض الشرائح (S مرة أخرى: أسرع) / عرض شرائح عشوائي</string>
     <string name="kbm_help_player_space">تشغيل / إيقاف مؤقت للفيديو؛ الملف التالي في الصورة</string>
+    <string name="keybinding_label_playback_ab_loop">تكرار A-B</string>
+    <string name="keybinding_label_navigation_file_grid">شبكة الصور المصغّرة</string>
+    <string name="keybinding_label_navigation_file_list">قائمة الملفات</string>
+    <string name="keybinding_label_navigation_file_number">الانتقال إلى ملف</string>
+    <string name="keybinding_label_player_black_screen">شاشة سوداء</string>
+    <string name="keybinding_label_sorting_create_text_note">إنشاء ملاحظة نصية</string>
 </resources>

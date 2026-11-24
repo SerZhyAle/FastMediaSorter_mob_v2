@@ -27,4 +27,12 @@
     <string name="ticket_inbox_queued_notice">أُضيفت التذكرة إلى قائمة الإرسال</string>
     <string name="ticket_inbox_stage_failed">تعذّر حفظ التذكرة: %1$s</string>
     <string name="ticket_inbox_discard">إزالة من القائمة</string>
+    <string name="ticket_inbox_destination_label">التسليم إلى</string>
+    <string name="ticket_inbox_state_folder_waiting">بانتظار المجلد على الكمبيوتر: %1$s</string>
+    <string name="ticket_inbox_state_folder_sent">في المجلد - بانتظار الكمبيوتر</string>
+    <string name="ticket_inbox_grant_drive">السماح بالوصول إلى Google Drive</string>
+    <string name="ticket_inbox_state_needs_access">يحتاج إلى الوصول إلى Google Drive - اسمح به بالزر أعلاه</string>
+    <string name="ticket_inbox_drive_access_granted">تم منح الوصول - تُرسل التذاكر المنتظرة الآن</string>
+    <string name="ticket_inbox_drive_access_declined">لم يُمنح الوصول - تبقى التذاكر في القائمة إلى أن تسمح به</string>
+    <string name="ticket_inbox_drive_access_failed">تعذّر على Google عرض شاشة الوصول - حاول مرة أخرى بعد قليل</string>
 </resources>

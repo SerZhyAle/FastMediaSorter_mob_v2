@@ -153,7 +153,8 @@ param(
 
     [switch]$Json,
 
-    [string]$AdbWrapper
+    [string]$AdbWrapper,
+    [string]$DeviceReady
 )
 
 $ErrorActionPreference = 'Stop'
@@ -172,6 +173,7 @@ $logAudit = Join-Path $repoRoot 'scripts/devtest/prerelease-log-audit.ps1'
 . (Join-Path $PSScriptRoot 'lib/wear-battery.ps1')
 . (Join-Path $PSScriptRoot 'lib/wear-walk-package.ps1')
 . (Join-Path $PSScriptRoot 'lib/invoke-child-pwsh.ps1')
+. (Join-Path $PSScriptRoot 'lib/device-lease-client.ps1')
 if (-not $ScreenList) { $ScreenList = Join-Path $PSScriptRoot 'wear-prerelease-screens.json' }
 
 $result = [ordered]@{
@@ -258,6 +260,15 @@ function Close-DeviceStateJournal {
 # Chosen before the first change to the watch, so a refusal leaves it exactly as found. Installed
 # state is read, never assumed: a watch can carry the store build and a debug build side by side.
 
+$leaseArgs = @{}
+if ($DeviceId) { $leaseArgs.DeviceId = $DeviceId }
+if (-not $DeviceReady) { $DeviceReady = Join-Path $PSScriptRoot 'device-ready.ps1' }
+$ready = & $DeviceReady -Module wear -ClaimFree -Json @leaseArgs | ConvertFrom-Json
+if ($LASTEXITCODE -ne 0 -or -not $ready.ready) {
+    Stop-Run 2 "could not claim a watch: $($ready.reason)"
+}
+$DeviceId = $ready.selectedDevice
+try {
 $packageProbe = Invoke-AdbVerb -Arguments @('shell', '-Cmd', "pm list packages $APP_BASE_PACKAGE")
 if ($packageProbe.Exit -ne 0) {
     Stop-Run 2 "the installed packages could not be read (pm list packages exited $($packageProbe.Exit)), so the package to walk cannot be chosen."
@@ -1115,3 +1126,8 @@ else {
     Write-Host ("wear-prerelease-walk: $walkPackage; ${batteryNote}observed $($result.counts.observed), failed $($result.counts.failed), unreachable $($result.counts.unreachable), manual $($result.counts.manual), outOfFlavor $($result.counts.outOfFlavor), phoneBound $($result.counts.phoneBound), shapeFailures $shapeFailuresCount, shapeUnchecked $shapeUncheckedCount, shapeAccepted $shapeAcceptedCount ($($result.flavor)), rehomes $rehomeCount; coverage $($result.coverage.walked) walked + $($result.coverage.excluded) excluded; log audit $($result.logAuditExit); walk $walkPath") -ForegroundColor Cyan
 }
 exit $verdict
+}
+finally {
+    try { Close-DeviceStateJournal }
+    finally { Release-FmsDeviceLease -Keys $ready.newLeaseKeys }
+}

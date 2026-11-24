@@ -262,4 +262,10 @@
     <string name="kbm_help_player_audio_track">اگلا آڈیو ٹریک</string>
     <string name="kbm_help_player_slideshow">سلائیڈ شو (دوبارہ S: تیز) / بے ترتیب سلائیڈ شو</string>
     <string name="kbm_help_player_space">ویڈیو چلائیں / روکیں؛ تصویر پر اگلی فائل</string>
+    <string name="keybinding_label_playback_ab_loop">A-B لوپ</string>
+    <string name="keybinding_label_navigation_file_grid">تھمب نیل گرڈ</string>
+    <string name="keybinding_label_navigation_file_list">فائلوں کی فہرست</string>
+    <string name="keybinding_label_navigation_file_number">فائل پر جائیں</string>
+    <string name="keybinding_label_player_black_screen">کالی اسکرین</string>
+    <string name="keybinding_label_sorting_create_text_note">ٹیکسٹ نوٹ بنائیں</string>
 </resources>

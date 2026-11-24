@@ -248,6 +248,15 @@ def write_music(out_dir, work_dir, ffmpeg, rng):
     return written
 
 
+def pick_h264_encoder(ffmpeg):
+    """libopenh264 is absent from the common full ffmpeg builds (winget gyan), libx264 is present in them."""
+    listing = subprocess.run([ffmpeg, '-hide_banner', '-encoders'], capture_output=True, text=True).stdout
+    for name in ('libopenh264', 'libx264'):
+        if f' {name} ' in listing:
+            return name
+    raise SystemExit("ERROR: ffmpeg has neither libopenh264 nor libx264")
+
+
 def write_video(out_dir, work_dir, ffmpeg, rng):
     os.makedirs(out_dir, exist_ok=True)
     frames_dir = os.path.join(work_dir, 'frames')
@@ -264,7 +273,7 @@ def write_video(out_dir, work_dir, ffmpeg, rng):
     run(ffmpeg, [
         '-framerate', str(fps), '-i', os.path.join(frames_dir, 'f%04d.png'),
         '-i', tone,
-        '-c:v', 'libopenh264', '-b:v', '5M', '-pix_fmt', 'yuv420p',
+        '-c:v', pick_h264_encoder(ffmpeg), '-b:v', '5M', '-pix_fmt', 'yuv420p',
         '-c:a', 'aac', '-b:a', '160k', '-shortest',
         '-metadata', 'title=Harbour Lights',
         path,

@@ -782,9 +782,10 @@ class MediaFileAdapter(
 
                 // Checkbox sits over the thumbnail in thumbnail mode; in no-thumbnail mode the icon
                 // is too small to host the overlay, so move the checkbox flush to its left (S0419).
+                // The compact row's 24dp thumbnail is smaller than the checkbox, which would hide the type badge.
                 applyCheckboxPlacement(
                     anchor = thumbnailFrame ?: ivThumbnail,
-                    leftOfIcon = this@MediaFileAdapter.disableThumbnails && !audioOnlyFile
+                    leftOfIcon = (this@MediaFileAdapter.disableThumbnails || useCompactElements) && !audioOnlyFile
                 )
 
                 // In audio-only mode: top line = Artist - Title, bottom = filename + size + duration
@@ -893,6 +894,7 @@ class MediaFileAdapter(
          * right to make room (S0419).
          */
         private fun applyCheckboxPlacement(anchor: View, leftOfIcon: Boolean) {
+            Timber.d("S4826: list checkbox placement leftOfIcon=$leftOfIcon compact=$useCompactElements")
             val cbLp = binding.cbSelect.layoutParams as? ConstraintLayout.LayoutParams ?: return
             val anchorLp = anchor.layoutParams as? ConstraintLayout.LayoutParams ?: return
             val unset = ConstraintLayout.LayoutParams.UNSET

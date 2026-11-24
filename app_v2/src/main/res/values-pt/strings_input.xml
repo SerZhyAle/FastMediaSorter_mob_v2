@@ -262,4 +262,10 @@
     <string name="kbm_help_player_audio_track">Próxima faixa de áudio</string>
     <string name="kbm_help_player_slideshow">Apresentação de slides (S de novo: mais rápido) / apresentação aleatória</string>
     <string name="kbm_help_player_space">Reproduzir / pausar um vídeo; próximo arquivo em uma foto</string>
+    <string name="keybinding_label_playback_ab_loop">Repetição A-B</string>
+    <string name="keybinding_label_navigation_file_grid">Grade de miniaturas</string>
+    <string name="keybinding_label_navigation_file_list">Lista de arquivos</string>
+    <string name="keybinding_label_navigation_file_number">Ir para o arquivo</string>
+    <string name="keybinding_label_player_black_screen">Tela preta</string>
+    <string name="keybinding_label_sorting_create_text_note">Criar nota de texto</string>
 </resources>

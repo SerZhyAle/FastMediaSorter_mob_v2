@@ -10,7 +10,7 @@
     <string name="welcome_default_player_hint">Tocca un pulsante qui sotto: comparirà una finestra. Seleziona Fast Media Sorter &amp; Organizer e tocca <b>Sempre</b>.</string>
     <string name="welcome_default_player_title">Lettore predefinito</string>
     <string name="welcome_description_1">Il tuo organizzatore multimediale tutto in uno.\nSfoglia, ordina e gestisci i file su memoria locale, di rete e nel cloud, tutto con gesti tattili intuitivi.</string>
-    <string name="welcome_description_1_details">Fast Media Sorter &amp; Organizer riunisce ogni tipo di contenuto in un unico posto. Apri foto, video, GIF e musica dal dispositivo, da una cartella condivisa in rete o dal cloud, e ordinali con tocchi rapidi invece che con i menu a pressione prolungata.\n\nTutto ciò che imposti qui si può cambiare più tardi nelle Impostazioni, quindi su questa schermata non esiste una scelta sbagliata: tocca Avanti per continuare.</string>
+    <string name="welcome_description_1_details">Fast Media Sorter &amp; Organizer riunisce ogni tipo di contenuto multimediale in un unico posto. Apri foto, video, GIF e musica dal dispositivo, da una condivisione di rete o dal cloud, e ordinali con tocchi rapidi invece che con i menu a pressione prolungata.\n\nTutto ciò che imposti qui si può cambiare più tardi nelle Impostazioni, quindi in questa schermata non esiste una scelta sbagliata: tocca Avanti per continuare.</string>
     <string name="welcome_description_3" formatted="false">Il lettore usa 9 zone tattili (griglia 3×3) per azioni rapide. Tocca le zone per navigare, copiare, spostare, eliminare file o accedere al pannello dei comandi. Vedi lo schema sopra per i dettagli.</string>
     <string name="welcome_language_picker_hint">Scegli la lingua dell\'app</string>
     <string name="welcome_profile_audio_player_desc">Ideale per dispositivi solo audio o lettori MP3. Nasconde foto e video; ottimizza l\'audio in background e la schermata di riproduzione.</string>
@@ -36,7 +36,6 @@
     <string name="welcome_profile_video_player_title">Lettore video</string>
     <string name="welcome_profile_vr_headset_desc">Ideale per i dispositivi di realtà virtuale. Attiva in anticipo layout 3D/360° e controlli immersivi sui visori supportati.</string>
     <string name="welcome_profile_vr_headset_title">Visore VR</string>
-    <string name="welcome_recommended_badge">(Consigliato)</string>
     <string name="welcome_title_1">Benvenuto in Fast Media Sorter &amp; Organizer!</string>
     <string name="sysinfo_field_abis">ABI</string>
     <string name="sysinfo_field_android_version">Android</string>
@@ -140,7 +139,7 @@
     <string name="welcome_func_downloading">Download in corso.. %1$d%%</string>
     <string name="welcome_func_download_failed">Download non riuscito - tocca per riprovare</string>
     <string name="welcome_func_download_done">Pronto</string>
-    <string name="welcome_permissions_title">\"Alcune\" autorizzazioni</string>
+    <string name="welcome_permissions_title">Alcune autorizzazioni</string>
     <string name="welcome_permissions_subtitle">Concedi l\'accesso perché l\'app possa mostrare i tuoi contenuti.</string>
     <string name="welcome_func_streams">Flussi</string>
     <string name="welcome_streams_catalog_done">Catalogo scaricato</string>
@@ -172,7 +171,7 @@
     <string name="welcome_role_sorting_detail">Manda un file nella sua cartella con un solo tocco</string>
     <string name="welcome_role_more_detail">Fotocamera, widget, gadget e altro - una sola app invece di tante</string>
     <string name="welcome_description_1_shell">Non solo un\'app multimediale - un ambiente completo per il tuo dispositivo.\nSchermata Home, lettore, gestore file, stream e archiviazione remota in un unico posto.</string>
-    <string name="welcome_description_1_details_shell">Fast Media Sorter &amp; Organizer può governare l\'intero dispositivo: una schermata Home con le tue app, widget e scorciatoie, un lettore per foto, video, musica e libri, un gestore file per archiviazione locale, di rete e cloud, stream da internet e un\'app companion per Wear OS - e sopra tutto questo, l\'ordinamento rapido con un tocco.\n\nLa vuoi come schermata Home? Attiva l\'interruttore qui sopra e il sistema ti chiederà conferma al termine della configurazione. Tutto ciò che scegli in questa schermata si può cambiare dopo nelle Impostazioni, quindi qui non esiste una scelta sbagliata - tocca semplicemente Avanti per continuare.</string>
+    <string name="welcome_description_1_details_shell">Fast Media Sorter &amp; Organizer può gestire l\'intero dispositivo: una schermata Home con le tue app, widget e scorciatoie, un lettore per foto, video, musica e libri, un gestore file per archiviazione locale, di rete e cloud, stream da internet e un\'app companion per Wear OS - e sopra tutto questo, lo smistamento rapido con un tocco.\n\nLa vuoi come schermata Home? Attiva l\'interruttore qui sopra e il sistema ti chiederà conferma al termine della configurazione. Tutto ciò che scegli in questa schermata si può cambiare dopo nelle Impostazioni, quindi qui non esiste una scelta sbagliata - tocca semplicemente Avanti per continuare.</string>
     <string name="welcome_role_home_screen">Schermata Home</string>
     <string name="welcome_role_home_screen_detail">Governa il dispositivo al posto di un launcher - app, widget e contenuti a portata di mano</string>
     <string name="welcome_role_streams">Stream</string>

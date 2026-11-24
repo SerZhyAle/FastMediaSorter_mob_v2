@@ -142,9 +142,57 @@ class AccountSelectionManagerTest {
         assertTrue("Per-account dismissed record should be filtered same as host-level dismiss", noneAvailableCalled)
     }
 
+    // ── Records without the host's session cookie (S4876) ────────────────────
+
+    @Test
+    fun `sole record without the session cookie calls onNoneAvailable and is not marked used`() = runTest {
+        val sessionless = account("@csrfonly", isDismissed = false, hasSessionCookie = false)
+        coEvery { repository.listAccountsForHost(HOST) } returns listOf(sessionless)
+
+        var noneAvailableCalled = false
+        var selectedAccount: AuthAccountDomain? = null
+
+        manager.selectAccount(
+            host = HOST,
+            activity = mockk(relaxed = true),
+            onSelected = { selectedAccount = it },
+            onNoneAvailable = { noneAvailableCalled = true },
+            onCancelled = {},
+        )
+
+        assertTrue("A record without the session cookie must offer the sign-in", noneAvailableCalled)
+        assertNull("onSelected should not be called", selectedAccount)
+        coVerify(exactly = 0) { repository.markLastUsed(any(), any()) }
+    }
+
+    @Test
+    fun `record without the session cookie is hidden so the remaining record is selected without a picker`() =
+        runTest {
+            val sessionless = account("@csrfonly", isDismissed = false, hasSessionCookie = false)
+            val signedIn = account("@signedin", isDismissed = false)
+            coEvery { repository.listAccountsForHost(HOST) } returns listOf(sessionless, signedIn)
+
+            var selectedAccount: AuthAccountDomain? = null
+
+            manager.selectAccount(
+                host = HOST,
+                activity = mockk(relaxed = true),
+                onSelected = { selectedAccount = it },
+                onNoneAvailable = {},
+                onCancelled = {},
+            )
+
+            assertEquals("onSelected should receive the session holder", signedIn, selectedAccount)
+            coVerify(exactly = 1) { repository.markLastUsed(HOST, signedIn.accountId) }
+        }
+
     // ── Helpers ──────────────────────────────────────────────────────────────
 
-    private fun account(accountId: String, isDismissed: Boolean): AuthAccountDomain =
+    private fun account(
+        accountId: String,
+        isDismissed: Boolean,
+        hasSessionCookie: Boolean = true,
+    ): AuthAccountDomain =
         AuthAccountDomain(
             host = HOST,
             accountId = accountId,
@@ -153,6 +201,7 @@ class AccountSelectionManagerTest {
             savedAt = Instant.now(),
             lastUsedAt = null,
             isDismissed = isDismissed,
+            hasSessionCookie = hasSessionCookie,
         )
 
     private fun assertNull(message: String, value: AuthAccountDomain?) {

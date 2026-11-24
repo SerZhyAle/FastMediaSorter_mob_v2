@@ -6,6 +6,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import kotlin.math.abs
+import kotlin.math.hypot
 
 /**
  * Recognizes directional swipes from an eligible surface in its gesture area.
@@ -52,12 +53,19 @@ class LauncherAllAppsGestureManager(
     // usually left the strip it started in, so the start point is the only trustworthy answer.
     private var horizontalSwipeAllowedForGesture = true
 
+    private var secondTapDownX = 0f
+    private var secondTapDownY = 0f
+    private var secondTapDownTime = 0L
+    private var secondTapStayedTap = false
+
     private val detector = GestureDetector(
         container.context,
         object : GestureDetector.SimpleOnGestureListener() {
             override fun onDown(e: MotionEvent): Boolean = true
 
-            override fun onDoubleTap(e: MotionEvent): Boolean = handleDoubleTap()
+            // The detector calls onDoubleTap on the second ACTION_DOWN, before it is known whether that
+            // touch is a tap or the start of a swipe; the decision is taken on its ACTION_UP instead.
+            override fun onDoubleTapEvent(e: MotionEvent): Boolean = handleDoubleTapEvent(e)
 
             override fun onFling(
                 e1: MotionEvent?,
@@ -95,6 +103,33 @@ class LauncherAllAppsGestureManager(
         ?.also { direction ->
             onSwipe(direction, startedOnRightHalf(e1))
         } != null
+
+    /**
+     * A double tap is committed only when the second touch lifts after staying a tap. Committing on its
+     * DOWN made a tap followed by a page swipe turn the screen off, and the detector then swallows that
+     * swipe's fling, so the user got a black screen instead of a page change.
+     */
+    private fun handleDoubleTapEvent(event: MotionEvent): Boolean = when (event.actionMasked) {
+        MotionEvent.ACTION_DOWN -> {
+            secondTapDownX = event.x
+            secondTapDownY = event.y
+            secondTapDownTime = event.eventTime
+            secondTapStayedTap = true
+            false
+        }
+        MotionEvent.ACTION_MOVE -> {
+            if (movedPastTapSlop(event)) secondTapStayedTap = false
+            false
+        }
+        MotionEvent.ACTION_UP -> secondTouchWasTap(event) && handleDoubleTap()
+        else -> false
+    }
+
+    private fun movedPastTapSlop(event: MotionEvent): Boolean =
+        hypot(event.x - secondTapDownX, event.y - secondTapDownY) > configuration.scaledTouchSlop
+
+    private fun secondTouchWasTap(event: MotionEvent): Boolean =
+        secondTapStayedTap && event.eventTime - secondTapDownTime < ViewConfiguration.getLongPressTimeout()
 
     private fun handleDoubleTap(): Boolean {
         val callback = onDoubleTap

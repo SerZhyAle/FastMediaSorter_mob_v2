@@ -7,13 +7,17 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.editor.dirty.DirtyToolbarTinter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
+import timber.log.Timber
 
 /**
  * S0189 (Phase 09): default [EditorActionPanel] implementation.
  *
  * Wires the [EditorActionButtons] and delegates dirty-state tinting of [hostView] to
- * [DirtyToolbarTinter]. Save / Send to.. / Calculator are appended to the host screen's overflow
- * menu via [addOverflowItems]; only Save & close and Cancel stay as direct buttons.
+ * [DirtyToolbarTinter]. Send to.. / Calculator are appended to the host screen's overflow
+ * menu via [addOverflowItems]; Save, Save & close and Cancel stay as direct buttons.
+ *
+ * S4864: Save (floppy, stays in the editor) and Save & close (check mark, leaves it) are two
+ * distinct toolbar buttons; with one shared floppy icon the in-place Save was hidden in the menu.
  *
  * S4676: the panel's own "more" button stays hidden - one screen carries one "more" menu.
  *
@@ -39,10 +43,14 @@ class EditorActionPanelBinder(
 
     override fun setup(callbacks: EditorActionCallbacks) {
         this.callbacks = callbacks
+        buttons.save.setOnClickListener {
+            Timber.d("S4864: editor toolbar save tapped")
+            callbacks.onSave()
+        }
         buttons.saveClose.setOnClickListener { callbacks.onSaveAndClose() }
         buttons.cancel.setOnClickListener { callbacks.onCancel() }
 
-        buttons.save.isVisible = false
+        buttons.save.isVisible = true
         buttons.saveSend.isVisible = false
         buttons.sendKeep.isVisible = false
         buttons.more.isVisible = false
@@ -63,12 +71,6 @@ class EditorActionPanelBinder(
     override fun addOverflowItems(menu: Menu) {
         val target = callbacks ?: return
         val context = hostView.context
-        menu.add(Menu.NONE, MENU_SAVE, ORDER_FIRST, context.getString(R.string.text_editor_action_save))
-            .setIcon(R.drawable.ic_save)
-            .setOnMenuItemClickListener {
-                target.onSave()
-                true
-            }
         // S0459: single unified outbound entry; the receiver list self-gates (incl. Keep).
         menu.add(Menu.NONE, MENU_SEND_TO, ORDER_FIRST, context.getString(R.string.share_to_menu_title))
             .setIcon(R.drawable.ic_send_plane)
@@ -88,7 +90,6 @@ class EditorActionPanelBinder(
 
     private companion object {
         // Outside the aapt R.id range (0x7f......), so they never collide with a host menu's own items.
-        const val MENU_SAVE = 0x46760001
         const val MENU_SEND_TO = 0x46760002
         const val MENU_CALCULATOR = 0x46760004
 

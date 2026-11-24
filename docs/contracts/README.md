@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.20 16:27</sub>
+<sub class="doc-stamp">26.11.24 12:37</sub>
 
 # Contract pointers
 
@@ -69,6 +69,6 @@ catalog registry to one set of ids and versions.
 | [`BUTTONS.md`](BUTTONS.md) | `BUTTONS` | consumer - phone, launcher, watch and the help pages (migration S4619) |
 | [`BOOLEAN-OPTION.md`](BOOLEAN-OPTION.md) | `BOOLEAN-OPTION` | consumer - phone, launcher and watch settings (migration S4619) |
 | [`COLLAPSIBLE-GROUP.md`](COLLAPSIBLE-GROUP.md) | `COLLAPSIBLE-GROUP` | consumer - phone, launcher and watch (migration S4619) |
-| [`SETTINGS-NAVIGATION.md`](SETTINGS-NAVIGATION.md) | `SETTINGS-NAVIGATION` | consumer - main settings, settings dialogs and watch settings (migration S4619) |
+| [`SETTINGS-NAVIGATION.md`](SETTINGS-NAVIGATION.md) | `SETTINGS-NAVIGATION` | consumer - main settings, settings dialogs and watch settings (phone form by owner decision S4634) |
 | [`EXCHANGE-MARK.md`](EXCHANGE-MARK.md) | `EXCHANGE-MARK` | consumer - mark of the exchange server on phone, watch, portal and docs |
 | [`RELEASE-LEDGER.md`](RELEASE-LEDGER.md) | `RELEASE-LEDGER` | adopter - the release ledger of the phone, watch app and watch face; the canon ships the only writer |

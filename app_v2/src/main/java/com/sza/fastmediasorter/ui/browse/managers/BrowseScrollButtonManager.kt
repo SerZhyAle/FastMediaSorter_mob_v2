@@ -1,9 +1,7 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
 import android.app.Activity
-import android.view.ViewGroup
 import androidx.core.view.isVisible
-import androidx.core.view.updatePaddingRelative
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
@@ -19,9 +17,6 @@ import timber.log.Timber
  * S3249: the four controls became two floating [ActionBarView] strips - the backward pair anchored
  * to the top of the list, the forward pair to its bottom - so a strip is hidden alongside its own
  * actions and stops reserving space no visible control needs.
- *
- * S4482: the list itself reserves an end gutter as wide as the strips while it scrolls, so no row
- * button sits under a strip.
  */
 class BrowseScrollButtonManager(
     private val activity: Activity,
@@ -38,6 +33,7 @@ class BrowseScrollButtonManager(
      * and scroll-to-bottom/page-down are hidden at the bottom.
      */
     fun updateScrollButtonsVisibility(fileCount: Int) {
+        Timber.d("S4830: browse strips recomputed without list gutter, fileCount=$fileCount")
         val layoutManager = recyclerView.layoutManager
         val firstVisible = when (layoutManager) {
             is LinearLayoutManager -> layoutManager.findFirstVisibleItemPosition()
@@ -56,26 +52,6 @@ class BrowseScrollButtonManager(
 
         applyStripState(barScrollTop, R.id.actionBrowseScrollToTop, R.id.actionBrowsePageUp, !atTop)
         applyStripState(barScrollBottom, R.id.actionBrowsePageDown, R.id.actionBrowseScrollToBottom, !atBottom)
-        applyListGutter(reserve = fileCount > 0 && !allVisible)
-    }
-
-    /**
-     * The strips float over the end edge of the list, where each row keeps its play and overflow
-     * buttons, so a row under a strip could not be tapped. Rows therefore end where the strips begin.
-     * The gutter is held for as long as the list scrolls, not only while a strip is shown - otherwise
-     * every row would reflow each time the list reaches its top or bottom.
-     */
-    private fun applyListGutter(reserve: Boolean) {
-        val target = if (reserve) stripGutterPx() else 0
-        if (recyclerView.paddingEnd != target) {
-            recyclerView.updatePaddingRelative(end = target)
-        }
-    }
-
-    /** One strip's width plus the clearance it keeps from the end edge, read from the live layout. */
-    private fun stripGutterPx(): Int {
-        val endMargin = (barScrollTop.layoutParams as? ViewGroup.MarginLayoutParams)?.marginEnd ?: 0
-        return activity.resources.getDimensionPixelSize(R.dimen.browse_scroll_button_size) + endMargin
     }
 
     private fun applyStripState(bar: ActionBarView, firstAction: Int, secondAction: Int, visible: Boolean) {

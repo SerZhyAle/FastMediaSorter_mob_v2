@@ -51,7 +51,7 @@ class AddStreamSourceUseCase @Inject constructor(
         )
         repository.add(entity)
         statsSink.record(StatsEvent.StreamAdded)
-        return AddResult.Success
+        return AddResult.Success(entity)
     }
 
     /**
@@ -72,7 +72,8 @@ class AddStreamSourceUseCase @Inject constructor(
     }
 
     sealed interface AddResult {
-        data object Success : AddResult
+        /** S4886: carries the inserted row so the streams screen can tell whether its filter hides it. */
+        data class Success(val source: StreamSourceEntity) : AddResult
         data object InvalidUrl : AddResult
 
         /** S1147: url already belongs to an existing row (unique index_stream_sources_url collision). */

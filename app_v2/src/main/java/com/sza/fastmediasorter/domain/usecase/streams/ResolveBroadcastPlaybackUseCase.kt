@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase.streams
 
+import android.net.Uri
 import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.data.broadcast.auth.BroadcastCredentialPair
 import com.sza.fastmediasorter.data.broadcast.exchange.BroadcastEndpointProbe
@@ -71,6 +72,15 @@ class ResolveBroadcastPlaybackUseCase @Inject constructor(
             }
         }
         return if (streamId == null || waitUntil == null) playback else settle(streamId, waitUntil, now, playback)
+    }
+
+    /**
+     * S4609: closes the loopback bridge a resolved address plays through; an address that is not one of this
+     * device's loopback bridges is left alone.
+     */
+    fun closeBridgeOf(playedUrl: String) {
+        val uri = Uri.parse(playedUrl)
+        if (uri.host == BroadcastExchangeEndpoints.LOOPBACK_HOST && uri.port > 0) bridges.closePort(uri.port)
     }
 
     // S4247: the relay of a broadcast that has not started still passes the TLS probe, so its start is asked of
@@ -163,5 +173,8 @@ class ResolveBroadcastPlaybackUseCase @Inject constructor(
         /** The exchange server a stored endpoint list plays through, as `host[:port]`; null for a LAN-only list. */
         fun exchangeServerLabel(endpoints: String?): String? =
             endpoints?.let(BroadcastExchangeEndpoints::exchangeServer)?.label
+
+        /** An exchange address cannot be played directly, even on an old row with no endpoint list. */
+        fun isExchangeUrl(url: String): Boolean = BroadcastExchangeEndpoints.isExchangeUrl(url)
     }
 }

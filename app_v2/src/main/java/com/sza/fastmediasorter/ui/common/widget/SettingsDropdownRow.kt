@@ -4,6 +4,7 @@ import android.content.Context
 import android.text.TextUtils
 import android.util.AttributeSet
 import android.util.TypedValue
+import android.view.Gravity
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -13,6 +14,7 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ListPopupWindow
+import android.widget.ListView
 import android.widget.TextView
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
@@ -277,9 +279,13 @@ class SettingsDropdownRow @JvmOverloads constructor(
         if (!isEnabled || entries.isEmpty() || optionsPopup != null) return
         // S2185: never narrower than the field it is anchored to, but expands past a compact
         // field (e.g. sdr_fieldMaxWidth) to fit the widest entry - see measurePopupContentWidth.
-        val adapter = ArrayAdapter(context, android.R.layout.simple_list_item_1, entries)
+        // S4837: the single-choice layout is what carries the checked state that marks the current entry.
+        val adapter = ArrayAdapter(context, android.R.layout.simple_list_item_single_choice, entries)
         val popup = ListPopupWindow(context).apply {
             anchorView = if (valueAsText) this@SettingsDropdownRow else inputLayout
+            // The row anchor spans the whole row while a value-as-text value sits at its end, so the
+            // default start alignment opened the list at the far side from the value.
+            if (valueAsText) setDropDownGravity(Gravity.END)
             isModal = true
             width = measurePopupContentWidth(context, adapter, minWidthPx = if (valueAsText) 0 else inputLayout.width)
             height = ListPopupWindow.WRAP_CONTENT
@@ -292,8 +298,15 @@ class SettingsDropdownRow @JvmOverloads constructor(
         }
         optionsPopup = popup
         popup.show()
-        // Start the D-pad walk on the current value instead of the first row.
-        if (selectedIndex in entries.indices) popup.listView?.setSelection(selectedIndex)
+        Timber.d("S4837: options list gravityEnd=$valueAsText checked=$selectedIndex")
+        if (selectedIndex in entries.indices) {
+            popup.listView?.let { list ->
+                list.choiceMode = ListView.CHOICE_MODE_SINGLE
+                list.setItemChecked(selectedIndex, true)
+                // Start the D-pad walk on the current value instead of the first row.
+                list.setSelection(selectedIndex)
+            }
+        }
     }
 
     private fun dismissOptions() {

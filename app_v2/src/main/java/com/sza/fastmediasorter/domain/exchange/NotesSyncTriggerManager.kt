@@ -7,8 +7,8 @@ import com.sza.fastmediasorter.data.remote.exchange.ExchangeNotesEnvelopes
 import com.sza.fastmediasorter.data.remote.exchange.ExchangeReceiverControlStreams
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpServerTunnelManager
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
+import com.sza.fastmediasorter.domain.model.notes.NotesSyncOutcome
 import com.sza.fastmediasorter.domain.repository.NotesSyncRemote
-import com.sza.fastmediasorter.domain.usecase.notes.NotesSyncOutcome
 import com.sza.fastmediasorter.domain.usecase.notes.SyncNotesThroughExchangeUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope

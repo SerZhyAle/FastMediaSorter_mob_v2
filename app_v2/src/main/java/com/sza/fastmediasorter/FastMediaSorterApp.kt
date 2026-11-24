@@ -392,7 +392,13 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
         }
 
         setupDebugStrictMode()
-        GmsAvailabilityChecker.check(this)
+        // S4884: the probe is binder IPC into PackageManager and Play Services. A process cold-started
+        // for a WorkManager job runs this onCreate inside the service-start ANR window, so the check
+        // never runs on the main thread. The cached status stays OK until it lands, which only delays
+        // the advisory snackbar in BaseActivity.
+        applicationScope.launch(Dispatchers.IO) {
+            GmsAvailabilityChecker.check(this@FastMediaSorterApp)
+        }
 
         // Initialize static context for Glide ModelLoader
         appContext = applicationContext
@@ -755,11 +761,12 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
 
     override fun attachBaseContext(base: Context) {
         StartupWindowTimer.markAttachStart()
-        // StrictMode is not yet configured here, but wrap in helper for consistency
-        val contextWithLocale = com.sza.fastmediasorter.core.debug.StrictModeHelper.allowDiskReads {
-            LocaleHelper.applyLocale(base)
-        }
-        super.attachBaseContext(contextWithLocale)
+        // S4603: do not wrap Application base context in a localized configuration context;
+        // Application.resources must retain the system configuration so that below API 33
+        // AppCompatDelegate calculateApplicationLocales correctly sees the OS locale when
+        // resetting to follow-system. Activities are localized via BaseActivity.attachBaseContext.
+        super.attachBaseContext(base)
+        com.sza.fastmediasorter.core.util.UiLanguageCatalog.ensureInitialized(base)
         
         // Initialize logging as early as possible so file logging exists even if app
         // crashes during or before onCreate(). Fail-safe: don't throw if logging fails.

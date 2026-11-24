@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.11.20 20:17</sub>
+<sub class="doc-stamp">26.11.24 12:37</sub>
 
 # Pointer - `HARNESS-PROFILE`
 
 | | |
 | --- | --- |
 | **Id** | `HARNESS-PROFILE` |
-| **Version** | 0.21, draft. Owner: the canon (sza-unified-rules) |
+| **Version** | 0.22, draft. Owner: the canon (sza-unified-rules) |
 | **Home** | `rule-adoption/README.md` section 3 in the shared contracts catalog |
 | **Role here** | adopter - configures the shipped harness through `.sza-profile.json` |
 
@@ -24,6 +24,9 @@
   `grammar.legacyTicketIdPatterns` (0.20 and 0.21, rule 16). A key the profile carries wins, and this product declares
   `paths.specsDir` with every derived key; it declares neither `paths.releasesDir` nor a legacy ticket pattern, so no
   profile change follows.
+- 0.22 (clarification, wire unchanged) makes the default runner prompt of rule 2 refer to the unattended-pass
+  instructions in the lifecycle skill. This profile overrides `runner.promptTemplate` (`/spec-all {Id}`) and appends
+  `.claude/runner/silent-mode.md` per instance, so the default does not apply and nothing is owed.
 
 ## Where it lives here
 

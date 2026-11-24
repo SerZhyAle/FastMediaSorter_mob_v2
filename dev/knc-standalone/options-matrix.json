@@ -1,0 +1,91 @@
+{
+  "schema": "knc-options-matrix/1",
+  "ticket": "S4859",
+  "capturedOn": "2026-11-24",
+  "baseline": "dev/knc-standalone/fms-a-baseline.json",
+  "questionnaire": "dev/knc-standalone/owner-questionnaire.md",
+  "criteria": {
+    "fidelity": "Reproduces every stateAndScoreInputs item of the baseline and passes its referenceCases.",
+    "interaction": "Touch, swipe, keyboard, D-pad, mouse and watch input reach the same four moves plus skip and restart.",
+    "distribution": "A store or channel can carry it and an update can be held and released on a chosen date.",
+    "online": "Can submit a run to one shared leaderboard keyed by game type and content version."
+  },
+  "evidence": [
+    { "id": "EV-01", "url": "https://kotlinlang.org/docs/multiplatform/supported-platforms.html", "date": "2026-11-24", "finding": "KMP: Android and JVM desktop Stable; Web on Kotlin/JS Stable; Web on Kotlin/Wasm Beta." },
+    { "id": "EV-02", "url": "https://blog.jetbrains.com/kotlin/2025/09/compose-multiplatform-1-9-0-compose-for-web-beta/", "date": "2026-11-24", "finding": "Compose Multiplatform for Web (Wasm) is Beta; no Stable announcement found." },
+    { "id": "EV-03", "url": "https://kotlinlang.org/docs/multiplatform/compose-native-distribution.html", "date": "2026-11-24", "finding": "Compose Desktop packages Windows EXE/MSI via jpackage, built on a Windows host; no built-in MSIX and no built-in auto-update." },
+    { "id": "EV-04", "url": "https://learn.microsoft.com/windows/apps/package-and-deploy/packaging/", "date": "2026-11-24", "finding": "MSIX can be produced from an MSI with the MSIX Packaging Tool or by makeappx over the distributable folder." },
+    { "id": "EV-05", "url": "https://developer.android.com/training/wearables/apps/standalone-apps", "date": "2026-11-24", "finding": "A standalone Wear OS app declares com.google.android.wearable.standalone=true and needs no phone app for core features." },
+    { "id": "EV-06", "url": "https://developer.android.com/training/wearables/packaging", "date": "2026-11-24", "finding": "Wear APKs/AABs are uploaded and updated independently of phone ones in Play Console; listing must name Wear OS and carry a watch screenshot; 64-bit required since 2026-09-15." },
+    { "id": "EV-07", "url": "https://developer.android.com/games/pgs/leaderboards", "date": "2026-11-24", "finding": "Play Games Services leaderboards exist with a REST surface (games.googleapis.com); identity is a Play Games / Google account." },
+    { "id": "EV-08", "url": "https://developer.android.com/games/services/web/api/rest", "date": "2026-11-24", "finding": "PGS REST: list leaderboards, submit scores; non-Android use needs OAuth - not confirmed for Windows or Web in this pass." },
+    { "id": "EV-09", "url": "dev/knc-standalone/fms-a-baseline.json#rng-dependency", "date": "2026-11-24", "finding": "Board identity depends on kotlin.random.Random's exact sequence." },
+    { "id": "EV-10", "url": "dev/knc-standalone/fms-a-baseline.json#WD-05", "date": "2026-11-24", "finding": "The two in-repo copies of the rules already drift in board generation." }
+  ],
+  "platforms": [
+    { "id": "PL-ANDROID", "requirement": "Standalone phone/tablet/TV app", "feasibility": "high", "evidence": ["EV-01"], "dependencies": ["new applicationId (frozen at Play console creation)", "Play listing"], "tradeOffs": "Direct reuse of app_v2 game code; View/XML today, Compose possible.", "parityCheck": "Run all baseline referenceCases as JVM unit tests on the shared core.", "openQuestions": ["Q-REL-01", "Q-FST-01"] },
+    { "id": "PL-WEAR", "requirement": "Standalone Wear OS app", "feasibility": "high", "evidence": ["EV-05", "EV-06"], "dependencies": ["standalone=true", "own Play track", "64-bit"], "tradeOffs": "Existing Compose watch UI; board geometry is round (WD-02), which affects ranked parity.", "parityCheck": "Same referenceCases on the shared core; geometry cases per Q-PAR-01.", "openQuestions": ["Q-REL-01", "Q-PAR-01", "Q-PAR-02"] },
+    { "id": "PL-WINDOWS", "requirement": "Packaged Windows app", "feasibility": "medium", "evidence": ["EV-03", "EV-04"], "dependencies": ["Windows build host", "MSIX step for Microsoft Store", "frozen MSIX identity / winget id"], "tradeOffs": "Compose Desktop on JVM reuses Kotlin core as-is; runtime adds size; MSIX needs extra tooling. A native C# shell would need a ported rules core.", "parityCheck": "Same JVM tests run unchanged on the desktop target.", "openQuestions": ["Q-REL-02", "Q-DEV-02"] },
+    { "id": "PL-WEB", "requirement": "Browser / installable web app", "feasibility": "medium", "evidence": ["EV-01", "EV-02"], "dependencies": ["hosting origin + manifest id (frozen)", "Kotlin/JS (Stable) or Kotlin/Wasm (Beta)"], "tradeOffs": "Kotlin/JS core is Stable; Compose Web UI is Beta. A hand-written JS port breaks seed portability (EV-09). Web is also the only channel with no store review delay.", "parityCheck": "KMP common tests executed on the js target; golden board RC-GEN-05.", "openQuestions": ["Q-REL-02", "Q-DEV-02"] }
+  ],
+  "codeSharing": [
+    { "id": "CS-KMP-CORE", "requirement": "One canonical rules, generator and scoring source", "feasibility": "high", "evidence": ["EV-01", "EV-10"], "description": "Kotlin Multiplatform common module holding the domain (models, generator, rules, scoring, snapshot); each platform keeps a native shell (Views or Compose on Android, Compose on Wear, Compose Desktop, Compose Web or a JS/HTML canvas).", "dependencies": ["PRNG must be specified and implemented in common code, not kotlin.random default, if non-JVM targets must agree"], "tradeOffs": "Lowest drift; UI written per platform; FMS_A could later consume the same module.", "fmsAChange": "Optional: FMS_A switching to the shared module touches app_v2 and wear game packages - owner approval Q-DEV-04.", "parityCheck": "commonTest runs the baseline referenceCases on every target." },
+    { "id": "CS-SHARED-RENDERER", "requirement": "Identical graphics and effects everywhere", "feasibility": "medium", "evidence": ["EV-02"], "description": "Compose Multiplatform UI shared across Android, Desktop, Web; Wear keeps a Compose for Wear shell over the same drawing code.", "dependencies": ["Compose Web Beta"], "tradeOffs": "One renderer means visual parity for free; Web target maturity risk; watch layout still separate.", "fmsAChange": "none", "parityCheck": "Screenshot comparison per mode per platform." },
+    { "id": "CS-GAME-ENGINE", "requirement": "Effects-heavy future", "feasibility": "low", "evidence": [], "description": "Rewrite in a game engine (Godot, Unity) exporting to all targets.", "dependencies": ["full rewrite of rules in another language", "engine export to Wear is not a supported path"], "tradeOffs": "Rich effects, but breaks 'first version = FMS_A code' and seed portability; no Wear export.", "fmsAChange": "none", "parityCheck": "Port must pass referenceCases through a cross-language harness." },
+    { "id": "CS-NATIVE-PORTS", "requirement": "Native feel per platform", "feasibility": "low", "evidence": ["EV-10"], "description": "Separate code per platform (Kotlin, C#, TypeScript) kept equal by hand.", "dependencies": ["shared golden test vectors"], "tradeOffs": "Already drifting with two Kotlin copies; four copies multiply it.", "fmsAChange": "none", "parityCheck": "Golden vectors from the baseline replayed per language." }
+  ],
+  "resourceSharing": [
+    { "id": "RS-CANONICAL-ASSETS", "requirement": "Graphics, strings and mods appear everywhere at once", "feasibility": "high", "evidence": [], "description": "One asset/content folder (vector art as SVG source, strings as one table, mods as data) with a generator emitting Android drawables/strings and desktop/web resources.", "tradeOffs": "Needs a converter; Android VectorDrawable is the current source format.", "parityCheck": "Content manifest hash equal across builds of one release." },
+    { "id": "RS-PER-PLATFORM", "requirement": "Same", "feasibility": "medium", "evidence": [], "description": "Each platform keeps its resources, synchronized by a script.", "tradeOffs": "Simple start, drift risk as in EV-10.", "parityCheck": "Script verifies hashes." }
+  ],
+  "repositoryLayout": [
+    { "id": "RL-MONOREPO", "requirement": "Code and assets change together", "feasibility": "high", "evidence": [], "description": "One new repository with modules core/, android/, wear/, desktop/, web/, content/.", "tradeOffs": "One version, one CI, atomic changes; one release pipeline for four channels.", "openQuestions": ["Q-DEV-01"] },
+    { "id": "RL-MULTI-PINNED", "requirement": "Independent products", "feasibility": "medium", "evidence": [], "description": "Core published as a versioned package; one repository per platform pins a core version.", "tradeOffs": "Per-repo freedom; version skew between platforms becomes possible, which conflicts with 'everything at once'.", "openQuestions": ["Q-DEV-01"] },
+    { "id": "RL-SYNCED-COPIES", "requirement": "Same", "feasibility": "low", "evidence": ["EV-10"], "description": "Canonical code copied into each project by a sync script.", "tradeOffs": "Reproduces today's drift mechanism.", "openQuestions": ["Q-DEV-01"] },
+    { "id": "RL-INSIDE-FMS", "requirement": "Reuse existing build", "feasibility": "medium", "evidence": [], "description": "New flavors/modules inside this repository.", "tradeOffs": "Ties game release cadence to FMS_A; FMS repo already has eight flavors.", "openQuestions": ["Q-DEV-01", "Q-FST-03"] }
+  ],
+  "coordinatedRelease": [
+    { "id": "CR-CONTENT-VERSION", "requirement": "Rules, graphics, mods are identical across clients", "feasibility": "high", "evidence": [], "description": "Every build carries rulesVersion and contentVersion; a run records both.", "tradeOffs": "Required by ranked play regardless of layout.", "openQuestions": ["Q-PUB-03"] },
+    { "id": "CR-HELD-PUBLISH", "requirement": "Simultaneous availability despite different review times", "feasibility": "medium", "evidence": ["EV-06"], "description": "Submit early to every store, hold publication (Play managed publishing, Microsoft Store manual release after certification), release all on one date; Web deploys last.", "tradeOffs": "Ties release day to the slowest review.", "openQuestions": ["Q-PUB-01", "Q-PUB-02"] },
+    { "id": "CR-REMOTE-ACTIVATION", "requirement": "Same", "feasibility": "medium", "evidence": [], "description": "Ship new content dark; activate by a server flag once every channel has it.", "tradeOffs": "Needs the online service; offline clients activate later; mods as data only, never code.", "openQuestions": ["Q-PUB-03", "Q-PUB-04"] },
+    { "id": "CR-STALE-CLIENT", "requirement": "Old clients and rollback", "feasibility": "high", "evidence": [], "description": "Server accepts ranked runs only for active rulesVersion values; an older client plays unranked and is told to update; rollback = re-activate the previous version.", "tradeOffs": "Clear fairness; may annoy players on slow stores.", "openQuestions": ["Q-PUB-02", "Q-PUB-04"] }
+  ],
+  "sharedRankings": [
+    { "id": "SR-OWN-SERVICE", "requirement": "One top per unique game type across all platforms", "feasibility": "high", "evidence": ["EV-09"], "description": "Own small backend: issues seeds, accepts a move log, replays it with the shared core to compute the score; key = gameType + rulesVersion (+ contentVersion when it changes rules).", "dependencies": ["hosting", "privacy page update", "privacy page and store data-safety forms change, because run data leaves the device"], "tradeOffs": "Full control and cheat resistance by server replay; owner operates it.", "openQuestions": ["Q-RNK-01", "Q-RNK-04", "Q-OPS-01", "Q-OPS-04"] },
+    { "id": "SR-PLAY-GAMES", "requirement": "Same", "feasibility": "low", "evidence": ["EV-07", "EV-08"], "description": "Google Play Games Services leaderboards.", "dependencies": ["Google account on every platform"], "tradeOffs": "No server to run; Windows and Web use not confirmed; scores are client-submitted, no replay validation.", "openQuestions": ["Q-OPS-01"] },
+    { "id": "SR-THIRD-PARTY-BAAS", "requirement": "Same", "feasibility": "medium", "evidence": [], "description": "A hosted backend (Firebase, Supabase or similar) with a server function replaying runs.", "tradeOffs": "Less ops; vendor lock-in and data-processing disclosures.", "openQuestions": ["Q-OPS-04"] },
+    { "id": "SR-GAME-IDENTITY", "requirement": "Comparable runs", "feasibility": "high", "evidence": ["EV-10"], "description": "gameType defined by board geometry, size rule, shadow rule and rulesVersion; today phone and watch would be two game types (WD-02, WD-03, WD-05).", "tradeOffs": "Either unify geometry or keep one board per type.", "openQuestions": ["Q-RNK-02", "Q-PAR-01"] }
+  ],
+  "ownerDecisions": [
+    { "matrixRow": "PL-*", "question": "Q-REL-01" },
+    { "matrixRow": "PL-WINDOWS, PL-WEB", "question": "Q-REL-02" },
+    { "matrixRow": "PL-ANDROID", "question": "Q-REL-03" },
+    { "matrixRow": "PL-ANDROID", "question": "Q-FST-01" },
+    { "matrixRow": "CS-KMP-CORE", "question": "Q-FST-02" },
+    { "matrixRow": "RL-INSIDE-FMS", "question": "Q-FST-03" },
+    { "matrixRow": "CR-CONTENT-VERSION", "question": "Q-FST-04" },
+    { "matrixRow": "SR-GAME-IDENTITY, PL-WEAR", "question": "Q-PAR-01" },
+    { "matrixRow": "PL-WEAR", "question": "Q-PAR-02" },
+    { "matrixRow": "CS-KMP-CORE", "question": "Q-PAR-03" },
+    { "matrixRow": "CS-SHARED-RENDERER", "question": "Q-PAR-04" },
+    { "matrixRow": "CS-SHARED-RENDERER, RS-CANONICAL-ASSETS", "question": "Q-FUT-01" },
+    { "matrixRow": "RS-CANONICAL-ASSETS", "question": "Q-FUT-02" },
+    { "matrixRow": "SR-GAME-IDENTITY", "question": "Q-FUT-03" },
+    { "matrixRow": "CR-HELD-PUBLISH", "question": "Q-PUB-01" },
+    { "matrixRow": "CR-STALE-CLIENT", "question": "Q-PUB-02" },
+    { "matrixRow": "CR-REMOTE-ACTIVATION", "question": "Q-PUB-03" },
+    { "matrixRow": "CR-STALE-CLIENT", "question": "Q-PUB-04" },
+    { "matrixRow": "SR-OWN-SERVICE", "question": "Q-RNK-01" },
+    { "matrixRow": "SR-GAME-IDENTITY", "question": "Q-RNK-02" },
+    { "matrixRow": "SR-OWN-SERVICE", "question": "Q-RNK-03" },
+    { "matrixRow": "SR-OWN-SERVICE", "question": "Q-RNK-04" },
+    { "matrixRow": "SR-PLAY-GAMES, SR-OWN-SERVICE", "question": "Q-OPS-01" },
+    { "matrixRow": "SR-OWN-SERVICE", "question": "Q-OPS-02" },
+    { "matrixRow": "SR-OWN-SERVICE", "question": "Q-OPS-03" },
+    { "matrixRow": "SR-OWN-SERVICE, SR-THIRD-PARTY-BAAS", "question": "Q-OPS-04" },
+    { "matrixRow": "RL-*", "question": "Q-DEV-01" },
+    { "matrixRow": "PL-WINDOWS, PL-WEB, CS-*", "question": "Q-DEV-02" },
+    { "matrixRow": "CS-KMP-CORE", "question": "Q-DEV-03" },
+    { "matrixRow": "CS-KMP-CORE", "question": "Q-DEV-04" }
+  ]
+}

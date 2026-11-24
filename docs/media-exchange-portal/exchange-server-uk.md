@@ -1,12 +1,12 @@
 ---
-source_sha256: 1fba47fa791082a5affaefdad6bb4aa04ec13e0a81a6d7f03c088d2daf4ac7a9
+source_sha256: ac79505e0d8b01f484b7242a13c95b251413d78963322ebfc4f1b04041298295
 layout: doc
 title: "Media Exchange Server: ваші пристрої з будь-якої мережі"
 description: "Один акаунт для всіх пристроїв і доступ з будь-якої мережі без налаштування роутера - хто тримає сервер обміну, як він працює, що бачить і що зберігає, і як ладнають між собою версії програм."
 category: "Обмін медіа"
 permalink: /docs/media-exchange-portal/exchange-server-uk.html
 ---
-<sub class="doc-stamp">26.11.19 01:01</sub>
+<sub class="doc-stamp">26.11.23 11:23</sub>
 
 # Сервер обміну: ваші пристрої з будь-якої мережі
 
@@ -109,6 +109,7 @@ permalink: /docs/media-exchange-portal/exchange-server-uk.html
 - [Розгорніть свій сервер обміну](exchange-server-quick-start-uk.html)
 - [Встановлення й перевірка сервера обміну](exchange-server-install-uk.html)
 - [Акаунти, запрошення та паролі](exchange-accounts-uk.html)
+- [Увійти у STREAMS Player для Windows](streamsplayer-uk.html#sign-in) або [перевірити з'єднання](streamsplayer-uk.html#connection-troubleshooting).
 - [Буфер на сервері](exchange-clipboard-uk.html)
 - [Як видалити акаунт](account-deletion-uk.html)
 - [Телефон як SFTP-сервер](../../documentation/network/phone-as-sftp-server-uk.html)

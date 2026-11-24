@@ -1,20 +1,14 @@
 package com.sza.fastmediasorter.domain.usecase.notes
 
+import com.sza.fastmediasorter.core.di.IoDispatcher
+import com.sza.fastmediasorter.domain.model.notes.NoteSummary
 import com.sza.fastmediasorter.util.NotesFolderPolicy
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
 import javax.inject.Inject
-
-/** S4568: one row of the Notes list. The caption is derived from the body on every read, never stored. */
-data class NoteSummary(
-    val path: String,
-    val caption: String,
-    val excerpt: String,
-    val modifiedAt: Long,
-)
 
 /**
  * S4568: the notes of the notes folder, newest first, optionally narrowed by a search query.
@@ -22,9 +16,11 @@ data class NoteSummary(
  * A row needs only the first two non-blank lines, so a bounded prefix is read per file; the whole body
  * is read only while a query has to look inside it.
  */
-class ListNotesUseCase @Inject constructor() {
+class ListNotesUseCase @Inject constructor(
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+) {
 
-    suspend operator fun invoke(query: String = ""): List<NoteSummary> = withContext(Dispatchers.IO) {
+    suspend operator fun invoke(query: String = ""): List<NoteSummary> = withContext(ioDispatcher) {
         val files = NotesFolderPolicy.notesDirectory()
             .listFiles { file -> file.isFile && file.extension.equals(NotesFolderPolicy.NOTE_EXTENSION, true) }
             .orEmpty()

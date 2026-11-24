@@ -10,10 +10,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingStart="24dp"
-        android:paddingEnd="24dp"
-        android:paddingTop="16dp"
-        android:paddingBottom="8dp">
+        android:paddingStart="@dimen/token_spacing_24"
+        android:paddingEnd="@dimen/token_spacing_24"
+        android:paddingTop="@dimen/token_spacing_16"
+        android:paddingBottom="@dimen/token_spacing_8">
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilUrl"
@@ -49,7 +49,7 @@
             android:id="@+id/tilTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="@dimen/token_spacing_8"
             android:hint="@string/streams_title_hint"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
@@ -68,7 +68,7 @@
             android:id="@+id/tilCategory"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="@dimen/token_spacing_8"
             android:hint="@string/streams_category_hint"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
@@ -87,7 +87,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="@dimen/token_spacing_12"
             android:visibility="gone">
 
             <TextView
@@ -101,7 +101,7 @@
                 android:id="@+id/toggleMediaKind"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="@dimen/token_spacing_4"
                 app:singleSelection="true"
                 app:selectionRequired="true">
 
@@ -137,7 +137,7 @@
             android:id="@+id/trackPreferenceContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp">
+            android:layout_marginTop="@dimen/token_spacing_12">
 
             <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
                 android:id="@+id/rowChannelAudioLanguage"

@@ -194,13 +194,22 @@ class ScreenGestureOverlayManager(
             x = hintX(zone, frame, geom, hintWidth)
             y = hintY(zone, frame, geom, hintHeight)
             title = "screen_gesture_hint_${zone.name.lowercase()}"
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                layoutInDisplayCutoutMode =
-                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-            }
+            allowCutoutArea()
         }
         windowManager.addView(view, params)
         hintView = view
+    }
+
+    /**
+     * The short-edges cutout mode is deprecated from API 35 and Play vitals flags it by value;
+     * ALWAYS (API 30) is its replacement. API 28-29 have no replacement that avoids the deprecated
+     * value, so those windows keep the default cutout policy and sit beside a cutout, not under it.
+     */
+    private fun WindowManager.LayoutParams.allowCutoutArea() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+            Timber.d("S4879: gesture overlay window uses the ALWAYS cutout mode title=%s", title)
+        }
     }
 
     private fun hideHint() {
@@ -397,10 +406,7 @@ class ScreenGestureOverlayManager(
             this.x = frame.x
             this.y = frame.y
             title = "screen_gesture_overlay_${zone.name.lowercase()}"
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                layoutInDisplayCutoutMode =
-                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-            }
+            allowCutoutArea()
         }
         runCatching { windowManager.addView(view, params) }
             .onFailure { error ->

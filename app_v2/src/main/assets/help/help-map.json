@@ -32,8 +32,15 @@
       "reason": "A composer opened from one settings row; the settings page explains that row." },
     { "id": "DataTransferDialogFragment", "name": "Data transfer", "form": "inherit", "parent": "SettingsActivity",
       "reason": "Opened only from the General settings tab; its page explains the export and import entry." },
-    { "id": "dialog_remote_control_controllers", "name": "Who can control this phone", "form": "inherit", "parent": "SettingsActivity",
-      "reason": "Opened from the Accept commands rows of the General settings tab; the settings page explains those rows." },
+    { "id": "ExternalControlActivity", "name": "External control", "form": "page", "help": "settings-general", "anchor": "external-control",
+      "pages": [
+        { "id": "ExternalControlActivity.t1", "name": "This device", "help": "settings-general", "anchor": "external-control-this-device" },
+        { "id": "ExternalControlActivity.t2", "name": "Waiting for your answer", "help": "settings-general", "anchor": "external-control-waiting" },
+        { "id": "ExternalControlActivity.t3", "name": "Who can control this device", "help": "settings-general", "anchor": "external-control-devices" },
+        { "id": "ExternalControlActivity.t4", "name": "Commands this program accepts", "help": "settings-general", "anchor": "external-control-commands" },
+        { "id": "ExternalControlActivity.t5", "name": "Recent requests", "help": "settings-general", "anchor": "external-control-log" }
+      ] },
+
     { "id": "DefaultAppsDialogFragment", "name": "Default apps", "form": "inherit", "parent": "SettingsActivity",
       "reason": "Opened only from the General settings tab; its page explains the default apps entry." },
     { "id": "EdgeGestureConfigDialogFragment", "name": "Edge gestures", "form": "inherit", "parent": "SettingsActivity",

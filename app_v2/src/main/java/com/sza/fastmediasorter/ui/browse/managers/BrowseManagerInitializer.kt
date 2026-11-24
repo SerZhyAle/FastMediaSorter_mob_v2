@@ -53,6 +53,7 @@ import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
+import com.sza.fastmediasorter.domain.usecase.RefreshPickedTransferCountsUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.browse.BrowseState
 import com.sza.fastmediasorter.ui.browse.BrowseViewModel
@@ -100,6 +101,7 @@ class BrowseManagerInitializer(
     hostManagers: BrowseHostManagers,
     uiHooks: BrowseUiHooks,
     flavorHooks: BrowseFlavorHooks,
+    private val refreshPickedTransferCounts: Lazy<RefreshPickedTransferCountsUseCase>,
 ) {
     private val activity: BrowseActivity = hostUi.activity
     private val binding: ActivityBrowseBinding = hostUi.binding
@@ -178,6 +180,12 @@ class BrowseManagerInitializer(
     lateinit var commandOverflowManager: BrowseCommandOverflowManager
     private val pathMenuManager = BrowsePathMenuManager(activity)
     private lateinit var buttonCallbacks: BrowseButtonSetupHelper.ButtonCallbacks
+
+    fun onFolderPicked(uri: Uri?) {
+        folderPickerHandler.onFolderPicked(uri) { pickedUri, destinationPath, movedFromResourceId ->
+            refreshPickedTransferCounts.get().invoke(pickedUri, destinationPath, movedFromResourceId)
+        }
+    }
 
     fun initialize() {
         dialogHelper = BrowseDialogHelper(
@@ -289,7 +297,11 @@ class BrowseManagerInitializer(
             resources = activity.resources,
             callbacks = object : BrowseRecyclerViewManager.RecyclerViewCallbacks {
                 override fun onDisplayModeChanged(displayMode: DisplayMode) { stateUiUpdater.currentDisplayMode = displayMode }
-                override fun updateToggleButtonIcon(iconResId: Int) { binding.btnToggleView.setIconResource(iconResId) }
+                override fun updateToggleButton(iconResId: Int, descriptionResId: Int) {
+                    binding.btnToggleView.setIconResource(iconResId)
+                    binding.btnToggleView.contentDescription = activity.getString(descriptionResId)
+                    Timber.d("S4853: toggle description set to ${binding.btnToggleView.contentDescription}")
+                }
             }
         )
 

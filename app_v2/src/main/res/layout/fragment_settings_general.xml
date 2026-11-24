@@ -755,55 +755,37 @@
                             app:icon="@drawable/ic_refresh" />
                     </LinearLayout>
 
-                    <!-- S4701: REMOTE-CONTROL target - accept commands from the account's other devices. Off by
-                         default; the rows stay visible and disabled, with one reason line, until a held exchange
-                         entry can carry commands (RemoteControlSettingsPanelManager). -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/resource_field_margin_top"
+                        android:accessibilityHeading="true"
+                        android:text="@string/external_control_name"
+                        android:textAppearance="@style/TextAppearance.Material3.TitleSmall" />
+
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                         android:id="@+id/rowRemoteControlEnabled"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/resource_field_margin_top"
-                        android:focusable="true"
                         android:clickable="true"
+                        android:focusable="true"
                         android:nextFocusUp="@id/btnSftpExchangeMyDevices"
-                        android:nextFocusDown="@id/btnRemoteControlControllers"
+                        android:nextFocusDown="@id/btnOpenExternalControl"
                         app:str_icon="@drawable/ic_exchange_mono"
-                        app:str_title="@string/remote_control_switch_title"
-                        app:str_subtitle="@string/remote_control_switch_subtitle" />
-
-                    <TextView
-                        android:id="@+id/textRemoteControlDisabledReason"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/margin_tiny"
-                        android:textColor="@color/text_color_secondary"
-                        android:text="@string/remote_control_disabled_reason"
-                        android:visibility="gone" />
+                        app:str_title="@string/external_control_switch"
+                        app:str_subtitle="@string/external_control_switch_note" />
 
                     <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnRemoteControlControllers"
+                        android:id="@+id/btnOpenExternalControl"
                         style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:focusable="true"
                         android:clickable="true"
+                        android:focusable="true"
                         android:nextFocusUp="@id/rowRemoteControlEnabled"
                         android:nextFocusDown="@id/btnSftpExchangeFoldersPortal"
-                        android:text="@string/remote_control_controllers_button" />
+                        android:text="@string/external_control_open" />
 
-                    <TextView
-                        android:id="@+id/textRemoteControlLogTitle"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/margin_tiny"
-                        android:textAppearance="@style/TextAppearance.Material3.TitleSmall"
-                        android:text="@string/remote_control_log_title" />
-
-                    <LinearLayout
-                        android:id="@+id/layoutRemoteControlLog"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical" />
 
                     <!-- S4273: SITE-STRUCTURE 0.2 item E - the page of the folders this section publishes through the server. -->
                     <com.google.android.material.button.MaterialButton
@@ -813,7 +795,7 @@
                         android:layout_height="wrap_content"
                         android:focusable="true"
                         android:clickable="true"
-                        android:nextFocusUp="@id/btnRemoteControlControllers"
+                        android:nextFocusUp="@id/btnOpenExternalControl"
                         android:nextFocusDown="@id/btnSftpExchangePortal"
                         android:text="@string/exchange_portal_link_folders_exchange_server" />
 

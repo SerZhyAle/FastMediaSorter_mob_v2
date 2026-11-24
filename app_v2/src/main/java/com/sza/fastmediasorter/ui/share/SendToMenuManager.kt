@@ -1,12 +1,15 @@
 package com.sza.fastmediasorter.ui.share
 
 import android.app.Activity
+import android.content.Intent
 import android.view.Menu
+import android.view.View
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.share.ShareTarget
 import com.sza.fastmediasorter.core.share.ShareTargetHandler
@@ -15,6 +18,7 @@ import com.sza.fastmediasorter.core.share.ShareTargetOutcome
 import com.sza.fastmediasorter.core.share.ShareableContent
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.usecase.BuildSendToReceiverListUseCase
+import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -79,6 +83,7 @@ class SendToMenuManager @Inject constructor(
         if (onPickResource == null) {
             if (receivers.isEmpty()) {
                 Timber.i("SendToMenuManager: no applicable receivers for %s", content.mediaType)
+                showNoReceiversHint(activity)
                 return
             }
             if (receivers.size == 1) {
@@ -88,6 +93,36 @@ class SendToMenuManager @Inject constructor(
         }
         SendToBottomSheet.newInstance(content, settings, onPickResource)
             .show(activity.supportFragmentManager, TAG)
+    }
+
+    /**
+     * A tap on «Send to..» must never end silently: with no applicable receiver the sheet has nothing to
+     * list, so the cause and the place that turns a target on are said instead. A reason plus one next
+     * step is a snackbar, not a toast (COMMUNICATION_POLICY 2.2); the toast is only the fallback for a
+     * host that has no content view left to anchor on.
+     */
+    private fun showNoReceiversHint(activity: FragmentActivity) {
+        Timber.d("S4885: send-to menu had no receivers, hint shown")
+        val message = activity.getString(
+            R.string.share_to_none_enabled,
+            activity.getString(R.string.settings_tab_operations),
+            activity.getString(R.string.settings_send_commands_group),
+        )
+        val anchor = activity.findViewById<View>(android.R.id.content)
+        if (anchor == null) {
+            Toast.makeText(activity, message, Toast.LENGTH_LONG).show()
+            return
+        }
+        // The default two-line cap would cut the path off, and the path is the part the user acts on.
+        Snackbar.make(anchor, message, Snackbar.LENGTH_LONG)
+            .setTextMaxLines(HINT_MAX_LINES)
+            .setAction(R.string.settings) {
+                activity.startActivity(
+                    Intent(activity, SettingsActivity::class.java)
+                        .putExtra(SettingsActivity.EXTRA_INITIAL_TAB, SettingsActivity.TAB_OPERATIONS),
+                )
+            }
+            .show()
     }
 
     /**
@@ -215,5 +250,6 @@ class SendToMenuManager @Inject constructor(
 
     companion object {
         private const val TAG = "send_to"
+        private const val HINT_MAX_LINES = 4
     }
 }

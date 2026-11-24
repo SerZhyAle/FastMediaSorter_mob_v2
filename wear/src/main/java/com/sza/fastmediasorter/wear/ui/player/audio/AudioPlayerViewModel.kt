@@ -238,6 +238,7 @@ class AudioPlayerViewModel @Inject constructor(
                     }
                     refreshStationFormat()
                     publishPlaybackState()
+                    networkSelection?.broadcastRoute?.let { playedBroadcastId = it.record.broadcastId }
                 }
                 Player.STATE_ENDED -> {
                     // S1837: a finished track advances through the set's own rule, so auto-advance
@@ -293,7 +294,12 @@ class AudioPlayerViewModel @Inject constructor(
                 val route = networkSelection?.broadcastRoute
                 if (route != null && isHostVisible) {
                     loadJob?.cancel()
-                    broadcastWalk.walk(route, fromTop = false, failure = error.streamFailure())
+                    broadcastWalk.walk(
+                        route,
+                        fromTop = false,
+                        failure = error.streamFailure(),
+                        afterPlay = playedBroadcastId == route.record.broadcastId,
+                    )
                 } else {
                     showStreamFailure(error.streamFailure())
                 }
@@ -306,6 +312,7 @@ class AudioPlayerViewModel @Inject constructor(
      * under it. Pausing is what releases the display hold, which follows `playWhenReady`.
      */
     private fun showStreamFailure(failure: WearStreamFailure) {
+        playedBroadcastId = null
         exoPlayer.pause()
         streamPlaybackSession.stop()
         _uiState.update { it.withStreamFailure(failure) }
@@ -314,6 +321,12 @@ class AudioPlayerViewModel @Inject constructor(
 
     /** S4610: whether the screen is in front; a walk swaps the player's endpoint only under a visible screen. */
     private var isHostVisible = true
+
+    /**
+     * DEVICE-EXCHANGE item DY: the broadcast that reached READY since its failure screen was last shown. Only a walk
+     * after a broadcast that played asks the after-end reconnect; one that never sounded is merely unreachable.
+     */
+    private var playedBroadcastId: String? = null
 
     private val broadcastWalk = BroadcastEndpointWalkManager(
         scope = viewModelScope,

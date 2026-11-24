@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
+import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.drawable.Drawable
@@ -32,9 +33,9 @@ object LanguageFlagFormatter {
     /** True when the country is rendered with a custom image flag instead of an emoji. */
     fun hasCustomCountryFlag(countryCode: String): Boolean = normalizeCountry(countryCode) in customCountryFlags
 
-    /** Sets [view] text to the full label: "Localized (Native)". */
+    /** Sets [view] text to the full label: "Localized (Native)", or one name when both spellings coincide. */
     fun applyLabel(view: TextView, item: LanguageItem) {
-        view.text = plainLabel(item)
+        view.text = plainLabel(view.context, item)
     }
 
     /** Compact label for narrow buttons: the upper-case language code, after the glyph when one exists. */
@@ -71,8 +72,10 @@ object LanguageFlagFormatter {
         return true
     }
 
-    /** Plain-text label, also used for content descriptions. */
-    fun plainLabel(item: LanguageItem): String = TranslationLanguageCatalog.formatLanguage(item)
+    /** Plain-text label, also used for content descriptions. [context] supplies the auto-detect row's string. */
+    fun plainLabel(context: Context, item: LanguageItem): String = TranslationLanguageCatalog.formatLanguage(
+        item.withAutoDetectLabel(context.getString(R.string.language_auto_detect))
+    )
 
     private fun normalizeCountry(countryCode: String): String = countryCode.trim().uppercase(Locale.ROOT)
 

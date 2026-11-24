@@ -26,6 +26,7 @@ function Write-Fail { Write-Host $args[0] -ForegroundColor Red }
 
 # Configuration
 . "$PSScriptRoot\utils\project-paths.ps1"
+. "$PSScriptRoot/devtest/lib/device-lease-client.ps1"
 $ProjectRoot = Get-ProjectRoot
 $ApkPath = "$ProjectRoot\DOWNLOADS\FastMediaSorter_standard_debug.apk"
 $LogOutputDir = "$ProjectRoot\temp\emulator_logs"
@@ -67,39 +68,33 @@ function Get-ConnectedDevices {
     return $devices
 }
 
+function Find-RunningAvd {
+    param([string]$EmulatorName)
+    foreach ($serial in (Get-ConnectedDevices)) {
+        if ($serial -match '^emulator-\d+$' -and
+            (Get-FmsAvdName -Adb 'adb' -Serial $serial) -eq $EmulatorName) {
+            return $serial
+        }
+    }
+}
+
 function Start-EmulatorIfNeeded {
     param([string]$EmulatorName)
-    
-    $runningEmulators = Get-ConnectedDevices
-    $hasRunningEmulator = ($runningEmulators | Where-Object { $_ -like "emulator-*" }).Count -gt 0
-    
-    if (-not $hasRunningEmulator) {
-        Write-Info "Starting emulator: $EmulatorName"
-        Start-Process -FilePath "emulator" -ArgumentList "@$EmulatorName" -NoNewWindow
-        
-        Write-Info "Waiting for emulator to boot..."
-        $timeout = 120
-        $elapsed = 0
-        
-        while ($elapsed -lt $timeout) {
-            Start-Sleep -Seconds 5
-            $elapsed += 5
-            
-            $bootCompleted = adb shell getprop sys.boot_completed 2>$null
-            if ($bootCompleted -match "1") {
-                Write-Success "Emulator booted successfully!"
-                Start-Sleep -Seconds 5  # Additional wait for stability
-                return $true
-            }
-            
-            Write-Info "Booting... ($elapsed/$timeout seconds)"
-        }
-        
-        Write-Fail "Emulator boot timeout!"
-        return $false
+
+    $serial = Find-RunningAvd -EmulatorName $EmulatorName
+    if ($serial) { return $serial }
+
+    Write-Info "Starting emulator: $EmulatorName"
+    Start-Process -FilePath 'emulator' -ArgumentList "@$EmulatorName" -WindowStyle Hidden
+    $deadline = (Get-Date).AddSeconds(120)
+    while ((Get-Date) -lt $deadline) {
+        Start-Sleep -Seconds 5
+        $serial = Find-RunningAvd -EmulatorName $EmulatorName
+        if (-not $serial) { continue }
+        $bootCompleted = adb -s $serial shell getprop sys.boot_completed 2>$null
+        if ($bootCompleted -eq '1') { return $serial }
     }
-    
-    return $true
+    Write-Fail "Emulator $EmulatorName boot timeout."
 }
 
 function Install-Apk {
@@ -202,30 +197,22 @@ function Test-SingleApi {
         return $false
     }
     
-    # Start emulator if needed
-    if (-not (Start-EmulatorIfNeeded -EmulatorName $emulatorName)) {
+    $lease = Request-FmsDeviceLease -Keys "avd:$emulatorName" -Reason 'Android compatibility test'
+    if (-not $lease.Acquired) {
+        Write-Fail "Emulator $emulatorName is leased by another session."
         return $false
     }
-    
-    # Get device serial
-    $devices = Get-ConnectedDevices
-    $deviceSerial = $devices[0]
-    
-    # Show device info
-    Get-DeviceInfo -DeviceSerial $deviceSerial
-    
-    # Install APK
-    if (-not (Install-Apk -DeviceSerial $deviceSerial)) {
-        return $false
+    try {
+        $deviceSerial = Start-EmulatorIfNeeded -EmulatorName $emulatorName
+        if (-not $deviceSerial) { return $false }
+        Get-DeviceInfo -DeviceSerial $deviceSerial
+        if (-not (Install-Apk -DeviceSerial $deviceSerial)) { return $false }
+        Start-AppAndCaptureLogs -ApiLevel $Api -DeviceSerial $deviceSerial -Duration 30
+        Write-Success "API $Api test setup complete."
+        Write-Info 'Review checklist: temp\K5_COMPATIBILITY_TEST_CHECKLIST.md'
+        return $true
     }
-    
-    # Start app and capture logs
-    Start-AppAndCaptureLogs -ApiLevel $Api -DeviceSerial $deviceSerial -Duration 30
-    
-    Write-Success "`nAPI $Api test setup complete!"
-    Write-Info "Review checklist: temp\K5_COMPATIBILITY_TEST_CHECKLIST.md"
-    
-    return $true
+    finally { Release-FmsDeviceLease -Keys $lease.NewKeys }
 }
 
 # Main execution

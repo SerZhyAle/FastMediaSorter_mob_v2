@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.21 13:29</sub>
+<sub class="doc-stamp">26.11.24 14:14</sub>
 
 # Play Console Operator Checklist - S0135
 
@@ -297,7 +297,8 @@ Two things not to go looking for (S2449 - both settled before the upload, neithe
   the phone bundle. Quotes and read date: `dev/PLAY_QUALITY_THRESHOLDS_2027.md` section 1.4.
 - **A fired "limited split-bundle usage" alert is recorded, not acted on.** This project declares no
   feature module and its configuration splits are already on by AGP default, so no delivery change
-  exists that would satisfy such an alert. Note whether it fired and move on: that observation is the
-  whole of S2449's residual. Detail: `dev/PLAY_QUALITY_THRESHOLDS_2027.md` section 3.1.
+  exists that would satisfy such an alert. Note whether it fired and move on. Last read 2026-11-24
+  (S2449): it did not fire for the 2026-11-12 bundles. Detail:
+  `dev/PLAY_QUALITY_THRESHOLDS_2027.md` section 3.1.
 
 ## Checklist completed by: ___________________  Date: ___________

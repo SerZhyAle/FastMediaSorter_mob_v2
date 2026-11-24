@@ -20,7 +20,7 @@
         android:layout_height="wrap_content"
         android:contentDescription="@string/feedback_folder_label"
         android:focusable="true"
-        android:minHeight="48dp"
+        android:minHeight="@dimen/token_touch_target_min"
         android:nextFocusDown="@id/feedbackSendButton" />
 
     <TextView

@@ -84,7 +84,6 @@ class BrowseLoadingAuxManager(
      * Updates resource availability to `false` for connectivity errors.
      */
     fun handleLoadingError(resource: MediaResource, e: Throwable) {
-        Timber.d("S4698: companion error guidance flow entered")
         if (e is LocalNetworkPermissionDeniedException) {
             sendEvent(BrowseEvent.ShowLocalNetworkPermissionRequired)
             setLoading(false)

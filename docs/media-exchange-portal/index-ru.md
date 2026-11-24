@@ -1,12 +1,12 @@
 ---
-source_sha256: 16b10260de10a121b198ea547cb4fb2868a04c4a1eedee189ef11e5b84ff3d96
+source_sha256: 1322534fd08d23feff049611ec74286cbef800731b143181dc03c46531267e44
 layout: doc
 title: "Обмен медиа между вашими устройствами"
 description: "Фото, видео и музыка одного вашего устройства открываются на других ваших устройствах, буфер передаётся между ними, а трансляции идут вживую."
 category: "Обмен медиа"
 permalink: /docs/media-exchange-portal/index-ru.html
 ---
-<sub class="doc-stamp">26.11.19 01:01</sub>
+<sub class="doc-stamp">26.11.23 11:23</sub>
 
 <a id="обмен-медиа-между-вашими-устройствами"></a>
 # Ваши файлы на всех ваших устройствах
@@ -46,7 +46,7 @@ permalink: /docs/media-exchange-portal/index-ru.html
 - **Android TV** - Fast Media Sorter & Organizer открывает ваши папки и облака и воспроизводит трансляции и интернет-потоки.
 - **VR-шлем** - Fast Media Sorter & Organizer, редакция VR, открывает ваши папки и облака и воспроизводит трансляции и интернет-потоки внутри шлема.
 - **ПК с Windows** - у [Fast Media Sorter & Sharing for Windows](windows-servers-ru.html) [три необязательные части](windows-servers-ru.html#three-parts): просмотрщик и сортировщик фото и видео; раздача папок, которая раздаёт выбранные папки на ваши телефоны и привязывает телефон по QR-коду или файлу настроек; и сервер обмена - место встречи ваших устройств в одном аккаунте. Начните [с просмотрщика](windows-servers-ru.html#viewer-first) или, для ПК, который только раздаёт, без вошедшего пользователя, [с сервера](windows-servers-ru.html#server-first).
-- **ПК с Windows** - [STREAMS Player](https://serzhyale.github.io/StreamsPlayer/) воспроизводит живые трансляции с телефона или часов.
+- **ПК с Windows** - [STREAMS Player](https://serzhyale.github.io/StreamsPlayer/) воспроизводит живые трансляции с телефона или часов. [Руководство по обмену медиа в STREAMS Player](streamsplayer-ru.html).
 - **Браузер** - [FastMediaSorter for Web](https://serzhyale.github.io/FastMediaSorter_WEB/) подключается к той же учётной записи обмена как ещё одно устройство в браузере и использует тот же протокол обмена, что и установленные программы.
 
 <a id="пошаговые-инструкции-по-сценариям"></a>

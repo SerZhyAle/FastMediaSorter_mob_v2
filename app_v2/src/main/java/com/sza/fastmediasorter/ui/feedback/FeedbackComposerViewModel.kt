@@ -4,9 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.feedback.FeedbackFolderChoice
 import com.sza.fastmediasorter.domain.ticket.TicketAttachmentSource
 import com.sza.fastmediasorter.domain.usecase.feedback.AttachFeedbackLogsUseCase
-import com.sza.fastmediasorter.domain.usecase.feedback.FeedbackFolderChoice
 import com.sza.fastmediasorter.domain.usecase.feedback.ObserveFeedbackFoldersUseCase
 import com.sza.fastmediasorter.domain.usecase.feedback.SelectFeedbackFolderUseCase
 import com.sza.fastmediasorter.domain.usecase.feedback.SendFeedbackUseCase

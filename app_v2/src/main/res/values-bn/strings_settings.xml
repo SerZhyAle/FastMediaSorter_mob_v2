@@ -277,7 +277,7 @@
     <string name="setting_mic_recording_destination_default_recordings">ডিফল্ট: রেকর্ডিং ফোল্ডার (Android 11 ও তার আগের সংস্করণে Music)</string>
     <string name="setting_screen_recording_destination_default_movies">ডিফল্ট: Movies ফোল্ডার</string>
     <string name="drive_channel_enabled_title">Google Drive-এর মাধ্যমে ফাইল</string>
-    <string name="drive_channel_enabled_subtitle">এক্সচেঞ্জ সার্ভার ছাড়াই আপনার Google Drive-এর মাধ্যমে নিজের ডিভাইসগুলোর মধ্যে ফাইল পাঠান ও গ্রহণ করুন</string>
+    <string name="drive_channel_enabled_subtitle">এক্সচেঞ্জ সার্ভার ছাড়াই আপনার Google Drive-এর মাধ্যমে নিজের ডিভাইসগুলোর মধ্যে ফাইল পাঠান ও গ্রহণ করুন এবং সেগুলোকে আপনার সম্প্রচারের খবর দিন</string>
     <string name="drive_channel_background_title">ব্যাকগ্রাউন্ডে Google Drive-এর মাধ্যমে পরীক্ষা করুন</string>
     <string name="drive_channel_background_subtitle">প্রতি 15 মিনিটে, যাতে অ্যাপ বন্ধ থাকলেও আপনার অন্য ডিভাইস এই ফোনের শেয়ার করা ফোল্ডার খুলতে পারে</string>
     <string name="drive_channel_row_from">%1$s থেকে</string>

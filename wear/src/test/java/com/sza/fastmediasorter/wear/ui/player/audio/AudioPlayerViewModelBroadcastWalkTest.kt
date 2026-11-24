@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearBroadcastRoute
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearNetworkChannel
 import com.sza.fastmediasorter.wear.domain.model.WearNetworkChannelKind
+import com.sza.fastmediasorter.wear.domain.playback.WearAfterEndAnswer
 import com.sza.fastmediasorter.wear.domain.playback.WearBackgroundSessionState
 import com.sza.fastmediasorter.wear.domain.playback.WearStreamFailure
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
@@ -106,6 +107,7 @@ class AudioPlayerViewModelBroadcastWalkTest {
             isDirectStream = true,
             broadcastRoute = lanRoute,
         )
+        coEvery { walk.afterEnd(any()) } returns WearAfterEndAnswer.NO_ANSWER
     }
 
     @After
@@ -137,6 +139,35 @@ class AudioPlayerViewModelBroadcastWalkTest {
         listener.captured.onPlayerError(networkError())
         advanceUntilIdle()
 
+        assertEquals(WearStreamFailure.FAILED, viewModel.uiState.value.streamFailure)
+    }
+
+    @Test
+    fun `an exhausted walk whose one reconnect is refused shows the ended screen`() = runTest(dispatcher) {
+        coEvery { walk(lanRoute, false) } returns null
+        coEvery { walk.afterEnd(record) } returns WearAfterEndAnswer.ENDED
+        val viewModel = obtain(ViewModelStore())
+        advanceUntilIdle()
+
+        listener.captured.onPlaybackStateChanged(Player.STATE_READY)
+        listener.captured.onPlayerError(networkError())
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { walk.afterEnd(record) }
+        assertEquals(WearStreamFailure.ENDED, viewModel.uiState.value.streamFailure)
+    }
+
+    @Test
+    fun `an exhausted walk after play with no answer stays a failure`() = runTest(dispatcher) {
+        coEvery { walk(lanRoute, false) } returns null
+        val viewModel = obtain(ViewModelStore())
+        advanceUntilIdle()
+
+        listener.captured.onPlaybackStateChanged(Player.STATE_READY)
+        listener.captured.onPlayerError(networkError())
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { walk.afterEnd(record) }
         assertEquals(WearStreamFailure.FAILED, viewModel.uiState.value.streamFailure)
     }
 

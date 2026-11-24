@@ -651,10 +651,21 @@
         <item name="android:minHeight">@dimen/dialog_cancel_button_min_height</item>
     </style>
 
+    <!-- S4835: Material widens the side background insets from 10dp to 24dp on screens at least 480dp
+         tall, so the same dialog card was 28dp narrower in portrait. That is enough to push the wide
+         confirm and the cancel button past the bar width, and the stacked bar puts confirm on top, so
+         portrait and landscape showed the pair in opposite orders. One side inset keeps the card width
+         orientation-independent; the top and bottom insets stay Material's. -->
+    <style name="MaterialAlertDialog.FastMediaSorter" parent="MaterialAlertDialog.Material3">
+        <item name="backgroundInsetStart">@dimen/dialog_background_inset_horizontal</item>
+        <item name="backgroundInsetEnd">@dimen/dialog_background_inset_horizontal</item>
+    </style>
+
     <!-- S0538: builder seam - every MaterialAlertDialogBuilder dialog inherits the unified pair via
          materialAlertDialogTheme on the app theme, no per-call edit. Destructive dialogs override the
          positive slot per-call (Phase 03). -->
     <style name="ThemeOverlay.FastMediaSorter.MaterialAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="alertDialogStyle">@style/MaterialAlertDialog.FastMediaSorter</item>
         <item name="buttonBarPositiveButtonStyle">@style/Widget.FastMediaSorter.Button.DialogConfirm</item>
         <item name="buttonBarNegativeButtonStyle">@style/Widget.FastMediaSorter.Button.DialogCancel</item>
         <item name="buttonBarNeutralButtonStyle">@style/Widget.FastMediaSorter.Button.DialogCancel</item>
@@ -667,6 +678,7 @@
     <style name="ThemeOverlay.FastMediaSorter.MaterialAlertDialog.Destructive" parent="ThemeOverlay.Material3.MaterialAlertDialog">
         <!-- S4051: marks the dialog destructive so Cancel, not the red confirm, holds the default focus. -->
         <item name="dialogDestructive">true</item>
+        <item name="alertDialogStyle">@style/MaterialAlertDialog.FastMediaSorter</item>
         <item name="buttonBarPositiveButtonStyle">@style/Widget.FastMediaSorter.Button.DialogDestructive</item>
         <item name="buttonBarNegativeButtonStyle">@style/Widget.FastMediaSorter.Button.DialogCancel</item>
         <item name="buttonBarNeutralButtonStyle">@style/Widget.FastMediaSorter.Button.DialogCancel</item>

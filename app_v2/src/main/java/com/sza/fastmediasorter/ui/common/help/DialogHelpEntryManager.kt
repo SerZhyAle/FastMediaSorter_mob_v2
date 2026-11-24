@@ -9,10 +9,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import androidx.annotation.IdRes
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.databinding.ViewDialogHelpButtonBinding
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import timber.log.Timber
 
@@ -45,7 +47,7 @@ object DialogHelpEntryManager {
     fun installButton(dialog: Dialog, surfaceId: String?) {
         val decor = dialog.window?.peekDecorView() ?: return
         val available = surfaceId != null && HelpOpenManager.hasHelp(dialog.context, surfaceId)
-        val button = decor.findViewById(R.id.btnDialogHelp) ?: if (available) appendToTitleRow(decor) else null
+        val button = decor.findHostView(R.id.btnDialogHelp) ?: if (available) appendToTitleRow(decor) else null
         button ?: return
         Timber.d("S4666: help slot surface=$surfaceId available=$available")
         Timber.d("S4660: dialog help button surface=$surfaceId visible=$available")
@@ -101,15 +103,20 @@ object DialogHelpEntryManager {
     // The platform title row is a horizontal LinearLayout whose title is match_parent: without a weight
     // the appended button would get no width.
     private fun appendToTitleRow(decor: View): View? {
-        val row = decor.findViewById<LinearLayout>(androidx.appcompat.R.id.title_template)
+        val row = decor.findHostView(androidx.appcompat.R.id.title_template) as? LinearLayout
         val usable = row != null && row.orientation == LinearLayout.HORIZONTAL && row.isTitleShown()
         if (!usable) return null
-        row.findViewById<View>(androidx.appcompat.R.id.alertTitle)?.let { title ->
+        row.findHostView(androidx.appcompat.R.id.alertTitle)?.let { title ->
             title.layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
         }
-        LayoutInflater.from(row.context).inflate(R.layout.view_dialog_help_button, row, true)
-        return row.findViewById(R.id.btnDialogHelp)
+        return ViewDialogHelpButtonBinding.inflate(LayoutInflater.from(row.context), row, true).root
     }
+
+    /**
+     * Every id this object looks up lives in a layout it does not own - the platform title row, or the
+     * help slot of whichever dialog layout is showing - so no generated binding can reach it (S1693).
+     */
+    private fun View.findHostView(@IdRes id: Int): View? = findViewById(id)
 
     private fun View.isTitleShown(): Boolean =
         visibility == View.VISIBLE && (parent as? View)?.visibility == View.VISIBLE

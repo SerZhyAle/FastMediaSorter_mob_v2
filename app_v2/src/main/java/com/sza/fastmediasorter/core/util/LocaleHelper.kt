@@ -300,8 +300,12 @@ object LocaleHelper {
 
     /**
      * Save language code to preferences and LocaleManager (Android 13+)
+     *
+     * Disk reads are permitted as well as writes: the first `getSharedPreferences` touch checks the
+     * preferences directory and `edit()` waits for the file to load, both reads. The save stays on the
+     * calling thread because `applyLanguageLive` re-creates the open activities right after it.
      */
-    fun saveLanguage(context: Context, languageCode: String) = StrictModeHelper.allowDiskWrites {
+    fun saveLanguage(context: Context, languageCode: String) = StrictModeHelper.allowDiskIO {
         val followSystem = isFollowSystemLanguage(languageCode)
         val resolvedLanguageCode = if (followSystem) {
             detectSystemLanguage(context)
@@ -355,6 +359,9 @@ object LocaleHelper {
             .edit()
             .remove(PREF_SELECTED_LANGUAGE)
             .apply()
+
+        val systemLanguage = detectSystemLanguage(context)
+        Locale.setDefault(Locale.forLanguageTag(systemLanguage))
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             try {
@@ -438,8 +445,14 @@ object LocaleHelper {
      * `BaseActivity` already applied, so a writer that skips this leaves a stale override behind.
      */
     fun applyLanguageLive(context: Context, languageCode: String) {
-        Timber.d("S4603: applyLanguageLive code=$languageCode sdk=${Build.VERSION.SDK_INT}")
+        Timber.d("S4603: applyLanguageLive code=$languageCode")
         saveLanguage(context, languageCode)
+        val resolvedLanguageCode = if (isFollowSystemLanguage(languageCode)) {
+            detectSystemLanguage(context)
+        } else {
+            resolveSupportedLanguageCode(languageCode)
+        }
+        Locale.setDefault(Locale.forLanguageTag(resolvedLanguageCode))
         syncAppCompatLocales(languageCode)
     }
 

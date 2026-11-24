@@ -259,7 +259,7 @@ object TranslationSettingsDialog {
         if (item != null) {
             LanguageFlagFormatter.applyLabel(view, item)
             view.contentDescription =
-                "${context.getString(titleRes)}: ${LanguageFlagFormatter.plainLabel(item)}"
+                "${context.getString(titleRes)}: ${LanguageFlagFormatter.plainLabel(context, item)}"
         } else {
             val fallback = code.uppercase(Locale.ROOT)
             view.text = fallback

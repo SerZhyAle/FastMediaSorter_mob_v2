@@ -1123,6 +1123,11 @@
       "sectionId": "wear",
       "reason": "not-a-destination",
       "note": "Four Compose screens that live in the wear module and render no app_v2 resource. Strategic 3.2 puts Wear OS out of scope entirely; the watch has its own walk."
+    },
+    {
+      "sectionId": "feedback",
+      "reason": "not-a-destination",
+      "note": "Not a phone settings page: one folder spinner row (view_feedback_folder_row) hosted inside the Feedback inputs surface and registered in SettingsDocScopeCatalog, so it is reached from that surface rather than from the settings entry."
     }
   ],
   "_activityCoverage": {
@@ -1178,10 +1183,10 @@
     "above (some screens are dialogs hosted by an already-counted activity, so screens > activities),",
     "and 48 are named in `excluded`. 27 + 48 = 75, with no record in both lists and none in neither.",
     "",
-    "Settings sections: docs/settings/settings-manifest.json holds 19 distinct sectionId values.",
+    "Settings sections: docs/settings/settings-manifest.json holds 20 distinct sectionId values.",
     "17 are covered by a walk entry through `_sectionCoverage`, two of those (camera, translation) from",
     "their host screen rather than from the settings entry, because no settings path to them exists.",
-    "2 are named in `excludedSettingsSections`. 17 + 2 = 19.",
+    "3 are named in `excludedSettingsSections`. 17 + 3 = 20.",
     "",
     "The step 03.4 gate re-derives both sums from the source files rather than trusting this note."
   ]

@@ -74,6 +74,19 @@ object UiLanguagePickerItems {
     }
 
     /**
+     * The code a picker marks as selected for the language the app is showing. While the app follows the
+     * system this is [LocaleHelper.FOLLOW_SYSTEM_LANGUAGE], not the language the system resolved to, so the
+     * "Default" row is the marked one - [LocaleHelper.getLanguage] alone would name the resolved language
+     * and mark a row the user never picked.
+     */
+    fun selectionCode(context: Context): String =
+        if (LocaleHelper.isFollowingSystemLanguage(context)) {
+            LocaleHelper.FOLLOW_SYSTEM_LANGUAGE
+        } else {
+            LocaleHelper.getLanguage(context)
+        }
+
+    /**
      * The one-line label a screen shows for a stored language value: the language's own name, or the
      * "follow system" wording. Both the settings row and the Welcome control read it from here so they
      * cannot disagree about what the current language is called.

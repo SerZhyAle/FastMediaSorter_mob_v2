@@ -74,6 +74,7 @@
     <string name="delete_confirmation">Eliminare i file?</string>
     <string name="delete_failed">Impossibile eliminare i file.</string>
     <string name="delete_folder_confirm">Eliminare la cartella \"%1$s\" e tutto il suo contenuto? Questa operazione è irreversibile.</string>
+    <string name="delete_folder_trash_confirm">Eliminare la cartella \"%1$s\" e tutto il suo contenuto? Viene spostata nel cestino anziché cancellata.</string>
     <string name="delete_n_files_from_network_title">Eliminare %d file dalla rete?</string>
     <string name="delete_n_folders_confirm">Eliminare le cartelle %1$d e tutto il loro contenuto? Questa operazione non può essere annullata.</string>
     <string name="delete_old_files">Elimina i file vecchi</string>

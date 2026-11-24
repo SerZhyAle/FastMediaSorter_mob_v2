@@ -117,20 +117,15 @@ function Invoke-AdbVerb {
 
 # --- Device selection -------------------------------------------------------------------------
 
-$id = $DeviceId
-if (-not $id) {
-    $listing = Invoke-AdbVerb -Arguments @('devices', '-Json')
-    if ($listing.Exit -ne 0) { Stop-Run 2 "could not list devices: $($listing.Output)" }
-    try { $devices = @(($listing.Output | ConvertFrom-Json).data) }
-    catch { Stop-Run 2 "could not parse the device listing: $($listing.Output)" }
-
-    if ($devices.Count -eq 0) { Stop-Run 2 'no device is attached' }
-    if ($devices.Count -gt 1) {
-        $names = ($devices | ForEach-Object { "$($_.id) ($($_.model))" }) -join ', '
-        Stop-Run 2 "several devices are attached ($names) - pass -DeviceId, because picking one would be guessing which device the verdict is about"
-    }
-    $id = $devices[0].id
+. (Join-Path $PSScriptRoot 'lib/device-lease-client.ps1')
+$leaseArgs = @{}
+if ($DeviceId) { $leaseArgs.DeviceId = $DeviceId }
+$ready = & (Join-Path $PSScriptRoot 'device-ready.ps1') -Module wear -ClaimFree -Json @leaseArgs | ConvertFrom-Json
+if ($LASTEXITCODE -ne 0 -or -not $ready.ready) {
+    Stop-Run 2 "could not claim a watch: $($ready.reason)"
 }
+$id = $ready.selectedDevice
+try {
 $result.device = $id
 
 function Get-DeviceProp {
@@ -357,3 +352,7 @@ $result.exitCode = 0
 if ($Json) { [pscustomobject]$result | ConvertTo-Json -Depth 6 -Compress }
 else { Write-Host "wear-prerelease-prepare: PASS - $($apk.name) installed and running on $id; manifest $manifestPath" -ForegroundColor Green }
 exit 0
+}
+finally {
+    Release-FmsDeviceLease -Keys $ready.newLeaseKeys
+}

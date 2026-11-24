@@ -5,10 +5,10 @@ import com.sza.fastmediasorter.domain.identity.GoogleScope
 import com.sza.fastmediasorter.domain.identity.IdentityFailureReason
 import com.sza.fastmediasorter.domain.identity.IdentitySignInResult
 import com.sza.fastmediasorter.domain.identity.PrimaryGoogleAccount
+import com.sza.fastmediasorter.domain.model.feedback.FeedbackFolderChoice
 import com.sza.fastmediasorter.domain.model.ticket.TicketDestination
 import com.sza.fastmediasorter.domain.model.ticket.TicketOutboxEntry
 import com.sza.fastmediasorter.domain.model.ticket.TicketOutboxState
-import com.sza.fastmediasorter.domain.usecase.feedback.FeedbackFolderChoice
 import com.sza.fastmediasorter.domain.usecase.feedback.ObserveFeedbackFoldersUseCase
 import com.sza.fastmediasorter.domain.usecase.ticket.GetTicketProjectsUseCase
 import com.sza.fastmediasorter.domain.usecase.ticket.GrantTicketDriveAccessUseCase

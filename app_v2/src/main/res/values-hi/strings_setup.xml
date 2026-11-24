@@ -36,7 +36,6 @@
     <string name="welcome_profile_video_player_title">वीडियो प्लेयर</string>
     <string name="welcome_profile_vr_headset_desc">वर्चुअल रियलिटी डिवाइस के लिए सबसे अच्छा। समर्थित हेडसेट पर 3D/360° लेआउट और इमर्सिव नियंत्रण पहले से चालू करता है।</string>
     <string name="welcome_profile_vr_headset_title">VR हेडसेट</string>
-    <string name="welcome_recommended_badge">(अनुशंसित)</string>
     <string name="welcome_title_1">Fast Media Sorter &amp; Organizer में आपका स्वागत है!</string>
     <string name="sysinfo_field_abis">ABI</string>
     <string name="sysinfo_field_android_version">Android</string>
@@ -140,7 +139,7 @@
     <string name="welcome_func_downloading">डाउनलोड हो रहा है.. %1$d%%</string>
     <string name="welcome_func_download_failed">डाउनलोड विफल - फिर कोशिश करने के लिए टैप करें</string>
     <string name="welcome_func_download_done">तैयार</string>
-    <string name="welcome_permissions_title">\"कुछ\" अनुमतियाँ</string>
+    <string name="welcome_permissions_title">कुछ अनुमतियाँ</string>
     <string name="welcome_permissions_subtitle">पहुँच दें ताकि ऐप आपका मीडिया दिखा सके।</string>
     <string name="welcome_func_streams">स्ट्रीम</string>
     <string name="welcome_streams_catalog_done">सूची डाउनलोड हो गई</string>

@@ -752,7 +752,9 @@ class PlayerActivity :
         if (_videoPlayerManager != null) exoPlayerControlsManager.setupExoPlayerNavigationButtons()
         // Re-render what the fresh views start without (EPUB/Office move their live WebView over).
         _pdfViewerManager?.let { it.showPdfPage(it.currentPageIndex()) }
-        _textViewerManager?.rerenderAfterRebind()
+        _textViewerManager?.rerenderAfterRebind {
+            updatePanelVisibility(viewModel.state.value.showCommandPanel)
+        }
     }
 
     override fun setupViews() {

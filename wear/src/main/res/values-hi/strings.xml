@@ -1105,4 +1105,11 @@
     <string name="wear_scheduled_message_channel_name">निर्धारित संदेश</string>
     <string name="wear_audio_fetching">ट्रैक लोड हो रहा है..</string>
     <string name="wear_stream_ended">यह स्ट्रीम अब प्रसारित नहीं हो रही है। दोबारा शुरू होने पर फिर से कोशिश करें।</string>
+    <string name="wear_tourist_lock_exit_hint">लॉक है. अनलॉक करने के लिए 3 बार तेज़ी से पीछे स्वाइप करें</string>
+    <string name="wear_broadcast_waiting_until">प्रसारण अभी शुरू नहीं हुआ है. लिंक %1$s तक काम करता है</string>
+    <string name="wear_broadcast_started">प्रसारण शुरू हो गया है</string>
+    <string name="wear_broadcast_expired">यह लिंक अब काम नहीं करता</string>
+    <string name="wear_broadcast_play">चलाएं</string>
+    <string name="wear_tourist_no_fix_approximate">स्थान खोजा जा रहा है..</string>
+    <string name="wear_tourist_precise_needed">सटीक स्थान चाहिए</string>
 </resources>

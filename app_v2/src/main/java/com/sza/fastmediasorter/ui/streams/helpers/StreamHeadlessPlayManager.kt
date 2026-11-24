@@ -4,8 +4,8 @@ import android.content.Context
 import android.net.Uri
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
-import com.sza.fastmediasorter.data.broadcast.exchange.BroadcastExchangeEndpoints
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
+import com.sza.fastmediasorter.domain.usecase.streams.ResolveBroadcastPlaybackUseCase
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellableContinuation
@@ -150,7 +150,7 @@ class StreamHeadlessPlayManager @Inject constructor(
             backgroundAudioEnabled: Boolean,
             hasNetwork: Boolean,
         ): Boolean = source.mediaKind == AUDIO_MEDIA_KIND && backgroundAudioEnabled && hasNetwork &&
-            source.broadcastEndpoints == null && !BroadcastExchangeEndpoints.isExchangeUrl(source.url)
+            source.broadcastEndpoints == null && !ResolveBroadcastPlaybackUseCase.isExchangeUrl(source.url)
 
         private const val AUDIO_MEDIA_KIND = "AUDIO"
 

@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.20 19:55</sub>
+<sub class="doc-stamp">26.11.24 13:35</sub>
 
 # FastMediaSorter v2: Architecture & Flow
 
@@ -640,7 +640,7 @@ parameters, and one marker. `copy$default` spends the same plus the receiver.
 
 - The phone settings screen is a top tab strip (General, Media, Player, Management, then flavor extension tabs) over a `ViewPager2`; About is the last group of the General tab.
 - A settings editor that belongs to a host screen stays in that screen's own dialog: calculator, stopwatch, player translation, camera OCR, launcher settings, the Drive switches of pending transfers.
-- On/off rows are Pattern A: `SettingsToggleRow` with a trailing `MaterialSwitch`.
+- On/off rows are Pattern A: `SettingsToggleRow` with a `MaterialSwitch` at the row's start, before the text group.
 - These are the portfolio owner's decision of 2026-11-15, recorded as exceptions to `SETTINGS-NAVIGATION` and `BOOLEAN-OPTION` (catalog registry, section 3, row "S4634"). Do not migrate the phone settings to a page rail, a page list, an About page or leading checkboxes.
 
 ## Wear Settings Persistence (S2050)

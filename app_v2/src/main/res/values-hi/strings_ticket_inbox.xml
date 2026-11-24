@@ -27,4 +27,12 @@
     <string name="ticket_inbox_queued_notice">टिकट भेजने के लिए कतार में है</string>
     <string name="ticket_inbox_stage_failed">टिकट सहेजा नहीं जा सका: %1$s</string>
     <string name="ticket_inbox_discard">सूची से हटाएँ</string>
+    <string name="ticket_inbox_destination_label">यहाँ पहुँचाएँ</string>
+    <string name="ticket_inbox_state_folder_waiting">PC पर फ़ोल्डर की प्रतीक्षा में: %1$s</string>
+    <string name="ticket_inbox_state_folder_sent">फ़ोल्डर में - PC की प्रतीक्षा में</string>
+    <string name="ticket_inbox_grant_drive">Google Drive तक पहुँच की अनुमति दें</string>
+    <string name="ticket_inbox_state_needs_access">Google Drive तक पहुँच चाहिए - ऊपर के बटन से अनुमति दें</string>
+    <string name="ticket_inbox_drive_access_granted">पहुँच मिल गई - प्रतीक्षा कर रहे टिकट अब भेजे जा रहे हैं</string>
+    <string name="ticket_inbox_drive_access_declined">पहुँच नहीं दी गई - आपके अनुमति देने तक टिकट सूची में रहेंगे</string>
+    <string name="ticket_inbox_drive_access_failed">Google पहुँच वाली स्क्रीन नहीं दिखा सका - थोड़ी देर में फिर कोशिश करें</string>
 </resources>

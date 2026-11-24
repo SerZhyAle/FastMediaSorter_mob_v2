@@ -8,6 +8,7 @@ import android.provider.ContactsContract
 import com.sza.fastmediasorter.core.AppShortcutsManager
 import com.sza.fastmediasorter.core.panel.AppLaunchPanelRouteIntents
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
+import com.sza.fastmediasorter.core.panel.LauncherResourceIntents
 import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
 import com.sza.fastmediasorter.data.launcher.AppShortcutDataSource
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
@@ -19,9 +20,6 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
 import com.sza.fastmediasorter.domain.repository.LauncherJournalRepository
 import com.sza.fastmediasorter.domain.usecase.panel.ResolvePanelRouteAvailabilityUseCase
 import com.sza.fastmediasorter.domain.usecase.radio.ToggleRadioTargetUseCase
-import com.sza.fastmediasorter.ui.browse.BrowseActivity
-import com.sza.fastmediasorter.ui.browse.helpers.BrowseExitManager
-import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.util.resolveActivityCompat
 import com.sza.fastmediasorter.widget.StreamPlayLaunchActivity
 import dagger.Lazy
@@ -117,18 +115,13 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
 
     private fun launchResource(command: LauncherCellCommand.Resource): Boolean {
         val intent = when (command.mode) {
-            LauncherResourceMode.BROWSE -> BrowseExitManager.fromLauncher(
-                BrowseActivity.createIntent(context, command.resourceId)
-            )
-            LauncherResourceMode.SLIDESHOW -> PlayerActivity.createPanelIntent(
+            LauncherResourceMode.BROWSE -> LauncherResourceIntents.browse(context, command.resourceId)
+            LauncherResourceMode.SLIDESHOW -> LauncherResourceIntents.player(
                 context = context,
                 resourceId = command.resourceId,
                 isSlideshowEnabled = true,
             )
-            LauncherResourceMode.PLAY -> PlayerActivity.createPanelIntent(
-                context = context,
-                resourceId = command.resourceId,
-            )
+            LauncherResourceMode.PLAY -> LauncherResourceIntents.player(context, command.resourceId)
         }
         return startIntent(intent)
     }
@@ -235,7 +228,7 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
     }
 
     private fun favoriteFileIntent(command: LauncherCellCommand.FavoriteFile): Intent {
-        return PlayerActivity.createPanelIntent(
+        return LauncherResourceIntents.player(
             context = context,
             resourceId = command.resourceId,
             skipAvailabilityCheck = true,

@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -39,7 +40,9 @@ class CompanionQrScanActivity : AppCompatActivity() {
     ) { granted -> if (granted) startScan() else denyAndFinish() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        Timber.d("S4879: CompanionQrScanActivity onCreate with enableEdgeToEdge")
         binding = ActivityCompanionQrScanBinding.inflate(layoutInflater)
         setContentView(binding.root)
 

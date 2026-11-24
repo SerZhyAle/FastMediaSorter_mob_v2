@@ -65,6 +65,23 @@ class TranslationLanguageCatalogTest {
     }
 
     @Test
+    fun formatLanguage_printsOneNameWhenBothSpellingsCoincide() {
+        val auto = TranslationLanguageCatalog.findLanguage("auto", Locale.GERMAN)
+
+        assertNotNull(auto)
+        assertEquals("Auto-detect", TranslationLanguageCatalog.formatLanguage(auto!!))
+    }
+
+    @Test
+    fun withAutoDetectLabel_replacesOnlyTheAutoRow() {
+        val auto = TranslationLanguageCatalog.findLanguage("auto", Locale.ENGLISH)!!
+        val czech = TranslationLanguageCatalog.findLanguage("cs", Locale.ENGLISH)!!
+
+        assertEquals("Automatisch", TranslationLanguageCatalog.formatLanguage(auto.withAutoDetectLabel("Automatisch")))
+        assertEquals(czech, czech.withAutoDetectLabel("Automatisch"))
+    }
+
+    @Test
     fun languageCodeToMLKit_keepsCzechCode() {
         assertEquals("cs", TranslationManager.languageCodeToMLKit("cs"))
     }

@@ -179,6 +179,8 @@ class StreamSourceAdapter(
             binding.tvUrl.text =
                 StreamBroadcastEndpointManager.caption(binding.root.context, source.broadcastEndpoints) ?: source.url
             binding.ivKind.setImageResource(kindIcon(source.mediaKind))
+            // S4886: the layout's static label spoke the screen title for every row, which read as a wrong kind.
+            binding.ivKind.contentDescription = binding.root.context.getString(kindLabel(source.mediaKind))
             bindFavicon(source)
             bindPlayStatus(playOutcomes[source.id])
             val paused = isPlaying && playingPaused
@@ -436,6 +438,11 @@ class StreamSourceAdapter(
     private fun kindIcon(mediaKind: String): Int = when (mediaKind) {
         "AUDIO" -> R.drawable.ic_audio
         else -> R.drawable.ic_video
+    }
+
+    private fun kindLabel(mediaKind: String): Int = when (mediaKind) {
+        "AUDIO" -> R.string.streams_edit_type_audio
+        else -> R.string.streams_edit_type_video
     }
 
     /**

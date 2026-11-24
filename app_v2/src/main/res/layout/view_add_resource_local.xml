@@ -3,6 +3,8 @@
 
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/padding_large" android:paddingEnd="@dimen/padding_large" android:paddingTop="@dimen/padding_small" android:paddingBottom="@dimen/padding_large">
 
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/local_folder_guidance" android:textAppearance="?attr/textAppearanceBodyMedium" />
+
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical|end">
 
             <com.google.android.material.button.MaterialButton android:id="@+id/btnScan" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/scan_button" app:icon="@drawable/ic_scan" />

@@ -5,7 +5,7 @@ description: "Open the photos, videos and music of one of your devices on your o
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/
 ---
-<sub class="doc-stamp">26.11.19 01:01</sub>
+<sub class="doc-stamp">26.11.23 11:22</sub>
 
 # Your files on all your devices {#media-exchange-between-your-devices}
 
@@ -42,7 +42,7 @@ Two more sections cover what needs no setup of your own:
 - **Android TV** - Fast Media Sorter & Organizer opens your folders and clouds and plays broadcasts and internet streams.
 - **VR headset** - Fast Media Sorter & Organizer, VR edition, opens your folders and clouds and plays broadcasts and internet streams inside the headset.
 - **Windows PC** - [Fast Media Sorter & Sharing for Windows](windows-servers.html) has [three optional parts](windows-servers.html#three-parts): a viewer and sorter for photos and videos; folder sharing, which shares the folders you pick with your phones and pairs a phone by QR code or by a configuration file; and the exchange server, the meeting point of your devices on one account. Start [viewer first](windows-servers.html#viewer-first), or [server first](windows-servers.html#server-first) for a PC that only serves, with nobody signed in.
-- **Windows PC** - [STREAMS Player](https://serzhyale.github.io/StreamsPlayer/) plays live broadcasts from a phone or a watch.
+- **Windows PC** - [STREAMS Player](https://serzhyale.github.io/StreamsPlayer/) plays live broadcasts from a phone or a watch. [Media exchange guide for STREAMS Player](streamsplayer.html).
 - **Browser** - [FastMediaSorter for Web](https://serzhyale.github.io/FastMediaSorter_WEB/) joins the same exchange account as another device in your browser and uses the same exchange protocol as the native programs.
 
 ## Step-by-step guides by scenario {#step-by-step-guides-by-scenario}

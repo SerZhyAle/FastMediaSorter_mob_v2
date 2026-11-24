@@ -3,12 +3,9 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Network
-import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import com.sza.fastmediasorter.data.broadcast.exchange.BroadcastExchangeEndpoints
-import com.sza.fastmediasorter.data.broadcast.exchange.BroadcastLoopbackBridges
 import com.sza.fastmediasorter.domain.player.BroadcastPlaybackSessions
 import com.sza.fastmediasorter.domain.usecase.streams.ResolveBroadcastPlaybackUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ResolveBroadcastPlaybackUseCase.Playback
@@ -28,7 +25,6 @@ import javax.inject.Inject
 class AudioServiceBroadcastFailoverManager @Inject constructor(
     @ApplicationContext private val context: Context,
     private val resolvePlayback: ResolveBroadcastPlaybackUseCase,
-    private val bridges: BroadcastLoopbackBridges,
 ) {
 
     /** The answer of one resolution, for the played address it was asked about. */
@@ -85,9 +81,8 @@ class AudioServiceBroadcastFailoverManager @Inject constructor(
 
     /** Closes the loopback bridge a broadcast [playedUrl] plays through; any other address is left alone. */
     fun closeBridgeOf(playedUrl: String?) {
-        if (!isBroadcast(playedUrl)) return
-        val uri = Uri.parse(playedUrl)
-        if (uri.host == BroadcastExchangeEndpoints.LOOPBACK_HOST && uri.port > 0) bridges.closePort(uri.port)
+        if (playedUrl == null || !isBroadcast(playedUrl)) return
+        resolvePlayback.closeBridgeOf(playedUrl)
     }
 
     /**

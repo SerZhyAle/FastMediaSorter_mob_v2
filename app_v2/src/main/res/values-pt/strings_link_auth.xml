@@ -23,4 +23,5 @@
     <string name="s0157_dismissed_label">Não autorizado (você recusou)</string>
     <string name="s0157_last_used_never">ainda não utilizado</string>
     <string name="s0157_last_used_fmt">último usado %1$s</string>
+    <string name="s4581_pick_account_add_new">+ Adicionar conta</string>
 </resources>

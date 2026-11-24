@@ -299,7 +299,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 }
                 override fun onFolderPicked(uri: Uri?) {
                     if (::initializer.isInitialized) {
-                        initializer.folderPickerHandler.onFolderPicked(uri)
+                        initializer.onFolderPicked(uri)
                     }
                 }
             }

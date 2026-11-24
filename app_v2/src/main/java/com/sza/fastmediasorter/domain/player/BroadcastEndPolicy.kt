@@ -95,6 +95,15 @@ class BroadcastRemovalHold {
         return if (removed) BroadcastStopSignal.DirectoryRemoved else signal
     }
 
+    /**
+     * A failure that outlived the retry ladder - a reset, a timeout - is also a moment the stream stopped delivering;
+     * true when a held removal makes it an end rather than an unavailable broadcast.
+     */
+    fun atFailure(): Boolean {
+        delivering = false
+        return removed
+    }
+
     fun reset() {
         removed = false
         delivering = false

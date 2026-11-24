@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.23 15:48</sub>
+<sub class="doc-stamp">26.11.23 11:22</sub>
 
 # Media exchange and broadcasting portal - illustration set
 
@@ -7,8 +7,9 @@ Status: **picture set selected; the portal pages are written** (tickets S4140, S
 `exchange-server-install`, `exchange-accounts`, `exchange-clipboard`, `account-deletion`, `live-broadcast`, `clouds`, `editions` and `windows-servers`, and
 the eight scenario pages `folders-exchange-server`, `folders-google-drive`, `broadcast-start`,
 `broadcast-receive`, `watch-exchange`, `schedule-remote-folders`, `phone-sharing` and `my-devices`,
-each in English, Russian (`-ru`) and Ukrainian (`-uk`); they embed the pictures listed below, and each
-page has its owner in `scripts/docs/portal-sections.json`.
+each in English, Russian (`-ru`) and Ukrainian (`-uk`). The `streamsplayer` guide is available in the
+same three languages. The portal pages that use illustrations embed the pictures listed below. Each
+section has its owner in `scripts/docs/portal-sections.json`.
 
 This folder holds the illustrations for the shared portal about media exchange and live broadcasting.
 Every product that takes part - Fast Media Sorter & Organizer for Android (phone, watch, TV, VR), Fast Media Sorter for
@@ -59,9 +60,9 @@ shows, where it came from, what it may and may not claim, and where it belongs o
   - The Server edition runs the same worker as a Windows service that starts at boot; the full package
     can switch itself to that mode. The 32-bit fallback viewer cannot share.
 
-## Windows behaviour the pictures show
+## Windows behavior the pictures show
 
-Every picture shows shipped behaviour, and the pages describe it as available. Owner statement, 2026-10-21:
+Every picture shows shipped behavior, and the pages describe it as available. Owner statement, 2026-10-21:
 nothing in the family is held back.
 
 - Broadcasting from a Windows PC (`broadcast-simple` and `broadcast-cast`): Fast Media Sorter & Sharing for Windows broadcasts its screen, camera, microphone and
@@ -119,7 +120,7 @@ was added afterwards (picture 15).
 - Files: `diagrams/ecosystem-hero-en.svg`, `-ru.svg`, `-uk.svg`.
 - Style: presentation slide, 1920 x 1080, dark brand gradient with the waves-and-particles motif.
 - Shows: six devices on an oval around a glowing hub - phone, watch, TV, VR headset, laptop, Windows PC -
-  joined to the hub by dotted lines coloured by role. The router and the phone acting as a server are means,
+  joined to the hub by dotted lines colored by role. The router and the phone acting as a server are means,
   not devices a person opens files on, so the cover leaves them to the section pictures.
 - Title: the benefit, "Your files on all your devices"; the hub reads "Your devices, together". No subtitle.
 - Text size: 44 for device names and the hub, 64 for the title, so every word is at least 12 pixels in the

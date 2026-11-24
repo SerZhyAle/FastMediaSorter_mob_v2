@@ -115,18 +115,25 @@ class ResourceScanCoordinator @Inject constructor(
      * with a zero count: remote resources carry a network price, and a non-zero count is already
      * true. A genuinely empty resource is re-counted on each start, which is one cheap MediaStore
      * count query and is also what makes the tile appear once media finally exists.
+     *
+     * S4819: local folders join for the same reason - the provisioned Downloads destination is written
+     * with a zero count and only Browse ever counted it. A local count carries no network price.
      */
     @Suppress("TooGenericExceptionCaught")
     suspend fun backfillVirtualResourceCounts() {
         val staleIds = try {
             resourceRepository.get().getAllResourcesSync()
-                .filter { VirtualPathUtils.isVirtualPath(it.path) && it.fileCount == 0 }
+                .filter {
+                    it.fileCount == 0 &&
+                        (VirtualPathUtils.isVirtualPath(it.path) || it.type == ResourceType.LOCAL)
+                }
                 .map { it.id }
         } catch (e: Exception) {
             e.rethrowIfCancellation()
             Timber.w(e, "Virtual resource count backfill skipped: resource read failed")
             return
         }
+        Timber.d("S4819: zero-count backfill ids=%s", staleIds)
         if (staleIds.isEmpty()) return
         refreshResourceFileCountsUseCase(staleIds)
     }

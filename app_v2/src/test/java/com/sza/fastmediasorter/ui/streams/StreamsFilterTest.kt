@@ -424,6 +424,38 @@ class StreamsFilterTest {
         assertEquals(listOf("b-newest", "c-middle", "a-older"), ordered(result).map { it.id })
     }
 
+    @Test
+    fun `an added row the filter already shows keeps the filter`() {
+        val added = source("m", mediaKind = "AUDIO", sourceOrigin = "MANUAL")
+
+        assertEquals(null, StreamsViewModel.revealFilterFor(added, StreamsFilter()))
+    }
+
+    @Test
+    fun `an added row hidden by a media category moves the filter to Own and keeps the facets`() {
+        val added = source("m", mediaKind = "AUDIO", sourceOrigin = "MANUAL", category = "News")
+        val filter = StreamsFilter(mediaKind = MediaKindFilter.VIDEO, category = "News")
+
+        val revealed = StreamsViewModel.revealFilterFor(added, filter)
+
+        assertEquals(filter.copy(mediaKind = MediaKindFilter.OWN), revealed)
+    }
+
+    @Test
+    fun `an added row Own still hides has the dialog facets cleared but not the query`() {
+        val added = source("m", mediaKind = "AUDIO", sourceOrigin = "MANUAL")
+        val filter = StreamsFilter(
+            query = "m",
+            mediaKind = MediaKindFilter.AUDIO,
+            language = "english",
+            pinnedOnly = true,
+        )
+
+        val revealed = StreamsViewModel.revealFilterFor(added, filter)
+
+        assertEquals(StreamsFilter(query = "m", mediaKind = MediaKindFilter.OWN), revealed)
+    }
+
     private companion object {
         // Large enough that a head-only scan would miss the needle, small enough to stay a unit test.
         const val FAR_END_ROWS = 500

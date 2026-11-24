@@ -316,6 +316,16 @@ class PlayerCommandPanelCallbackImpl(
         activity.dialogHelper.showReaderSettingsDialog()
     }
 
+    override fun onTextZoomInClicked() {
+        Timber.d("S4866: overflow Zoom in tapped")
+        activity.textViewerManager.zoomTextIn()
+    }
+
+    override fun onTextZoomOutClicked() {
+        Timber.d("S4866: overflow Zoom out tapped")
+        activity.textViewerManager.zoomTextOut()
+    }
+
     override fun onReadAloudClicked() {
         val currentFile = viewModel.state.value.currentFile ?: return
         when (currentFile.type) {

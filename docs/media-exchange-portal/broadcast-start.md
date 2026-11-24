@@ -5,9 +5,11 @@ description: "How to start a live broadcast from a phone - sound, camera, the sc
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/broadcast-start.html
 ---
-<sub class="doc-stamp">26.10.26 00:56</sub>
+<sub class="doc-stamp">26.11.23 11:22</sub>
 
 # Going on air: broadcast from a phone or a watch
+
+On a Windows PC, follow [Broadcast from this PC in STREAMS Player](streamsplayer.html#broadcast-from-this-pc).
 
 A broadcast is a live stream that a device is capturing right now. This page is the sender's side: what you can put on air, how to start it and how listeners find it. The listeners' side is on [Receiving a broadcast](broadcast-receive.html).
 

@@ -134,10 +134,12 @@ print('mockup_size=%dx%d' % mockup.size)
 
 # 5. A full render lands on Play's slot, and the guard still refuses end-to-end.
 icon = Image.new('RGB', (512, 512), (20, 20, 20))
-rendered = mod.compose('en-US', mod.HEADLINES['en-US'], icon, mockup, bold, regular)
+# A literal fill rather than family_background(): the case judges the layout, not the token file.
+background = (13, 27, 42)
+rendered = mod.compose('en-US', mod.HEADLINES['en-US'], icon, mockup, bold, regular, background)
 print('render_size=%dx%d' % rendered.size)
 try:
-    mod.compose('xx-XX', 'A' * 60, icon, mockup, bold, regular)
+    mod.compose('xx-XX', 'A' * 60, icon, mockup, bold, regular, background)
     print('compose_refuses=False')
 except mod.CompositionError:
     print('compose_refuses=True')

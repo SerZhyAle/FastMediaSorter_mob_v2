@@ -5,7 +5,7 @@ permalink: /docs/FAQ-ru.html
 lang: ru
 ---
 
-<sub class="doc-stamp">26.11.15 03:00</sub>
+<sub class="doc-stamp">26.11.24 14:50</sub>
 
 <div lang="ru" markdown="1">
 
@@ -429,6 +429,6 @@ WorkManager не является точным будильником. Огра�
 - 🐛 **Сообщить об ошибке:** [GitHub Issues](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues) - предпочтительно для воспроизводимых багов; укажите версию Android и что вы делали в момент ошибки
 - 📖 **Полная документация:** [Портал документации](https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ru.html)
 
-> **Хотите функцию, которой ещё нет?** Напишите - многие функции в приложении появились именно потому, что кто-то попросил. Если идея разумная, она будет реализована.
+> **Не хватает функции?** Создайте issue на [GitHub](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues) или напишите на sza@ukr.net.
 
 </div>

@@ -234,7 +234,7 @@ class ImportStreamBroadcastUseCase @Inject constructor(
                 mediaKind = kind,
             )
         ) {
-            AddResult.Success -> ImportResult.Success
+            is AddResult.Success -> ImportResult.Success
             AddResult.Duplicate -> ImportResult.Duplicate
             AddResult.InvalidUrl -> ImportResult.InvalidUrl
         }

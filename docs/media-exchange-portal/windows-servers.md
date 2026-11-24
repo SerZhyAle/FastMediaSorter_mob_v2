@@ -75,7 +75,7 @@ The QR code and the `.fmscfg` file carry every address the PC can be reached at:
 - an **IPv6 address**, when the PC has one - it can work where the provider shares one internet address among many customers and a forwarded port cannot, provided the phone's network has IPv6 too;
 - the **internet address** - an address on the internet (a fixed one, or a free name that follows a changing address) plus the forwarded port.
 
-The phone tries them and prefers the fast local one, so one scan works at home and away. On the same Wi-Fi network it also finds the PC by itself if the PC's address changed, because it recognises the PC by its host key.
+The phone tries them and prefers the fast local one, so one scan works at home and away. On the same Wi-Fi network it also finds the PC by itself if the PC's address changed, because it recognizes the PC by its host key.
 
 Two settings keep this predictable:
 

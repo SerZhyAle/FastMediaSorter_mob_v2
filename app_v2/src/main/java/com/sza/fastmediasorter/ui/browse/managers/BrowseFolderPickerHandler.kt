@@ -20,8 +20,10 @@ import com.sza.fastmediasorter.utils.SafHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import timber.log.Timber
 import java.io.File
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Handles folder picker requests and results for file copy/move operations.
@@ -103,7 +105,7 @@ class BrowseFolderPickerHandler(
     /**
      * Called from the Activity's OpenDocumentTree ActivityResultCallback with the selected URI.
      */
-    fun onFolderPicked(uri: Uri?) {
+    fun onFolderPicked(uri: Uri?, refreshCounts: (Uri, String, Long?) -> Unit) {
         if (uri == null) {
             Timber.d("folderPickerLauncher: user cancelled folder picker")
             return
@@ -137,28 +139,50 @@ class BrowseFolderPickerHandler(
             return
         }
 
-        val op = pendingFolderPickerOp ?: return
+        val op = pendingFolderPickerOp
         pendingFolderPickerOp = null
 
-        // Persist last selected folder URI
-        coroutineScope.launch {
-            try {
-                settingsRepository.updateSettings { it.copy(lastSelectedLocalFolder = uri.toString()) }
-            } catch (e: Exception) {
-                e.warnUnlessCancellation("Failed to save last local folder")
+        if (op != null) {
+            coroutineScope.launch {
+                try {
+                    settingsRepository.updateSettings { it.copy(lastSelectedLocalFolder = uri.toString()) }
+                } catch (e: Exception) {
+                    e.warnUnlessCancellation("Failed to save last local folder")
+                }
             }
+            coroutineScope.launch { transferPickedItems(op, uri, destinationPath, refreshCounts) }
         }
+    }
 
-        fileOperationsManager.executeOperationToPath(
-            operationType = op.operationType,
-            sourceFiles = op.sourceFiles,
-            destinationPath = destinationPath,
-            sourceCredentialsId = op.sourceCredentialsId,
-            overwriteFiles = op.overwriteFiles
-        )
-
-        if (op.dirItems.isNotEmpty()) {
-            coroutineScope.launch { transferPickedDirectories(op, destinationPath) }
+    private suspend fun transferPickedItems(
+        op: PendingFolderPickerOp,
+        uri: Uri,
+        destinationPath: String,
+        refreshCounts: (Uri, String, Long?) -> Unit,
+    ) {
+        val changed = AtomicBoolean(false)
+        val markChanged = { changed.set(true) }
+        try {
+            supervisorScope {
+                fileOperationsManager.executeOperationToPath(
+                    operationType = op.operationType,
+                    sourceFiles = op.sourceFiles,
+                    destinationPath = destinationPath,
+                    sourceCredentialsId = op.sourceCredentialsId,
+                    overwriteFiles = op.overwriteFiles,
+                    transferScope = this,
+                    onFilesChanged = markChanged,
+                )
+                if (op.dirItems.isNotEmpty()) {
+                    launch { transferPickedDirectories(op, destinationPath, markChanged) }
+                }
+            }
+        } finally {
+            if (changed.get()) {
+                val movedFromResourceId = op.resource.id.takeIf { op.operationType == FileOperationType.MOVE }
+                Timber.d("S4854: picked transfer finished; refreshing affected resource counts")
+                refreshCounts(uri, destinationPath, movedFromResourceId)
+            }
         }
     }
 
@@ -166,7 +190,11 @@ class BrowseFolderPickerHandler(
      * S1325: the folder half of a picked-destination operation. Extracted from [onFolderPicked] so
      * that method keeps one job - resolving the destination - and this one owns the outcome message.
      */
-    private suspend fun transferPickedDirectories(op: PendingFolderPickerOp, destinationPath: String) {
+    private suspend fun transferPickedDirectories(
+        op: PendingFolderPickerOp,
+        destinationPath: String,
+        onFilesChanged: () -> Unit,
+    ) {
         var dirSucceeded = 0
         var dirFailed = 0
         var refusal: DirectoryOperationRefusal? = null
@@ -178,6 +206,7 @@ class BrowseFolderPickerHandler(
                 else -> Result.failure(IllegalArgumentException("Unsupported dir op: ${op.operationType}"))
             }
             result.onSuccess {
+                onFilesChanged()
                 dirSucceeded++
                 succeededSources += dir.path
             }

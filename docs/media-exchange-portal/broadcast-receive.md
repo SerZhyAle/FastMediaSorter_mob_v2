@@ -5,7 +5,7 @@ description: "The four ways to open a live broadcast on your device - the list B
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/broadcast-receive.html
 ---
-<sub class="doc-stamp">26.10.26 00:56</sub>
+<sub class="doc-stamp">26.11.23 11:22</sub>
 
 # Receiving a broadcast
 
@@ -60,7 +60,7 @@ The two never share a button label.
 
 - **An Android phone, a tablet, a TV and a VR headset** play broadcasts in **Streams**.
 - **A Wear OS watch** lists the broadcasts of its account grouped by the broadcasting device and plays sound or video; it asks before it plays a cast; the phone can also send a running broadcast to it from the **Live Broadcast** screen. See [The watch on your account](watch-exchange.html).
-- **A Windows PC** plays broadcasts in [STREAMS Player](https://serzhyale.github.io/StreamsPlayer/).
+- **A Windows PC** plays broadcasts in STREAMS Player. [Enable access through your account](streamsplayer.html#receive-through-your-account), then [open the broadcast list](streamsplayer.html#open-the-broadcast-list).
 
 ## Step-by-step guides
 

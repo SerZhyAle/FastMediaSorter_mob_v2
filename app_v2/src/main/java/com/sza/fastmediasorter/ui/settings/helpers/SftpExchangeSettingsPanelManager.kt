@@ -48,13 +48,11 @@ class SftpExchangeSettingsPanelManager(
 
     private val context get() = fragment.requireContext()
 
-    // S4701: the "Accept commands from my devices" rows sit in this card, beside the exchange server rows.
     private val remoteControlViewModel: RemoteControlSettingsViewModel by fragment.viewModels()
     private val remoteControl = RemoteControlSettingsPanelManager(
         fragment,
         binding,
         remoteControlViewModel,
-        RemoteControlControllersDialogManager(fragment, remoteControlViewModel),
     )
 
     // The address the status line names; the tunnel state alone does not carry it.

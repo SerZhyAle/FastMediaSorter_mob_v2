@@ -116,6 +116,13 @@ class ExportCompanionConfigUseCase @Inject constructor(
         )
     }
 
+    /**
+     * S4649: whether an export failure is the unpinned-server refusal, the one failure with a fix of its own.
+     * Answered here so the screen never has to know the data-layer exception type.
+     */
+    fun isUnpinnedHostKey(error: Throwable): Boolean =
+        (error as? CompanionConfigException)?.reason == CompanionConfigException.Reason.UNPINNED_HOST_KEY
+
     /** S1039: result of [exportQrPayload] - the QR payload plus whether it embeds the password. */
     data class CompanionQrExport(val payload: String, val passwordIncluded: Boolean)
 

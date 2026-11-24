@@ -28,6 +28,7 @@
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 
 . "$PSScriptRoot\device-form-factor.ps1"
+. "$PSScriptRoot/device-lease-client.ps1"
 
 function Get-OnlineAdbDevices {
     param(
@@ -63,6 +64,8 @@ function Resolve-TargetDevice {
         }
         return $DeviceId
     }
+    $devices = @(Get-FmsUnleasedDeviceSerials -Adb $Adb -Serials $devices)
+    if ($devices.Count -eq 0) { throw 'No unleased device could be selected; run device-lease.ps1 -Verb Status.' }
     if ($devices.Count -eq 1) { return $devices[0] }
 
     # Several devices and none named: the watch is distinguishable without asking, so a phone build

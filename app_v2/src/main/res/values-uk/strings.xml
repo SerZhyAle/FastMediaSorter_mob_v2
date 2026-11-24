@@ -519,7 +519,7 @@
     <!-- Language Change -->
     <string name="restart_app_title">Перезапуск додатку</string>
     <string name="restart_app_cache_message">Для застосування нового розміру кешу (%1$d МБ) потрібен перезапуск додатку. Продовжити?</string>
-    <string name="restart_app_compact_elements_message">Для застосування нового розміру елементів плеєра потрібен перезапуск додатку. Продовжити?</string>
+    <string name="restart_app_compact_elements_message">Для застосування нового розміру елементів інтерфейсу потрібен перезапуск додатку. Продовжити?</string>
     <string name="restart">Перезапустити</string>
 
     <!-- Welcome Screen -->
@@ -1201,13 +1201,6 @@
     <string name="fragment_settings_video_tilVideoSizeMax_hint">Макс (КБ)</string>
     <string name="fragment_settings_video_tilVideoSizeMin_hint">Мін (КБ)</string>
     <string name="item_folder_tvFolderName_text">Назва папки</string>
-    <string name="item_resource_to_add_btnTypeAudio_text">A</string>
-    <string name="item_resource_to_add_btnTypeGif_text">G</string>
-    <string name="item_resource_to_add_btnTypeImage_text">I</string>
-    <string name="item_resource_to_add_btnTypePdf_text">P</string>
-    <string name="item_resource_to_add_btnTypeOffice_text">D</string>
-    <string name="item_resource_to_add_btnTypeText_text">T</string>
-    <string name="item_resource_to_add_btnTypeVideo_text">V</string>
     <string name="item_resource_tvAvailabilityIndicator_text">N/A</string>
     <string name="item_resource_tvWritableIndicator_text">🔒</string>
     <string name="reset_general_section">Скинути розділ Загальні</string>
@@ -3602,7 +3595,7 @@
     <string name="exif_orientation_rotate_270">Повернуто на 270° за годинниковою стрілкою</string>
     <string name="exif_orientation_unknown">Невідомо (%1$d)</string>
     <string name="storage_reach_limited_browse">У цій папці доступні лише фото, відео та звук. Щоб побачити документи, додайте папку знову й виберіть її у системному вікні.</string>
-    <string name="reach_limited_nothing_readable">Документи не читаються</string>
+    <string name="reach_limited_nothing_readable">Додайте папку, щоб бачити документи</string>
     <string name="storage_reach_limited_virtual">Документи та інші файли на цьому пристрої застосунку не видно. Щоб відкрити їх, додайте потрібну папку через системне вікно вибору.</string>
     <string name="storage_reach_limited_browse_reconnect">У цій папці доступні лише фото, відео та звук. Щоб побачити документи, відкрийте меню з трьома крапками в рядку папки в списку ресурсів та виберіть «Перепідключити ресурс».</string>
     <string name="wear_settings_group_media_types">Типи медіа</string>
@@ -4680,4 +4673,25 @@
     <string name="feedback_attach_logs">Додати діагностичні журнали застосунку</string>
     <string name="feedback_no_logs">Журналів для додавання поки немає</string>
     <string name="feedback_logs_failed">Не вдалося зібрати архів журналів</string>
+    <string name="local_folder_guidance">Сканування знаходить папки з медіафайлами. Або виберіть папку вручну, а потім додайте вибрані папки.</string>
+    <string name="folder_selection_virtual_all_added">Усі вже додані</string>
+    <string name="browse_empty_search_no_match">Немає файлів, що відповідають «%1$s»</string>
+    <string name="browse_empty_search_no_match_hint">Перевірте написання або очистіть пошук.</string>
+    <string name="language_auto_detect">Автовизначення</string>
+    <string name="cd_switch_to_grid_view">Перемкнути на сітку</string>
+    <string name="cd_switch_to_list_view">Перемкнути на список</string>
+    <string name="notes_row_select">Вибрати</string>
+    <string name="notes_select_all">Вибрати всі</string>
+    <string name="notes_selected_count">Вибрано: %1$d</string>
+    <string name="notes_delete_selected">Видалити вибрані</string>
+    <string name="notes_delete_selected_title">Видалити нотатки?</string>
+    <string name="notes_delete_selected_confirm">Вибрані нотатки (%1$d) буде видалено з пристрою.</string>
+    <string name="notes_selection_cancel">Скасувати вибір</string>
+    <string name="notes_error_delete_selected">Не вдалося видалити частину вибраних нотаток.</string>
+    <string name="s4874_broadcast_ended_text">Трансляція завершилася.</string>
+    <string name="main_destination_legend">Кольорова рамка і → позначають призначення швидкого сортування: туди потрапляють файли, які ви сортуєте.</string>
+    <string name="main_first_step_hint_text">Додайте папку, щоб почати: виберіть папку пристрою, мережеву папку або хмарну папку з вашими файлами.</string>
+    <string name="main_first_step_hint_action">Додати папку</string>
+    <string name="share_to_none_enabled">Для цього типу даних не ввімкнено жодної цілі «Надіслати до..». Увімкніть її: Налаштування - %1$s - %2$s</string>
+    <string name="streams_added_shown_in_own">Станцію додано до «Власні»</string>
 </resources>

@@ -1,7 +1,16 @@
 package com.sza.fastmediasorter.ui.common
 
+import android.content.Context
+import android.graphics.Typeface
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
 import androidx.annotation.ColorRes
+import androidx.annotation.StringRes
+import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.stats.StatsMediaType
 
@@ -64,4 +73,63 @@ object MediaTypeColorCatalog {
 
     @ColorRes
     fun colorFor(type: StatsMediaType): Int = colorFor(categoryOf(type))
+
+    /** Single source of truth for the media-type filter letters (`I V A G T P E O`) and labels. */
+    data class BadgeEntry(
+        val type: MediaType,
+        val letter: String,
+        @StringRes val labelRes: Int,
+    )
+
+    private const val LEGEND_SEPARATOR = " \u00B7 "
+
+    val badgeEntries: List<BadgeEntry> = listOf(
+        BadgeEntry(MediaType.IMAGE, "I", R.string.media_type_image),
+        BadgeEntry(MediaType.VIDEO, "V", R.string.media_type_video),
+        BadgeEntry(MediaType.AUDIO, "A", R.string.media_type_audio),
+        BadgeEntry(MediaType.GIF, "G", R.string.media_type_gif),
+        BadgeEntry(MediaType.TEXT, "T", R.string.media_type_text),
+        BadgeEntry(MediaType.PDF, "P", R.string.media_type_pdf),
+        BadgeEntry(MediaType.EPUB, "E", R.string.media_type_epub),
+        BadgeEntry(MediaType.OFFICE_DOCUMENT, "O", R.string.media_type_office_documents),
+    )
+
+    fun supportedBadgeEntries(mediaCapabilities: MediaCapabilities): List<BadgeEntry> =
+        badgeEntries.filter { entry ->
+            when (entry.type) {
+                MediaType.IMAGE, MediaType.GIF -> mediaCapabilities.supportsImages
+                MediaType.VIDEO -> mediaCapabilities.supportsVideo
+                MediaType.AUDIO -> mediaCapabilities.supportsAudio
+                MediaType.TEXT, MediaType.PDF, MediaType.OFFICE_DOCUMENT -> mediaCapabilities.supportsDocuments
+                MediaType.EPUB -> mediaCapabilities.supportsEpub
+                else -> false
+            }
+        }
+
+    fun formatChipLabel(context: Context, entry: BadgeEntry): String =
+        "${context.getString(entry.labelRes)} (${entry.letter})"
+
+    fun formatDescription(context: Context, types: Set<MediaType>, allFiles: Boolean): String {
+        if (allFiles) return context.getString(R.string.all_files)
+        return badgeEntries
+            .filter { it.type in types }
+            .joinToString(", ") { formatChipLabel(context, it) }
+    }
+
+    fun formatColoredLegend(context: Context, types: Set<MediaType>): CharSequence {
+        val builder = SpannableStringBuilder()
+        badgeEntries
+            .filter { it.type in types }
+            .forEachIndexed { index, entry ->
+                if (index > 0) builder.append(LEGEND_SEPARATOR)
+                val letterStart = builder.length
+                builder.append(entry.letter)
+                val letterEnd = builder.length
+                val color = ContextCompat.getColor(context, colorFor(entry.type))
+                builder.setSpan(ForegroundColorSpan(color), letterStart, letterEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                builder.setSpan(StyleSpan(Typeface.BOLD), letterStart, letterEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                builder.append(' ').append(context.getString(entry.labelRes))
+            }
+        return builder
+    }
 }

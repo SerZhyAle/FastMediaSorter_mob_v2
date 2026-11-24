@@ -5,7 +5,7 @@ permalink: /docs/FAQ.html
 lang: en
 ---
 
-<sub class="doc-stamp">26.11.15 03:00</sub>
+<sub class="doc-stamp">26.11.24 14:50</sub>
 
 <div lang="en" markdown="1">
 
@@ -412,6 +412,6 @@ Didn't find an answer above, or something isn't working as described? **Please r
 - 🐛 **Bug report:** [GitHub Issues](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues) - preferred for reproducible bugs; include Android version and what you were doing
 - 📖 **Full docs:** [Documentation Portal](https://serzhyale.github.io/FastMediaSorter_mob_v2/)
 
-> **Want a feature that isn't there yet?** Write - many features in the app were added because someone asked. If it makes sense for the use case, it gets built.
+> **Missing a feature?** Open an issue on [GitHub](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues) or write to sza@ukr.net.
 
 </div>

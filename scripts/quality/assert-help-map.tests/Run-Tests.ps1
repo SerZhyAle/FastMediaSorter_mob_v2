@@ -42,10 +42,22 @@ $map = @'
 ] }
 '@
 
+# The page anatomy PAGE-SHAPE requires (rule 8): lang and dir, the no-referrer meta, a bare <h1>, the order list,
+# the elements, the related list and the footer - so the clean fixture is clean under every rule at once.
 $page = @'
-<!DOCTYPE html><html><head><link rel="stylesheet" href="../help.css"></head><body>
-<h1 id="top">Main</h1><a href="index.html">Index</a> <a href="#top">Top</a>
-<a href="https://example.org/docs">Open on the site</a>
+<!DOCTYPE html><html lang="en" dir="ltr"><head><meta name="referrer" content="no-referrer"><link rel="stylesheet" href="../help.css"></head><body>
+<p id="top"></p><h1>Main</h1><a href="index.html">Index</a> <a href="#top">Top</a>
+<ol class="order"><li>Open the screen.</li></ol>
+<div class="elements"><p>One element.</p></div>
+<ul class="related"><li><a href="https://example.org/docs">Open on the site</a></li></ul>
+<footer class="help-foot"><a href="index.html">Index</a></footer>
+</body></html>
+'@
+
+$indexPage = @'
+<!DOCTYPE html><html lang="en" dir="ltr"><head><meta name="referrer" content="no-referrer"></head><body>
+<h1>Help</h1><a href="main.html">Main</a>
+<footer class="help-foot"></footer>
 </body></html>
 '@
 
@@ -58,7 +70,7 @@ function New-Fixture {
     Set-File $root 'app_v2/src/main/assets/help/help.css' 'body { margin: 0; }'
     foreach ($locale in @('en', 'ru', 'uk')) {
         Set-File $root "app_v2/src/main/assets/help/$locale/main.html" $page
-        Set-File $root "app_v2/src/main/assets/help/$locale/index.html" '<html><body><a href="main.html">Main</a></body></html>'
+        Set-File $root "app_v2/src/main/assets/help/$locale/index.html" $indexPage
     }
     Set-File $root 'scripts/quality/help-map-baseline.txt' "# baseline`nOtherActivity"
     return $root
@@ -137,7 +149,7 @@ try {
     Invoke-Case 'an unresolved local link fails' $root 1 'BROKEN-LINK'
 
     $root = New-Fixture
-    Set-File $root 'app_v2/src/main/assets/help/en/main.html' ($page.Replace('<h1 id="top">', '<img src="https://example.org/a.png"><h1 id="top">'))
+    Set-File $root 'app_v2/src/main/assets/help/en/main.html' ($page.Replace('<h1>', '<img src="https://example.org/a.png" alt="A"><h1>'))
     Invoke-Case 'a remotely loaded image fails' $root 1 'REMOTE-URL'
 
     Invoke-Case 'a watch fixture with a row per route passes' (New-WearFixture) 0 '2 watch routes'

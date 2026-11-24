@@ -54,6 +54,40 @@ class DestinationButtonsManager(
     private var cachedMaxRecipients: Int? = null
     private var cachedPanelContentWidthPx: Int? = null
     private var isPopulateDeferredUntilLayout = false
+    private var wasEditorVisible = false
+
+    private val editorLayoutChangeListener = View.OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+        val inLandscape = isLandscape()
+        val textEditContainer = safeViews.findNullable<View>(R.id.textEditContainer)
+        val isEditorVisible = textEditContainer?.isVisible == true
+        if (inLandscape && isEditorVisible && !wasEditorVisible) {
+            Timber.d("S4841: landscape editor opens with destination panels")
+            wasEditorVisible = true
+            if (safeViews.copyToButtonsGrid.isVisible || safeViews.moveToButtonsGrid.isVisible) {
+                Timber.d("DestinationButtonsManager: auto-collapsing destination panels in landscape for editor")
+                updateCopyPanelVisibility(true)
+                updateMovePanelVisibility(true)
+            }
+        } else if (wasEditorVisible && !isEditorVisible) {
+            wasEditorVisible = false
+            if (inLandscape) {
+                Timber.d("DestinationButtonsManager: restoring destination panels in landscape after editor exit")
+                updateCopyPanelVisibility(cachedCopyCollapsed ?: false)
+                updateMovePanelVisibility(cachedMoveCollapsed ?: false)
+            }
+        }
+    }
+
+    init {
+        root.addOnLayoutChangeListener(editorLayoutChangeListener)
+    }
+
+    fun detach() {
+        root.removeOnLayoutChangeListener(editorLayoutChangeListener)
+    }
+
+    private fun isLandscape(): Boolean =
+        root.resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
 
     interface DestinationButtonsCallback {
         fun onCopyClicked(destination: MediaResource)
@@ -249,9 +283,18 @@ class DestinationButtonsManager(
                     root.requestLayout()
 
                     // Restore collapsed state AFTER showing panels
-                    Timber.d("DestinationButtonsManager: RESTORING panel states - copy=$copyCollapsed, move=$moveCollapsed")
-                    updateCopyPanelVisibility(copyCollapsed)
-                    updateMovePanelVisibility(moveCollapsed)
+                    val inLandscapeEditor = isLandscape() &&
+                        (safeViews.findNullable<View>(R.id.textEditContainer)?.isVisible == true)
+                    val effectiveCopy = if (inLandscapeEditor) true else copyCollapsed
+                    val effectiveMove = if (inLandscapeEditor) true else moveCollapsed
+                    Timber.d(
+                        "DestinationButtonsManager: RESTORING panel states - copy=%s, move=%s (editor=%s)",
+                        effectiveCopy,
+                        effectiveMove,
+                        inLandscapeEditor
+                    )
+                    updateCopyPanelVisibility(effectiveCopy)
+                    updateMovePanelVisibility(effectiveMove)
                 }
 
                 // Update command availability to refresh panel visibility

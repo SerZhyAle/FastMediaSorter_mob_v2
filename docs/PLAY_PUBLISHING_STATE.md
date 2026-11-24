@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.21 13:31</sub>
+<sub class="doc-stamp">26.11.24 15:19</sub>
 
 # Play publishing state
 
@@ -36,7 +36,7 @@ version again, the reader reads it with no change and the cell shows it.
 
 | Served version | Store `Updated on` | Updated at (UTC) | Detected by | Measured (UTC) |
 |----------------|--------------------|------------------|-------------|----------------|
-| not on the page | Oct 29, 2026 | `2026-10-29T22:06:04Z` | none - the listing page carries no version | 2026-11-19 |
+| not on the page | Nov 12, 2026 | `2026-11-12T17:53:51Z` | none - the listing page carries no version | 2026-11-24 |
 
 Reader exit code: 0.
 
@@ -55,17 +55,23 @@ policy claims, use the Console. For public availability, use the served store pa
 comes from the edit-based track reader. See GOOGLE-PLAY section 8B and the
 [release lifecycle reference](https://developers.google.com/android-publisher/api-ref/rest/v3/applications.tracks.releases/list).
 
+**One row per release, live-first (S4881).** A track holds several releases at once, so a track may own
+several rows here. They are ordered `completed`, `inProgress`, `halted`, `draft`, then any other status,
+and by version code descending inside one rank: a track's **first** row is what it currently serves, and
+a `draft` row is a release staged on the track and not yet rolled out. Until 2026-11-24 only a track's
+first release was rendered, which dropped the live release of any track that also held a draft.
+
 <!-- s2272:measured:tracks:begin -->
 
 | Track | versionName | versionCode | Status | Measured (UTC) |
 |-------|-------------|-------------|--------|----------------|
-| `production` | `2.61.1121.756` | `261112175` | completed | 2026-11-19 |
-| `beta` | - | - | no release | 2026-11-19 |
-| `alpha` | - | - | no release | 2026-11-19 |
-| `internal` | `2.60.6222.324` | `260622232` | completed | 2026-11-19 |
-| `wear:beta` | - | - | no release | 2026-11-19 |
-| `wear:internal` | - | - | no release | 2026-11-19 |
-| `wear:production` | `2.61.1121.733` | `261112178` | completed | 2026-11-19 |
+| `production` | `2.61.1121.756` | `261112175` | completed | 2026-11-24 |
+| `beta` | - | - | no release | 2026-11-24 |
+| `alpha` | - | - | no release | 2026-11-24 |
+| `internal` | `2.61.1121.756` | `261112175` | draft | 2026-11-24 |
+| `wear:beta` | - | - | no release | 2026-11-24 |
+| `wear:internal` | - | - | no release | 2026-11-24 |
+| `wear:production` | `2.61.1121.733` | `261112178` | completed | 2026-11-24 |
 
 Reader exit code: 0.
 
@@ -230,6 +236,12 @@ letter. This is the first reading of the page since 2026-08-31.
   `Inactive - Latest release: 260622232 (2.60.6222.324)`, `Available to internal testers`, with only
   `Manage release` and `Promote release` offered - no remove control for a completed release.
 
+**Re-read 2026-11-24 (S2294)**, after `production` `2.61.1121.756` / `261112175` published: the
+`Update in review` banner is gone and the same single row is still listed - `App must target Android 16
+(API level 36) or higher`, `Enforced Aug 31, 2026`, `Warning sent Jul 21, 2026`. A compliant production
+release alone did not clear it. `Internal testing` still holds `260622232` (`2.60.6222.324`), `Available
+to internal testers`, with `Pause track` and `Create new release` offered.
+
 ### Contacts Permission declaration (S4030)
 
 <!-- s4030:transcribed:contacts-declaration -->
@@ -318,7 +330,7 @@ the only writer of this block and the only script that reads that API.
 
 <!-- s2272:measured:vitals:begin -->
 
-**Verdict:** `insufficient-data` - measured 2026-11-12 (UTC), window 2026-10-14..2026-11-10 America/Los_Angeles, source api. Rates as the API returns them, read as fraction (S2917 research 6).
+**Verdict:** `insufficient-data` - measured 2026-11-24 (UTC), window 2026-10-26..2026-11-22 America/Los_Angeles, source api. Rates as the API returns them, read as fraction (S2917 research 6).
 
 | Finding | Scope | Value | Band | Colour | Distinct users |
 |---------|-------|-------|------|--------|----------------|
@@ -330,6 +342,16 @@ the only writer of this block and the only script that reads that API.
 Google anomalies in the window: none.
 
 Top error issues by distinct users (9):
+- `CRASH` android.os.Parcel.createExceptionOrNull at `java.lang.IllegalArgumentException` - 4 users, 9 reports, last versionCode 261029214 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/80bc1efd6a749a1926821f75f2e881d0/details)
+  - `Exception java.lang.RuntimeException:`
+  - `at android.app.ActivityThread.handleServiceArgs (ActivityThread.java:4720)`
+  - `at android.app.ActivityThread.-$$Nest$mhandleServiceArgs (ActivityThread.java)`
+  - `at android.app.ActivityThread$H.handleMessage (ActivityThread.java:2192)`
+  - `at android.os.Handler.dispatchMessage (Handler.java:106)`
+  - `at android.os.Looper.loopOnce (Looper.java:201)`
+  - `at android.os.Looper.loop (Looper.java:288)`
+  - `at android.app.ActivityThread.main (ActivityThread.java:8010)`
+  - `at java.lang.reflect.Method.invoke`
 - `CRASH` Unknown Source - v9k.c at `java.lang.IllegalArgumentException` - 4 users, 101 reports, last versionCode 261020235 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/9ffdb283b34782c07a5413220051334c/details)
   - `Exception java.lang.RuntimeException:`
   - `at android.app.ActivityThread.handleServiceArgs (ActivityThread.java:4720)`
@@ -340,7 +362,7 @@ Top error issues by distinct users (9):
   - `at android.os.Looper.loop (Looper.java:288)`
   - `at android.app.ActivityThread.main (ActivityThread.java:8010)`
   - `at java.lang.reflect.Method.invoke`
-- `CRASH` android.os.Parcel.createExceptionOrNull at `java.lang.IllegalArgumentException` - 2 users, 3 reports, last versionCode 261020235 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/80bc1efd6a749a1926821f75f2e881d0/details)
+- `CRASH` com.android.server.am.ActiveServices.setServiceForegroundInnerLocked at `android.os.RemoteException` - 4 users, 47 reports, last versionCode 261029214 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/c833ca20a5b60832aa73b7f3b1773204/details)
   - `Exception java.lang.RuntimeException:`
   - `at android.app.ActivityThread.handleServiceArgs (ActivityThread.java:4720)`
   - `at android.app.ActivityThread.-$$Nest$mhandleServiceArgs (ActivityThread.java)`
@@ -350,17 +372,16 @@ Top error issues by distinct users (9):
   - `at android.os.Looper.loop (Looper.java:288)`
   - `at android.app.ActivityThread.main (ActivityThread.java:8010)`
   - `at java.lang.reflect.Method.invoke`
-- `CRASH` com.android.server.am.ActiveServices.setServiceForegroundInnerLocked at `android.os.RemoteException` - 2 users, 18 reports, last versionCode 261029214 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/c833ca20a5b60832aa73b7f3b1773204/details)
-- `APPLICATION_NOT_RESPONDING` [libhwui.so] android::uirenderer::ThreadBase::waitForWork at `Input dispatching timed out (No focused window)` - 1 users, 1 reports, last versionCode 261004154 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/15d37ad4d3fde22b5b29289813073bae/details)
-  - `"main" tid=1 Native`
-  - `#00  pc 0x000000000005da70  /apex/com.android.runtime/lib/bionic/libc.so (syscall+28)`
-  - `#01  pc 0x00000000000634cf  /apex/com.android.runtime/lib/bionic/libc.so (__futex_wait_ex+94)`
-  - `#02  pc 0x00000000000ac64d  /apex/com.android.runtime/lib/bionic/libc.so (pthread_cond_wait+32)`
-  - `#03  pc 0x000000000003d369  /system/lib/libc++.so (std::__1::condition_variable::wait+8)`
-  - `#04  pc 0x000000000003f13d  /system/lib/libc++.so (std::__1::__assoc_sub_state::copy+52)`
-  - `#05  pc 0x000000000003f315  /system/lib/libc++.so (std::__1::future<void>::get+10)`
-  - `#06  pc 0x000000000011a407  /system/lib/libhwui.so (android::uirenderer::renderthread::RenderProxy::setStopped+254)`
-  - `at android.graphics.HardwareRenderer.nSetStopped (Native method)`
+- `CRASH` com.sza.fastmediasorter.core.ui.BaseActivity.getBinding at `java.lang.IllegalStateException` - 1 users, 1 reports, last versionCode 261029214 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/24ae8c61985ee51e3a1b5cde78a538c3/details)
+  - `Exception java.lang.IllegalStateException: Binding is only valid between onCreate and onDestroy`
+  - `at com.sza.fastmediasorter.core.ui.BaseActivity.getBinding (BaseActivity.kt:78)`
+  - `at com.sza.fastmediasorter.ui.settings.SettingsActivity.refreshCollapseAllButton (SettingsActivity.kt:721)`
+  - `at com.sza.fastmediasorter.ui.settings.SettingsActivity.access$refreshCollapseAllButton (SettingsActivity.kt:54)`
+  - `at com.sza.fastmediasorter.ui.settings.SettingsActivity$setupViews$4.onPageSelected$lambda$0 (SettingsActivity.java:286)`
+  - `at android.os.Handler.handleCallback (Handler.java:1037)`
+  - `at android.os.Handler.dispatchMessage (Handler.java:108)`
+  - `at android.os.Looper.loopOnce (Looper.java:304)`
+  - `at android.os.Looper.loop (Looper.java:430)`
 - `APPLICATION_NOT_RESPONDING` java.util.ArrayList.get at `Input dispatching timed out` - 1 users, 1 reports, last versionCode 261029214 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/261fa3053a3de847012a114b34686684/details)
   - `"main" tid=1 Runnable`
   - `at java.util.ArrayList.get (ArrayList.java:434)`
@@ -371,16 +392,16 @@ Top error issues by distinct users (9):
   - `at androidx.recyclerview.widget.RecyclerView.processAdapterUpdatesAndSetAnimationFlags (RecyclerView.java:4278)`
   - `at androidx.recyclerview.widget.RecyclerView.dispatchLayoutStep1 (RecyclerView.java:4545)`
   - `at androidx.recyclerview.widget.RecyclerView.dispatchLayout (RecyclerView.java:4346)`
-- `CRASH` com.sza.fastmediasorter.ui.settings.helpers.LocalFolderDestinationPickerManager.wrapOnSelected$lambda$1 at `android.content.ActivityNotFoundException` - 1 users, 1 reports, last versionCode 261004154 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/6f7cd10aceb6c606e13d1622bf2ad203/details)
-  - `Exception android.content.ActivityNotFoundException: No Activity found to handle Intent { act=android.intent.action.OPEN_DOCUMENT_TREE }`
-  - `at android.app.Instrumentation.checkStartActivityResult (Instrumentation.java:2058)`
-  - `at android.app.Instrumentation.execStartActivity (Instrumentation.java:1716)`
-  - `at android.app.Activity.startActivityForResult (Activity.java:5207)`
-  - `at androidx.activity.ComponentActivity.startActivityForResult (ComponentActivity.kt:675)`
-  - `at androidx.core.app.ActivityCompat.startActivityForResult (ActivityCompat.java:243)`
-  - `at androidx.activity.ComponentActivity$activityResultRegistry$1.onLaunch (ComponentActivity.kt:223)`
-  - `at androidx.activity.result.ActivityResultRegistry$register$2.launch (ActivityResultRegistry.kt:130)`
-  - `at androidx.fragment.app.Fragment$10.launch (Fragment.java:3632)`
+- `APPLICATION_NOT_RESPONDING` com.sza.fastmediasorter.core.util.GmsAvailabilityProbe.evaluate at `Executing service com.sza.fastmediasorter/androidx.work.impl.background.systemjob.SystemJobService` - 1 users, 1 reports, last versionCode 261029214 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/ade2a10382cade9f63b2d5810f0c364b/details)
+  - `"main" tid=1 Runnable`
+  - `#00  pc 0x00000000003716ed  /apex/com.android.art/lib/libart.so (art::DumpNativeStack(std::__1::basic_ostream<char, std::__1::char_traits<char> >&, int, BacktraceMap*, char const*, art::ArtMethod*, void*, bool)+76)`
+  - `#01  pc 0x000000000044745f  /apex/com.android.art/lib/libart.so (art::Thread::DumpStack(std::__1::basic_ostream<char, std::__1::char_traits<char> >&, bool, BacktraceMap*, bool) const+214)`
+  - `#02  pc 0x000000000045e89d  /apex/com.android.art/lib/libart.so (art::DumpCheckpoint::Run(art::Thread*)+640)`
+  - `#03  pc 0x0000000000447fdb  /apex/com.android.art/lib/libart.so (art::Thread::RunCheckpointFunction()+118)`
+  - `#04  pc 0x00000000004d70f7  /apex/com.android.art/lib/libart.so (art::JniMethodFastEndWithReference(_jobject*, unsigned int, art::Thread*)+90)`
+  - `at java.lang.Class.getPublicFieldRecursive (Native method)`
+  - `at java.lang.Class.getField (Class.java:1633)`
+  - `at android.os.Parcel.readParcelableCreator (Parcel.java:3419)`
 - `CRASH` com.android.server.am.ActiveServices.setServiceForegroundInnerLocked at `android.os.RemoteException` - 1 users, 40 reports, last versionCode 261020235 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/b617f727a74914b7d454d84e7ba86fcd/details)
   - `Exception java.lang.RuntimeException:`
   - `at android.app.ActivityThread.handleServiceArgs (ActivityThread.java:4945)`
@@ -391,16 +412,16 @@ Top error issues by distinct users (9):
   - `at android.os.Looper.loop (Looper.java:300)`
   - `at android.app.ActivityThread.main (ActivityThread.java:8348)`
   - `at java.lang.reflect.Method.invoke`
-- `CRASH` com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearSettingsMirrorStore$Companion$STAMP_MAP_TYPE$1.<init> at `java.lang.RuntimeException` - 1 users, 1 reports, last versionCode 260902195 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/daf4cfa06fbe2ac60ec520ebecc05e00/details)
-  - `Exception java.lang.ExceptionInInitializerError:`
-  - `at com.sza.fastmediasorter.DaggerFastMediaSorterApp_HiltComponents_SingletonC$ViewModelCImpl.sharedPreferencesWearSettingsMirrorStore (DaggerFastMediaSorterApp_HiltComponents_SingletonC.java:4104)`
-  - `at com.sza.fastmediasorter.DaggerFastMediaSorterApp_HiltComponents_SingletonC$ViewModelCImpl$SwitchingProvider.get (DaggerFastMediaSorterApp_HiltComponents_SingletonC.java:4384)`
-  - `at dagger.hilt.android.internal.lifecycle.HiltViewModelFactory$2.createViewModel (HiltViewModelFactory.java:133)`
-  - `at dagger.hilt.android.internal.lifecycle.HiltViewModelFactory$2.create (HiltViewModelFactory.java:103)`
-  - `at dagger.hilt.android.internal.lifecycle.HiltViewModelFactory.create (HiltViewModelFactory.java:171)`
-  - `at androidx.lifecycle.ViewModelProvider.get (ViewModelProvider.kt:184)`
-  - `at androidx.lifecycle.ViewModelProvider.get (ViewModelProvider.kt:150)`
-  - `at androidx.lifecycle.ViewModelLazy.getValue (ViewModelLazy.kt:53)`
+- `CRASH` qb/115066909 0a177c1de5a73eab8fa56f9e1b073b2be652f2e6f0716c8331c21d42b37c3368 - com.att.iqi.lib.Metric$$ExternalSyntheticBUOutline0.m at `android.os.RemoteException` - 1 users, 2 reports, last versionCode 261029214 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/e588f4ab06f5fc3a43a88e10cf4ab3f6/details)
+  - `Exception java.lang.RuntimeException:`
+  - `at android.net.Uri$$ExternalSyntheticBUOutline0.m (D8$$SyntheticClass)`
+  - `at android.app.ActivityThread.handleServiceArgs (ActivityThread.java:6566)`
+  - `at android.app.ActivityThread.-$$Nest$mhandleServiceArgs (ActivityThread.java)`
+  - `at android.app.ActivityThread$H.handleMessage (ActivityThread.java:3190)`
+  - `at android.os.Handler.dispatchMessageImpl (Handler.java:142)`
+  - `at android.os.Handler.dispatchMessage (Handler.java:125)`
+  - `at android.os.Looper.loopOnce (Looper.java:321)`
+  - `at android.os.Looper.loop (Looper.java:422)`
 - `APPLICATION_NOT_RESPONDING` com.sza.fastmediasorter.databinding.ActivityMainBinding.inflate at `Input dispatching timed out (No focused window)` - 1 users, 1 reports, last versionCode 261020235 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/f1df801772d8e45cfa6044690ae76918/details)
   - `"main" tid=1 Runnable`
   - `at java.nio.ByteBuffer.get (ByteBuffer.java:602)`
@@ -494,16 +515,17 @@ before `targetSdk` reached 36. This is an exhaustive elimination, not a Console 
 what the row *can* be raised by, and the step still ends at a re-transcription of block 3.
 
 The owner's working invocation, confirmed by a dry run on 2026-09-01 that wrote nothing: the script
-read the track, reported the release as `completed` and refused with exit 1, naming the missing flag.
-Clearing it therefore needs `-Track internal -AllowNonDraft -Confirm`.
+read the track, reported the release as `completed` and refused with exit 1. That refusal is final:
+the empty-release update removes drafts only, so `-AllowNonDraft` no longer overrides it, and the
+attempts below are why.
 
 **Not executed as of 2026-09-10 (S2294).** `internal` still holds `2.60.6222.324` / `260622232`,
 `completed` (block 2, measured 2026-09-10). Nothing about the row has changed since 2026-09-01, and
 `Policy status` has not been re-read since 2026-08-31, so whether the Android 16 row is still listed
 is unmeasured in both directions.
 
-Tool: `scripts/release/clear-play-track-release.ps1`, which refuses anything that is not a `draft`
-unless told otherwise. **A successful commit does not finish this step.** Measured 2026-09-01: the
+Tool: `scripts/release/clear-play-track-release.ps1`, which refuses anything that is not a `draft`.
+**A successful commit does not finish this step.** Measured 2026-09-01: the
 `wear:internal` **draft** vanished from `tracks().list()` immediately, while the `completed` record on
 `internal` survived the same successful commit - the change went into `Publishing overview` as an
 unsent change and takes effect only when the owner sends that batch. So do not re-transcribe
@@ -537,6 +559,9 @@ anything; the `Internal testing` page offers no remove control for the completed
 after that review publishes: the row gone closes the step; the row still listed leaves `Pause track`
 on `Internal testing` or a new `internal` release from current code - each a submission, so the
 owner's go for that exact change.
+**Console read 2026-11-24 (S2294).** `2.61.1121.756` is published and the row is still listed, so the
+step now waits on the owner's go for `Pause track` on `Internal testing` (or a new `internal` release
+from current code) - a one-way track change.
 The same held-commit behaviour was measured on `wear:production` the same day (step 2a).
 
 ### Step 2a - Take the Wear artifact out of the pending batch
@@ -742,6 +767,23 @@ arrives; the verdict letters themselves stay in block 3.
 | 2026-10-02 | `com.sza.fastmediasorter` | verdict: third watch-shape rejection of `wear:production` | not recorded | not recorded | `260926008` | not recorded | "Release batches" section above |
 | 2026-10-18 | `com.sza.fastmediasorter.watchface` | verdict: `Rejected`, listing icon | not recorded | `ZLFS` | `261014176` | no ticket | block 3 |
 | 2026-10-18 | `com.sza.fastmediasorter.watchface` | republished bundle `261018159` and the three-locale listing, both held | not recorded | not recorded | `261018159` | not recorded | block 3 |
+
+| 2026-11-12 | `com.sza.fastmediasorter` | standard-app submission entered review; still open on 2026-11-23 | not recorded | not recorded | not recorded | S4831 | Play Developer Support reply, case 6-7601000042237, 2026-11-23 |
+
+## Pending review hold (S4831)
+
+- **Fact (Play Developer Support, case 6-7601000042237, 2026-11-23):** the latest submission of
+  `com.sza.fastmediasorter`, open since 2026-11-12, is under review and was expedited to the Review Team. No
+  owner action is needed.
+- **Rule:** while a submission is under review, upload and send nothing for this app. Each new submission
+  resets the review turnaround, which is counted from the most recent change.
+- **Where the status is read:** Play Console, `Publishing overview` (`Changes in review`) and the app's
+  status banner. `read-play-tracks.ps1` cannot see it - the edit-based reader reports track releases, not the
+  review queue.
+- **Release flow:** `.claude/commands/release.md` distribution step checks this section first; an open hold
+  stops any upload until the Console status changes.
+- **Closing the hold:** when the Console shows the verdict, append the verdict row to the log above and
+  delete this section's open state.
 
 ## Open measurement - release notes language code (GOOGLE-PLAY rule 26)
 

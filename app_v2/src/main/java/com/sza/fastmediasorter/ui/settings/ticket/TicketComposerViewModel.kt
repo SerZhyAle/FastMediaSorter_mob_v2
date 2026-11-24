@@ -3,16 +3,14 @@ package com.sza.fastmediasorter.ui.settings.ticket
 import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sza.fastmediasorter.data.cloud.GoogleDriveAuthPlugin
-import com.sza.fastmediasorter.domain.identity.GoogleScope
 import com.sza.fastmediasorter.domain.identity.IdentitySignInResult
+import com.sza.fastmediasorter.domain.model.feedback.FeedbackFolderChoice
 import com.sza.fastmediasorter.domain.model.ticket.TicketDestination
 import com.sza.fastmediasorter.domain.model.ticket.TicketOrigin
 import com.sza.fastmediasorter.domain.model.ticket.TicketOutboxEntry
 import com.sza.fastmediasorter.domain.model.ticket.TicketProject
 import com.sza.fastmediasorter.domain.ticket.TicketAttachmentSource
 import com.sza.fastmediasorter.domain.ticket.TicketDraft
-import com.sza.fastmediasorter.domain.usecase.feedback.FeedbackFolderChoice
 import com.sza.fastmediasorter.domain.usecase.feedback.ObserveFeedbackFoldersUseCase
 import com.sza.fastmediasorter.domain.usecase.ticket.FileTicketUseCase
 import com.sza.fastmediasorter.domain.usecase.ticket.GetTicketProjectsUseCase
@@ -152,7 +150,7 @@ class TicketComposerViewModel @Inject constructor(
         Timber.d("S4765: grantDriveAccess tapped")
         mutableState.update { it.copy(busy = true) }
         viewModelScope.launch {
-            val result = grantAccess(activity, DRIVE_SCOPES, GoogleDriveAuthPlugin.DRIVE_SIGN_IN_SCOPES)
+            val result = grantAccess(activity)
             Timber.d("S4765: consent result=%s", result::class.simpleName)
             if (result is IdentitySignInResult.Success) {
                 loadProjects()
@@ -181,9 +179,5 @@ class TicketComposerViewModel @Inject constructor(
 
     private companion object {
         const val STOP_TIMEOUT_MS = 5_000L
-
-        // The identity scopes are already bound with the account; only the Drive ones can be missing.
-        val DRIVE_SCOPES: Set<GoogleScope> = GoogleDriveAuthPlugin.DRIVE_SIGN_IN_SCOPES -
-            setOf(GoogleScope.EMAIL, GoogleScope.PROFILE, GoogleScope.OPENID)
     }
 }

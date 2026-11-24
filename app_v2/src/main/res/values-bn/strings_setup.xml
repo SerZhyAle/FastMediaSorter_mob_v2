@@ -36,7 +36,6 @@
     <string name="welcome_profile_video_player_title">ভিডিও প্লেয়ার</string>
     <string name="welcome_profile_vr_headset_desc">ভার্চুয়াল রিয়েলিটি ডিভাইসের জন্য সেরা। সমর্থিত হেডসেটে 3D/360° লেআউট এবং ইমারসিভ নিয়ন্ত্রণ আগে থেকেই চালু করে।</string>
     <string name="welcome_profile_vr_headset_title">VR হেডসেট</string>
-    <string name="welcome_recommended_badge">(প্রস্তাবিত)</string>
     <string name="welcome_title_1">Fast Media Sorter &amp; Organizer-এ স্বাগতম!</string>
     <string name="sysinfo_field_abis">ABI</string>
     <string name="sysinfo_field_android_version">অ্যান্ড্রয়েড</string>
@@ -140,7 +139,7 @@
     <string name="welcome_func_downloading">ডাউনলোড হচ্ছে.. %1$d%%</string>
     <string name="welcome_func_download_failed">ডাউনলোড ব্যর্থ - আবার চেষ্টা করতে ট্যাপ করুন</string>
     <string name="welcome_func_download_done">প্রস্তুত</string>
-    <string name="welcome_permissions_title">\"কয়েকটি\" অনুমতি</string>
+    <string name="welcome_permissions_title">কয়েকটি অনুমতি</string>
     <string name="welcome_permissions_subtitle">প্রবেশাধিকার দিন যাতে অ্যাপ আপনার মিডিয়া দেখাতে পারে।</string>
     <string name="welcome_func_streams">স্ট্রিম</string>
     <string name="welcome_streams_catalog_done">তালিকা ডাউনলোড হয়েছে</string>

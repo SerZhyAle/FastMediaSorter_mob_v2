@@ -173,7 +173,6 @@ class StreamInlineAudioManager(
             // On the service path this is the controller's copy, with no status to read: the policy then
             // answers OwnedByService and the service forwards its own verdict (onServiceStreamFailure).
             val failure = StreamPlaybackFailureReader.read(error)
-            Timber.d("S4641: inline failure ${failure.failureClass} status=${failure.httpStatus} svc=$usingService")
             val decision = retryPolicy.onFailure(
                 failure = failure,
                 hasEverPlayed = hasSuccessfulPlayback,
@@ -187,7 +186,7 @@ class StreamInlineAudioManager(
                 StreamInlineRetryDecision.OwnedByService -> Unit
                 StreamInlineRetryDecision.GiveUp -> {
                     stop()
-                    failed?.let { callbacks.onError(it, failure.toReason()) }
+                    failed?.let { reportFailure(it, failure.toReason()) }
                 }
             }
         }
@@ -517,7 +516,6 @@ class StreamInlineAudioManager(
             markPlaybackHealthy()
             return
         }
-        Timber.d("S4641: tolerance timer fired readySincePrepare=$readySincePrepare")
         if (readySincePrepare) {
             noSignalVisible = true
             renderTitle()
@@ -529,16 +527,22 @@ class StreamInlineAudioManager(
 
     /**
      * STREAM-BANK 2.10 section 2.5: the service ended this station in failure and says why, so the dialog
-     * opens now rather than at the tolerance timer. A broadcast row is LIVE-BROADCAST's to answer, and a
-     * url other than the current station's is another item of the service.
+     * opens now rather than at the tolerance timer. A broadcast row goes to the host's end handling (item U),
+     * and a url other than the current station's is another item of the service.
      */
     private fun onServiceStreamFailure(reason: StreamFailureReason?, url: String) {
-        val failed = currentSource
-            ?.takeIf { usingService && it.url == url && BroadcastPlaybackSessions.forUrl(it.url) == null }
-            ?: return
+        val failed = currentSource?.takeIf { usingService && it.url == url } ?: return
         Timber.i("StreamInlineAudioManager: service ended the stream - %s (%s)", url, reason)
         stop()
-        callbacks.onError(failed, reason)
+        reportFailure(failed, reason)
+    }
+
+    private fun reportFailure(source: StreamSourceEntity, reason: StreamFailureReason?) {
+        if (BroadcastPlaybackSessions.forUrl(source.url) != null) {
+            callbacks.onBroadcastFailed(source, reason)
+        } else {
+            callbacks.onError(source, reason)
+        }
     }
 
     /**

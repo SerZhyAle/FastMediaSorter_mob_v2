@@ -1,9 +1,12 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.content.Context
+import android.graphics.Rect
 import android.text.TextWatcher
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.errorUnlessCancellation
@@ -13,6 +16,7 @@ import com.sza.fastmediasorter.ui.common.showSoftInputImplicitly
 import com.sza.fastmediasorter.ui.editor.actions.EditorActionPanel
 import com.sza.fastmediasorter.ui.editor.dirty.EditorDirtyStateTracker
 import com.sza.fastmediasorter.utils.MediaStoreNotifier
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -24,6 +28,7 @@ import timber.log.Timber
 import java.io.File
 
 /** Enter / exit / save lifecycle for the text-editor in [TextViewerManager]. Extracted to keep the host class under the 1000-LOC budget. */
+@Suppress("LongParameterList") // the host's editor state is passed as accessors, one per field it owns
 internal class TextEditorModeController(
     private val context: Context,
     private val safeViews: PlayerBindingSafeViews,
@@ -48,6 +53,7 @@ internal class TextEditorModeController(
     private val setUndoRedoManager: (TextUndoRedoManager?) -> Unit,
     private val applyLineNumbers: (String, Boolean, Int) -> String,
     private val showError: (String) -> Unit,
+    private val ioDispatcher: CoroutineDispatcher,
     // S0704: non-null only in the unified player; null in standalone (direct progressBar write).
     private val loadingIndicatorCoordinator: PlayerLoadingIndicatorCoordinator? = null,
 ) {
@@ -58,6 +64,9 @@ internal class TextEditorModeController(
 
     // The editor opens after an off-main draft read; a repeated tap or exitEditMode must cancel the pending open.
     private var pendingEnterJob: Job? = null
+    private var documentSaveJob: Job? = null
+    private var editorSession = 0
+    private val documentSaveManager by lazy { TextDocumentSaveManager(context, ioDispatcher) }
 
     /** S0704: route the save spinner through the coordinator when present, else write directly. */
     private fun setTextSaveSpinner(visible: Boolean) {
@@ -82,9 +91,12 @@ internal class TextEditorModeController(
         pendingEnterJob?.cancel()
         pendingEnterJob = coroutineScope.launch {
             // Resolving filesDir and reading the draft are disk access; the editor opens once they return.
-            val (manager, draft) = withContext(Dispatchers.IO) {
-                val resolved = existingManager
-                    ?: TextEditorAutoSaveManager(File(context.filesDir.parentFile, "temp"), coroutineScope)
+            val (manager, draft) = withContext(ioDispatcher) {
+                val resolved = existingManager ?: TextEditorAutoSaveManager(
+                    tempDir = File(context.filesDir.parentFile, "temp"),
+                    coroutineScope = coroutineScope,
+                    ioDispatcher = ioDispatcher,
+                )
                 resolved to resolved.restoreDraft(filePath)
             }
             if (getAutoSaveManager() == null) setAutoSaveManager(manager)
@@ -95,6 +107,7 @@ internal class TextEditorModeController(
     }
 
     private fun showEditor(originalText: String, draft: String?, filePath: String) {
+        editorSession++
         var textToEdit = originalText
         if (draft != null && draft != textToEdit) {
             textToEdit = draft
@@ -104,7 +117,7 @@ internal class TextEditorModeController(
         showEditorViews()
         // S0189 Phase 09: bind dirty-state tracker to EditText and reset panel tint. Text watcher pumps content into [editContentFlow]; tracker compares against baseline we set via rebaseline().
         editContentFlow.value = textToEdit
-        dirtyTracker.rebaseline(textToEdit)
+        dirtyTracker.rebaseline(if (filePath.startsWith("content://")) originalText else textToEdit)
         attachEditorHelpers(filePath)
     }
 
@@ -120,6 +133,7 @@ internal class TextEditorModeController(
     }
 
     private fun releaseEditorHelpers() {
+        unbindImeInsets()
         getUndoRedoManager()?.detach()
         setUndoRedoManager(null)
         getAutoSaveManager()?.stopAutoSave()
@@ -156,8 +170,50 @@ internal class TextEditorModeController(
         safeViews.btnTranslateTextCmd.isVisible = false
         safeViews.btnSearchTextCmd.isVisible = false
         safeViews.textEditContainer.isVisible = true
+        bindImeInsets()
         safeViews.etTextContent.requestFocus()
         onEditorVisibilityChanged()
+    }
+
+    /**
+     * Both hosts draw edge-to-edge, so the window is never resized for the keyboard: without this
+     * padding the lower part of the editor stays behind it and cannot be scrolled to.
+     */
+    private fun bindImeInsets() {
+        val container = safeViews.textEditContainer
+        ViewCompat.setOnApplyWindowInsetsListener(container) { view, insets ->
+            val keyboardBottom = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+            // The host already reserves the system-bar gap below the content area; the keyboard inset spans it too.
+            val barsBottom = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom
+            // That gap is the host's only bottom reservation, so a cutout deeper than it is kept clear here (Rule 17).
+            val cutoutBottom = insets.getInsets(WindowInsetsCompat.Type.displayCutout()).bottom
+            val overlap = (maxOf(keyboardBottom, cutoutBottom) - barsBottom).coerceAtLeast(0)
+            if (view.paddingBottom != overlap) {
+                Timber.d("S4862: editor bottom padding follows the keyboard")
+                view.setPadding(view.paddingLeft, view.paddingTop, view.paddingRight, overlap)
+                if (overlap > 0) revealCursorLine()
+            }
+            insets
+        }
+        ViewCompat.requestApplyInsets(container)
+    }
+
+    private fun unbindImeInsets() {
+        val container = safeViews.textEditContainer
+        ViewCompat.setOnApplyWindowInsetsListener(container, null)
+        container.setPadding(container.paddingLeft, container.paddingTop, container.paddingRight, 0)
+    }
+
+    /** The shrunk scroll area keeps its offset, so the caret line may land under the keyboard; scroll it back. */
+    private fun revealCursorLine() {
+        val editText = safeViews.etTextContent
+        editText.post {
+            val layout = editText.layout ?: return@post
+            val line = layout.getLineForOffset(editText.selectionEnd.coerceAtLeast(0))
+            val lineTop = layout.getLineTop(line) + editText.totalPaddingTop
+            val lineBottom = layout.getLineBottom(line) + editText.totalPaddingTop
+            editText.requestRectangleOnScreen(Rect(0, lineTop, editText.width, lineBottom))
+        }
     }
 
     /** Wires everything an open editor needs onto the current views; the caller has already set the text. */
@@ -176,6 +232,10 @@ internal class TextEditorModeController(
             ).also {
                 it.attach()
                 it.reset()
+                TextFontScalePrefs.get(context, filePath)?.let { remembered ->
+                    Timber.d("S4863: editor adopts the remembered font size")
+                    it.lockToSize(remembered)
+                }
             }
         )
         getUndoRedoManager()?.detach() // M-10 fix.
@@ -194,6 +254,7 @@ internal class TextEditorModeController(
     }
 
     fun exitEditMode() {
+        editorSession++
         pendingEnterJob?.cancel()
         pendingEnterJob = null
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
@@ -209,6 +270,57 @@ internal class TextEditorModeController(
         onEditorVisibilityChanged()
     }
 
+    fun saveContentDocument(canWrite: Boolean, allowCopy: Boolean, onSuccess: () -> Unit): Boolean {
+        val source = getCurrentFile()?.takeIf { it.path.startsWith("content://") } ?: return false
+        if (documentSaveJob?.isActive != true) {
+            documentSaveJob = launchDocumentSave(source, canWrite, allowCopy, onSuccess)
+        }
+        return true
+    }
+
+    private fun launchDocumentSave(
+        source: MediaFile,
+        canWrite: Boolean,
+        allowCopy: Boolean,
+        onSuccess: () -> Unit,
+    ): Job {
+        val content = safeViews.etTextContent.text.toString()
+        val pager = getTextFilePager()
+        val canOverwrite = canWrite && source.attributes?.readOnly != true
+        val session = editorSession
+        val isCurrent = {
+            editorSession == session && getCurrentFile() === source && safeViews.textEditContainer.isVisible
+        }
+        return coroutineScope.launch {
+            val saved = documentSaveManager.save(source, content, pager, canOverwrite, allowCopy, isCurrent, showError)
+            Timber.d("S4839: SAF text commit finished, outcome=%s", saved)
+            if (saved == null) return@launch
+            if (!isCurrent()) return@launch
+            if (saved == TextDocumentSaveManager.Destination.ORIGINAL) {
+                applyDocumentSave(source, content, isCurrent)
+            }
+            if (!isCurrent()) return@launch
+            Toast.makeText(context, R.string.toast_text_saved, Toast.LENGTH_SHORT).show()
+            if (safeViews.etTextContent.text.toString() == content) onSuccess()
+        }
+    }
+
+    private suspend fun applyDocumentSave(source: MediaFile, content: String, isCurrent: () -> Boolean) {
+        val showLineNumbers = withContext(ioDispatcher) {
+            settingsRepository.getSettings().first().showTextLineNumbers
+        }
+        if (!isCurrent()) return
+        setOriginalTextWithoutNumbers(content)
+        safeViews.tvTextContent.text = applyLineNumbers(content, showLineNumbers, 1)
+        dirtyTracker.rebaseline(content)
+        if (safeViews.etTextContent.text.toString() != content) return
+        getAutoSaveManager()?.let { autoSave ->
+            autoSave.stopAutoSave()
+            autoSave.deleteDraft(source.path)
+            if (isCurrent()) autoSave.startAutoSave(safeViews.etTextContent, source.path)
+        }
+    }
+
     fun saveEditedText(onSuccess: () -> Unit) {
         val newText = safeViews.etTextContent.text.toString()
         val fileToSave = getCurrentFile() ?: run {
@@ -216,7 +328,7 @@ internal class TextEditorModeController(
             return
         }
         setTextSaveSpinner(true)
-        coroutineScope.launch(Dispatchers.IO) {
+        coroutineScope.launch(ioDispatcher) {
             try {
                 val localFile = networkFileManager.prepareFileForWrite(fileToSave)
                 if (localFile == null) {

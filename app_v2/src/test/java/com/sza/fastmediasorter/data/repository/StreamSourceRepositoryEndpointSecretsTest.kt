@@ -12,6 +12,8 @@ import com.sza.fastmediasorter.testing.InMemoryRoomRule
 import com.sza.fastmediasorter.testing.fakes.FakeBroadcastSecretBox
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.job
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -41,12 +43,13 @@ class StreamSourceRepositoryEndpointSecretsTest {
     private val box = FakeBroadcastSecretBox()
     private val dao get() = dbRule.db.streamSourceDao()
     private val secrets get() = BroadcastEndpointSecretsRepository(dbRule.db, dao)
+    private val appScope = CoroutineScope(Dispatchers.Unconfined)
     private val repo get() = StreamSourceRepository(
         dbRule.db,
         dao,
         dbRule.db.streamQualityMemoryDao(),
         dbRule.db.streamUserStateDao(),
-        CoroutineScope(Dispatchers.Unconfined),
+        appScope,
     )
 
     @Before
@@ -56,6 +59,7 @@ class StreamSourceRepositoryEndpointSecretsTest {
 
     @After
     fun restoreBox() {
+        runBlocking { appScope.coroutineContext.job.cancelAndJoin() }
         BroadcastEndpointCodec.secretBox = KeystoreBroadcastSecretBox
     }
 

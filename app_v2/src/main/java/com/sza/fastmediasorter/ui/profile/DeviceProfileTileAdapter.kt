@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.model.DeviceProfileType
 import com.sza.fastmediasorter.databinding.ItemDeviceProfileTileBinding
 import com.sza.fastmediasorter.ui.common.DeviceProfileUi
+import timber.log.Timber
 
 /**
  * Grid adapter for the device-profile picker. Renders one pressable tile per profile
@@ -67,9 +68,10 @@ class DeviceProfileTileAdapter(
             binding.tvProfileTileDescription.text = description
 
             val isRecommended = type == recommended
+            Timber.d("S4832: profile tile bound type=$type recommended=$isRecommended")
             binding.tvProfileTileRecommended.visibility = if (isRecommended) View.VISIBLE else View.GONE
             if (isRecommended) {
-                binding.tvProfileTileRecommended.text = context.getString(R.string.welcome_recommended_badge)
+                binding.tvProfileTileRecommended.text = context.getString(R.string.launcher_primary_window_recommended)
             }
 
             val isSelected = type == selected

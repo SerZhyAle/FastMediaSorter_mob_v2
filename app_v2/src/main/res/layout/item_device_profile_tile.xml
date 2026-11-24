@@ -57,7 +57,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:maxLines="1"
+                    android:maxLines="2"
                     android:ellipsize="end"
                     android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp"
@@ -69,14 +69,13 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="6dp"
-                    android:ellipsize="end"
                     android:maxLines="1"
                     android:textColor="?attr/colorPrimary"
-                    android:textSize="12sp"
+                    android:textSize="@dimen/text_size_11sp"
                     android:textStyle="bold"
                     android:visibility="gone"
                     tools:visibility="visible"
-                    tools:text="(Recommended)" />
+                    tools:text="Recommended" />
 
             </LinearLayout>
 

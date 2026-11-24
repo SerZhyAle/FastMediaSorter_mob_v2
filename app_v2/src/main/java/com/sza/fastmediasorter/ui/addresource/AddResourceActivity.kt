@@ -9,6 +9,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
@@ -22,6 +23,7 @@ import com.sza.fastmediasorter.domain.usecase.intake.DispatchIntakeTextUseCase
 import com.sza.fastmediasorter.ui.addresource.helpers.AddResourceSftpQrCoordinator
 import com.sza.fastmediasorter.ui.addresource.helpers.CreatedResourcePinManager
 import com.sza.fastmediasorter.ui.addresource.helpers.CreatedResourcePlacementManager
+import com.sza.fastmediasorter.ui.common.MediaTypeColorCatalog
 import com.sza.fastmediasorter.ui.common.help.HelpOpenManager
 import com.sza.fastmediasorter.ui.common.help.HelpToolbarEntryManager
 import com.sza.fastmediasorter.ui.common.input.FocusDirection
@@ -30,6 +32,7 @@ import com.sza.fastmediasorter.ui.exchange.ExchangeDirectoryViewModel
 import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeDirectoryDialogManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -249,6 +252,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
 
         binding.toolbar.setUpNavigation(this)
         HelpToolbarEntryManager.install(binding.toolbar, this, getHelpSurfaceId(), UiSurface.ADD_RESOURCE)
+        formManager.configureToolbarContrast()
 
         resourceToAddAdapter = ResourceToAddAdapter(
             onSelectionChanged = { resource, selected -> viewModel.toggleResourceSelection(resource, selected) },
@@ -257,7 +261,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             onScanSubdirectoriesChanged = { resource, scan -> viewModel.toggleScanSubdirectories(resource, scan) },
             onReadOnlyChanged = { resource, isReadOnly -> viewModel.toggleReadOnlyMode(resource, isReadOnly) },
             onMediaTypeToggled = { resource, type -> viewModel.toggleMediaType(resource, type) },
-            onAllFilesChanged = { resource, allFiles -> viewModel.toggleAllFiles(resource, allFiles) }
+            onAllFilesChanged = { resource, allFiles -> viewModel.toggleAllFiles(resource, allFiles) },
+            mediaTypeEntries = MediaTypeColorCatalog.supportedBadgeEntries(mediaCapabilities),
         )
 
         // Card navigation
@@ -493,11 +498,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                     event.accounts
                 )
                 is AddResourceEvent.ShowError -> connectionManager.showError(event.message)
-                is AddResourceEvent.ShowMessage -> Toast.makeText(
-                    this@AddResourceActivity,
-                    event.message,
-                    Toast.LENGTH_SHORT
-                ).show()
+                is AddResourceEvent.ShowMessage -> showStagingMessage(event)
                 is AddResourceEvent.ShowTestResult -> connectionManager.showTestResultDialog(
                     event.message,
                     event.isSuccess,
@@ -546,14 +547,14 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
      * section - and the S1423 system pin is requested only on a foreign home screen, where the
      * section tile cannot reach (strategic ADR-2). `finish()` runs after the awaited work, never
      * before - finishing cancels `lifecycleScope` and would drop it. Silence when no pin was
-     * requested is deliberate: the resource-added toast has already fired and the tile appearing
+     * requested is deliberate: the add confirmation has already been shown and the tile appearing
      * is the confirmation.
      */
     private fun routeResourcesAdded(createdResourceIds: List<Long>) {
         if (!pinShortcutOnCreate) {
             lifecycleScope.launch {
                 createdResourcePlacementManager.placeLauncherTiles(createdResourceIds, sectionOnly = true)
-                finish()
+                finishAfterHeldMessage()
             }
             return
         }
@@ -568,8 +569,54 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                     Toast.makeText(this@AddResourceActivity, message, Toast.LENGTH_LONG).show()
                 }
             }
-            finish()
+            finishAfterHeldMessage()
         }
+    }
+
+    /**
+     * Completed when the held add confirmation leaves the screen. Set by [showStagingMessage] right
+     * before [routeResourcesAdded] runs, because the view model sends the message ahead of the
+     * resources-added event and the collector handles them in that order.
+     */
+    private var closeHoldDismissed: CompletableDeferred<Unit>? = null
+
+    /**
+     * S4848: a Snackbar leaves with its activity, so a close that follows a held confirmation waits
+     * for it first. The deferred is completed when the Snackbar is gone, so a message that has already
+     * left the screen releases the wait at once instead of hanging the close.
+     */
+    private suspend fun finishAfterHeldMessage() {
+        closeHoldDismissed?.await()
+        finish()
+    }
+
+    /**
+     * S4848: a Toast is one short thought readable at a glance, and it cannot show a list of names. The
+     * add result keeps its names on a Snackbar; the held form stays on screen for its full long duration.
+     */
+    private fun showStagingMessage(request: AddResourceEvent.ShowMessage) {
+        Timber.d("S4847: staging message anchored=${binding.btnAddToResources.isVisible}")
+        val snackbar = Snackbar.make(
+            binding.root,
+            request.message,
+            if (request.awaitDismissBeforeClose) Snackbar.LENGTH_LONG else Snackbar.LENGTH_SHORT
+        ).apply {
+            if (binding.btnAddToResources.isVisible) {
+                anchorView = binding.btnAddToResources
+            }
+        }
+        if (request.awaitDismissBeforeClose) {
+            val dismissed = CompletableDeferred<Unit>()
+            closeHoldDismissed = dismissed
+            snackbar.addCallback(object : Snackbar.Callback() {
+                override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
+                    transientBottomBar?.removeCallback(this)
+                    dismissed.complete(Unit)
+                }
+            })
+            Timber.d("S4848: add confirmation holds the close until dismissed")
+        }
+        snackbar.show()
     }
 
     override fun onResumeWithViews() {
@@ -592,6 +639,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     }
 
     internal fun showLocalFolderOptions() {
+        Timber.d("S4845: local folder screen opened")
         setCredentialBranch(false)
         binding.scrollResourceTypes.isVisible = false
         binding.layoutResourceTypes.visibility = android.view.View.GONE

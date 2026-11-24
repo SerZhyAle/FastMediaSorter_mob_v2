@@ -56,6 +56,8 @@ class ImportSystemShortcutsUseCaseTest {
             return nextId++
         }
 
+        override suspend fun removeCellAndCloseGap(id: Long, columns: Int) = removeCell(id)
+
         override suspend fun removeCell(id: Long) = Unit
 
         override suspend fun moveCellToScreen(

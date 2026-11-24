@@ -185,7 +185,7 @@ class WearBroadcastPlaybackResolver @Inject constructor(
         endpoint: WearBroadcastEndpoint.Relay,
         credentials: WearBroadcastCredentials?,
     ): WearBroadcastPlayback = try {
-        val header = credentials?.let(::basicHeader)
+        val header = credentials?.basicAuthorizationHeader()
         // 27 item DL: a sealed relay is no stream for any player, so it plays only through the opening proxy.
         val groupKey = endpoint.groupKey?.let(E2eBytes::fromB64url)
         val url = if (groupKey == null) {
@@ -206,9 +206,10 @@ class WearBroadcastPlaybackResolver @Inject constructor(
             isVideo = WearBroadcastEndpoints.isVideo(endpoint.mode ?: route.record.mode),
             route = route,
         )
+}
 
-    private fun basicHeader(credentials: WearBroadcastCredentials): String {
-        val pair = "${credentials.user}:${credentials.password}".toByteArray(Charsets.UTF_8)
-        return "Authorization: Basic ${Base64.getEncoder().encodeToString(pair)}"
-    }
+/** The Basic header line a protected broadcast's relay is opened with; it never reaches a URL or a log. */
+internal fun WearBroadcastCredentials.basicAuthorizationHeader(): String {
+    val pair = "$user:$password".toByteArray(Charsets.UTF_8)
+    return "Authorization: Basic ${Base64.getEncoder().encodeToString(pair)}"
 }

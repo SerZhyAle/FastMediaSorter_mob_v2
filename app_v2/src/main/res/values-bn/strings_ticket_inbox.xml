@@ -27,4 +27,12 @@
     <string name="ticket_inbox_queued_notice">টিকিট পাঠানোর জন্য সারিতে রাখা হয়েছে</string>
     <string name="ticket_inbox_stage_failed">টিকিট সংরক্ষণ করা যায়নি: %1$s</string>
     <string name="ticket_inbox_discard">তালিকা থেকে সরান</string>
+    <string name="ticket_inbox_destination_label">যেখানে পাঠাবেন</string>
+    <string name="ticket_inbox_state_folder_waiting">পিসির ফোল্ডারের অপেক্ষায়: %1$s</string>
+    <string name="ticket_inbox_state_folder_sent">ফোল্ডারে আছে - পিসির অপেক্ষায়</string>
+    <string name="ticket_inbox_grant_drive">Google Drive-এ অ্যাক্সেস দিন</string>
+    <string name="ticket_inbox_state_needs_access">Google Drive-এ অ্যাক্সেস দরকার - উপরের বোতাম দিয়ে অনুমতি দিন</string>
+    <string name="ticket_inbox_drive_access_granted">অ্যাক্সেস দেওয়া হয়েছে - অপেক্ষমাণ টিকিটগুলো এখন যাচ্ছে</string>
+    <string name="ticket_inbox_drive_access_declined">অ্যাক্সেস দেওয়া হয়নি - আপনি অনুমতি না দেওয়া পর্যন্ত টিকিটগুলো তালিকায় থাকবে</string>
+    <string name="ticket_inbox_drive_access_failed">Google অ্যাক্সেস স্ক্রিন দেখাতে পারেনি - একটু পরে আবার চেষ্টা করুন</string>
 </resources>

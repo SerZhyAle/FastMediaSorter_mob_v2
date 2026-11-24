@@ -4,6 +4,8 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import threading
+import time
 import unittest
 from unittest.mock import Mock, patch
 
@@ -230,6 +232,69 @@ class SafeguardsTest(unittest.TestCase):
             result = subprocess.run([sys.executable, "-B", "-c", probe], cwd=SCRIPTS,
                                     capture_output=True, text=True, timeout=10, check=True)
         self.assertEqual(result.stdout.strip(), "busy same app; acquired other app")
+
+    def test_lock_refusal_names_the_local_holder_and_the_open_edit(self):
+        play.save_record(self.root / f"{PACKAGE}.active.json", {"editId": "05270925241039895275"})
+        with patch.object(play, "state_root", return_value=self.root), play.app_lock(PACKAGE):
+            with self.assertRaises(play.PlayStop) as refusal:
+                with play.app_lock(PACKAGE):
+                    pass
+        message = str(refusal.exception)
+        self.assertIn("local file lock, not a Play-side condition", message)
+        self.assertIn(str(self.root / f"{PACKAGE}.lock"), message)
+        self.assertIn(f"Holder is running - pid {os.getpid()}", message)
+        self.assertIn(sys.argv[0], message)
+        self.assertIn("05270925241039895275", message)
+
+    def test_lock_refusal_reads_a_dead_holder_as_stale(self):
+        dead = subprocess.Popen([sys.executable, "-B", "-c", "pass"])
+        dead.wait()
+        with patch.object(play, "state_root", return_value=self.root), play.app_lock(PACKAGE):
+            play.save_record(play.holder_path(self.root, PACKAGE),
+                             {"pid": dead.pid, "argv": ["gone.py"], "acquiredAt": play.utc_now()})
+            with self.assertRaises(play.PlayStop) as refusal:
+                with play.app_lock(PACKAGE):
+                    pass
+        self.assertIn(f"Holder record is stale - pid {dead.pid}", str(refusal.exception))
+
+    def test_lock_refusal_without_a_holder_record_says_the_holder_is_unknown(self):
+        with patch.object(play, "state_root", return_value=self.root), play.app_lock(PACKAGE):
+            play.holder_path(self.root, PACKAGE).unlink()
+            with self.assertRaises(play.PlayStop) as refusal:
+                with play.app_lock(PACKAGE):
+                    pass
+        self.assertIn("No usable holder record", str(refusal.exception))
+
+    def test_holder_record_is_removed_when_the_lock_is_released(self):
+        with patch.object(play, "state_root", return_value=self.root):
+            with play.app_lock(PACKAGE):
+                self.assertTrue(play.holder_path(self.root, PACKAGE).exists())
+            self.assertFalse(play.holder_path(self.root, PACKAGE).exists())
+
+    def test_waiting_lock_acquires_once_the_holder_releases(self):
+        held, release = threading.Event(), threading.Event()
+
+        def hold():
+            with play.app_lock(PACKAGE):
+                held.set()
+                release.wait(5)
+
+        with patch.object(play, "state_root", return_value=self.root):
+            holder = threading.Thread(target=hold)
+            holder.start()
+            self.assertTrue(held.wait(5))
+            threading.Timer(0.5, release.set).start()
+            with play.app_lock(PACKAGE, wait=5):
+                pass
+            holder.join(5)
+
+    def test_zero_wait_lock_refuses_at_once(self):
+        with patch.object(play, "state_root", return_value=self.root), play.app_lock(PACKAGE):
+            started = time.monotonic()
+            with self.assertRaises(play.PlayStop):
+                with play.app_lock(PACKAGE):
+                    pass
+        self.assertLess(time.monotonic() - started, 1)
 
 
 if __name__ == "__main__":

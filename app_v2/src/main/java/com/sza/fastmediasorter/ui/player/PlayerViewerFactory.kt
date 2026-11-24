@@ -186,6 +186,10 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
                 }
 
                 override fun onEditorVisibilityChanged() {
+                    if (activity.isDialogAndUiStateManagerInitialized) {
+                        activity.dialogAndUiStateManager.filenameOverlayManager
+                            ?.setSuppressed(activity._textViewerManager?.isEditorOpen() == true)
+                    }
                     Timber.d("S4724: editor visibility changed, command panel layout re-run requested")
                     if (activity.isCommandPanelControllerReady()) {
                         activity.updateCommandAvailability(activity.viewModel.state.value)

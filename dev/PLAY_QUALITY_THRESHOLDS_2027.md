@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.03 08:45</sub>
+<sub class="doc-stamp">26.11.24 14:14</sub>
 
 # Google Play technical quality thresholds - February 2027 (S2100)
 
@@ -317,6 +317,16 @@ as an observation and **do not treat it as a defect to fix**: with no feature mo
 configuration splits already on, there is no delivery change left that would satisfy it. If it never
 fires across a release, that is the answer too, and it closes S2449's residual.
 
+**Observed 2026-11-24 - the alert did not fire.** Read in Play Console for `com.sza.fastmediasorter`
+twelve days after the bundle uploads of 2026-11-12 (2.61.1121.756 and 2.61.1121.733), with the
+proactive-alert pipeline demonstrably live for both: the same bundles carry an R8 optimization
+alert, a bitmap-downsampling alert and two edge-to-edge alerts (section 3.3). Surfaces read: the app
+dashboard, Monitor and improve > Take action, Android vitals overview (three recommended actions),
+App bundle explorer details for both bundles, and the Production release details. None names split
+bundles or feature modules. So Play's "limited split-bundle usage" alert is silent for this
+delivery setup - no feature module, configuration splits on by AGP default - and no delivery change
+is indicated. Re-read the same surfaces if a later release changes the module set.
+
 ### 3.2 Measured - Reporting API (S2917)
 
 Written only by `watch-play-vitals.ps1`; anything typed between the markers is overwritten on the
@@ -329,7 +339,7 @@ be judged against.
 
 <!-- s2917:measured:play-vitals:begin -->
 
-Measured 2026-11-12 (UTC) over 2026-10-14..2026-11-10 America/Los_Angeles. App verdict: `insufficient-data`. Rates as the API returns them, read as fraction (S2917 research 6).
+Measured 2026-11-24 (UTC) over 2026-10-26..2026-11-22 America/Los_Angeles. App verdict: `insufficient-data`. Rates as the API returns them, read as fraction (S2917 research 6).
 
 | Freshest day | versionCode | Crash, user-perceived 28d | ANR, user-perceived 28d | LMK, user-perceived 28d | Distinct users | Memory | Anomalies | Band colour |
 |---|---|---|---|---|---|---|---|---|
@@ -344,7 +354,12 @@ figure. S1157 is waiting on the DEX percentage specifically.
 
 | Date | Release | DEX optimization % | Proactive alerts fired |
 |---|---|---|---|
-| | | | |
+| 2026-11-24 | 2.61.1121.756 (versionCode 261112175, targetSdk 37, API 26+, uploaded 2026-11-12 18:51) | 53 % - rated High; obfuscation 60 %, shrinking 58 %; R8 full mode, resource shrinking (optimized), repackage classes; uncompressed DEX 34.1 MB | Edge-to-edge may not display for all users; deprecated edge-to-edge APIs (`LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES`, `gxh.a`) - parked as S4879. No split-bundle alert. |
+| 2026-11-24 | 2.61.1121.733 (versionCode 261112178, targetSdk 36, API 28+, uploaded 2026-11-12 17:37; the bundle on the Production release 15) | 45 % - rated Medium; obfuscation 51 %, shrinking 49 %; R8 full mode, resource shrinking (optimized), repackage classes; uncompressed DEX 16.7 MB | R8 optimization (low optimization rate 45 %, low shrinking rate 49 %); BitmapFactory without downsampling (`hq6.d`, `yz5.invokeSuspend`) - parked as S4880. No split-bundle alert. |
+
+All six percentages clear the 25 % minimum of section 1.3. The 45 % and 49 % that the R8 alert calls
+low are Play's own cut-off, not the section 1.3 rule - they are the figures S1157 reads when it
+narrows keep rules.
 
 ---
 

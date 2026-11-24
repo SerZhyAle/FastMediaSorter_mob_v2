@@ -33,6 +33,64 @@ internal class LauncherSectionCoordinator(
     private val cellDao: LauncherCellDao,
 ) {
 
+    suspend fun removeCellAndCloseGap(id: Long, columns: Int) = withContext(Dispatchers.IO) {
+        db.withTransaction {
+            val removed = cellDao.getById(id) ?: return@withTransaction
+            val orientation = runCatching { LauncherOrientation.valueOf(removed.orientation) }.getOrNull()
+            val cells = orientation?.let { cellsOfScreen(it, removed.screenIndex) }.orEmpty()
+            val domainCells = cells.mapNotNull { it.toDomainOrNull() }
+            val sections = LauncherSectionMembership.sectionsInOrder(domainCells)
+            val owner = removed.toDomainOrNull()?.let { LauncherSectionMembership.ownerOf(it, sections)?.id }
+            cellDao.deleteById(id)
+            if (columns > 0 && removed.spanW == 1 && removed.spanH == 1) {
+                closeGap(removed, cells, sections, owner, columns)
+            }
+        }
+    }
+
+    /**
+     * S4828: walks row-major from the removed slot and pulls each following single cell back by one, so
+     * only the run directly behind the hole moves. The first gap, header, multi-cell element or cell owned
+     * by another section ends the run, which keeps every unrelated placement where the user left it.
+     */
+    private suspend fun closeGap(
+        removed: LauncherCellEntity,
+        cells: List<LauncherCellEntity>,
+        sections: List<LauncherCell>,
+        owner: Long?,
+        columns: Int,
+    ) {
+        var row = removed.rowIndex
+        var col = removed.colIndex
+        var next = shiftableAfter(row, col, removed.id, cells, sections, owner, columns)
+        while (next != null) {
+            cellDao.update(next.copy(rowIndex = row, colIndex = col))
+            row = next.rowIndex
+            col = next.colIndex
+            next = shiftableAfter(row, col, removed.id, cells, sections, owner, columns)
+        }
+    }
+
+    @Suppress("LongParameterList") // the walk state plus the screen it walks; a holder would only rename them
+    private fun shiftableAfter(
+        row: Int,
+        col: Int,
+        removedId: Long,
+        cells: List<LauncherCellEntity>,
+        sections: List<LauncherCell>,
+        owner: Long?,
+        columns: Int,
+    ): LauncherCellEntity? {
+        val nextCol = (col + 1) % columns
+        val nextRow = row + if (nextCol == 0) 1 else 0
+        val next = cells.firstOrNull { it.id != removedId && it.rowIndex == nextRow && it.colIndex == nextCol }
+        val moved = next
+            ?.takeIf { it.spanW == 1 && it.spanH == 1 && it.kind != LauncherCellKind.SECTION.name }
+            ?.toDomainOrNull()
+            ?.copy(rowIndex = row, colIndex = col)
+        return next.takeIf { moved != null && LauncherSectionMembership.ownerOf(moved, sections)?.id == owner }
+    }
+
     suspend fun swapSectionBlock(
         orientation: LauncherOrientation,
         sectionCellId: Long,

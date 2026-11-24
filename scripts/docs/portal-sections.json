@@ -5,7 +5,8 @@
   "languages": ["en", "ru", "uk"],
   "programs": {
     "fms-android": "FastMediaSorter for Android (phone and watch), this repository",
-    "fms-windows": "Fast Media Sorter & Sharing for Windows"
+    "fms-windows": "Fast Media Sorter & Sharing for Windows",
+    "streamsplayer": "STREAMS Player for Windows"
   },
   "sections": [
     { "page": "index", "owner": "fms-android", "common": true },
@@ -28,6 +29,7 @@
     { "page": "schedule-remote-folders", "owner": "fms-android", "common": false },
     { "page": "phone-sharing", "owner": "fms-android", "common": false },
     { "page": "my-devices", "owner": "fms-android", "common": false },
-    { "page": "windows-servers", "owner": "fms-windows", "common": false }
+    { "page": "windows-servers", "owner": "fms-windows", "common": false },
+    { "page": "streamsplayer", "owner": "streamsplayer", "common": false }
   ]
 }

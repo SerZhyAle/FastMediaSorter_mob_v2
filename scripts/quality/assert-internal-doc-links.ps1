@@ -93,7 +93,10 @@ function Get-Slugs([string] $FullPath) {
         if ($line -match '^\s*(```|~~~)') { $inFence = -not $inFence; continue }
         if ($inFence) { continue }
         if ($line -match '^\s{0,3}#{1,6}\s+(.+?)\s*#*\s*$') {
-            $slug = Get-Slug $Matches[1]
+            $headingText = $Matches[1]
+            # kramdown (the Jekyll site) turns a trailing {#id} into the heading's id, so the page is linked by it.
+            if ($headingText -match '\{#([A-Za-z0-9_:.-]+)\}\s*$') { [void]$slugs.Add($Matches[1].ToLowerInvariant()) }
+            $slug = Get-Slug $headingText
             # GitHub suffixes a repeated heading slug with -1, -2, ..
             if ($seen.ContainsKey($slug)) { $seen[$slug]++; [void]$slugs.Add("$slug-$($seen[$slug])") } else { $seen[$slug] = 0; [void]$slugs.Add($slug) }
         }
@@ -140,6 +143,12 @@ if ($scoped) {
         $full = Join-Path $RepoRoot $name
         if (-not (Test-Path -LiteralPath $full -PathType Leaf)) { continue }
         $judged.Add($name)
+    }
+    # CHECK-VERDICT rule 2.12: a declared set with no corpus Markdown is the empty set, never a fall back to the tree.
+    if ($judged.Count -eq 0) {
+        . (Join-Path $PSScriptRoot 'lib/changed-files.ps1')
+        Write-EmptySetPass -GateName 'assert-internal-doc-links'
+        exit 0
     }
 } else {
     foreach ($root in $corpusRoots) {

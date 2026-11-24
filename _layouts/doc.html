@@ -135,6 +135,38 @@
     {%- if doc_en %}
     <link rel="alternate" hreflang="x-default" href="{{ doc_en.url | absolute_url }}">
     {%- endif %}
+    {%- assign doc_og_title = page.title | default: 'Documentation' | append: ' - Fast Media Sorter' | strip_html | escape -%}
+    {%- assign doc_og_desc = page.description | default: site.description | strip_html | escape -%}
+    {%- assign doc_og_image = '/assets/og/og-image.png' | absolute_url -%}
+    {%- case doc_lang -%}
+      {%- when 'ru' -%}{%- assign doc_og_locale = 'ru_RU' -%}
+      {%- when 'uk' -%}{%- assign doc_og_locale = 'uk_UA' -%}
+      {%- when 'de' -%}{%- assign doc_og_locale = 'de_DE' -%}
+      {%- when 'es' -%}{%- assign doc_og_locale = 'es_ES' -%}
+      {%- when 'fr' -%}{%- assign doc_og_locale = 'fr_FR' -%}
+      {%- when 'it' -%}{%- assign doc_og_locale = 'it_IT' -%}
+      {%- when 'pt' -%}{%- assign doc_og_locale = 'pt_BR' -%}
+      {%- when 'ar' -%}{%- assign doc_og_locale = 'ar_AR' -%}
+      {%- when 'bn' -%}{%- assign doc_og_locale = 'bn_BD' -%}
+      {%- when 'hi' -%}{%- assign doc_og_locale = 'hi_IN' -%}
+      {%- when 'ur' -%}{%- assign doc_og_locale = 'ur_PK' -%}
+      {%- when 'zh-Hans' -%}{%- assign doc_og_locale = 'zh_CN' -%}
+      {%- else -%}{%- assign doc_og_locale = 'en_US' -%}
+    {%- endcase %}
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="{{ page.url | absolute_url }}">
+    <meta property="og:title" content="{{ doc_og_title }}">
+    <meta property="og:description" content="{{ doc_og_desc }}">
+    <meta property="og:image" content="{{ doc_og_image }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Fast Media Sorter">
+    <meta property="og:locale" content="{{ doc_og_locale }}">
+    <meta property="og:site_name" content="Fast Media Sorter &amp; Organizer">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ doc_og_title }}">
+    <meta name="twitter:description" content="{{ doc_og_desc }}">
+    <meta name="twitter:image" content="{{ doc_og_image }}">
 
     <link rel="icon" type="image/x-icon" href="{{ '/favicon.ico' | relative_url }}">
     <link rel="icon" type="image/svg+xml" href="{{ '/favicon.svg' | relative_url }}">

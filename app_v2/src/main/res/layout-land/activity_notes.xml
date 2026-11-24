@@ -40,7 +40,7 @@
                 android:clipToPadding="false"
                 android:focusable="true"
                 android:nextFocusUp="@id/notesSearchView"
-                android:paddingEnd="200dp"
+                android:paddingEnd="@dimen/notes_list_fab_clearance_end_land"
                 android:paddingBottom="@dimen/margin_large"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S4860: first-run hints above the resource list. MainFirstRunHintsManager owns every visibility here;
+     the card is focusable for D-pad but never takes initial focus, which stays on the list (owner Q4). -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardFirstStepHint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/main_recycler_margin"
+        android:layout_marginTop="@dimen/margin_small"
+        android:visibility="gone"
+        app:cardBackgroundColor="?attr/colorSecondaryContainer"
+        app:strokeWidth="0dp"
+        tools:visibility="visible">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="@dimen/margin_medium"
+            android:paddingVertical="@dimen/margin_small">
+
+            <TextView
+                android:id="@+id/tvFirstStepHint"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/main_first_step_hint_text"
+                android:textColor="?attr/colorOnSecondaryContainer"
+                android:textAppearance="@style/TextAppearance.FastMediaSorter.Item.Detail" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnFirstStepAdd"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/margin_small"
+                android:clickable="true"
+                android:focusable="true"
+                android:text="@string/main_first_step_hint_action"
+                app:icon="@drawable/ic_add" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <TextView
+        android:id="@+id/tvDestinationLegend"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/margin_small"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:maxLines="2"
+        android:paddingHorizontal="@dimen/margin_small"
+        android:paddingVertical="@dimen/margin_tiny"
+        android:text="@string/main_destination_legend"
+        android:textAppearance="@style/TextAppearance.FastMediaSorter.Item.Detail"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:visibility="gone"
+        tools:visibility="visible" />
+</LinearLayout>

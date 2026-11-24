@@ -121,13 +121,10 @@ function Get-TempRootInventory {
     $fixedDirs.AddRange([string[]]$harnessDirs)
     # One queue directory per lock domain (S2109). Derived, per S2170.
     $fixedDirs.AddRange([string[]]@($upperDomains | ForEach-Object { "$_.QUEUE" }))
-    # The two device stores, derived from their owner's declaration (S3036). Hand-listed when S3030
-    # wrote this file, because nothing declared them then; the row that mattered is DEVICE.REGISTRY -
-    # the durable roster Rule 35 reads, idle for a week in normal use, so the age rule must never
-    # reach it. Contract: scripts/devtest/lib/device-store-paths.tests/ case E7 fails if a rename
-    # reaches the declaration but not this protection.
+    # These device directories belong to the repository. The fallback is protected for older
+    # installations. The shared lease store lives outside the temp archiver's scope.
     . (Join-Path $RepoRoot 'scripts/devtest/lib/device-store-paths.ps1')
-    $fixedDirs.AddRange([string[]]@(@('Lease', 'Registry', 'State') | ForEach-Object { Get-DeviceStoreDirName -Store $_ }))
+    $fixedDirs.AddRange([string[]]@(@('LeaseFallback', 'Registry', 'State') | ForEach-Object { Get-DeviceStoreDirName -Store $_ }))
     $fixedDirs.AddRange([string[]]@(
         'archive'                          # archive-temp.ps1's own destination - it moves stale entries here.
         'scratch'                          # Rule 10's home for work with no active ticket.

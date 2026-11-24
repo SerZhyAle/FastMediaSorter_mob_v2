@@ -74,7 +74,9 @@ class CleanupOrphanedTempFilesUseCase @Inject constructor(
             val filesResult = handler.listFiles(directoryPath)
 
             if (filesResult.isFailure) {
-                Timber.w("CleanupOrphanedTempFilesUseCase: Failed to list files: ${filesResult.exceptionOrNull()?.message}")
+                Timber.w(
+                    "CleanupOrphanedTempFilesUseCase: Failed to list files: ${filesResult.exceptionOrNull()?.message}"
+                )
                 return@withContext Result.failure(
                     filesResult.exceptionOrNull() ?: Exception("Failed to list files")
                 )
@@ -115,13 +117,18 @@ class CleanupOrphanedTempFilesUseCase @Inject constructor(
             }
 
             if (errors.isNotEmpty()) {
-                Timber.w("CleanupOrphanedTempFilesUseCase: Cleanup completed with errors. Deleted: $deletedCount, Failed: ${errors.size}")
+                Timber.w(
+                    "CleanupOrphanedTempFilesUseCase: Cleanup completed with errors. " +
+                        "Deleted: $deletedCount, Failed: ${errors.size}"
+                )
                 return@withContext Result.success(deletedCount)
             }
 
-            Timber.i("CleanupOrphanedTempFilesUseCase: Cleanup completed successfully. Deleted $deletedCount orphaned temp files")
+            Timber.i(
+                "CleanupOrphanedTempFilesUseCase: Cleanup completed successfully. " +
+                    "Deleted $deletedCount orphaned temp files"
+            )
             Result.success(deletedCount)
-
         } catch (e: kotlinx.coroutines.CancellationException) {
             Timber.d("CleanupOrphanedTempFilesUseCase: Cleanup cancelled")
             throw e

@@ -1,5 +1,5 @@
 ---
-source_sha256: 014967305311957c399bdef820c92215e824ad41e415102aa8c8fbaa8e65e53b
+source_sha256: cc0956d653c353792716a32143d4bd2b27f904fc77a1a83fc386db980d11ffdd
 layout: doc
 title: "Редакции: в каком приложении какой способ обмена"
 description: "В какой редакции Fast Media Sorter & Organizer для Android есть сетевые папки, «Мои устройства», облака, файлы через Google Drive, живая трансляция, Chromecast и компаньон для часов."

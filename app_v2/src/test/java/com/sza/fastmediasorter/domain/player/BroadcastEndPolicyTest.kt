@@ -79,6 +79,25 @@ class BroadcastEndPolicyTest {
         assertEquals(BroadcastStopSignal.StreamEnded, hold.atStop(BroadcastStopSignal.StreamEnded))
     }
 
+    @Test
+    fun aFailurePastTheLadder_readsTheHeldRemoval() {
+        val hold = BroadcastRemovalHold()
+        hold.onDelivering()
+        assertFalse(hold.onDirectory(true))
+        assertTrue(hold.atFailure())
+    }
+
+    @Test
+    fun aFailureWithNoRemoval_orAfterAReset_isNoEnd() {
+        val hold = BroadcastRemovalHold()
+        hold.onDelivering()
+        assertFalse(hold.atFailure())
+
+        hold.onDirectory(true)
+        hold.reset()
+        assertFalse(hold.atFailure())
+    }
+
     private companion object {
         const val GONE = 410
         const val NOT_FOUND = 404

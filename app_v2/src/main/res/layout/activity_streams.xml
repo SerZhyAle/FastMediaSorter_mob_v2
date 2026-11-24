@@ -93,15 +93,25 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- S1473: one-tap media-kind facet. The lit icon is the active facet, all neutral
-                 means no filter; tapping the lit one clears it. -->
-            <ImageButton
+                 means no filter; tapping the lit one clears it.
+                 S3249: every control of this bar is a MaterialButton on the icon-button token, so the
+                 six share one ripple shape and disabled tint. Insets and padding are zeroed because the
+                 fixed edge, not the style's 48dp floor, is the size here, and the glyph must stay centred. -->
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnMediaKindVideo"
+                style="@style/Widget.FastMediaSorter.Button.Icon"
                 android:layout_width="@dimen/streams_media_filter_button_size"
                 android:layout_height="@dimen/streams_media_filter_button_size"
                 android:layout_marginStart="4dp"
-                android:src="@drawable/ic_video"
-                app:tint="?attr/colorControlNormal"
-                android:background="?attr/selectableItemBackgroundBorderless"
+                android:insetLeft="@dimen/dimension_zero"
+                android:insetTop="@dimen/dimension_zero"
+                android:insetRight="@dimen/dimension_zero"
+                android:insetBottom="@dimen/dimension_zero"
+                android:padding="@dimen/dimension_zero"
+                app:icon="@drawable/ic_video"
+                app:iconGravity="textStart"
+                app:iconPadding="@dimen/spacing_none"
+                app:iconTint="?attr/colorControlNormal"
                 android:focusable="true"
                 android:nextFocusUp="@id/toolbar"
                 android:nextFocusLeft="@id/etSearch"
@@ -109,13 +119,20 @@
                 android:nextFocusDown="@id/rvStreams"
                 android:contentDescription="@string/streams_media_filter_video" />
 
-            <ImageButton
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnMediaKindAudio"
+                style="@style/Widget.FastMediaSorter.Button.Icon"
                 android:layout_width="@dimen/streams_media_filter_button_size"
                 android:layout_height="@dimen/streams_media_filter_button_size"
-                android:src="@drawable/ic_audio"
-                app:tint="?attr/colorControlNormal"
-                android:background="?attr/selectableItemBackgroundBorderless"
+                android:insetLeft="@dimen/dimension_zero"
+                android:insetTop="@dimen/dimension_zero"
+                android:insetRight="@dimen/dimension_zero"
+                android:insetBottom="@dimen/dimension_zero"
+                android:padding="@dimen/dimension_zero"
+                app:icon="@drawable/ic_audio"
+                app:iconGravity="textStart"
+                app:iconPadding="@dimen/spacing_none"
+                app:iconTint="?attr/colorControlNormal"
                 android:focusable="true"
                 android:nextFocusUp="@id/toolbar"
                 android:nextFocusLeft="@id/btnMediaKindVideo"
@@ -123,13 +140,20 @@
                 android:nextFocusDown="@id/rvStreams"
                 android:contentDescription="@string/streams_media_filter_audio" />
 
-            <ImageButton
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnMediaKindOwn"
+                style="@style/Widget.FastMediaSorter.Button.Icon"
                 android:layout_width="@dimen/streams_media_filter_button_size"
                 android:layout_height="@dimen/streams_media_filter_button_size"
-                android:src="@drawable/ic_edit"
-                app:tint="?attr/colorControlNormal"
-                android:background="?attr/selectableItemBackgroundBorderless"
+                android:insetLeft="@dimen/dimension_zero"
+                android:insetTop="@dimen/dimension_zero"
+                android:insetRight="@dimen/dimension_zero"
+                android:insetBottom="@dimen/dimension_zero"
+                android:padding="@dimen/dimension_zero"
+                app:icon="@drawable/ic_edit"
+                app:iconGravity="textStart"
+                app:iconPadding="@dimen/spacing_none"
+                app:iconTint="?attr/colorControlNormal"
                 android:focusable="true"
                 android:nextFocusUp="@id/toolbar"
                 android:nextFocusLeft="@id/btnMediaKindAudio"
@@ -137,13 +161,20 @@
                 android:nextFocusDown="@id/rvStreams"
                 android:contentDescription="@string/streams_media_filter_own" />
 
-            <ImageButton
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnMediaKindRecent"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:src="@drawable/ic_history"
-                app:tint="?attr/colorControlNormal"
-                android:background="?attr/selectableItemBackgroundBorderless"
+                style="@style/Widget.FastMediaSorter.Button.Icon"
+                android:layout_width="@dimen/touch_target_min_height"
+                android:layout_height="@dimen/touch_target_min_height"
+                android:insetLeft="@dimen/dimension_zero"
+                android:insetTop="@dimen/dimension_zero"
+                android:insetRight="@dimen/dimension_zero"
+                android:insetBottom="@dimen/dimension_zero"
+                android:padding="@dimen/dimension_zero"
+                app:icon="@drawable/ic_history"
+                app:iconGravity="textStart"
+                app:iconPadding="@dimen/spacing_none"
+                app:iconTint="?attr/colorControlNormal"
                 android:focusable="true"
                 android:nextFocusUp="@id/toolbar"
                 android:nextFocusLeft="@id/btnMediaKindOwn"
@@ -151,14 +182,23 @@
                 android:nextFocusDown="@id/rvStreams"
                 android:contentDescription="@string/streams_media_filter_recent" />
 
-            <ImageButton
+            <!-- S4752 over S3249: Filter keeps the quiet background in place of the token's own. A
+                 MaterialButton ripple paints its highlight for state_focused, so the parked launch focus
+                 would bring the grey disc back; backgroundTint is nulled so the inherited tint cannot
+                 recolour the custom drawable. -->
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnFilter"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                style="@style/Widget.FastMediaSorter.Button.Icon"
+                android:layout_width="@dimen/touch_target_min_height"
+                android:layout_height="@dimen/touch_target_min_height"
                 android:layout_marginStart="4dp"
-                android:src="@drawable/ic_filter"
-                app:tint="?attr/colorControlNormal"
+                android:padding="@dimen/dimension_zero"
                 android:background="@drawable/bg_icon_button_focus_quiet"
+                app:backgroundTint="@null"
+                app:icon="@drawable/ic_filter"
+                app:iconGravity="textStart"
+                app:iconPadding="@dimen/spacing_none"
+                app:iconTint="?attr/colorControlNormal"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
                 android:nextFocusUp="@id/toolbar"
@@ -173,15 +213,22 @@
                      S4756: StreamsActivity clears the touch-focusable flag after the first layout, because
                      a touch-focusable button that lost focus spends its next tap on regaining it. -->
                 <requestFocus />
-            </ImageButton>
+            </com.google.android.material.button.MaterialButton>
 
-            <ImageButton
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSort"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:src="@drawable/ic_sort"
-                app:tint="?attr/colorControlNormal"
-                android:background="?attr/selectableItemBackgroundBorderless"
+                style="@style/Widget.FastMediaSorter.Button.Icon"
+                android:layout_width="@dimen/touch_target_min_height"
+                android:layout_height="@dimen/touch_target_min_height"
+                android:insetLeft="@dimen/dimension_zero"
+                android:insetTop="@dimen/dimension_zero"
+                android:insetRight="@dimen/dimension_zero"
+                android:insetBottom="@dimen/dimension_zero"
+                android:padding="@dimen/dimension_zero"
+                app:icon="@drawable/ic_sort"
+                app:iconGravity="textStart"
+                app:iconPadding="@dimen/spacing_none"
+                app:iconTint="?attr/colorControlNormal"
                 android:focusable="true"
                 android:nextFocusUp="@id/toolbar"
                 android:nextFocusLeft="@id/btnFilter"

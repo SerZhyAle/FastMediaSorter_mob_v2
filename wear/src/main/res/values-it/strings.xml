@@ -99,7 +99,7 @@
     <string name="phone_resource_loading">Caricamento dal telefono..</string>
     <string name="phone_resource_retry">Riprova</string>
     <string name="phone_resource_empty">Il telefono non ha nulla da mostrare qui. Apri un\'altra cartella o riprova.</string>
-    <string name="phone_resource_unavailable">Fast Media Sorter &amp; Organizer non risponde sul telefono. Aprila lì e tieni il telefono vicino.</string>
+    <string name="phone_resource_unavailable">Fast Media Sorter &amp; Organizer non risponde sul tuo telefono. Aprilo lì e tieni il telefono vicino.</string>
     <string name="phone_resource_access_denied">Il telefono non condivide questa cartella con l\'orologio.</string>
     <string name="phone_resource_unsupported">L\'orologio non può aprire questo tipo di file.</string>
     <string name="phone_resource_transfer_rejected">Questo file è troppo grande per essere inviato all\'orologio.</string>
@@ -383,9 +383,9 @@
     <string name="phone_resource_no_resource_for_type">Nessuna risorsa telefonica è configurata per contenere questo tipo.</string>
     <string name="wear_folder_load_more">Mostra di più</string>
     <string name="wear_file_op_outcome_needs_consent">Non confermato: non è cambiato nulla</string>
-    <string name="wear_sync_no_phone_paired">Nessun telefono connesso. Abbina il telefono e installa Fast Media Sorter &amp; Organizer su di esso.</string>
+    <string name="wear_sync_no_phone_paired">Nessun telefono connesso. Abbina il tuo telefono e installa Fast Media Sorter &amp; Organizer su di esso.</string>
     <string name="wear_sync_request_failed">Richiesta al telefono non riuscita. Riprova.</string>
-    <string name="phone_resource_not_paired">Nessun telefono connesso a questo orologio. Abbinane uno e installa Fast Media Sorter &amp; Organizer su di esso.</string>
+    <string name="phone_resource_not_paired">Nessun telefono è connesso a questo orologio. Abbinane uno e installa Fast Media Sorter &amp; Organizer su di esso.</string>
     <string name="wear_streams_sort_most_used">Più usati</string>
     <string name="streams_rubric_general">Generale</string>
     <string name="streams_rubric_news">Notizie</string>
@@ -767,7 +767,7 @@
     <string name="wear_cast_phone_busy">Il tuo telefono non ha risposto - verifica che sia nelle vicinanze</string>
     <string name="wear_cast_not_castable">Solo i flussi e i file da una risorsa del telefono possono essere mostrati su una TV</string>
     <string name="wear_stream_stalled">Il flusso ha smesso di inviare dati. La riproduzione è stata interrotta per risparmiare la batteria.</string>
-    <string name="phone_resource_companion_disabled">L\'interruttore Companion Wear è disattivato sul telefono. Attivalo nelle impostazioni di Fast Media Sorter &amp; Organizer, poi riprova.</string>
+    <string name="phone_resource_companion_disabled">L\'interruttore Wear Companion è disattivato sul tuo telefono. Attivalo nelle impostazioni di Fast Media Sorter &amp; Organizer, poi riprova.</string>
     <string name="wear_tourist_app">Turista</string>
     <string name="wear_tourist_metric_speed">Velocità</string>
     <string name="wear_tourist_metric_altitude">Altitudine</string>
@@ -1099,4 +1099,11 @@
     <string name="wear_scheduled_message_channel_name">Messaggi programmati</string>
     <string name="wear_audio_fetching">Caricamento del brano..</string>
     <string name="wear_stream_ended">Questo stream non è più in onda. Riprova quando ripartirà.</string>
+    <string name="wear_tourist_lock_exit_hint">Bloccato. Scorri indietro 3 volte in fretta per sbloccare</string>
+    <string name="wear_broadcast_waiting_until">La trasmissione non è ancora iniziata. Il link funziona fino a %1$s</string>
+    <string name="wear_broadcast_started">La trasmissione è iniziata</string>
+    <string name="wear_broadcast_expired">Questo link non funziona più</string>
+    <string name="wear_broadcast_play">Riproduci</string>
+    <string name="wear_tourist_no_fix_approximate">Ricerca della posizione..</string>
+    <string name="wear_tourist_precise_needed">Serve la posizione precisa</string>
 </resources>

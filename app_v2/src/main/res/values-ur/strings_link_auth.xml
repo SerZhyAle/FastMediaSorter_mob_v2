@@ -23,4 +23,5 @@
     <string name="s0157_dismissed_label">مجاز نہیں ہے (آپ نے انکار کر دیا)</string>
     <string name="s0157_last_used_never">ابھی تک استعمال نہیں کیا</string>
     <string name="s0157_last_used_fmt">آخری بار استعمال کیا گیا %1$s</string>
+    <string name="s4581_pick_account_add_new">+ اکاؤنٹ شامل کریں</string>
 </resources>

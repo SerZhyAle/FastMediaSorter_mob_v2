@@ -278,7 +278,7 @@
     <string name="setting_mic_recording_destination_default_recordings">Predefinita: cartella Registrazioni (Musica su Android 11 e versioni precedenti)</string>
     <string name="setting_screen_recording_destination_default_movies">Predefinita: cartella Film</string>
     <string name="drive_channel_enabled_title">File tramite Google Drive</string>
-    <string name="drive_channel_enabled_subtitle">Invia e ricevi file tra i tuoi dispositivi tramite il tuo Google Drive, senza il server di scambio</string>
+    <string name="drive_channel_enabled_subtitle">Invia e ricevi file tra i tuoi dispositivi tramite il tuo Google Drive e annuncia loro le tue trasmissioni, senza il server di scambio</string>
     <string name="drive_channel_background_title">Controlla tramite Google Drive in background</string>
     <string name="drive_channel_background_subtitle">Ogni 15 minuti, così i tuoi altri dispositivi possono aprire le cartelle condivise di questo telefono mentre l\'app è chiusa</string>
     <string name="drive_channel_row_from">Da %1$s</string>

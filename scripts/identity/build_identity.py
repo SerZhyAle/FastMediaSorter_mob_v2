@@ -81,7 +81,7 @@ VECTORS = {
     'ic_launcher_monochrome': ('app.launcher', 'mono-full', 108, '#FFFFFFFF', None,
                                'The themed-icon layer (Android 13+): the launcher reads it as an alpha mask. The drawing already '
                                'sits inside the 264-unit live area of the 432 canvas, so it needs no inset wrapper.'),
-    'ic_notification_app_logo': ('other.notification', 'small-24', 24, '#FFFFFFFF', None,
+    'ic_notification_app_logo': ('app.notification', 'small-24', 24, '#FFFFFFFF', None,
                                  'The status-bar icon of every notification. Never add a tint: a theme attribute cannot resolve '
                                  'outside the app theme, and startForeground then throws '
                                  'CannotPostForegroundServiceNotificationException (S0405, S0416). The system renders it as an '
@@ -97,6 +97,9 @@ VECTORS = {
 APP_LOGO_GLYPH = f'{IDENTITY}/glyph/app-logo.svg'
 APP_LOGO_GLYPH_SHA256 = '085883252d760a4cf2ae77b43f90cda94c2e825e9b30d3df72d91af9a8b1a439'
 # Which vectors each module carries, and the surface id a module-wide row takes (None keeps the vector's own).
+# PRODUCT-IDENTITY 0.5 rule 36: the notification icon of the phone and of the watch are two rows under one id, so the
+# watch copy keeps its own surface instead of folding into the module-wide app.wear row.
+OWN_SURFACE_VECTORS = ('other.wear-glyph', 'app.notification')
 MODULE_VECTORS = (
     ('app_v2', ('ic_launcher_monochrome', 'ic_notification_app_logo', 'ic_app_logo'), None),
     ('wear', ('ic_launcher_monochrome', 'ic_notification_app_logo', 'ic_product_mark_mono'), 'app.wear'),
@@ -153,7 +156,7 @@ def _surfaces():
     for module, names, surface in MODULE_VECTORS:
         for name in names:
             own = VECTORS[name][0]
-            rows.append((own if own == 'other.wear-glyph' else surface or own,
+            rows.append((own if own in OWN_SURFACE_VECTORS else surface or own,
                          f'{module}/src/main/res/drawable/{name}.xml', 'vector', name))
     return [r if len(r) == 6 else r + (None, False) for r in rows]
 

@@ -1243,7 +1243,7 @@
       "sha256": "b6d44d6dadb4fdd77f748def98e157479f034939050df06d9ae817ebd9271fba"
     },
     {
-      "surface": "other.notification",
+      "surface": "app.notification",
       "path": "app_v2/src/main/res/drawable/ic_notification_app_logo.xml",
       "format": "xml",
       "sha256": "11125e9554d1e4234172f105cf235db1a9410d0585dd342cef9bd367b292f1ed"
@@ -1261,7 +1261,7 @@
       "sha256": "b6d44d6dadb4fdd77f748def98e157479f034939050df06d9ae817ebd9271fba"
     },
     {
-      "surface": "app.wear",
+      "surface": "app.notification",
       "path": "wear/src/main/res/drawable/ic_notification_app_logo.xml",
       "format": "xml",
       "sha256": "11125e9554d1e4234172f105cf235db1a9410d0585dd342cef9bd367b292f1ed"

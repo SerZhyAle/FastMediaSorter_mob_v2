@@ -36,7 +36,6 @@
     <string name="welcome_profile_video_player_title">视频播放器</string>
     <string name="welcome_profile_vr_headset_desc">最适合虚拟现实设备。在支持的头显上预先启用 3D/360° 布局和沉浸式控制。</string>
     <string name="welcome_profile_vr_headset_title">VR 头显</string>
-    <string name="welcome_recommended_badge">（推荐）</string>
     <string name="welcome_title_1">欢迎使用 Fast Media Sorter &amp; Organizer！</string>
     <string name="sysinfo_field_abis">ABI</string>
     <string name="sysinfo_field_android_version">Android</string>
@@ -140,7 +139,7 @@
     <string name="welcome_func_downloading">正在下载.. %1$d%%</string>
     <string name="welcome_func_download_failed">下载失败 - 点按重试</string>
     <string name="welcome_func_download_done">就绪</string>
-    <string name="welcome_permissions_title">“少量”权限</string>
+    <string name="welcome_permissions_title">少量权限</string>
     <string name="welcome_permissions_subtitle">授予访问权限，应用才能显示您的媒体。</string>
     <string name="welcome_func_streams">直播流</string>
     <string name="welcome_streams_catalog_done">目录已下载</string>

@@ -30,4 +30,8 @@
     <string name="filler_result_busy">Le remplissage est déjà en cours.</string>
     <string name="filler_settings_toggle_subtitle">Remplit l\'espace libre d\'un périphérique de stockage avec des fichiers temporaires, puis les supprime</string>
     <string name="filler_settings_toggle_subtitle_pending">Des fichiers temporaires d\'une exécution précédente se trouvent toujours sur le stockage. Le programme reste dans la liste tant que vous ne les avez pas supprimés depuis celle-ci.</string>
+    <string name="filler_estimate">%1$d %% terminé, temps restant : %2$s</string>
+    <string name="filler_estimate_calculating">%1$d %% terminé, temps restant : calcul..</string>
+    <string name="filler_reserve_slider_description">Espace laissé libre pour le système</string>
+    <string name="filler_confirm_reserve_lowered">C\'est moins que la valeur habituelle (%1$s) : le système et les autres applications auront moins de place pendant l\'exécution.</string>
 </resources>

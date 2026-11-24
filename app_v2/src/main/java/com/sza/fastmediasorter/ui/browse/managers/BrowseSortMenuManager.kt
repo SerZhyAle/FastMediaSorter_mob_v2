@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.utils.UserActionLogger
+import timber.log.Timber
 
 /**
  * Manages sort mode popup menu and sort mode display names for BrowseActivity.
@@ -56,10 +57,15 @@ class BrowseSortMenuManager(
         val popup = PopupMenu(context, anchor)
         val resource = getCurrentResource()
         val sortModes = getRelevantSortModes(resource)
+        Timber.d("S4853: sort popup shown, current=${getCurrentSortMode()}")
 
         sortModes.forEachIndexed { index, mode ->
             popup.menu.add(0, index, index, getSortModeName(mode))
         }
+        // Exclusive checkable group: the platform draws the selected indicator and TalkBack announces
+        // the state, so the active order is told apart without a custom item layout.
+        popup.menu.setGroupCheckable(0, true, true)
+        popup.menu.findItem(sortModes.indexOf(getCurrentSortMode()))?.isChecked = true
 
         popup.setOnMenuItemClickListener { menuItem ->
             val selectedMode = sortModes[menuItem.itemId]

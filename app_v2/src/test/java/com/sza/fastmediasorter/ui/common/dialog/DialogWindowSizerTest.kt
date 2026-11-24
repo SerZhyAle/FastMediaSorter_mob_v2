@@ -12,11 +12,13 @@ class DialogWindowSizerTest {
 
     private val minWidthPx = 150
     private val maxWidthPx = 300
+    private val wideMaxWidthPx = 560
 
-    private fun resourcesWithScreenWidth(screenWidthPx: Int): Resources {
+    private fun resourcesWithScreenWidth(screenWidthPx: Int, sharedMaxPx: Int = maxWidthPx): Resources {
         val resources = mockk<Resources>()
         every { resources.getDimensionPixelSize(R.dimen.dialog_min_width) } returns minWidthPx
-        every { resources.getDimensionPixelSize(R.dimen.dialog_max_width) } returns maxWidthPx
+        every { resources.getDimensionPixelSize(R.dimen.dialog_max_width) } returns sharedMaxPx
+        every { resources.getDimensionPixelSize(R.dimen.dialog_wide_max_width) } returns wideMaxWidthPx
         every { resources.displayMetrics } returns DisplayMetrics().apply { widthPixels = screenWidthPx }
         return resources
     }
@@ -61,5 +63,26 @@ class DialogWindowSizerTest {
         val resources = resourcesWithScreenWidth(screenWidthPx = maxWidthPx)
 
         assertEquals(maxWidthPx, DialogWindowSizer.resolveWidthPx(resources))
+    }
+
+    @Test
+    fun `wide dialog on a phone portrait screen uses the full screen width`() {
+        val resources = resourcesWithScreenWidth(screenWidthPx = 411)
+
+        assertEquals(411, DialogWindowSizer.resolveWidthPx(resources, wide = true))
+    }
+
+    @Test
+    fun `wide dialog on a landscape screen clamps to the wide maximum`() {
+        val resources = resourcesWithScreenWidth(screenWidthPx = 900)
+
+        assertEquals(wideMaxWidthPx, DialogWindowSizer.resolveWidthPx(resources, wide = true))
+    }
+
+    @Test
+    fun `wide dialog never lowers a larger shared maximum`() {
+        val resources = resourcesWithScreenWidth(screenWidthPx = 1200, sharedMaxPx = 720)
+
+        assertEquals(720, DialogWindowSizer.resolveWidthPx(resources, wide = true))
     }
 }

@@ -94,7 +94,6 @@
         android:includeFontPadding="true"
         android:textColor="?attr/colorOnSurfaceVariant"
         android:textSize="@dimen/item_detail_text_size"
-        app:layout_constraintWidth_min="72dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/barrierActions"
         app:layout_constraintStart_toStartOf="@+id/tvFileName"

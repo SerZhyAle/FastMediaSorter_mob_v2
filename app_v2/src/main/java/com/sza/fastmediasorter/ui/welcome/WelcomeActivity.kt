@@ -38,6 +38,7 @@ import com.sza.fastmediasorter.ui.common.help.HelpOpenManager
 import com.sza.fastmediasorter.ui.common.help.HelpTooltipManager
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.dialog.SearchableLanguagePickerDialog
+import com.sza.fastmediasorter.ui.dialog.UiLanguagePickerItems
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.profile.DeviceProfilePickerDialogFragment
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
@@ -52,6 +53,7 @@ import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeTvNavigationManager
 import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -182,7 +184,9 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         ) { _, bundle ->
             val code = bundle.getString(SearchableLanguagePickerDialog.RESULT_LANGUAGE_CODE)
                 ?: return@setFragmentResultListener
-            if (code != LocaleHelper.getLanguage(this)) {
+            // Compared with the marked selection, not the resolved language: while following the system, an
+            // explicit pick of the language the system happens to use must still pin it.
+            if (code != UiLanguagePickerItems.selectionCode(this)) {
                 onWelcomeLanguageSelected(code)
             }
         }
@@ -763,7 +767,9 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
     private fun showWelcomeLanguagePicker() {
         // A second tap while the picker is already up would stack a duplicate showing the same choice.
         if (supportFragmentManager.findFragmentByTag(SearchableLanguagePickerDialog.TAG) != null) return
-        SearchableLanguagePickerDialog.newInstanceForUiLanguage(LocaleHelper.getLanguage(this))
+        val selectionCode = UiLanguagePickerItems.selectionCode(this)
+        Timber.d("S4836: welcome language picker selection=$selectionCode")
+        SearchableLanguagePickerDialog.newInstanceForUiLanguage(selectionCode)
             .show(supportFragmentManager, SearchableLanguagePickerDialog.TAG)
     }
 

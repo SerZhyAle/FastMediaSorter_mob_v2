@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.11.20 20:21</sub>
+<sub class="doc-stamp">26.11.24 13:22</sub>
 
 # Pointer - `PRODUCT-IDENTITY`
 
 | | |
 | --- | --- |
 | **Id** | `PRODUCT-IDENTITY` |
-| **Version** | 0.4, draft. Owner: shared |
+| **Version** | 0.7, draft. Owner: shared |
 | **Home** | `product-identity/README.md` in the shared contracts catalog |
 | **Role here** | consumer - the phone app, its listing sources, the site, the README and the in-app help |
 
@@ -33,3 +33,13 @@
 - Since 0.4 (additive, 2026-11-20): the surface ids `app.installer-banner`, `app.installer-dialog` and
   `app.shell-entry`, the `bmp` rendition format and the optional `renderedFrom` field, with the checker's
   `-Release` switch; a manifest without them reads as before, and this product declares none of them.
+- Since 0.5 (additive, 2026-11-23): the surface id `app.notification` for the notification small icon of Android and
+  Wear OS (rule 2). The manifest lists the phone icon and the watch copy as two rows under `app.notification`
+  (rule 36); the generator writes them, and the catalog's reference checker answers `PASS`.
+- Since 0.6 (rule 10 amended, 2026-11-23): the hub's card follows the product's current `hub.card` rendition as the
+  repository lists it, released or not, copied byte for byte with its SHA-256 recorded (rule 9). Store listing images
+  still reach the store only with a release. The `hub.card` rendition and its hash are unchanged here, so nothing is owed.
+- Since 0.7 (additive, 2026-11-24): the reference checker's `-Sheet` page draws an Android drawable XML - a `<vector>`
+  as inline SVG, an `<adaptive-icon>` over its background plate - and names a cell it cannot draw. The verdict and the
+  manifest schema do not change, so nothing is owed here; the XML rows of `assets/identity/identity-manifest.json`
+  are drawn on the page, and a `-Sheet` run is the one place to look at them side by side (rule 3).

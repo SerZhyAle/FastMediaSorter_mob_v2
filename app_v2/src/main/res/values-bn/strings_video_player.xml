@@ -103,4 +103,7 @@
     <string name="player_action_unavailable">এই ফাইলের জন্য এই কাজটি উপলব্ধ নয়।</string>
     <string name="player_audio_track_single">অন্য কোনো অডিও ট্র্যাক উপলব্ধ নেই।</string>
     <string name="player_frame_backward">আগের ফ্রেম</string>
+    <string name="playback_control_low_speed_mute_title">ধীর প্লেব্যাক</string>
+    <string name="playback_control_low_speed_mute_message">0.5x-এর নিচে অডিও বোঝা কঠিন। মিউট করবেন?</string>
+    <string name="playback_control_low_speed_mute_cancel">অডিও রাখুন</string>
 </resources>

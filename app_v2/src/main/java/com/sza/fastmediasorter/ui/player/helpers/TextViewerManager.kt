@@ -16,9 +16,11 @@ import com.sza.fastmediasorter.utils.CharsetDetector
 import com.sza.fastmediasorter.utils.SyntaxHighlighter
 import com.sza.fastmediasorter.utils.UserActionLogger
 import io.noties.markwon.Markwon
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -41,6 +43,7 @@ import java.nio.charset.Charset
  * Translation overlay: delegated to [TextTranslationOverlayManager].
  */
 @android.annotation.SuppressLint("SetTextI18n")
+@Suppress("LongParameterList") // three hosts build it by name; the defaulted tail keeps them unchanged
 class TextViewerManager(
     private val context: Context,
     private val root: View,
@@ -58,6 +61,8 @@ class TextViewerManager(
     // standalone activities, where the bar keeps its single reactive driver and these helpers fall
     // back to direct progressBar writes.
     private val loadingIndicatorCoordinator: PlayerLoadingIndicatorCoordinator? = null,
+    // The one IO seam of the viewer and its editor: a host holding the @IoDispatcher binding or a test passes its own.
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
 
     companion object {
@@ -96,6 +101,7 @@ class TextViewerManager(
     }
 
     private var currentFile: MediaFile? = null
+    private var canWriteCurrentDocument = false
     private var currentLocalFile: java.io.File? = null
 
     // Paged reader
@@ -153,6 +159,9 @@ class TextViewerManager(
         }
     }
     private val calculatorEnabledFlow = MutableStateFlow(false)
+    private val editorControlsJob = Job(coroutineScope.coroutineContext[Job])
+    private val editorControlsScope = CoroutineScope(coroutineScope.coroutineContext + editorControlsJob)
+    private var showHostCommandPanel = false
 
     // S0189 Phase 07: auto-fit font manager; created fresh on each enterEditMode
     private var autoFitFontManager: TextEditorAutoFitFontManager? = null
@@ -171,7 +180,10 @@ class TextViewerManager(
     private val currentActionPanel = object : com.sza.fastmediasorter.ui.editor.actions.EditorActionPanel {
         override fun setup(callbacks: com.sza.fastmediasorter.ui.editor.actions.EditorActionCallbacks) =
             actionPanelManager.setup(callbacks)
-        override fun onEnterEditMode() = actionPanelManager.onEnterEditMode()
+        override fun onEnterEditMode() {
+            // Resetting the freshly bound toolbar would erase the tint already rendered for a dirty buffer.
+            if (!dirtyTracker.isDirty.value) actionPanelManager.onEnterEditMode()
+        }
         override fun onExitEditMode() = actionPanelManager.onExitEditMode()
         override fun addOverflowItems(menu: android.view.Menu) = actionPanelManager.addOverflowItems(menu)
     }
@@ -190,7 +202,7 @@ class TextViewerManager(
             hostView = safeViews.editorToolbar,
             calculatorEnabled = calculatorEnabledFlow,
             isDirty = dirtyTracker.isDirty,
-            coroutineScope = coroutineScope,
+            coroutineScope = editorControlsScope,
             cleanColor = com.sza.fastmediasorter.ui.editor.dirty.DirtyToolbarTinter.TRANSPARENT_PRESERVE_ORIGINAL,
             dirtyColor = android.graphics.Color.parseColor("#992C2C"),
         )
@@ -210,6 +222,7 @@ class TextViewerManager(
         val snapshot = rebindStateManager.capture(safeViews)
         pendingRebindSnapshot = snapshot
         if (snapshot.editorText != null) editorModeController.detachFromViews()
+        editorControlsJob.cancelChildren()
         safeViews.rebindRoot(newRoot)
         _actionPanelManager = null
     }
@@ -252,7 +265,8 @@ class TextViewerManager(
         // Setup gesture detectors for font size adjustment
         setupGestureDetectors()
 
-        coroutineScope.launch {
+        editorControlsJob.cancelChildren()
+        editorControlsScope.launch {
             settingsRepository.getSettings()
                 .map { it.enableCalculator }
                 .distinctUntilChanged()
@@ -361,6 +375,9 @@ class TextViewerManager(
                     rebaselineDirtyTracker = dirtyTracker::rebaseline,
                     isDirty = { dirtyTracker.isDirty.value },
                     saveEditedText = { onSuccess -> saveEditedText(onSuccess) },
+                    saveContentDocument = { onSuccess ->
+                        editorModeController.saveContentDocument(canWriteCurrentDocument, allowCopy = true, onSuccess)
+                    },
                     sendTo = ::openSendToMenuForText,
                     finishActivity = callback::finishActivity,
                 ),
@@ -503,6 +520,7 @@ class TextViewerManager(
             textFontSizeSp
         }
         textFontSizeSp = FontResizeController.increase(baseSizeSp, MIN_FONT_SIZE_SP, MAX_FONT_SIZE_SP)
+        TextFontScalePrefs.set(context, currentFile?.path.orEmpty(), textFontSizeSp)
         applyTextFontSize()
         // S0189 Phase 07: manual swipe overrides auto-fit until next edit-mode open
         autoFitFontManager?.notifyManualOverride(textFontSizeSp)
@@ -516,10 +534,24 @@ class TextViewerManager(
             textFontSizeSp
         }
         textFontSizeSp = FontResizeController.decrease(baseSizeSp, MIN_FONT_SIZE_SP, MAX_FONT_SIZE_SP)
+        TextFontScalePrefs.set(context, currentFile?.path.orEmpty(), textFontSizeSp)
         applyTextFontSize()
         // S0189 Phase 07: manual swipe overrides auto-fit until next edit-mode open
         autoFitFontManager?.notifyManualOverride(textFontSizeSp)
         logFontResizeGesture(textFontSizeSp)
+    }
+
+    /**
+     * Overflow-menu twin of the rightward swipe. Resizes the translation overlay while it is shown,
+     * because the overlay's own swipe does and the user is looking at that layer, not at the text under it.
+     */
+    fun zoomTextIn() {
+        if (safeViews.translationOverlay.isVisible) increaseTranslationFontSize() else increaseTextFontSize()
+    }
+
+    /** Overflow-menu twin of the leftward swipe; picks the layer exactly as [zoomTextIn] does. */
+    fun zoomTextOut() {
+        if (safeViews.translationOverlay.isVisible) decreaseTranslationFontSize() else decreaseTextFontSize()
     }
 
     private fun applyTextFontSize() {
@@ -594,6 +626,12 @@ class TextViewerManager(
         // Stop in-flight read-aloud before swapping the source (TTS reads originalTextWithoutNumbers).
         ttsManager?.stop()
         currentFile = mediaFile
+        canWriteCurrentDocument = isWritable
+        // A file never resized keeps the session size, so paging between files behaves as before.
+        TextFontScalePrefs.get(context, mediaFile.path)?.let { remembered ->
+            Timber.d("S4863: viewer adopts the remembered font size")
+            textFontSizeSp = remembered.coerceIn(MIN_FONT_SIZE_SP, MAX_FONT_SIZE_SP)
+        }
         viewerLoader.load(mediaFile, isWritable)
     }
 
@@ -635,7 +673,7 @@ class TextViewerManager(
         // Stop TTS when changing pages
         ttsManager?.stop()
 
-        coroutineScope.launch(Dispatchers.IO) {
+        coroutineScope.launch(ioDispatcher) {
             val pageText = pager.readPage(pager.currentPage + 1)
             originalTextWithoutNumbers = pageText
 
@@ -657,7 +695,7 @@ class TextViewerManager(
         // Stop TTS when changing pages
         ttsManager?.stop()
 
-        coroutineScope.launch(Dispatchers.IO) {
+        coroutineScope.launch(ioDispatcher) {
             val pageText = pager.readPage(pager.currentPage - 1)
             originalTextWithoutNumbers = pageText
 
@@ -693,7 +731,7 @@ class TextViewerManager(
         }
 
         val activePager = textFilePager ?: return
-        coroutineScope.launch(Dispatchers.IO) {
+        coroutineScope.launch(ioDispatcher) {
             val pageText = activePager.readPage(0)
             originalTextWithoutNumbers = pageText
 
@@ -740,6 +778,7 @@ class TextViewerManager(
 
     /** Release all resources. Call from Activity onDestroy. */
     fun release() {
+        editorControlsJob.cancel()
         closePager()
         ttsManager?.release()
         ttsManager = null
@@ -769,7 +808,7 @@ class TextViewerManager(
     /** Toggle markdown rendering for .md files. Switches between raw text and Markwon-rendered view, then reloads current page. */
     fun toggleMarkdownRendering() {
         markdownRendered = !markdownRendered
-        coroutineScope.launch(Dispatchers.IO) {
+        coroutineScope.launch(ioDispatcher) {
             settingsRepository.updateSettings { it.copy(markdownRendered = markdownRendered) }
         }
         reloadCurrentPage()
@@ -792,7 +831,7 @@ class TextViewerManager(
     }
 
     private fun persistReaderTheme(name: String) {
-        coroutineScope.launch(Dispatchers.IO) {
+        coroutineScope.launch(ioDispatcher) {
             settingsRepository.updateSettings { it.copy(textReaderTheme = name) }
         }
     }
@@ -891,7 +930,7 @@ class TextViewerManager(
 
     private fun reloadCurrentPage() {
         val pager = textFilePager ?: return
-        coroutineScope.launch(Dispatchers.IO) {
+        coroutineScope.launch(ioDispatcher) {
             val pageText = pager.readPage(pager.currentPage)
             originalTextWithoutNumbers = pageText
             val settings = settingsRepository.getSettings().first()
@@ -905,8 +944,9 @@ class TextViewerManager(
     /**
      * S1549: re-render the held page after a layout re-inflate - the pager, page index and editor
      * buffer live in this instance, only the views it renders into were replaced.
+     * The host can restore its command panel before the editor asks it to refresh availability.
      */
-    fun rerenderAfterRebind() {
+    fun rerenderAfterRebind(beforeEditorReattach: () -> Unit = {}) {
         Timber.d("S4714: rerenderAfterRebind restores the carried text viewer state")
         val snapshot = pendingRebindSnapshot
         pendingRebindSnapshot = null
@@ -919,6 +959,8 @@ class TextViewerManager(
             updatePageIndicator()
         }
         val editorText = snapshot?.takeIf { it.isViewerVisible }?.editorText ?: return
+        Timber.d("S4840: restoring player chrome before reattaching the text editor")
+        beforeEditorReattach()
         editorModeController.reattachEditor(editorText, snapshot.selectionStart, snapshot.selectionEnd)
     }
 
@@ -955,8 +997,14 @@ class TextViewerManager(
             setUndoRedoManager = { undoRedoManager = it },
             applyLineNumbers = ::applyLineNumbers,
             showError = callback::showError,
+            ioDispatcher = ioDispatcher,
             loadingIndicatorCoordinator = loadingIndicatorCoordinator,
-        ).also { it.onEditorVisibilityChanged = callback::onEditorVisibilityChanged }
+        ).also {
+            it.onEditorVisibilityChanged = {
+                updateCloseButtonVisibility(showHostCommandPanel)
+                callback.onEditorVisibilityChanged()
+            }
+        }
     }
 
     internal fun enterEditMode(autoOpen: Boolean = false) = editorModeController.enterEditMode(autoOpen)
@@ -966,6 +1014,7 @@ class TextViewerManager(
         outcome: com.sza.fastmediasorter.domain.usecase.SaveTextNoteUseCase.SaveOutcome,
         content: String
     ) {
+        TextFontScalePrefs.move(context, currentFile?.path.orEmpty(), outcome.finalPath)
         val resourceId = currentFile?.resourceId
         val previousLocalFile = currentLocalFile
         // Only act for a deferred-staged note. For arbitrary text-file edits the cache list
@@ -992,7 +1041,13 @@ class TextViewerManager(
 
     private fun exitEditMode() = editorModeController.exitEditMode()
 
-    private fun saveEditedText(onSuccess: () -> Unit) = editorModeController.saveEditedText(onSuccess)
+    private fun saveEditedText(onSuccess: () -> Unit) {
+        val handled = editorModeController.saveContentDocument(canWriteCurrentDocument, allowCopy = false) {
+            exitEditMode()
+            onSuccess()
+        }
+        if (!handled) editorModeController.saveEditedText(onSuccess)
+    }
 
     // ===== Scroll helpers =====
 
@@ -1020,8 +1075,9 @@ class TextViewerManager(
     }
 
     fun updateCloseButtonVisibility(showCommandPanel: Boolean) {
-        // Show close button only in fullscreen mode (when command panel is hidden)
-        safeViews.btnCloseTextViewer.isVisible = !showCommandPanel
+        showHostCommandPanel = showCommandPanel
+        // The viewer close button would cover the editor's Cancel in fullscreen.
+        safeViews.btnCloseTextViewer.isVisible = !showCommandPanel && !isEditorOpen()
     }
 
     private fun updateTranslateButtonTint(enabled: Boolean) {
@@ -1087,20 +1143,26 @@ class TextViewerManager(
         val sendToMenuManager = dagger.hilt.android.EntryPointAccessors
             .fromApplication(context.applicationContext, SendToMenuEntryPoint::class.java)
             .sendToMenuManager()
-        // A text-only payload hides every file receiver (Print, Email, messengers); carrying the saved
-        // file as well gives this menu the same receivers as the player's top-bar «Send to..».
-        val localFile = currentLocalFile?.takeIf { it.isFile }
-        Timber.d("S4569: editor send-to payload carries file=%s", localFile != null)
-        val localUri = localFile?.let { buildLocalShareUri(it) }
-        val content = com.sza.fastmediasorter.core.share.ShareableContent(
-            uris = listOfNotNull(localUri),
-            mime = "text/plain",
-            mediaType = com.sza.fastmediasorter.domain.model.MediaType.TEXT,
-            text = text,
-            displayName = localFile?.name ?: currentFile?.name,
-            mediaFile = localFile?.takeIf { localUri != null }?.let { currentFile?.copy(path = it.absolutePath) },
-        )
+        // The snapshot is taken at the tap; the disk checks below run later, off Main.
+        val openFile = currentLocalFile
+        val openMedia = currentFile
         coroutineScope.launch {
+            // A text-only payload hides every file receiver (Print, Email, messengers); carrying the saved
+            // file as well gives this menu the same receivers as the player's top-bar «Send to..».
+            val (localFile, localUri) = withContext(ioDispatcher) {
+                val file = openFile?.takeIf { it.isFile }
+                file to file?.let { buildLocalShareUri(it) }
+            }
+            Timber.d("S4569: editor send-to payload carries file=%s", localFile != null)
+            Timber.d("S4869: editor send-to file check ran off main")
+            val content = com.sza.fastmediasorter.core.share.ShareableContent(
+                uris = listOfNotNull(localUri),
+                mime = "text/plain",
+                mediaType = com.sza.fastmediasorter.domain.model.MediaType.TEXT,
+                text = text,
+                displayName = localFile?.name ?: openMedia?.name,
+                mediaFile = localFile?.takeIf { localUri != null }?.let { openMedia?.copy(path = it.absolutePath) },
+            )
             val settings = settingsRepository.getSettings().first()
             sendToMenuManager.show(activity, content, settings, onPickResource = callback.sendToPickResource())
         }
@@ -1118,7 +1180,6 @@ class TextViewerManager(
 
     /** S4676: the editor's actions live in the player's overflow menu; no-op while the editor is closed. */
     fun addEditorOverflowItems(menu: android.view.Menu) {
-        Timber.d("S4676: editor actions requested for the player overflow, editorOpen=${isEditorOpen()}")
         if (isEditorOpen()) actionPanelManager.addOverflowItems(menu)
     }
 
@@ -1128,7 +1189,6 @@ class TextViewerManager(
      * takes the file out from under the editor, hence [closeEditor].
      */
     fun commitEditorBeforeTransfer(closeEditor: Boolean, proceed: () -> Unit) {
-        Timber.d("S4639: transfer requested, editorOpen=${isEditorOpen()} closeEditor=$closeEditor")
         when {
             !isEditorOpen() -> proceed()
             dirtyTracker.isDirty.value -> saveEditedText(proceed)

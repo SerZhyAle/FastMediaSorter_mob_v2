@@ -7,7 +7,7 @@
     <string name="welcome_default_player_btn_images">الصور</string>
     <string name="welcome_default_player_btn_video">الفيديو</string>
     <string name="welcome_default_player_description">تعيين Fast Media Sorter &amp; Organizer مشغّل الوسائط الافتراضي</string>
-    <string name="welcome_default_player_hint">انقر أحد الأزرار بالأسفل، فيظهر مربع حوار. اختر Fast Media Sorter &amp; Organizer ثم انقر <b>دائمًا</b>.</string>
+    <string name="welcome_default_player_hint">انقر أحد الأزرار أدناه - ستظهر نافذة حوار. اختر Fast Media Sorter &amp; Organizer ثم انقر <b>دائمًا</b>.</string>
     <string name="welcome_default_player_title">المشغّل الافتراضي</string>
     <string name="welcome_description_1">منظّم الوسائط الشامل الخاص بك.\nتصفّح الملفات ورتّبها وأدرها على التخزين المحلي والشبكي والسحابي، كل ذلك بإيماءات لمس بديهية.</string>
     <string name="welcome_description_1_details">يجمع Fast Media Sorter &amp; Organizer كل أنواع الوسائط في مكان واحد. افتح الصور ومقاطع الفيديو وصور GIF والموسيقى من جهازك أو من مجلد مشترك على الشبكة أو من التخزين السحابي، ورتّبها بنقرات سريعة بدل قوائم الضغط المطوّل.\n\nكل ما تضبطه هنا يمكن تغييره لاحقًا في الإعدادات، فلا يوجد اختيار خاطئ في هذه الشاشة - انقر التالي للمتابعة.</string>
@@ -36,7 +36,6 @@
     <string name="welcome_profile_video_player_title">مشغّل فيديو</string>
     <string name="welcome_profile_vr_headset_desc">الأفضل لأجهزة الواقع الافتراضي. يفعّل مسبقًا تخطيطات 3D/360° وعناصر التحكم الغامرة على السماعات المدعومة.</string>
     <string name="welcome_profile_vr_headset_title">نظارة واقع افتراضي</string>
-    <string name="welcome_recommended_badge">(موصى به)</string>
     <string name="welcome_title_1">مرحبًا بك في Fast Media Sorter &amp; Organizer!</string>
     <string name="sysinfo_field_abis">واجهات ABI</string>
     <string name="sysinfo_field_android_version">أندرويد</string>
@@ -140,7 +139,7 @@
     <string name="welcome_func_downloading">جارٍ التنزيل.. %1$d%%</string>
     <string name="welcome_func_download_failed">فشل التنزيل - انقر لإعادة المحاولة</string>
     <string name="welcome_func_download_done">جاهز</string>
-    <string name="welcome_permissions_title">\"بعض\" الأذونات</string>
+    <string name="welcome_permissions_title">بعض الأذونات</string>
     <string name="welcome_permissions_subtitle">امنح الوصول ليتمكّن التطبيق من عرض وسائطك.</string>
     <string name="welcome_func_streams">البثوث</string>
     <string name="welcome_streams_catalog_done">تم تنزيل الدليل</string>
@@ -172,7 +171,7 @@
     <string name="welcome_role_sorting_detail">أرسل الملف إلى مجلده بنقرة واحدة</string>
     <string name="welcome_role_more_detail">الكاميرا والأدوات المصغّرة والإضافات وأكثر - تطبيق واحد بدل كثير</string>
     <string name="welcome_description_1_shell">ليس مجرد تطبيق وسائط - بل واجهة كاملة لجهازك.\nالشاشة الرئيسية والمشغّل ومدير الملفات والبثّ والتخزين البعيد في مكان واحد.</string>
-    <string name="welcome_description_1_details_shell">يستطيع Fast Media Sorter &amp; Organizer إدارة الجهاز بالكامل: شاشة رئيسية بتطبيقاتك وأدواتك المصغّرة واختصاراتك، ومشغّل للصور والفيديو والموسيقى والكتب، ومدير ملفات للتخزين المحلي والشبكي والسحابي، وبثّ عبر الإنترنت وتطبيق مرافق لـ Wear OS - وفوق ذلك كله، فرز سريع بلمسة واحدة.\n\nهل تريده شاشتك الرئيسية؟ فعّل المفتاح أعلاه وسيطلب منك النظام التأكيد بعد الإعداد. كل ما تختاره في هذه الشاشة يمكن تغييره لاحقًا في الإعدادات، فلا يوجد خيار خاطئ هنا - اضغط التالي للمتابعة.</string>
+    <string name="welcome_description_1_details_shell">يستطيع Fast Media Sorter &amp; Organizer إدارة الجهاز بالكامل: شاشة رئيسية بتطبيقاتك وأدواتك المصغّرة واختصاراتك، ومشغّل للصور والفيديو والموسيقى والكتب، ومدير ملفات للتخزين المحلي والشبكي والسحابي، وبثّ عبر الإنترنت وتطبيق مرافق لـ Wear OS - وفوق ذلك كله، فرز سريع بلمسة واحدة.\n\nهل تريده شاشتك الرئيسية؟ فعّل المفتاح أعلاه وسيطلب منك النظام التأكيد بعد الإعداد. كل ما تختاره في هذه الشاشة يمكن تغييره لاحقًا في الإعدادات، فلا يوجد خيار خاطئ هنا - انقر التالي للمتابعة.</string>
     <string name="welcome_role_home_screen">الشاشة الرئيسية</string>
     <string name="welcome_role_home_screen_detail">يدير الجهاز بدل المشغّل - التطبيقات والأدوات والوسائط في متناول يدك</string>
     <string name="welcome_role_streams">البثّ</string>

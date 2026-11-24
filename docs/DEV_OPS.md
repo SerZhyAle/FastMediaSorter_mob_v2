@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.15 14:01</sub>
+<sub class="doc-stamp">26.11.23 18:01</sub>
 
 # FastMediaSorter v2: OPS & Guidelines
 
@@ -449,28 +449,26 @@ The two types, and how each is taken:
 
 **Releasing a wedged lock:** `.\a.ps1 ub` (build) and `.\a.ps1 uc` (code) are the launcher shortcuts for `scripts/utils/clear-agent-lock.ps1`. Both are conservative - a lock whose holder is still live is refused, and the holder's pid, age, reason and session id are printed instead, because clearing it would hand the turn to the next agent mid-edit. `.\a.ps1 uc -Force` overrides once the holder is confirmed gone (check the session's transcript mtime - the `subagents/` subtree included, S2408 - not the pid, since a code-domain pid can be recycled), and drops the whole queue with it, including any ticket your own background waiter is holding.
 
-#### Device leases - S1926
+#### Device leases
 
-The third contended resource, and the last one to get an arbiter. `adb devices` reports an emulator as online whether or not somebody is mid-run on it, so before this a session discovered the conflict by breaking something: installing its APK, or switching HOME, out from under a running scenario (observed 2026-08-21 in S1895).
+The FastMediaSorter CLI forwards to SZA's machine-wide device lease store. The
+[SZA device verification rule](https://github.com/SerZhyAle/sza-unified-rules/blob/HEAD/rules/TESTING_AND_QA.md#4-device--emulator-verification-overlay)
+defines the store, lease keys, and ownership rules.
 
-```powershell
-# Take / give back a specific device
-pwsh -NoProfile -File scripts/devtest/device-lease.ps1 -Verb Claim   -Id emulator-5554 -Reason "/spec-test-device S1234"
-pwsh -NoProfile -File scripts/devtest/device-lease.ps1 -Verb Release -Id emulator-5554
-
-# Who holds what
+~~~powershell
+pwsh -NoProfile -File scripts/devtest/device-lease.ps1 -Verb Claim -Id avd:Example_AVD -Reason 'device scenario'
 pwsh -NoProfile -File scripts/devtest/device-lease.ps1 -Verb Status
-```
+pwsh -NoProfile -File scripts/devtest/device-lease.ps1 -Verb Release -Id avd:Example_AVD
+~~~
 
-Exit codes match the ticket lease exactly, because it is the ticket lease's shape rather than the build lock's: **0** done, **1** error, **3** claim lost (a live sibling got there first - take a different device, this is not a fault), **4** release refused (a live foreign session owns it). One file per lease under `temp/DEVICE.LEASES/<serial>.json`, and the claim is an atomic file creation, so two sessions racing for one device cannot both win. Both store paths and the `:` -> `_` serial encoding are declared once, in `scripts/devtest/lib/device-store-paths.ps1` (S3036), and read from there by every production caller - the two CLIs, the readiness probe `device-ready.ps1` and the monitor writer. Renaming either directory is therefore one edit in that file, and it reaches the archiver's protected set through `scripts/utils/temp-root-inventory.ps1`, which derives both names rather than listing them; `scripts/devtest/lib/device-store-paths.tests/` case E7 fails if a rename reaches the declaration but not that protection. The path is NOT a `.sza-profile.json` key, and that is a decision rather than an omission: the canon-shipped harness reads no device path at all, and `Get-SzaProfileValue` throws on an unknown key by design (S2705), so a project-only key would be unreadable until the canon declared one it never reads.
+`device-ready.ps1 -ClaimFree -Json` selects and claims the first available device that matches the
+requested module. Use `selectedDevice` for ADB and release `newLeaseKeys` after the scenario. Exit
+status 7 in the result distinguishes a refused or unsuccessful lease attempt from an offline device.
+The ADB wrapper holds an automatically selected target for the duration of one command.
 
-**There is deliberately no queue.** A build finishes on its own in minutes, so waiting for `BUILD.LOCK` terminates; a sibling's device scenario can run arbitrarily long, so waiting for a device does not. A taken device is a reason to defer the device stage, not to block on it.
-
-**Eviction is by session liveness, with no watchdog** - whoever reads next sweeps, matching S1432. The liveness rule itself is not restated in the lease script: it comes from `Get-AgentTicketLiveness`, and the timings from `$Script:AgentLockTimings.Device` (45-minute silence window, matching the ticket lease because a session building and installing an APK writes nothing for a long time; 120-minute absolute ceiling, far below the ticket lease's 480 because a device is held for a scenario rather than for a ticket's whole life).
-
-**The readiness probe consults it only when asked.** `device-ready.ps1 -ClaimFree` walks the online devices and keeps the first it can claim, turning the old `multiple-devices` refusal into a selection; `all-devices-leased` (statusCode 7) is a distinct answer from `no-device`, because "nothing to test on" ends the device stage while "everyone else is on them" means retry later. Without the switch the probe answers exactly as it always has - existing sessions do not change behaviour underneath themselves.
-
-Like every other lock here, this is **advisory**: it coordinates consenting callers and does not stop a raw `adb` command, exactly as `BUILD.LOCK` does not stop a raw `gradlew`.
+The forwarder checks `SZA_HARNESS_ROOT` and then the installed SZA plugin cache. If the shared
+tool is missing, it warns and uses the repository-local compatibility store. Existing leases in
+that store expire independently when the shared tool becomes available.
 
 **The queue (S1432).** Each DOMAIN has its own queue directory `temp/<DOMAIN>.QUEUE` holding one ticket file per waiter, numbered in order. The head of the queue owns the turn: a free lock is **not** enough to acquire, because a live head that has not yet spent its reservation window (5 min for Build, 1 for Code) still owns it - that window is what survives the gap between "your turn" and the moment gradle actually starts. Ownership of a ticket belongs to an agent **session**, not a process - with one qualification since S2577, below: on a build domain the enqueueing process is also the waiter, so its death evicts the ticket even while the session lives. A ticket whose owner has gone quiet, or which passed its ceiling (60 min Build, 20 min Code), is evicted by whoever reads the queue next. Every timing lives in one table, `$Script:AgentLockTimings`.
 
@@ -573,7 +571,10 @@ pwsh -NoProfile -File scripts/spec_catalog/release-queue.ps1 -List -Release 32 -
 
 #### Device registry - S2855
 
-Where the device lease answers "who is driving this device right now" and is swept when that session goes quiet, the device registry answers what no layer could before: **what was last installed on each test device, when, and by whom** - durable, machine-local, never swept. One file per device under `temp/DEVICE.REGISTRY/<serial>.json` - path and serial encoding from the same declaration as the lease store, `scripts/devtest/lib/device-store-paths.ps1`: the lease store's serial discipline with the opposite lifecycle. Releasing or sweeping a lease never touches a mark, and a mark never creates or extends a lease.
+The registry stores the latest installation per ADB serial in `temp/DEVICE.REGISTRY`. The park
+listing reads leases from the shared tool and joins matches by key. An AVD lease appears under its
+name even when its installation mark was recorded under its ADB port. The installation registry and
+the device state journal remain local to FastMediaSorter.
 
 ```powershell
 # The park: role, who is driving what, and the last install mark
@@ -2399,6 +2400,19 @@ and a moved `BuildConfig`, so every device build reconfigured and recompiled eve
 Among the standard phone builders a unique number is carried only by `dav` and the release builders,
 and a stable build is never judged by `assert-artifact-version-fresh.ps1`. Every install path uses `adb install -r -d`, so the older-looking
 sentinel installs over a stamped build.
+
+**What the tester reads on a stable build.** The debug version overlay (bottom-right corner) must name
+the build in hand, not the sentinel. A packaging invocation that kept the sentinel - no `-Pfms.version*`,
+`-Pfms.stableVersion=true`, so `fmsSentinelPackagingBuild` in `gradle/build-version-stamp.gradle.kts` -
+registers `GenerateBuildStampTask` for the debug variant in `app_v2/build.gradle.kts`. It runs on every
+such build, reads the clock at execution time and writes `build_stamp.txt` (`Y.YM.MDDH.Hmm` plus the
+variant suffix) into the debug assets; `VersionOverlayManager` shows it and falls back to
+`BuildConfig.VERSION_NAME` when the asset is absent, which is the stamped-build case. Nothing moves in
+`BuildConfig`, the manifest or the configuration-cache key, so S3513's saving is intact; the cost is that
+`mergeDebugAssets` and `packageDebug` rerun on a repeat build. The task is not registered for compile-only
+runs, because the merged assets are an input of the debug unit-test task. Readers of
+`BuildConfig.VERSION_NAME` other than the overlay (log headers, diagnostic archives, `PackageInfo`) still
+report the sentinel on a stable build.
 
 **Which invocations get a stamp.** Source 2 fires when a requested task name contains `assemble`,
 `bundle`, `install`, `package`, `connected` or `baselineprofile`, and not `uninstall`. `connected`

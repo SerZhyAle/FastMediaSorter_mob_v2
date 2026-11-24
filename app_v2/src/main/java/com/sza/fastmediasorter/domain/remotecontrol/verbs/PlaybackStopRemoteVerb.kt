@@ -1,15 +1,14 @@
 package com.sza.fastmediasorter.domain.remotecontrol.verbs
 
 import android.content.Context
-import android.content.Intent
 import com.google.gson.JsonObject
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.playback.BackgroundAudioStopper
 import com.sza.fastmediasorter.domain.remotecontrol.RemoteCommandAnswer
 import com.sza.fastmediasorter.domain.remotecontrol.RemoteConfirm
 import com.sza.fastmediasorter.domain.remotecontrol.RemoteRiskClass
 import com.sza.fastmediasorter.domain.remotecontrol.RemoteVerbHandler
 import com.sza.fastmediasorter.domain.remotecontrol.RemoteVerbSpec
-import com.sza.fastmediasorter.ui.player.AudioPlaybackService
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
@@ -23,7 +22,7 @@ class PlaybackStopRemoteVerb @Inject constructor(
         context.getString(R.string.remote_command_verb_playback_stop)
 
     override suspend fun run(args: JsonObject): RemoteCommandAnswer {
-        if (AudioPlaybackService.isRunning) context.stopService(Intent(context, AudioPlaybackService::class.java))
+        BackgroundAudioStopper.stopIfRunning(context)
         return RemoteCommandAnswer.done()
     }
 

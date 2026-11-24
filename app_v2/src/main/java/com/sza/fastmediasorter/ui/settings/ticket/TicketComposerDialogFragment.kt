@@ -15,12 +15,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogTicketComposerBinding
+import com.sza.fastmediasorter.domain.model.feedback.FeedbackFolderChoice
 import com.sza.fastmediasorter.domain.model.ticket.TicketDestination
 import com.sza.fastmediasorter.domain.model.ticket.TicketOrigin
 import com.sza.fastmediasorter.domain.model.ticket.TicketOutboxEntry
 import com.sza.fastmediasorter.domain.model.ticket.TicketOutboxState
 import com.sza.fastmediasorter.domain.model.ticket.TicketProject
-import com.sza.fastmediasorter.domain.usecase.feedback.FeedbackFolderChoice
 import com.sza.fastmediasorter.ui.common.dialog.DialogWindowSizer
 import com.sza.fastmediasorter.ui.common.dialog.applyDialogInsets
 import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager

@@ -563,6 +563,11 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                 onBroadcastStopped = { source, signal ->
                     broadcastEnd.onStopped(this, source.url, signal, broadcastEndHost)
                 },
+                onBroadcastFailed = { source, reason ->
+                    if (!broadcastEnd.onFailureSurfaced(this, source.url, broadcastEndHost)) {
+                        showStreamUnavailable(source, reason)
+                    }
+                },
                 onSuccess = { viewModel.recordStreamPlaySuccess(it.id) },
                 onPlaybackStarted = { broadcastEnd.onPlaying(this, it.url, broadcastEndHost) },
                 // S1142: mirror the live now-playing track onto the active channel's grid tile. The id
@@ -1662,7 +1667,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             filter.country != null ||
             filter.mediaKind != StreamsViewModel.MediaKindFilter.ALL ||
             filter.pinnedOnly
-        binding.btnFilter.setImageResource(if (active) R.drawable.ic_filter_active else R.drawable.ic_filter)
+        binding.btnFilter.setIconResource(if (active) R.drawable.ic_filter_active else R.drawable.ic_filter)
         binding.btnFilter.contentDescription =
             getString(if (active) R.string.streams_filter_active else R.string.streams_filter)
     }
@@ -1753,6 +1758,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     override fun onStart() {
         super.onStart()
+        broadcastEnd.onScreenStarted(this, broadcastEndHost)
         deviceBroadcastsViewModel.onScreenStarted()
         viewModel.refreshLiveBroadcasts()
         // S1154: the atlas may have been installed from the Extensions Manager while this screen sat in

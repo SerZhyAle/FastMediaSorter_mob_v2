@@ -1,5 +1,5 @@
 ---
-source_sha256: b90dcf89902d41291464d9b29c51bf2da9bec985c797443c93fc8c4bb04d203e
+source_sha256: 9b674df94f3f6a0ef120682fab87582e552400326cf4a75d5600eba74dbd4aa6
 layout: doc
 title: "Media Exchange Server: установка и проверка"
 description: "Какой пакет для Windows несёт сервер обмена, что Windows говорит об установщике и что нажимать, первый запуск в Share Manager, адрес, по которому звонят устройства, и как проверить, что сервер работает из другой сети."

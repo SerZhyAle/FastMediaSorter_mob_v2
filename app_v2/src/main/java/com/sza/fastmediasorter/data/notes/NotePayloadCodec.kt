@@ -6,9 +6,18 @@ import com.google.gson.JsonNull
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.gson.JsonPrimitive
+import com.google.gson.annotations.SerializedName
 
+/**
+ * The wire spellings below are written by [NotePayloadCodec] through explicit keys, never by Gson reflection. The
+ * @SerializedName pins exist so a future Gson call on these models cannot emit R8-renamed members or constant names
+ * that differ from the item FH wire form.
+ */
 enum class NoteKind(val wire: String) {
+    @SerializedName("text")
     TEXT("text"),
+
+    @SerializedName("checklist")
     CHECKLIST("checklist"),
     ;
 
@@ -17,20 +26,25 @@ enum class NoteKind(val wire: String) {
     }
 }
 
-data class NoteItem(val itemId: String, val text: String, val checked: Boolean, val position: Int)
+data class NoteItem(
+    @SerializedName("itemId") val itemId: String,
+    @SerializedName("text") val text: String,
+    @SerializedName("checked") val checked: Boolean,
+    @SerializedName("position") val position: Int,
+)
 
 /**
  * The clear payload inside a note's box (DEVICE-EXCHANGE 1.13 item FH). [text] is set for [NoteKind.TEXT],
  * [items] for [NoteKind.CHECKLIST]; a null [title] is a note with no name, never a placeholder word.
  */
 data class NotePayload(
-    val title: String?,
-    val kind: NoteKind,
-    val text: String?,
-    val items: List<NoteItem>,
-    val createdAt: String,
-    val updatedAt: String,
-    val formatVersion: Int = NotePayloadCodec.FORMAT_VERSION,
+    @SerializedName("title") val title: String?,
+    @SerializedName("kind") val kind: NoteKind,
+    @SerializedName("text") val text: String?,
+    @SerializedName("items") val items: List<NoteItem>,
+    @SerializedName("createdAt") val createdAt: String,
+    @SerializedName("updatedAt") val updatedAt: String,
+    @SerializedName("formatVersion") val formatVersion: Int = NotePayloadCodec.FORMAT_VERSION,
 ) {
     // A note's words must never reach a log; the operator side of item FG sees no title or text either.
     override fun toString(): String = "NotePayload(kind=$kind, items=${items.size}, updatedAt=$updatedAt)"
