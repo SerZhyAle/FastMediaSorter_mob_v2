@@ -84,23 +84,23 @@ Fast Media Sorter & Organizer is a complete shell for an Android device - home s
 
 > *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
 
-## What's New in v2.61.1121.756 (November 2026)
+## What's New in v2.61.1250.223 (November 2026)
+
+**New:**
+Notes with sync and send to Keep, a text editor with separate Save and Save and close, feedback with the log attached, external control from your other devices, broadcasts announced through Google Drive, Recent and Own in Streams with search by rubric, language changes without a restart, help from dialogs with a subject index, a first-step card, a gyroscope tile in Tourist, camera geotagging, media keys and number-key shortcuts, folder order by your language, a trash-aware delete confirmation, the FastMediaSorter mark on every surface, broadcast failover on the watch.
+
+**Fixed:**
+Live audio reconnecting after a server close, ended broadcasts recognised everywhere, the mini control after a finished track, a skipped transfer announced, the move result message, the Send to.. hint, the main list under the navigation bar, large-font settings, browse row names, no-match search, watch onboarding Back, shared folder guidance, audio player back-exit.
+
+[Full release notes →](docs/WHATS_NEW.md)
+
+## Previous Release: v2.61.1121.756 (November 2026)
 
 **New:**
 All apps in category groups and from anywhere, desktop swipes that turn the screen first, a map gadget that asks for approximate location only, battery and extended hardware details in System info, a storage filler with a scheduled run, settings exchange through a Media Exchange Server, an alert for stalled schedules, filing a ticket from the app, switched-off programs that stay off, more Tourist tiles, a framed battery bar on the watch face.
 
 **Fixed:**
 TikTok, Threads and signed-in Instagram downloads, web sign-in saving, PDF thumbnails, the surprise local network picker on Android 17, local network access prompts, the local folder picker crash, stream language codes, companion error messages, fewer freezes and crashes.
-
-[Full release notes →](docs/WHATS_NEW.md)
-
-## Previous Release: v2.61.0292.144 (October 2026)
-
-**New:**
-Broadcast links, QR codes and files ready before the broadcast starts, broadcasts that publish themselves to the exchange server, a broadcast password your way, viewers told an ended broadcast from a lost one, a landscape live picture, casts through every exchange server, scheduled messages to the watch, scheduled operations explained in plain words, gap-free network audio on the watch, one Google consent for Drive and the app folder, feature icons in screen titles, smarter channel list updates, background sync in the Play build.
-
-**Fixed:**
-Phone broadcasts to local-network listeners, broadcasts in Streams previous and next, scheduled operations over a deleted folder, early errors in the scheduled operation form, scroll buttons over row menus, launcher captions and gadget text, the file list header, watch stream failures, silent local-network addresses on the watch, watch grid labels and Streams toolbar on the round glass.
 
 [Full release notes →](docs/WHATS_NEW.md)
 

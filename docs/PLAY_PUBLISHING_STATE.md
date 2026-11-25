@@ -769,21 +769,19 @@ arrives; the verdict letters themselves stay in block 3.
 | 2026-10-18 | `com.sza.fastmediasorter.watchface` | republished bundle `261018159` and the three-locale listing, both held | not recorded | not recorded | `261018159` | not recorded | block 3 |
 
 | 2026-11-12 | `com.sza.fastmediasorter` | standard-app submission entered review; still open on 2026-11-23 | not recorded | not recorded | not recorded | S4831 | Play Developer Support reply, case 6-7601000042237, 2026-11-23 |
+| not recorded | `com.sza.fastmediasorter` | the 2026-11-12 submission passed review and was released | not recorded | not recorded | not recorded | S4831 | owner statement, 2026-11-25 |
 
 ## Pending review hold (S4831)
 
-- **Fact (Play Developer Support, case 6-7601000042237, 2026-11-23):** the latest submission of
-  `com.sza.fastmediasorter`, open since 2026-11-12, is under review and was expedited to the Review Team. No
-  owner action is needed.
-- **Rule:** while a submission is under review, upload and send nothing for this app. Each new submission
-  resets the review turnaround, which is counted from the most recent change.
+- **State: closed (owner statement, 2026-11-25).** The 2026-11-12 submission passed review and was released;
+  no submission of `com.sza.fastmediasorter` is in review.
+- **Rule while a hold is open:** upload and send nothing for this app; each new submission resets the review
+  turnaround, which is counted from the most recent change.
 - **Where the status is read:** Play Console, `Publishing overview` (`Changes in review`) and the app's
   status banner. `read-play-tracks.ps1` cannot see it - the edit-based reader reports track releases, not the
   review queue.
 - **Release flow:** `.claude/commands/release.md` distribution step checks this section first; an open hold
   stops any upload until the Console status changes.
-- **Closing the hold:** when the Console shows the verdict, append the verdict row to the log above and
-  delete this section's open state.
 
 ## Open measurement - release notes language code (GOOGLE-PLAY rule 26)
 

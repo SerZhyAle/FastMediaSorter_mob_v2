@@ -10,7 +10,60 @@ permalink: /docs/WHATS_NEW-uk.html
 
 # Що нового у Fast Media Sorter & Organizer
 
-**Поточний реліз: 2.61.1121.756** (листопад 2026)
+**Поточний реліз: 2.61.1250.223** (листопад 2026)
+
+> Зміни з версії 2.61.1121.756
+
+---
+
+## Що нового
+
+- **Програма «Нотатки»** - пишіть, шукайте, виділяйте й видаляйте одразу кілька. <!-- af: programs-tools.notes-program, programs-tools.notes-selection-and-bulk-delete -->
+- **Синхронізація нотаток** - через ваш сервер обміну; нотатку можна надіслати в Keep. <!-- af: programs-tools.notes-exchange-sync, programs-tools.notes-send-to-keep -->
+- **Текстовий редактор** - «Зберегти» та «Зберегти й закрити»; розмір шрифту для кожного файлу. <!-- af: text-editor.save-and-save-close-buttons, text-editor.per-file-font-size-memory, text-editor.font-size-adjustment-via-swipe -->
+- **Надіслати відгук** - додайте журнал; тікети йдуть на Drive або в теку. <!-- af: programs-tools.send-feedback, network-cloud.file-a-ticket-into-the-sza-ticket-inbox, network-cloud.allow-google-drive-access-from-the-ticket-composer -->
+- **Зовнішнє керування** - виберіть, які ваші пристрої можуть надсилати команди. <!-- af: network-cloud.accept-commands-from-your-other-devices -->
+- **Трансляція оголошується через Google Drive** - ваші інші пристрої знаходять її в ефірі. <!-- af: network-cloud.broadcast-announce-via-google-drive -->
+- **Стріми: «Нещодавні» та «Власні»** - нещодавно відтворені канали й ті, що ви додали. <!-- af: streams.recently-played-streams-category, streams.own-channel-category, streams.added-station-revealed-under-own -->
+- **Стріми: пошук за рубрикою** - вільний текст збігається з назвою рубрики. <!-- af: streams.free-text-search-by-rubric-label -->
+- **Стріми: ясніший стан станції** - причина збою, рядки на паузі та непідтверджені. <!-- af: streams.inline-radio-failure-class-surfaced-at-once, streams.paused-channel-row-state, streams.unconfirmed-channel-state-wording -->
+- **Стріми: імпорт плейлиста** - зрозуміла відмова для HLS, дублікати пропускаються. <!-- af: streams.playlist-import-hls-refusal-and-normalized-dedupe -->
+- **Мова без перезапуску** - усі екрани, разом із пошуком у налаштуваннях, змінюються одразу. <!-- af: settings-navigation.interface-language-changes-without-a-restart, main-screen.resource-names-and-type-badge-follow-a-live, settings-navigation.settings-search-titles-follow-the-app-language -->
+- **Вибір мови** - за абеткою, пошук за англійською назвою, клавіатура не заважає. <!-- af: settings-navigation.app-language-picker-order-and-search, settings-navigation.language-picker-keyboard-resilient-layout -->
+- **Довідка з діалогів** - кнопка ? або F1; назви клавіш пишуться повністю. <!-- af: settings-navigation.in-app-help-in-dialogs, settings-navigation.in-app-help-from-dialogs, settings-navigation.keyboard-help-key-names-follow-the-shared-chord -->
+- **Покажчик довідки** - предметний покажчик і розділ термінів. <!-- af: settings-navigation.subject-index-on-the-in-app-help-index, settings-navigation.terms-section-on-the-in-app-help-index -->
+- **Картка першого кроку** - запрошення додати теку й легенда маркера «Швидкого сортування». <!-- af: setup-onboarding.main-screen-first-step-card-and-quick-sort -->
+- **Турист** - обертова 3D-плитка гіроскопа; вистачить приблизного місцезнаходження. <!-- af: programs-tools.tourist-gyroscope-3d-tile, programs-tools.tourist-approximate-location -->
+- **Геотеги в камері** - необов'язкове GPS-місцезнаходження у фото. <!-- af: camera.photo-gps-geotagging-opt-in -->
+- **Пропозиція вимкнути звук** - на швидкості нижче 0,5x налаштування відтворення пропонують заглушити звук. <!-- af: video-player.low-speed-mute-offer -->
+- **Медіаклавіші** - пауза лише призупиняє, відтворення лише запускає, стоп повертає на початок. <!-- af: video-player.media-keys-pause-play-and-stop-in-the -->
+- **Цифрові клавіші** - кнопки призначень з клавіатури й ТВ-пульта. <!-- af: destinations.number-key-shortcuts-for-operation-buttons-keyboard-and -->
+- **Порядок тек за мовою** - теки сортуються за правилами вашої мови. <!-- af: media-browsing.locale-aware-folder-name-order -->
+- **Видалення з урахуванням кошика** - підтвердження каже, коли файли підуть до кошика. <!-- af: file-operations.trash-aware-delete-confirmation -->
+- **Фірмовий знак** - знак FastMediaSorter на всіх екранах і в заставці запуску. <!-- af: user-interface.family-mark, app-startup.branded-startup-splash -->
+- **Годинник: резервна адреса трансляції** - звук переходить на неї; готові посилання чекають старту. <!-- af: wear-os.broadcast-endpoint-failover, wear-os.waiting-for-a-prepared-broadcast-on-the-watch -->
+- **Годинник: налаштування** - рядки-прапорці та читабельні рядки типів медіа. <!-- af: wear-os.wear-boolean-rows-as-checkboxes, wear-os.media-types-settings-rows -->
+
+## Що виправлено
+
+- Живий звук перепідключається після закриття потоку сервером.
+- Завершені трансляції розпізнаються у фоні, плеєрі й на годиннику.
+- Завершений трек більше не лишає міні-панель на екрані.
+- Діалог збереження зберігає розширення файлу нотатки.
+- Пропущену передачу тепер оголошено.
+- Повідомлення про результат переміщення збігається з кількістю файлів.
+- «Надіслати..» пояснює, коли не ввімкнено жодного отримувача.
+- Головний список більше не закінчується під панеллю навігації.
+- Значення й вкладки налаштувань за великого шрифту більше не ламаються.
+- Рядки огляду тримають імена читабельними поруч із кнопками дій.
+- Пошук без збігів більше не схожий на порожню теку.
+- На годиннику «Назад» у привітанні гортає назад, а не виходить.
+- Ясніша підказка, коли спільна тека недоступна.
+- Вихід за «Назад» в аудіоплеєрі дотримується налаштування.
+
+---
+
+## Попередній реліз: 2.61.1121.756 (листопад 2026)
 
 > Зміни з версії 2.61.0292.144
 

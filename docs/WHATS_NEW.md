@@ -8,7 +8,60 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in Fast Media Sorter & Organizer {#whats-new-in-fastmediasorter-v2}
 
-**Current release: 2.61.1121.756** (November 2026)
+**Current release: 2.61.1250.223** (November 2026)
+
+> Changes since version 2.61.1121.756
+
+---
+
+## What's New
+
+- **Notes program** - write, search, select and bulk-delete notes. <!-- af: programs-tools.notes-program, programs-tools.notes-selection-and-bulk-delete -->
+- **Notes sync** - through your exchange server; send a note to Keep. <!-- af: programs-tools.notes-exchange-sync, programs-tools.notes-send-to-keep -->
+- **Text editor** - separate Save and Save and close; font size per file. <!-- af: text-editor.save-and-save-close-buttons, text-editor.per-file-font-size-memory, text-editor.font-size-adjustment-via-swipe -->
+- **Send feedback** - attach the log; tickets go to Drive or a folder. <!-- af: programs-tools.send-feedback, network-cloud.file-a-ticket-into-the-sza-ticket-inbox, network-cloud.allow-google-drive-access-from-the-ticket-composer -->
+- **External control** - choose which of your devices may send commands. <!-- af: network-cloud.accept-commands-from-your-other-devices -->
+- **Broadcast announced via Google Drive** - your other devices find it on air. <!-- af: network-cloud.broadcast-announce-via-google-drive -->
+- **Streams: Recent and Own** - recently played channels and the ones you added. <!-- af: streams.recently-played-streams-category, streams.own-channel-category, streams.added-station-revealed-under-own -->
+- **Streams: search by rubric** - free text matches the rubric label. <!-- af: streams.free-text-search-by-rubric-label -->
+- **Streams: clearer station state** - failure reason, paused and unconfirmed rows. <!-- af: streams.inline-radio-failure-class-surfaced-at-once, streams.paused-channel-row-state, streams.unconfirmed-channel-state-wording -->
+- **Streams: playlist import** - refuses HLS with a clear message; skips duplicates. <!-- af: streams.playlist-import-hls-refusal-and-normalized-dedupe -->
+- **Language without restart** - every screen, Settings search included, follows at once. <!-- af: settings-navigation.interface-language-changes-without-a-restart, main-screen.resource-names-and-type-badge-follow-a-live, settings-navigation.settings-search-titles-follow-the-app-language -->
+- **Language picker** - alphabetical, searchable by English name, keyboard-safe. <!-- af: settings-navigation.app-language-picker-order-and-search, settings-navigation.language-picker-keyboard-resilient-layout -->
+- **Help from dialogs** - a ? button or F1; key names spelled out. <!-- af: settings-navigation.in-app-help-in-dialogs, settings-navigation.in-app-help-from-dialogs, settings-navigation.keyboard-help-key-names-follow-the-shared-chord -->
+- **Help index** - a subject index and a terms section. <!-- af: settings-navigation.subject-index-on-the-in-app-help-index, settings-navigation.terms-section-on-the-in-app-help-index -->
+- **First-step card** - Add folder invitation and a Quick Sort marker legend. <!-- af: setup-onboarding.main-screen-first-step-card-and-quick-sort -->
+- **Tourist** - a turning 3D gyroscope tile; approximate location is enough. <!-- af: programs-tools.tourist-gyroscope-3d-tile, programs-tools.tourist-approximate-location -->
+- **Camera geotagging** - optional GPS location in photos. <!-- af: camera.photo-gps-geotagging-opt-in -->
+- **Low-speed mute offer** - below 0.5x speed, playback settings offer to mute. <!-- af: video-player.low-speed-mute-offer -->
+- **Media keys** - Pause only pauses, Play only plays, Stop rewinds. <!-- af: video-player.media-keys-pause-play-and-stop-in-the -->
+- **Number-key shortcuts** - destination buttons from keyboard and TV remote. <!-- af: destinations.number-key-shortcuts-for-operation-buttons-keyboard-and -->
+- **Locale-aware folder order** - folders sort by your language's rules. <!-- af: media-browsing.locale-aware-folder-name-order -->
+- **Trash-aware delete** - the confirmation says when files go to trash. <!-- af: file-operations.trash-aware-delete-confirmation -->
+- **Family mark** - the FastMediaSorter mark on every surface and the startup splash. <!-- af: user-interface.family-mark, app-startup.branded-startup-splash -->
+- **Watch: broadcast failover** - audio moves to the next address; prepared links wait. <!-- af: wear-os.broadcast-endpoint-failover, wear-os.waiting-for-a-prepared-broadcast-on-the-watch -->
+- **Watch: settings** - checkbox rows and readable media type rows. <!-- af: wear-os.wear-boolean-rows-as-checkboxes, wear-os.media-types-settings-rows -->
+
+## What's Fixed
+
+- Live audio reconnects after the server closes the stream.
+- Ended broadcasts are recognised in background, player and watch.
+- Finished track no longer leaves the mini control on screen.
+- Save dialog keeps the note file extension.
+- A skipped transfer is now announced.
+- Move result message matches the file count.
+- Send to.. explains when no recipient is enabled.
+- Main list no longer ends under the navigation bar.
+- Large-font settings values and tabs no longer break.
+- Browse rows keep names readable beside action buttons.
+- No-match search no longer looks like an empty folder.
+- Watch onboarding Back returns one page instead of exiting.
+- Clearer guidance when a shared folder cannot be reached.
+- Back-exit in the audio player follows its setting.
+
+---
+
+## Previous Release: 2.61.1121.756 (November 2026)
 
 > Changes since version 2.61.0292.144
 
