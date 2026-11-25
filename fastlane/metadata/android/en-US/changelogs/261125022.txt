@@ -1,0 +1,8 @@
+• Notes program - write, search, select and bulk-delete notes.
+• Notes sync - through your exchange server; send a note to Keep.
+• Text editor - separate Save and Save and close; font size per file.
+• Send feedback - attach the log; tickets go to Drive or a folder.
+• External control - choose which of your devices may send commands.
+• Broadcast announced via Google Drive - your other devices find it on air.
+• Streams: Recent and Own - recently played channels and the ones you added.
+..

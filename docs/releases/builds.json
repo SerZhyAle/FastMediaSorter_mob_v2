@@ -20,6 +20,15 @@
       "sha256": "4027f7077fd96434a45abe2da900a155951bc75f37e4a37f9197aad493c3bd03"
     },
     {
+      "package": "phone",
+      "flavor": "standard",
+      "kind": "release",
+      "version": "2.61.1250.223",
+      "builtAt": "2026-11-25T10:08:19+01:00",
+      "artifact": "DOWNLOADS/FastMediaSorter_standard_release.aab",
+      "sha256": "0a14fa6b667993dfb7cc607f5790779223a6dd4c72d259dcc670fd3a65fdd784"
+    },
+    {
       "package": "watchface",
       "flavor": "standard",
       "kind": "debug",
@@ -27,6 +36,15 @@
       "builtAt": "2026-11-24T21:17:44+01:00",
       "artifact": "watchface/build/outputs/apk/debug/watchface-debug.apk",
       "sha256": "651a13189eb7d882951ff023635c916c0828f51838d18e58999dc0aac51279da"
+    },
+    {
+      "package": "watchface",
+      "flavor": "standard",
+      "kind": "release",
+      "version": "2.61.1250.223",
+      "builtAt": "2026-11-25T11:25:19+01:00",
+      "artifact": "DOWNLOADS/FastMediaSorter_watchface_release.aab",
+      "sha256": "a14f409a00afc6275b37a615d25f5dcdeb679704f2e3ceeabfa595ccb0dc17b3"
     },
     {
       "package": "wear",
