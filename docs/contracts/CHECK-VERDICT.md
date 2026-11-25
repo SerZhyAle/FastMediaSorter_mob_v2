@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.20 20:17</sub>
+<sub class="doc-stamp">26.11.24 21:52</sub>
 
 # Pointer - `CHECK-VERDICT`
 
@@ -28,7 +28,8 @@
 - Test count writers use `run=N skipped=M`; executed tests include failures and exclude skips
   (0.13). Rule G rejects new legacy writers and stale entries in `test-count-baseline.txt`.
 - A reader of a test verdict line matches the tokens `run=N skipped=M` by name anywhere after the verdict word, inside
-  the parenthesis or bare (0.15, item E); this product's writers are unchanged.
+  the parenthesis or bare (0.15, item E); this product's writers are unchanged. Still in legacy spellings: the three
+  Maestro runner count lines (`maestro/`, outside Rule G's roots); carrier S4894.
 - An aggregator quotes its children's verdict lines and answers FAIL, then COULD NOT VERIFY, then
   PASS WITH ADVISORIES, then PASS (rule 14).
 - A wrapper of a product command maps each of its outcomes to `0`, `1`, `2` or `3` on purpose

@@ -3,7 +3,7 @@ layout: doc
 title: "📖 How-To Guides"
 permalink: /docs/HOW_TO.html
 ---
-<sub class="doc-stamp">26.11.13 19:13</sub>
+<sub class="doc-stamp">26.11.25 01:42</sub>
 
 # 📖 How-To Guides
 
@@ -100,6 +100,9 @@ If a feature is marked with "✗", choose the **Standard** or **XR / noLegal** b
 40. [Receive Files Shared from Another App](#how-to-receive-files-shared-from-another-app)
 41. [Use the Built-In Programs](#how-to-use-the-built-in-programs)
 42. [Encrypt a File with FileDO](#how-to-encrypt-a-file-with-filedo)
+43. [Use External Control from Your Other Devices](#how-to-use-external-control-from-your-other-devices)
+44. [Send Feedback and Attach Logs](#how-to-send-feedback-and-attach-logs)
+45. [Use the Tourist Gyroscope Tile](#how-to-use-the-tourist-gyroscope-tile)
 
 ---
 
@@ -1485,6 +1488,75 @@ The panel and the launcher additionally carry direct camera shortcuts - take a p
 
 - Do not expect the water flashlight to survive a swipe home - a system navigation gesture still leaves it, and the light goes out with it.
 - Do not expect every program in every build - the list above is the full set, and a build without the underlying capability simply does not show that entry.
+
+---
+
+## How to Use External Control from Your Other Devices
+
+**Available in:** every edition except Lite. It also needs a connected exchange server, because that is the road the commands travel.
+
+External control lets another of your own devices - signed in to the same account - ask this phone to do something. It is **off until you turn it on**, and you decide which device may do what.
+
+**Steps:**
+
+1. Connect your exchange server and sign in to your account on this phone ([Adding your exchange server in My devices](media-exchange-portal/my-devices.html)). Without a server, the External control screen says that no connected exchange server carries commands and offers **Open exchange settings**.
+2. Open **Settings → General → Access from anywhere**. In the **External control** group, turn on **Listen to commands from my other devices**. The External control screen opens at the list of devices. You can also open it any time with **Open External control** - even while listening is off.
+3. Under **Who can control this device**, find your other device and switch on **Allow this device**. If it is not in the list yet, sign in on it with the same account.
+4. A new device gets the safe commands only. For every other kind of command listed - the ones that read your data, change it or send it off this phone - choose **No access**, **Ask each time** or **Always allow**. **Always allow** asks you to confirm first.
+5. When a device asks for something that needs your answer, the request appears as a notification and under **Waiting for your answer** on the screen. Tap **Allow** or **Decline** in either place and the other one goes away. No answer within 60 seconds counts as a no, and the command does not run.
+6. Look back at **Recent requests**; **Open the full log** shows every saved request, newest first.
+
+**Tips:**
+
+- **Commands this program accepts** lists what another device can ask for, so you can read it before you allow anything.
+- Switch listening off and the phone stops accepting commands at once.
+- No command from another device can turn listening on or off or change what is allowed. Only you can, on this phone.
+- The log stays on this phone.
+
+---
+
+## How to Send Feedback and Attach Logs
+
+**Available in:** all editions. The program is off after installation.
+
+Found a problem or have an idea? **Send feedback** puts your words, pictures, a voice note and the app's own logs into one form and sends it on.
+
+**Steps:**
+
+1. Open **Settings → Management**, find **Additional programs and scenarios** and turn on **Send feedback**. It joins the programs menu.
+2. Open **Send feedback** from the programs menu and write what happened or what you would change.
+3. Add what helps: a picture from the clipboard, the gallery or the camera, or a voice note.
+4. To include the app's logs, tap **Attach the app's diagnostic logs**. A zip archive joins the attachments like any other file, and you can remove it with its own remove button. If there are no logs yet, the app says "There are no logs to attach yet" and attaches nothing.
+5. Tap **Send**. The feedback goes out through **Send to..**. If you chose a **Folder on the computer**, it also starts uploading there right away, without waiting for a background pass.
+
+**Tips:**
+
+- The line under **Folder on the computer** tells you where the feedback is: queued, in the folder, turned into a task, or refused by the computer, with the reason.
+- Offline? The feedback waits in the queue and goes to the folder as soon as the network is back.
+- The folder can be reached through your exchange server or any writable network folder. With **None**, the feedback goes through **Send to..** only.
+- The log archive is the same one the log export in Settings makes: the app hides the private values it knows about and caps the size of every file. You still see it in the attachment list before you send, and you decide whether it stays.
+
+---
+
+## How to Use the Tourist Gyroscope Tile
+
+**Available in:** all editions, on phones that have a rotation sensor. The watch is not part of it.
+
+The **Tourist** dashboard has a **Gyroscope** tile. On the large card it draws a phone-shaped 3D box that turns as you turn the phone, with the turning speed beside it.
+
+**Steps:**
+
+1. Open **Settings → Management**, find **Additional programs and scenarios** and turn on **Tourist**.
+2. Open **Tourist** from the programs menu.
+3. Tap the **Gyroscope** tile in the grid. Before you tap, it reads "Tap to see the phone turn in 3D". The tile moves up to the large card.
+4. Turn the phone. The box turns with it in real time, and the line shows the turning speed in degrees per second.
+
+**Tips:**
+
+- No Gyroscope tile? The phone has no rotation sensor, and Tourist leaves out a tile it cannot fill instead of showing it empty.
+- The sensors run only while the Gyroscope tile is on the large card and Tourist is open. Pick another tile or leave the screen and they stop.
+- No extra permission is needed.
+- A phone with a rotation sensor but no gyroscope still turns the box, just without a speed.
 
 ---
 

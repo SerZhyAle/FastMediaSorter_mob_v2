@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.29 05:03</sub>
+<sub class="doc-stamp">26.11.24 21:52</sub>
 
 # Pointer - `DOC-EXTERNAL-QUALITY`
 
@@ -25,6 +25,6 @@
 ## Where it lives here
 
 - Corpus and web pages: `docs/content/`, `documentation/`, `sitemap.xml`.
-- The shared media exchange portal and its schemes: `docs/media-exchange-portal/`, drawn by `scripts/docs/render-usage-schemes.ps1` from `labels/labels.<lang>.json`; its gaps against section 9 are dated exceptions in the catalog's registry.
+- The shared media exchange portal and its schemes: `docs/media-exchange-portal/`, drawn by `scripts/docs/render-usage-schemes.ps1` from `labels/labels.<lang>.json`; its section 9 items F to I are held by `scripts/quality/assert-portal-pages.ps1` (G by its `freshness` dimension at the release scope), and every portal help copy carries `noindex` (0.13 item O).
 - Generation scripts: `scripts/docs/generate-docs-pages.ps1`, `scripts/docs/generate-docs-search-index.ps1`, `scripts/docs/generate-glossary.ps1`, `scripts/docs/generate-subject-index.ps1`, `scripts/docs/build-docs-pdf.ps1`.
 - Enforced by `scripts/quality/assert-docs-coverage.ps1`, `scripts/quality/assert-docs-translation-freshness.ps1`, `scripts/quality/assert-docs-termbase.ps1`, `scripts/quality/assert-localized-page-set.ps1`, `scripts/quality/assert-docs-search.ps1`.

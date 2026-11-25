@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -25,7 +24,6 @@ import com.sza.fastmediasorter.wear.ui.apps.waterflashlight.WaterFlashlightExitG
 import com.sza.fastmediasorter.wear.ui.apps.waterflashlight.onScreenKey
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSwallow
 import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
-import timber.log.Timber
 
 /**
  * S3115: touch lock for the tourist dashboard, built on the water-flashlight pattern (S2516 / S2812).
@@ -58,12 +56,7 @@ fun TouristLockOverlay(
 ) {
     val exitGate = remember { WaterFlashlightExitGate() }
     val currentUnlock by rememberUpdatedState {
-        Timber.d("S4658: tourist lock left through the K.3 exit gate")
         onUnlock()
-    }
-
-    LaunchedEffect(Unit) {
-        Timber.d("S4744: tourist lock overlay shown, invisible to accessibility so the dashboard stays in the tree")
     }
 
     BackHandler {

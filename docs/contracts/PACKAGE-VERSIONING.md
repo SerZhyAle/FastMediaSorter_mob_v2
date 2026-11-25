@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.23 14:23</sub>
+<sub class="doc-stamp">26.11.24 21:52</sub>
 
 # Pointer - `PACKAGE-VERSIONING`
 
@@ -24,7 +24,8 @@
   derives its code from the same instant and adds `1_000_000_000`, a ten-digit code registered with its offset; rule 2
   admits an edition label `-<Edition>` after the stamped name, the stamped part being what rules 1, 4 and 8 compare. The
   XR edition is such a family: `xrVersionCodeOffset = 1_000_000_000` in `app_v2/build.gradle.kts`. The families `lite`
-  and `fdroid` join the table when each first ships to a channel.
+  and `fdroid` join the table when each first ships to a channel; `lite` ships as a GitHub release asset and its row is
+  to be proposed (carrier S4899).
 - 0.10 (section 10, S4813): registers IP Manager in the Windows desktop dotted rendering for its GitHub and WinGet releases; no rules 1-8 statements change, no bands change, and this product's derivation is unaffected.
 - Never repeat and never lower a versionCode within one application id; an out-of-scheme installed build is replaced by uninstall or a strictly greater code, recorded as a dated registry exception (rule 4).
 
@@ -35,4 +36,4 @@
 - `scripts/release/build-release-spectrum.ps1` - the release orchestrator that derives one instant and passes the pair to every module it builds.
 - `scripts/quality/assert-module-version-parity.ps1` - the parity gate over the checked-in sentinels (conformance rung 1).
 - `app_v2/build.gradle.kts`, `wear/build.gradle.kts` - the three version sources per module (override, stamp, sentinel).
-- `watchface/build.gradle.kts` - declared, adoption pending: its frozen `versionCode = 1` sentinel is outside the stamp until the family is wired.
+- `watchface/build.gradle.kts` - takes the watch app's stamped code (S4009), not its registered map `floor(minute / 10)`; the `1` and `1.0.0` sentinel is the fallback only, and `assert-module-version-parity.ps1` does not cover the face (carrier S4899).

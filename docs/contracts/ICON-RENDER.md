@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.20 20:19</sub>
+<sub class="doc-stamp">26.11.24 21:52</sub>
 
 # Pointer - `ICON-RENDER`
 
@@ -22,8 +22,8 @@
   phone and the watch are untouched by it and keep the mono look on a command button.
 - One drawing at every size tier (16, 20, 24, 32, 40, 48); a plate changes the scale, never the shape.
 - A glyph-only control carries its meaning's canonical name as its accessible name.
-- Every edition's launcher icon is adaptive and has a monochrome layer - except the `debug` build type and the
-  watch module, which have none yet (S4695).
+- Every edition's launcher icon is adaptive and has a monochrome layer that keeps the edition or debug badge, on the
+  phone (`debug` included) and on the watch (S4695, S4784).
 - The `state.warning` day tone is `#EF6C00` with a white on-plate colour (section 10 item D); the
   `warning_color` resource carries it and the exporter reads it from there.
 - A sibling set draws a glyph on every member or on none (0.25, section 25): one level of a menu, the group headers of

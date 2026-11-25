@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.20 20:18</sub>
+<sub class="doc-stamp">26.11.24 21:52</sub>
 
 # Pointer - `INPUT-PARITY`
 
@@ -38,9 +38,9 @@
   search function writes `search` as not applicable and a product that has one binds `Ctrl+F`. This product has one,
   and `system.search` is bound to `Ctrl+F` in `default_bindings.json`; no filled cell and no canonical spelling changes.
 - The deviations currently open are recorded as exceptions in the catalog's registry. The 0.4 `VIEWER-KEYBOARD.md`
-  player defaults ship in `default_bindings.json` and `PlayerKeyboardHandler` (S4363); the rows still open
-  (`G`, `N`, `F4`, frame step, A-B loop, the standalone hosts) are implemented by S4373 and await device
-  acceptance. The registry exception stays open until the collection surfaces, numbered-frame stepping,
+  player defaults ship in `default_bindings.json` and `PlayerKeyboardHandler` (S4363); the rows once open
+  (`G`, `N`, `F4`, frame step, A-B loop, the standalone hosts) are bound and routed in the tree and await device
+  acceptance. The watch video player binds the crown to volume with no touch volume route (0.6 item J), carrier S4898. The registry exception stays open until the collection surfaces, numbered-frame stepping,
   A-B repeat and host routes are observed on device; a compile or mocked timestamp test is not that verdict.
 
 `INPUT-CHORD`, the chord notation beside it in the same folder, is not adopted: our bindings are stored as an

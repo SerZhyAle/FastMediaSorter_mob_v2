@@ -108,7 +108,6 @@ class StreamBroadcastEndManager @Inject constructor(
      */
     fun onScreenStarted(owner: AppCompatActivity, host: Host) {
         val source = BroadcastPlaybackSessions.consumeEndedInService() ?: return
-        Timber.d("S4874: Streams opened on a broadcast the service ended, showing the ended dialog")
         val session = BroadcastPlaybackSession(source, null)
         StreamUnavailableDialog.showEnded(
             activity = owner,
@@ -127,7 +126,6 @@ class StreamBroadcastEndManager @Inject constructor(
     fun onFailureSurfaced(owner: AppCompatActivity, playedUrl: String, host: Host): Boolean {
         val session = BroadcastPlaybackSessions.forUrl(playedUrl) ?: return false
         pending?.cancel()
-        Timber.d("S4874: inline broadcast failure surfaced, reading the held removal")
         if (hold.atFailure()) {
             Timber.i("StreamBroadcastEndManager: broadcast failed after the directory removed it - ended")
             pending = owner.lifecycleScope.launch { showEnded(owner, session, host) }

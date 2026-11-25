@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.launcher.menu
 
+import android.app.Dialog
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -12,9 +13,13 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
+import android.view.WindowManager
+import android.view.inputmethod.EditorInfo
 import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.DialogFragment
@@ -184,6 +189,19 @@ class LauncherAllAppsFragment : DialogFragment() {
         setStyle(STYLE_NO_TITLE, R.style.Theme_FastMediaSorter_Launcher_AllApps)
     }
 
+    // The search field holds focus on open, and a keyboard raised by that leaves one grid row on a
+    // short screen; a car head unit has no Back or hide-keyboard key to get out of it. Browsing is the
+    // first use of this list, so the keyboard waits for a tap on the field. Resize stays explicit so
+    // the grid still ends above the keyboard once the user does open it.
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog =
+        super.onCreateDialog(savedInstanceState).also { created ->
+            @Suppress("DEPRECATION")
+            created.window?.setSoftInputMode(
+                WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN or
+                    WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE,
+            )
+        }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -214,6 +232,13 @@ class LauncherAllAppsFragment : DialogFragment() {
             if (viewModel.query.value.isBlank() && query.isNotBlank()) saveCategoryAnchor()
             if (query.isBlank() && viewModel.query.value.isNotBlank()) restorePending = true
             viewModel.setQuery(query)
+        }
+        // The list filters as you type, so Search has nothing left to submit; without a listener the
+        // framework ignores this action and the keyboard's own Search key stays dead.
+        binding.allAppsSearch.setOnEditorActionListener { _, actionId, _ ->
+            val isSearch = actionId == EditorInfo.IME_ACTION_SEARCH
+            if (isSearch) hideSearchKeyboard()
+            isSearch
         }
         binding.allAppsSort.setOnClickListener { showOrderMenu(it) }
 
@@ -295,12 +320,27 @@ class LauncherAllAppsFragment : DialogFragment() {
         binding.allAppsGrid.itemAnimator = null
         val listener = object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                // Only a drag by the user: a programmatic scroll (anchor restore) must not close a keyboard
+                // the user just opened.
+                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) hideSearchKeyboard()
                 if (newState == RecyclerView.SCROLL_STATE_IDLE) saveCategoryAnchor()
             }
         }
         scrollListener = listener
         binding.allAppsGrid.addOnScrollListener(listener)
         layoutManager.spanSizeLookup = appsAdapter.getSpanSizeLookup(desktopColumns())
+    }
+
+    /**
+     * Closes the keyboard and keeps the screen open. Focus stays on the field so a later tap on it
+     * brings the keyboard back, and the typed query keeps filtering the list.
+     */
+    private fun hideSearchKeyboard() {
+        val search = _binding?.allAppsSearch ?: return
+        // The controller must belong to this dialog's window: the activity's window is not the one the
+        // keyboard is attached to.
+        val window = dialog?.window ?: return
+        WindowCompat.getInsetsController(window, search).hide(WindowInsetsCompat.Type.ime())
     }
 
     /**

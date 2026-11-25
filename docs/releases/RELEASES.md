@@ -17,8 +17,10 @@ What each package was built as last, what each channel carries, and every public
 
 | Package | Flavor | Kind | Version | Built | Artifact |
 | --- | --- | --- | --- | --- | --- |
-| phone | nolegal | debug | 2.61.1241.837 | 2026-11-24 18:41:12+01:00 | DOWNLOADS/FastMediaSorter_nolegal_debug.apk |
+| phone | nolegal | debug | 2.61.1242.114 | 2026-11-24 21:17:30+01:00 | DOWNLOADS/FastMediaSorter_nolegal_debug.apk |
 | phone | standard | debug | 2.60.9012.140 | 2026-11-23 14:56:51+01:00 | DOWNLOADS/FastMediaSorter_standard_debug.apk |
+| watchface | standard | debug | 2.61.1242.117-DEBUG | 2026-11-24 21:17:44+01:00 | watchface/build/outputs/apk/debug/watchface-debug.apk |
+| wear | standard | debug | 2.61.1242.342 | 2026-11-24 23:43:48+01:00 | DOWNLOADS/FastMediaSorter_wear_debug.apk |
 
 ## History
 

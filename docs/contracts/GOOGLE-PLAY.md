@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.11.21 14:21</sub>
+<sub class="doc-stamp">26.11.24 21:09</sub>
 
 # Pointer - `GOOGLE-PLAY`
 
 | | |
 | --- | --- |
 | **Id** | `GOOGLE-PLAY` |
-| **Version** | 0.4, draft. Owner: this product |
+| **Version** | 0.5, draft. Owner: this product |
 | **Home** | `google-play/README.md` in the shared contracts catalog |
 | **Role here** | owner and publisher - the console apps `com.sza.fastmediasorter` (phone and watch app) and `com.sza.fastmediasorter.watchface` |
 
@@ -15,7 +15,7 @@
 - Record the app signing and upload key fingerprints of each console app - certificate fingerprints only, never key material (rules 2-3).
 - Never delete a ReTrace mapping row in the console; recover a mapping from the shipped bundle (rule 5).
 - Before every upload, check versionCode, the current target-API floor, device reach and new foreground-service types (rules 6, 8, 9, 22). Apply the first-artifact and first-declaration stops in section 8C.
-- Serialize publishers, edit-based probes and Console writes per app (rule 19 and section 8A). Apply the rule 18 commit modes with the rule 29 review guard in both requests. Reconcile an uncertain result by read-back.
+- Serialize publishers, edit-based probes and Console writes per app (rule 19 and section 8A). On one machine the serialization is the one lock file per application id of section 9; a failure to open it, as well as a failure to lock it, is the lock being held and stops with the lock refusal (0.5). Apply the rule 18 commit modes with the rule 29 review guard in both requests. Reconcile an uncertain result by read-back.
 - Record track data, lifecycle summaries, Console review and public serving as separate evidence (rule 20 and section 8B). Split the phone and the watch into separate review batches with "Save for later" when one must not hold the other (rules 16-17).
 - Publish each same-app release in one edit with its tracks, release notes and changed listing. Commit once with the required guard while the app is clear of review. Escalate a review past seven days to Play support (rules 28-30).
 - Publish the watch only when its sources changed materially since its last release, as its own submission after the phone release is published or on alternate releases, so a phone fix never waits on a watch review (rule 31; `/skill-release-wear` Step 0 asks, from `measure-wear-change.ps1`).

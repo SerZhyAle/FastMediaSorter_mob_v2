@@ -110,7 +110,6 @@ class PlayerBroadcastEndManager @Inject constructor(
         val host = activity
         if (session == null || host == null) return false
         pending?.cancel()
-        Timber.d("S4874: player broadcast failure surfaced, reading the held removal")
         if (hold.atFailure()) {
             Timber.i("PlayerBroadcastEndManager: broadcast failed after the directory removed it - ended")
             pending = host.lifecycleScope.launch { showEnded(host, session) }

@@ -339,7 +339,7 @@ be judged against.
 
 <!-- s2917:measured:play-vitals:begin -->
 
-Measured 2026-11-24 (UTC) over 2026-10-26..2026-11-22 America/Los_Angeles. App verdict: `insufficient-data`. Rates as the API returns them, read as fraction (S2917 research 6).
+Measured 2026-11-25 (UTC) over 2026-10-27..2026-11-23 America/Los_Angeles. App verdict: `insufficient-data`. Rates as the API returns them, read as fraction (S2917 research 6).
 
 | Freshest day | versionCode | Crash, user-perceived 28d | ANR, user-perceived 28d | LMK, user-perceived 28d | Distinct users | Memory | Anomalies | Band colour |
 |---|---|---|---|---|---|---|---|---|

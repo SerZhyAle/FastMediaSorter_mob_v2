@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.23 18:01</sub>
+<sub class="doc-stamp">26.11.25 02:21</sub>
 
 # FastMediaSorter v2: OPS & Guidelines
 
@@ -1002,9 +1002,11 @@ every Bash call in every session forever after the first sweep.
 **Convergence honesty, which needs no co-operation at all.**
 `scripts/quality/release-scope-fingerprint.ps1` records what the judged tree looked like when the
 gates cleared, in named input groups, and says which moved before the verdict. Step 4 re-runs **only**
-the gates reading a moved group - `assert-release-scope-gates.ps1 -OnlyGroups <names>` - at most once,
-and if the tree moves again the verdict is not PASS and the report says the sweep could not converge,
-naming the groups and the interfering rows. Each gate still measures the whole tree when it runs; the
+the gates reading a moved group - `assert-release-scope-gates.ps1 -OnlyGroups <names>` - once, and a
+tree still moving after that is a report line naming the groups and the interfering rows, not a
+non-PASS. No device is ever walked twice in one release (S4904): a passed verdict older than a later
+source change is printed `STALE-ACCEPTED` by `assert-sweep-verdicts.ps1` and accepted, because the
+campaign's own work moves the tree by design and the release build, `fu` and lint cover the delta. Each gate still measures the whole tree when it runs; the
 groups decide only whether to run it, never what it looks at, so Rule 33's placement is untouched. A
 gate absent from the mapping is always re-run - the safe default is to re-measure, never to assume
 unchanged. The hash covers path, length and mtime and never file contents: measured 2026-09-12, all

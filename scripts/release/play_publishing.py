@@ -142,17 +142,23 @@ def app_lock(package, wait=0.0):
     root.mkdir(mode=0o700, parents=True, exist_ok=True)
     lock_path = root / f"{package_id(package)}.lock"
     holder = holder_path(root, package)
-    # Keep the lock file in place so waiters and future processes lock the same inode.
-    with lock_path.open("a+b") as lock:
-        deadline = time.monotonic() + wait
-        while True:
-            try:
-                try_lock(lock)
-                break
-            except OSError as exc:
-                if time.monotonic() >= deadline:
-                    raise PlayStop(describe_lock_refusal(root, package, lock_path)) from exc
-            time.sleep(LOCK_POLL_SECONDS)
+    deadline = time.monotonic() + wait
+    while True:
+        lock = None
+        try:
+            # Keep the lock file in place so waiters and future processes lock the same inode. A sibling that
+            # holds it with no sharing makes the open itself fail on Windows, which is the lock being held too
+            # (GOOGLE-PLAY 0.5 section 9 B).
+            lock = lock_path.open("a+b")
+            try_lock(lock)
+            break
+        except OSError as exc:
+            if lock is not None:
+                lock.close()
+            if time.monotonic() >= deadline:
+                raise PlayStop(describe_lock_refusal(root, package, lock_path)) from exc
+        time.sleep(LOCK_POLL_SECONDS)
+    with lock:
         # The record sits beside the lock, never inside it: a Windows byte-range lock makes that byte unreadable.
         record_holder(holder)
         try:

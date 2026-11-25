@@ -44,7 +44,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -103,7 +102,6 @@ class ObserveTouristDashboardUseCase @Inject constructor(
     operator fun invoke(
         initialFocus: TouristTileType = TouristTileType.SPEED,
     ): Flow<TouristDashboardState> = channelFlow {
-        Timber.d("S4672: phone location granted=%s fine=%s", hasLocationPermission(), hasFineLocationPermission())
         tripTracker.ensureLoaded()
         val capabilities = SensorCapability.entries.filter { sensorAvailabilityRepository.isAvailable(it) }.toSet()
         val isStepsAvail = SensorCapability.STEP_COUNTER in capabilities

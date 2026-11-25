@@ -68,7 +68,6 @@ import com.sza.fastmediasorter.wear.ui.common.WearSettingsRow
 import com.sza.fastmediasorter.wear.ui.common.packSettingsRows
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.util.GridColumnFit
-import timber.log.Timber
 
 /**
  * The key this screen's list position and its open sections are remembered under (S2543, S2806).
@@ -462,7 +461,6 @@ private fun SectionChip(titleRes: Int, hiddenCount: Int, onToggle: () -> Unit) {
             .clip(RoundedCornerShape(CHIP_CORNER))
             .background(MaterialTheme.colors.surface)
             .clickable(role = Role.Button) {
-                Timber.d("S4632: system info collapsed chip toggled")
                 onToggle()
             }
             .padding(horizontal = CHIP_HORIZONTAL_PADDING, vertical = CHIP_VERTICAL_PADDING)
@@ -507,7 +505,6 @@ private fun SectionTitle(titleRes: Int, hiddenCount: Int?, open: Boolean, onTogg
             .fillMaxWidth()
             .heightIn(min = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp)
             .clickable(role = Role.Button) {
-                Timber.d("S4628: system info group header toggled, open=$open")
                 onToggle()
             }
             .padding(vertical = ROW_VERTICAL_PADDING)

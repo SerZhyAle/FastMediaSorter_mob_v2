@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.20 20:17</sub>
+<sub class="doc-stamp">26.11.24 21:52</sub>
 
 # Pointer - `REPO-STAMP`
 
@@ -12,7 +12,8 @@
 ## What this repository must do to stay conformant
 
 - Keep `.sza-canon.json` at the root, valid JSON, with every required key.
-- Give every exemption a check id and a reason, and an `until` when it is temporary.
+- Give every exemption a check id and a reason that says what closes it; write no `until` (0.14 item C: it is history
+  and no reader reads it).
 - Never write the version pair or the core digest by hand; the adoption run writes them.
 - A reconciliation writes `canon.reconciledOn` together with `canon.version` and `canon.coreDigest`;
   `canon.adoptedOn` stays the date of first adoption (rule 8).

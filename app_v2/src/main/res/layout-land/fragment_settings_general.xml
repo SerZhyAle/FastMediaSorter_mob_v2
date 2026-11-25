@@ -283,7 +283,7 @@
 
                     <!-- Landscape: All Files + Show Hidden Files share one horizontal row to save vertical space.
                          layoutShowHiddenFiles is GONE until All Files is enabled (GeneralSettingsObserversHelper),
-                         so All Files spans the full width on its own - leaving room for the create-resource CTA. -->
+                         so All Files spans the full width on its own; the create-resource CTA is added under its row at runtime. -->
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/margin_tiny" android:baselineAligned="false" android:orientation="horizontal">
 
                         <LinearLayout android:id="@+id/layoutAllFiles" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">

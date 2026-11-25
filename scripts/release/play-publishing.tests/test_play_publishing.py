@@ -296,6 +296,44 @@ class SafeguardsTest(unittest.TestCase):
                     pass
         self.assertLess(time.monotonic() - started, 1)
 
+    @unittest.skipUnless(os.name == "nt", "a no-sharing open exists only on Windows")
+    def test_no_sharing_hold_by_another_process_is_the_lock_refusal(self):
+        import ctypes
+        from ctypes import wintypes
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel32.CreateFileW.restype = wintypes.HANDLE
+        kernel32.CreateFileW.argtypes = [wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD, wintypes.LPVOID,
+                                         wintypes.DWORD, wintypes.DWORD, wintypes.HANDLE]
+        generic_read, open_always, normal = 0x80000000, 4, 0x80
+        handle = kernel32.CreateFileW(str(self.root / f"{PACKAGE}.lock"), generic_read, 0, None,
+                                      open_always, normal, None)
+        self.assertNotIn(handle, (None, wintypes.HANDLE(-1).value))
+        try:
+            with patch.object(play, "state_root", return_value=self.root):
+                with self.assertRaises(play.PlayStop) as refusal:
+                    with play.app_lock(PACKAGE):
+                        pass
+        finally:
+            kernel32.CloseHandle(handle)
+        self.assertIn("local file lock, not a Play-side condition", str(refusal.exception))
+
+    def test_waiting_lock_retries_a_refused_open(self):
+        lock_path = self.root / f"{PACKAGE}.lock"
+        real_open = Path.open
+        refusals = []
+
+        def open_refused_twice(path, *args, **kwargs):
+            if path == lock_path and len(refusals) < 2:
+                refusals.append(path)
+                raise PermissionError(13, "The process cannot access the file", str(path))
+            return real_open(path, *args, **kwargs)
+
+        with patch.object(play, "state_root", return_value=self.root), \
+                patch.object(Path, "open", open_refused_twice):
+            with play.app_lock(PACKAGE, wait=5):
+                self.assertTrue(play.holder_path(self.root, PACKAGE).exists())
+        self.assertEqual(len(refusals), 2)
+
 
 if __name__ == "__main__":
     unittest.main()

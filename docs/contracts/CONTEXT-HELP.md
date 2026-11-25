@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.20 20:18</sub>
+<sub class="doc-stamp">26.11.24 21:52</sub>
 
 # Pointer - `CONTEXT-HELP`
 
@@ -21,14 +21,16 @@
   asks for no key by default, and its map row is `inherit` from the companion phone surface when the phone and watch
   apps share an application id and that surface's help page names each watch screen, or `none` with a reason for a
   trivial surface (rule 4). The phone and the watch of this product share `com.sza.fastmediasorter`, so `inherit` is
-  open to the watch rows. The 59 rows were re-read on 2026-11-14 (S4600) and all stay `none`: `inherit` needs the
+  open to the watch rows. The 60 rows (one per `composable(` route of the watch app) were re-read on 2026-11-24 (S4890) and all stay `none`: `inherit` needs the
   companion page to name each watch screen, and the `wear-companion` page names the companion panel only.
 - Since 0.5 (section 10 item P) a product whose help is organised per page may open the anchor of the map's `pages` row
   for the page the person is on, from the help button and from F1 alike, never the anchor of the button's own entry; it
   is an option and none of the rules above changes with it.
 - Since 0.6 (section 11 items Q and R): the page title carries the product's `help.head` picture, the favicon is the
-  product's, and an element entry that names a control with an `ICON-SET` meaning shows that glyph beside the name -
-  the generator writes all three, as `PRODUCT-IDENTITY` rule 8 records.
+  product's, and an element entry that names a control with an `ICON-SET` meaning shows that glyph beside the name.
+  Not held yet on the phone: the picture sits above the title with a non-empty `alt`, the favicon is the `help.head`
+  PNG, and the glyph table skips the custom `str_icon` / `csh_icon` / `sdr_icon` attributes; dated exceptions in the
+  catalog registry, carrier S4897.
 
 ## Decisions taken here (the contract delegates them to the product)
 

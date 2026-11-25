@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.24 13:22</sub>
+<sub class="doc-stamp">26.11.24 21:52</sub>
 
 # Pointer - `PRODUCT-IDENTITY`
 
@@ -7,7 +7,7 @@
 | **Id** | `PRODUCT-IDENTITY` |
 | **Version** | 0.7, draft. Owner: shared |
 | **Home** | `product-identity/README.md` in the shared contracts catalog |
-| **Role here** | consumer - the phone app, its listing sources, the site, the README and the in-app help |
+| **Role here** | consumer - the phone app and the watch app, their listing sources (Play, and Meta for the `vr` flavor), the site, the README and the in-app help |
 
 ## What this repository must do to stay conformant
 

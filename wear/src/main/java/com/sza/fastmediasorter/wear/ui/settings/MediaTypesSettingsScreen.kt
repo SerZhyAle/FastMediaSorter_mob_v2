@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -32,7 +31,6 @@ import com.sza.fastmediasorter.wear.ui.common.WearSettingsRow
 import com.sza.fastmediasorter.wear.ui.common.packSettingsRows
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.testing.WearTestTags
-import timber.log.Timber
 
 private val TITLE_BOTTOM_PADDING = 8.dp
 private const val CHIPS_PER_ROW = 1
@@ -62,10 +60,6 @@ fun MediaTypesSettingsScreen(
             onToggle = viewModel::toggleStreamsSection
         )
     )
-
-    LaunchedEffect(Unit) {
-        Timber.d("S4735: media types screen opened, rows=${typeToggles.size} perRow=$CHIPS_PER_ROW")
-    }
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),

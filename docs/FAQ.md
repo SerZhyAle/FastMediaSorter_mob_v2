@@ -5,7 +5,7 @@ permalink: /docs/FAQ.html
 lang: en
 ---
 
-<sub class="doc-stamp">26.11.24 14:50</sub>
+<sub class="doc-stamp">26.11.25 01:43</sub>
 
 <div lang="en" markdown="1">
 
@@ -35,6 +35,9 @@ Minimum installation versions in the current source configuration are listed bel
 
 ### Does it require internet?
 Local files do not need internet. SMB/SFTP/FTP on your LAN need a reachable network, not public internet. Cloud services and internet streams need internet; feature availability depends on the edition.
+
+### How do I change the app's language?
+Open **Settings → General** and tap **Language/Язык/Мова** (the row carries three names, so you can find it whatever language the app is in). Pick a language from the searchable list and the app switches at once - no restart. The screens you have open, Settings included, change language right where you are, and the choice is remembered. On a Google Play install the language is downloaded first; if that fails, the app keeps the language it already uses.
 
 ### Does the app have widgets?
 Yes! Fast Media Sorter & Organizer ships a variety of home-screen widgets - find them via long-press on the home screen → Widgets → Fast Media Sorter & Organizer. They include resource shortcuts, slideshow launchers, and more.
@@ -134,6 +137,11 @@ If thumbnails never load at all:
 ### Connection keeps dropping / files fail to open mid-playback
 Check Wi-Fi stability, server availability, credentials and VPN routes. Test the resource speed and reduce thumbnail work on slow links. Required bandwidth depends on the file's bitrate and codec, not resolution alone; **10 Mbps is not a universal 1080p requirement**.
 
+### Can my other devices find my live broadcast if we are not on the same network?
+Yes. Turn on **Files via Google Drive** (**Settings → General → Pending device transfers**, the switch at the top of that screen) and a live broadcast you start is announced to your own devices through the hidden app folder of your Google account. Only the address goes there: it is renewed while you are on air and removed when the broadcast ends. While you are live, the broadcast screen shows a **Via Google Drive** line that says whether the announcement went out.
+
+Drive never carries the sound or the picture. Those go directly to the listener or through your exchange server, so finding the broadcast needs no shared network, but listening still needs a route to one of the two. Details: [Files and folders via Google Drive](media-exchange-portal/folders-google-drive.html). Going on air from a phone is in the Standard, noLegal and Legacy editions.
+
 ---
 
 ## Quick Sort & Destinations
@@ -172,6 +180,15 @@ You can turn off the nine-zone grid and use the command panel. This does **not**
 
 ---
 
+## Video Playback
+
+### Why does the player offer to mute the sound when I slow a video down?
+Audio below 0.5x is hard to make out. So when you set a speed under 0.5x in **Playback settings** (the **Speed** tab, with a quick button or the slider), the player asks **Mute it?** Tap **Mute** to silence it, or **Keep audio** to leave it be.
+
+It asks once, not on every nudge of the slider: if you keep the audio, it asks again only after you have been back at 0.5x or faster. It does not ask when the sound is already off. To bring the sound back, use **Unmute** on the **Volume** tab - the previous volume returns. Speed changes made with keyboard shortcuts outside this dialog do not trigger the question.
+
+---
+
 ## Screen & Voice Capture
 
 ### What is the left-edge gesture strip?
@@ -204,7 +221,7 @@ Use the **Filter** panel in Browse: tap the filter icon in the toolbar, type any
 Large folders require listing, metadata and thumbnail work. Narrow the resource, use filters and reduce thumbnails on slow storage or networks. Sorting by date does **not** guarantee that the whole folder need not be scanned; performance depends on the source and file types.
 
 ### The app crashes or freezes
-Reopen the app and check available storage, permissions and resource connectivity. Cache clearing can help with stale thumbnails, but is not a general crash fix. For reproducible failures, report the app version/edition, Android version, affected resource and steps; redact credentials and private paths from logs.
+Reopen the app and check available storage, permissions and resource connectivity. Cache clearing can help with stale thumbnails, but is not a general crash fix. For reproducible failures, report the app version/edition, Android version, affected resource and steps; redact credentials and private paths from logs. The **Send feedback** program can attach the app's diagnostic logs to your report in one tap: [How to Send Feedback and Attach Logs](HOW_TO.html#how-to-send-feedback-and-attach-logs).
 
 ### How much storage does the thumbnail cache use?
 **Default:** 2 GB (configurable in Settings)
@@ -244,6 +261,11 @@ Only if you turn it on. In **Settings → Management → Photography**, enable p
 
 ### Can I see how I use the app?
 Yes - it's opt-in and off by default: turn on **Statistics collection** in **Settings → General** to open a local usage dashboard: files sorted, space freed, playback time, and more, broken down by media type. Nothing is sent automatically; **Send to author** or **Export** only shares a summary if you choose to.
+
+### Can my other devices control this phone?
+Only if you turn it on, and only the way you allow. **External control** is off by default. When you switch on **Listen to commands from my other devices**, devices signed in to your own account can send commands to this phone, and each device gets only the kinds of commands you allow: a new device gets the safe ones, and everything else stays off until you choose **Ask each time** or **Always allow**.
+
+A request that needs your answer appears as a notification and on the External control screen; answer in either place. If you do not answer within 60 seconds, the command does not run. No command from another device can switch listening on or off or change what is allowed - that can only be done on this phone. Open the screen with **Settings → General → Access from anywhere → Open External control**. Step by step: [How to Use External Control from Your Other Devices](HOW_TO.html#how-to-use-external-control-from-your-other-devices).
 
 ---
 

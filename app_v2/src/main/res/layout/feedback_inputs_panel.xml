@@ -65,7 +65,7 @@
             android:contentDescription="@string/feedback_attach_logs"
             android:focusable="true"
             android:nextFocusForward="@id/feedbackFolderSpinner"
-            app:icon="@drawable/ic_document" />
+            app:icon="@drawable/ic_diagnostic_logs" />
 
         <TextView
             android:id="@+id/feedbackRecordingText"

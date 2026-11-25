@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,7 +32,6 @@ import com.sza.fastmediasorter.wear.ui.common.LocalWearUnitSystem
 import com.sza.fastmediasorter.wear.ui.common.StandardWearCard
 import com.sza.fastmediasorter.wear.ui.common.WearHeroShape
 import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
-import timber.log.Timber
 import java.util.Locale
 
 // The card contributes the standard 10/8 inset, so only the missing 4dp of the panel's original
@@ -71,9 +69,6 @@ fun TouristHeroCard(
             contentAlignment = Alignment.Center,
         ) {
             if (!isScreenLocked) {
-                LaunchedEffect(Unit) {
-                    Timber.d("S4745: hero lock control shown")
-                }
                 Text(
                     text = "🔒",
                     style = MaterialTheme.typography.body2,

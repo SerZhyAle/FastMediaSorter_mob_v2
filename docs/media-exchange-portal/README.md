@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.23 11:22</sub>
+<sub class="doc-stamp">26.11.24 21:52</sub>
 
 # Media exchange and broadcasting portal - illustration set
 
@@ -21,7 +21,7 @@ shows, where it came from, what it may and may not claim, and where it belongs o
 - `diagrams/` - the generated set, 17 pictures in English, Russian and Ukrainian (`<name>-<lang>.svg`).
   Render targets: never edit them, change the drawing or the labels and re-render.
 - `labels/labels.<lang>.json` - every word on the generated pictures, one file per language.
-- `exchange-mark/` - vendored identity artwork of the Media Exchange Server per contract `EXCHANGE-MARK` 0.3 (`mark-24.png`, `mark-32.png`, `full-256.png`, `banner-1200x630.png`). Byte-exact copies from the catalog; never scaled or altered.
+- `exchange-mark/` - vendored identity artwork of the Media Exchange Server per contract `EXCHANGE-MARK` 0.6 (`mark-24.png`, `mark-32.png`, `full-256.png`, `banner-1200x630.png`). Byte-exact copies from the catalog; never scaled or altered.
 - Drawing code: `scripts/docs/render-usage-schemes.ps1` (driver), `scripts/docs/usage-schemes/SvgKit.ps1`
   (primitives), `scripts/docs/usage-schemes/Diagrams.ps1` (one function per picture).
 - The pages use the pictures by relative path - `diagrams/<name>-<lang>.svg` - and take the picture's `*.desc` label as the base of the alt text. The page

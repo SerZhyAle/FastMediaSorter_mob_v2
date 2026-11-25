@@ -38,7 +38,6 @@ import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 private val TILE_SPACING = 4.dp
 
@@ -75,7 +74,6 @@ fun TouristScreen(
     val hasAnyLocationGrant = permissionsState.revokedPermissions.size < permissionsState.permissions.size
 
     LaunchedEffect(Unit) {
-        Timber.d("S4743: tourist entry hasAnyLocationGrant=$hasAnyLocationGrant")
         if (!hasAnyLocationGrant) {
             permissionsState.launchMultiplePermissionRequest()
         }

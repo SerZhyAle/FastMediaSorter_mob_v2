@@ -1,0 +1,12 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?attr/colorControlNormal">
+    <!-- content.diagnostic-logs (ICON-SET 0.46 section 34 item B): the outlined sheet keeps it apart from the filled content.document. fillColor white so app:tint controls colour. -->
+    <path
+        android:fillColor="@android:color/white"
+        android:fillType="evenOdd"
+        android:pathData="M4,2H14L20,8V22H4ZM6,4V20H18V9H13V4ZM8,6H11V7.5H8ZM8,9H11V10.5H8ZM7.5,16.8L9.95,16.8L10.94,15.16L12.94,19.16L14.95,15.8L16.5,15.8L16.5,14.2L14.05,14.2L13.06,15.84L11.06,11.84L9.05,15.2L7.5,15.2Z" />
+</vector>

@@ -39,7 +39,6 @@ import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearGeometryMode
-import timber.log.Timber
 
 // Declared as consts because detekt's MagicNumber is active on this module's main sources and
 // exempts a constant declaration but not a property one.
@@ -235,7 +234,6 @@ private class RimClickNode(
             tracking = false
             if (!taken) {
                 changes.forEach { it.consume() }
-                Timber.d("S4737: rim control fired on an untaken tap")
                 onClick()
             }
         }

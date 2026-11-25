@@ -11,7 +11,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -31,7 +30,6 @@ class WatchWearBroadcastStartUseCase internal constructor(
         this(passStore, probe, System::currentTimeMillis, Dispatchers.IO)
 
     operator fun invoke(channelUrl: String): Flow<WearBroadcastStartState> = flow {
-        Timber.d("S4692: waiting screen started probing the relay of a pending link")
         val stored = passStore.get(channelUrl)
         val untilMs = WearBroadcastEndpoints.pendingUntilMs(stored?.descriptor)
         val relay = stored?.let {

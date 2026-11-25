@@ -295,7 +295,6 @@ class VideoPlayerViewModel @Inject constructor(
             // A host that is not visible keeps the error, as the audio player does (S4610).
             val route = networkSelection?.broadcastRoute
             if (route != null && isHostVisible) {
-                Timber.d("S4629: video player error on a broadcast, walking to the next endpoint")
                 loadJob?.cancel()
                 broadcastWalk.walk(route, fromTop = false, failure = error.streamFailure())
                 return
@@ -323,7 +322,6 @@ class VideoPlayerViewModel @Inject constructor(
         },
         onMoved = { next ->
             networkSelection?.copy(streamUri = next.url, broadcastRoute = next.route)?.let { moved ->
-                Timber.d("S4629: video broadcast moved to endpoint ${next.route?.endpointIndex}")
                 networkSelection = moved
                 exoPlayer.stop()
                 exoPlayer.clearMediaItems()

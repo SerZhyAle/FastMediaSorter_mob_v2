@@ -53,7 +53,6 @@ class BuildWatchBroadcastHandoffUseCase @Inject constructor(
     }
 
     suspend fun forStoredChannel(source: StreamSourceEntity): Result {
-        Timber.d("S4692: forStoredChannel builds the watch hand-off descriptor")
         val endpoints = BroadcastEndpointCodec.decode(source.broadcastEndpoints) ?: return Result.Plain
         val pair = passwordStore.get(source.id)
         val password = pair?.password

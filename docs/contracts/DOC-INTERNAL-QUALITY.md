@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.14 13:36</sub>
+<sub class="doc-stamp">26.11.24 21:52</sub>
 
 # Pointer - `DOC-INTERNAL-QUALITY`
 
@@ -26,5 +26,5 @@
 ## Where it lives here
 
 - Registry CLI: `scripts/document_registry/` (`query.ps1`, `validate.ps1`, `generate.ps1`).
-- Local registry (gitignored): `dev/DOCUMENT_REGISTRY.jsonl`; the harness cannot read it yet - canon request `dev/handoff/S4368_canon-harness-request.md`.
+- Local registry (gitignored): `dev/DOCUMENT_REGISTRY.jsonl`; the harness cannot read it yet - canon request `dev/handoff/S4653_canon-harness-request.md` (supersedes S4368's).
 - Enforced by `scripts/quality/assert-docs-crosslinks.ps1`, `scripts/quality/assert-neuroslop.ps1`, `scripts/quality/assert-settings-doc-sync.ps1`, `scripts/quality/assert-script-cheatsheet-sync.ps1`, `scripts/quality/assert-docs-screenshots.ps1`, `scripts/quality/assert-docs-external-content.ps1`.

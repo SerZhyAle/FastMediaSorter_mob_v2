@@ -94,7 +94,6 @@ fun WearOnboardingScreen(
     // mid-walk and the next launch starts again from the welcome page. The welcome page is the root of
     // the walk and keeps the system behaviour.
     BackHandler(enabled = page > 0) {
-        Timber.d("S4731: onboarding back from page %d", page)
         page = previousPage(page, introPages, steps) { context.isGranted(it) }
     }
 

@@ -51,7 +51,7 @@ steps:
     id: search-sort-browse
     title: Find one app fast
     text: |
-      Type anywhere in the list to search - the **Search apps** field narrows the results as you type, matching the app's name or its package name. Tap **Sort order** to change how the list is arranged: **By name**, **By install date**, **By update date**, **By how often you open it** or **By category**, each with a **Reverse order** switch; the extra space under the letter tiles filled by a bigger preview instead of a fixed two rows.
+      Tap the **Search apps** field and type to search - it narrows the results as you type, matching the app's name or its package name. The keyboard opens only when you tap the field, and its Search key, or a drag of the list, closes it again. Tap **Sort order** to change how the list is arranged: **By name**, **By install date**, **By update date**, **By how often you open it** or **By category**, each with a **Reverse order** switch; the extra space under the letter tiles filled by a bigger preview instead of a fixed two rows.
 
       Scroll without a search term and the apps are grouped alphabetically, each letter its own small heading with a short preview of what is under it - tap a letter and its group expands.
     image_bookmark:
@@ -125,6 +125,6 @@ next_recipes:
     description: The starter layout the Start menu and All apps sit alongside.
 ---
 
-<sub class="doc-stamp">26.11.11 16:33</sub>
+<sub class="doc-stamp">26.11.24 23:47</sub>
 
 Start is the short list, [All apps](term:all-apps) is the long one. This page covers sizing the Start panel, opening the full app list, searching and sorting it, an app's own shortcuts from a long press, and the four swipes that move through the list without a single tap.

@@ -338,13 +338,11 @@ class AndroidWearTouristRepository @Inject constructor(
     ) {
         if (!hasLocationPermission() || locationManager == null) return
         val fineGranted = hasFineLocationPermission()
-        Timber.d("S4672: watch location granted=true fine=%s", fineGranted)
         val providers = if (fineGranted) {
             listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)
         } else {
             approximateProviders()
         }
-        Timber.d("S4742: watch listens to providers=%s", providers)
         providers.forEach { provider ->
             runCatching {
                 if (locationManager.isProviderEnabled(provider)) {

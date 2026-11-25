@@ -61,7 +61,6 @@ class BroadcastEndpointWalkManager(
      * alone cannot tell an ended producer from a lost link.
      */
     fun walk(route: WearBroadcastRoute, fromTop: Boolean, failure: WearStreamFailure, afterPlay: Boolean = false) {
-        Timber.d("S4610: broadcast endpoint walk fromTop=$fromTop after index ${route.endpointIndex}")
         job?.cancel()
         job = scope.launch {
             val next = walkEndpoints(route, fromTop)
@@ -78,7 +77,6 @@ class BroadcastEndpointWalkManager(
 
     private suspend fun askAfterEnd(route: WearBroadcastRoute, failure: WearStreamFailure) {
         val answer = walkEndpoints.afterEnd(route.record)
-        Timber.d("S4874: wear walk after play ran out, after-end answer=$answer")
         Timber.i("BroadcastEndpointWalkManager: walk after play ran out, after-end answer %s", answer)
         when (answer) {
             WearAfterEndAnswer.ENDED -> onExhausted(WearStreamFailure.ENDED)

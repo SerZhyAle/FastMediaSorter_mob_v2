@@ -67,7 +67,6 @@ class AudioServiceBroadcastEndManager @Inject constructor(
     ): Boolean {
         val session = BroadcastPlaybackSessions.forUrl(playedUrl) ?: return false
         val signal = hold.atStop(stopSignal)
-        Timber.d("S4874: service judges a left broadcast stop signal=$signal")
         Timber.i("AudioServiceBroadcastEndManager: broadcast stopped - %s (reported %s)", signal, stopSignal)
         pending?.cancel()
         pending = scope.launch {

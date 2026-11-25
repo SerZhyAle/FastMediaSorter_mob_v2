@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.29 05:03</sub>
+<sub class="doc-stamp">26.11.24 21:52</sub>
 
 # Pointer - `FMSCFG`
 
@@ -31,6 +31,9 @@
 - An empty or whitespace-only `password` means "not carried": ask the user before anything is created,
   and never create a resource that cannot log in. An export that leaves the password out writes
   `"password":""` and never omits the key (2.2 amendment, item C).
+- An absent, blank or non-`SHA256:<base64>` `hostKeyFingerprintSha256` refuses the whole file before anything is
+  written, and a document with no `lan`, `ipv6` or `portforward` path is refused whole with its own message (2.6,
+  C2 and C3); the writer refuses to export an SFTP resource that has no host-key pin (S4649).
 - The payload is a secret (rule 6): no log line, diagnostic or crash report may carry a password, a PIN
   or the payload; exported files stay in the app's private cache and are replaced on the next export.
 

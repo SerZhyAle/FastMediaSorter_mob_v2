@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.20 20:00</sub>
+<sub class="doc-stamp">26.11.24 21:52</sub>
 
 # Pointer - `EXCHANGE-MARK`
 
@@ -31,7 +31,7 @@
 - Phone vector drawables: `app_v2/src/main/res/drawable/ic_exchange_mark.xml`, `ic_exchange_mark_small.xml`, `ic_exchange_mono.xml`.
 - Watch vector drawables: `wear/src/main/res/drawable/ic_exchange_mark_small.xml`, `ic_exchange_mono.xml`.
 - Portal PNG images: `docs/media-exchange-portal/exchange-mark/`.
-- Help images: `app_v2/src/main/assets/help/img/`.
+- Help images: `app_v2/src/main/assets/help/img/` and the web copies in `documentation/help/img/`.
 
 ## Ticket
 

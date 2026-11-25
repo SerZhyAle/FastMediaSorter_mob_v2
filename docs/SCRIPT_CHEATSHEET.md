@@ -8206,7 +8206,7 @@ scripts/release/assert-sweep-verdicts.ps1
     -NoWear               [SwitchParameter]
     -NoWearReason         [String]
     -RepoRoot             [String]
-  Exit: 0 - every verdict exists, passed, is not blocked and is not older than the groups it judged; 1 - a verdict FAILED, is BLOCKED, or is stale (a group it judged changed after it was written); 2 - a verdict file, a fingerprint record or the verdictGroups map is missing or unreadable, or
+  Exit: 0 - every verdict exists, passed and is not blocked; a passed verdict older than a judged group; 1 - a verdict FAILED or is BLOCKED; 2 - a verdict file, a fingerprint record or the verdictGroups map is missing or unreadable, or
 ```
 
 ### build-release-spectrum.ps1

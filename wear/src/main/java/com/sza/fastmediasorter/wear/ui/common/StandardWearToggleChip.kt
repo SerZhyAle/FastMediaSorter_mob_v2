@@ -23,7 +23,6 @@ import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.ToggleChip
 import androidx.wear.compose.material.ToggleChipDefaults
 import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
-import timber.log.Timber
 
 // Wear Material keeps its own toggle metrics internal, so the standard toggle row restates the
 // control size once here instead of letting every screen size its own glyph (S3260).
@@ -90,7 +89,6 @@ fun StandardWearToggleChip(
     ToggleChip(
         checked = checked,
         onCheckedChange = { value ->
-            Timber.d("S4627: toggle row tapped label=$label radio=$radio checked=$value")
             onCheckedChange(value)
         },
         modifier = described

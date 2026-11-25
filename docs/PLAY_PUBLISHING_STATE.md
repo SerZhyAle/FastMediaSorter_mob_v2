@@ -330,7 +330,7 @@ the only writer of this block and the only script that reads that API.
 
 <!-- s2272:measured:vitals:begin -->
 
-**Verdict:** `insufficient-data` - measured 2026-11-24 (UTC), window 2026-10-26..2026-11-22 America/Los_Angeles, source api. Rates as the API returns them, read as fraction (S2917 research 6).
+**Verdict:** `insufficient-data` - measured 2026-11-25 (UTC), window 2026-10-27..2026-11-23 America/Los_Angeles, source api. Rates as the API returns them, read as fraction (S2917 research 6).
 
 | Finding | Scope | Value | Band | Colour | Distinct users |
 |---------|-------|-------|------|--------|----------------|
@@ -362,7 +362,7 @@ Top error issues by distinct users (9):
   - `at android.os.Looper.loop (Looper.java:288)`
   - `at android.app.ActivityThread.main (ActivityThread.java:8010)`
   - `at java.lang.reflect.Method.invoke`
-- `CRASH` com.android.server.am.ActiveServices.setServiceForegroundInnerLocked at `android.os.RemoteException` - 4 users, 47 reports, last versionCode 261029214 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/c833ca20a5b60832aa73b7f3b1773204/details)
+- `CRASH` com.android.server.am.ActiveServices.setServiceForegroundInnerLocked at `android.os.RemoteException` - 4 users, 49 reports, last versionCode 261029214 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/c833ca20a5b60832aa73b7f3b1773204/details)
   - `Exception java.lang.RuntimeException:`
   - `at android.app.ActivityThread.handleServiceArgs (ActivityThread.java:4720)`
   - `at android.app.ActivityThread.-$$Nest$mhandleServiceArgs (ActivityThread.java)`

@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.20 20:18</sub>
+<sub class="doc-stamp">26.11.24 21:52</sub>
 
 # Pointer - `LIVE-BROADCAST`
 
@@ -58,7 +58,8 @@
   link's password form starts in "generated" and "none" is a separate choice; `BroadcastSettings.linkPasswordMode`
   defaults to `AUTO` and `BroadcastLinkChoice` keeps `Generated`, `Custom` and `Open` apart. Item AA (1.9): an
   endpoint with no `transport` and an `https` url is skipped, with or without `seal`; the one way for a producer is to
-  write `transport`.
+  write `transport`. Item W (1.7): an endpoint with no `transport` reads an `rtsp` url as `RTSP` and an `http` url as
+  `HTTP`; the phone does (`BroadcastEndpointCodec`), the watch does not yet (`WearBroadcastEndpoints`, carrier S4891).
 
 ## Where it lives here
 

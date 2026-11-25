@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.18 20:08</sub>
+<sub class="doc-stamp">26.11.24 21:52</sub>
 
 # Pointer - `MEDIA-VIEWER`
 
@@ -57,7 +57,7 @@ design record is linked from.
 
 - Phone, rule 1.8 - the Browse kind filter offers the product's routing kinds instead of the
   `MEDIA-CLASSIFICATION` categories. Design record: S4353 research 02 section 3.3 (MV-1.8), dated 2026-10-18,
-  `PLAN/S4353_contract-sync-20261017/research/02_media-streams.md`.
+  `PLAN/archive/S4353_contract-sync-20261017/research/02_media-streams.md`.
 - Watch, rules 5.1 and 5.7 - the standalone slideshow default is 5 s and no countdown is drawn. Design record:
   S4353 research 02 section 3.4, dated 2026-10-18, same file.
 

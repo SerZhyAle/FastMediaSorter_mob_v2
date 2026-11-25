@@ -11,10 +11,9 @@
     missing a blocking branch is never a pass.
 
     S4498: a verdict is stale when a group it JUDGED (verdictGroups: phone-src, wear-src) changed
-    after the file was written, read from the group's `since` stamp. A re-record that left those
-    groups alone moves recordedAt and nothing else, and must not stale the verdict; a moved group
-    that the verdict did not judge (docs, scripts) must not either. The direction that matters is
-    the false negative, so a case per judged group pins that its movement still stales.
+    after the file was written, read from the group's `since` stamp. S4904: a stale PASSED verdict
+    is accepted (exit 0, printed STALE-ACCEPTED) - a campaign never walks a device twice - while a
+    failed or blocked one still exits 1 whether stale or not.
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/run-script-suites.ps1 -ChangedFiles "scripts/release/assert-sweep-verdicts.ps1"
@@ -117,8 +116,11 @@ try {
         -Actual (Invoke-Check @('-PhoneVerdict', $phone, '-WearVerdicts', "$small,$wearBlocked"))
 
     $phoneStale = New-Verdict -Name 'phone-stale.json' -Written $recordedAt.AddMinutes(-5)
-    Assert-Equal -Label 'a verdict file older than the judged group exits 1' -Expected 1 `
+    Assert-Equal -Label 'S4904 a passed verdict older than the judged group is accepted, exit 0' -Expected 0 `
         -Actual (Invoke-Check @('-PhoneVerdict', $phoneStale, '-WearVerdicts', "$small,$large"))
+    $phoneStaleFail = New-Verdict -Name 'phone-stale-fail.json' -Pass $false -Written $recordedAt.AddMinutes(-5)
+    Assert-Equal -Label 'S4904 a failed verdict that is also stale still exits 1' -Expected 1 `
+        -Actual (Invoke-Check @('-PhoneVerdict', $phoneStaleFail, '-WearVerdicts', "$small,$large"))
 
     Assert-Equal -Label 'a missing watch verdict exits 2' -Expected 2 `
         -Actual (Invoke-Check @('-PhoneVerdict', $phone, '-WearVerdicts', "$small,$(Join-Path $root 'absent.json')"))
@@ -140,13 +142,13 @@ try {
         -Actual (Invoke-Check @('-PhoneVerdict', $phone, '-WearVerdicts', "$small,$large"))
 
     Write-Records -At $later -Since @{ 'wear-src' = $later; 'phone-src' = $recordedAt }
-    Assert-Equal -Label 'S4498 a moved wear-src stales the watch verdicts' -Expected 1 `
+    Assert-Equal -Label 'S4904 a moved wear-src leaves the passed watch verdicts accepted' -Expected 0 `
         -Actual (Invoke-Check @('-PhoneVerdict', $phone, '-WearVerdicts', "$small,$large"))
     Assert-Equal -Label 'S4498 a moved wear-src leaves the phone verdict current' -Expected 0 `
         -Actual (Invoke-Check @('-PhoneVerdict', $phone, '-NoWear', '-NoWearReason', 'phone-only check'))
 
     Write-Records -At $later -Since @{ 'phone-src' = $later; 'wear-src' = $recordedAt }
-    Assert-Equal -Label 'S4498 a moved phone-src stales the phone verdict' -Expected 1 `
+    Assert-Equal -Label 'S4904 a moved phone-src leaves the passed phone verdict accepted' -Expected 0 `
         -Actual (Invoke-Check @('-PhoneVerdict', $phone, '-NoWear', '-NoWearReason', 'phone-only check'))
     $fresh = New-Verdict -Name 'phone-fresh.json' -Written $later.AddMinutes(5)
     Assert-Equal -Label 'S4498 a verdict rewritten after the move is current again' -Expected 0 `
@@ -155,7 +157,7 @@ try {
         -Actual (Invoke-Check @('-PhoneVerdict', $fresh, '-WearVerdicts', "$small,$large"))
 
     Write-Records -At $later -NoSince
-    Assert-Equal -Label 'S4498 a record with no since falls back to recordedAt and stales an older verdict' -Expected 1 `
+    Assert-Equal -Label 'S4904 a record with no since falls back to recordedAt; an older passed verdict is accepted' -Expected 0 `
         -Actual (Invoke-Check @('-PhoneVerdict', $phone, '-WearVerdicts', "$small,$large"))
 
     Write-Records -At $later -DropGroup @('wear-src')

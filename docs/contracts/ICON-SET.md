@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.11.20 20:19</sub>
+<sub class="doc-stamp">26.11.24 21:52</sub>
 
 # Pointer - `ICON-SET`
 
 | | |
 | --- | --- |
 | **Id** | `ICON-SET` |
-| **Version** | 0.45, draft. Owner: this product |
+| **Version** | 0.46, draft. Owner: this product |
 | **Home** | `iconography/README.md` section 2 in the shared contracts catalog |
 | **Role here** | owner and reference implementation - phone, launcher, watch, documentation and the website |
 
@@ -37,7 +37,9 @@
   Server window and the remote administration window (Windows surfaces), 0.43 replaces the cog drawings of
   `system.service` and `feature.remote-admin`, and 0.44 (breaking) redraws `app.logo` from the FastMediaSorter family
   mark of `PRODUCT-IDENTITY` 0.2 section 3.3; the exporter run and the `app.logo` carrier are owed by this product.
-- The 0.45 catalog amendment redraws `action.rename`. The product carrier is tracked separately.
+- The 0.45 catalog amendment redraws `action.rename`. Every phone rename site draws `ic_rename` except the Browse
+  action bar (a baselined `ic_edit`), and the watch's Rename file action draws `ic_edit`; carrier S4898.
+- The feedback form's control that attaches the app's diagnostic logs draws `content.diagnostic-logs` (0.46, section 34, S4888): `ic_diagnostic_logs`, the outlined sheet of item B, never the filled sheet of `content.document`.
 - The documentation and the site show the meaning's glyph beside its name - never an emoji, never a
   picture chosen to decorate the page.
 - The glyphs, looks, `palette.json`, `CATALOG.md` and `gallery.html` are regenerated from this
