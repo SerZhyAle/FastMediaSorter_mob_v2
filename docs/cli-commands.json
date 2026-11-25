@@ -1,0 +1,263 @@
+{
+  "schemaVersion": 1,
+  "product": "FastMediaSorter",
+  "cliVersion": "1.0",
+  "commands": [
+    {
+      "name": "broadcast-start",
+      "aliases": [],
+      "summary": "Start the prepared broadcast of this phone after the person on the phone confirms it.",
+      "synopsis": "broadcast-start --mode <enum>",
+      "args": [
+        {
+          "name": "mode",
+          "kind": "enum",
+          "required": true,
+          "values": [
+            "audio",
+            "video-audio",
+            "video"
+          ],
+          "description": "what the broadcast sends"
+        }
+      ],
+      "returns": [],
+      "risk": "leaves-machine",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 5000,
+      "interactive": false,
+      "idempotent": false,
+      "exitCodes": [
+        {
+          "code": 0,
+          "meaning": "done"
+        }
+      ],
+      "examples": [],
+      "since": "1.0",
+      "remote": {
+        "confirm": "device",
+        "since": "1.0"
+      }
+    },
+    {
+      "name": "broadcast-stop",
+      "aliases": [],
+      "summary": "End the live broadcast of this phone; done also when nothing is on air.",
+      "synopsis": "broadcast-stop",
+      "args": [],
+      "returns": [],
+      "risk": "safe",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 5000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        {
+          "code": 0,
+          "meaning": "done"
+        }
+      ],
+      "examples": [],
+      "since": "1.0",
+      "remote": {
+        "confirm": "grant",
+        "since": "1.0"
+      }
+    },
+    {
+      "name": "cast-stop",
+      "aliases": [],
+      "summary": "Stop casting from this phone to a screen; done also when nothing is cast.",
+      "synopsis": "cast-stop",
+      "args": [],
+      "returns": [],
+      "risk": "safe",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 5000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        {
+          "code": 0,
+          "meaning": "done"
+        }
+      ],
+      "examples": [],
+      "since": "1.0",
+      "remote": {
+        "confirm": "grant",
+        "since": "1.0"
+      }
+    },
+    {
+      "name": "commands",
+      "aliases": [],
+      "summary": "List the commands this phone accepts from the account's other devices.",
+      "synopsis": "commands",
+      "args": [],
+      "returns": [],
+      "risk": "safe",
+      "coldStart": "oneshot",
+      "wait": "done",
+      "timeoutMs": 5000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        {
+          "code": 0,
+          "meaning": "done"
+        }
+      ],
+      "examples": [],
+      "since": "1.0",
+      "remote": {
+        "confirm": "grant",
+        "since": "1.0"
+      }
+    },
+    {
+      "name": "playback-stop",
+      "aliases": [],
+      "summary": "Stop the audio that plays on this phone; done also when nothing plays.",
+      "synopsis": "playback-stop",
+      "args": [],
+      "returns": [],
+      "risk": "safe",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 5000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        {
+          "code": 0,
+          "meaning": "done"
+        }
+      ],
+      "examples": [],
+      "since": "1.0",
+      "remote": {
+        "confirm": "grant",
+        "since": "1.0"
+      }
+    },
+    {
+      "name": "quit",
+      "aliases": [],
+      "summary": "Close the app cleanly; a file operation or a recording in progress makes it answer busy.",
+      "synopsis": "quit",
+      "args": [],
+      "returns": [],
+      "risk": "safe",
+      "coldStart": "oneshot",
+      "wait": "done",
+      "timeoutMs": 5000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        {
+          "code": 0,
+          "meaning": "the app closes"
+        },
+        {
+          "code": 11,
+          "meaning": "busy with a file operation or a recording"
+        }
+      ],
+      "examples": [],
+      "since": "1.0",
+      "remote": {
+        "confirm": "grant",
+        "since": "1.0"
+      }
+    },
+    {
+      "name": "status",
+      "aliases": [],
+      "summary": "Tell whether the app is running and listening to commands from the account's devices.",
+      "synopsis": "status",
+      "args": [],
+      "returns": [
+        {
+          "name": "ready",
+          "kind": "bool",
+          "description": "the app is running and takes commands"
+        },
+        {
+          "name": "version",
+          "kind": "string",
+          "description": "the running version"
+        },
+        {
+          "name": "listening",
+          "kind": "bool",
+          "description": "whether listening to commands is on"
+        }
+      ],
+      "risk": "safe",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 5000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        {
+          "code": 0,
+          "meaning": "done"
+        }
+      ],
+      "examples": [],
+      "since": "1.0",
+      "remote": {
+        "confirm": "grant",
+        "since": "1.0"
+      }
+    },
+    {
+      "name": "version",
+      "aliases": [],
+      "summary": "Tell the product name, its version and the version of its command set.",
+      "synopsis": "version",
+      "args": [],
+      "returns": [
+        {
+          "name": "product",
+          "kind": "string",
+          "description": "the product name"
+        },
+        {
+          "name": "version",
+          "kind": "string",
+          "description": "the installed version"
+        },
+        {
+          "name": "cliVersion",
+          "kind": "string",
+          "description": "the version of the command set"
+        }
+      ],
+      "risk": "safe",
+      "coldStart": "oneshot",
+      "wait": "done",
+      "timeoutMs": 5000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        {
+          "code": 0,
+          "meaning": "done"
+        }
+      ],
+      "examples": [],
+      "since": "1.0",
+      "remote": {
+        "confirm": "grant",
+        "since": "1.0"
+      }
+    }
+  ]
+}

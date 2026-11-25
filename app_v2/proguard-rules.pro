@@ -776,3 +776,18 @@
 -keepclassmembernames enum com.sza.fastmediasorter.domain.model.ticket.TicketOutboxState {
     <fields>;
 }
+# TicketOrigin.name is the origin field of the same entry JSON, restored by TicketOutboxStore through
+# valueOf, so a rename turns every queued feedback packet into a ticket.
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.ticket.TicketOrigin {
+    <fields>;
+}
+# StreamFailureReason.name crosses a Bundle (StreamPlaybackFailureReader.args) and is read back by
+# StreamFailureReason.fromName; the dialog's saved arguments outlive the process.
+-keepclassmembernames enum com.sza.fastmediasorter.core.playback.resilience.StreamFailureReason {
+    <fields>;
+}
+# ResourceCategory.name builds the wear resource screen's section key, which the section store keeps
+# across updates, so a rename collapses every section the user expanded.
+-keepclassmembernames enum com.sza.fastmediasorter.ui.wearresources.ResourceCategory {
+    <fields>;
+}

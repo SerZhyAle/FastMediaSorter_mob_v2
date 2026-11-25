@@ -1,3 +1,10 @@
+<#
+.SYNOPSIS
+    Dot-sourced helpers that read this project's device leases through the shared sza harness lease tool.
+
+.NOTES
+    Exit codes: none - a library loaded with dot-sourcing; it defines functions and never exits.
+#>
 [Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
 
 function Find-SharedDeviceLease {

@@ -340,7 +340,8 @@ class LocalMediaScanner @Inject constructor(
      * Callers apply it after the size filter, which keeps list membership exactly as before.
      */
     private fun completeUnknownSize(file: MediaFile): MediaFile {
-        if (file.size > 0L || file.isDirectory || !file.path.startsWith("/")) return file
+        // isAbsolute rather than a leading "/": the same test on Android, and the JVM test host may be Windows.
+        if (file.size > 0L || file.isDirectory || !File(file.path).isAbsolute) return file
         val length = File(file.path).takeIf { it.isFile }?.length() ?: 0L
         return if (length > 0L) {
             Timber.d("S4727: unmeasured MediaStore row completed from disk: ${file.name}")

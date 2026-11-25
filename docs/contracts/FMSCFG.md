@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.11.24 21:52</sub>
+<sub class="doc-stamp">26.11.25 02:51</sub>
 
 # Pointer - `FMSCFG`
 
 | | |
 | --- | --- |
 | **Id** | `FMSCFG` |
-| **Version** | 2.6, active; wire carrier `schemaVersion`, this product reads 1-2. Owner: FMS Companion |
+| **Version** | 2.7, active; wire carrier `schemaVersion`, this product reads 1-2. Owner: FMS Companion |
 | **Home** | `config-interchange/README.md` and `CONFIG_FORMAT.md` in the shared contracts catalog |
 | **Role here** | producer and consumer - the `.fmscfg` importer, and the writer of `schemaVersion` 2 files and `FMSCFG1:` QR payloads when a user shares an SFTP resource |
 

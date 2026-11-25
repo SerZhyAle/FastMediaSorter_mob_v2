@@ -21,6 +21,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearNetworkChannelKind
 import com.sza.fastmediasorter.wear.domain.playback.WearAfterEndAnswer
 import com.sza.fastmediasorter.wear.domain.playback.WearBackgroundSessionState
 import com.sza.fastmediasorter.wear.domain.playback.WearStreamFailure
+import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.WalkWearBroadcastEndpointsUseCase
@@ -234,7 +235,8 @@ class AudioPlayerViewModelBroadcastWalkTest {
                 AudioPlayerViewModel(
                     mediaRepository = mockk(relaxed = true),
                     selectedMediaManager = selectedMediaManager,
-                    playbackSetManager = mockk(relaxed = true),
+                    // A relaxed mock answers currentSet.value with a bare Object, which init's set sync cannot cast.
+                    playbackSetManager = PlaybackSetManager(),
                     downloadNetworkFile = mockk(relaxed = true),
                     exoPlayer = exoPlayer,
                     publishPlaybackStateUseCase = mockk(relaxed = true),

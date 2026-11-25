@@ -69,7 +69,7 @@ class TranslationLanguageCatalogTest {
         val auto = TranslationLanguageCatalog.findLanguage("auto", Locale.GERMAN)
 
         assertNotNull(auto)
-        assertEquals("Auto-detect", TranslationLanguageCatalog.formatLanguage(auto!!))
+        assertEquals("$GLOBE Auto-detect", TranslationLanguageCatalog.formatLanguage(auto!!))
     }
 
     @Test
@@ -77,12 +77,20 @@ class TranslationLanguageCatalogTest {
         val auto = TranslationLanguageCatalog.findLanguage("auto", Locale.ENGLISH)!!
         val czech = TranslationLanguageCatalog.findLanguage("cs", Locale.ENGLISH)!!
 
-        assertEquals("Automatisch", TranslationLanguageCatalog.formatLanguage(auto.withAutoDetectLabel("Automatisch")))
+        assertEquals(
+            "$GLOBE Automatisch",
+            TranslationLanguageCatalog.formatLanguage(auto.withAutoDetectLabel("Automatisch")),
+        )
         assertEquals(czech, czech.withAutoDetectLabel("Automatisch"))
     }
 
     @Test
     fun languageCodeToMLKit_keepsCzechCode() {
         assertEquals("cs", TranslationManager.languageCodeToMLKit("cs"))
+    }
+
+    private companion object {
+        /** The marker of the auto-detect row (ICON-EXTERNAL rule 6 keeps flags off languages, not this glyph). */
+        const val GLOBE = "🌐"
     }
 }

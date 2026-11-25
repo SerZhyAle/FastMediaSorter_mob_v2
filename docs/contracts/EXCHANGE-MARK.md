@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.11.24 21:52</sub>
+<sub class="doc-stamp">26.11.25 02:51</sub>
 
 # Pointer - `EXCHANGE-MARK`
 
 | | |
 | --- | --- |
 | **Id** | `EXCHANGE-MARK` |
-| **Version** | 0.6, active - 2026-11-20 (S4784: the backdrop of the full form and the banner is the FastMediaSorter family master; `full-256.png` and `banner-1200x630.png` re-vendored in the portal and the help copy `mark-full-256.png`); 0.4 - 2026-10-29 (text only: rules 8, 10 and 14 clarified; the artwork stays at 0.3); 0.3 - 2026-10-19 (S4395: mark adopted across phone, watch, portal and documentation; proper name "Media Exchange Server"); 0.2 - 2026-10-19 (small 24dp vector and mono glyph, high-contrast, binary assets); 0.1 - 2026-10-19 (first version) |
+| **Version** | 0.7, active - 2026-11-25 (text only: rule 14 scope for pages dedicated to the server, its accounts and its clipboard; the artwork stays at revision 0.6); 0.6 - 2026-11-20 (S4784: the backdrop of the full form and the banner is the FastMediaSorter family master; `full-256.png` and `banner-1200x630.png` re-vendored in the portal and the help copy `mark-full-256.png`); 0.4 - 2026-10-29 (text only: rules 8, 10 and 14 clarified; the artwork stays at 0.3); 0.3 - 2026-10-19 (S4395: mark adopted across phone, watch, portal and documentation; proper name "Media Exchange Server"); 0.2 - 2026-10-19 (small 24dp vector and mono glyph, high-contrast, binary assets); 0.1 - 2026-10-19 (first version) |
 | **Home** | `exchange-mark/README.md` in the shared contracts catalog |
 | **Role here** | consumer; publisher of the portal "Media exchange between your devices" (`docs/media-exchange-portal/`); vendor of artwork (`android/ic_exchange_mark.xml`, `android/ic_exchange_mark_small.xml`, `android/ic_exchange_mono.xml`, PNG set) |
 

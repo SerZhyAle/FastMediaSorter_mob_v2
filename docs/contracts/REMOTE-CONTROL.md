@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.11.24 13:15</sub>
+<sub class="doc-stamp">26.11.25 02:51</sub>
 
 # Pointer - `REMOTE-CONTROL`
 
 | | |
 | --- | --- |
 | **Id** | `REMOTE-CONTROL` |
-| **Version** | 0.8, draft. The Android target implements the External control screen of rule 18. |
+| **Version** | 0.9, draft. The Android target implements the External control screen of rule 18. |
 | **Home** | `remote-control/README.md` in the shared contracts catalog |
 | **Role here** | target - the phone app answers commands from the account's other devices; the watch app is not a target |
 

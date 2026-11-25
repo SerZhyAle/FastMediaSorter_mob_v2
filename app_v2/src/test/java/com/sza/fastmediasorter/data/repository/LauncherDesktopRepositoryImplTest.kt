@@ -599,14 +599,17 @@ class LauncherDesktopRepositoryImplTest {
 
     @Test
     fun `gap closing stops at a section header`() = runTest {
-        val removed = add(cell(row = 0, col = 1))!!
-        val header = add(section(row = 0, col = 2))!!
-        val later = add(cell(row = 0, col = 4))!!
+        // A header is always stored at column 0, so the walk meets it by wrapping from the row above.
+        val removed = add(cell(row = 0, col = COLUMNS - 1))!!
+        val header = add(section(row = 1))!!
+        val later = add(cell(row = 1, col = LauncherSectionMembership.HEADER_SPAN_W))!!
 
         repository.removeCellAndCloseGap(removed, COLUMNS)
 
-        assertEquals(2, storedCell(header)!!.colIndex)
-        assertEquals(4, storedCell(later)!!.colIndex)
+        assertEquals(1, storedCell(header)!!.rowIndex)
+        assertEquals(0, storedCell(header)!!.colIndex)
+        assertEquals(1, storedCell(later)!!.rowIndex)
+        assertEquals(LauncherSectionMembership.HEADER_SPAN_W, storedCell(later)!!.colIndex)
     }
 
     private companion object {

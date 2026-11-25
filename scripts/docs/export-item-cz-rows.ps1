@@ -2,6 +2,7 @@
 <#
 .SYNOPSIS
     Generate the machine-readable export of the rows of DEVICE-EXCHANGE item CZ (item FE).
+    Manual tool: run by the contract owner when the item CZ rows change in the catalog; no gate or build invokes it.
 
 .DESCRIPTION
     Item FE of the catalog's device-exchange/RECOMMENDATIONS-2026-11-12.md names eleven places that hold the

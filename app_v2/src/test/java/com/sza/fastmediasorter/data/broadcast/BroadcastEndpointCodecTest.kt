@@ -90,9 +90,13 @@ class BroadcastEndpointCodecTest {
 
     @Test
     fun decodeMetadata_opensNothing() {
-        val decoded = BroadcastEndpointCodec.decodeMetadata(protect(clearList()))
+        val stored = protect(clearList())
+        // protect() opens what it sealed to prove the round trip, so only opens after it count.
+        val opensBeforeDecode = box.opens
 
-        assertEquals(0, box.opens)
+        val decoded = BroadcastEndpointCodec.decodeMetadata(stored)
+
+        assertEquals(opensBeforeDecode, box.opens)
         assertNull(decoded?.first { it.transport == "RELAY" }?.seal?.key)
         assertEquals(RELAY_URL, decoded?.first { it.transport == "RELAY" }?.url)
     }

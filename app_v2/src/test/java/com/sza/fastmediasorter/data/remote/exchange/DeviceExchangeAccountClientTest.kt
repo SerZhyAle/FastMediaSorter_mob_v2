@@ -95,7 +95,10 @@ class DeviceExchangeAccountClientTest {
         assertEquals(DEVICE_ID, enroll.string("deviceId"))
         assertEquals("fms-android", enroll.string("product"))
         assertEquals("android", enroll.string("platform"))
-        assertEquals(listOf("pin-v1", "e2e-v1"), enroll.members.getAsJsonArray("capabilities").map { it.asString })
+        assertEquals(
+            listOf("pin-v1", "e2e-v1", "command-v1"),
+            enroll.members.getAsJsonArray("capabilities").map { it.asString },
+        )
         val declared = enroll.members.getAsJsonObject("e2eKey")
         assertEquals(1, declared.get("v").asInt)
         assertEquals(e2eKeys.keys.getValue(DEVICE_ID).kem, declared.get("kem").asString)

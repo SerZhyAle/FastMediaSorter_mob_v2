@@ -23,7 +23,7 @@ class WalkWearBroadcastEndpointsUseCaseTest {
         credentials = null,
     )
     private val resolver: WearBroadcastPlaybackResolver = mockk()
-    private val walk = WalkWearBroadcastEndpointsUseCase(resolver)
+    private val walk = WalkWearBroadcastEndpointsUseCase(resolver, mockk(relaxed = true))
 
     @Test
     fun `a failed endpoint passes the walk to the one after it`() = runBlocking {

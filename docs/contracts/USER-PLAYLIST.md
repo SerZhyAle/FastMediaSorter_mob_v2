@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.11.20 20:18</sub>
+<sub class="doc-stamp">26.11.25 02:51</sub>
 
 # Pointer - `USER-PLAYLIST`
 
 | | |
 | --- | --- |
 | **Id** | `USER-PLAYLIST` |
-| **Version** | 0.13, draft. Owner: StreamsPlayer |
+| **Version** | 0.14, draft. Owner: StreamsPlayer |
 | **Home** | `user-playlist/README.md` in the shared contracts catalog |
 | **Role here** | consumer (imports user-curated streams and playlists) |
 

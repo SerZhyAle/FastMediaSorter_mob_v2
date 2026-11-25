@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.11.24 21:52</sub>
+<sub class="doc-stamp">26.11.25 02:51</sub>
 
 # Pointer - `INPUT-PARITY`
 
 | | |
 | --- | --- |
 | **Id** | `INPUT-PARITY` |
-| **Version** | 0.8, draft. Owner: shared, one steward per device column |
+| **Version** | 0.9, draft. Owner: shared, one steward per device column |
 | **Home** | `input-controls/README.md` in the shared contracts catalog |
 | **Role here** | steward of the touch, gamepad and TV remote / D-pad columns |
 

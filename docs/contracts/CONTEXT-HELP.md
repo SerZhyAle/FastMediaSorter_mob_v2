@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.11.24 21:52</sub>
+<sub class="doc-stamp">26.11.25 02:51</sub>
 
 # Pointer - `CONTEXT-HELP`
 
 | | |
 | --- | --- |
 | **Id** | `CONTEXT-HELP` |
-| **Version** | 0.6, draft. Owner: shared |
+| **Version** | 0.7, draft. Owner: shared |
 | **Home** | `in-app-help/README.md` in the shared contracts catalog |
 | **Role here** | consumer - the phone app `app_v2`, adoption `partial` (first slice: Main, the four Settings tabs, Welcome); and the watch app `wear`, which meets rule 4 with a reasoned `none` row per route |
 

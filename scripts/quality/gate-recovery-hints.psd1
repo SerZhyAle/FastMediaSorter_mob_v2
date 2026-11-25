@@ -120,6 +120,11 @@
         Fix   = 'A documentation page links to a page that is neither on disk nor a planned page_id in docs/docs-pages-manifest.jsonl. Fix the href, or register the target page in the manifest; a link to a page not written yet is a bookmark (docs/DOCUMENTATION_LINKING_RULES.md).'
     }
 
+    'internal-doc-links' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-internal-doc-links.ps1 -Files "<your,changed,md>"'
+        Fix   = 'A relative Markdown link or #anchor in a changed docs/ or dev/ file names no file or heading on disk. Fix the target path or the anchor slug; when a baselined row now resolves or its source is gone, delete that row from scripts/quality/internal-doc-links-baseline.txt.'
+    }
+
     'docs-screenshots' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-docs-screenshots.ps1'
         Fix   = 'A documentation page references an image file that does not exist, or an <img> has empty alt text. Add the image under documentation/assets/images/ or fix its path, and write the alt text; an image not captured yet is an image bookmark (docs/DOCUMENTATION_IMAGE_BOOKMARKS.md).'

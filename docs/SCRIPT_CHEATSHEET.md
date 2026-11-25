@@ -2187,9 +2187,11 @@ scripts/devtest/lib/device-half-plan.ps1
 ```
 
 ### device-lease-client.ps1
+Dot-sourced helpers that read this project's device leases through the shared sza harness lease tool.
 
 ```
 scripts/devtest/lib/device-lease-client.ps1
+  Dot-sourced helpers that read this project's device leases through the shared sza harness lease tool.
   (no param block)
 ```
 
@@ -2819,11 +2821,11 @@ scripts/docs/export-icon-svgs.ps1
 ```
 
 ### export-item-cz-rows.ps1
-Generate the machine-readable export of the rows of DEVICE-EXCHANGE item CZ (item FE).
+Generate the machine-readable export of the rows of DEVICE-EXCHANGE item CZ (item FE). Manual tool: run by the contract owner when the item CZ rows change in the catalog; no gate or build invokes it.
 
 ```
 scripts/docs/export-item-cz-rows.ps1
-  Generate the machine-readable export of the rows of DEVICE-EXCHANGE item CZ (item FE).
+  Generate the machine-readable export of the rows of DEVICE-EXCHANGE item CZ (item FE). Manual tool: run by the contract owner when the item CZ rows change in the catalog; no gate or build invokes it.
   Params:
     -OutFile      (req)  [String]
     -CatalogRoot         [String] = $env:FMS_CONTRACTS_ROOT

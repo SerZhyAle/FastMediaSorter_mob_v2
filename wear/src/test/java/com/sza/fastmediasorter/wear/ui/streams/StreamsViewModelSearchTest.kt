@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.wear.domain.repository.WearStreamCollectionReposi
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamUsageRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ImportWearStreamCatalogUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearStreamPlaybackUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.WatchWearBroadcastStartUseCase
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -188,6 +189,7 @@ class StreamsViewModelSearchTest {
                 preferencesRepository = mockk<WearPreferencesRepository>(relaxed = true),
                 passStore = mockk<WearBroadcastPassStore>(relaxed = true),
                 resolver = mockk<WearBroadcastPlaybackResolver>(relaxed = true),
+                watchStart = mockk<WatchWearBroadcastStartUseCase>(relaxed = true),
             ),
             streamPinsRepository = streamPinsRepository,
             // S2149: no phone pins in these cases - the watch's own marks are what they exercise.
