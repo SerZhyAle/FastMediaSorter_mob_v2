@@ -10,7 +10,7 @@ What each package was built as last, what each channel carries, and every public
 | --- | --- | --- | --- | --- | --- | --- |
 | phone | github | github | 2.61.1250.223 | 2026-11-25 | - | [v2.61.1250.223](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/tag/v2.61.1250.223) |
 | phone | play | play | - | - | 2.61.1250.223 submitted (2026-11-25) | [production vc=261125022](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter) |
-| wear | play-wear | play | - | - | - | - |
+| wear | play-wear | play | - | - | 2.61.1250.223 submitted (2026-11-25) | [wear:production vc=261125027](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter) |
 | watchface | play-watchface | play | - | - | 2.61.1250.223 submitted (2026-11-25) | [wear:production vc=261125027](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface) |
 
 ## Last builds
@@ -28,6 +28,7 @@ What each package was built as last, what each channel carries, and every public
 
 | When | Package | Channel | Version | State | Source | Ref | Note |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-11-25 11:45:33+01:00 | wear | play-wear | 2.61.1250.223 | submitted | release | [wear:production vc=261125027](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter) | - |
 | 2026-11-25 11:26:57+01:00 | watchface | play-watchface | 2.61.1250.223 | submitted | release | [wear:production vc=261125027](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface) | - |
 | 2026-11-25 11:25:23+01:00 | phone | play | 2.61.1250.223 | submitted | release | [production vc=261125022](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter) | - |
 | 2026-11-25 11:24:56+01:00 | phone | github | 2.61.1250.223 | live | release | [v2.61.1250.223](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/tag/v2.61.1250.223) | - |
