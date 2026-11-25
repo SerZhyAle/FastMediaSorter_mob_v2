@@ -14,7 +14,7 @@ why: |
 
   Nothing on this page changes your files by itself. Turning on a setting or opening a menu only changes how the screen shows you what is already there.
 ingredients:
-  - "FastMediaSorter installed. The file browser is part of every [edition](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR and FOSS."
+  - "Fast Media Sorter & Organizer installed. The file browser is part of every [edition](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR and FOSS."
   - "At least one [resource](term:resource) added, so there is something to open. See [Configuring local and removable storage](page:storage.storage-sources-setup) if you have not added one yet."
   - "Installing an app straight from Browse works only in the sideload [noLegal edition](term:nolegal-edition)."
 steps:

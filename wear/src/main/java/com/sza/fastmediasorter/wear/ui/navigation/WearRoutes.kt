@@ -172,6 +172,9 @@ object WearRoutes {
     const val ARG_FILE_ID = "fileId"
     const val ARG_TILE_KIND = "tileKind"
 
+    /** S4692: the waiting screen names its channel by URL, the key the stored descriptor is kept under. */
+    const val ARG_CHANNEL_URL = "channelUrl"
+
     /** S3383: which of the three FileDO errands the credential screen was opened for. */
     const val ARG_FDSEC_MODE = "fdSecMode"
 
@@ -239,6 +242,7 @@ object WearRoutes {
      * because the assignment is the one action the feature adds and the rest it only shortens.
      */
     const val TILE_TARGET_PICKER_PATTERN = "tile_target_picker/{$ARG_TILE_KIND}"
+    const val BROADCAST_WAITING_PATTERN = "broadcast_waiting/{$ARG_CHANNEL_URL}"
 
     /**
      * S2201: one level of the watch's own folder walk.
@@ -269,6 +273,8 @@ object WearRoutes {
     fun audioPlayer(fileId: Long): String = "audio_player/$fileId"
 
     fun videoPlayer(fileId: Long): String = "video_player/$fileId"
+
+    fun broadcastWaiting(channelUrl: String): String = "broadcast_waiting/${encodeArg(channelUrl)}"
 
     fun imageViewer(fileId: Long): String = "image_viewer/$fileId"
 

@@ -101,7 +101,11 @@ else {
         }
         foreach ($release in $releases) {
             $codes = if ($release.versionCodes) { ($release.versionCodes -join ',') } else { '-' }
-            Write-Host ("  {0,-20} {1,-10} vc={2,-12} name={3}" -f $track.track, $release.status, $codes, $release.name)
+            # The notes languages are printed as stored: GOOGLE-PLAY rule 26 asks whether uk-UA reads back as uk.
+            $noteLanguages = if ($release.PSObject.Properties['releaseNotesLanguages'] -and $release.releaseNotesLanguages) {
+                $release.releaseNotesLanguages -join ','
+            } else { '-' }
+            Write-Host ("  {0,-20} {1,-10} vc={2,-12} name={3} notes={4}" -f $track.track, $release.status, $codes, $release.name, $noteLanguages)
         }
     }
 }

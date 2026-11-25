@@ -56,7 +56,7 @@
     <string name="export_logs_failed">لاگز برآمد کرنے میں ناکام</string>
     <string name="export_logs_no_files">برآمد کے لیے کوئی لاگ فائل دستیاب نہیں ہے۔</string>
     <string name="export_logs_no_share_target">لاگ آرکائیو کا اشتراک کرنے کے لیے کوئی ایپ دستیاب نہیں ہے۔</string>
-    <string name="export_logs_subject">FastMediaSorter ڈیبگ لاگز</string>
+    <string name="export_logs_subject">Fast Media Sorter &amp; Organizer کے ڈیبگ لاگز</string>
     <string name="export_settings">تمام ترتیبات کو فائل میں برآمد کریں۔</string>
     <string name="export_settings_confirm_message">موجودہ ترتیبات کے ساتھ ایک برآمد فائل بنائیں؟</string>
     <string name="export_settings_confirm_title">ترتیبات برآمد کریں۔</string>
@@ -74,6 +74,7 @@
     <string name="delete_confirmation">فائلیں حذف کریں؟</string>
     <string name="delete_failed">فائلوں کو حذف نہیں کیا جا سکا۔</string>
     <string name="delete_folder_confirm">فولڈر \"%1$s\" اور اس کے تمام مواد کو حذف کریں؟ اسے کالعدم نہیں کیا جا سکتا۔</string>
+    <string name="delete_folder_trash_confirm">فولڈر \"%1$s\" اور اس کا تمام مواد حذف کریں؟ یہ مٹانے کے بجائے ٹریش میں چلا جائے گا۔</string>
     <string name="delete_n_files_from_network_title">نیٹ ورک سے %d فائلیں حذف کریں؟</string>
     <string name="delete_n_folders_confirm">%1$d فولڈرز اور ان کے تمام مواد کو حذف کریں؟ اسے کالعدم نہیں کیا جا سکتا۔</string>
     <string name="delete_old_files">پرانی فائلوں کو حذف کریں۔</string>

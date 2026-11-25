@@ -9,7 +9,7 @@ availability: all
 recipe_number: "02"
 canonical_url: documentation/sample-settings-recipe.html
 ingredients:
-  - FastMediaSorter v2 installed on phone, tablet, or Android TV.
+  - Fast Media Sorter & Organizer installed on phone, tablet, or Android TV.
   - Access to the Settings screen via the gear icon.
 steps:
   - number: 1
@@ -39,4 +39,4 @@ next_recipes:
 
 <sub class="doc-stamp">26.10.07 01:10</sub>
 
-Fine-tune FastMediaSorter to match your exact media sorting style. Learn how to configure default sorting orders, grid thumbnail densities, and background audio behaviors.
+Fine-tune Fast Media Sorter & Organizer to match your exact media sorting style. Learn how to configure default sorting orders, grid thumbnail densities, and background audio behaviors.

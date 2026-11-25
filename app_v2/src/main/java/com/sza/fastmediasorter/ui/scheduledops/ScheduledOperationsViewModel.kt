@@ -7,7 +7,6 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.model.ScheduledOperationDraft
 import com.sza.fastmediasorter.domain.model.computeNextRunAt
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.CheckLocalFolderWritableUseCase
 import com.sza.fastmediasorter.domain.usecase.CleanupHiddenResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.ClearScheduledOperationsLogUseCase
@@ -16,6 +15,7 @@ import com.sza.fastmediasorter.domain.usecase.DeleteScheduledOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.GetScheduledOperationsLogUseCase
 import com.sza.fastmediasorter.domain.usecase.GetScheduledOperationsUseCase
+import com.sza.fastmediasorter.domain.usecase.ManageScheduledOperationsSwitchUseCase
 import com.sza.fastmediasorter.domain.usecase.ResolveLocalFolderResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.UpdateScheduledOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.UpsertScheduledOperationUseCase
@@ -36,6 +36,8 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
+// Past the threshold long before the switches moved behind a use case; that move swapped one dependency, added none.
+@Suppress("LongParameterList")
 class ScheduledOperationsViewModel @Inject constructor(
     private val getScheduledOperationsUseCase: GetScheduledOperationsUseCase,
     private val upsertScheduledOperationUseCase: UpsertScheduledOperationUseCase,
@@ -45,7 +47,7 @@ class ScheduledOperationsViewModel @Inject constructor(
     private val getScheduledOperationsLogUseCase: GetScheduledOperationsLogUseCase,
     private val clearScheduledOperationsLogUseCase: ClearScheduledOperationsLogUseCase,
     private val workManagerScheduler: WorkManagerScheduler,
-    private val settingsRepository: SettingsRepository,
+    private val scheduledOperationsSwitch: ManageScheduledOperationsSwitchUseCase,
     private val resolveLocalFolderResourceUseCase: ResolveLocalFolderResourceUseCase,
     private val checkLocalFolderWritableUseCase: CheckLocalFolderWritableUseCase,
     private val getResourcesUseCase: GetResourcesUseCase,
@@ -57,8 +59,7 @@ class ScheduledOperationsViewModel @Inject constructor(
     private val storedOperations: StateFlow<List<ScheduledOperation>?> = getScheduledOperationsUseCase()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    private val storedEnabled: StateFlow<Boolean?> = settingsRepository.getSettings()
-        .map { it.enableScheduledOperations }
+    private val storedEnabled: StateFlow<Boolean?> = scheduledOperationsSwitch.observeEnabled()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     val operations: StateFlow<List<ScheduledOperation>> = storedOperations
@@ -95,8 +96,7 @@ class ScheduledOperationsViewModel @Inject constructor(
         .map { it ?: true }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
-    val isPaused: StateFlow<Boolean> = settingsRepository.getSettings()
-        .map { it.scheduledOperationsPaused }
+    val isPaused: StateFlow<Boolean> = scheduledOperationsSwitch.observePaused()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     /**
@@ -116,7 +116,7 @@ class ScheduledOperationsViewModel @Inject constructor(
 
     fun setEnabled(enabled: Boolean) {
         viewModelScope.launch {
-            settingsRepository.updateSettings { it.copy(enableScheduledOperations = enabled) }
+            scheduledOperationsSwitch.setEnabled(enabled)
         }
     }
 
@@ -141,7 +141,7 @@ class ScheduledOperationsViewModel @Inject constructor(
 
     fun setPaused(paused: Boolean) {
         viewModelScope.launch {
-            settingsRepository.updateSettings { it.copy(scheduledOperationsPaused = paused) }
+            scheduledOperationsSwitch.setPaused(paused)
         }
     }
 

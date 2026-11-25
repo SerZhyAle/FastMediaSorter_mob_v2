@@ -9,7 +9,7 @@ permalink: /docs/TROUBLESHOOTING-ur.html
 
 # 🔧 ٹربل شوٹنگ گائیڈ
 
-FastMediaSorter v2 کے لیے موجودہ ٹربل شوٹنگ گائیڈ۔ جب مسئلہ منتخب کردہ بلڈ پاتھ (Standard، Lite، Photos، Legacy، یا XR / noLegal) پر منحصر ہو تو [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) میں مستند فلیور میٹرکس استعمال کریں۔
+Fast Media Sorter & Organizer کے لیے موجودہ ٹربل شوٹنگ گائیڈ۔ جب مسئلہ منتخب کردہ بلڈ پاتھ (Standard، Lite، Photos، Legacy، یا XR / noLegal) پر منحصر ہو تو [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) میں مستند فلیور میٹرکس استعمال کریں۔
 
 ---
 
@@ -53,7 +53,7 @@ FastMediaSorter v2 کے لیے موجودہ ٹربل شوٹنگ گائیڈ۔ ج�
 ### ❌ "Google Drive سائن اِن ناکام"
 
 **حل:**
-1. ایپ کا ڈیٹا صاف کریں: Settings → Apps → FastMediaSorter → Clear Data
+1. ایپ کا ڈیٹا صاف کریں: Settings → Apps → Fast Media Sorter & Organizer → Clear Data
 2. ایپ دوبارہ انسٹال کریں
 3. Google اکاؤنٹ کی سیٹنگز چیک کریں → Security → Third-party apps
 
@@ -63,7 +63,7 @@ FastMediaSorter v2 کے لیے موجودہ ٹربل شوٹنگ گائیڈ۔ ج�
 
 **حل:**
 1. Microsoft اکاؤنٹ کی حیثیت چیک کریں
-2. ایپ کا ڈیٹا صاف کریں: Settings → Apps → FastMediaSorter → Clear Data
+2. ایپ کا ڈیٹا صاف کریں: Settings → Apps → Fast Media Sorter & Organizer → Clear Data
 3. Microsoft اکاؤنٹ کی سیٹنگز چیک کریں → Privacy → Apps and services
 
 ---
@@ -72,7 +72,7 @@ FastMediaSorter v2 کے لیے موجودہ ٹربل شوٹنگ گائیڈ۔ ج�
 
 **حل:**
 1. Dropbox اکاؤنٹ کی حیثیت چیک کریں
-2. ایپ کا ڈیٹا صاف کریں: Settings → Apps → FastMediaSorter → Clear Data
+2. ایپ کا ڈیٹا صاف کریں: Settings → Apps → Fast Media Sorter & Organizer → Clear Data
 3. Dropbox اکاؤنٹ کی سیٹنگز چیک کریں → Security → Connected apps
 
 ---
@@ -182,7 +182,7 @@ FastMediaSorter v2 کے لیے موجودہ ٹربل شوٹنگ گائیڈ۔ ج�
 ### ❌ "اسٹارٹ اپ پر ایپ کریش ہو جاتی ہے"
 
 **حل:**
-1. ایپ کیش صاف کریں: Settings → Apps → FastMediaSorter → Clear Cache
+1. ایپ کیش صاف کریں: Settings → Apps → Fast Media Sorter & Organizer → Clear Cache
 2. اگر برقرار رہے: ایپ کا ڈیٹا صاف کریں (⚠️ سیٹنگز ضائع ہو جاتی ہیں)
 3. آخری حل کے طور پر ایپ دوبارہ انسٹال کریں
 

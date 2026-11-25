@@ -22,7 +22,12 @@ $Renderer = (Resolve-Path (Join-Path $PSScriptRoot '..\..\site\render-family-foo
 $passed = 0
 $failed = 0
 $fixtures = [System.Collections.Generic.List[string]]::new()
-$pageNames = @('index.html', 'index-ru.html', 'index-uk.html', 'nolegal.html', 'nolegal-ru.html', 'nolegal-uk.html')
+# The gate and the renderer judge every site locale, so the fixture carries each landing page they name.
+$pageNames = @(
+    'index.html', 'index-ru.html', 'index-uk.html', 'index-zh-hans.html', 'index-hi.html', 'index-es.html',
+    'index-fr.html', 'index-ar.html', 'index-bn.html', 'index-pt.html', 'index-ur.html', 'index-de.html', 'index-it.html',
+    'nolegal.html', 'nolegal-ru.html', 'nolegal-uk.html'
+)
 
 $page = @'
 <!DOCTYPE html>
@@ -52,15 +57,18 @@ $map = @'
 ## 3. The rules
 '@
 
-$sourceJson = @'
-{
-  "self": "https://example.github.io/this/",
-  "tools": [
-    { "url": "https://example.github.io/a/", "name": "Tool A", "caption": { "en": "A tool", "ru": "Инструмент", "uk": "Інструмент" } },
-    { "url": "https://sza.example", "name": "SZA", "caption": { "en": "Hub", "ru": "Хаб", "uk": "Хаб" } }
-  ]
-}
-'@
+# The renderer refuses a caption that lacks any site locale; the ten beyond en/ru/uk carry a tagged English text.
+$extraLocales = 'zh-hans', 'hi', 'es', 'fr', 'ar', 'bn', 'pt', 'ur', 'de', 'it'
+$toolCaption = [ordered]@{ en = 'A tool'; ru = 'Инструмент'; uk = 'Інструмент' }
+$hubCaption = [ordered]@{ en = 'Hub'; ru = 'Хаб'; uk = 'Хаб' }
+foreach ($loc in $extraLocales) { $toolCaption[$loc] = "A tool ($loc)"; $hubCaption[$loc] = "Hub ($loc)" }
+$sourceJson = [ordered]@{
+    self  = 'https://example.github.io/this/'
+    tools = @(
+        [ordered]@{ url = 'https://example.github.io/a/'; name = 'Tool A'; caption = $toolCaption },
+        [ordered]@{ url = 'https://sza.example'; name = 'SZA'; caption = $hubCaption }
+    )
+} | ConvertTo-Json -Depth 5
 
 function New-Fixture {
     $base = Join-Path ([System.IO.Path]::GetTempPath()) ('s3454-' + [guid]::NewGuid().ToString('N'))
@@ -103,7 +111,7 @@ try {
     $ru = Get-Content -LiteralPath (Join-Path $f.Root 'index-ru.html') -Raw -Encoding utf8
     if ($ru.Contains('<span>Инструмент</span>') -and -not $ru.Contains('old.example')) { $passed++; Write-Host '  PASS renderer writes the page locale' }
     else { $failed++; Write-Host '  FAIL renderer writes the page locale' -ForegroundColor Red }
-    Invoke-Case 'clean tree passes' $f 0 'PASS (6 pages, 3 map rows)'
+    Invoke-Case 'clean tree passes' $f 0 'PASS (16 pages, 3 map rows)'
 
     $f = New-Fixture
     Edit-File (Join-Path $f.Root 'nolegal.html') '<span>A tool</span>' '<span>A hand edit</span>'

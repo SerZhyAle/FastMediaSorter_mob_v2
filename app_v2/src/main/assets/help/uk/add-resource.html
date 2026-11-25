@@ -7,6 +7,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Довідка - Додати ресурс</title>
 <link rel="stylesheet" href="../help.css">
+<link rel="icon" type="image/png" href="../img/product-mark.png">
 </head>
 <body class="help">
 <main class="container">
@@ -14,6 +15,7 @@
 <a href="index.html">Зміст довідки</a><span class="sep" aria-hidden="true">/</span><span>Додати ресурс</span>
 </nav>
 <header class="hero">
+<img class="product-mark" src="../img/product-mark.png" width="48" height="48" alt="Fast Media Sorter">
 <h1>Додати ресурс</h1>
 </header>
 <h2>Для чого цей екран</h2>
@@ -24,11 +26,11 @@
 </figure>
 <h2>Порядок дій</h2>
 <ol class="order">
-<li>Оберіть, що додати: «Локальна папка» <a class="ref" href="#type-local">2</a> - папка на пристрої, «Мережева папка» <a class="ref" href="#type-network">3</a> - ресурс SMB, далі «SFTP / FTP» <a class="ref" href="#type-sftp">4</a>, «Хмарне сховище» <a class="ref" href="#type-cloud">5</a>, «Трансляція» <a class="ref" href="#type-stream">6</a>, «Спарений годинник» <a class="ref" href="#type-watch">7</a> або «З моїх пристроїв» <a class="ref" href="#type-my-devices">8</a>. Типи, вимкнені в налаштуваннях або відсутні у вашій редакції, не показуються, а якщо натиснути «Додати» у списку ресурсів при відкритій вкладці типу, одразу відкриється форма цього типу.</li>
-<li>Папка на пристрої: натисніть «СКАНУВАТИ» <a class="ref" href="#local-scan">12</a>, щоб отримати підказки, або «Додати вручну» <a class="ref" href="#local-add-manually">13</a>, щоб обрати папку самому; позначте потрібне в списку <a class="ref" href="#local-list">14</a> і натисніть «Додати до ресурсів» <a class="ref" href="#add-to-resources">11</a>.</li>
-<li>Мережева папка: введіть адресу сервера <a class="ref" href="#smb-server">17</a> або знайдіть її через «Сканувати мережу» <a class="ref" href="#smb-scan-network">16</a>. Вкажіть ім’я користувача <a class="ref" href="#smb-username">18</a> і пароль <a class="ref" href="#smb-password">19</a>, перевірте їх кнопкою «Тест з'єднання» <a class="ref" href="#smb-test">20</a>, оберіть папку через «Сканувати хост» <a class="ref" href="#smb-scan-shares">21</a> або впишіть її ім’я <a class="ref" href="#smb-share-name">22</a> і натисніть «Додати цей ресурс» <a class="ref" href="#smb-add">27</a>.</li>
-<li>SFTP або FTP: оберіть протокол <a class="ref" href="#sftp-protocol">29</a>, введіть хост <a class="ref" href="#sftp-host">30</a> і дані для входу <a class="ref" href="#sftp-auth">31</a>, перевірте кнопкою «Перевірити з'єднання» <a class="ref" href="#sftp-test">32</a>, вкажіть шлях на сервері <a class="ref" href="#sftp-remote-path">34</a> і натисніть «Додати ресурс» <a class="ref" href="#sftp-add">36</a>.</li>
-<li>Хмарне сховище: натисніть на сервіс <a class="ref" href="#cloud-providers">15</a>, увійдіть в акаунт, потім заходьте в папки кнопкою «Всередину» <a class="ref" href="#picker-enter">45</a> і натисніть «Вибір» <a class="ref" href="#picker-select">46</a> біля потрібної папки.</li>
+<li>Оберіть, що додати: «Локальна папка» <a class="ref" href="#type-local">2</a> - папка на пристрої, «Мережева папка» <a class="ref" href="#type-network">3</a> - ресурс SMB, далі «SFTP / FTP» <span class="nb"><a class="ref" href="#type-sftp">4</a>,</span> «Хмарне сховище» <span class="nb"><a class="ref" href="#type-cloud">5</a>,</span> «Трансляція» <span class="nb"><a class="ref" href="#type-stream">6</a>,</span> «Спарений годинник» <a class="ref" href="#type-watch">7</a> або «З моїх пристроїв» <span class="nb"><a class="ref" href="#type-my-devices">8</a>.</span> Типи, вимкнені в налаштуваннях або відсутні у вашій редакції, не показуються, а якщо натиснути «Додати» у списку ресурсів при відкритій вкладці типу, одразу відкриється форма цього типу.</li>
+<li>Папка на пристрої: натисніть «СКАНУВАТИ» <span class="nb"><a class="ref" href="#local-scan">12</a>,</span> щоб отримати підказки, або «Додати вручну» <span class="nb"><a class="ref" href="#local-add-manually">13</a>,</span> щоб обрати папку самому; позначте потрібне в списку <a class="ref" href="#local-list">14</a> і натисніть «Додати до ресурсів» <span class="nb"><a class="ref" href="#add-to-resources">11</a>.</span></li>
+<li>Мережева папка: введіть адресу сервера <a class="ref" href="#smb-server">17</a> або знайдіть її через «Сканувати мережу» <span class="nb"><a class="ref" href="#smb-scan-network">16</a>.</span> Вкажіть ім’я користувача <a class="ref" href="#smb-username">18</a> і пароль <span class="nb"><a class="ref" href="#smb-password">19</a>,</span> перевірте їх кнопкою «Тест з'єднання» <span class="nb"><a class="ref" href="#smb-test">20</a>,</span> оберіть папку через «Сканувати хост» <a class="ref" href="#smb-scan-shares">21</a> або впишіть її ім’я <a class="ref" href="#smb-share-name">22</a> і натисніть «Додати цей ресурс» <span class="nb"><a class="ref" href="#smb-add">27</a>.</span></li>
+<li>SFTP або FTP: оберіть протокол <span class="nb"><a class="ref" href="#sftp-protocol">29</a>,</span> введіть хост <a class="ref" href="#sftp-host">30</a> і дані для входу <span class="nb"><a class="ref" href="#sftp-auth">31</a>,</span> перевірте кнопкою «Перевірити з'єднання» <span class="nb"><a class="ref" href="#sftp-test">32</a>,</span> вкажіть шлях на сервері <a class="ref" href="#sftp-remote-path">34</a> і натисніть «Додати ресурс» <span class="nb"><a class="ref" href="#sftp-add">36</a>.</span></li>
+<li>Хмарне сховище: натисніть на сервіс <span class="nb"><a class="ref" href="#cloud-providers">15</a>,</span> увійдіть в акаунт, потім заходьте в папки кнопкою «Всередину» <a class="ref" href="#picker-enter">45</a> і натисніть «Вибір» <a class="ref" href="#picker-select">46</a> біля потрібної папки.</li>
 <li>Маєте готову конфігурацію від companion-застосунку для Windows? «Імпорт із файлу» <a class="ref" href="#import-file">9</a> або «Імпорт за штрих-кодом» <a class="ref" href="#import-barcode">10</a> позбавлять від введення всіх даних уручну.</li>
 <li>«Назад» <a class="ref" href="#back">1</a> закриває екран, нічого не додаючи з того, що ще не збережено.</li>
 </ol>
@@ -353,7 +355,7 @@
 <li><a href="index.html"><b>Зміст довідки</b></a></li>
 </ul>
 <footer class="help-foot">
-<span>Fast Media Sorter, 2026-10-26</span>
+<span>Fast Media Sorter, 2026-11-24</span>
 <a href="index.html">Зміст довідки</a>
 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Поставити запитання або повідомити про проблему</a>
 </footer>

@@ -6,11 +6,11 @@
     <string name="welcome_default_player_btn_docs">文档</string>
     <string name="welcome_default_player_btn_images">图片</string>
     <string name="welcome_default_player_btn_video">视频</string>
-    <string name="welcome_default_player_description">将 FastMediaSorter 设为默认媒体播放器</string>
-    <string name="welcome_default_player_hint">点按下面的按钮，会弹出一个对话框。选择 FastMediaSorter，然后点按<b>始终</b>。</string>
+    <string name="welcome_default_player_description">将 Fast Media Sorter &amp; Organizer 设为默认媒体播放器</string>
+    <string name="welcome_default_player_hint">点按下面的按钮，会弹出一个对话框。选择 Fast Media Sorter &amp; Organizer，然后点按<b>始终</b>。</string>
     <string name="welcome_default_player_title">默认播放器</string>
     <string name="welcome_description_1">一体化的媒体管理工具。\n浏览、整理和管理本地、网络与云端存储中的文件，全部通过直观的触摸手势完成。</string>
-    <string name="welcome_description_1_details">FastMediaSorter 把各类媒体汇集到一处。可以打开设备、网络共享或云存储中的照片、视频、GIF 和音乐，用轻点代替长按菜单来整理它们。\n\n这里设置的一切之后都能在“设置”中修改，所以本页面没有错误选项 - 点“下一步”继续即可。</string>
+    <string name="welcome_description_1_details">Fast Media Sorter &amp; Organizer 把各类媒体汇集到一处。可以打开设备、网络共享或云存储中的照片、视频、GIF 和音乐，用轻点代替长按菜单来整理它们。\n\n这里设置的一切之后都能在“设置”中修改，所以本页面没有错误选项 - 点“下一步”继续即可。</string>
     <string name="welcome_description_3" formatted="false">播放器使用9个触控区域（3×3网格）进行快速操作。点击区域可导航、复制、移动、删除文件或打开命令面板。详情请参见上方示意图。</string>
     <string name="welcome_language_picker_hint">选择应用语言</string>
     <string name="welcome_profile_audio_player_desc">适合纯音频设备或 MP3 播放器。隐藏照片和视频；优化后台播放与正在播放界面。</string>
@@ -36,8 +36,7 @@
     <string name="welcome_profile_video_player_title">视频播放器</string>
     <string name="welcome_profile_vr_headset_desc">最适合虚拟现实设备。在支持的头显上预先启用 3D/360° 布局和沉浸式控制。</string>
     <string name="welcome_profile_vr_headset_title">VR 头显</string>
-    <string name="welcome_recommended_badge">（推荐）</string>
-    <string name="welcome_title_1">欢迎使用 FastMediaSorter！</string>
+    <string name="welcome_title_1">欢迎使用 Fast Media Sorter &amp; Organizer！</string>
     <string name="sysinfo_field_abis">ABI</string>
     <string name="sysinfo_field_android_version">Android</string>
     <string name="sysinfo_field_api_level">API 级别</string>
@@ -140,7 +139,7 @@
     <string name="welcome_func_downloading">正在下载.. %1$d%%</string>
     <string name="welcome_func_download_failed">下载失败 - 点按重试</string>
     <string name="welcome_func_download_done">就绪</string>
-    <string name="welcome_permissions_title">“少量”权限</string>
+    <string name="welcome_permissions_title">少量权限</string>
     <string name="welcome_permissions_subtitle">授予访问权限，应用才能显示您的媒体。</string>
     <string name="welcome_func_streams">直播流</string>
     <string name="welcome_streams_catalog_done">目录已下载</string>
@@ -172,7 +171,7 @@
     <string name="welcome_role_sorting_detail">一次点按就把文件送进它该去的文件夹</string>
     <string name="welcome_role_more_detail">相机、小部件、小工具等 - 一个应用取代多个</string>
     <string name="welcome_description_1_shell">不只是媒体应用 - 而是设备的完整外壳。\n主屏幕、播放器、文件管理器、直播流和远程存储集于一处。</string>
-    <string name="welcome_description_1_details_shell">FastMediaSorter 可以掌管整台设备：带有你的应用、小部件和快捷方式的主屏幕，照片、视频、音乐和图书的播放器，本地、网络和云存储的文件管理器，互联网直播流以及 Wear OS 手表配套应用 - 在这一切之上，还有轻点即可完成的快速整理。\n\n想把它设为主屏幕吗？打开上面的开关，系统会在设置完成后请你确认。此屏幕上的所有选择以后都能在设置中更改，所以这里没有错误的选择 - 直接点击下一步继续即可。</string>
+    <string name="welcome_description_1_details_shell">Fast Media Sorter &amp; Organizer 可以掌管整台设备：带有你的应用、小部件和快捷方式的主屏幕，照片、视频、音乐和图书的播放器，本地、网络和云存储的文件管理器，互联网直播流以及 Wear OS 手表配套应用 - 在这一切之上，还有轻点即可完成的快速整理。\n\n想把它设为主屏幕吗？打开上面的开关，系统会在设置完成后请你确认。此屏幕上的所有选择以后都能在设置中更改，所以这里没有错误的选择 - 直接点击下一步继续即可。</string>
     <string name="welcome_role_home_screen">主屏幕</string>
     <string name="welcome_role_home_screen_detail">取代启动器掌管设备 - 应用、小部件和媒体触手可及</string>
     <string name="welcome_role_streams">直播流</string>

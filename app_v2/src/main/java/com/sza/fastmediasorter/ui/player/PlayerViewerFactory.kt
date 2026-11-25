@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.ui.player.helpers.EpubViewerManager
 import com.sza.fastmediasorter.ui.player.helpers.PdfViewerManager
 import com.sza.fastmediasorter.ui.player.helpers.TextViewerManager
 import com.sza.fastmediasorter.ui.player.helpers.openCalculatorForSelection
+import timber.log.Timber
 
 internal class PlayerViewerFactory(private val activity: PlayerActivity) {
 
@@ -178,6 +179,21 @@ internal class PlayerViewerFactory(private val activity: PlayerActivity) {
                 override fun finishActivity() {
                     activity.setResult(android.app.Activity.RESULT_OK)
                     activity.finish()
+                }
+
+                override fun sendToPickResource(): () -> Unit = {
+                    activity.dialogAndUiStateManager.showCopyDialog()
+                }
+
+                override fun onEditorVisibilityChanged() {
+                    if (activity.isDialogAndUiStateManagerInitialized) {
+                        activity.dialogAndUiStateManager.filenameOverlayManager
+                            ?.setSuppressed(activity._textViewerManager?.isEditorOpen() == true)
+                    }
+                    Timber.d("S4724: editor visibility changed, command panel layout re-run requested")
+                    if (activity.isCommandPanelControllerReady()) {
+                        activity.updateCommandAvailability(activity.viewModel.state.value)
+                    }
                 }
             },
             translationManager = activity.translationManager,

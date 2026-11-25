@@ -11,7 +11,7 @@ canonical_url: documentation/launcher/screen-dimming-and-timeout-uk.html
 why: |
   Планшет, залишений як кухонна фоторамка, автомагнітола, чий екран не мав би гаснути ніколи, або телефон на тумбочці, який не хочеться бачити світним усю ніч: власний таймаут екрана робочого столу вирішує, який із цих варіантів ви отримаєте, без потреби щоразу самостійно блокувати пристрій.
 ingredients:
-  - "FastMediaSorter у [редакції Standard](term:standard-edition) або [редакції noLegal](term:nolegal-edition) з відкритим [робочим столом](term:desktop) [лаунчера](term:launcher) - див. [Робочий стіл лаунчера](page:launcher.desktop-grid-and-icons)."
+  - "Fast Media Sorter & Organizer у [редакції Standard](term:standard-edition) або [редакції noLegal](term:nolegal-edition) з відкритим [робочим столом](term:desktop) [лаунчера](term:launcher) - див. [Робочий стіл лаунчера](page:launcher.desktop-grid-and-icons)."
 steps:
   - number: 1
     id: set-timeout

@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.wear.ui.onboarding
 
 import android.content.Context
 import android.content.pm.PackageManager
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
@@ -87,6 +88,13 @@ fun WearOnboardingScreen(
     // A group granted earlier - a reinstall that kept runtime grants - is not asked again.
     LaunchedEffect(page) {
         if (step != null && step.permissions.all { context.isGranted(it) }) advance()
+    }
+
+    // The walk is drawn outside the navigation graph, so without this a Back press finishes the Activity
+    // mid-walk and the next launch starts again from the welcome page. The welcome page is the root of
+    // the walk and keeps the system behaviour.
+    BackHandler(enabled = page > 0) {
+        page = previousPage(page, introPages, steps) { context.isGranted(it) }
     }
 
     key(page) {
@@ -275,6 +283,22 @@ private fun WearOnboardingPermissionStep.look(): StepLook = when (this) {
         R.string.wear_onboarding_nearby_title,
         R.string.wear_onboarding_nearby_reason
     )
+}
+
+/**
+ * The page a Back press lands on. A group that is already granted draws nothing - its page advances
+ * itself on entry - so landing on one would send the user straight forward again and Back would look
+ * dead. The intro pages ahead of the groups are never skipped, so a target always exists.
+ */
+private fun previousPage(
+    page: Int,
+    introPages: Int,
+    steps: List<WearOnboardingPlannedStep>,
+    isGranted: (String) -> Boolean,
+): Int {
+    var target = page - 1
+    while (target >= introPages && steps[target - introPages].permissions.all(isGranted)) target--
+    return target
 }
 
 private fun Context.isGranted(permission: String): Boolean =

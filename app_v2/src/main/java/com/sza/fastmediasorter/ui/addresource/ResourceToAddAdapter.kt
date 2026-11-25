@@ -1,23 +1,32 @@
 package com.sza.fastmediasorter.ui.addresource
 
+import android.content.res.ColorStateList
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.chip.Chip
 import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ItemResourceToAddBinding
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.allowsWriteOperations
+import com.sza.fastmediasorter.ui.common.MediaTypeColorCatalog
 import com.sza.fastmediasorter.ui.common.recycler.notifyChangedRuns
-
+import com.sza.fastmediasorter.ui.main.ResourceAdapter
+import timber.log.Timber
 
 private const val PAYLOAD_SELECTION = "payload_selection"
+private const val CHIP_STROKE_ACTIVE_DP = 1.5f
+private const val CHIP_STROKE_INACTIVE_DP = 1f
+private const val CHIP_ALPHA_ACTIVE = 1.0f
+private const val CHIP_ALPHA_LOCKED = 0.6f
 
 class ResourceToAddAdapter(
     private val onSelectionChanged: (MediaResource, Boolean) -> Unit,
@@ -26,7 +35,8 @@ class ResourceToAddAdapter(
     private val onScanSubdirectoriesChanged: (MediaResource, Boolean) -> Unit,
     private val onReadOnlyChanged: (MediaResource, Boolean) -> Unit,
     private val onMediaTypeToggled: (MediaResource, MediaType) -> Unit,
-    private val onAllFilesChanged: ((MediaResource, Boolean) -> Unit)? = null
+    private val onAllFilesChanged: ((MediaResource, Boolean) -> Unit)? = null,
+    private val mediaTypeEntries: List<MediaTypeColorCatalog.BadgeEntry> = MediaTypeColorCatalog.badgeEntries,
 ) : ListAdapter<MediaResource, ResourceToAddAdapter.ViewHolder>(ResourceDiffCallback()) {
 
     private var selectedPaths: Set<String> = emptySet()
@@ -81,8 +91,22 @@ class ResourceToAddAdapter(
             }
         }
 
+        private val mediaTypeChips: Map<MediaType, Chip>
+
         init {
             binding.etName.addTextChangedListener(nameWatcher)
+            val context = binding.root.context
+            mediaTypeChips = mediaTypeEntries.associate { entry ->
+                val chip = Chip(context).apply {
+                    isCheckable = true
+                    isClickable = true
+                    isFocusable = true
+                    setEnsureMinTouchTargetSize(true)
+                    text = MediaTypeColorCatalog.formatChipLabel(context, entry)
+                }
+                binding.cgMediaTypes.addView(chip)
+                entry.type to chip
+            }
         }
 
         fun bind(resource: MediaResource) {
@@ -103,7 +127,8 @@ class ResourceToAddAdapter(
                 }
                 etName.addTextChangedListener(nameWatcher)
                 
-                tvPath.text = resource.path
+                tvPath.text = ResourceAdapter.displayPath(resource)
+                Timber.d("S4847: staging path=${tvPath.text} types=${resource.supportedMediaTypes.size}")
                 tvFileCount.text = when {
                     resource.fileCount >= 1000 -> itemView.context.getString(R.string.file_count_over_1000)
                     else -> itemView.resources.getQuantityString(
@@ -114,15 +139,14 @@ class ResourceToAddAdapter(
                 }
                 
                 // --- Media Type Toggles ---
-                val isDownloads = resource.path == android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS).absolutePath
-                
-                setupMediaTypeButton(btnTypeImage, resource, MediaType.IMAGE, isDownloads)
-                setupMediaTypeButton(btnTypeVideo, resource, MediaType.VIDEO, isDownloads)
-                setupMediaTypeButton(btnTypeAudio, resource, MediaType.AUDIO, isDownloads)
-                setupMediaTypeButton(btnTypeGif, resource, MediaType.GIF, isDownloads)
-                setupMediaTypeButton(btnTypeText, resource, MediaType.TEXT, isDownloads)
-                setupMediaTypeButton(btnTypePdf, resource, MediaType.PDF, isDownloads)
-                setupMediaTypeButton(btnTypeOffice, resource, MediaType.OFFICE_DOCUMENT, isDownloads)
+                val downloadsPath = android.os.Environment
+                    .getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS)
+                    .absolutePath
+                val isDownloads = resource.path == downloadsPath
+
+                mediaTypeChips.forEach { (type, chip) ->
+                    bindMediaTypeChip(chip, resource, type, isDownloads)
+                }
 
                 // S1019: destination eligibility via the shared write-policy resolver (a destination
                 // must accept writes) - consistent with the browse/player write gates.
@@ -171,30 +195,45 @@ class ResourceToAddAdapter(
         }
 
 
-        private fun setupMediaTypeButton(
-            view: android.widget.TextView, 
-            resource: MediaResource, 
+        private fun bindMediaTypeChip(
+            chip: Chip,
+            resource: MediaResource,
             type: MediaType,
-            isLocked: Boolean
+            isLocked: Boolean,
         ) {
             val isActive = type in resource.supportedMediaTypes
-            val colorAttr = if (isActive) {
-                com.google.android.material.R.attr.colorOnSurface
+            val density = chip.resources.displayMetrics.density
+            chip.setOnCheckedChangeListener(null)
+            chip.isChecked = isActive
+            chip.isCheckedIconVisible = isActive
+            if (isActive) {
+                chip.chipBackgroundColor = ColorStateList.valueOf(
+                    MaterialColors.getColor(chip, com.google.android.material.R.attr.colorSecondaryContainer)
+                )
+                chip.chipStrokeColor = ColorStateList.valueOf(
+                    ContextCompat.getColor(chip.context, MediaTypeColorCatalog.colorFor(type))
+                )
+                chip.chipStrokeWidth = CHIP_STROKE_ACTIVE_DP * density
+                chip.setTextColor(
+                    MaterialColors.getColor(chip, com.google.android.material.R.attr.colorOnSecondaryContainer)
+                )
             } else {
-                com.google.android.material.R.attr.colorOnSurfaceVariant
+                chip.chipBackgroundColor = ColorStateList.valueOf(
+                    MaterialColors.getColor(chip, com.google.android.material.R.attr.colorSurface)
+                )
+                chip.chipStrokeColor = ColorStateList.valueOf(
+                    MaterialColors.getColor(chip, com.google.android.material.R.attr.colorOutline)
+                )
+                chip.chipStrokeWidth = CHIP_STROKE_INACTIVE_DP * density
+                chip.setTextColor(
+                    MaterialColors.getColor(chip, com.google.android.material.R.attr.colorOnSurfaceVariant)
+                )
             }
-            view.setTextColor(MaterialColors.getColor(view, colorAttr))
-            view.alpha = if (isActive) 1.0f else 0.5f
-            
-            if (isLocked) {
-                view.isClickable = false
-                view.isEnabled = false // Visual indication of disabled
-                // Keep visually active if it's there, but non-interactive
-                view.alpha = if (isActive) 0.7f else 0.3f
-            } else {
-                view.isClickable = true
-                view.isEnabled = true
-                view.setOnClickListener {
+            chip.isEnabled = !isLocked
+            chip.isClickable = !isLocked
+            chip.alpha = if (isLocked) CHIP_ALPHA_LOCKED else CHIP_ALPHA_ACTIVE
+            if (!isLocked) {
+                chip.setOnCheckedChangeListener { _, _ ->
                     onMediaTypeToggled(resource, type)
                 }
             }

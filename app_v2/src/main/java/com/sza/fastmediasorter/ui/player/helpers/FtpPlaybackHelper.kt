@@ -6,12 +6,14 @@ import androidx.media3.common.C
 import androidx.media3.datasource.DataSource
 import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.core.util.PathUtils
+import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.datasource.FtpDataSourceFactory
 import com.sza.fastmediasorter.data.network.datasource.TsPacketFormat
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
@@ -51,12 +53,14 @@ internal suspend fun VideoPlayerManager.playFtpVideo(
     activeResourceKey = resourceKey
     ConnectionThrottleManager.activateVideoPlayerMode(resourceKey)
 
+    // The password getter decrypts through the AndroidKeyStore, which is disk I/O; this runs on Main.
+    val password = withContext(Dispatchers.IO) { credentials.password }
     val dataSourceFactory = FtpDataSourceFactory(
         ftpClient,
         credentials.server,
         credentials.port,
         credentials.username,
-        credentials.password,
+        password,
         context
     )
     val isAudio = path.substringAfterLast('.', "").lowercase() in MediaTypeUtils.AUDIO_EXTENSIONS

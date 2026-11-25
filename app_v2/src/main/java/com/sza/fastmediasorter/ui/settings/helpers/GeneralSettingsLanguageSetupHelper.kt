@@ -2,22 +2,20 @@ package com.sza.fastmediasorter.ui.settings.helpers
 
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.LanguageSplitInstaller
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.ui.dialog.SearchableLanguagePickerDialog
 import com.sza.fastmediasorter.ui.dialog.UiLanguagePickerItems
-import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.launch
 
 /**
- * S2601: the interface-language row - its picker, the restart handshake, and the split download a
- * language the install never carried needs before it can be applied.
+ * S2601: the interface-language row - its picker, and the split download a language the install never
+ * carried needs before it can be applied. S4603: the chosen language applies at once, without a restart.
  *
  * Its own class rather than another `setupXxx` in [GeneralSettingsViewSetupHelper], which stood over
- * detekt's LargeClass threshold. Nothing outside this group reads the current selection code or the
- * restart dialog, so the whole exchange moves as one piece.
+ * detekt's LargeClass threshold. Nothing outside this group reads the current selection code, so the
+ * whole exchange moves as one piece.
  */
 class GeneralSettingsLanguageSetupHelper(
     private val hostContext: GeneralSettingsHostContext,
@@ -42,7 +40,7 @@ class GeneralSettingsLanguageSetupHelper(
             val code = bundle.getString(SearchableLanguagePickerDialog.RESULT_LANGUAGE_CODE)
                 ?: return@setFragmentResultListener
             if (code != currentLanguageSelectionCode()) {
-                showRestartDialog(code)
+                applyLanguageWhenAvailable(code)
             }
         }
         binding.rowLanguage.setOnRowClickListener { showLanguagePicker() }
@@ -64,21 +62,8 @@ class GeneralSettingsLanguageSetupHelper(
         }
     }
 
-    private fun showRestartDialog(newLanguageCode: String) {
-        val languageName = UiLanguagePickerItems.label(fragment.requireContext(), newLanguageCode)
-        MaterialAlertDialogBuilder(fragment.requireContext())
-            .setTitle(R.string.restart_app_title)
-            .setMessage(fragment.getString(R.string.restart_app_message, languageName))
-            .setPositiveButton(R.string.restart) { _, _ -> applyLanguageWhenAvailable(newLanguageCode) }
-            // Declining needs no restore: the row keeps showing the language still in effect, because
-            // its value only changes once the observer sees the saved setting.
-            .setNegativeButton(R.string.cancel) { dialog, _ -> dialog.dismiss() }
-            .setCancelable(false)
-            .showBoundTo(fragment)
-    }
-
     // S1190: an install from Play carries only the locales the device asked for, so a language the
-    // user never had has to arrive before it is applied - applying first restarts into the old strings.
+    // user never had has to arrive before it is applied - applying first re-creates the screens in the old strings.
     private fun applyLanguageWhenAvailable(newLanguageCode: String) {
         // The sentinel names no split: whatever the system is set to is a locale the install already has.
         if (newLanguageCode == LocaleHelper.FOLLOW_SYSTEM_LANGUAGE) {
@@ -98,10 +83,9 @@ class GeneralSettingsLanguageSetupHelper(
     }
 
     // S2571: LocaleHelper saves the language alone, matching WelcomeActivity.onWelcomeLanguageSelected.
-    // The settings write that used to sit here ran in viewModelScope, which changeLanguage then killed
-    // by finishing the activity, so the language was persisted in one place and lost in the other.
+    // S4603: no return-to-settings flag and no finish - the open screens are re-created in place, so a flag
+    // left set would forward the next cold start into Settings.
     private fun applyLanguage(newLanguageCode: String) {
-        LocaleHelper.markReturnToSettings(fragment.requireContext())
-        LocaleHelper.changeLanguage(fragment.requireActivity(), newLanguageCode)
+        LocaleHelper.applyLanguageLive(fragment.requireContext(), newLanguageCode)
     }
 }

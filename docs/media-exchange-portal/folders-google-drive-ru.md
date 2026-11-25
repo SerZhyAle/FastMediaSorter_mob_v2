@@ -1,11 +1,12 @@
 ---
+source_sha256: 4b95552c34e69f3947273bbbd22607206e6f3a8573dc9efa1e748957f45aec56
 layout: doc
 title: "Файлы и папки через Google Drive: между вашими устройствами, без сервера"
 description: "Как отправлять файлы, открывать папку другого своего устройства и запускать расписание через собственный аккаунт Google, без сервера обмена и без адреса: где переключатель, что проходит, сколько это занимает и какие есть пределы."
 category: "Обмен медиа"
 permalink: /docs/media-exchange-portal/folders-google-drive-ru.html
 ---
-<sub class="doc-stamp">26.10.23 14:53</sub>
+<sub class="doc-stamp">26.11.15 15:28</sub>
 
 # Файлы и папки через Google Drive
 

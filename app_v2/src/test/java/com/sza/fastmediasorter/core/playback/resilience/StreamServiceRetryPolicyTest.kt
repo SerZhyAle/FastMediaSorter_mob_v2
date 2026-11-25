@@ -90,14 +90,25 @@ class StreamServiceRetryPolicyTest {
         assertEquals(retryAfter(DELAY_1_MS), policy.onFailure(failure, youngConnectionMs()))
     }
 
-    /** Same code, an observed status the classifier rejects: this site never looked, so it retries. */
+    /** STREAM-BANK 2.10 section 2.5: an observed 4xx other than 429 is hard, so the ladder declines it. */
     @Test
-    fun `a bad HTTP status the classifier rejects is retried too`() {
+    fun `an observed client-error status is not retried`() {
         val policy = startedPolicy()
         val failure = badHttpStatus(httpStatus = HTTP_NOT_FOUND)
 
         assertEquals(StreamFailureClass.NOT_RETRYABLE, failure.failureClass)
-        assertEquals(retryAfter(DELAY_1_MS), policy.onFailure(failure, youngConnectionMs()))
+        assertEquals(StreamServiceRetryDecision.Ignore, policy.onFailure(failure, youngConnectionMs()))
+        assertEquals(StreamFailureReason.REFUSED, failure.toReason())
+    }
+
+    @Test
+    fun `an untrusted certificate is not retried`() {
+        val policy = startedPolicy()
+        val code = StreamFailureClass.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED
+        val failure = StreamAudioFailure(StreamFailureClass.classify(code, null, untrustedCertificate = true), code)
+
+        assertEquals(StreamServiceRetryDecision.Ignore, policy.onFailure(failure, youngConnectionMs()))
+        assertEquals(StreamFailureReason.UNTRUSTED_CERTIFICATE, failure.toReason())
     }
 
     @Test
@@ -232,7 +243,7 @@ class StreamServiceRetryPolicyTest {
         failureOf(StreamFailureClass.ERROR_CODE_IO_BAD_HTTP_STATUS, httpStatus)
 
     private fun failureOf(errorCode: Int, httpStatus: Int? = null): StreamAudioFailure =
-        StreamAudioFailure(StreamFailureClass.classify(errorCode, httpStatus), errorCode)
+        StreamAudioFailure(StreamFailureClass.classify(errorCode, httpStatus), errorCode, httpStatus)
 
     private fun retryAfter(delayMs: Long): StreamServiceRetryDecision =
         StreamServiceRetryDecision.RetryAfter(delayMs)

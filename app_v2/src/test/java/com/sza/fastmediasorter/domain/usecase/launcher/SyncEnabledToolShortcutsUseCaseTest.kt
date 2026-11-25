@@ -51,8 +51,11 @@ class SyncEnabledToolShortcutsUseCaseTest {
 
         val removedIds = mutableListOf<Long>()
 
+        override suspend fun removeCellAndCloseGap(id: Long, columns: Int) = removeCell(id)
+
         override suspend fun removeCell(id: Long) {
             removedIds.add(id)
+            cellsMap.replaceAll { _, cells -> cells.filterNot { it.id == id } }
         }
 
         override suspend fun moveCellToScreen(
@@ -438,6 +441,23 @@ class SyncEnabledToolShortcutsUseCaseTest {
             listOf(SEEDED_LANDSCAPE_COLUMNS),
             landscapeColumns,
         )
+    }
+
+    @Test
+    fun `stale disabled shortcuts are removed on adoption and return after enabling`() = runBlocking {
+        val desktopRepo = FakeLauncherDesktopRepository()
+        for (orientation in LauncherOrientation.entries) {
+            desktopRepo.addCellInFirstFreeSlot(cellAt(orientation, CALCULATOR_TARGET), COLUMNS)
+        }
+        desktopRepo.addedCells.clear()
+        val baseline = FakeLauncherShortcutSyncRepository(null)
+
+        useCaseWith(desktopRepo, emptySet(), baseline)()
+        assertEquals(2, desktopRepo.removedIds.size)
+        assertEquals(emptySet<String>(), baseline.routes)
+
+        useCaseWith(desktopRepo, setOf(CALCULATOR_KEY), baseline)()
+        assertEquals(2, desktopRepo.addedCells.count { it.first.target == CALCULATOR_TARGET })
     }
 
     private companion object {

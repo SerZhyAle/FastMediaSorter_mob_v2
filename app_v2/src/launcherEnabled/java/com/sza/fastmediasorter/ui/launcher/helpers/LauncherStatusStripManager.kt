@@ -5,9 +5,11 @@ import android.view.LayoutInflater
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.LauncherStatusClockBinding
 import com.sza.fastmediasorter.databinding.LauncherStatusIndicatorsBinding
 import com.sza.fastmediasorter.databinding.LauncherStatusStripBinding
@@ -215,8 +217,27 @@ class LauncherStatusStripManager @Inject constructor(
     private fun observeCutout(binding: LauncherStatusStripBinding) {
         ViewCompat.setOnApplyWindowInsetsListener(binding.launcherStatusStripContent) { _, insets ->
             _cutoutBounds.value = insets.topCutoutBounds()
+            coverUnsafeTop(binding, insets)
             insets
         }
+    }
+
+    /**
+     * S4828: the root drops its top inset while this band replaces the status area, so the band is the only
+     * thing between the scrolling desktop and the top edge. At its fixed height it ended above the cutout
+     * (and above a status bar the system put back), and scrolled cells passed beneath both. Growing the band
+     * to the unsafe top keeps every view anchored under it - grid, or a top taskbar - out of that zone. A
+     * hidden status bar reports no inset, so no band beyond the cutout is reserved for it.
+     */
+    private fun coverUnsafeTop(binding: LauncherStatusStripBinding, insets: WindowInsetsCompat) {
+        val root = binding.root
+        val unsafeTop = maxOf(
+            insets.getInsets(WindowInsetsCompat.Type.displayCutout()).top,
+            insets.getInsets(WindowInsetsCompat.Type.systemBars()).top,
+        )
+        val height = maxOf(root.resources.getDimensionPixelSize(R.dimen.launcher_status_strip_height), unsafeTop)
+        Timber.d("S4828: status strip covers unsafe top $unsafeTop px with height $height px")
+        if (root.layoutParams.height != height) root.updateLayoutParams { this.height = height }
     }
 
     /**

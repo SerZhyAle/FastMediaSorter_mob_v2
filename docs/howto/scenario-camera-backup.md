@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Scheduled Camera Backup to PC - FastMediaSorter v2"
+title: "Scheduled Camera Backup to PC - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-camera-backup.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -19,7 +19,7 @@ Automatically copy new photos from your phone's camera to your home computer **e
 
 - Phone and PC connected to the **same home Wi-Fi** (same router)
 - A folder on your PC where photos will be saved (e.g. `C:\PhoneBackup`)
-- FastMediaSorter installed in a flavor with network sources (**Standard**, Photos, Legacy, VR, noLegal)
+- Fast Media Sorter & Organizer installed in a flavor with network sources (**Standard**, Photos, Legacy, VR, noLegal)
 
 > **Not sure which flavor you have?** Open **Settings** <img src="../icons/doc/ic_settings.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> → **System information**. The **Edition** row names the flavor (Standard / Lite / etc.).
 
@@ -41,7 +41,7 @@ On **Windows:**
 
 ## Step 2 - Connect the App to Your PC Folder
 
-Now tell FastMediaSorter where to send the photos.
+Now tell Fast Media Sorter & Organizer where to send the photos.
 
 > **What is SMB?** It's simply how Windows shares folders over home Wi-Fi. You don't need to understand the details - just follow the steps.
 
@@ -92,7 +92,7 @@ Fill in each field:
 | **Schedule** | When to run | `Daily at 02:00` - runs while you sleep |
 | **Run on Wi-Fi only** | Turn this ON | Prevents the backup from using your mobile data by accident |
 
-> **What is "Camera Photos"?** It's a special virtual folder that FastMediaSorter creates automatically. It always shows all photos taken by your camera - even if they're stored in different folders on your phone. Always prefer this over picking a manual path.
+> **What is "Camera Photos"?** It's a special virtual folder that Fast Media Sorter & Organizer creates automatically. It always shows all photos taken by your camera - even if they're stored in different folders on your phone. Always prefer this over picking a manual path.
 
 ![Add Schedule - Source: Camera Photos, Operation: Copy, Destination: SMB](screenshots/screenshot-cb-step5.png)
 
@@ -152,7 +152,7 @@ Your PC receives new photos every morning. You never have to think about it.
 
 | Problem | What to try |
 |---------|------------|
-| Schedule doesn't run at night | Go to **Android Settings → Apps → FastMediaSorter → Battery** → set to **Unrestricted** |
+| Schedule doesn't run at night | Go to **Android Settings → Apps → Fast Media Sorter & Organizer → Battery** → set to **Unrestricted** |
 | "Destination not reachable" error | Your phone must be on Wi-Fi at backup time. If Wi-Fi was off at 2 AM, the backup is skipped and retried the next night automatically |
 | Some photos were not backed up | Use **"Camera Photos"** virtual resource as the source - it catches photos from all camera folders on your phone |
 | Duplicate files appearing on PC | Make sure the Operation is set to **"Copy (skip existing)"**, not "Copy (overwrite)" |

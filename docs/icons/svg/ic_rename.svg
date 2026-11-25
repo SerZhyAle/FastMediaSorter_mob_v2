@@ -1,5 +1,3 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-  <g transform="translate(12 11.505) scale(0.991 0.991) translate(-12 -13.5)">
-    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z M3 23h18v2H3z" fill="currentColor"/>
-  </g>
+  <path d="M3,5h18v14H3zM5,7v10h14V7zM7,11h5v2H7zM13,9h4v1h-1v4h1v1h-4v-1h1v-4h-1z" fill="currentColor"/>
 </svg>

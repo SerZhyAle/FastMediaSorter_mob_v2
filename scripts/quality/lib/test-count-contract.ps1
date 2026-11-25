@@ -17,7 +17,11 @@ function Get-LegacyTestCountWriter {
     # The last alternative is the pass/fail pair in either spelling ("RESULT | pass: N | fail: M",
     # "PASS: N | FAIL: M"). It needs both halves on one literal because a lone "FAIL: <name>" is the
     # per-case failure line of the same suites, not a count.
-    $legacy = "(?i)(?:$legacyCounter\s+(?:tests?\s+)?(?:passed|failed|skipped|tests\b)|\b(?:passed|failed|skipped|tests|total|run)\s*[:=]\s*$legacyCounter|\bpass(?:ed)?\s*[:=]\s*$legacyCounter[^\r\n]{0,40}?\bfail(?:ed)?\s*[:=]\s*$legacyCounter)"
+    # "PASS - 7 case(s)", "FAIL - 2 of 9 case(s) failed" and "PASS - 40 assertions" are the dash spellings
+    # of the same count. The dash and the verdict word are both required: a bare "3 cases" or "4 assertions"
+    # in prose is not a suite's closing line.
+    $dashCount = "\b(?:PASS|FAIL)\s+-\s+(?:$legacyCounter\s+of\s+)?$legacyCounter\s+(?:case\(s\)|cases?\b|assertions?\b)"
+    $legacy = "(?i)(?:$dashCount|$legacyCounter\s+(?:tests?\s+)?(?:passed|failed|skipped|tests\b)|\b(?:passed|failed|skipped|tests|total|run)\s*[:=]\s*$legacyCounter|\bpass(?:ed)?\s*[:=]\s*$legacyCounter[^\r\n]{0,40}?\bfail(?:ed)?\s*[:=]\s*$legacyCounter)"
     foreach ($file in $Files) {
         $tokens = $null
         $parseErrors = $null
@@ -45,24 +49,28 @@ function Get-LegacyTestCountWriter {
                 $node -is [System.Management.Automation.Language.VariableExpressionAst]
             }, $false))
             foreach ($reference in $references) {
-                $assignment = $assignments | Where-Object {
+                # Every earlier assignment counts, `+=` included: a summary built with `=` and then
+                # extended (", 2 case(s) skipped") would otherwise be judged by its last fragment, which
+                # carries no count, and the whole line would be invisible to this detector (S4645).
+                $priorAssignments = @($assignments | Where-Object {
                     $_.Left -is [System.Management.Automation.Language.VariableExpressionAst] -and
                     $_.Left.VariablePath.UserPath -eq $reference.VariablePath.UserPath -and
                     $_.Extent.EndOffset -le $command.Extent.StartOffset -and
                     [object]::ReferenceEquals((Get-TestCountScope -Node $_), $scope)
-                } | Sort-Object { $_.Extent.EndOffset } -Descending | Select-Object -First 1
-                if ($null -eq $assignment) { continue }
-                $assignedStrings = @($assignment.Right.FindAll({ param($node)
-                    $node -is [System.Management.Automation.Language.StringConstantExpressionAst] -or
-                        $node -is [System.Management.Automation.Language.ExpandableStringExpressionAst]
-                }, $false))
-                $assignedCounts = @($assignedStrings | Where-Object {
-                    $_.StringConstantType -notmatch 'HereString' -and
-                        ($_.Value -match $legacy -or $_.Value -match '(?i)\b(?:run|skipped)=')
-                })
-                if ($assignedCounts.Count -eq 0) { continue }
-                $strings += $assignedCounts
-                $resolved += ($assignment.Extent.Text -replace '\s+', ' ').Trim()
+                } | Sort-Object { $_.Extent.EndOffset })
+                foreach ($assignment in $priorAssignments) {
+                    $assignedStrings = @($assignment.Right.FindAll({ param($node)
+                        $node -is [System.Management.Automation.Language.StringConstantExpressionAst] -or
+                            $node -is [System.Management.Automation.Language.ExpandableStringExpressionAst]
+                    }, $false))
+                    $assignedCounts = @($assignedStrings | Where-Object {
+                        $_.StringConstantType -notmatch 'HereString' -and
+                            ($_.Value -match $legacy -or $_.Value -match '(?i)\b(?:run|skipped)=')
+                    })
+                    if ($assignedCounts.Count -eq 0) { continue }
+                    $strings += $assignedCounts
+                    $resolved += ($assignment.Extent.Text -replace '\s+', ' ').Trim()
+                }
             }
             foreach ($literal in $strings) {
                 $value = $literal.Value
@@ -71,7 +79,7 @@ function Get-LegacyTestCountWriter {
                 if ($value -match '(?i)^Unit tests\s*:|\bfile\(s\)\s*\||\bchild checks?\b') { continue }
                 if ($value -match '(?i)\bprobe failed:|\b(?:test tree|test set)\(') { continue }
                 if (-not $suite -and $value -notmatch '(?i)\btests\b.*\b(?:PASS|FAIL|passed|failed)\b|\b(?:PASS|FAIL)\b.*\btests\b') { continue }
-                if ($value -match '(?i)\b(?:expected|assertion)\b') { continue }
+                if ($value -match '(?i)\b(?:expected|assertion)\b' -and $value -notmatch "(?i)$dashCount") { continue }
                 if ($value -match "(?-i)\brun=$counter skipped=$counter(?:[\s),;]|$)") { continue }
                 $text = ($command.Extent.Text -replace '\s+', ' ').Trim()
                 [pscustomobject]@{

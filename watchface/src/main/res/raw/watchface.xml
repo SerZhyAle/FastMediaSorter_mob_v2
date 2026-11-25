@@ -55,12 +55,14 @@
         <!-- ========== clock style slot (S3557) ==========
              The face has no code, so the phone's clock style reaches it as data of this one slot: the
              watch app's WearClockStyleComplicationService answers RANGED_VALUE with
-               value  = seconds (0/1) + 2 x typeface (0 default, 1 condensed, 2 serif, 3 monospace,
-                        4 casual) + 10 x palette (0 DYNAMIC, 1 GREEN, 2 PINK, 3 BLUE)
-                        + 40 x backdrop (0 animation, 1 still, 2 none, 3 photo - the watch app's own backdrop,
+               value  = seconds (0/1) + 2 x typeface (0..31, the WearClockTypeface ordinal, S4562)
+                        + 64 x palette (0 DYNAMIC, 1 GREEN, 2 PINK, 3 BLUE)
+                        + 256 x backdrop (0 animation, 1 still, 2 none, 3 photo - the watch app's own backdrop,
                         S3707, S3708)
-                        + 400 x phoneBattery (0..100 discharging, 101..201 charging as 101 + percent,
+                        + 1024 x phoneBattery (0..100 discharging, 101..201 charging as 101 + percent,
                         255 stale or absent - S3764, S4039)
+               S4562: every weight divides the next one, so a lower field reads as code mod its span
+               with nothing above it stripped first; WearClockStyleFaceEncoder is the one statement.
                colors = dial, wave lane 1..4, particle
              and every value leaves the slot through a Reference (measured S3557 research 03). With no
              provider - Play watch build, debug id, app absent - the slot is EMPTY, the references keep
@@ -114,17 +116,17 @@
         </ComplicationSlot>
 
         <!-- ========== backdrop (S3707) ==========
-             The face repeats the watch app's backdrop: the code's backdrop digit (code / 40) stops the
+             The face repeats the watch app's backdrop: the code's backdrop field ((code mod 1024) / 256) stops the
              wave lanes at digit 1 and hides waves and particles at digits 2 and 3 (S3708 photo). A code of -1 (no provider)
              clamps to 0, so a face nobody feeds keeps the S1677 motion. Tilt parallax is left alone:
              a Gyro expression reading a reference is unmeasured, and a rejected expression would
              blank the whole face.
              S3764: the style digits every decoder reads are now the mod idiom
-             (clamp(code, 0, 102159) - floor(clamp(code, 0, 102159) / 400) * 400), so the phone
-             battery band riding at x400 folds out; the leading clamp guards the -1 no-provider
+             (clamp(code, 0, 262143) - floor(clamp(code, 0, 262143) / 1024) * 1024), so the phone
+             battery band riding at x1024 folds out (S4562); the leading clamp guards the -1 no-provider
              default, whose floor would otherwise fold into a false style of 399 and freeze the sea. -->
         <Group name="backdrop" x="0" y="0" width="480" height="480" alpha="255">
-            <Transform target="alpha" value="255 * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 102159) - floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) * 400) / 80), 0, 1))" />
+            <Transform target="alpha" value="255 * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 262143) - floor(clamp([REFERENCE.fmsStyleCode], 0, 262143) / 1024) * 1024) / 512), 0, 1))" />
 
         <!-- ========== motion direction (S4019) ==========
              WAVE-PARTICLES rule 5: lanes and particles travel along one session direction d, at any
@@ -162,8 +164,8 @@
             <!-- Lane 1: baseline 213, phase 0 px. Arcs cover the 1680 px the slide can expose. -->
             <Group name="wave_lane_1" x="0" y="0" width="1680" height="480" tintColor="#ff0b82eb" pivotY="0.44375">
                 <Transform target="tintColor" value="[REFERENCE.fmsLane1]" />
-                <Transform target="x" value="(0 - 1200) * fract([SECOND_MILLISECOND] / 60) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 102159) - floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) * 400) / 40), 0, 1))" />
-                <Transform target="scaleY" value="1 - 0.6 * (1 - abs(sin(3.14159 * [SECOND_MILLISECOND] / 60))) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 102159) - floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) * 400) / 40), 0, 1))" />
+                <Transform target="x" value="(0 - 1200) * fract([SECOND_MILLISECOND] / 60) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 262143) - floor(clamp([REFERENCE.fmsStyleCode], 0, 262143) / 1024) * 1024) / 256), 0, 1))" />
+                <Transform target="scaleY" value="1 - 0.6 * (1 - abs(sin(3.14159 * [SECOND_MILLISECOND] / 60))) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 262143) - floor(clamp([REFERENCE.fmsStyleCode], 0, 262143) / 1024) * 1024) / 256), 0, 1))" />
                 <PartDraw x="0" y="0" width="1680" height="480">
                     <Gyro x="[ACCELEROMETER_ANGLE_X] * 0.1" y="[ACCELEROMETER_ANGLE_Y] * 0.04" />
                     <Arc centerX="300" centerY="369.25" width="676.5" height="676.5" startAngle="297.5" endAngle="62.5">
@@ -180,8 +182,8 @@
             <!-- Lane 2: baseline 231, phase 152 px. -->
             <Group name="wave_lane_2" x="0" y="0" width="1680" height="480" tintColor="#ff3d9bef" pivotY="0.48125">
                 <Transform target="tintColor" value="[REFERENCE.fmsLane2]" />
-                <Transform target="x" value="(0 - 1200) * fract([SECOND_MILLISECOND] / 60) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 102159) - floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) * 400) / 40), 0, 1))" />
-                <Transform target="scaleY" value="1 - 0.6 * (1 - abs(sin(3.14159 * [SECOND_MILLISECOND] / 60 + 0.2))) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 102159) - floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) * 400) / 40), 0, 1))" />
+                <Transform target="x" value="(0 - 1200) * fract([SECOND_MILLISECOND] / 60) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 262143) - floor(clamp([REFERENCE.fmsStyleCode], 0, 262143) / 1024) * 1024) / 256), 0, 1))" />
+                <Transform target="scaleY" value="1 - 0.6 * (1 - abs(sin(3.14159 * [SECOND_MILLISECOND] / 60 + 0.2))) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 262143) - floor(clamp([REFERENCE.fmsStyleCode], 0, 262143) / 1024) * 1024) / 256), 0, 1))" />
                 <PartDraw x="0" y="0" width="1680" height="480">
                     <Gyro x="[ACCELEROMETER_ANGLE_X] * 0.1" y="[ACCELEROMETER_ANGLE_Y] * 0.04" />
                     <Arc centerX="-148" centerY="74.75" width="676.5" height="676.5" startAngle="117.5" endAngle="242.5">
@@ -201,8 +203,8 @@
             <!-- Lane 3: baseline 249, phase 305 px. -->
             <Group name="wave_lane_3" x="0" y="0" width="1680" height="480" tintColor="#ff6db4f3" pivotY="0.51875">
                 <Transform target="tintColor" value="[REFERENCE.fmsLane3]" />
-                <Transform target="x" value="(0 - 1200) * fract([SECOND_MILLISECOND] / 60) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 102159) - floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) * 400) / 40), 0, 1))" />
-                <Transform target="scaleY" value="1 - 0.6 * (1 - abs(sin(3.14159 * [SECOND_MILLISECOND] / 60 + 0.4))) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 102159) - floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) * 400) / 40), 0, 1))" />
+                <Transform target="x" value="(0 - 1200) * fract([SECOND_MILLISECOND] / 60) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 262143) - floor(clamp([REFERENCE.fmsStyleCode], 0, 262143) / 1024) * 1024) / 256), 0, 1))" />
+                <Transform target="scaleY" value="1 - 0.6 * (1 - abs(sin(3.14159 * [SECOND_MILLISECOND] / 60 + 0.4))) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 262143) - floor(clamp([REFERENCE.fmsStyleCode], 0, 262143) / 1024) * 1024) / 256), 0, 1))" />
                 <PartDraw x="0" y="0" width="1680" height="480">
                     <Gyro x="[ACCELEROMETER_ANGLE_X] * 0.1" y="[ACCELEROMETER_ANGLE_Y] * 0.04" />
                     <Arc centerX="5" centerY="92.75" width="676.5" height="676.5" startAngle="117.5" endAngle="242.5">
@@ -222,8 +224,8 @@
             <!-- Lane 4: baseline 267, phase 457 px. -->
             <Group name="wave_lane_4" x="0" y="0" width="1680" height="480" tintColor="#ff98cff1" pivotY="0.55625">
                 <Transform target="tintColor" value="[REFERENCE.fmsLane4]" />
-                <Transform target="x" value="(0 - 1200) * fract([SECOND_MILLISECOND] / 60) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 102159) - floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) * 400) / 40), 0, 1))" />
-                <Transform target="scaleY" value="1 - 0.6 * (1 - abs(sin(3.14159 * [SECOND_MILLISECOND] / 60 + 0.6))) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 102159) - floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) * 400) / 40), 0, 1))" />
+                <Transform target="x" value="(0 - 1200) * fract([SECOND_MILLISECOND] / 60) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 262143) - floor(clamp([REFERENCE.fmsStyleCode], 0, 262143) / 1024) * 1024) / 256), 0, 1))" />
+                <Transform target="scaleY" value="1 - 0.6 * (1 - abs(sin(3.14159 * [SECOND_MILLISECOND] / 60 + 0.6))) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 262143) - floor(clamp([REFERENCE.fmsStyleCode], 0, 262143) / 1024) * 1024) / 256), 0, 1))" />
                 <PartDraw x="0" y="0" width="1680" height="480">
                     <Gyro x="[ACCELEROMETER_ANGLE_X] * 0.1" y="[ACCELEROMETER_ANGLE_Y] * 0.04" />
                     <Arc centerX="157" centerY="110.75" width="676.5" height="676.5" startAngle="117.5" endAngle="242.5">
@@ -282,8 +284,8 @@
                  move the whole field as a single rigid sheet instead of a scatter with depth. -->
             <PartDraw name="particles_far" x="0" y="0" width="720" height="544" tintColor="#ffc4e3f7">
                 <Transform target="tintColor" value="[REFERENCE.fmsParticleFar]" />
-                <Transform target="x" value="(0 - 240) * fract([SECOND_MILLISECOND] / 20) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 102159) - floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) * 400) / 40), 0, 1))" />
-                <Transform target="y" value="(0 - 32) + 32 * sin(6.28318 * [SECOND_MILLISECOND] / 30) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 102159) - floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) * 400) / 40), 0, 1))" />
+                <Transform target="x" value="(0 - 240) * fract([SECOND_MILLISECOND] / 20) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 262143) - floor(clamp([REFERENCE.fmsStyleCode], 0, 262143) / 1024) * 1024) / 256), 0, 1))" />
+                <Transform target="y" value="(0 - 32) + 32 * sin(6.28318 * [SECOND_MILLISECOND] / 30) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 262143) - floor(clamp([REFERENCE.fmsStyleCode], 0, 262143) / 1024) * 1024) / 256), 0, 1))" />
                 <Gyro x="[ACCELEROMETER_ANGLE_X] * 0.25" y="[ACCELEROMETER_ANGLE_Y] * 0.08" />
                 <Ellipse x="147.8" y="59.5" width="4" height="4">
                     <Fill color="#52ffffff" />
@@ -327,8 +329,8 @@
                  move the whole field as a single rigid sheet instead of a scatter with depth. -->
             <PartDraw name="particles_mid" x="0" y="0" width="720" height="544" tintColor="#ffcfe7fb">
                 <Transform target="tintColor" value="[REFERENCE.fmsParticleMid]" />
-                <Transform target="x" value="(0 - 240) * fract([SECOND_MILLISECOND] / 10) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 102159) - floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) * 400) / 40), 0, 1))" />
-                <Transform target="y" value="(0 - 32) + 32 * sin(6.28318 * [SECOND_MILLISECOND] / 20 + 1) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 102159) - floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) * 400) / 40), 0, 1))" />
+                <Transform target="x" value="(0 - 240) * fract([SECOND_MILLISECOND] / 10) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 262143) - floor(clamp([REFERENCE.fmsStyleCode], 0, 262143) / 1024) * 1024) / 256), 0, 1))" />
+                <Transform target="y" value="(0 - 32) + 32 * sin(6.28318 * [SECOND_MILLISECOND] / 20 + 1) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 262143) - floor(clamp([REFERENCE.fmsStyleCode], 0, 262143) / 1024) * 1024) / 256), 0, 1))" />
                 <Gyro x="[ACCELEROMETER_ANGLE_X] * 0.45" y="[ACCELEROMETER_ANGLE_Y] * 0.15" />
                 <Ellipse x="61.8" y="149.8" width="6.6" height="6.6">
                     <Fill color="#6bffffff" />
@@ -363,8 +365,8 @@
                  move the whole field as a single rigid sheet instead of a scatter with depth. -->
             <PartDraw name="particles_near" x="0" y="0" width="720" height="544" tintColor="#ffe3f2fe">
                 <Transform target="tintColor" value="[REFERENCE.fmsParticleNear]" />
-                <Transform target="x" value="(0 - 240) + 240 * fract([SECOND_MILLISECOND] / 30) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 102159) - floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) * 400) / 40), 0, 1))" />
-                <Transform target="y" value="(0 - 32) + 32 * sin(6.28318 * [SECOND_MILLISECOND] / 15 + 2) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 102159) - floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) * 400) / 40), 0, 1))" />
+                <Transform target="x" value="(0 - 240) + 240 * fract([SECOND_MILLISECOND] / 30) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 262143) - floor(clamp([REFERENCE.fmsStyleCode], 0, 262143) / 1024) * 1024) / 256), 0, 1))" />
+                <Transform target="y" value="(0 - 32) + 32 * sin(6.28318 * [SECOND_MILLISECOND] / 15 + 2) * (1 - clamp(floor((clamp([REFERENCE.fmsStyleCode], 0, 262143) - floor(clamp([REFERENCE.fmsStyleCode], 0, 262143) / 1024) * 1024) / 256), 0, 1))" />
                 <Gyro x="[ACCELEROMETER_ANGLE_X] * 0.7" y="[ACCELEROMETER_ANGLE_Y] * 0.24" />
                 <Ellipse x="182.3" y="35.6" width="8.3" height="8.3">
                     <Fill color="#7dffffff" />
@@ -514,22 +516,55 @@
             <!-- S3557: the interactive time follows the phone's clock gadget. Each branch draws white and
                  the group tint turns it into the phone's dial colour - a TimeText Font ignores a colour
                  Transform, a Group tint does not (research 03). The Default branch is the S1677 time,
-                 shown whenever no style arrived. -->
+                 shown whenever no style arrived.
+                 S4562: one branch per code mod 64 value - typeface (value / 2) in hh:mm (even) and hh:mm:ss
+                 (odd); each size is the largest that fits the widest reading in 437 px, measured by
+                 scripts/fonts/build-clock-fonts.py. A value with no branch (a future typeface) falls to Default. -->
             <Group name="dial_style" x="0" y="0" width="440" height="154" alpha="255" tintColor="#ffffffff">
                 <Variant mode="AMBIENT" target="alpha" value="0" />
                 <Transform target="tintColor" value="[REFERENCE.fmsDialColor]" />
                 <Condition>
                     <Expressions>
-                        <Expression name="style0"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 10) * 10 == 0]]></Expression>
-                        <Expression name="style1"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 10) * 10 == 1]]></Expression>
-                        <Expression name="style2"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 10) * 10 == 2]]></Expression>
-                        <Expression name="style3"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 10) * 10 == 3]]></Expression>
-                        <Expression name="style4"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 10) * 10 == 4]]></Expression>
-                        <Expression name="style5"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 10) * 10 == 5]]></Expression>
-                        <Expression name="style6"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 10) * 10 == 6]]></Expression>
-                        <Expression name="style7"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 10) * 10 == 7]]></Expression>
-                        <Expression name="style8"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 10) * 10 == 8]]></Expression>
-                        <Expression name="style9"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 10) * 10 == 9]]></Expression>
+                        <Expression name="style0"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 0]]></Expression>
+                        <Expression name="style1"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 1]]></Expression>
+                        <Expression name="style2"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 2]]></Expression>
+                        <Expression name="style3"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 3]]></Expression>
+                        <Expression name="style4"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 4]]></Expression>
+                        <Expression name="style5"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 5]]></Expression>
+                        <Expression name="style6"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 6]]></Expression>
+                        <Expression name="style7"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 7]]></Expression>
+                        <Expression name="style8"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 8]]></Expression>
+                        <Expression name="style9"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 9]]></Expression>
+                        <Expression name="style10"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 10]]></Expression>
+                        <Expression name="style11"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 11]]></Expression>
+                        <Expression name="style12"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 12]]></Expression>
+                        <Expression name="style13"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 13]]></Expression>
+                        <Expression name="style14"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 14]]></Expression>
+                        <Expression name="style15"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 15]]></Expression>
+                        <Expression name="style16"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 16]]></Expression>
+                        <Expression name="style17"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 17]]></Expression>
+                        <Expression name="style18"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 18]]></Expression>
+                        <Expression name="style19"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 19]]></Expression>
+                        <Expression name="style20"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 20]]></Expression>
+                        <Expression name="style21"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 21]]></Expression>
+                        <Expression name="style22"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 22]]></Expression>
+                        <Expression name="style23"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 23]]></Expression>
+                        <Expression name="style24"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 24]]></Expression>
+                        <Expression name="style25"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 25]]></Expression>
+                        <Expression name="style26"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 26]]></Expression>
+                        <Expression name="style27"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 27]]></Expression>
+                        <Expression name="style28"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 28]]></Expression>
+                        <Expression name="style29"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 29]]></Expression>
+                        <Expression name="style30"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 30]]></Expression>
+                        <Expression name="style31"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 31]]></Expression>
+                        <Expression name="style32"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 32]]></Expression>
+                        <Expression name="style33"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 33]]></Expression>
+                        <Expression name="style34"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 34]]></Expression>
+                        <Expression name="style35"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 35]]></Expression>
+                        <Expression name="style36"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 36]]></Expression>
+                        <Expression name="style37"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 37]]></Expression>
+                        <Expression name="style38"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 38]]></Expression>
+                        <Expression name="style39"><![CDATA[[REFERENCE.fmsStyleCode] >= 0 && [REFERENCE.fmsStyleCode] - floor([REFERENCE.fmsStyleCode] / 64) * 64 == 39]]></Expression>
                     </Expressions>
                     <Compare expression="style0">
                         <DigitalClock x="0" y="0" width="440" height="154">
@@ -601,6 +636,216 @@
                             </TimeText>
                         </DigitalClock>
                     </Compare>
+                    <Compare expression="style10">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_bebas" size="142" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style11">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm:ss" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_bebas" size="142" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style12">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_audiowide" size="110" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style13">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm:ss" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_audiowide" size="72" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style14">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_lobster" size="142" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style15">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm:ss" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_lobster" size="114" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style16">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_pacifico" size="142" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style17">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm:ss" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_pacifico" size="109" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style18">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_abril" size="142" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style19">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm:ss" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_abril" size="96" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style20">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_righteous" size="142" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style21">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm:ss" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_righteous" size="99" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style22">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_pixel" size="87" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style23">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm:ss" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_pixel" size="54" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style24">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_sharetech" size="142" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style25">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm:ss" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_sharetech" size="101" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style26">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_stencil" size="129" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style27">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm:ss" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_stencil" size="83" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style28">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_monoton" size="120" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style29">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm:ss" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_monoton" size="78" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style30">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_bungee" size="132" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style31">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm:ss" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_bungee" size="85" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style32">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_terminal" size="142" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style33">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm:ss" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_terminal" size="136" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style34">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_blackletter" size="142" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style35">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm:ss" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_blackletter" size="135" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style36">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_bangers" size="142" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style37">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm:ss" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_bangers" size="124" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style38">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_rubikmono" size="102" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
+                    <Compare expression="style39">
+                        <DigitalClock x="0" y="0" width="440" height="154">
+                            <TimeText format="hh:mm:ss" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
+                                <Font family="fms_clock_rubikmono" size="64" weight="BOLD" slant="NORMAL" color="#ffffffff" />
+                            </TimeText>
+                        </DigitalClock>
+                    </Compare>
                     <Default>
                         <DigitalClock x="0" y="0" width="440" height="154">
                             <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="0" width="440" height="154">
@@ -635,7 +880,7 @@
              The paired phone's charge, bottom center below the icon arc (the bottom slots' lowest
              edge is y=433; the bar sits at y=446..456). A plain scene element - no slot - fed by the
              style slot's multiplexed code: the phone band decodes as
-             floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400): 0..100 is a discharging percent,
+             floor(clamp([REFERENCE.fmsStyleCode], 0, 262143) / 1024): 0..100 is a discharging percent,
              101..201 a charging one (S4039, percent = band - 101), 202..254 is reserved and 255 is the
              stale sentinel. The fill's scaleX folds every band above 201 back to zero, so a stale,
              reserved or never-received report renders the bare track (strategic §3.3's recorded
@@ -644,7 +889,7 @@
              follow the reference bar (ADR-2) and the 140x10 track fits the clip circle (farthest
              corner 227.1 px against the 240 px radius). Hidden in ambient like the watch bar above. -->
         <Group name="phone_battery_bar" x="170" y="446" width="140" height="10" alpha="255">
-            <ScreenReader stringId="phone_battery_bar_reader"><Parameter expression="(floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) - 101 * clamp(floor(floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) / 101), 0, 1)) * (1 - clamp(floor(floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) / 202), 0, 1)) + 255 * clamp(floor(floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) / 202), 0, 1)" /></ScreenReader>
+            <ScreenReader stringId="phone_battery_bar_reader"><Parameter expression="(floor(clamp([REFERENCE.fmsStyleCode], 0, 262143) / 1024) - 101 * clamp(floor(floor(clamp([REFERENCE.fmsStyleCode], 0, 262143) / 1024) / 101), 0, 1)) * (1 - clamp(floor(floor(clamp([REFERENCE.fmsStyleCode], 0, 262143) / 1024) / 202), 0, 1)) + 255 * clamp(floor(floor(clamp([REFERENCE.fmsStyleCode], 0, 262143) / 1024) / 202), 0, 1)" /></ScreenReader>
             <Variant mode="AMBIENT" target="alpha" value="0" />
             <PartDraw x="0" y="0" width="140" height="10">
                 <Rectangle x="0" y="0" width="140" height="10">
@@ -652,10 +897,10 @@
                 </Rectangle>
             </PartDraw>
             <Group name="phone_battery_fill" x="0" y="0" width="140" height="10" pivotX="0">
-                <Transform target="scaleX" value="(floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) - 101 * clamp(floor(floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) / 101), 0, 1)) / 100 * (1 - clamp(floor(floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) / 202), 0, 1))" />
+                <Transform target="scaleX" value="(floor(clamp([REFERENCE.fmsStyleCode], 0, 262143) / 1024) - 101 * clamp(floor(floor(clamp([REFERENCE.fmsStyleCode], 0, 262143) / 1024) / 101), 0, 1)) / 100 * (1 - clamp(floor(floor(clamp([REFERENCE.fmsStyleCode], 0, 262143) / 1024) / 202), 0, 1))" />
                 <Condition>
                     <Expressions>
-                        <Expression name="charging"><![CDATA[floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) >= 101 && floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) <= 201]]></Expression>
+                        <Expression name="charging"><![CDATA[floor(clamp([REFERENCE.fmsStyleCode], 0, 262143) / 1024) >= 101 && floor(clamp([REFERENCE.fmsStyleCode], 0, 262143) / 1024) <= 201]]></Expression>
                     </Expressions>
                     <Compare expression="charging">
                         <PartDraw x="0" y="0" width="140" height="10">
@@ -667,8 +912,8 @@
                     <Default>
                         <Condition>
                             <Expressions>
-                                <Expression name="low"><![CDATA[floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) <= 10]]></Expression>
-                                <Expression name="mid"><![CDATA[floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) > 10 && floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) <= 25]]></Expression>
+                                <Expression name="low"><![CDATA[floor(clamp([REFERENCE.fmsStyleCode], 0, 262143) / 1024) <= 10]]></Expression>
+                                <Expression name="mid"><![CDATA[floor(clamp([REFERENCE.fmsStyleCode], 0, 262143) / 1024) > 10 && floor(clamp([REFERENCE.fmsStyleCode], 0, 262143) / 1024) <= 25]]></Expression>
                             </Expressions>
                             <Compare expression="low">
                                 <PartDraw x="0" y="0" width="140" height="10">
@@ -699,7 +944,7 @@
                  bands (above 201) never match, so they keep the bare track. -->
             <Condition>
                 <Expressions>
-                    <Expression name="charging"><![CDATA[floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) >= 101 && floor(clamp([REFERENCE.fmsStyleCode], 0, 102159) / 400) <= 201]]></Expression>
+                    <Expression name="charging"><![CDATA[floor(clamp([REFERENCE.fmsStyleCode], 0, 262143) / 1024) >= 101 && floor(clamp([REFERENCE.fmsStyleCode], 0, 262143) / 1024) <= 201]]></Expression>
                 </Expressions>
                 <Compare expression="charging">
                     <PartDraw x="0" y="0" width="140" height="10">

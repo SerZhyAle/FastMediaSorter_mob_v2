@@ -39,7 +39,7 @@ class CameraLensEnumerationManager {
                 }
             }
         }
-        return withEquivalents(entries.sortedWith(lensOrder))
+        return withEquivalents(entries).sortedWith(lensOrder)
     }
 
     /**
@@ -63,7 +63,7 @@ class CameraLensEnumerationManager {
                 }
             }
         }
-        return withEquivalents(entries.sortedWith(lensOrder))
+        return withEquivalents(entries).sortedWith(lensOrder)
     }
 
     /**
@@ -92,11 +92,18 @@ class CameraLensEnumerationManager {
      * multiplier at its neutral default.
      */
     private fun withEquivalents(entries: List<CameraLensEntry>): List<CameraLensEntry> {
-        val reference = entries
+        // S4688: the entries arrive unsorted, in platform order - the election below depends on it.
+        val backLogicals = entries
             .filter { it.lensFacing == CameraSelector.LENS_FACING_BACK && !it.isPhysicalSubLens }
-            .let { logicals ->
-                logicals.firstOrNull(::hasFlash) ?: logicals.firstOrNull()
-            } ?: return entries
+        val candidates = backLogicals.map {
+            Triple(
+                it.parentLogicalMinZoom,
+                hasFlash(it),
+                LensEquivalentCalculator.equivalentFocalMm(it.focalLengthMm, it.sensorWidthMm),
+            )
+        }
+        val reference = backLogicals.getOrNull(LensEquivalentCalculator.referenceIndex(candidates)) ?: return entries
+        Timber.d("S4688: reference lens %s floor %.2f", reference.id, reference.parentLogicalMinZoom)
         val ref = LensEquivalentCalculator.Reference(
             focalMm = reference.focalLengthMm,
             sensorWidthMm = reference.sensorWidthMm,

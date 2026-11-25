@@ -42,4 +42,43 @@ class InputHelpRegistryTest {
             InputHelpRegistry.get(UiSurface.VR_PLAYER),
         )
     }
+
+    @Test
+    fun `every displayed chord follows INPUT-CHORD rule 5 spelling`() {
+        val violations = UiSurface.values()
+            .flatMap { InputHelpRegistry.get(it) }
+            .flatMap { it.entries }
+            .map { it.keys }
+            .distinct()
+            .flatMap { it.split(ALTERNATIVE_SEPARATOR) }
+            .filterNot { it == BARE_PLUS_KEY }
+            .filterNot { isRuleFiveChord(it) }
+        assertTrue("Chords outside rule 5 spelling: $violations", violations.isEmpty())
+    }
+
+    private fun isRuleFiveChord(chord: String): Boolean {
+        val parts = chord.split(MODIFIER_SEPARATOR)
+        val modifiers = parts.dropLast(1)
+        val trigger = parts.last()
+        val inCanonicalOrder = modifiers == MODIFIERS.filter { it in modifiers }
+        return inCanonicalOrder && (trigger in NAMED_KEYS || TRIGGER_PATTERN.matches(trigger))
+    }
+
+    private companion object {
+        const val ALTERNATIVE_SEPARATOR = " / "
+        const val MODIFIER_SEPARATOR = "+"
+
+        // KEYCODE_PLUS is the character key and has no rule 1 name; the contract admits only the
+        // physical Equal and NumpadAdd triggers, so the one bare plus the main screen documents stays literal.
+        const val BARE_PLUS_KEY = "+"
+
+        val MODIFIERS = listOf("Ctrl", "Shift", "Alt", "Win")
+        val NAMED_KEYS = setOf(
+            "Space", "Enter", "Tab", "Esc", "Backspace", "Delete", "Insert", "Home", "End",
+            "PageUp", "PageDown", "PrintScreen", "Left", "Right", "Up", "Down",
+            "NumpadAdd", "NumpadSubtract", "NumpadMultiply", "NumpadDivide", "NumpadDecimal",
+            "BracketLeft", "BracketRight", "Period", "Comma", "Equal", "Minus", "Backslash",
+        )
+        val TRIGGER_PATTERN = Regex("[A-Z0-9]|F([1-9]|1[0-9]|2[0-4])|Numpad[0-9]")
+    }
 }

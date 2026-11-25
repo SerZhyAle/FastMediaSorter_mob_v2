@@ -696,7 +696,6 @@ class InvisibleWebViewExtractionStrategy @Inject constructor(
                 val limited = decodedHtml.take(MAX_DEBUG_DUMP_CHARS)
                 file.writeText(limited, Charsets.UTF_8)
                 pruneDebugDumps(dir)
-                Timber.d("S4507: link debug page dump written off-main host=$host")
             }.onFailure {
                 Timber.w("InvisibleWebViewExtractionStrategy: page-html-dump failed - %s", it.message)
             }

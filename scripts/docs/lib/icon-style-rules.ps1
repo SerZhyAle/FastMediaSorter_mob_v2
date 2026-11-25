@@ -77,6 +77,8 @@ function Invoke-GlyphMeasure([string] $repoRoot, $jobs) {
             [System.IO.File]::WriteAllText($svgPath, $j.svg)
             $list.Add([ordered]@{ name = $j.name; svg = $svgPath; viewportW = $j.viewportW; viewportH = $j.viewportH })
         }
+        # An empty list pipes nothing into ConvertTo-Json, so jobs.json would be empty and the measurer would refuse it.
+        if ($list.Count -eq 0) { return @{} }
         $jobsPath = Join-Path $work 'jobs.json'
         $outPath = Join-Path $work 'out.json'
         [System.IO.File]::WriteAllText($jobsPath, ($list | ConvertTo-Json -Depth 3 -AsArray))

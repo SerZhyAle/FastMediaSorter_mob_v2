@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.domain.usecase.DeleteScheduledOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.GetScheduledOperationsLogUseCase
 import com.sza.fastmediasorter.domain.usecase.GetScheduledOperationsUseCase
+import com.sza.fastmediasorter.domain.usecase.ManageScheduledOperationsSwitchUseCase
 import com.sza.fastmediasorter.domain.usecase.ResolveLocalFolderResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.UpdateScheduledOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.UpsertScheduledOperationUseCase
@@ -96,7 +97,7 @@ class ScheduledOperationsViewModelTest {
             getScheduledOperationsLogUseCase = getScheduledOperationsLog,
             clearScheduledOperationsLogUseCase = clearScheduledOperationsLog,
             workManagerScheduler = workManagerScheduler,
-            settingsRepository = settingsRepository,
+            scheduledOperationsSwitch = ManageScheduledOperationsSwitchUseCase(settingsRepository),
             resolveLocalFolderResourceUseCase = resolveLocalFolderResource,
             checkLocalFolderWritableUseCase = checkLocalFolderWritable,
             getResourcesUseCase = getResources.also {

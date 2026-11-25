@@ -88,7 +88,7 @@
         },
         "test-connection": {
           "summary": "Checks the connection settings before you save them.",
-          "details": "Shown for network and cloud resources. The app first checks that the form is filled in correctly, then connects and shows the result in a coloured line: green for success, with a count of what it found, a warning colour for a partial result and red for a failure. Nothing is saved by the test."
+          "details": "Shown for network and cloud resources. The app first checks that the form is filled in correctly, then connects and shows the result in a colored line: green for success, with a count of what it found, a warning color for a partial result and red for a failure. Nothing is saved by the test."
         },
         "retry": {
           "summary": "Repeats the last action after a failure.",

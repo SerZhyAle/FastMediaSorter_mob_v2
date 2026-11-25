@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.launcher.menu
 
+import android.app.Dialog
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -12,9 +13,13 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
+import android.view.WindowManager
+import android.view.inputmethod.EditorInfo
 import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.DialogFragment
@@ -24,6 +29,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
 import com.sza.fastmediasorter.core.screencapture.ScreenshotGestureActionDispatcher
 import com.sza.fastmediasorter.databinding.FragmentLauncherAllAppsBinding
@@ -92,12 +98,21 @@ class LauncherAllAppsFragment : DialogFragment() {
 
     private var latestApps: List<InstalledApp> = emptyList()
     private var latestCatalog: AppCategoryCatalog = AppCategoryCatalog.EMPTY
-    private val expandedGroupKeys = mutableSetOf<String>()
 
+    // The grid is drawn from the saved expansion state, so the first load of this file cannot be deferred
+    // without drawing every group collapsed first; the permit covers the load and the two reads below it.
     private val stateManager by lazy {
-        LauncherAllAppsStateManager(requireContext().getSharedPreferences(STATE_PREFERENCES, Context.MODE_PRIVATE))
+        StrictModeHelper.allowDiskReads {
+            Timber.d("S4678: launcher drawer state preferences opened under a disk-read permit")
+            LauncherAllAppsStateManager(requireContext().getSharedPreferences(STATE_PREFERENCES, Context.MODE_PRIVATE))
+        }
     }
-    private val expandedCategoryKeys by lazy { stateManager.expandedKeys().toMutableSet() }
+    private val expandedGroupKeys by lazy {
+        StrictModeHelper.allowDiskReads { stateManager.expandedGroupKeys().toMutableSet() }
+    }
+    private val expandedCategoryKeys by lazy {
+        StrictModeHelper.allowDiskReads { stateManager.expandedKeys().toMutableSet() }
+    }
     private var catalogReady = false
     private var restorePending = true
     private var currentSections: List<LauncherAppGroupSection> = emptyList()
@@ -135,6 +150,7 @@ class LauncherAllAppsFragment : DialogFragment() {
             labels = categoryLabels,
             onSave = viewModel::setAppCategories,
             onCreate = viewModel::createCategory,
+            onRename = { categoryId, name -> viewModel.renameCategory(categoryId, name, categoryLabels::labelOf) },
         )
     }
 
@@ -173,6 +189,19 @@ class LauncherAllAppsFragment : DialogFragment() {
         setStyle(STYLE_NO_TITLE, R.style.Theme_FastMediaSorter_Launcher_AllApps)
     }
 
+    // The search field holds focus on open, and a keyboard raised by that leaves one grid row on a
+    // short screen; a car head unit has no Back or hide-keyboard key to get out of it. Browsing is the
+    // first use of this list, so the keyboard waits for a tap on the field. Resize stays explicit so
+    // the grid still ends above the keyboard once the user does open it.
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog =
+        super.onCreateDialog(savedInstanceState).also { created ->
+            @Suppress("DEPRECATION")
+            created.window?.setSoftInputMode(
+                WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN or
+                    WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE,
+            )
+        }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -204,6 +233,13 @@ class LauncherAllAppsFragment : DialogFragment() {
             if (query.isBlank() && viewModel.query.value.isNotBlank()) restorePending = true
             viewModel.setQuery(query)
         }
+        // The list filters as you type, so Search has nothing left to submit; without a listener the
+        // framework ignores this action and the keyboard's own Search key stays dead.
+        binding.allAppsSearch.setOnEditorActionListener { _, actionId, _ ->
+            val isSearch = actionId == EditorInfo.IME_ACTION_SEARCH
+            if (isSearch) hideSearchKeyboard()
+            isSearch
+        }
         binding.allAppsSort.setOnClickListener { showOrderMenu(it) }
 
         collectOnLifecycle(viewModel.apps) { apps ->
@@ -222,12 +258,23 @@ class LauncherAllAppsFragment : DialogFragment() {
         collectOnLifecycle(viewModel.categorySaveFailed) {
             Toast.makeText(requireContext(), R.string.launcher_app_category_save_failed, Toast.LENGTH_SHORT).show()
         }
+        collectOnLifecycle(viewModel.categoryNameTaken) {
+            Toast.makeText(requireContext(), R.string.launcher_app_category_name_taken, Toast.LENGTH_SHORT).show()
+        }
         binding.allAppsReorderUp.setOnClickListener { reorderManager.moveUp() }
         binding.allAppsReorderDown.setOnClickListener { reorderManager.moveDown() }
+        binding.allAppsReorderRename.setOnClickListener { renameTargetCategory() }
         binding.allAppsReorderDone.setOnClickListener { reorderManager.exit() }
     }
 
     private fun enterCategoryReorder(key: String): Boolean = isCategoryMode() && reorderManager.enter(key)
+
+    private fun renameTargetCategory() {
+        Timber.d("S4563: rename pressed in the category reorder bar")
+        val categoryId = reorderManager.targetCategoryId ?: return
+        val label = currentSections.firstOrNull { it.isReorderTarget }?.title ?: return
+        categoryDialog.showRename(categoryId, label)
+    }
 
     override fun onStart() {
         super.onStart()
@@ -273,12 +320,27 @@ class LauncherAllAppsFragment : DialogFragment() {
         binding.allAppsGrid.itemAnimator = null
         val listener = object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                // Only a drag by the user: a programmatic scroll (anchor restore) must not close a keyboard
+                // the user just opened.
+                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) hideSearchKeyboard()
                 if (newState == RecyclerView.SCROLL_STATE_IDLE) saveCategoryAnchor()
             }
         }
         scrollListener = listener
         binding.allAppsGrid.addOnScrollListener(listener)
         layoutManager.spanSizeLookup = appsAdapter.getSpanSizeLookup(desktopColumns())
+    }
+
+    /**
+     * Closes the keyboard and keeps the screen open. Focus stays on the field so a later tap on it
+     * brings the keyboard back, and the typed query keeps filtering the list.
+     */
+    private fun hideSearchKeyboard() {
+        val search = _binding?.allAppsSearch ?: return
+        // The controller must belong to this dialog's window: the activity's window is not the one the
+        // keyboard is attached to.
+        val window = dialog?.window ?: return
+        WindowCompat.getInsetsController(window, search).hide(WindowInsetsCompat.Type.ime())
     }
 
     /**
@@ -340,6 +402,7 @@ class LauncherAllAppsFragment : DialogFragment() {
      */
     private fun expandFullAppList() {
         if (expandedGroupKeys.add(LauncherAlphabeticalAppGroupManager.KEY_PREVIEW)) {
+            stateManager.saveExpandedGroupKeys(expandedGroupKeys)
             renderGroups()
         }
     }
@@ -375,7 +438,6 @@ class LauncherAllAppsFragment : DialogFragment() {
     private fun restoreCategoryAnchor(layoutManager: GridLayoutManager) {
         if (!restorePending || !isCategoryMode() || !catalogReady) return
         if (latestApps.isEmpty() || viewModel.query.value.isNotBlank()) return
-        Timber.d("S4548: restoring category drawer")
         val anchor = stateManager.anchor()
         val position = anchor?.let { LauncherAllAppsStateManager.resolvePosition(it, appsAdapter.itemKeys()) }
         if (position != null && anchor != null) layoutManager.scrollToPositionWithOffset(position, anchor.offset)
@@ -430,12 +492,14 @@ class LauncherAllAppsFragment : DialogFragment() {
     }
 
     private fun toggleGroup(key: String) {
+        Timber.d("S4626: launcher menu group toggled key=$key")
         val category = LauncherCategoryAppGroupManager.isCategoryKey(key)
         val keys = if (category) expandedCategoryKeys else expandedGroupKeys
         if (!keys.add(key)) keys.remove(key)
         if (category) {
-            Timber.d("S4548: category group toggled")
             stateManager.saveExpandedKeys(keys)
+        } else {
+            stateManager.saveExpandedGroupKeys(keys)
         }
         renderGroups()
     }

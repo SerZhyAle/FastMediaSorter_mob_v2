@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Ouça Música no Seu Relógio - FastMediaSorter v2"
+title: "Ouça Música no Seu Relógio - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-watch-music-pt.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -13,14 +13,14 @@ permalink: /docs/howto/scenario-watch-music-pt.html
 
 > **Somente na versão completa** - este guia não está implementado na versão distribuída pelo Google Play. Ele se aplica à versão completa, um download direto do APK em [Downloads](../DOWNLOADS.md).
 
-O FastMediaSorter permite navegar e tocar sua coleção de música diretamente do seu smartwatch Wear OS. Você pode transmitir faixas compartilhadas do celular pareado ou tocar arquivos de áudio locais armazenados no relógio, com capa do álbum, modo aleatório, controle de volume pela coroa giratória, reprodução em segundo plano que sobrevive ao sair do app, e um modo de tela apagada que mantém a música tocando com a tela escura.
+O Fast Media Sorter & Organizer permite navegar e tocar sua coleção de música diretamente do seu smartwatch Wear OS. Você pode transmitir faixas compartilhadas do celular pareado ou tocar arquivos de áudio locais armazenados no relógio, com capa do álbum, modo aleatório, controle de volume pela coroa giratória, reprodução em segundo plano que sobrevive ao sair do app, e um modo de tela apagada que mantém a música tocando com a tela escura.
 
 ---
 
 ## O Que Você Vai Precisar
 
 - Um smartwatch rodando **Wear OS 2.0** ou mais recente com o FastMedia Wear instalado
-- Um celular Android rodando o FastMediaSorter (se for transmitir música do celular)
+- Um celular Android rodando o Fast Media Sorter & Organizer (se for transmitir música do celular)
 - Arquivos de música (MP3, FLAC, AAC, OGG) no seu celular ou transferidos para o armazenamento do relógio
 - Fones de ouvido Bluetooth ou o alto-falante do relógio para saída de áudio
 
@@ -103,7 +103,7 @@ Há duas formas diferentes de continuar ouvindo, e elas respondem a duas pergunt
 
 | Problema | O que tentar |
 |---------|------------|
-| A seção Celular diz "Celular não conectado" | Confirme que o Bluetooth está ativado em ambos os dispositivos e que o FastMediaSorter está instalado no seu celular |
+| A seção Celular diz "Celular não conectado" | Confirme que o Bluetooth está ativado em ambos os dispositivos e que o Fast Media Sorter & Organizer está instalado no seu celular |
 | Nenhum arquivo de música aparece em Local | Copie arquivos MP3 ou FLAC para o armazenamento interno do relógio ou use a seção Celular para tocar do celular |
 | O áudio para quando você sai do app | Ative **Continuar tocando em segundo plano** nas configurações do relógio, e permita as notificações - o serviço de reprodução precisa delas para continuar vivo |
 | A capa do álbum está faltando | Conecte-se ao Wi-Fi para buscar a capa online, ou confirme que seus arquivos de áudio contêm capa ID3 incorporada |

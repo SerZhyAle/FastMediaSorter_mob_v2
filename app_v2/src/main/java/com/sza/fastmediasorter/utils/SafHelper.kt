@@ -7,6 +7,7 @@ import android.webkit.MimeTypeMap
 import androidx.core.provider.DocumentsContractCompat
 import androidx.documentfile.provider.DocumentFile
 import timber.log.Timber
+import java.net.URLDecoder
 import java.util.Locale
 
 /**
@@ -33,15 +34,16 @@ object SafHelper {
                 contentUri.replaceFirst("content:/", "content://")
             }
             val uri = Uri.parse(normalizedUri)
-            
+
             Timber.d("$tag: Attempting to delete URI: $normalizedUri")
             Timber.d("$tag: URI authority: ${uri.authority}, path: ${uri.path}")
 
             // Try multiple deletion methods for SAF
             var deleted = false
 
-            // Method 1: ContentResolver.delete
-            if (!deleted) {
+            // Method 1: ContentResolver.delete - a documents provider refuses it ("Delete not supported"),
+            // so a document URI goes straight to DocumentsContract instead of logging a refusal per file.
+            if (!DocumentsContract.isDocumentUri(context, uri)) {
                 try {
                     val rowsDeleted = context.contentResolver.delete(uri, null, null)
                     deleted = rowsDeleted > 0
@@ -75,7 +77,7 @@ object SafHelper {
                     Timber.w("$tag: DocumentFile.fromSingleUri.delete failed: ${e.message}")
                 }
             }
-            
+
             // Method 4: Extract tree URI and navigate to document (for tree document URIs)
             if (!deleted && contentUri.contains("/tree/") && contentUri.contains("/document/")) {
                 try {
@@ -83,17 +85,17 @@ object SafHelper {
                     // Extract tree URI: content://...externalstorage.../tree/primary%3A...
                     val treeStartIndex = contentUri.indexOf("/tree/")
                     val documentStartIndex = contentUri.indexOf("/document/")
-                    
+
                     if (treeStartIndex > 0 && documentStartIndex > treeStartIndex) {
                         val treeUriString = contentUri.substring(0, documentStartIndex)
                         val treeUri = Uri.parse(treeUriString)
-                        
+
                         // Get the document ID from the full URI
                         val documentId = DocumentsContract.getDocumentId(uri)
-                        
+
                         Timber.d("$tag: Tree URI: $treeUriString")
                         Timber.d("$tag: Document ID: $documentId")
-                        
+
                         // Get DocumentFile for tree root
                         val treeRoot = DocumentFile.fromTreeUri(context, treeUri)
                         if (treeRoot != null) {
@@ -101,7 +103,7 @@ object SafHelper {
                             // DocumentFile.fromTreeUri with document ID
                             val documentUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, documentId)
                             Timber.d("$tag: Built document URI: $documentUri")
-                            
+
                             deleted = DocumentsContract.deleteDocument(context.contentResolver, documentUri)
                             Timber.i("$tag: Tree-based deletion returned: $deleted")
                         } else {
@@ -167,9 +169,56 @@ object SafHelper {
         else -> null
     }
 
+    /**
+     * Converts a persisted SAF `content://` tree or document URI into a human-readable folder path.
+     * Non-content paths are returned unchanged.
+     */
+    fun formatDisplayPath(rawPath: String): String {
+        if (!rawPath.startsWith(CONTENT_SCHEME_PREFIX)) return rawPath
+        val encodedId = extractSafDocumentId(rawPath)
+        val decodedId = encodedId?.let(::decodePercent)
+        val mapped = decodedId?.let(::documentIdToFilePath)
+        return when {
+            mapped != null -> if (mapped == "/") mapped else mapped.trimEnd('/')
+            decodedId != null && ':' in decodedId -> formatVolumeDocumentId(decodedId)
+            !decodedId.isNullOrEmpty() -> decodedId
+            else -> decodePercent(rawPath)
+        }
+    }
+
+    private fun formatVolumeDocumentId(decodedId: String): String {
+        val colonIndex = decodedId.indexOf(':')
+        val volume = decodedId.substring(0, colonIndex)
+        val relative = decodedId.substring(colonIndex + 1).trim('/')
+        return if (relative.isEmpty()) volume else "$volume: $relative"
+    }
+
+    private fun extractSafDocumentId(contentUri: String): String? {
+        val docIdx = contentUri.lastIndexOf(DOCUMENT_SEGMENT)
+        val rawStart = when {
+            docIdx >= 0 -> docIdx + DOCUMENT_SEGMENT.length
+            else -> {
+                val treeIdx = contentUri.lastIndexOf(TREE_SEGMENT)
+                if (treeIdx >= 0) treeIdx + TREE_SEGMENT.length else -1
+            }
+        }
+        if (rawStart < 0 || rawStart >= contentUri.length) return null
+        val tail = contentUri.substring(rawStart)
+        val endIdx = tail.indexOfAny(charArrayOf('/', '?', '#'))
+        return if (endIdx >= 0) tail.substring(0, endIdx) else tail
+    }
+
+    // Replace literal '+' first because URLDecoder treats '+' as a space.
+    private fun decodePercent(value: String): String =
+        runCatching { URLDecoder.decode(value.replace("+", "%2B"), Charsets.UTF_8.name()) }
+            .getOrDefault(value)
+
     private const val PRIMARY_DOC_ID_PREFIX = "primary:"
     private const val RAW_DOC_ID_PREFIX = "raw:"
     private const val PRIMARY_STORAGE_ROOT = "/storage/emulated/0/"
+    private const val CONTENT_SCHEME_PREFIX = "content://"
+    private const val TREE_SEGMENT = "/tree/"
+    private const val DOCUMENT_SEGMENT = "/document/"
 
     /**
      * Check if a path is a content URI (SAF).
@@ -253,7 +302,7 @@ object SafHelper {
     /**
      * Get DocumentFile from URI string.
      * Tries detection if it's a Tree URI or Single URI.
-     * 
+     *
      * @param context Application context
      * @param uri The URI to wrap
      * @return DocumentFile or null if invalid

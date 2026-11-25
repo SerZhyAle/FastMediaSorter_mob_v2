@@ -2,13 +2,19 @@ package com.sza.fastmediasorter.ui.dialog
 
 import android.app.Dialog
 import android.content.Context
+import android.graphics.Rect
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
+import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import androidx.core.content.getSystemService
 import androidx.core.os.bundleOf
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.DialogFragment
@@ -25,7 +31,49 @@ import com.sza.fastmediasorter.ui.common.showSoftInputImplicitly
 import com.sza.fastmediasorter.ui.player.helpers.LanguageCapability
 import com.sza.fastmediasorter.ui.player.helpers.LanguageItem
 import com.sza.fastmediasorter.ui.player.helpers.TranslationLanguageCatalog
+import com.sza.fastmediasorter.ui.player.helpers.withAutoDetectLabel
+import timber.log.Timber
 import java.util.Locale
+
+/**
+ * The lower-cased strings a query is matched against: the name in the interface language, the
+ * endonym, the code and the English name. The English name is what a user who cannot read the current
+ * interface language still knows ("Russian"), so it must match whichever language the app shows.
+ */
+internal fun languageSearchKeys(item: LanguageItem, locale: Locale = Locale.getDefault()): List<String> {
+    val englishName = Locale.forLanguageTag(item.code).getDisplayLanguage(Locale.ENGLISH)
+    return listOf(item.localizedName, item.nativeName, item.code, englishName)
+        .filter { it.isNotBlank() }
+        .map { it.lowercase(locale) }
+        .distinct()
+}
+
+private const val MAX_DIALOG_CARD_AND_INSETS_DP = 580f
+
+/**
+ * Computes dialog window width in pixels, keeping narrow portrait screens full-width while
+ * capping wide landscape/tablet screens so the two-column layout stays balanced.
+ */
+internal fun computeLanguagePickerDialogWidthPx(screenWidthPx: Int, density: Float): Int {
+    if (screenWidthPx <= 0 || density <= 0f) return screenWidthPx.coerceAtLeast(0)
+    val maxWidthPx = (density * MAX_DIALOG_CARD_AND_INSETS_DP).toInt()
+    return minOf(screenWidthPx, maxWidthPx)
+}
+
+/**
+ * Computes the root card height cap in pixels from the visible area above any soft keyboard,
+ * subtracting Material dialog vertical window insets and bounding by [maxScrollCapPx].
+ */
+internal fun computeLanguagePickerMaxHeightPx(
+    visibleHeightPx: Int,
+    verticalWindowInsetsPx: Int,
+    maxScrollCapPx: Int,
+): Int {
+    if (visibleHeightPx <= 0) return maxScrollCapPx.coerceAtLeast(0)
+    val availableCardPx = (visibleHeightPx - verticalWindowInsetsPx.coerceAtLeast(0))
+        .coerceAtLeast(1)
+    return if (maxScrollCapPx > 0) minOf(availableCardPx, maxScrollCapPx) else availableCardPx
+}
 
 /**
  * Searchable language picker. Returns the chosen language code to the host through a FragmentResult
@@ -48,6 +96,8 @@ class SearchableLanguagePickerDialog : DialogFragment() {
     // FragmentManager can carry both without either host seeing the other's pick.
     private var requestKey: String = RESULT_KEY
     private lateinit var languageAdapter: LanguageAdapter
+    private var boundsObserverTarget: View? = null
+    private var globalLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,9 +112,21 @@ class SearchableLanguagePickerDialog : DialogFragment() {
         _binding = DialogSearchableLanguagePickerBinding.inflate(layoutInflater)
         setupViews()
         return MaterialAlertDialogBuilder(requireContext())
-            .setTitle(titleRes())
             .setView(binding.root)
             .create()
+            .also { created ->
+                val stateMode = if (opensKeyboardOnShow()) {
+                    WindowManager.LayoutParams.SOFT_INPUT_STATE_UNCHANGED
+                } else {
+                    WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN
+                }
+                // Resize the floating dialog window above the soft keyboard while preserving S4708's
+                // initial keyboard visibility rule per mode.
+                @Suppress("DEPRECATION")
+                created.window?.setSoftInputMode(
+                    stateMode or WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+                )
+            }
     }
 
     private fun titleRes(): Int = when (mode) {
@@ -74,8 +136,15 @@ class SearchableLanguagePickerDialog : DialogFragment() {
     }
 
     private fun setupViews() {
+        binding.tvLanguagePickerTitle.setText(titleRes())
+        ViewCompat.setAccessibilityHeading(binding.tvLanguagePickerTitle, true)
         val languages = when (mode) {
-            Mode.SOURCE -> TranslationLanguageCatalog.buildSourceLanguageList(interfaceLanguage)
+            Mode.SOURCE -> {
+                val autoDetectLabel = getString(R.string.language_auto_detect)
+                Timber.d("S4836: auto-detect label=$autoDetectLabel")
+                TranslationLanguageCatalog.buildSourceLanguageList(interfaceLanguage)
+                    .map { it.withAutoDetectLabel(autoDetectLabel) }
+            }
             Mode.TARGET -> TranslationLanguageCatalog.buildTargetLanguageList(interfaceLanguage)
             Mode.UI_LANGUAGE -> UiLanguagePickerItems.build(requireContext())
         }
@@ -95,27 +164,127 @@ class SearchableLanguagePickerDialog : DialogFragment() {
             isFocusable = true
         }
         languageAdapter.submit(languages)
+        Timber.d("S4708: language picker opened mode=$mode rows=${languages.size} keyboard=${opensKeyboardOnShow()}")
+        Timber.d("S4820: language picker bounds mode=$mode orientation=${resources.configuration.orientation}")
+        Timber.d("S4836: language picker rows mode=$mode selected=$selectedCode")
 
         binding.editLanguageSearch.doOnTextChanged { text, _, _, _ ->
-            languageAdapter.filter(text?.toString().orEmpty())
+            languageAdapter.filter(text?.toString().orEmpty()) { isEmpty ->
+                // The commit callback can outlive the view when the dialog closes mid-diff.
+                _binding?.tvLanguageEmpty?.isVisible = isEmpty
+                Timber.d("S4708: language picker filter emptyState=$isEmpty")
+            }
         }
         binding.editLanguageSearch.post {
-            binding.editLanguageSearch.requestFocus()
-            requireContext().getSystemService<InputMethodManager>()
-                ?.showSoftInputImplicitly(binding.editLanguageSearch)
+            val search = _binding?.editLanguageSearch ?: return@post
+            search.requestFocus()
+            if (opensKeyboardOnShow()) {
+                requireContext().getSystemService<InputMethodManager>()?.showSoftInputImplicitly(search)
+            }
         }
     }
 
+    // The interface-language list is thirteen rows: a keyboard forced up on a short screen leaves two
+    // of them visible, and scrolling beats typing for that few. Source/Target lists are long, so
+    // search stays the primary way in and the keyboard still opens by itself.
+    private fun opensKeyboardOnShow(): Boolean = mode != Mode.UI_LANGUAGE
+
     override fun onStart() {
         super.onStart()
+        applyDialogWidthAndBounds()
+        attachBoundsListeners()
         // Pure picker: a list row is the action (rows keep their own Enter/Space handler), so no-op
         // confirm only adds Esc-dismiss and focus traversal. Initial focus stays on the search field.
         DialogKeyboardDelegate.applyToDialogFragment(dialog, onConfirm = {})
     }
 
+    override fun onStop() {
+        detachBoundsListeners()
+        super.onStop()
+    }
+
     override fun onDestroyView() {
+        detachBoundsListeners()
         super.onDestroyView()
         _binding = null
+    }
+
+    private fun applyDialogWidthAndBounds() {
+        val dialogWindow = dialog?.window ?: return
+        val metrics = resources.displayMetrics
+        val targetWidth = computeLanguagePickerDialogWidthPx(metrics.widthPixels, metrics.density)
+        dialogWindow.setLayout(targetWidth, ViewGroup.LayoutParams.WRAP_CONTENT)
+        updateDialogHeightBounds()
+    }
+
+    private fun attachBoundsListeners() {
+        detachBoundsListeners()
+        val dialogDecor = dialog?.window?.decorView
+        val hostDecor = activity?.window?.decorView ?: dialogDecor ?: return
+        val listener = ViewTreeObserver.OnGlobalLayoutListener {
+            updateDialogHeightBounds()
+        }
+        hostDecor.viewTreeObserver.addOnGlobalLayoutListener(listener)
+        boundsObserverTarget = hostDecor
+        globalLayoutListener = listener
+        if (dialogDecor != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(dialogDecor) { _, insets ->
+                updateDialogHeightBounds()
+                insets
+            }
+        }
+    }
+
+    private fun detachBoundsListeners() {
+        val listener = globalLayoutListener
+        val target = boundsObserverTarget
+        if (listener != null && target != null && target.viewTreeObserver.isAlive) {
+            target.viewTreeObserver.removeOnGlobalLayoutListener(listener)
+        }
+        globalLayoutListener = null
+        boundsObserverTarget = null
+        dialog?.window?.decorView?.let { ViewCompat.setOnApplyWindowInsetsListener(it, null) }
+    }
+
+    private fun updateDialogHeightBounds() {
+        val currentBinding = _binding ?: return
+        val dialogDecor = dialog?.window?.decorView
+        val hostDecor = activity?.window?.decorView ?: dialogDecor ?: return
+        val visibleRect = Rect()
+        hostDecor.getWindowVisibleDisplayFrame(visibleRect)
+        val rectHeight = visibleRect.height()
+        val hostInsets = ViewCompat.getRootWindowInsets(hostDecor)
+        val dialogInsets = dialogDecor?.let { ViewCompat.getRootWindowInsets(it) }
+        val insetHeight = computeInsetHeightPx(hostDecor.height, hostInsets, dialogInsets)
+        val availableHeightPx = when {
+            rectHeight > 0 && insetHeight > 0 -> minOf(rectHeight, insetHeight)
+            rectHeight > 0 -> rectHeight
+            else -> insetHeight
+        }
+        val bgPadding = Rect()
+        dialogDecor?.background?.getPadding(bgPadding)
+        val verticalInsetsPx = bgPadding.top + bgPadding.bottom
+        val maxScrollCapPx = resources.getDimensionPixelSize(R.dimen.dialog_scroll_max_height)
+        currentBinding.languagePickerRoot.maxHeightPx = computeLanguagePickerMaxHeightPx(
+            visibleHeightPx = availableHeightPx,
+            verticalWindowInsetsPx = verticalInsetsPx,
+            maxScrollCapPx = maxScrollCapPx,
+        )
+    }
+
+    private fun computeInsetHeightPx(
+        hostHeightPx: Int,
+        hostInsets: WindowInsetsCompat?,
+        dialogInsets: WindowInsetsCompat?,
+    ): Int {
+        if (hostHeightPx <= 0 || hostInsets == null) return 0
+        val sysBars = hostInsets.getInsets(
+            WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+        )
+        val hostImeBottom = hostInsets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+        val dialogImeBottom = dialogInsets?.getInsets(WindowInsetsCompat.Type.ime())?.bottom ?: 0
+        val effectiveBottom = maxOf(sysBars.bottom, hostImeBottom, dialogImeBottom)
+        return (hostHeightPx - sysBars.top - effectiveBottom).coerceAtLeast(0)
     }
 
     enum class Mode {
@@ -182,6 +351,7 @@ class SearchableLanguagePickerDialog : DialogFragment() {
     ) : ListAdapter<LanguageItem, LanguageAdapter.LanguageViewHolder>(LanguageDiffCallback) {
 
         private var allItems: List<LanguageItem> = emptyList()
+        private var searchKeys: Map<String, List<String>> = emptyMap()
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LanguageViewHolder {
             val binding = ItemSearchableLanguageBinding.inflate(
@@ -199,23 +369,21 @@ class SearchableLanguagePickerDialog : DialogFragment() {
 
         fun submit(items: List<LanguageItem>) {
             allItems = items
+            searchKeys = items.associate { item -> item.code to languageSearchKeys(item) }
             submitList(items)
         }
 
-        fun filter(query: String) {
+        /** [onFiltered] reports, once the list has settled, whether the query left no row. */
+        fun filter(query: String, onFiltered: (isEmpty: Boolean) -> Unit) {
             val normalizedQuery = query.trim().lowercase(Locale.getDefault())
             val filtered = if (normalizedQuery.isEmpty()) {
                 allItems
             } else {
-                allItems.filter { item -> item.matches(normalizedQuery) }
+                allItems.filter { item ->
+                    searchKeys[item.code].orEmpty().any { key -> key.contains(normalizedQuery) }
+                }
             }
-            submitList(filtered)
-        }
-
-        private fun LanguageItem.matches(query: String): Boolean {
-            val searchableValues = listOf(localizedName, nativeName, code)
-                .map { it.lowercase(Locale.getDefault()) }
-            return searchableValues.any { it.startsWith(query) } || searchableValues.any { it.contains(query) }
+            submitList(filtered) { onFiltered(filtered.isEmpty()) }
         }
 
         private class LanguageViewHolder(
@@ -227,8 +395,9 @@ class SearchableLanguagePickerDialog : DialogFragment() {
             fun bind(item: LanguageItem, selected: Boolean) {
                 val name = item.displayName()
                 val capabilityLabel = item.capabilityLabel(binding.root.context, mode)
-                binding.tvLanguageFlag.text = item.glyph
-                binding.tvLanguageName.text = name
+                // The glyph (the globe of "Default" / "Auto-detect") leads the name rather than owning a
+                // column: every real language has none, so a reserved column was blank on all other rows.
+                binding.tvLanguageName.text = if (item.glyph.isBlank()) name else "${item.glyph} $name"
                 binding.tvLanguageCapabilities.text = capabilityLabel
                 binding.tvLanguageCapabilities.isVisible = capabilityLabel.isNotBlank()
                 binding.root.isSelected = selected

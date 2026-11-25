@@ -1,11 +1,11 @@
 ---
 layout: doc
-title: "Deploy your own exchange server: step by step"
+title: "Media Exchange Server: deploy your own, step by step"
 description: "The short list of steps to run your own exchange server on a Windows PC: install the package, answer the two Windows prompts, set the address, create the first account, add the server on the phone, check it from mobile data and invite people."
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/exchange-server-quick-start.html
 ---
-<sub class="doc-stamp">26.10.22 01:25</sub>
+<sub class="doc-stamp">26.11.15 14:24</sub>
 
 # Deploy your own exchange server
 
@@ -30,7 +30,7 @@ This is the short list. The reasons and the details are on [Installing and check
    - IPv6 (a newer kind of internet address), when your provider shares one address among many customers - no forwarding is needed, but a device with no IPv6 cannot reach the server;
    - neither: the server then works on your own network or through a VPN into it.
 6. **Get the connection string.** In Share Manager choose **Get connection string..**: it gives a text, a `.fmsexch` file and a QR code of the same string. It holds the server's address and the fingerprint of its certificate (a short code that identifies the server), never a login or a password.
-7. **Add the server on the phone.** In FastMediaSorter open **Settings**, the **General** tab, **My devices**, then tap **Add server**. Paste the string, or **Scan QR**, or **Choose file**, then enter the login and the password. The server's card says **Connected, devices: 1** or more. More: [My devices](my-devices.html).
+7. **Add the server on the phone.** In Fast Media Sorter & Organizer open **Settings**, the **General** tab, **My devices**, then tap **Add server**. Paste the string, or **Scan QR**, or **Choose file**, then enter the login and the password. The server's card says **Connected, devices: 1** or more. More: [My devices](my-devices.html).
 8. **Check it from another network.** Switch the phone to mobile data and open **My devices** again. A card that connects proves the server is reachable from outside.
 9. **If it does not connect**, the app says at which step it broke. Check in this order:
    - the PC with the server is asleep or off;

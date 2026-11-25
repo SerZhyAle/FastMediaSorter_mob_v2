@@ -26,6 +26,9 @@
                        first in its row, carrying data-lang so the choice is stored in sza-lang.
                        A further locale never carries data-lang: it is never written to sza-lang.
                        The pre-1.2 footer lang-list region is removed wherever it is found.
+    The og:locale block of every page, hand-maintained ones included, is rewritten as well: the
+    page's own og:locale, then one og:locale:alternate per other landing page (the data file's
+    og_locale, else the language code).
 
     Adding a language: its locale in locales_config.xml, generate-site-languages.ps1, then a
     _data/landing/<slug>.json and one run of this script. No template or workflow is edited.
@@ -176,7 +179,28 @@ function Get-LangRowRegion([string]$indent, $pageLang, [string]$label) {
     return $lines -join "`n"
 }
 
+$handOgLocales = @{ en = 'en_US'; ru = 'ru_RU'; uk = 'uk_UA' }
+
+function Get-OgLocale($lang) {
+    if ($handOgLocales.ContainsKey($lang.slug)) { return $handOgLocales[$lang.slug] }
+    $data = $translations[$lang.slug]
+    if ($data -and $data.ContainsKey('og_locale') -and $data.og_locale) { return $data.og_locale }
+    return $lang.code -replace '-', '_'
+}
+
+function Set-OgLocales([string]$html, $pageLang) {
+    $own = Get-OgLocale $pageLang
+    $others = @($present | Where-Object { $_.slug -ne $pageLang.slug } | ForEach-Object { Get-OgLocale $_ })
+    return [regex]::Replace($html, '(?m)^([ \t]*)<meta property="og:locale" content="[^"]*">(\r?\n[ \t]*<meta property="og:locale:alternate" content="[^"]*">)*', {
+            param($m)
+            $i = $m.Groups[1].Value
+            $lines = @("$i<meta property=`"og:locale`" content=`"$own`">") + @($others | ForEach-Object { "$i<meta property=`"og:locale:alternate`" content=`"$_`">" })
+            $lines -join "`n"
+        })
+}
+
 function Set-Regions([string]$html, $pageLang, [string]$label) {
+    $html = Set-OgLocales $html $pageLang
     $alt = [regex]::Match($html, '(?s)(?<indent>[ \t]*)<!-- lang-alternates:begin\b.*?<!-- lang-alternates:end -->')
     if (-not $alt.Success) {
         $alt = [regex]::Match($html, '(?m)(?<indent>^[ \t]*)<link rel="alternate" hreflang="[^"]*" href="[^"]*">(\r?\n[ \t]*<link rel="alternate" hreflang="[^"]*" href="[^"]*">)*')
@@ -362,7 +386,6 @@ foreach ($lang in $present) {
     $text = if ($data.ContainsKey('text') -and $data.text) { $data.text } else { @{} }
     $js = if ($data.ContainsKey('js') -and $data.js) { $data.js } else { @{} }
     $label = if ($data.ContainsKey('languages_label') -and $data.languages_label) { $data.languages_label } else { 'Languages' }
-    $ogLocale = if ($data.ContainsKey('og_locale') -and $data.og_locale) { $data.og_locale } else { $lang.code -replace '-', '_' }
     foreach ($k in $text.Keys) { if (-not $seenText.ContainsKey($k)) { $staleKeys.Add("_data/landing/$($lang.slug).json text: $k") } }
     foreach ($k in $js.Keys) { if (-not $seenJs.ContainsKey($k)) { $staleKeys.Add("_data/landing/$($lang.slug).json js: $k") } }
 
@@ -386,11 +409,6 @@ foreach ($lang in $present) {
     $html = [regex]::Replace($html, '<meta property="og:url" content="[^"]*">', "<meta property=`"og:url`" content=`"$url`">")
     $html = [regex]::Replace($html, '"url": "https://serzhyale\.github\.io/FastMediaSorter_mob_v2/"', "`"url`": `"$url`"")
     $html = $html.Replace('"inLanguage": "en"', "`"inLanguage`": `"$($lang.code)`"")
-    $html = [regex]::Replace($html, '(?m)^([ \t]*)<meta property="og:locale" content="[^"]*">(\r?\n[ \t]*<meta property="og:locale:alternate" content="[^"]*">)*', {
-            param($m)
-            $i = $m.Groups[1].Value
-            "$i<meta property=`"og:locale`" content=`"$ogLocale`">`n$i<meta property=`"og:locale:alternate`" content=`"en_US`">"
-        })
     $html = $html.Replace('<a class="brand" href="index.html">', "<a class=`"brand`" href=`"$file`">")
     $html = [regex]::Replace($html, '<a href="index.html" class="on"(?: aria-current="page")? data-lang="en">', '<a href="index.html" data-lang="en">')
     $links = Get-DocLinkMap $lang.slug

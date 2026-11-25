@@ -3,10 +3,10 @@ package com.sza.fastmediasorter.ui.common.input
 import android.app.Dialog
 import android.graphics.Typeface
 import android.os.Bundle
-import android.text.TextUtils
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -124,18 +124,19 @@ class InputHelpDialogFragment : DialogFragment() {
             gravity = Gravity.CENTER_VERTICAL
             setPadding(0, (2 * density).toInt(), 0, (2 * density).toInt())
         }
+        // Spelled-out key names (PageDown, NumpadSubtract) are wider than the old short forms; a weighted
+        // column wraps them at the " / " gaps instead of letting them squeeze the description to nothing.
         val keys = TextView(ctx).apply {
             text = entry.keys
             setTypeface(Typeface.MONOSPACE, Typeface.BOLD)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
-            ellipsize = TextUtils.TruncateAt.END
-            maxLines = 1
-            minWidth = (120 * density).toInt()
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, KEYS_COLUMN_WEIGHT)
         }
         val desc = TextView(ctx).apply {
             setText(entry.descriptionRes)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
             setPadding((12 * density).toInt(), 0, 0, 0)
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, DESCRIPTION_COLUMN_WEIGHT)
         }
         row.addView(keys)
         row.addView(desc)
@@ -147,6 +148,8 @@ class InputHelpDialogFragment : DialogFragment() {
         private const val ARG_SURFACE = "surface"
         private const val LINK_TOP_PADDING_DP = 16
         private const val PORTAL_LINK_TOP_PADDING_DP = 8
+        private const val KEYS_COLUMN_WEIGHT = 1.2f
+        private const val DESCRIPTION_COLUMN_WEIGHT = 1f
 
         /** Show the F1 help dialog for [surface]. */
         fun show(fm: FragmentManager, surface: UiSurface) {

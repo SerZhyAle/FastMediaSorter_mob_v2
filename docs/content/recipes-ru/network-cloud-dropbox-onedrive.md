@@ -10,9 +10,9 @@ availability_note: Редакции Standard, noLegal, Photos, Legacy и VR (к�
 recipe_number: "06"
 canonical_url: documentation/network/cloud-dropbox-onedrive-ru.html
 why: |
-  Рабочие документы часто хранятся в OneDrive, личные фотографии выгружаются в Dropbox, и гораздо удобнее просматривать обе коллекции прямо в FastMediaSorter, чем переключаться между отдельными приложениями. Войдите в один или оба сервиса - и выбранные папки появятся в списке ресурсов рядом с остальными ресурсами.
+  Рабочие документы часто хранятся в OneDrive, личные фотографии выгружаются в Dropbox, и гораздо удобнее просматривать обе коллекции прямо в Fast Media Sorter & Organizer, чем переключаться между отдельными приложениями. Войдите в один или оба сервиса - и выбранные папки появятся в списке ресурсов рядом с остальными ресурсами.
 ingredients:
-  - "FastMediaSorter в [редакции](term:edition) Standard, noLegal, Photos, Legacy или VR (кроме Lite и FOSS). См. рецепт [Обзор и сравнение семи редакций](page:flavors.overview-and-comparison)."
+  - "Fast Media Sorter & Organizer в [редакции](term:edition) Standard, noLegal, Photos, Legacy или VR (кроме Lite и FOSS). См. рецепт [Обзор и сравнение семи редакций](page:flavors.overview-and-comparison)."
   - "Учетная запись [Dropbox](term:dropbox), учетная запись Microsoft для [OneDrive](term:onedrive) или обе."
 steps:
   - number: 1

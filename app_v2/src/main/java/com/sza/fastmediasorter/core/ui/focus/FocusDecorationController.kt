@@ -5,7 +5,9 @@ import android.view.View
 import android.view.ViewTreeObserver
 import android.view.Window
 import androidx.core.content.ContextCompat
+import com.google.android.material.textfield.TextInputLayout
 import com.sza.fastmediasorter.R
+import timber.log.Timber
 
 /**
  * S0943: draws the D-pad/TV focus affordance the platform-standard way - by decorating the focused
@@ -59,7 +61,19 @@ class FocusDecorationController(private val window: Window) {
         if (!view.isFocusable || window.decorView.isInTouchMode) return false
         // Skip views that already carry their own foreground focus affordance (e.g. buttons with a
         // focus-stroke foreground): overwriting it would drop a purpose-built, higher-contrast ring.
-        return view.foreground == null
+        return view.foreground == null && !isInsideOutlinedTextInput(view)
+    }
+
+    // An outlined TextInputLayout already thickens and tints its own box on focus, so our ring on the
+    // inner field would be a second border cutting through the floating hint.
+    private fun isInsideOutlinedTextInput(view: View): Boolean {
+        val layout = generateSequence(view.parent) { it.parent }
+            .take(TEXT_INPUT_ANCESTOR_DEPTH)
+            .filterIsInstance<TextInputLayout>()
+            .firstOrNull()
+        val outlined = layout?.boxBackgroundMode == TextInputLayout.BOX_BACKGROUND_OUTLINE
+        Timber.d("S4836: focus decoration outlinedTextInput=$outlined view=${view.javaClass.simpleName}")
+        return outlined
     }
 
     private fun onTouchModeChanged(isInTouchMode: Boolean) {
@@ -82,5 +96,10 @@ class FocusDecorationController(private val window: Window) {
         decoratedView?.let { it.foreground = savedForeground }
         decoratedView = null
         savedForeground = null
+    }
+
+    private companion object {
+        // TextInputLayout hosts the field in one FrameLayout, so the layout is at most two levels up.
+        const val TEXT_INPUT_ANCESTOR_DEPTH = 3
     }
 }

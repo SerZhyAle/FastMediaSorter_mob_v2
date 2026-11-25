@@ -36,6 +36,8 @@ data class HelpSurface(
     val parent: String?,
     val reason: String?,
     val pages: List<HelpSubPage>,
+    /** `ask: "off"` (contract `CONTEXT-HELP` 0.2 item B): neither F1 nor a help button is wired on the surface. */
+    val askOff: Boolean = false,
 )
 
 /**
@@ -95,6 +97,7 @@ data class HelpMap(
                 parent = obj.string("parent"),
                 reason = obj.string("reason"),
                 pages = pages,
+                askOff = obj.string("ask").equals("off", ignoreCase = true),
             )
         }
 

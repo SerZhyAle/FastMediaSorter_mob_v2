@@ -87,6 +87,7 @@ class StreamsViewModelAutoGridTest {
             observeLiveBroadcastSources = observeLiveBroadcastSources,
             resolveStreamCatalogOffer = mockk(relaxed = true),
             watchBroadcastStartUseCase = mockk(relaxed = true),
+            artworkManifest = mockk(relaxed = true),
         )
     }
 

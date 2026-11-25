@@ -27,4 +27,12 @@
     <string name="ticket_inbox_queued_notice">Ticket zum Senden eingereiht</string>
     <string name="ticket_inbox_stage_failed">Das Ticket konnte nicht gespeichert werden: %1$s</string>
     <string name="ticket_inbox_discard">Aus der Liste entfernen</string>
+    <string name="ticket_inbox_destination_label">Zustellen an</string>
+    <string name="ticket_inbox_state_folder_waiting">Wartet auf den Ordner auf dem Computer: %1$s</string>
+    <string name="ticket_inbox_state_folder_sent">Im Ordner - wartet auf den Computer</string>
+    <string name="ticket_inbox_grant_drive">Zugriff auf Google Drive erlauben</string>
+    <string name="ticket_inbox_state_needs_access">Benötigt Zugriff auf Google Drive - erlaube ihn mit der Schaltfläche oben</string>
+    <string name="ticket_inbox_drive_access_granted">Zugriff erteilt - die wartenden Tickets werden jetzt gesendet</string>
+    <string name="ticket_inbox_drive_access_declined">Zugriff wurde nicht erteilt - die Tickets bleiben in der Liste, bis du ihn erlaubst</string>
+    <string name="ticket_inbox_drive_access_failed">Google konnte den Zugriffsbildschirm nicht anzeigen - versuche es gleich noch einmal</string>
 </resources>

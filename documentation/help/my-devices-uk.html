@@ -5,8 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex">
 <title>Довідка - Мої пристрої</title>
 <link rel="stylesheet" href="help.css">
+<link rel="icon" type="image/png" href="img/product-mark.png">
 </head>
 <body class="help">
 <main class="container">
@@ -14,17 +16,19 @@
 <a href="index-uk.html">Зміст довідки</a><span class="sep" aria-hidden="true">/</span><span>Мої пристрої</span>
 </nav>
 <header class="hero">
+<img class="product-mark" src="img/product-mark.png" width="48" height="48" alt="Fast Media Sorter">
+<img class="exchange-head" src="img/mark-full-256.png" width="128" height="128" alt="Media Exchange Server">
 <h1>Мої пристрої</h1>
 </header>
 <h2>Для чого цей екран</h2>
 <p class="lead">«Мої пристрої» - сервери обміну, які поєднують усі ваші пристрої: телефон, комп’ютер, годинник, ТВ-приставку. Коли телефон увійшов на такий сервер, він бачить теки й трансляції інших ваших пристроїв, а вони бачать ваші; сервер лише передає їх далі.</p>
 <h2>Порядок дій</h2>
 <ol class="order">
-<li>Відкрийте «Мої пристрої» в налаштуваннях, на вкладці «Загальні» (рядок є у версіях із мережевими джерелами). Якщо серверів ще немає, про це каже коротке повідомлення <a class="ref" href="#empty-text">2</a>; натисніть «Додати сервер» <a class="ref" href="#add-server">5</a>, щоб почати.</li>
-<li>У вікні входу отримайте рядок підключення сервера: вставте його, відскануйте або виберіть файл <a class="ref" href="#signin-string">21</a>, потім перевірте адресу <a class="ref" href="#signin-address">22</a> і введіть логін <a class="ref" href="#signin-login">23</a> та пароль <a class="ref" href="#signin-password">24</a>. Якщо інший пристрій дав вам код сполучення, позначте <a class="ref" href="#signin-code">25</a> і введіть код замість пароля, а тоді натисніть «Увійти» <a class="ref" href="#signin-submit">26</a>.</li>
-<li>Один раз прочитайте «Що бачить сервер» <a class="ref" href="#honest-note">4</a>, щоб знати, що сервер дізнається і що лишається зашифрованим на ваших пристроях.</li>
-<li>Кожен доданий сервер стає карткою в списку <a class="ref" href="#server-list">3</a>: адреса, ваш логін і стан зв’язку, наприклад «Звʼязок є» з кількістю пристроїв.</li>
-<li>Натисніть картку, щоб побачити пристрої цього акаунта <a class="ref" href="#devices-list">18</a>. Щоб підключити новий пристрій без введення пароля на ньому, видайте код сполучення <a class="ref" href="#devices-pairing">20</a>; щоб прибрати непотрібний пристрій, натисніть «Відкликати» <a class="ref" href="#devices-revoke">19</a>.</li>
+<li>Відкрийте «Мої пристрої» в налаштуваннях, на вкладці «Загальні» (рядок є у версіях із мережевими джерелами). Якщо серверів ще немає, про це каже коротке повідомлення <span class="nb"><a class="ref" href="#empty-text">2</a>;</span> натисніть «Додати сервер» <span class="nb"><a class="ref" href="#add-server">5</a>,</span> щоб почати.</li>
+<li>У вікні входу отримайте рядок підключення сервера: вставте його, відскануйте або виберіть файл <span class="nb"><a class="ref" href="#signin-string">21</a>,</span> потім перевірте адресу <a class="ref" href="#signin-address">22</a> і введіть логін <a class="ref" href="#signin-login">23</a> та пароль <span class="nb"><a class="ref" href="#signin-password">24</a>.</span> Якщо інший пристрій дав вам код сполучення, позначте <a class="ref" href="#signin-code">25</a> і введіть код замість пароля, а тоді натисніть «Увійти» <span class="nb"><a class="ref" href="#signin-submit">26</a>.</span></li>
+<li>Один раз прочитайте «Що бачить сервер» <span class="nb"><a class="ref" href="#honest-note">4</a>,</span> щоб знати, що сервер дізнається і що лишається зашифрованим на ваших пристроях.</li>
+<li>Кожен доданий сервер стає карткою в списку <span class="nb"><a class="ref" href="#server-list">3</a>:</span> адреса, ваш логін і стан зв’язку, наприклад «Звʼязок є» з кількістю пристроїв.</li>
+<li>Натисніть картку, щоб побачити пристрої цього акаунта <span class="nb"><a class="ref" href="#devices-list">18</a>.</span> Щоб підключити новий пристрій без введення пароля на ньому, видайте код сполучення <span class="nb"><a class="ref" href="#devices-pairing">20</a>;</span> щоб прибрати непотрібний пристрій, натисніть «Відкликати» <span class="nb"><a class="ref" href="#devices-revoke">19</a>.</span></li>
 <li>Три крапки на картці (9-17) ховають решту: змінити адресу, зробити сервер вихідним, підключити годинник, передати сервер, вийти та інше.</li>
 <li>Три кнопки внизу (6, 7, 8) відкривають сторінки сайту проєкту про додавання сервера, про сам сервер і про підключення годинника.</li>
 </ol>
@@ -211,10 +215,11 @@
 <li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/settings/backup-and-device-sync-uk.html"><b>Backing Up Your Settings and Keeping Devices in Sync</b><span class="pill gold">Посібник</span></a></li>
 <li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/network/phone-as-sftp-server-uk.html"><b>Turning the Phone into an SFTP Server</b><span class="pill gold">Посібник</span></a></li>
 <li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/wear/companion-data-sync-uk.html"><b>Keeping the Phone and the Watch in Step - Network Folders and Watch Settings</b><span class="pill gold">Посібник</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_WEB/"><b>FastMediaSorter for Web - ваш обліковий запис обміну як ще один пристрій у браузері</b><span class="pill gold">Посилання</span></a></li>
 <li><a href="index-uk.html"><b>Зміст довідки</b></a></li>
 </ul>
 <footer class="help-foot">
-<span>Fast Media Sorter, 2026-10-26</span>
+<span>Fast Media Sorter, 2026-11-24</span>
 <a href="index-uk.html">Зміст довідки</a>
 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Поставити запитання або повідомити про проблему</a>
 </footer>

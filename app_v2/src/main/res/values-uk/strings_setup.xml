@@ -4,11 +4,11 @@
     <string name="welcome_default_player_btn_docs">Документи</string>
     <string name="welcome_default_player_btn_images">Зображення</string>
     <string name="welcome_default_player_btn_video">Відео</string>
-    <string name="welcome_default_player_description">Призначити FastMediaSorter медіаплеєром за замовчуванням</string>
-    <string name="welcome_default_player_hint">Натисніть кнопку нижче - з\'явиться системний діалог. Виберіть FastMediaSorter і натисніть <b>Завжди</b>.</string>
+    <string name="welcome_default_player_description">Призначити Fast Media Sorter &amp; Organizer медіаплеєром за замовчуванням</string>
+    <string name="welcome_default_player_hint">Натисніть кнопку нижче - з\'явиться системний діалог. Виберіть Fast Media Sorter &amp; Organizer і натисніть <b>Завжди</b>.</string>
     <string name="welcome_default_player_title">Плеєр за замовчуванням</string>
     <string name="welcome_description_1">Ваш універсальний медіаорганайзер.\nПереглядайте, сортуйте та керуйте файлами на локальних, мережевих та хмарних сховищах - все за допомогою інтуїтивних жестів.</string>
-    <string name="welcome_description_1_details">FastMediaSorter збирає всі види медіа в одному місці. Відкривайте фото, відео, GIF і музику з пристрою, з мережевої папки або з хмари - і розкладайте їх швидкими дотиками замість довгих меню.\n\nУсе, що ви налаштуєте тут, потім можна змінити в налаштуваннях, тож неправильного вибору на цьому екрані немає - просто натисніть «Далі».</string>
+    <string name="welcome_description_1_details">Fast Media Sorter &amp; Organizer збирає всі види медіа в одному місці. Відкривайте фото, відео, GIF і музику з пристрою, з мережевої папки або з хмари - і розкладайте їх швидкими дотиками замість довгих меню.\n\nУсе, що ви налаштуєте тут, потім можна змінити в налаштуваннях, тож неправильного вибору на цьому екрані немає - просто натисніть «Далі».</string>
     <string name="welcome_description_3" formatted="false">Плеєр використовує 9 сенсорних зон (сітка 3×3) для швидких дій. Натискайте на зони для навігації, копіювання, переміщення, видалення файлів або доступу до командної панелі. Схему показано вище.</string>
     <string name="welcome_language_picker_hint">Оберіть мову застосунку</string>
     <string name="welcome_profile_audio_player_desc">Для прослуховування музики. Приховує фото та відео; оптимізує фоновий звук та екран поточного треку.</string>
@@ -25,7 +25,7 @@
     <string name="welcome_profile_other_title">Інший / Без змін</string>
     <string name="welcome_profile_personal_smartphone_desc">Оптимально для особистих телефонів. Налаштовує touch-інтерфейс, фонову синхронізацію та стандартні підтвердження безпеки.</string>
     <string name="welcome_profile_personal_smartphone_title">Особистий смартфон</string>
-    <string name="welcome_profile_photo_frame_desc">Перетворює планшет на фоторамку. Вимикає відео, audio та документи; відразу запускає слайдшоу зображень.</string>
+    <string name="welcome_profile_photo_frame_desc">Перетворює планшет на фоторамку. Вимикає відео, аудіо та документи; відразу запускає слайдшоу зображень.</string>
     <string name="welcome_profile_photo_frame_title">Цифрова фоторамка</string>
     <string name="welcome_profile_selector_title">Профіль пристрою</string>
     <string name="welcome_profile_tv_media_box_desc">Для телевізорів та ТВ-приставок. Оптимізує навігацію з пульта (DPAD), збільшує елементи та приховує дрібні touch-кнопки.</string>
@@ -34,8 +34,7 @@
     <string name="welcome_profile_video_player_title">Відеоплеєр</string>
     <string name="welcome_profile_vr_headset_desc">Для VR-окулярів та шоломів. Попередньо вмикає 3D/360°-інтерфейси та імерсивне керування на підтримуваних пристроях.</string>
     <string name="welcome_profile_vr_headset_title">VR-шолом</string>
-    <string name="welcome_recommended_badge">(Рекомендується)</string>
-    <string name="welcome_title_1">Ласкаво просимо до FastMediaSorter!</string>
+    <string name="welcome_title_1">Ласкаво просимо до Fast Media Sorter &amp; Organizer!</string>
     <string name="sysinfo_field_abis">ABI</string>
     <string name="sysinfo_field_android_version">Android</string>
     <string name="sysinfo_field_api_level">Рівень API</string>
@@ -142,7 +141,7 @@
     <string name="welcome_func_download_failed">Не вдалося завантажити - натисніть для повтору</string>
     <string name="welcome_func_download_done">Готово</string>
     <!-- S0402 permissions page -->
-    <string name="welcome_permissions_title">\"Кілька\" дозволів</string>
+    <string name="welcome_permissions_title">Кілька дозволів</string>
     <string name="welcome_permissions_subtitle">Надайте доступ, щоб застосунок показував ваші медіа.</string>
     <string name="welcome_func_streams">Трансляції</string>
     <string name="welcome_streams_catalog_done">Каталог завантажено</string>
@@ -154,7 +153,7 @@
     <string name="welcome_networks_example_smb">Наприклад: спільна папка на ПК з Windows, NAS на кшталт Synology або QNAP, USB-диск у роутері.</string>
     <string name="welcome_networks_example_ftp">Наприклад: хостинг через FTP, власний домашній сервер через SFTP, камера, яка вивантажує знімки в папку FTP.</string>
     <string name="welcome_networks_example_cloud">Наприклад: увійдіть у Google Drive один раз і відкривайте резервну копію фотографій як звичайну папку.</string>
-    <string name="welcome_default_player_details">«Застосунок за умовчанням» означає, що файл, відкритий з іншого застосунку - галереї, месенджера, файлового менеджера, - відкриється тут, а не в системному плеєрі.</string>
+    <string name="welcome_default_player_details">«Застосунок за замовчуванням» означає, що файл, відкритий з іншого застосунку - галереї, месенджера, файлового менеджера, - відкриється тут, а не в системному плеєрі.</string>
     <string name="welcome_default_player_revert_note">Це не назавжди: вибір зберігається в налаштуваннях самого Android, і його можна повернути будь-коли.</string>
     <string name="welcome_role_file_manager">Файловий менеджер</string>
     <string name="welcome_role_player">Медіаплеєр</string>
@@ -174,7 +173,7 @@
     <string name="welcome_role_sorting_detail">Надішліть файл до потрібної папки одним дотиком</string>
     <string name="welcome_role_more_detail">Камера, віджети, гаджети та інше - один застосунок замість багатьох</string>
     <string name="welcome_description_1_shell">Не просто медіазастосунок - повноцінна оболонка пристрою.\nДомашній екран, плеєр, файловий менеджер, трансляції та віддалені сховища в одному місці.</string>
-    <string name="welcome_description_1_details_shell">FastMediaSorter може вести весь пристрій: домашній екран з вашими застосунками, віджетами та ярликами, плеєр для фото, відео, музики й книжок, файловий менеджер для памʼяті, мережевих папок і хмар, інтернет-трансляції та застосунок-компаньйон для Wear OS - і швидке сортування дотиками поверх усього цього.\n\nХочете зробити його домашнім екраном? Увімкніть перемикач вище, і система попросить підтвердження після налаштування. Усе, що ви оберете на цьому екрані, потім можна змінити в Налаштуваннях, тож неправильного вибору тут немає - просто натисніть «Далі».</string>
+    <string name="welcome_description_1_details_shell">Fast Media Sorter &amp; Organizer може вести весь пристрій: домашній екран з вашими застосунками, віджетами та ярликами, плеєр для фото, відео, музики й книжок, файловий менеджер для памʼяті, мережевих папок і хмар, інтернет-трансляції та застосунок-компаньйон для Wear OS - і швидке сортування дотиками поверх усього цього.\n\nХочете зробити його домашнім екраном? Увімкніть перемикач вище, і система попросить підтвердження після налаштування. Усе, що ви оберете на цьому екрані, потім можна змінити в Налаштуваннях, тож неправильного вибору тут немає - просто натисніть «Далі».</string>
     <string name="welcome_role_home_screen">Домашній екран</string>
     <string name="welcome_role_home_screen_detail">Веде пристрій замість лаунчера - застосунки, віджети та медіа під рукою</string>
     <string name="welcome_role_streams">Трансляції</string>

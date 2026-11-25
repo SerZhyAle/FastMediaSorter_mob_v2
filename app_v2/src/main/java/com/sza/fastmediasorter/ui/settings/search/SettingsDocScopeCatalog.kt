@@ -72,6 +72,12 @@ object SettingsDocScopeCatalog {
             "rowCrossDevicePackets"
         ),
         DocScopeSurface(
+            R.layout.external_control_content,
+            "general",
+            SettingsSearchDestination.GENERAL,
+            "btnOpenExternalControl"
+        ),
+        DocScopeSurface(
             R.layout.dialog_edge_gesture_config,
             "gestures",
             SettingsSearchDestination.OPERATIONS,
@@ -137,6 +143,14 @@ object SettingsDocScopeCatalog {
         DocScopeSurface(
             R.layout.view_network_monitor_gnss_track,
             "networkMonitor",
+            SettingsSearchDestination.OPERATIONS,
+            ""
+        ),
+        // S4573: the folder the feedback goes to is chosen inside the Send feedback form, not on a settings
+        // screen, so hostKey stays empty; the row is its own layout for the same reason as the GNSS one above.
+        DocScopeSurface(
+            R.layout.view_feedback_folder_row,
+            "feedback",
             SettingsSearchDestination.OPERATIONS,
             ""
         )

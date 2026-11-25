@@ -10,11 +10,11 @@ availability: ocrEnabled, translationEnabled
 recipe_number: "02"
 canonical_url: documentation/flavors/extensions-and-plugins.html
 why: |
-  Some parts of FastMediaSorter are big and only a few people need them: the engine that reads text in pictures, the models for Russian and Ukrainian letters, a decoder for rare audio formats, looping videos behind your music. Packing all of them into the app would make it heavier for everybody.
+  Some parts of Fast Media Sorter & Organizer are big and only a few people need them: the engine that reads text in pictures, the models for Russian and Ukrainian letters, a decoder for rare audio formats, looping videos behind your music. Packing all of them into the app would make it heavier for everybody.
 
   So these parts are [extensions](term:extension): you download each one only when you want it, and delete it again when you need the space. Until you download an extension, the rest of the app works exactly as before.
 ingredients:
-  - "FastMediaSorter in the Standard, noLegal, Legacy or VR [edition](term:edition). The Lite, Photos and FOSS editions have no extensions screen, because the features the extensions add are not part of those editions. See [The seven editions](page:flavors.overview-and-comparison)."
+  - "Fast Media Sorter & Organizer in the Standard, noLegal, Legacy or VR [edition](term:edition). The Lite, Photos and FOSS editions have no extensions screen, because the features the extensions add are not part of those editions. See [The seven editions](page:flavors.overview-and-comparison)."
   - "An internet connection. Wi-Fi is best: the largest extension is about 44 MB."
   - "Some free space on the phone. Each row of the screen shows how much the extension needs."
 steps:
@@ -132,4 +132,4 @@ next_recipes:
 
 <sub class="doc-stamp">26.10.07 01:10</sub>
 
-[Extensions](term:extension) are optional parts of FastMediaSorter that you download only when you need them: text recognition, extra audio formats, background videos and stream catalogs. This page shows how to download, update and delete them.
+[Extensions](term:extension) are optional parts of Fast Media Sorter & Organizer that you download only when you need them: text recognition, extra audio formats, background videos and stream catalogs. This page shows how to download, update and delete them.

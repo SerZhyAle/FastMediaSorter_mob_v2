@@ -7,6 +7,7 @@ import com.google.android.material.checkbox.MaterialCheckBox
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.utils.SftpHostReachabilityClassifier
 import com.sza.fastmediasorter.utils.SftpPathUtils
@@ -48,5 +49,6 @@ class MainSftpShareManager(private val activity: Activity) {
             }
             .setNegativeButton(R.string.cancel, null)
             .showBoundToHost(activity)
+            ?.let { DialogHelpEntryManager.attach(it, "dialog_share_sftp_access") }
     }
 }

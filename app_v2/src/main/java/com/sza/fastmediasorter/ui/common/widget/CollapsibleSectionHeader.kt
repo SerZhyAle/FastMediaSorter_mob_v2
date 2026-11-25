@@ -72,6 +72,7 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
         summaryView = findViewById(R.id.csh_summary)
         trailingSlot = findViewById(R.id.csh_trailingSlot)
         defaultHeaderBackground = headerRow.background
+        forwardNextFocusIds()
 
         applyAttributes(attrs, defStyleAttr)
         renderTitle()
@@ -222,6 +223,27 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
     }
 
     /**
+     * Sets where D-pad up leaves the header. The focusable row is an inner view, so a next-focus id set on
+     * the widget itself would never be read by the focus search.
+     */
+    fun setHeaderNextFocusUpId(id: Int) {
+        headerRow.nextFocusUpId = id
+    }
+
+    /** Sets where D-pad down leaves the header; see [setHeaderNextFocusUpId]. */
+    fun setHeaderNextFocusDownId(id: Int) {
+        headerRow.nextFocusDownId = id
+    }
+
+    private fun forwardNextFocusIds() {
+        if (nextFocusUpId != NO_ID) headerRow.nextFocusUpId = nextFocusUpId
+        if (nextFocusDownId != NO_ID) headerRow.nextFocusDownId = nextFocusDownId
+        if (nextFocusLeftId != NO_ID) headerRow.nextFocusLeftId = nextFocusLeftId
+        if (nextFocusRightId != NO_ID) headerRow.nextFocusRightId = nextFocusRightId
+        if (nextFocusForwardId != NO_ID) headerRow.nextFocusForwardId = nextFocusForwardId
+    }
+
+    /**
      * Sets the gap after the chevron and after the leading icon, in pixels, for hosts whose tiles are
      * too narrow for the default gap to leave the title a readable column.
      */
@@ -331,8 +353,17 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
         updateHeaderContentDescription()
     }
 
+    /**
+     * The layout direction is not resolved while the constructor runs [updateChevron], so the chevron
+     * is re-applied here once the real direction is known - without animation, it is not a user toggle.
+     */
+    override fun onRtlPropertiesChanged(layoutDirection: Int) {
+        super.onRtlPropertiesChanged(layoutDirection)
+        updateChevron(animate = false)
+    }
+
     private fun updateChevron(animate: Boolean) {
-        val target = if (expanded) EXPANDED_ROTATION else COLLAPSED_ROTATION
+        val target = CollapsibleMarker.rotation(expanded, layoutDirection)
         if (animate && AnimationPolicy.isAnimationAllowed) {
             chevronView.animate()
                 .rotation(target)
@@ -393,9 +424,6 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
     }
 
     companion object {
-        // Chevron base orientation (ic_arrow_drop_down) points down = expanded; rotate to point right = collapsed.
-        private const val EXPANDED_ROTATION = 0f
-        private const val COLLAPSED_ROTATION = -90f
         private const val ROTATION_ANIMATION_DURATION_MS = 150L
     }
 }

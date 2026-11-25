@@ -43,11 +43,14 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+            <!-- S4705: the title is the flexible part (constrainedWidth) so a long title wraps and the
+                 single-line badge keeps its full width; a wrap_content title took all the room and
+                 left the badge a sliver that broke it letter by letter. S2328: the packed chain with
+                 bias 0 keeps the badge right after the title, so the row's slack falls after the
+                 badge and never between the pair. -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
                 <TextView
                     android:id="@+id/tvChoiceTitle"
@@ -56,6 +59,13 @@
                     android:textColor="?attr/colorOnSurface"
                     android:textSize="@dimen/toggler_title_text_size"
                     android:textStyle="bold"
+                    app:layout_constrainedWidth="true"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/tvChoiceRecommended"
+                    app:layout_constraintHorizontal_bias="0"
+                    app:layout_constraintHorizontal_chainStyle="packed"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
                     tools:text="Device home screen" />
 
                 <TextView
@@ -63,14 +73,19 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/padding_small"
+                    android:maxLines="1"
                     android:text="@string/launcher_primary_window_recommended"
                     android:textColor="?attr/colorPrimary"
                     android:textSize="@dimen/text_size_11sp"
                     android:textStyle="bold"
                     android:visibility="gone"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/tvChoiceTitle"
+                    app:layout_constraintTop_toTopOf="parent"
                     tools:visibility="visible" />
 
-            </LinearLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
             <TextView
                 android:id="@+id/tvChoiceDescription"

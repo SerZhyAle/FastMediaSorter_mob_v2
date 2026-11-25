@@ -47,6 +47,7 @@ $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..\..')).Path
 $inventoryLib = Join-Path $repoRoot 'scripts/utils/temp-root-inventory.ps1'
 $fixture = Join-Path $repoRoot 'temp/S3036/store-fixture'
 $failures = 0
+$cases = 0
 
 function Reset-Fixture {
     if (Test-Path -LiteralPath $fixture) { Remove-Item -LiteralPath $fixture -Recurse -Force }
@@ -55,6 +56,7 @@ function Reset-Fixture {
 
 function Assert-Case {
     param([string] $Name, [scriptblock] $Body)
+    $script:cases++
     try {
         $message = & $Body
         if ($message) {
@@ -72,16 +74,16 @@ function Assert-Case {
 }
 
 try {
-    Assert-Case 'E1 the two leaf names are exactly what the tree carries' {
-        $lease = Get-DeviceStoreDirName -Store Lease
+    Assert-Case 'E1 registry and state are project-local' {
+        $state = Get-DeviceStoreDirName -Store State
         $registry = Get-DeviceStoreDirName -Store Registry
-        if ($lease -ne 'DEVICE.LEASES') { return "expected: DEVICE.LEASES | actual: $lease" }
+        if ($state -ne 'DEVICE.STATE') { return "expected: DEVICE.STATE | actual: $state" }
         if ($registry -ne 'DEVICE.REGISTRY') { return "expected: DEVICE.REGISTRY | actual: $registry" }
         return $null
     }
 
     Assert-Case 'E2 a store directory is <root>/temp/<leaf>' {
-        foreach ($store in @('Lease', 'Registry', 'State')) {
+        foreach ($store in @('LeaseFallback', 'Registry', 'State')) {
             $expected = Join-Path (Join-Path $fixture 'temp') (Get-DeviceStoreDirName -Store $store)
             $actual = Get-DeviceStoreDir -RepoRoot $fixture -Store $store
             if ($actual -ne $expected) { return "$store - expected: $expected | actual: $actual" }
@@ -119,8 +121,8 @@ try {
 
     Assert-Case 'E6 no function creates anything' {
         Reset-Fixture
-        $null = Get-DeviceStoreDirName -Store Lease
-        $null = Get-DeviceStoreDir -RepoRoot $fixture -Store Lease
+        $null = Get-DeviceStoreDirName -Store LeaseFallback
+        $null = Get-DeviceStoreDir -RepoRoot $fixture -Store LeaseFallback
         $null = Get-DeviceStoreDir -RepoRoot $fixture -Store Registry
         $null = ConvertTo-DeviceSerialFileName -Serial '192.168.1.5:5555'
         $null = Get-DeviceStoreRecordPath -RepoRoot $fixture -Store Registry -Serial '192.168.1.5:5555'
@@ -129,13 +131,13 @@ try {
         return $null
     }
 
-    Assert-Case 'E7 the temp-root inventory still derives both leaves' {
+    Assert-Case 'E7 the temp-root inventory protects local device stores and the legacy fallback' {
         if (-not (Test-Path -LiteralPath $inventoryLib)) { return "inventory declaration not found: $inventoryLib" }
         # Dot-sourced inside this scriptblock, not at suite scope: the inventory library is itself
         # dot-sourced by its consumers and S2441 is about exactly that reach into a caller's scope.
         . $inventoryLib
         $inventory = Get-TempRootInventory -RepoRoot $repoRoot
-        foreach ($store in @('Lease', 'Registry', 'State')) {
+        foreach ($store in @('LeaseFallback', 'Registry', 'State')) {
             $leaf = Get-DeviceStoreDirName -Store $store
             if ($inventory.FixedDirs -notcontains $leaf) {
                 return "$leaf is declared by the store lib but not protected by the temp-root inventory - the archiver's age rule can reach it"
@@ -149,8 +151,8 @@ finally {
 }
 
 if ($failures -gt 0) {
-    Write-Error "device-store-paths.tests: expected: 0 | actual: $failures failing case(s)." -ErrorAction Continue
+    Write-Error "device-store-paths.tests: FAIL (run=$cases skipped=0, failed=$failures)" -ErrorAction Continue
     exit 1
 }
-Write-Host 'device-store-paths.tests: PASS - 7 case(s).' -ForegroundColor Green
+Write-Host "device-store-paths.tests: PASS (run=$cases skipped=0)" -ForegroundColor Green
 exit 0

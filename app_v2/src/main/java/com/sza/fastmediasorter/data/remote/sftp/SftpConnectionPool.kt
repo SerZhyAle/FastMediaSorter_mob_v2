@@ -59,9 +59,12 @@ enum class ChannelPurpose { PLAYBACK, FILE_OPS }
  * @param onFirstUseHostKey receives host, port and the canonical fingerprint the server presented on
  *   every successful connect that carried no pin, so the caller can store it (TOFU, FMSCFG). Called on
  *   the connecting thread under the per-host creation lock, so it must hand the write off, never block.
+ * @param onTransportLost receives the endpoint of a session dropped for a transport loss, so whoever chose
+ *   that endpoint stops offering it to later opens (SHARE-SESSION 1.4 item A.4). Must not block.
  */
 class SftpConnectionPool(
     private val onFirstUseHostKey: (host: String, port: Int, fingerprint: String) -> Unit = { _, _, _ -> },
+    private val onTransportLost: (host: String, port: Int) -> Unit = { _, _ -> },
     private val router: ExchangeTunnelRouter? = null,
     private val client: DeviceExchangeAccountClient? = null,
 ) {
@@ -207,6 +210,7 @@ class SftpConnectionPool(
             // SHARE-SESSION rule 10: runBorrowed already gave its borrow back, so this closes the old
             // session now instead of after the reconnect - one server slot, never two.
             invalidateSession(key)
+            onTransportLost(info.host, info.port)
             if (!replayable) {
                 Timber.w("SFTP [FILE_OPS] transport lost under a non-replayable operation: ${failure.message}")
             }

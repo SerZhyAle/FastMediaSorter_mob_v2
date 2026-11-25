@@ -1,11 +1,12 @@
 ---
+source_sha256: ad9edd9a56fde229dcb7e59e9441bfb8edec6730b3b912d5f90098473c297307
 layout: doc
 title: "Годинник в акаунті: через телефон і без нього"
 description: "Як годинник Wear OS входить у ваш акаунт обміну з телефона, а потім відкриває ваші теки, відтворює й мовить звук, приймає cast і надсилає файли власними Wi-Fi чи LTE - і для чого ще потрібні Bluetooth і телефон."
 category: "Обмін медіа"
 permalink: /docs/media-exchange-portal/watch-exchange-uk.html
 ---
-<sub class="doc-stamp">26.10.23 14:53</sub>
+<sub class="doc-stamp">26.11.15 15:28</sub>
 
 # Годинник в акаунті
 
@@ -15,7 +16,7 @@ permalink: /docs/media-exchange-portal/watch-exchange-uk.html
 
 ## Перш ніж почати
 
-- **Застосунок для годинника, сполучений з телефоном**, див. [Встановлення FastMediaSorter на годинник](../../documentation/wear/installation-and-pairing-uk.html).
+- **Застосунок для годинника, сполучений з телефоном**, див. [Встановлення Fast Media Sorter & Organizer на годинник](../../documentation/wear/installation-and-pairing-uk.html).
 - **Компаньйон для годинника ввімкнено** в **Налаштуваннях** телефона; інакше телефон відповість «Компаньйон для годинника вимкнено».
 - **Сервер обміну додано й виконано вхід на телефоні**, див. [Додавання сервера обміну в «Мої пристрої»](my-devices-uk.html).
 

@@ -10,11 +10,11 @@ availability: SUPPORT_STREAMS
 recipe_number: "03"
 canonical_url: documentation/streams/custom-m3u-playlists.html
 why: |
-  The built-in channel catalog covers a lot of ground, but it will never have everything - your favorite small radio station, a work IPTV feed, or a camera link someone sent you. FastMediaSorter lets you add any of these yourself: one channel at a time by its web address, or a whole station list at once by importing a playlist.
+  The built-in channel catalog covers a lot of ground, but it will never have everything - your favorite small radio station, a work IPTV feed, or a camera link someone sent you. Fast Media Sorter & Organizer lets you add any of these yourself: one channel at a time by its web address, or a whole station list at once by importing a playlist.
 
-  An M3U playlist is a plain text file that lists stream web addresses one after another, usually with a name next to each one - it is one of the oldest and most common ways radio and IPTV providers publish their channel lists. See [M3U on Wikipedia](https://en.wikipedia.org/wiki/M3U) for the full format. FastMediaSorter downloads and reads the file for you; you never need to open or edit it yourself.
+  An M3U playlist is a plain text file that lists stream web addresses one after another, usually with a name next to each one - it is one of the oldest and most common ways radio and IPTV providers publish their channel lists. See [M3U on Wikipedia](https://en.wikipedia.org/wiki/M3U) for the full format. Fast Media Sorter & Organizer downloads and reads the file for you; you never need to open or edit it yourself.
 ingredients:
-  - "FastMediaSorter installed in the Standard, noLegal, Legacy or VR [edition](term:edition). Streams and everything on this page is absent from Lite, Photos and FOSS."
+  - "Fast Media Sorter & Organizer installed in the Standard, noLegal, Legacy or VR [edition](term:edition). Streams and everything on this page is absent from Lite, Photos and FOSS."
   - "The [Streams](term:streams-screen) screen open."
   - "The web address of the stream, or of the M3U playlist, you want to add - copy it from wherever you found it."
   - "Browsing the built-in catalog instead of adding your own? See [Browsing internet stream channels](page:streams.channel-catalog-browsing)."
@@ -36,9 +36,9 @@ steps:
     id: import-m3u-playlist
     title: Import a whole playlist from its web address
     text: |
-      To bring in a whole station list at once, open the overflow menu and tap **Import from URL**. Paste the playlist's address into **Playlist URL (.m3u)** and tap **OK**. FastMediaSorter downloads the file and adds every channel it finds in it as its own entry in your list.
+      To bring in a whole station list at once, open the overflow menu and tap **Import from URL**. Paste the playlist's address into **Playlist URL (.m3u, .m3u8)** and tap **OK**. Fast Media Sorter & Organizer downloads the file and adds every channel it finds in it as its own entry in your list.
 
-      This is different from **Update catalog**, the toolbar button next to it - that one refreshes FastMediaSorter's own built-in channel list, not anything of yours. See [Browsing internet stream channels](page:streams.channel-catalog-browsing) for that side of Streams.
+      This is different from **Update catalog**, the toolbar button next to it - that one refreshes Fast Media Sorter & Organizer's own built-in channel list, not anything of yours. See [Browsing internet stream channels](page:streams.channel-catalog-browsing) for that side of Streams.
     image_bookmark:
       shot_id: streams.import-playlist-dialog
       device_profile: phone
@@ -51,7 +51,7 @@ steps:
     id: import-skips-duplicates
     title: Importing the same playlist again only adds what is new
     text: |
-      A moment after an import finishes, FastMediaSorter tells you how many channels it actually added - **Imported n streams**. Run the same import again later, after the station has updated its list, and only the new entries come in: anything already in your list is quietly left alone rather than added a second time. If every channel in the playlist is already there, you will simply see **Imported 0 streams**.
+      A moment after an import finishes, Fast Media Sorter & Organizer tells you how many channels it actually added - **Imported n streams**. Run the same import again later, after the station has updated its list, and only the new entries come in: anything already in your list is quietly left alone rather than added a second time. If every channel in the playlist is already there, you will simply see **Imported 0 streams**.
     image_bookmark:
       shot_id: streams.import-done-toast
       device_profile: phone
@@ -64,7 +64,7 @@ steps:
     id: duplicate-guard
     title: Adding a stream you already have
     text: |
-      Try to add a stream by hand whose web address is already in your list, and FastMediaSorter stops before it makes a copy: it shows **A stream with this address already exists** instead of adding the channel twice. Fix the address, or tap **Cancel** if you meant to open the existing one instead.
+      Try to add a stream by hand whose web address is already in your list, and Fast Media Sorter & Organizer stops before it makes a copy: it shows **A stream with this address already exists** instead of adding the channel twice. Fix the address, or tap **Cancel** if you meant to open the existing one instead.
     image_bookmark:
       shot_id: streams.duplicate-url-message
       device_profile: phone
@@ -77,9 +77,9 @@ steps:
     id: edit-and-set-type
     title: Edit a channel, and pin down its type
     text: |
-      A channel you added by hand or brought in through an import can be edited afterwards - open its ⋮ menu, on the row or the tile, and tap **Edit**. The **Edit channel** dialog reopens with the same URL and title fields, plus a **Type** row with **Auto**, **Audio** and **Video** choices that settle how FastMediaSorter treats the stream when the address alone does not make it obvious.
+      A channel you added by hand or brought in through an import can be edited afterwards - open its ⋮ menu, on the row or the tile, and tap **Edit**. The **Edit channel** dialog reopens with the same URL and title fields, plus a **Type** row with **Auto**, **Audio** and **Video** choices that settle how Fast Media Sorter & Organizer treats the stream when the address alone does not make it obvious.
 
-      Pick **Audio** or **Video** yourself if Auto guesses wrong, and FastMediaSorter remembers it: open Edit again later and your choice, not Auto, is what is still selected. Catalog channels do not offer Edit, since you did not set their address in the first place.
+      Pick **Audio** or **Video** yourself if Auto guesses wrong, and Fast Media Sorter & Organizer remembers it: open Edit again later and your choice, not Auto, is what is still selected. Catalog channels do not offer Edit, since you did not set their address in the first place.
     image_bookmark:
       shot_id: streams.edit-channel-type
       device_profile: phone
@@ -89,10 +89,10 @@ steps:
       title: "Screenshot: Edit channel dialog with Type row"
       desc: Edit channel dialog open, URL and Title fields filled in, Type row with Video selected.
 outcome: |
-  You can add any stream by hand, bring in a whole station list from an M3U playlist without doubling up what you already have, fix a wrong address or title afterwards, and lock in whether a channel plays as audio or video when FastMediaSorter would otherwise have to guess.
+  You can add any stream by hand, bring in a whole station list from an M3U playlist without doubling up what you already have, fix a wrong address or title afterwards, and lock in whether a channel plays as audio or video when Fast Media Sorter & Organizer would otherwise have to guess.
 tips:
   - "**Addresses with a user name and password inside** - such as `http://user:password@host/stream` - sign in to the stream correctly instead of being reported as unreachable."
-  - "**Not sure whether an address is http, https or rtsp?** Copy it exactly as the station or camera gave it to you - FastMediaSorter accepts all three in the same field."
+  - "**Not sure whether an address is http, https or rtsp?** Copy it exactly as the station or camera gave it to you - Fast Media Sorter & Organizer accepts all three in the same field."
   - "**Only channels you added yourself can be edited.** A channel from the built-in catalog keeps Edit off its menu; if you want a different title or type for one of those, add it again by hand with the address you want."
   - "**Want to keep your own channels within reach?** Pinning and Favorites work the same for a channel you added as for one from the catalog - see [Pinned and favorite channels](page:streams.favorites-and-epg)."
 next_recipes:
@@ -113,6 +113,6 @@ next_recipes:
     description: Why a channel shows a live frame, a logo, a flag or a plain icon, and what its status dot means.
 ---
 
-<sub class="doc-stamp">26.10.07 01:10</sub>
+<sub class="doc-stamp">26.11.14 02:56</sub>
 
 Bring your own [channels](term:channel) into [Streams](term:streams-screen): type a web address for a single stream, or import a whole station list from a remote M3U playlist. This page covers adding, importing, editing and the duplicate-address check that keeps one address from ending up in your list twice.

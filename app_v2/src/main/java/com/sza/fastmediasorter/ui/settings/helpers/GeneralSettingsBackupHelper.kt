@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.domain.model.FavoritesConflictStrategy
 import com.sza.fastmediasorter.domain.model.FavoritesImportResult
 import com.sza.fastmediasorter.domain.model.ResourceShareFormat
 import com.sza.fastmediasorter.domain.usecase.RestoreFromGoogleDriveUseCase
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.ui.settings.BackupRestoreUiState
 import com.sza.fastmediasorter.ui.settings.BackupRestoreViewModel
 import com.sza.fastmediasorter.ui.settings.FavoritesExportUiState
@@ -290,6 +291,7 @@ class GeneralSettingsBackupHelper(
             .setNegativeButton(R.string.cancel) { _, _ -> backupViewModel.resetImportFavState() }
             .setOnCancelListener { backupViewModel.resetImportFavState() }
             .showBoundTo(fragment)
+            ?.let { DialogHelpEntryManager.attach(it, "dialog_import_favorites_preview") }
     }
 
     private fun showImportFavResultDialog(result: FavoritesImportResult) {

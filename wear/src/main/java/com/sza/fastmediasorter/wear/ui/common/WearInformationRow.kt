@@ -4,27 +4,40 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.ParagraphIntrinsics
+import androidx.compose.ui.text.resolveDefaults
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 
 private val INFORMATION_ROW_VERTICAL_PADDING = 2.dp
+private const val INFORMATION_ROW_COLUMNS = 2
+
+// Wide enough that a right-aligned caption and a left-aligned value read as two items on a 192 dp
+// glass, where the 2 dp vertical padding used as a gap fused "Light" and "0 lx" into one word.
+private val INFORMATION_ROW_COLUMN_GAP = 8.dp
 
 /**
  * What one information row's two gestures do, when either differs from the default.
@@ -45,10 +58,10 @@ data class WearInformationRowGestures(
 /**
  * A compact caption-value pair for watch-sized information screens.
  *
- * Both columns meet at the row centre: the caption is right-aligned against that boundary and the
- * value begins there. The value owns its half of the row and wraps there, so a device-provided
- * value cannot separate itself from the caption that explains it. One merged semantic node keeps
- * the pair meaningful to TalkBack as well.
+ * In the side-by-side layout, the caption and value meet at the row centre across a gap. The value
+ * wraps within its half so it stays close to the caption that explains it. When a caption word is
+ * wider than its half, stacking makes the full row width available for that word. One merged
+ * semantic node keeps the pair meaningful to TalkBack as well.
  *
  * Vertically the two columns share a first baseline rather than a centre (S3180): a device-provided
  * value that wraps to three lines used to centre the caption against the whole block, leaving the
@@ -101,11 +114,38 @@ fun WearInformationRow(
         .padding(vertical = INFORMATION_ROW_VERTICAL_PADDING)
         .semantics(mergeDescendants = true) { contentDescription = description }
 
-    if (narrow) {
-        Column(
-            modifier = commonModifier,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+    BoxWithConstraints(modifier = commonModifier, propagateMinConstraints = true) {
+        val stacked = narrow || captionNeedsFullWidth(label, constraints)
+        InformationRowContent(label, value, accentColor, stacked)
+    }
+}
+
+@Composable
+private fun captionNeedsFullWidth(label: String, constraints: Constraints): Boolean {
+    if (!constraints.hasBoundedWidth) return false
+
+    val captionStyle = MaterialTheme.typography.caption2
+    val density = LocalDensity.current
+    val layoutDirection = LocalLayoutDirection.current
+    val fontFamilyResolver = LocalFontFamilyResolver.current
+    val minCaptionWidth = remember(label, captionStyle, density, layoutDirection, fontFamilyResolver) {
+        ParagraphIntrinsics(
+            text = label,
+            style = resolveDefaults(captionStyle, layoutDirection),
+            density = density,
+            fontFamilyResolver = fontFamilyResolver
+        ).minIntrinsicWidth
+    }
+    val columnWidth = with(density) {
+        (constraints.maxWidth - INFORMATION_ROW_COLUMN_GAP.roundToPx()).coerceAtLeast(0) / INFORMATION_ROW_COLUMNS
+    }
+    return minCaptionWidth > columnWidth
+}
+
+@Composable
+private fun InformationRowContent(label: String, value: String, accentColor: Color?, stacked: Boolean) {
+    if (stacked) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = label,
                 style = MaterialTheme.typography.caption2,
@@ -120,10 +160,7 @@ fun WearInformationRow(
             )
         }
     } else {
-        Row(
-            modifier = commonModifier,
-            horizontalArrangement = Arrangement.spacedBy(INFORMATION_ROW_VERTICAL_PADDING)
-        ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(INFORMATION_ROW_COLUMN_GAP)) {
             Text(
                 text = label,
                 style = MaterialTheme.typography.caption2,

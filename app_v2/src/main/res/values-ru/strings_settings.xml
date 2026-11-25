@@ -41,7 +41,7 @@
     <string name="settings_default_document_type_pdf">PDF</string>
     <string name="settings_default_document_type_title">Тип документа</string>
     <string name="settings_default_player_dialog_confirm">Открыть настройки</string>
-    <string name="settings_default_player_dialog_message">Вы будете перенаправлены в системные настройки Android, где сможете выбрать FastMediaSorter приложением по умолчанию для этого типа файлов.</string>
+    <string name="settings_default_player_dialog_message">Вы будете перенаправлены в системные настройки Android, где сможете выбрать Fast Media Sorter &amp; Organizer приложением по умолчанию для этого типа файлов.</string>
     <string name="settings_default_player_dialog_title">Назначить по умолчанию</string>
     <string name="settings_general_actions">Действия</string>
     <string name="settings_general_behavior">Поведение приложения</string>
@@ -150,7 +150,7 @@
     <string name="setting_enable_pip">Включить картинку в картинке</string>
     <string name="setting_enable_pip_desc">Показывать кнопку PiP в плеере и автоматически входить в режим PiP при нажатии кнопки «Домой» (Android 12+)</string>
     <string name="setting_enable_translation_desc">Включить поддержку перевода текста через OCR</string>
-    <string name="setting_file_ops_in_overflow_menu_desc">Скрывает Copy/Move/Rename/Delete в выпадающее меню строки</string>
+    <string name="setting_file_ops_in_overflow_menu_desc">Скрывает Копировать/Переместить/Переименовать/Удалить в выпадающее меню строки</string>
     <string name="setting_follow_system_rotation_summary">Включено - все окна приложения, кроме плеера, следуют системной авторотации. Выключено - окна следуют датчику устройства независимо от настроек ОС.</string>
     <string name="setting_follow_system_rotation_title">Поворачивать экран вместе с ОС (кроме плеера)</string>
     <string name="setting_follow_system_rotation_player_title">Поворачивать экран плеера вслед за ОС</string>
@@ -164,7 +164,7 @@
     <string name="setting_photos_during_audio_desc">Случайные изображения во время воспроизведения (выбираешь список аудио - смотришь изображения)</string>
     <string name="setting_play_to_end_desc">Воспроизводить медиа до конца вместо интервала слайд-шоу</string>
     <string name="setting_prevent_sleep_desc">Не выключать экран при работе с программой</string>
-    <string name="setting_primary_media_player_desc">Показывать FastMediaSorter в «Открыть с помощью» и обрабатывать медиакнопки</string>
+    <string name="setting_primary_media_player_desc">Показывать Fast Media Sorter &amp; Organizer в «Открыть с помощью» и обрабатывать медиакнопки</string>
     <string name="setting_resume_on_next_launch">Продолжать воспроизведение при следующем запуске</string>
     <string name="setting_resume_on_next_launch_desc">При запуске приложения автоматически открывать последний воспроизводимый файл с того места, где было остановлено</string>
     <string name="setting_safe_mode_desc">Подтверждать перед деструктивными операциями (удаление, перемещение)</string>
@@ -247,7 +247,7 @@
     <string name="settings_group_video_recording">Видеосъёмка</string>
     <string name="settings_group_voice_recorder">Диктофон</string>
     <string name="settings_group_screen_recording">Запись видео с экрана</string>
-    <string name="settings_open_default_apps_dialog">Задать по-умолчанию</string>
+    <string name="settings_open_default_apps_dialog">Задать по умолчанию</string>
     <string name="default_apps_dialog_title">Приложение по умолчанию</string>
     <string name="language_download_failed">Не удалось загрузить этот язык. Проверьте подключение к интернету и попробуйте снова - приложение останется на текущем языке.</string>
     <string name="pref_resource_grid_cell_size_title">Размер ячеек сетки ресурсов</string>
@@ -277,7 +277,7 @@
     <string name="setting_mic_recording_destination_default_recordings">По умолчанию: папка Recordings (Music на Android 11 и ниже)</string>
     <string name="setting_screen_recording_destination_default_movies">По умолчанию: папка Movies</string>
     <string name="drive_channel_enabled_title">Файлы через Google Drive</string>
-    <string name="drive_channel_enabled_subtitle">Отправлять и получать файлы между своими устройствами через ваш Google Drive, без сервера обмена</string>
+    <string name="drive_channel_enabled_subtitle">Отправлять и получать файлы между своими устройствами через ваш Google Drive и анонсировать им ваши трансляции, без сервера обмена</string>
     <string name="drive_channel_background_title">Проверять через Google Drive в фоне</string>
     <string name="drive_channel_background_subtitle">Каждые 15 минут, чтобы другие ваши устройства могли открыть общие папки этого телефона, пока приложение закрыто</string>
     <string name="drive_channel_row_from">От %1$s</string>

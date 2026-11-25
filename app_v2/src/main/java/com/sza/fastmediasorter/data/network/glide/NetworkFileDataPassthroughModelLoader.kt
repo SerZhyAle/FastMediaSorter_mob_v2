@@ -8,6 +8,7 @@ import com.bumptech.glide.load.model.ModelLoader
 import com.bumptech.glide.load.model.ModelLoaderFactory
 import com.bumptech.glide.load.model.MultiModelLoaderFactory
 import com.bumptech.glide.signature.ObjectKey
+import com.sza.fastmediasorter.domain.model.MediaExtensions
 
 /**
  * Passthrough ModelLoader that allows NetworkFileData to be used directly by ResourceDecoders.
@@ -17,9 +18,9 @@ import com.bumptech.glide.signature.ObjectKey
 class NetworkFileDataPassthroughModelLoader : ModelLoader<NetworkFileData, NetworkFileData> {
 
     companion object {
-        private val VIDEO_EXTENSIONS = setOf(
-            "mp4", "mov", "avi", "mkv", "webm", "3gp", "flv", "wmv", "m4v", "mpg", "mpeg"
-        )
+        // Must match the image loader's video set exactly, or a container is fetched as bytes by one
+        // and handed to the decoder by the other.
+        private val VIDEO_EXTENSIONS = MediaExtensions.VIDEO
     }
 
     override fun buildLoadData(

@@ -1,11 +1,12 @@
 ---
+source_sha256: c9409c40841492025df1568adc4d0b7fb6ff787a0853a0736a4fcfe345ded2e9
 layout: doc
 title: "Буфер на сервере"
 description: "Отправьте скопированное на одном из ваших устройств на сервер обмена и получите на другом: две кнопки, где они находятся, один объект за раз, только последнее значение, предел размера и что видит сервер."
 category: "Обмен медиа"
 permalink: /docs/media-exchange-portal/exchange-clipboard-ru.html
 ---
-<sub class="doc-stamp">26.10.15 14:25</sub>
+<sub class="doc-stamp">26.11.15 15:28</sub>
 
 # Буфер на сервере
 
@@ -22,7 +23,7 @@ permalink: /docs/media-exchange-portal/exchange-clipboard-ru.html
 - **Часы:** своего буфера, который можно прочитать, у часов нет, поэтому они отправляют через **Отправить в..** - файл, картинку или голосовую запись. Полученное значение сохраняется на часах и открывается во встроенном плеере приложения часов: текст, PDF, картинка, анимация, звук или видео.
 - **Windows:** две кнопки в главном окне Share Manager и ярлыки на рабочем столе. Участвует и CyrFlip - небольшая программа для Windows от того же разработчика.
 
-Отправляют и получают FastMediaSorter на телефоне и часах, Fast Media Sorter & Sharing for Windows и CyrFlip. STREAMS Player и StreamsPlayer_mob не участвуют.
+Отправляют и получают Fast Media Sorter & Organizer на телефоне и часах, Fast Media Sorter & Sharing for Windows и CyrFlip. STREAMS Player и StreamsPlayer_mob не участвуют.
 
 ## Правила {#rules}
 

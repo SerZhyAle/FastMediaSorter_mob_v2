@@ -170,16 +170,22 @@ function New-WorkTreeSnapshot([string]$Parent) {
 
 # `git diff <base> -- <path>` reports a path that is untracked in the real index as deleted, so an
 # untracked path is diffed through a private index that holds it intent-to-add.
-function Get-DiffLinesAgainstBase([string]$Base, [string]$Path) {
-    & git -C $RepoRoot ls-files --error-unmatch -- $Path *> $null
-    if ($LASTEXITCODE -eq 0) { return @(& git -C $RepoRoot diff -U0 $Base -- $Path) }
-    $diffed = Invoke-WithPrivateIndex {
-        & git -C $RepoRoot add -N -- $Path *> $null
-        return @(& git -C $RepoRoot diff -U0 $Base -- $Path)
+function Get-DiffLinesAgainstBase([string]$Repo, [string]$Base, [string]$Path) {
+    if (-not $Repo) { return @() }
+    & git -C $Repo ls-files --error-unmatch -- $Path *> $null
+    if ($LASTEXITCODE -eq 0) { return @(& git -C $Repo diff -U0 $Base -- $Path) }
+    if ($Repo -eq $RepoRoot) {
+        $diffed = Invoke-WithPrivateIndex {
+            & git -C $Repo add -N -- $Path *> $null
+            return @(& git -C $Repo diff -U0 $Base -- $Path)
+        }
+        if (-not $diffed.Ok) { Stop-Escalate "$Path is untracked and its diff against the baseline could not be read ($($diffed.Reason))" }
+        if ($null -eq $diffed.Value) { return @() }
+        return @($diffed.Value)
     }
-    if (-not $diffed.Ok) { Stop-Escalate "$Path is untracked and its diff against the baseline could not be read ($($diffed.Reason))" }
-    if ($null -eq $diffed.Value) { return @() }
-    return @($diffed.Value)
+    else {
+        return @(& git -C $Repo diff -U0 $Base -- $Path)
+    }
 }
 
 if ($RecordBaseline) {
@@ -280,20 +286,58 @@ if ($total -gt [int]$trivial.maxFiles) {
 
 $extensions = @($trivial.forbiddenPatternExtensions)
 $patterns = @($trivial.forbiddenPatterns)
+$fullRepoRoot = [System.IO.Path]::GetFullPath($RepoRoot).TrimEnd('\', '/')
 foreach ($path in $judgedChanged) {
-    & git -C $RepoRoot cat-file -e "${base}:$path" 2> $null
-    if ($LASTEXITCODE -ne 0) {
-        & git -C $RepoRoot check-ignore -q -- $path 2> $null
-        if ($LASTEXITCODE -eq 0) {
-            Write-Host "trivial-scope: ${label}$path is gitignored - no commit holds it, so it is not judged as new."
+    $resolvedPath = if ([System.IO.Path]::IsPathRooted($path)) {
+        [System.IO.Path]::GetFullPath($path)
+    } else {
+        [System.IO.Path]::GetFullPath((Join-Path $RepoRoot $path))
+    }
+    $isUnderRepoRoot = $resolvedPath.StartsWith($fullRepoRoot + [System.IO.Path]::DirectorySeparatorChar, [System.StringComparison]::OrdinalIgnoreCase) -or
+                       $resolvedPath.StartsWith($fullRepoRoot + [System.IO.Path]::AltDirectorySeparatorChar, [System.StringComparison]::OrdinalIgnoreCase) -or
+                       ($resolvedPath -ieq $fullRepoRoot)
+
+    if ($isUnderRepoRoot) {
+        $targetRepo = $RepoRoot
+        $targetRelPath = [System.IO.Path]::GetRelativePath($fullRepoRoot, $resolvedPath) -replace '\\', '/'
+        $targetBase = $base
+    } else {
+        $parentDir = if (Test-Path -LiteralPath $resolvedPath -PathType Container) { $resolvedPath } else { Split-Path -Parent $resolvedPath }
+        $extRepo = if (Test-Path -LiteralPath $parentDir) {
+            (& git -C $parentDir rev-parse --show-toplevel 2>$null)
+        } else { $null }
+
+        if ($extRepo) {
+            $targetRepo = $extRepo
+            $targetRelPath = [System.IO.Path]::GetRelativePath($extRepo, $resolvedPath) -replace '\\', '/'
+            $targetBase = 'HEAD'
+        } else {
+            $targetRepo = $null
+            $targetRelPath = $path
+            $targetBase = $null
+        }
+    }
+
+    if ($targetRepo) {
+        & git -C $targetRepo cat-file -e "${targetBase}:$targetRelPath" 2> $null
+        if ($LASTEXITCODE -ne 0) {
+            & git -C $targetRepo check-ignore -q -- $targetRelPath 2> $null
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "trivial-scope: ${label}$path is gitignored - no commit holds it, so it is not judged as new."
+                continue
+            }
+            if ($trivial.forbidNewFiles) { Stop-Escalate "$path is a new file" }
             continue
         }
-        if ($trivial.forbidNewFiles) { Stop-Escalate "$path is a new file" }
-        continue
+    } else {
+        if (-not (Test-Path -LiteralPath $resolvedPath)) {
+            if ($trivial.forbidNewFiles) { Stop-Escalate "$path is a new file" }
+            continue
+        }
     }
     if ([System.IO.Path]::GetExtension($path) -notin $extensions) { continue }
     # -U0 leaves only the changed lines; the '+++' / '---' file headers are not added/removed lines.
-    $diffLines = @(Get-DiffLinesAgainstBase $base $path)
+    $diffLines = @(Get-DiffLinesAgainstBase $targetRepo $targetBase $targetRelPath)
     $added = @($diffLines | Where-Object { $_ -match '^\+(?!\+\+)' } | ForEach-Object { $_.Substring(1) })
     $removedLines = @($diffLines | Where-Object { $_ -match '^\-(?!\-\-)' } | ForEach-Object { $_.Substring(1) })
 

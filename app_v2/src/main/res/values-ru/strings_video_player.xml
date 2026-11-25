@@ -117,4 +117,7 @@
     <string name="player_action_unavailable">Это действие недоступно для этого файла.</string>
     <string name="player_audio_track_single">Других звуковых дорожек нет.</string>
     <string name="player_frame_backward">Предыдущий кадр</string>
+    <string name="playback_control_low_speed_mute_title">Медленное воспроизведение</string>
+    <string name="playback_control_low_speed_mute_message">На скорости ниже 0.5x звук искажается. Отключить звук?</string>
+    <string name="playback_control_low_speed_mute_cancel">Оставить звук</string>
 </resources>

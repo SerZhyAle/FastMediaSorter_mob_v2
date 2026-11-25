@@ -63,6 +63,39 @@ class CollapsibleSectionHeaderTest {
     }
 
     @Test
+    fun `collapsed chevron points right in LTR and left in RTL`() {
+        val ltrHeader = newHeader()
+        val ltrChevron = ltrHeader.findViewById<ImageView>(R.id.csh_chevron)
+        ltrHeader.layoutDirection = View.LAYOUT_DIRECTION_LTR
+        ltrHeader.setExpanded(true, notify = false)
+        assertEquals(0f, ltrChevron.rotation, 0f)
+        ltrHeader.setExpanded(false, notify = false)
+        assertEquals(-90f, ltrChevron.rotation, 0f)
+
+        val rtlHeader = newHeader()
+        val rtlChevron = rtlHeader.findViewById<ImageView>(R.id.csh_chevron)
+        rtlHeader.layoutDirection = View.LAYOUT_DIRECTION_RTL
+        rtlHeader.setExpanded(true, notify = false)
+        assertEquals(0f, rtlChevron.rotation, 0f)
+        rtlHeader.setExpanded(false, notify = false)
+        assertEquals(90f, rtlChevron.rotation, 0f)
+    }
+
+    @Test
+    fun `collapsed chevron follows a layout direction that resolves after construction`() {
+        val header = newHeader()
+        val chevron = header.findViewById<ImageView>(R.id.csh_chevron)
+        header.layoutDirection = View.LAYOUT_DIRECTION_LTR
+        assertEquals(-90f, chevron.rotation, 0f)
+
+        header.layoutDirection = View.LAYOUT_DIRECTION_RTL
+        assertEquals(90f, chevron.rotation, 0f)
+
+        header.layoutDirection = View.LAYOUT_DIRECTION_LTR
+        assertEquals(-90f, chevron.rotation, 0f)
+    }
+
+    @Test
     fun `setSummary shows and hides the summary slot`() {
         val header = newHeader()
         val summary = header.findViewById<TextView>(R.id.csh_summary)

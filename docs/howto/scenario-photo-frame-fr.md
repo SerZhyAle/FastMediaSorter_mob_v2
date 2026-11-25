@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Cadre photo numérique sur tablette - FastMediaSorter v2"
+title: "Cadre photo numérique sur tablette - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-photo-frame-fr.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -47,7 +47,7 @@ Choisissez où se trouvent vos photos :
 2. Appuyez sur **Se connecter** → terminez l'authentification dans le navigateur
 3. Sélectionnez le dossier contenant vos photos → **Terminé**
 
-![FastMediaSorter main screen - photo resource cards visible after adding a photo folder](screenshots/screenshot-pf-step1.png)
+![Fast Media Sorter & Organizer main screen - photo resource cards visible after adding a photo folder](screenshots/screenshot-pf-step1.png)
 
 ---
 
@@ -123,12 +123,12 @@ Paramètres Android → Affichage → Délai d'expiration de l'écran → régle
 Cette étape est pour la commodité : vous voulez lancer le cadre photo instantanément quand vous prenez la tablette - sans ouvrir l'application ni naviguer ?
 
 1. Appuyez longuement sur votre écran d'accueil → appuyez sur **Widgets**
-2. Trouvez **FastMediaSorter** dans la liste des widgets
+2. Trouvez **Fast Media Sorter & Organizer** dans la liste des widgets
 3. Faites glisser le widget **"Raccourci de ressource"** sur votre écran d'accueil
 4. Lorsque demandé, sélectionnez votre ressource photo
 5. Appuyez sur le widget à tout moment → le diaporama se lance instantanément
 
-![Android home screen with FastMediaSorter resource shortcut widgets placed](screenshots/screenshot-pf-step6.png)
+![Android home screen with Fast Media Sorter & Organizer resource shortcut widgets placed](screenshots/screenshot-pf-step6.png)
 
 ---
 

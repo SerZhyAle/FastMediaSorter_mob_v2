@@ -263,6 +263,20 @@ function New-SvgStepBadge {
     return $c + $t
 }
 
+# PRODUCT-IDENTITY rule 14: the light 'simple' style must also read on a dark page. A CSS rule outranks a
+# presentation attribute, so each light colour is remapped to its 'scheme' (dark) counterpart by attribute
+# selector, and the picture needs no second rendering.
+function New-SvgDarkThemeStyle {
+    $light = $script:Palettes['simple']
+    $dark = $script:Palettes['scheme']
+    $rules = foreach ($key in ($light.Keys | Sort-Object)) {
+        if (-not $dark.ContainsKey($key) -or $light[$key] -eq $dark[$key]) { continue }
+        $from = $light[$key]; $to = $dark[$key]
+        "[fill=`"$from`"]{fill:$to}[stroke=`"$from`"]{stroke:$to}"
+    }
+    return "<style>@media (prefers-color-scheme:dark){$(($rules | Select-Object -Unique) -join '')}</style>"
+}
+
 # Opening and closing of one picture. Title and description are localized for screen readers.
 function Open-SvgDocument {
     param([double]$W, [double]$H, [string]$TitleKey, [string]$DescKey)
@@ -272,6 +286,7 @@ function Open-SvgDocument {
     [void]$sb.Append("<title id=`"t`">$(ConvertTo-SvgText (Get-Label $TitleKey))</title>")
     [void]$sb.Append("<desc id=`"d`">$(ConvertTo-SvgText (Get-Label $DescKey))</desc>")
     [void]$sb.Append((New-SvgDefs $script:Style))
+    if ($script:Style -eq 'simple') { [void]$sb.Append((New-SvgDarkThemeStyle)) }
     switch ($script:Style) {
         'slide' { [void]$sb.Append("<rect width=`"$W`" height=`"$H`" fill=`"url(#bgGrad)`"/>") }
         'scheme' {

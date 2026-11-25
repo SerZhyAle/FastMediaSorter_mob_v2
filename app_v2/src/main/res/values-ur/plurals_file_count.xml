@@ -5,4 +5,5 @@
     <plurals name="archiving_n_files_from_folder_plural"><item quantity="one">%2$s سے %1$d فائل آرکائیو ہو رہی ہے</item><item quantity="other">%2$s سے %1$d فائلیں آرکائیو ہو رہی ہیں</item></plurals>
     <plurals name="moving_n_files_from_folder_plural"><item quantity="one">%2$s سے %1$d فائل منتقل ہو رہی ہے..</item><item quantity="other">%2$s سے %1$d فائلیں منتقل ہو رہی ہیں..</item></plurals>
     <plurals name="renaming_n_files_from_folder_plural"><item quantity="one">%2$s سے %1$d فائل کا نام تبدیل ہو رہا ہے..</item><item quantity="other">%2$s سے %1$d فائلوں کے نام تبدیل ہو رہے ہیں..</item></plurals>
+    <plurals name="delete_n_files_confirm_plural"><item quantity="one">%1$d فائل حذف کریں؟ یہ عمل واپس نہیں ہو سکتا۔</item><item quantity="other">%1$d فائلیں حذف کریں؟ یہ عمل واپس نہیں ہو سکتا۔</item></plurals>
 </resources>

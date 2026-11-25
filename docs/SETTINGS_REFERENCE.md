@@ -29,6 +29,10 @@ _Generated from the app. Do not edit by hand._
 | Export Favorites | Exports your saved favorites list to a file you can back up or transfer. Available when Favorites is enabled. |
 | Export resources to file | Saves all configured resources (folders, network connections) to an export file. |
 | Export All Settings to File | Saves all app settings to a file so you can restore or transfer them later. |
+| Allow | Allows the current request. |
+| Decline | Declines the current request. |
+| Open the full log | Shows every saved request, newest first. |
+| Open exchange settings | Opens exchange settings or opens sign-in again, depending on what the connection needs. |
 | How-To Guides | Opens step-by-step how-to guides for the app's main features. |
 | Import Favorites | Imports a previously exported favorites list from a file. Available when Favorites is enabled. |
 | Import resources from file | Imports previously exported resources (folders, network connections) from a file. |
@@ -36,6 +40,7 @@ _Generated from the app. Do not edit by hand._
 | Import Test Setup | Imports a predefined test configuration used for QA and integration testing. |
 | RUN INTEGRATION TESTS | Runs the app's built-in integration test suite. |
 | Media exchange between devices | Opens the media exchange portal: which way of connecting your devices fits you - the home network, the exchange server or live broadcast - and what works today. |
+| Open External control | Opens the list of devices, consent requests, commands and log in External control. You can open it even while listening is off. |
 | Open Source Licenses | Shows the licenses for open-source libraries used in the app. |
 | Welcome Tutorial | Reopens the welcome tutorial screen shown on first launch. |
 | Permissions & Access | Opens the permissions and access management screen where you can review and adjust what the app can access. |
@@ -52,10 +57,10 @@ _Generated from the app. Do not edit by hand._
 | New access link | Issues a new access link: every code shared before stops opening this server through the exchange server. |
 | About access from outside the home network | Opens the portal page about reaching your shared folders from outside the home network, step by step. |
 | Add folder | Picks a folder through the system picker and adds it to the folders the server shares. |
-| Code for older app versions | Shows the pairing code without the exchange server part, for a FastMediaSorter too old to read the new code; it connects on the local network only. |
+| Code for older app versions | Shows the pairing code without the exchange server part, for a Fast Media Sorter & Organizer too old to read the new code; it connects on the local network only. |
 | New password | Replaces the server login password with a new random one; clients need the new password afterwards. |
 | About the phone as a server | Opens the portal page about the phone as a server: how long it keeps running, launcher mode and mobile data. |
-| Show pairing code | Shows a pairing code with the address, login and host key fingerprint for another FastMediaSorter to scan. |
+| Show pairing code | Shows a pairing code with the address, login and host key fingerprint for another Fast Media Sorter & Organizer to scan. |
 | Share Debug Logs | Shares the current debug log via the system share sheet. |
 | Show Log | Opens the full app log for review within the app. |
 | Current Session Log | Opens the log for the current app session only. |
@@ -70,6 +75,11 @@ _Generated from the app. Do not edit by hand._
 | Backups, restore and settings export | Settings for backing up, restoring, and exporting app data and configuration. |
 | Authorization and accounts | Settings for linked accounts and authorization with cloud and remote services. |
 | Debug logs and test tools | Tools for viewing logs, running integration tests, and diagnosing app issues. |
+| Commands this program accepts | Lists the commands this app accepts and their kinds. |
+| Who can control this device | Lists account devices and the kinds of commands each can send. |
+| Recent requests | Shows the latest 20 requests on this phone. |
+| This device | Shows whether this phone is ready to listen. |
+| Waiting for your answer | Shows the request that needs your answer. |
 | File browser interface | Settings that control the layout and behavior of the file browser. |
 | General interface settings | Settings that control the overall look and interaction style of the app. |
 | Resource list interface | Settings that control which optional panels and menus appear in the resource list. |
@@ -94,17 +104,19 @@ _Generated from the app. Do not edit by hand._
 | Enable Favorites | Enables the Favorites feature so you can mark and quickly access starred files. |
 | Statistics collection | Enables anonymous usage statistics collection to help improve the app. |
 | Preload thumbnails | Preloads thumbnails for files ahead of scrolling so the grid loads faster. |
+| Listen to commands from my other devices | Changes the same listening switch that appears under Exchange server. |
 | File operations in the three-dots menu | Moves file operations (copy, move, delete) into the overflow menu instead of showing them as buttons. |
 | Hide quick action buttons on thumbnails | Hides the quick action buttons overlaid on thumbnails in grid view. |
 | Favorites | Chooses favorites as the data set to export or import. |
 | Resources | Chooses resources as the data set to export or import. |
 | Settings | Chooses app settings as the data set to export or import. |
 | Pinned streams | Chooses the pinned stream list as the data set to export or import. |
-| Language/Язык/Мова | Opens a searchable list of the interface languages. On a Play install the chosen language is downloaded first; if it cannot be fetched, the app keeps the language it is using. |
-| Primary startup window | Selects what opens when FastMediaSorter launches or when the Home button is pressed: the device home screen, the in-app desktop without replacing the system home screen, or the resource list. On a Googlebook the device home screen is not offered and the in-app desktop is the default. |
+| Language/Язык/Мова | Opens a searchable list of the interface languages. On a Play install the chosen language is downloaded first; if it cannot be fetched, the app keeps the language it is using. The change takes effect at once, with no restart. |
+| Primary startup window | Selects what opens when Fast Media Sorter & Organizer launches or when the Home button is pressed: the device home screen, the in-app desktop without replacing the system home screen, or the resource list. On a Googlebook the device home screen is not offered and the in-app desktop is the default. |
 | System launcher settings | Opens the system launcher settings dialog for shaping the home-screen desktop, taskbar and grid density. |
 | Statistics | Opens the usage statistics screen. |
 | Power saving mode | Chooses when power saving mode is activated: off, on, or automatically when battery drops below 30%. |
+| Listen to commands from my other devices | Lets your other devices on this account send commands to this phone. It is off by default. Turning it on opens the device list in External control. |
 | Resource grid cell size | Sets how large the resource cells are in the resource list grid: small fits more resources per row, large makes each one bigger. |
 | Show resource actions in menu ⋮ | Off adds shortcut buttons for the frequent resource actions (edit, duplicate, move, delete) directly on the row. The ⋮ menu with the full action list is always available either way. |
 | Secure sensitive screens | Blocks screenshots and the Recents preview on screens that show passwords (add/edit resource, credentials in Settings, the login WebView, and the credential QR). On by default. |
@@ -302,10 +314,12 @@ _Available in: Standard, Legacy, VR, FOSS_
 | Mini-game | Enables the hidden mini-game built into the app. |
 | Calculator | Enables a quick-access calculator within the app. |
 | Allow copying | Shows Copy everywhere it appears - the bottom bar after a selection, the buttons and three-dots menu of a file, swipe actions, keyboard shortcuts and the player's copy panel. Off hides Copy in all of them. |
+| Send feedback | Adds the Send feedback program to the app's program menus, the quick-access panel, the launcher and the app-icon shortcuts. One form takes text, pictures from the clipboard, the gallery or the camera and a voice note, and sends them through Send to.. and, when a folder on the computer is chosen, into that folder as a task for the computer. It is off by default. |
 | FileDO encryption operations | Shows "Encrypt with FileDO" and "Decrypt with FileDO" in the operations menu of every file. Opening an .fd-sec file works whether this is on or off. |
 | Storage filler | Adds Storage filler to the programs list: it fills the free space of a chosen folder with temporary files and deletes them again. On by default. While files of an interrupted run remain, the program stays in the list until you delete them in it. |
 | Allow moving | Shows Move everywhere it appears - the bottom bar after a selection, the buttons and three-dots menu of a file, swipe actions, keyboard shortcuts and the player's move panel. Off hides Move in all of them. |
 | Network Monitor | Adds Network Monitor to the app's program menus and launcher surfaces. It is off by default and does not start any checks by itself. |
+| Notes | Adds the Notes program to the app's program menus, the quick-access panel, the launcher and the app-icon shortcuts. Notes lists every note with search, creates a new note in one tap and opens it in the text editor. It is off by default. |
 | Enable Safe Mode | Activates Safe Mode, which restricts destructive operations to prevent accidental file loss. |
 | Use scheduled operations | Master switch of the scheduled file operations program, the same setting as the switch on its own screen. When off, no operation runs on schedule; the operations stay saved and resume when it is switched on again. |
 | SOS emergency signal | Adds the SOS distress signal to the programs list: a loud Morse siren on the alarm channel, the rear flash and the screen strobing with it, and the same signal on the paired watch. |
@@ -335,7 +349,7 @@ _Available in: Standard, Legacy, VR, FOSS_
 | Enable video recording | Enables the built-in video recording feature. |
 | Open recorded video in player | Opens the recorded video in the player immediately after recording stops. |
 | Let my watch see my camera | Arms the phone camera for the paired watch: turning it on starts a camera session while the app is on screen, so a request from the watch meets a stream that already exists and needs no tap on the phone. Available in the sideload build only, which is the one allowed to keep the camera on air after the app leaves the screen. |
-| Water flashlight | Adds the water flashlight to the programs list: the camera flash and the screen light together, and only a hardware button closes it. |
+| Water flashlight | Adds the water flashlight to the programs list: the camera flash and screen light together with touch lock. Hold a volume button or press it three times to switch the light off. |
 
 ## Launcher
 
@@ -411,29 +425,29 @@ _Settings -> Destinations -> Configure gestures_
 | General gesture settings | Section header for the general edge-gesture settings - screenshot destination, clipboard copy, and the app-launch panel editor. |
 | Save screenshots to clipboard | Also copies every captured screenshot to the clipboard, ready to paste. |
 | Down gesture action | Assigns the action triggered by swiping down from the left edge's lower gesture zone. |
-| App to launch | Chooses the app or web address opened by swiping down in the left edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping down in the left edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer. |
 | Right gesture action | Assigns the action triggered by swiping right from the left edge's lower gesture zone. |
-| App to launch | Chooses the app or web address opened by swiping right in the left edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping right in the left edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer. |
 | Up gesture action | Assigns the action triggered by swiping up from the left edge's lower gesture zone. |
-| App to launch | Chooses the app or web address opened by swiping up in the left edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping up in the left edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer. |
 | Down gesture action | Assigns the action triggered by swiping down from the left edge's upper gesture zone. |
-| App to launch | Chooses the app or web address opened by swiping down in the left edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping down in the left edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer. |
 | Right gesture action | Assigns the action triggered by swiping right from the left edge's upper gesture zone. |
-| App to launch | Chooses the app or web address opened by swiping right in the left edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping right in the left edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer. |
 | Up gesture action | Assigns the action triggered by swiping up from the left edge's upper gesture zone. |
-| App to launch | Chooses the app or web address opened by swiping up in the left edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping up in the left edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer. |
 | Down gesture action | Assigns the action triggered by swiping down from the right edge's lower gesture zone. |
-| App to launch | Chooses the app or web address opened by swiping down in the right edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping down in the right edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer. |
 | Right gesture action | Assigns the action triggered by swiping right from the right edge's lower gesture zone. |
-| App to launch | Chooses the app or web address opened by swiping right in the right edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping right in the right edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer. |
 | Up gesture action | Assigns the action triggered by swiping up from the right edge's lower gesture zone. |
-| App to launch | Chooses the app or web address opened by swiping up in the right edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping up in the right edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer. |
 | Down gesture action | Assigns the action triggered by swiping down from the right edge's upper gesture zone. |
-| App to launch | Chooses the app or web address opened by swiping down in the right edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping down in the right edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer. |
 | Right gesture action | Assigns the action triggered by swiping right from the right edge's upper gesture zone. |
-| App to launch | Chooses the app or web address opened by swiping right in the right edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping right in the right edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer. |
 | Up gesture action | Assigns the action triggered by swiping up from the right edge's upper gesture zone. |
-| App to launch | Chooses the app or web address opened by swiping up in the right edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter. |
+| App to launch | Chooses the app or web address opened by swiping up in the right edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer. |
 | Left edge - lower band | Enables the edge-gesture zone at the left edge's lower band. |
 | Show the gesture strip | Shows the semi-transparent gesture-strip guide for the left edge's lower zone. |
 | Left edge - upper band | Enables the edge-gesture zone at the left edge's upper band. |
@@ -488,6 +502,14 @@ _Reached from Network Monitor -> Satellites, not from Settings._
 | Setting | What it does |
 |---|---|
 | Record the track on this device | Writes the satellite positions to a file on this device while the Network Monitor Satellites screen is open. Off after installation; the track never leaves the device and can be shared from that screen. |
+
+## Send feedback
+
+_Reached from the Send feedback program, not from Settings._
+
+| Setting | What it does |
+|---|---|
+| Folder on the computer | The folder on the computer that receives each feedback as a task packet, written through the folder access of the exchange server or any writable network folder. None sends the feedback through Send to.. only. The line under it shows what became of the last feedback sent there. |
 
 ## <img src="icons/doc/ic_watch.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Wear OS
 

@@ -51,6 +51,24 @@ class PermissionRegistryRepositoryImpl @Inject constructor(
             R.string.perm_rationale_location
         }
 
+    // S4670: the coarse row's wording follows the same split. On builds without the launcher and the
+    // Network Monitor the only coarse consumer is the geotag; extended builds also place the map
+    // gadgets with it (S4504 moved them to coarse), and their online-map queries are disclosed in the
+    // coarse paragraph instead of the fine one the map grant no longer rides.
+    private val locationCoarseDescRes =
+        if (locationServesMoreThanGeotag) {
+            R.string.perm_desc_access_coarse_location_extended
+        } else {
+            R.string.perm_desc_access_coarse_location
+        }
+
+    private val locationCoarseRationaleRes =
+        if (locationServesMoreThanGeotag) {
+            R.string.perm_rationale_access_coarse_location_extended
+        } else {
+            R.string.perm_rationale_access_coarse_location
+        }
+
     private val allEntries = listOf(
         // STORAGE
         PermissionEntry(
@@ -199,8 +217,9 @@ class PermissionRegistryRepositoryImpl @Inject constructor(
         // LOCATION
         // S0786: opt-in geotag for in-app photo/video capture (embedding done by S0766). Registered here
         // so the user can grant/deny it from onboarding and Settings, not only via system settings; when
-        // ungranted the capture simply carries no coordinates. Fine location drives an accurate geotag;
-        // the capture path accepts coarse too, so a coarse-only grant still works.
+        // ungranted the capture simply carries no coordinates.
+        // S4670: the geotag request itself is coarse (minimum scope for a one-time, user-initiated fix);
+        // the capture path accepts either grant, so a fine granted from this row only sharpens the fix.
         // S2013: the row keeps no build gate - the permission is declared and really used on all six
         // flavors. Only the wording varies, because only the set of consumers does.
         PermissionEntry(
@@ -219,14 +238,17 @@ class PermissionRegistryRepositoryImpl @Inject constructor(
         // from API 31 the platform ignores a fine-only request. Its own row also stops the list from
         // claiming location is ungranted when the user chose the approximate answer, which the geotag
         // path accepts.
+        // S4670: the geotag toggle asks coarse alone now - the minimum scope for a one-time,
+        // user-initiated fix - so this row also carries the paragraph that request shows.
         PermissionEntry(
             id = "access_coarse_location",
             manifestName = Manifest.permission.ACCESS_COARSE_LOCATION,
             titleRes = R.string.perm_title_access_coarse_location,
-            descriptionRes = R.string.perm_desc_access_coarse_location,
+            descriptionRes = locationCoarseDescRes,
             group = PermissionGroup.LOCATION,
             optional = true,
             minSdk = 23,
+            rationaleRes = locationCoarseRationaleRes,
         ),
         // MICROPHONE
         PermissionEntry(

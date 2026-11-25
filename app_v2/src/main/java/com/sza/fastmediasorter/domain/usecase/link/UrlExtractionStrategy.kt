@@ -39,9 +39,10 @@ sealed interface OpenResult {
 
     /**
      * Returned when a known auth-sensitive host yielded only preview metadata,
-     * but no real downloadable media.
+     * but no real downloadable media. [sessionRefused] is true when the site answered the stored
+     * session with a login refusal, so the session cannot be presented as a live sign-in.
      */
-    data class SocialPreviewOnly(val host: String) : OpenResult
+    data class SocialPreviewOnly(val host: String, val sessionRefused: Boolean = false) : OpenResult
 
     data class NotFound(val reason: String) : OpenResult
     data class Blocked(val reason: BlockedReason) : OpenResult

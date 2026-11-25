@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Download-Organizer (Quick Sort) - FastMediaSorter v2"
+title: "Download-Organizer (Quick Sort) - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-download-organizer-de.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -11,7 +11,7 @@ permalink: /docs/howto/scenario-download-organizer-de.html
 
 > **Niveau:** Anfänger &bull; **Edition:** Beliebig (Standard, Lite, Photos, Legacy, VR, noLegal)
 
-**Quick Sort** ist die Vorzeigefunktion von FastMediaSorter: Richten Sie Ihre Ordner einmal ein und sortieren Sie danach Hunderte von Dateien, indem Sie einfach eine Zahl antippen. Kein Drag-and-Drop. Keine Menüs. Einfach **1**, **2** oder **3** antippen - und die Datei ist am richtigen Ort.
+**Quick Sort** ist die Vorzeigefunktion von Fast Media Sorter & Organizer: Richten Sie Ihre Ordner einmal ein und sortieren Sie danach Hunderte von Dateien, indem Sie einfach eine Zahl antippen. Kein Drag-and-Drop. Keine Menüs. Einfach **1**, **2** oder **3** antippen - und die Datei ist am richtigen Ort.
 
 **Reales Beispiel:** Sie haben 200 Dateien in Ihrem Download-Ordner - Screenshots, Arbeitsdokumente, Familienfotos, Memes, Quittungen. Mit Quick Sort können Sie alle 200 in etwa 5 Minuten sortieren. Ohne es - viel Glück.
 
@@ -38,7 +38,7 @@ Der Ordner erscheint als Karte auf dem Hauptbildschirm.
 
 > **Der Downloads-Ordner ist der Ort, an dem Ihr Browser, Telegram, WhatsApp und andere Apps Dateien speichern.** Das ist meist der unordentlichste Ort auf jedem Handy.
 
-![FastMediaSorter Hauptbildschirm - Downloads-Ressourcenkarte hinzugefügt, Lokal-Abzeichen sichtbar](screenshots/screenshot-dl-step1.png)
+![Fast Media Sorter & Organizer Hauptbildschirm - Downloads-Ressourcenkarte hinzugefügt, Lokal-Abzeichen sichtbar](screenshots/screenshot-dl-step1.png)
 
 ---
 
@@ -52,12 +52,12 @@ Denken Sie an physische Ordner auf Ihrem Schreibtisch. Beispiele:
 - **Behalten** - Dinge, die langfristig aufbewahrenswert sind
 - **Papierkorb** - Dateien zum Löschen nach der Durchsicht
 
-**Sie können diese Ordner direkt in FastMediaSorter erstellen:**
+**Sie können diese Ordner direkt in Fast Media Sorter & Organizer erstellen:**
 1. Öffnen Sie die Downloads-Ressource
 2. Tippen Sie auf die Schaltfläche **Menü <img src="../icons/doc/ic_more_vert.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** → **Ordner erstellen**
 3. Geben Sie den Ordnernamen ein → tippen Sie auf **OK**
 
-Oder erstellen Sie die Ordner in der normalen Dateiverwaltung Ihres Handys - sie erscheinen automatisch in FastMediaSorter.
+Oder erstellen Sie die Ordner in der normalen Dateiverwaltung Ihres Handys - sie erscheinen automatisch in Fast Media Sorter & Organizer.
 
 ---
 

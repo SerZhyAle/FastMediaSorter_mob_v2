@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.domain.delivery.DeliverableCapability
 import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -45,9 +46,14 @@ class DeliverableCapabilityRepositoryImpl @Inject constructor(
     }
 
     override suspend fun uninstall(set: DeliverableSet) {
-        markerStore.deletePayload(set)
-        markerStore.setInstalled(set, false)
-        markerStore.clearStamp(set)
+        // The three steps run to the end even if the caller goes away between them (a Remove tap followed by
+        // leaving the screen): a stamp left behind without its payload is the S1200 hazard. The recursive
+        // delete is disk work, and the caller may sit on the main dispatcher.
+        withContext(NonCancellable) {
+            withContext(Dispatchers.IO) { markerStore.deletePayload(set) }
+            markerStore.setInstalled(set, false)
+            markerStore.clearStamp(set)
+        }
     }
 
     override suspend fun isStale(set: DeliverableSet, expectedStamp: String): Boolean {

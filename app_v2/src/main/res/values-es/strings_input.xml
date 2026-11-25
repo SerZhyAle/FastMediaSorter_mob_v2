@@ -262,4 +262,10 @@
     <string name="kbm_help_player_audio_track">Siguiente pista de audio</string>
     <string name="kbm_help_player_slideshow">Presentación (S de nuevo: más rápida) / presentación aleatoria</string>
     <string name="kbm_help_player_space">Reproducir / pausar un vídeo; archivo siguiente en una foto</string>
+    <string name="keybinding_label_playback_ab_loop">Bucle A-B</string>
+    <string name="keybinding_label_navigation_file_grid">Cuadrícula de miniaturas</string>
+    <string name="keybinding_label_navigation_file_list">Lista de archivos</string>
+    <string name="keybinding_label_navigation_file_number">Ir al archivo</string>
+    <string name="keybinding_label_player_black_screen">Pantalla negra</string>
+    <string name="keybinding_label_sorting_create_text_note">Crear nota de texto</string>
 </resources>

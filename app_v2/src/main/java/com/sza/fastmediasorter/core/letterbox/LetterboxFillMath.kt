@@ -6,7 +6,7 @@ import kotlin.math.min
 import kotlin.math.pow
 
 /**
- * The numbers of the LETTERBOX-BARS 0.1 and LETTERBOX-HALO 0.1 contracts, with no drawing API behind
+ * The numbers of the LETTERBOX-BARS 0.2 and LETTERBOX-HALO 0.2 contracts, with no drawing API behind
  * them, so every value can be held to the catalog's vectors by a plain JVM test.
  *
  * Rounding is part of the contract: every "round" below is half to EVEN ([Math.rint]). Kotlin's
@@ -63,7 +63,6 @@ object LetterboxFillMath {
     private const val CHANNEL_MAX = 255
     private const val ALPHA_MAX = 255.0
     private const val PERCENT = 100.0
-    private const val STOP_POSITION_DECIMALS = 6
     private const val FAST_DIVISOR = 4.0
     private const val MEDIUM_DIVISOR = 2.0
     private const val SHIFT_RED = 16
@@ -238,13 +237,8 @@ object LetterboxFillMath {
     /** Rule 3. Pixels of a bar of length [barLength] the ramp covers at eased growth [eased]. */
     fun haloReach(barLength: Int, eased: Double): Int = floor(barLength * eased.coerceIn(0.0, 1.0)).toInt()
 
-    /**
-     * Rule 2. Stop positions, rounded to six decimals exactly as the catalog's stop table publishes them,
-     * so interpolation between them reproduces the vectors' alpha rows to the fourth decimal.
-     */
-    val haloStopPositions: DoubleArray = DoubleArray(BLEND_STOPS) { j ->
-        roundDecimals(j / (BLEND_STOPS - 1.0), STOP_POSITION_DECIMALS)
-    }
+    /** Rule 2. Stop positions, exactly `j/11`: the catalog's 0.2 stop table is not rounded. */
+    val haloStopPositions: DoubleArray = DoubleArray(BLEND_STOPS) { j -> j / (BLEND_STOPS - 1.0) }
 
     /** Rule 2. Background alpha at each stop: `round(255 * (j/11)^1.4)`, half to even. */
     val haloStopAlphas: IntArray = IntArray(BLEND_STOPS) { j ->

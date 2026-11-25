@@ -235,6 +235,7 @@ class ScreenVideoRecordingService : Service() {
             return
         }
         pendingSaves++
+        showSavingNotification()
         serviceScope.launch { saveRecording(tempFile) }
     }
 
@@ -402,7 +403,13 @@ class ScreenVideoRecordingService : Service() {
     }
 
     private fun finishServiceIfIdle() {
-        if (isRecording || pendingSaves > 0) return
+        if (isRecording) return
+        if (pendingSaves > 0) {
+            // A failed newer recording leaves its own "recording" notification posted while an older
+            // save still runs; repaint it so no recording is announced after the encoder is gone.
+            showSavingNotification()
+            return
+        }
         stopForegroundCompat()
         stopSelf()
     }
@@ -454,6 +461,30 @@ class ScreenVideoRecordingService : Service() {
             .addAction(0, getString(R.string.screen_recording_notification_stop), stopPending)
             .build()
     }
+
+    /**
+     * Repaints the ongoing notification once the encoder is released: it must stop announcing a live
+     * recording (and offering Pause/Stop) while the finished MP4 is still being copied. Same id and
+     * channel, so it replaces the recording notification in place and the service stays foreground.
+     * A revoked POST_NOTIFICATIONS only costs the repaint; the save itself is unaffected.
+     */
+    private fun showSavingNotification() {
+        try {
+            NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, buildSavingNotification())
+        } catch (e: SecurityException) {
+            Timber.i(e, "ScreenVideoRecordingService: saving notification skipped - POST_NOTIFICATIONS revoked")
+        }
+    }
+
+    private fun buildSavingNotification(): Notification =
+        NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(NotificationIcons.STATUS_BAR)
+            .setContentTitle(getString(R.string.screen_recording_notification_saving_title))
+            .setContentText(getString(R.string.screen_recording_notification_saving_text))
+            .setProgress(0, 0, true)
+            .setOngoing(true)
+            .setSilent(true)
+            .build()
 
     private fun servicePendingIntent(serviceAction: String, requestCode: Int): PendingIntent {
         val intent = Intent(this, ScreenVideoRecordingService::class.java).apply { action = serviceAction }

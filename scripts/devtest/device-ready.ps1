@@ -134,6 +134,7 @@ $ErrorActionPreference = 'Stop'
 
 . "$PSScriptRoot/lib/device-form-factor.ps1"
 . "$PSScriptRoot/lib/device-store-paths.ps1"
+. "$PSScriptRoot/lib/device-lease-client.ps1"
 
 # ---------- helpers ----------
 
@@ -145,6 +146,8 @@ $script:result = [ordered]@{
     adbPath         = $null
     devices         = @()
     selectedDevice  = $null
+    leaseKeys       = @()
+    newLeaseKeys    = @()
     formFactor      = $null
     module          = if ($Module) { $Module } else { $null }
     package         = $Package
@@ -333,8 +336,8 @@ if ($LASTEXITCODE -ne 0) { Stop-NotReady 1 'no-adb' "adb devices returned exit $
 # parse skipping the "List of devices attached" header
 $lines = $raw -split "`r?`n" | Where-Object { $_ -and $_ -notmatch '^\s*List of devices' }
 $devices = foreach ($line in $lines) {
-    $parts = ($line -split "\s+", 2) | Where-Object { $_ }
-    if ($parts.Count -ge 2 -and $parts[1] -eq 'device') {
+    $parts = ($line -split "\t", 2) | Where-Object { $_ }
+    if ($parts.Count -ge 2 -and $parts[1].Trim() -eq 'device') {
         [pscustomobject]@{ id = $parts[0]; state = $parts[1] }
     }
 }
@@ -361,17 +364,15 @@ function Get-DevicePreferenceOrder {
 }
 
 function Request-DeviceLease {
-    <#
-        Returns $true when this session now holds the lease on $Serial. Exit 3 is the normal "a
-        sibling got there first" answer, not a fault. A missing lease script is not fatal either:
-        the probe still worked before the lease existed, and refusing to answer because an optional
-        coordination file is absent would be worse than the conflict it prevents.
-    #>
     param([Parameter(Mandatory)][string]$Serial)
-    $leaseScript = Join-Path $PSScriptRoot 'device-lease.ps1'
-    if (-not (Test-Path -LiteralPath $leaseScript)) { return $true }
-    & pwsh -NoProfile -File $leaseScript -Verb Claim -Id $Serial -Reason 'device-ready' *> $null
-    return ($LASTEXITCODE -eq 0)
+    $keys = @(Get-FmsDeviceLeaseKeys -Adb $adb -Serial $Serial -OnlineSerials $devices.id)
+    if ($keys.Count -eq 0) { return $false }
+    try { $claim = Request-FmsDeviceLease -Keys $keys -Reason 'device-ready' }
+    catch { Stop-NotReady 7 'lease-error' $_.Exception.Message }
+    if (-not $claim.Acquired) { return $false }
+    $script:result.leaseKeys = $keys
+    $script:result.newLeaseKeys = $claim.NewKeys
+    return $true
 }
 
 # ---------- step 2b: form factor (S2600) ----------
@@ -398,6 +399,7 @@ if ($Module) {
 
 # Reached only after the device list and every form factor were measured THIS run, so a reused
 # answer can no longer name a device the probe did not see, nor one the caller's -Module excludes.
+try {
 $reuse = Get-ReuseCandidate
 if ($null -ne $reuse) {
     $reuseDevice = $candidates | Where-Object { $_.id -eq $reuse.serial } | Select-Object -First 1
@@ -562,3 +564,7 @@ try {
     }
 } catch { }
 exit 0
+}
+finally {
+    if (-not $script:result.ready) { Release-FmsDeviceLease -Keys $script:result.newLeaseKeys }
+}

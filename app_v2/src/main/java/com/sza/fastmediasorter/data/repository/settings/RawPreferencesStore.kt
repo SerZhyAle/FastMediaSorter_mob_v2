@@ -47,11 +47,18 @@ object RawPreferencesStore {
      * token and the folder PIN are encrypted with a key that never leaves the phone and the owner's rule is
      * that neither reaches a backup at all; a family named here is excluded as a whole, so a new member of
      * it needs no edit.
+     *
+     * S4794: the e2e key ciphertext and the trust lists share this DataStore. Restoring a trust list would
+     * make the receiving phone trust sender keys it never saw, so the whole family stays on its own device
+     * in export and in restore alike.
      */
     private val EXCLUDED_PREFIXES = listOf(
         "device_exchange_token_",
         "exchange_resource_pin_",
-        "exchange_grant_password_"
+        "exchange_grant_password_",
+        "device_exchange_e2e_key_",
+        "device_exchange_e2e_trusted_",
+        "device_exchange_e2e_grant_senders_"
     )
 
     private fun isExcluded(name: String): Boolean =

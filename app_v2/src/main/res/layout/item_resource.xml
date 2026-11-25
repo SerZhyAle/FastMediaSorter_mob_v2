@@ -43,7 +43,7 @@
             android:textSize="@dimen/item_title_text_size"
             android:textStyle="bold"
             app:layout_constrainedWidth="true"
-            app:layout_constraintEnd_toStartOf="@+id/barrierRight"
+            app:layout_constraintEnd_toStartOf="@+id/barrierNameEnd"
             app:layout_constraintHorizontal_bias="0"
             app:layout_constraintStart_toEndOf="@+id/ivResourceTypeIcon"
             app:layout_constraintTop_toTopOf="parent"
@@ -246,6 +246,18 @@
             app:barrierAllowsGoneWidgets="false"
             app:barrierDirection="start"
             app:constraint_referenced_ids="tvFileCount,tvResourceType,tvMediaTypes,tvDestinationBadge,tvDestinationMark,tvWritableIndicator,tvAvailabilityIndicator,layoutInlineActions,ivDragHandle,btnMoreActions" />
+
+        <!-- S4827: the name shares line one only with the counter column and the status widgets, so it stops at
+             the leftmost of those. The type chip and media-type marker sit on line two and are left out; with
+             them in barrierRight the name column shrank to about one syllable on a 720 px phone and broke
+             mid-word. -->
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/barrierNameEnd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:barrierAllowsGoneWidgets="false"
+            app:barrierDirection="start"
+            app:constraint_referenced_ids="tvFileCount,tvDestinationBadge,tvDestinationMark,tvWritableIndicator,tvAvailabilityIndicator,layoutInlineActions,ivDragHandle,btnMoreActions" />
 
         <!-- S4354: the comment and last-sync lines start below the lowest of the icon, the address and the
              right-hand cluster, so they can use the whole row width instead of the strip left of barrierRight.

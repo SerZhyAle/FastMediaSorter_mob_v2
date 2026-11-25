@@ -12,7 +12,7 @@ availability_note: The full version of the watch app (sideload only) - the Googl
 recipe_number: "07"
 canonical_url: documentation/wear/watch-players-and-viewers.html
 why: |
-  Opening a photo, a video or a song on a watch this small only works if the controls get out of the way until you actually need them, and stay reachable with one thumb when you do. FastMediaSorter's three watch players - the [image viewer](term:image-viewer), the [video player](term:video-player) and the [audio player](term:audio-player) - are built around that: tap zones instead of a screen full of buttons, the rotary crown or bezel doing the one thing you would reach for anyway, and a control row that reshapes itself to the size of your particular watch.
+  Opening a photo, a video or a song on a watch this small only works if the controls get out of the way until you actually need them, and stay reachable with one thumb when you do. Fast Media Sorter & Organizer's three watch players - the [image viewer](term:image-viewer), the [video player](term:video-player) and the [audio player](term:audio-player) - are built around that: tap zones instead of a screen full of buttons, the rotary crown or bezel doing the one thing you would reach for anyway, and a control row that reshapes itself to the size of your particular watch.
 
   This recipe covers all three players, plus the on-watch document reader and sending what's on the watch to a TV.
 ingredients:

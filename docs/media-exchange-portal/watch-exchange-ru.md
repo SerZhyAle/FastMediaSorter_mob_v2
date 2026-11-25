@@ -1,11 +1,12 @@
 ---
+source_sha256: ad9edd9a56fde229dcb7e59e9441bfb8edec6730b3b912d5f90098473c297307
 layout: doc
 title: "Часы в вашем аккаунте: через телефон и без него"
 description: "Как часы Wear OS входят в ваш аккаунт обмена с телефона, а потом открывают ваши папки, воспроизводят и вещают звук, принимают cast и отправляют файлы по собственным Wi-Fi или LTE - и для чего ещё нужны Bluetooth и телефон."
 category: "Обмен медиа"
 permalink: /docs/media-exchange-portal/watch-exchange-ru.html
 ---
-<sub class="doc-stamp">26.10.23 14:53</sub>
+<sub class="doc-stamp">26.11.15 15:28</sub>
 
 # Часы в вашем аккаунте
 
@@ -15,7 +16,7 @@ permalink: /docs/media-exchange-portal/watch-exchange-ru.html
 
 ## Прежде чем начать
 
-- **Приложение для часов, сопряжённое с телефоном**, см. [Установка FastMediaSorter на часы](../../documentation/wear/installation-and-pairing-ru.html).
+- **Приложение для часов, сопряжённое с телефоном**, см. [Установка Fast Media Sorter & Organizer на часы](../../documentation/wear/installation-and-pairing-ru.html).
 - **Компаньон для часов включён** в **Настройках** телефона; иначе телефон ответит «Компаньон для часов выключен».
 - **Сервер обмена добавлен и выполнен вход на телефоне**, см. [Добавление сервера обмена в «Мои устройства»](my-devices-ru.html).
 

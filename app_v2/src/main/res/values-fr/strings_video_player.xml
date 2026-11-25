@@ -103,4 +103,7 @@
     <string name="player_action_unavailable">Cette action n\'est pas disponible pour ce fichier.</string>
     <string name="player_audio_track_single">Aucune autre piste audio n\'est disponible.</string>
     <string name="player_frame_backward">Image précédente</string>
+    <string name="playback_control_low_speed_mute_title">Lecture lente</string>
+    <string name="playback_control_low_speed_mute_message">L\'audio en dessous de 0.5x est difficile à distinguer. Couper le son ?</string>
+    <string name="playback_control_low_speed_mute_cancel">Garder le son</string>
 </resources>

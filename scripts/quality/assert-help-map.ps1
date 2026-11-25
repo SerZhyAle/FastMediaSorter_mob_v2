@@ -18,6 +18,8 @@
       SCRIPT         - a `<script` element in a page (rule 12, rung 1);
       REMOTE-URL     - an http(s) URL a page would load: in a src/srcset/poster attribute, in an href of any
                        element other than <a>, or in a CSS url(); an <a href> is a link the user leaves by and is allowed;
+      PAGE-SHAPE     - a page missing lang or dir, the no-referrer meta, an h1, the footer, or (any page but the index)
+                       the order list or note, the related list or the elements, or an <img> without alt text (rule 8);
       STALE-BASELINE - a baseline row whose surface now has a map row or is no longer enumerated, so the debt
                        only falls (CHECK-BASELINE).
 
@@ -254,6 +256,21 @@ foreach ($file in $pageFiles) {
             Add-Finding 'BROKEN-LINK' "${rel}: '$target' names a fragment the target page lacks"
         }
     }
+    # Rules 8, 12 and 13: the anatomy every generated page has.
+    $shape = [System.Collections.Generic.List[string]]::new()
+    if ($html -notmatch '<html lang="[a-z]{2,3}(-[A-Za-z0-9]+)*" dir="(ltr|rtl)"') { $shape.Add('lang and dir on <html>') }
+    if ($html -notmatch '<meta name="referrer" content="no-referrer">') { $shape.Add('the no-referrer meta') }
+    if ($html -notmatch '<h1>') { $shape.Add('the title (h1)') }
+    if ($html -notmatch 'class="help-foot"') { $shape.Add('the footer') }
+    if ($file.Name -ne 'index.html') {
+        if ($html -notmatch 'class="order"|class="order-note"') { $shape.Add('the order list or its note') }
+        if ($html -notmatch 'class="related"') { $shape.Add('the related list') }
+        if ($html -notmatch 'class="elements"') { $shape.Add('the elements') }
+    }
+    foreach ($img in [regex]::Matches($html, '(?i)<img\b[^>]*>')) {
+        if ($img.Value -notmatch '(?i)\balt="[^"]+"') { $shape.Add('alt text on an image') }
+    }
+    foreach ($part in ($shape | Select-Object -Unique)) { Add-Finding 'PAGE-SHAPE' "${rel}: missing $part" }
 }
 
 if ($findings.Count -eq 0) {

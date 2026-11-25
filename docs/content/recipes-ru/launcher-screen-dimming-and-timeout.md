@@ -11,7 +11,7 @@ canonical_url: documentation/launcher/screen-dimming-and-timeout-ru.html
 why: |
   Планшет в режиме настенной фоторамки, экран автомагнитолы, который никогда не должен гаснуть в пути, или телефон на прикроватной тумбочке, светящий в темноте: встроенный таймер отключения экрана лаунчера управляет питанием дисплея без необходимости каждый раз нажимать кнопку блокировки вручную.
 ingredients:
-  - "FastMediaSorter в [редакции Standard](term:standard-edition) или [noLegal](term:nolegal-edition) с открытым [рабочим столом](term:desktop) [лаунчера](term:launcher) (см. [Рабочий стол лаунчера](page:launcher.desktop-grid-and-icons))."
+  - "Fast Media Sorter & Organizer в [редакции Standard](term:standard-edition) или [noLegal](term:nolegal-edition) с открытым [рабочим столом](term:desktop) [лаунчера](term:launcher) (см. [Рабочий стол лаунчера](page:launcher.desktop-grid-and-icons))."
 steps:
   - number: 1
     id: set-timeout

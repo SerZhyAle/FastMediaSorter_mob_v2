@@ -6,14 +6,17 @@ import com.sza.fastmediasorter.data.broadcast.BroadcastAuthDto
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorDto
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointCodec
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointDto
+import com.sza.fastmediasorter.data.broadcast.BroadcastPendingDto
 import com.sza.fastmediasorter.data.broadcast.auth.BroadcastCredentialRegistry
 import com.sza.fastmediasorter.data.broadcast.exchange.ExchangeBroadcastAnnouncer
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.domain.model.WearBroadcastPass
 import com.sza.fastmediasorter.domain.repository.BroadcastPasswordStore
+import com.sza.fastmediasorter.domain.repository.BroadcastPendingStore
 import timber.log.Timber
 import java.net.URI
 import java.net.URISyntaxException
+import java.time.Instant
 import javax.inject.Inject
 
 /**
@@ -25,6 +28,7 @@ class BuildWatchBroadcastHandoffUseCase @Inject constructor(
     private val passwordStore: BroadcastPasswordStore,
     private val announcer: ExchangeBroadcastAnnouncer,
     private val credentialRegistry: BroadcastCredentialRegistry,
+    private val pendingStore: BroadcastPendingStore,
     private val gson: Gson,
 ) {
 
@@ -63,6 +67,10 @@ class BuildWatchBroadcastHandoffUseCase @Inject constructor(
                     mode = mode,
                     endpoints = endpoints,
                     auth = pair?.let { BroadcastAuthDto(user = it.user) },
+                    // S4692, LIVE-BROADCAST item S: a row still waiting for its start tells the watch until when.
+                    pending = pendingStore.untilMs(source.id)?.let {
+                        BroadcastPendingDto(until = Instant.ofEpochMilli(it).toString())
+                    },
                 )
                 Result.Handoff(
                     broadcastId = relayBroadcastId(endpoints),

@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Se connecter à un NAS / partage Windows (SMB) - FastMediaSorter v2"
+title: "Se connecter à un NAS / partage Windows (SMB) - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-smb-setup-fr.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -13,7 +13,7 @@ permalink: /docs/howto/scenario-smb-setup-fr.html
 
 Le SMB (aussi appelé partage de fichiers Windows ou CIFS) vous permet de parcourir les fichiers de votre PC, portable ou appareil NAS à la maison exactement comme s'ils étaient sur votre téléphone - sans câbles, sans USB, juste le Wi-Fi.
 
-> **Explication en langage simple :** imaginez que votre PC ait un tableau d'affichage public sur votre Wi-Fi domestique. N'importe quel appareil de la maison peut lire ce tableau. FastMediaSorter se connecte à ce "tableau" (votre dossier partagé) et vous permet de parcourir vos fichiers comme s'ils étaient stockés directement sur votre téléphone. Rien n'est copié ni téléchargé au préalable - les fichiers s'ouvrent à la demande.
+> **Explication en langage simple :** imaginez que votre PC ait un tableau d'affichage public sur votre Wi-Fi domestique. N'importe quel appareil de la maison peut lire ce tableau. Fast Media Sorter & Organizer se connecte à ce "tableau" (votre dossier partagé) et vous permet de parcourir vos fichiers comme s'ils étaient stockés directement sur votre téléphone. Rien n'est copié ni téléchargé au préalable - les fichiers s'ouvrent à la demande.
 
 ---
 
@@ -67,12 +67,14 @@ Sous **Windows :**
 
 ---
 
-## Étape 3 - Ouvrir FastMediaSorter et appuyer sur "+"
+<a id="étape-3---ouvrir-fastmediasorter-et-appuyer-sur-"></a>
+
+## Étape 3 - Ouvrir Fast Media Sorter & Organizer et appuyer sur "+"
 
 1. Ouvrez l'application
 2. Sur l'**écran principal**, appuyez sur le bouton **"Ajouter" <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** dans la barre d'outils supérieure
 
-![FastMediaSorter main screen - Add button highlighted in top toolbar, SMB tab visible](screenshots/screenshot-smb-step3.png)
+![Fast Media Sorter & Organizer main screen - Add button highlighted in top toolbar, SMB tab visible](screenshots/screenshot-smb-step3.png)
 
 ---
 
@@ -147,7 +149,7 @@ Appuyez sur **"Enregistrer"**. Le nouveau dossier apparaît sur l'écran princip
 
 Appuyez dessus pour parcourir son contenu - photos, vidéos et autres fichiers apparaissent sous forme de miniatures comme n'importe quel dossier local.
 
-![FastMediaSorter main screen - new "Common" SMB resource card (smb://192.168.1.100/Common) with Network folder SMB badge highlighted](screenshots/screenshot-smb-step8.png)
+![Fast Media Sorter & Organizer main screen - new "Common" SMB resource card (smb://192.168.1.100/Common) with Network folder SMB badge highlighted](screenshots/screenshot-smb-step8.png)
 
 ---
 

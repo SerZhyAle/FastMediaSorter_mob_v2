@@ -19,11 +19,13 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <!-- Icon on the left, vertically centred -->
+        <!-- Icon on the left, vertically centred. The start margin keeps it off the edge of the
+             tinted layoutContent panel, which carries no padding of its own. -->
         <ImageView
             android:id="@+id/ivIcon"
             android:layout_width="@dimen/welcome_icon_size"
             android:layout_height="@dimen/welcome_icon_size"
+            android:layout_marginStart="@dimen/margin_large"
             android:contentDescription="@string/app_name"
             android:scaleType="fitCenter"
             android:src="@mipmap/ic_launcher"

@@ -14,7 +14,6 @@ import com.sza.fastmediasorter.wear.domain.model.WearServerClipboardFailure
 import com.sza.fastmediasorter.wear.domain.model.WearServerClipboardKind
 import com.sza.fastmediasorter.wear.domain.model.WearServerClipboardOffer
 import com.sza.fastmediasorter.wear.domain.model.WearServerClipboardValue
-import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.awaitCancellation
@@ -200,7 +199,7 @@ class WearServerClipboardClient @Inject constructor(
         val ready = awaitAnswer(session, WearExchangeEnvelope.TYPE_CLIPBOARD_READY)
         return if (ready.type == WearExchangeEnvelope.TYPE_CLIPBOARD_READY) {
             val clear = E2eDigestInputStream(source, size, MessageDigest.getInstance(SHA_256), onProgress)
-        val context = coroutineContext
+            val context = currentCoroutineContext()
             val sent = E2eSegmentStream.seal(clear, session.connection.output, valueKey) {
                 context.ensureActive()
             }
@@ -270,7 +269,7 @@ class WearServerClipboardClient @Inject constructor(
         val input = E2eDigestInputStream(session.connection.input, read.sealedSize, sealedDigest, onProgress)
         val clearDigest = MessageDigest.getInstance(SHA_256)
         val target = SinkStream(DigestOutputStream(sink, clearDigest))
-        val context = coroutineContext
+        val context = currentCoroutineContext()
         val opened = try {
             E2eSegmentStream.open(input, target, E2eSegmentStream.valueKey(read.contentKey)) {
                 context.ensureActive()

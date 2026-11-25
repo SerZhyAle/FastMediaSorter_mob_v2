@@ -29,6 +29,8 @@
                 android:textSize="@dimen/text_size_title_dialog"
                 android:textStyle="bold" />
 
+            <include layout="@layout/view_dialog_help_button" />
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnClose"
                 style="@style/Widget.FastMediaSorter.Button.DialogCancel"

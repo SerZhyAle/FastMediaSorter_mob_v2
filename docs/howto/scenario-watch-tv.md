@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Watch TV Channels on Your Smartwatch - FastMediaSorter v2"
+title: "Watch TV Channels on Your Smartwatch - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-watch-tv.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -21,7 +21,7 @@ FastMedia Wear plays live TV and radio channels straight on your wrist. The watc
 
 - A smartwatch running **Wear OS 2.0** or newer with FastMedia Wear installed
 - A Wi-Fi network the watch can join, or a paired phone to relay the connection
-- Optional: FastMediaSorter on your Android phone, if you want to send your own channels to the watch
+- Optional: Fast Media Sorter & Organizer on your Android phone, if you want to send your own channels to the watch
 
 ---
 
@@ -45,7 +45,7 @@ A fresh install has no channels yet, and the screen says so.
 There are two ways to fill it, and they work together:
 
 - **Download the shared catalogue.** Tap **Refresh catalog**. The watch fetches the published channel bank in one archive - many thousands of TV and radio channels with their topics, languages and countries.
-- **Send channels from your phone.** A channel you added yourself in FastMediaSorter on the phone can be pushed across with **Send to watch** from the phone's stream list. Channels you pin on the phone are also raised towards the top of the watch's list, just behind the ones you pinned on the watch itself, so the two or three you actually watch are reachable without scrolling. Unpinning on the phone withdraws the channel from that group again, and a channel the watch's own catalogue does not carry is simply skipped.
+- **Send channels from your phone.** A channel you added yourself in Fast Media Sorter & Organizer on the phone can be pushed across with **Send to watch** from the phone's stream list. Channels you pin on the phone are also raised towards the top of the watch's list, just behind the ones you pinned on the watch itself, so the two or three you actually watch are reachable without scrolling. Unpinning on the phone withdraws the channel from that group again, and a channel the watch's own catalogue does not carry is simply skipped.
 
 Channels sent from the phone survive a catalogue refresh - the refresh replaces the shared bank and leaves your own rows alone.
 

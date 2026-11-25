@@ -10,11 +10,11 @@ availability: SUPPORT_STREAMS
 recipe_number: "05"
 canonical_url: documentation/streams/live-stream-playback.html
 why: |
-  Some things are never saved as a file: the morning show on your favorite radio station, the news channel, a webcam looking at a harbor. A [stream](term:stream) is that kind of live feed, and FastMediaSorter plays it straight from its web address.
+  Some things are never saved as a file: the morning show on your favorite radio station, the news channel, a webcam looking at a harbor. A [stream](term:stream) is that kind of live feed, and Fast Media Sorter & Organizer plays it straight from its web address.
 
   This recipe is about the moment after you have found a [channel](term:channel): tapping it, listening while you do something else, watching a video channel full screen, and knowing what the app is doing when the sound goes quiet. Radio plays right inside the [Streams](term:streams-screen) list, so you can keep scrolling and pick the next station while the current one plays.
 ingredients:
-  - "FastMediaSorter in the Standard, noLegal, Legacy or VR [edition](term:edition). Streams do not exist in the Lite, Photos or FOSS editions."
+  - "Fast Media Sorter & Organizer in the Standard, noLegal, Legacy or VR [edition](term:edition). Streams do not exist in the Lite, Photos or FOSS editions."
   - "Streams turned on: **Settings**, the **Media** tab, section **Streams**, switch **Enable Streams**. A [device profile](term:device-profile) chosen in the [welcome wizard](term:welcome-wizard) may have turned it on already, and the wizard has its own Streams page. The list of catalog sources can also be downloaded from the **Extensions** screen."
   - "At least one channel in the list - from the [catalog](term:catalog) or added by you. See [browsing the channel catalog](page:streams.channel-catalog-browsing) and [adding your own streams](page:streams.custom-m3u-playlists)."
   - "An internet connection: Wi-Fi or mobile data."
@@ -35,7 +35,7 @@ steps:
 
       To stop, tap **Stop** - or simply tap the same channel again. One tap starts it, the next tap stops it, even if you tap twice quickly while the station is still connecting.
 
-      Many stations send the artist and title of the song that is playing. FastMediaSorter shows it in the bottom bar, in the notification, on the lock screen and on the channel's tile while it plays. This is the [now-playing](term:now-playing) information.
+      Many stations send the artist and title of the song that is playing. Fast Media Sorter & Organizer shows it in the bottom bar, in the notification, on the lock screen and on the channel's tile while it plays. This is the [now-playing](term:now-playing) information.
     image_bookmark:
       shot_id: streams.inline-radio-bar
       device_profile: phone
@@ -125,12 +125,12 @@ steps:
     id: resume-on-launch
     title: Pick up where you left off
     text: |
-      If a radio station was playing when you closed the app, it starts again the next time you open FastMediaSorter - handy for a station you listen to every morning. A video channel, or a Streams screen with nothing playing, leaves nothing to resume.
+      If a radio station was playing when you closed the app, it starts again the next time you open Fast Media Sorter & Organizer - handy for a station you listen to every morning. A video channel, or a Streams screen with nothing playing, leaves nothing to resume.
 outcome: |
   Radio plays inside the list with the current song in view, video channels fill the screen with only the controls that make sense for live TV, and the music carries on in your pocket until you stop it.
 tips:
-  - "**Nothing happens and a message says there is no network?** FastMediaSorter checks the connection before it starts a stream. With no Wi-Fi and no mobile data it says so at once instead of spinning. Connect and tap the channel again."
-  - "**The station stops when the screen turns off?** Check that **Background Playback** is on and that the app may show notifications. Some phones also stop background apps to save battery; allow FastMediaSorter to run without battery restrictions in the Android settings."
+  - "**Nothing happens and a message says there is no network?** Fast Media Sorter & Organizer checks the connection before it starts a stream. With no Wi-Fi and no mobile data it says so at once instead of spinning. Connect and tap the channel again."
+  - "**The station stops when the screen turns off?** Check that **Background Playback** is on and that the app may show notifications. Some phones also stop background apps to save battery; allow Fast Media Sorter & Organizer to run without battery restrictions in the Android settings."
   - "**A channel keeps spinning or shows a failure dialog?** See [when the connection is weak](page:streams.hls-dash-buffering) for what the app does by itself and what the dialogs mean."
   - "**Want the details of a channel?** Its menu has **About this channel**: the address, where the channel came from, when it last played and, while it plays, the picture size, codecs and the incoming speed. **Copy all** copies it as text."
   - "**A channel from an old playlist with an unusual type** is played according to its address, so it behaves the same everywhere in the app."

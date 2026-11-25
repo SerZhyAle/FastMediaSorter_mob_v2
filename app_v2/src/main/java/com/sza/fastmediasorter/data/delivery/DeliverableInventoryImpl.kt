@@ -273,7 +273,11 @@ class DeliverableInventoryImpl @Inject constructor(
 
     override suspend fun uninstall(item: ExtensionItem) {
         when (item) {
-            is ExtensionItem.Module -> repository.uninstall(item.set)
+            is ExtensionItem.Module -> {
+                // Cancel first: a job that outlived its screen would promote its payload over the empty slot.
+                runner.cancel(item.set)
+                repository.uninstall(item.set)
+            }
             is ExtensionItem.LanguageData -> tesseractModelManager.deleteModel(item.languageCode)
             // S0575: catalog rows are re-importable; uninstall only resets the row status below and
             // never deletes manually-added stream sources (strategic decision: off keeps data).

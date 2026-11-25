@@ -11,11 +11,11 @@ permalink: /docs/TERMS_OF_SERVICE.html
 
 ## 1. Acceptance of Terms
 
-By downloading, installing, or using FastMediaSorter ("the App"), you agree to be bound by these Terms of Service. If you do not agree to these terms, do not use the App.
+By downloading, installing, or using Fast Media Sorter & Organizer ("the App"), you agree to be bound by these Terms of Service. If you do not agree to these terms, do not use the App.
 
 ## 2. Description of Service
 
-FastMediaSorter is a media management application for Android devices that allows users to:
+Fast Media Sorter & Organizer is a media management application for Android devices that allows users to:
 
 - Browse and organize media files from local storage, network shares (SMB/SFTP/FTP), and cloud storage (Google Drive, OneDrive, Dropbox)
 - Copy, move, rename, and delete media files

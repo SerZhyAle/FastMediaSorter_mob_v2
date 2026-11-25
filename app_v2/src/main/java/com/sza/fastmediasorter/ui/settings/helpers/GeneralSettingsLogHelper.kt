@@ -10,6 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.DebugToolsBridge
+import com.sza.fastmediasorter.core.logging.DiagnosticArchive
 import com.sza.fastmediasorter.core.logging.LogExportHelper
 import com.sza.fastmediasorter.data.debug.ReleasedTicketsDataSource
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
@@ -111,7 +112,7 @@ class GeneralSettingsLogHelper(
         }
         val canSave = testIntent.resolveActivity(fragment.requireActivity().packageManager) != null
         if (canSave) {
-            saveLogsLauncher.launch("fastmediasorter_logs.zip")
+            saveLogsLauncher.launch(DiagnosticArchive.fileName())
         } else {
             Timber.d("LogExport: CREATE_DOCUMENT not supported on this device - using share fallback")
             showSaveLogsNotSupportedDialog()

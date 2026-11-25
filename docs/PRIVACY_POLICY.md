@@ -1,23 +1,23 @@
 ---
 layout: doc
-title: "Privacy Policy for FastMediaSorter"
+title: "Privacy Policy for Fast Media Sorter & Organizer"
 permalink: /docs/PRIVACY_POLICY.html
 ---
-<sub class="doc-stamp">26.10.18 20:20</sub>
+<sub class="doc-stamp">26.11.19 23:39</sub>
 
-# Privacy Policy for FastMediaSorter
+# Privacy Policy for Fast Media Sorter & Organizer {#privacy-policy-for-fastmediasorter}
 
 **Last updated: October 15, 2026**
 
 ## Overview
 
-FastMediaSorter is a media manager and slideshow application for local, network, and cloud storage. We are committed to protecting your privacy and operating transparently.
+Fast Media Sorter & Organizer is a media manager and slideshow application for local, network, and cloud storage. We are committed to protecting your privacy and operating transparently.
 
 ## Data Collection and Storage
 
 ### What Data We Access
 
-FastMediaSorter accesses the following data **only on your device and configured storage**:
+Fast Media Sorter & Organizer accesses the following data **only on your device and configured storage**:
 
 1. **Local Storage**
    - Photos, videos, audio files on device and SD cards
@@ -141,17 +141,17 @@ Cloud access is subject to each provider's privacy policy:
 
 ## Google User Data
 
-This section describes exactly what FastMediaSorter does with data it receives from your Google Account when you sign in to Google Drive. It applies to every edition of the app that offers Google Drive.
+This section describes exactly what Fast Media Sorter & Organizer does with data it receives from your Google Account when you sign in to Google Drive. It applies to every edition of the app that offers Google Drive.
 
 ### Limited Use disclosure
 
-FastMediaSorter's use and transfer to any other app of information received from Google APIs will adhere to the [Google API Services User Data Policy](https://developers.google.com/terms/api-services-user-data-policy), including the Limited Use requirements.
+Fast Media Sorter & Organizer's use and transfer to any other app of information received from Google APIs will adhere to the [Google API Services User Data Policy](https://developers.google.com/terms/api-services-user-data-policy), including the Limited Use requirements.
 
 ### Permissions the app asks Google for, and why
 
-- **See, edit, create and delete your Google Drive files** (`drive`): FastMediaSorter is a file manager. You pick any folder of your Drive, and the app lists it, shows its photos, videos, audio and documents, and copies, moves, renames or deletes the files you choose. It also saves the backup file you create in Settings to the folder My Drive / FastMediaSorter. A narrower permission cannot do this, because it would let the app see only files it created itself or files you pick one by one.
+- **See, edit, create and delete your Google Drive files** (`drive`): Fast Media Sorter & Organizer is a file manager. You pick any folder of your Drive, and the app lists it, shows its photos, videos, audio and documents, and copies, moves, renames or deletes the files you choose. It also saves the backup file you create in Settings to the folder My Drive / Fast Media Sorter & Organizer. A narrower permission cannot do this, because it would let the app see only files it created itself or files you pick one by one.
 - **See and download your Google Drive files** (`drive.readonly`): used to fetch preview pictures (thumbnails) of the files in the folder you are looking at.
-- **The app's own hidden folder in your Drive** (`drive.appdata`): a private space that only FastMediaSorter and its companion apps can read. It holds files you send from one of your devices to another, until the other device accepts them; the clipboard value, when you use the Google Drive way of sending it; the requests and answers used when one of your devices browses the files of another; and the small records your devices use to find each other and to announce folders and broadcasts. You cannot see this folder in Drive, and no other app can read it. It is the folder of your own Google Account only: nothing is ever addressed to another person's account.
+- **The app's own hidden folder in your Drive** (`drive.appdata`): a private space that only Fast Media Sorter & Organizer and its companion apps can read. It holds files you send from one of your devices to another, until the other device accepts them; the clipboard value, when you use the Google Drive way of sending it; the requests and answers used when one of your devices browses the files of another; and the small records your devices use to find each other and to announce folders and broadcasts. You cannot see this folder in Drive, and no other app can read it. It is the folder of your own Google Account only: nothing is ever addressed to another person's account.
 - **Your email address, name and profile picture** (`email`, `profile`, `openid`): shown on the Settings card so you can see which Google Account is connected.
 
 ### What the app does with this data
@@ -177,7 +177,7 @@ FastMediaSorter's use and transfer to any other app of information received from
 
 - The sign-in token is kept until you sign out in Settings, remove the app's access in your Google Account, or uninstall the app. Each of these deletes it.
 - Cached thumbnails and file lists are deleted by Settings -> Clear Cache or by uninstalling the app.
-- Files in the hidden app folder are deleted when the receiving device accepts them; a file that no device collects is deleted after 7 days. The clipboard value stays until a newer one replaces it or you delete it in the queue screen of the app, which lists everything waiting in the folder and lets you delete any of it. You can delete the whole hidden folder at any time in Google Drive on the web: Settings -> Manage apps -> FastMediaSorter -> Options -> Delete hidden app data.
+- Files in the hidden app folder are deleted when the receiving device accepts them; a file that no device collects is deleted after 7 days. The clipboard value stays until a newer one replaces it or you delete it in the queue screen of the app, which lists everything waiting in the folder and lets you delete any of it. You can delete the whole hidden folder at any time in Google Drive on the web: Settings -> Manage apps -> Fast Media Sorter & Organizer -> Options -> Delete hidden app data.
 - Removing the app's access at [Manage Permissions](https://myaccount.google.com/permissions) stops all further access at once.
 - To ask a question or request help with deleting data, write to <sza@ukr.net>.
 
@@ -201,6 +201,13 @@ This section applies when you connect your own devices to each other, the way yo
 - The app sends the clipboard only when you press the button or the shortcut for it, and gets the server's clipboard only when you press the matching one. Nothing is read in the background, previewed, filtered or kept as a history.
 - Only the devices of your own account receive it, and it is one value at a time: text, an image or one file. A send goes to every account the device is signed in to, except a guest account.
 - The Google Drive way of sending the clipboard is a separate option, off until you switch it on. The value is then one file in the hidden folder of your own Google Account, and it stays there until a newer value replaces it.
+
+### Commands from your other devices
+
+- This is off until you switch on "Accept commands from my devices", and it needs an exchange server you connected. Only the devices of your own account that hold a key can ask, only the ones you choose in "Who can control", and only for the kinds of command you allow.
+- A request and the phone's answer travel encrypted between the two devices. The exchange server sees only that a request happened, when, and how large it was, never what it asked.
+- The decisions - the switch, the devices you chose and what each may do - the list of requests already handled and the log of the latest requests stay on this phone. They are not part of the Android backup, of the settings export or of an import, and clearing the app's data erases them. Nothing from the log is sent anywhere, and the log does not keep the details of a request.
+- A command that needs your say asks you in a notification with Allow and Decline; with no answer in a minute, or with notifications off, it is declined.
 
 ### Via Google Drive
 
@@ -334,7 +341,7 @@ You have full control over your data:
 ### Export/Backup
 
 - Backup is a JSON file you create on demand in Settings -> Backup
-- You choose where it goes: a local file on your device, or your own Google Drive (folder My Drive / FastMediaSorter)
+- You choose where it goes: a local file on your device, or your own Google Drive (folder My Drive / Fast Media Sorter & Organizer)
 - The Google Drive copy is uploaded only when you start it; there is no automatic cloud sync
 - The backup holds your settings and resources, including network passwords, SSH private keys, the default network password and saved website sign-ins (cookies), stored in plain text - keep the file private and do not share it
 - Restore it on the same or a new device from the same screen
@@ -386,7 +393,7 @@ The details are in "Logging and Debug Files" above. In short:
 
 ## International Users
 
-FastMediaSorter available globally. All data processing occurs:
+Fast Media Sorter & Organizer available globally. All data processing occurs:
 
 - On your device
 - On your configured servers, including an exchange server you connected to
@@ -401,7 +408,7 @@ The app and its website are separate, and everything above is about the app. The
 - **fonts.googleapis.com** and **fonts.gstatic.com** (Google Fonts), on every page: they deliver the typefaces the pages are set in.
 - **pagead2.googlesyndication.com** (Google AdSense), on the landing pages only - the home page and its language versions: it shows an advertisement. While the page runs, the ad script contacts further Google addresses on its own: **ep1.adtrafficquality.google** and **ep2.adtrafficquality.google** check the ad traffic for invalid clicks and impressions, and **fundingchoicesmessages.google.com** shows the consent message for advertising cookies and keeps your choice. They receive the same request data, the page address and Google's advertising cookies - the consent address also receives the choice you make. The ad script may use cookies. Third-party vendors, including Google, use cookies to serve ads based on your earlier visits to this and other websites. You can turn off personalised advertising in [Google Ads Settings](https://adssettings.google.com), and [How Google uses information from sites that use its services](https://policies.google.com/technologies/partner-sites) explains the rest. No other page carries advertising: the documentation, the install-trust pages and this privacy page never load it.
 - **api.github.com** (GitHub), on the landing and sideload pages: the page asks it for the list of published releases, so the download buttons point at the latest build.
-- **img.shields.io**, **gitlab.com** and **raw.githubusercontent.com**, on the README pages: they serve the version and licence badges, the IzzyOnDroid badge and the GitHub Store badge.
+- **img.shields.io** and **raw.githubusercontent.com**, on the README pages: they serve the version and licence badges and the GitHub Store badge.
 
 GitHub Pages, as the host, receives every page request ([GitHub Privacy Statement](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement)). The website runs no analytics or tracking script of its own. It keeps two values in your browser - the theme and the language you picked - and they never leave it.
 
@@ -409,7 +416,7 @@ To avoid these requests, block third-party fonts or scripts in your browser. The
 
 ## Children's Privacy
 
-FastMediaSorter does not knowingly collect information from children under 13. The app is designed for general media management and does not target children.
+Fast Media Sorter & Organizer does not knowingly collect information from children under 13. The app is designed for general media management and does not target children.
 
 ## Compliance
 
@@ -432,10 +439,10 @@ Continued use after changes constitutes acceptance.
 
 ## Open Source
 
-FastMediaSorter is open source. Review our code:
+Fast Media Sorter & Organizer is open source. Review our code:
 
 - **Repository**: <https://github.com/SerZhyAle/FastMediaSorter_mob_v2>
-- **License**: [Project License]
+- **License**: [Apache License 2.0](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/LICENSE)
 
 ## Contact
 
@@ -468,6 +475,6 @@ For privacy questions or concerns:
 
 ## Consent
 
-By using FastMediaSorter you acknowledge and consent to this Privacy Policy.
+By using Fast Media Sorter & Organizer you acknowledge and consent to this Privacy Policy.
 
 *This privacy policy is effective as of November 30, 2025.*

@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Geplantes Kamera-Backup auf den PC - FastMediaSorter v2"
+title: "Geplantes Kamera-Backup auf den PC - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-camera-backup-de.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -21,7 +21,7 @@ Kopieren Sie neue Fotos von der Kamera Ihres Handys automatisch **jede Nacht üb
 
 - Handy und PC im **gleichen Heim-Wi-Fi** (gleicher Router)
 - Ein Ordner auf Ihrem PC, in dem die Fotos gespeichert werden (z. B. `C:\PhoneBackup`)
-- FastMediaSorter installiert in einer Edition mit Netzwerkquellen (**Standard**, Photos, Legacy, VR, noLegal)
+- Fast Media Sorter & Organizer installiert in einer Edition mit Netzwerkquellen (**Standard**, Photos, Legacy, VR, noLegal)
 
 > **Nicht sicher, welche Edition Sie haben?** Öffnen Sie **Einstellungen** <img src="../icons/doc/ic_settings.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> → **Systeminformationen**. Die Zeile **Edition** nennt die Edition (Standard / Lite / usw.).
 
@@ -43,7 +43,7 @@ Unter **Windows:**
 
 ## Schritt 2 - Die App mit Ihrem PC-Ordner verbinden
 
-Sagen Sie FastMediaSorter nun, wohin die Fotos gesendet werden sollen.
+Sagen Sie Fast Media Sorter & Organizer nun, wohin die Fotos gesendet werden sollen.
 
 > **Was ist SMB?** Das ist einfach die Art, wie Windows Ordner über das Heim-Wi-Fi freigibt. Sie müssen die Details nicht verstehen - folgen Sie einfach den Schritten.
 
@@ -94,7 +94,7 @@ Füllen Sie jedes Feld aus:
 | **Zeitplan** | Wann ausgeführt werden soll | `Daily at 02:00` - läuft, während Sie schlafen |
 | **Nur über Wi-Fi ausführen** | Schalten Sie dies EIN | Verhindert, dass das Backup versehentlich Ihre mobilen Daten nutzt |
 
-> **Was ist „Kamerafotos“?** Das ist ein spezieller virtueller Ordner, den FastMediaSorter automatisch erstellt. Er zeigt immer alle von Ihrer Kamera aufgenommenen Fotos - auch wenn sie in verschiedenen Ordnern auf Ihrem Handy gespeichert sind. Bevorzugen Sie ihn stets gegenüber der manuellen Pfadauswahl.
+> **Was ist „Kamerafotos“?** Das ist ein spezieller virtueller Ordner, den Fast Media Sorter & Organizer automatisch erstellt. Er zeigt immer alle von Ihrer Kamera aufgenommenen Fotos - auch wenn sie in verschiedenen Ordnern auf Ihrem Handy gespeichert sind. Bevorzugen Sie ihn stets gegenüber der manuellen Pfadauswahl.
 
 ![Zeitplan hinzufügen - Quelle: Kamerafotos, Vorgang: Kopieren, Ziel: SMB](screenshots/screenshot-cb-step5.png)
 
@@ -154,7 +154,7 @@ Ihr PC erhält jeden Morgen neue Fotos. Sie müssen nie mehr daran denken.
 
 | Problem | Was zu versuchen ist |
 |---------|------------|
-| Zeitplan läuft nachts nicht | Gehen Sie zu **Android-Einstellungen → Apps → FastMediaSorter → Akku** → stellen Sie auf **Uneingeschränkt** |
+| Zeitplan läuft nachts nicht | Gehen Sie zu **Android-Einstellungen → Apps → Fast Media Sorter & Organizer → Akku** → stellen Sie auf **Uneingeschränkt** |
 | Fehler „Ziel nicht erreichbar“ | Ihr Handy muss zur Backup-Zeit mit Wi-Fi verbunden sein. War Wi-Fi um 2 Uhr nachts ausgeschaltet, wird das Backup übersprungen und in der nächsten Nacht automatisch wiederholt |
 | Einige Fotos wurden nicht gesichert | Verwenden Sie die virtuelle Ressource **„Kamerafotos“** als Quelle - sie erfasst Fotos aus allen Kameraordnern Ihres Handys |
 | Doppelte Dateien erscheinen auf dem PC | Stellen Sie sicher, dass der Vorgang auf **„Kopieren (vorhandene überspringen)“** eingestellt ist, nicht auf „Kopieren (überschreiben)“ |

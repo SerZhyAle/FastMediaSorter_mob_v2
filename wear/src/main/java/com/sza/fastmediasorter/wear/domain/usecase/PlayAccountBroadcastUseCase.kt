@@ -21,7 +21,12 @@ class PlayAccountBroadcastUseCase @Inject constructor(
     suspend operator fun invoke(broadcast: WearAccountBroadcast, fallbackTitle: String): WearBroadcastOpening =
         when (val resolved = repository.resolve(broadcast.entryIdentity, broadcast.broadcastId)) {
             is WearBroadcastPlayback.Playable -> WearBroadcastOpening.Open(
-                prepare(url = resolved.url, title = resolved.title ?: fallbackTitle, isVideo = resolved.isVideo),
+                prepare(
+                    url = resolved.url,
+                    title = resolved.title ?: fallbackTitle,
+                    isVideo = resolved.isVideo,
+                    broadcastRoute = resolved.route,
+                ),
             )
             is WearBroadcastPlayback.Unavailable -> WearBroadcastOpening.Unavailable(resolved.reason)
         }

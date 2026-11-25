@@ -7,6 +7,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Справка - Мастер приветствия</title>
 <link rel="stylesheet" href="../help.css">
+<link rel="icon" type="image/png" href="../img/product-mark.png">
 </head>
 <body class="help">
 <main class="container">
@@ -14,6 +15,7 @@
 <a href="index.html">Оглавление справки</a><span class="sep" aria-hidden="true">/</span><span>Мастер приветствия</span>
 </nav>
 <header class="hero">
+<img class="product-mark" src="../img/product-mark.png" width="48" height="48" alt="Fast Media Sorter">
 <h1>Мастер приветствия</h1>
 </header>
 <h2>Для чего этот экран</h2>
@@ -24,19 +26,19 @@
 </figure>
 <h2>Порядок действий</h2>
 <ol class="order">
-<li>На первой странице выберите язык <a class="ref" href="#language">6</a> и тему <a class="ref" href="#theme">7</a>. Всё, что вы выбираете в мастере, потом можно изменить в настройках, так что ошибиться здесь нельзя.</li>
-<li>Нажмите «Далее» <a class="ref" href="#next">3</a>, чтобы перейти к профилю устройства, и коснитесь плитки <a class="ref" href="#profiles">8</a>, которая подходит вашему устройству. Профиль настроит значения по умолчанию; повторное нажатие на выбранную плитку ведёт дальше.</li>
+<li>На первой странице выберите язык <a class="ref" href="#language">6</a> и тему <span class="nb"><a class="ref" href="#theme">7</a>.</span> Всё, что вы выбираете в мастере, потом можно изменить в настройках, так что ошибиться здесь нельзя.</li>
+<li>Нажмите «Далее» <span class="nb"><a class="ref" href="#next">3</a>,</span> чтобы перейти к профилю устройства, и коснитесь плитки <span class="nb"><a class="ref" href="#profiles">8</a>,</span> которая подходит вашему устройству. Профиль настроит значения по умолчанию; повторное нажатие на выбранную плитку ведёт дальше.</li>
 <li>Включите сетевые источники, которыми собираетесь пользоваться (10, 11, 12). Если в версии приложения их нет, эта страница пропускается.</li>
 <li>На странице возможностей включите нужное (с 15 по 23): аудио, видео, документы, распознавание текста, перевод, трансляции, жесты. Необязательные части загружаются прямо там.</li>
-<li>На странице разрешений нажмите «Выдать все» <a class="ref" href="#grant-all">25</a>, чтобы пройти запросы по очереди. Пропущенное разрешение остаётся выключенным, и к нему можно вернуться позже.</li>
-<li>Если версия приложения это предлагает, сделайте FastMediaSorter приложением по умолчанию для аудио, видео, изображений и документов (с 28 по 31).</li>
+<li>На странице разрешений нажмите «Выдать все» <span class="nb"><a class="ref" href="#grant-all">25</a>,</span> чтобы пройти запросы по очереди. Пропущенное разрешение остаётся выключенным, и к нему можно вернуться позже.</li>
+<li>Если версия приложения это предлагает, сделайте Fast Media Sorter &amp; Organizer приложением по умолчанию для аудио, видео, изображений и документов (с 28 по 31).</li>
 <li>«Готово» <a class="ref" href="#finish">4</a> закрывает мастер. «Назад» <a class="ref" href="#previous">1</a> возвращает на страницу, «Включить всё» <a class="ref" href="#enable-all">2</a> на первой странице выполняет всю настройку за один раз, а «Справка» <a class="ref" href="#help">5</a> открывает эту страницу.</li>
 </ol>
 <h2>Элементы</h2>
 <div class="elements">
 <h3>Навигация</h3>
 <details class="el" id="previous">
-<summary><span class="mk">1</span><span><span class="name">Назад</span><span class="one">Возвращает на одну страницу назад.</span></span></summary>
+<summary><span class="mk">1</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" fill="currentColor"/></svg>Назад</span><span class="one">Возвращает на одну страницу назад.</span></span></summary>
 <div class="full">
 <p>На первой странице кнопка скрыта: возвращаться некуда.</p>
 </div>
@@ -51,7 +53,7 @@
 </div>
 </details>
 <details class="el" id="next">
-<summary><span class="mk">3</span><span><span class="name">Далее</span><span class="one">Переходит на следующую страницу.</span></span></summary>
+<summary><span class="mk">3</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" fill="currentColor"/></svg>Далее</span><span class="one">Переходит на следующую страницу.</span></span></summary>
 <div class="full">
 <p>На последней странице вместо неё появляется «Готово».</p>
 </div>
@@ -63,7 +65,7 @@
 </div>
 </details>
 <details class="el" id="help">
-<summary><span class="mk">5</span><span><span class="name">Справка</span><span class="one">Открывает справку по этому экрану.</span></span></summary>
+<summary><span class="mk">5</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M11,18h2v-2h-2v2zM12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2zM12,20c-4.41,0 -8,-3.59 -8,-8s3.59,-8 8,-8 8,3.59 8,8 -3.59,8 -8,8zM12,6c-2.21,0 -4,1.79 -4,4h2c0,-1.1 0.9,-2 2,-2s2,0.9 2,2c0,2 -3,1.75 -3,5h2c0,-2.25 3,-2.5 3,-5 0,-2.21 -1.79,-4 -4,-4z" fill="currentColor"/></svg>Справка</span><span class="one">Открывает справку по этому экрану.</span></span></summary>
 <div class="full">
 <p>Вы узнаете, в каком порядке обычно проходят мастер и что делает каждый элемент.</p>
 </div>
@@ -117,7 +119,7 @@
 </div>
 </details>
 <details class="el" id="companion-site">
-<summary><span class="mk">13</span><span><span class="name">Скачать для Windows</span><span class="one">Открывает страницу приложения-компаньона для Windows.</span></span></summary>
+<summary><span class="mk">13</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M19,19H5V5h7V3H5c-1.11,0 -2,0.9 -2,2v14c0,1.1 0.89,2 2,2h14c1.1,0 2,-0.9 2,-2v-7h-2v7zM14,3v2h3.59l-9.83,9.83 1.41,1.41L19,6.41V10h2V3h-7z" fill="currentColor"/></svg>Скачать для Windows</span><span class="one">Открывает страницу приложения-компаньона для Windows.</span></span></summary>
 <div class="full">
 <p>Если ваши медиа лежат на ПК с Windows, компаньон в пару кликов делится этими папками с устройством, без настройки сервера.</p>
 </div>
@@ -203,34 +205,34 @@
 </div>
 </details>
 <details class="el" id="permission-list">
-<summary><span class="mk">27</span><span><span class="name">&quot;Несколько&quot; разрешений</span><span class="one">Перечисляет все разрешения, которые может запросить эта версия.</span></span></summary>
+<summary><span class="mk">27</span><span><span class="name">Несколько разрешений</span><span class="one">Перечисляет все разрешения, которые может запросить эта версия.</span></span></summary>
 <div class="full">
 <p>У каждой строки есть пояснение, зачем нужно разрешение, и своя кнопка: выдать его или открыть нужные настройки. Отказ - это просто невыданное разрешение; ничего не скрыто.</p>
 </div>
 </details>
 <h3>Плеер по умолчанию</h3>
 <details class="el" id="default-audio">
-<summary><span class="mk">28</span><span><span class="name">Аудио</span><span class="one">Назначает FastMediaSorter приложением для воспроизведения аудио.</span></span></summary>
+<summary><span class="mk">28</span><span><span class="name">Аудио</span><span class="one">Назначает Fast Media Sorter &amp; Organizer приложением для воспроизведения аудио.</span></span></summary>
 <div class="full">
-<p>Android покажет свой диалог: выберите FastMediaSorter и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть.</p>
+<p>Android покажет свой диалог: выберите Fast Media Sorter &amp; Organizer и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть.</p>
 </div>
 </details>
 <details class="el" id="default-video">
-<summary><span class="mk">29</span><span><span class="name">Видео</span><span class="one">Назначает FastMediaSorter приложением для воспроизведения видео.</span></span></summary>
+<summary><span class="mk">29</span><span><span class="name">Видео</span><span class="one">Назначает Fast Media Sorter &amp; Organizer приложением для воспроизведения видео.</span></span></summary>
 <div class="full">
-<p>Android покажет свой диалог: выберите FastMediaSorter и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть.</p>
+<p>Android покажет свой диалог: выберите Fast Media Sorter &amp; Organizer и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть.</p>
 </div>
 </details>
 <details class="el" id="default-images">
-<summary><span class="mk">30</span><span><span class="name">Изображения</span><span class="one">Назначает FastMediaSorter приложением для открытия изображений.</span></span></summary>
+<summary><span class="mk">30</span><span><span class="name">Изображения</span><span class="one">Назначает Fast Media Sorter &amp; Organizer приложением для открытия изображений.</span></span></summary>
 <div class="full">
-<p>Android покажет свой диалог: выберите FastMediaSorter и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть.</p>
+<p>Android покажет свой диалог: выберите Fast Media Sorter &amp; Organizer и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть.</p>
 </div>
 </details>
 <details class="el" id="default-docs">
-<summary><span class="mk">31</span><span><span class="name">Документы</span><span class="one">Назначает FastMediaSorter приложением для открытия документов.</span></span></summary>
+<summary><span class="mk">31</span><span><span class="name">Документы</span><span class="one">Назначает Fast Media Sorter &amp; Organizer приложением для открытия документов.</span></span></summary>
 <div class="full">
-<p>Android покажет свой диалог: выберите FastMediaSorter и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть.</p>
+<p>Android покажет свой диалог: выберите Fast Media Sorter &amp; Organizer и нажмите «Всегда». Это не навсегда: выбор хранится в настройках самого Android, и там его можно вернуть.</p>
 </div>
 </details>
 </div>
@@ -241,10 +243,11 @@
 <li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/welcome-and-setup-ru.html"><b>First Launch and Setup Wizard</b><span class="pill gold">Руководство</span></a></li>
 <li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/permissions-guide-ru.html"><b>Understanding App Permissions</b><span class="pill gold">Руководство</span></a></li>
 <li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/main-screen-overview-ru.html"><b>Navigating the Main Screen</b><span class="pill gold">Руководство</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_WEB/"><b>FastMediaSorter for Web - версия в браузере для macOS, Linux, ChromeOS, iOS и iPadOS</b><span class="pill gold">Ссылка</span></a></li>
 <li><a href="index.html"><b>Оглавление справки</b></a></li>
 </ul>
 <footer class="help-foot">
-<span>Fast Media Sorter, 2026-10-26</span>
+<span>Fast Media Sorter, 2026-11-24</span>
 <a href="index.html">Оглавление справки</a>
 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Задать вопрос или сообщить о проблеме</a>
 </footer>

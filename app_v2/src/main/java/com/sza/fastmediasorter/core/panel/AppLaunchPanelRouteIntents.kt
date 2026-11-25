@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.ui.applaunchpanel.AppLaunchPanelActivity
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.calculator.CalculatorActivity
 import com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity
+import com.sza.fastmediasorter.ui.feedback.FeedbackActivity
 import com.sza.fastmediasorter.ui.flashlight.FlashlightToggleActivity
 import com.sza.fastmediasorter.ui.flashlight.FrontFlashlightActivity
 import com.sza.fastmediasorter.ui.flashlight.WaterFlashlightActivity
@@ -17,6 +18,7 @@ import com.sza.fastmediasorter.ui.mirror.MirrorActivity
 import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorActivity
 import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorSection
 import com.sza.fastmediasorter.ui.networkmonitor.putNetworkMonitorLauncherOrigin
+import com.sza.fastmediasorter.ui.notes.NotesActivity
 import com.sza.fastmediasorter.ui.player.standalone.PhotoVideoStandaloneActivity
 import com.sza.fastmediasorter.ui.scheduledops.ScheduledOperationsActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
@@ -102,6 +104,22 @@ object AppLaunchPanelRouteIntents {
     // S2997: the tourist toggle sits on the Operations tab beside the others, so a disabled route opens
     // that tab exactly as the calculator's does.
     fun touristSettings(context: Context): Intent =
+        Intent(context, SettingsActivity::class.java)
+            .putExtra(SettingsActivity.EXTRA_INITIAL_TAB, SettingsActivity.TAB_OPERATIONS)
+            .withPanelFlags()
+
+    fun notes(context: Context): Intent =
+        NotesActivity.createIntent(context).withPanelFlags()
+
+    fun notesSettings(context: Context): Intent =
+        Intent(context, SettingsActivity::class.java)
+            .putExtra(SettingsActivity.EXTRA_INITIAL_TAB, SettingsActivity.TAB_OPERATIONS)
+            .withPanelFlags()
+
+    fun feedback(context: Context): Intent =
+        FeedbackActivity.createIntent(context).withPanelFlags()
+
+    fun feedbackSettings(context: Context): Intent =
         Intent(context, SettingsActivity::class.java)
             .putExtra(SettingsActivity.EXTRA_INITIAL_TAB, SettingsActivity.TAB_OPERATIONS)
             .withPanelFlags()

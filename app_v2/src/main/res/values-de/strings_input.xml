@@ -262,4 +262,10 @@
     <string name="kbm_help_player_audio_track">Nächste Audiospur</string>
     <string name="kbm_help_player_slideshow">Diashow (erneut S: schneller) / zufällige Diashow</string>
     <string name="kbm_help_player_space">Video abspielen / pausieren; bei einem Foto nächste Datei</string>
+    <string name="keybinding_label_playback_ab_loop">A-B-Schleife</string>
+    <string name="keybinding_label_navigation_file_grid">Vorschaubilder-Raster</string>
+    <string name="keybinding_label_navigation_file_list">Dateiliste</string>
+    <string name="keybinding_label_navigation_file_number">Zur Datei springen</string>
+    <string name="keybinding_label_player_black_screen">Schwarzer Bildschirm</string>
+    <string name="keybinding_label_sorting_create_text_note">Textnotiz erstellen</string>
 </resources>

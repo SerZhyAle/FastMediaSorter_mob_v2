@@ -145,6 +145,8 @@ class ApplyEnableAllSettingsUseCase @Inject constructor(
             InternalRouteCatalog.KEY_GAME to program { copy(embeddedGameEnabled = true) },
             InternalRouteCatalog.KEY_SYSTEM_INFO to program { copy(enableSystemInfo = true) },
             InternalRouteCatalog.KEY_TOURIST_INFO to program { copy(enableTourist = true) },
+            InternalRouteCatalog.KEY_NOTES to program { copy(enableNotes = true) },
+            InternalRouteCatalog.KEY_FEEDBACK to program { copy(enableFeedback = true) },
             InternalRouteCatalog.KEY_WEAR_COMPANION to program { copy(enableWearCompanion = true) },
             InternalRouteCatalog.KEY_FAVORITES to program { copy(enableFavorites = true) },
             InternalRouteCatalog.KEY_QUICK_CAMERA to { s: AppSettings -> s.copy(disableCameraCapture = false) },

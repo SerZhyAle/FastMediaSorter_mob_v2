@@ -118,9 +118,22 @@
             android:focusable="true"
             android:foreground="@drawable/focus_button_background"
             android:nextFocusLeft="@id/allAppsReorderUp"
-            android:nextFocusRight="@id/allAppsReorderDone"
+            android:nextFocusRight="@id/allAppsReorderRename"
             android:nextFocusDown="@id/allAppsGrid"
             android:text="@string/launcher_app_category_move_down" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/allAppsReorderRename"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:nextFocusLeft="@id/allAppsReorderDown"
+            android:nextFocusRight="@id/allAppsReorderDone"
+            android:nextFocusDown="@id/allAppsGrid"
+            android:text="@string/rename" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/allAppsReorderDone"
@@ -130,7 +143,7 @@
             android:clickable="true"
             android:focusable="true"
             android:foreground="@drawable/focus_button_background"
-            android:nextFocusLeft="@id/allAppsReorderDown"
+            android:nextFocusLeft="@id/allAppsReorderRename"
             android:nextFocusDown="@id/allAppsGrid"
             android:text="@string/launcher_app_category_reorder_done" />
 

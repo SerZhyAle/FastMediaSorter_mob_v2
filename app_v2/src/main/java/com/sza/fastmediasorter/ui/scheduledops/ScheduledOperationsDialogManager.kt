@@ -147,7 +147,6 @@ class ScheduledOperationsDialogManager(
      * has read what every run does. The editor stays open on a refusal so the source can be changed.
      */
     private fun confirmFill(draft: ScheduledOperationDraft, resources: List<MediaResource>) {
-        Timber.d("S4522: fill schedule save requested")
         val location = draft.sourceFolderPath
             ?: resources.firstOrNull { it.id == draft.operation.sourceResourceId }?.path
             ?: return

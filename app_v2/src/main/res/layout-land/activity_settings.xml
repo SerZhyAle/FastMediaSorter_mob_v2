@@ -49,6 +49,8 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@android:color/transparent"
+            android:fadingEdgeLength="@dimen/settings_tab_fade_edge"
+            android:requiresFadingEdge="horizontal"
             app:tabTextAppearance="@style/TextAppearance.FastMediaSorter.SettingsTabConnected"
             app:tabTextColor="@color/settings_tab_text"
             app:tabSelectedTextColor="?attr/colorOnSurface"

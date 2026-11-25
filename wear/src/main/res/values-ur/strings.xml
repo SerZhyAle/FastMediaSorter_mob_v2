@@ -99,7 +99,7 @@
     <string name="phone_resource_loading">آپ کے فون سے لوڈ ہو رہا ہے..</string>
     <string name="phone_resource_retry">دوبارہ کوشش کریں</string>
     <string name="phone_resource_empty">آپ کے فون کے پاس یہاں دکھانے کے لیے کچھ نہیں۔ کوئی اور فولڈر کھولیں یا دوبارہ کوشش کریں۔</string>
-    <string name="phone_resource_unavailable">FastMediaSorter آپ کے فون پر جواب نہیں دے رہا۔ اسے وہاں کھولیں اور فون کو قریب رکھیں۔</string>
+    <string name="phone_resource_unavailable">Fast Media Sorter &amp; Organizer آپ کے فون پر جواب نہیں دے رہا۔ اسے وہاں کھولیں، اور فون کو قریب رکھیں۔</string>
     <string name="phone_resource_access_denied">آپ کا فون یہ فولڈر واچ کے ساتھ شیئر نہیں کرتا۔</string>
     <string name="phone_resource_unsupported">واچ اس قسم کی فائل نہیں کھول سکتی۔</string>
     <string name="phone_resource_transfer_rejected">یہ فائل واچ کو بھیجنے کے لیے بہت بڑی ہے۔</string>
@@ -383,9 +383,9 @@
     <string name="phone_resource_no_resource_for_type">اس قسم کے انعقاد کے لیے فون کا کوئی وسیلہ ترتیب نہیں دیا گیا ہے۔</string>
     <string name="wear_folder_load_more">مزید دکھائیں</string>
     <string name="wear_file_op_outcome_needs_consent">تصدیق نہیں ہوئی - کچھ بھی نہیں بدلا۔</string>
-    <string name="wear_sync_no_phone_paired">کوئی فون منسلک نہیں ہے۔ اپنا فون جوڑیں اور اس پر FastMediaSorter انسٹال کریں۔</string>
+    <string name="wear_sync_no_phone_paired">کوئی فون منسلک نہیں۔ اپنا فون جوڑیں اور اس پر Fast Media Sorter &amp; Organizer انسٹال کریں۔</string>
     <string name="wear_sync_request_failed">فون سے پوچھا نہیں جا سکا۔ دوبارہ کوشش کریں۔</string>
-    <string name="phone_resource_not_paired">اس گھڑی سے کوئی فون منسلک نہیں ہے۔ ایک فون جوڑیں اور اس پر FastMediaSorter انسٹال کریں۔</string>
+    <string name="phone_resource_not_paired">اس گھڑی سے کوئی فون منسلک نہیں۔ ایک جوڑیں اور اس پر Fast Media Sorter &amp; Organizer انسٹال کریں۔</string>
     <string name="wear_streams_sort_most_used">سب سے زیادہ استعمال شدہ</string>
     <string name="streams_rubric_general">عام</string>
     <string name="streams_rubric_news">خبریں</string>
@@ -767,7 +767,7 @@
     <string name="wear_cast_phone_busy">آپ کے فون نے جواب نہیں دیا - چیک کریں کہ وہ قریب ہے</string>
     <string name="wear_cast_not_castable">صرف فون سورس کی اسٹریمز اور فائلیں TV پر دکھائی جا سکتی ہیں</string>
     <string name="wear_stream_stalled">اسٹریم نے بھیجنا بند کر دیا۔ بیٹری بچانے کے لیے پلے بیک روک دیا گیا۔</string>
-    <string name="phone_resource_companion_disabled">آپ کے فون پر Wear ساتھی سوئچ آف ہے۔ FastMediaSorter کی سیٹنگز میں اسے آن کریں، پھر دوبارہ کوشش کریں۔</string>
+    <string name="phone_resource_companion_disabled">آپ کے فون پر Wear ساتھی کا سوئچ بند ہے۔ اسے Fast Media Sorter &amp; Organizer کی ترتیبات میں آن کریں، پھر دوبارہ کوشش کریں۔</string>
     <string name="wear_tourist_app">سیاح</string>
     <string name="wear_tourist_metric_speed">رفتار</string>
     <string name="wear_tourist_metric_altitude">بلندی</string>
@@ -809,7 +809,6 @@
     <string name="wear_clipboard_no_phone">رسائی میں کوئی فون نہیں</string>
     <string name="wear_clipboard_no_answer">فون نے جواب نہیں دیا</string>
     <string name="wear_clipboard_refused">فون نے انکار کر دیا: %1$s</string>
-    <string name="wear_tourist_press_button_to_unlock">غیر مقفل کرنے کے لیے گھڑی کا کوئی بٹن دبائیں</string>
     <string name="wear_tourist_metric_body_temperature">جسم کا درجہ حرارت</string>
     <string name="wear_onboarding_welcome_title">خوش آمدید</string>
     <string name="wear_onboarding_welcome_body">اپنی میڈیا کو سیدھے اپنی کلائی پر براؤز کریں، چلائیں اور ترتیب دیں۔</string>
@@ -934,12 +933,12 @@
     <string name="about_watch_face_caption">Wear OS 6 اور اس کے بعد کے ورژنز کے لیے</string>
     <string name="about_watch_face_no_store">اس گھڑی پر Google Play نہیں ہے</string>
     <string name="wear_companion_hint_connect">وسائل اور فون دیکھنے کے لیے اپنا فون منسلک کریں</string>
-    <string name="wear_companion_hint_install">وسائل اور فون دیکھنے کے لیے اپنے فون پر FastMediaSorter انسٹال کریں</string>
-    <string name="wear_companion_offer_title">FastMediaSorter آپ کے فون پر نہیں ہے</string>
+    <string name="wear_companion_hint_install">وسائل اور فون دیکھنے کے لیے اپنے فون پر Fast Media Sorter &amp; Organizer انسٹال کریں</string>
+    <string name="wear_companion_offer_title">Fast Media Sorter &amp; Organizer آپ کے فون پر نہیں ہے</string>
     <string name="wear_companion_offer_message">گھڑی سے فون اور اس کے وسائل براؤز کرنے کے لیے اسے انسٹال کریں</string>
     <string name="wear_companion_offer_install">انسٹال کریں</string>
     <string name="wear_companion_offer_later">ابھی نہیں</string>
-    <string name="wear_companion_install_row">فون پر FastMediaSorter انسٹال کریں</string>
+    <string name="wear_companion_install_row">فون پر Fast Media Sorter &amp; Organizer انسٹال کریں</string>
     <string name="wear_tourist_metric_pressure">دباؤ</string>
     <string name="wear_tourist_metric_baro_altitude">بیرومیٹرک بلندی</string>
     <string name="wear_tourist_metric_elevation_gain_loss">چڑھائی</string>
@@ -1106,4 +1105,11 @@
     <string name="wear_scheduled_message_channel_name">طے شدہ پیغامات</string>
     <string name="wear_audio_fetching">ٹریک لوڈ ہو رہا ہے..</string>
     <string name="wear_stream_ended">یہ اسٹریم اب نشر نہیں ہو رہی۔ دوبارہ شروع ہونے پر پھر کوشش کریں۔</string>
+    <string name="wear_tourist_lock_exit_hint">مقفل۔ کھولنے کے لیے تیزی سے 3 بار پیچھے سوائپ کریں</string>
+    <string name="wear_broadcast_waiting_until">نشریات ابھی شروع نہیں ہوئی۔ لنک %1$s تک کام کرتا ہے</string>
+    <string name="wear_broadcast_started">نشریات شروع ہو گئی ہے</string>
+    <string name="wear_broadcast_expired">یہ لنک اب کام نہیں کرتا</string>
+    <string name="wear_broadcast_play">چلائیں</string>
+    <string name="wear_tourist_no_fix_approximate">لوکیشن تلاش کی جا رہی ہے..</string>
+    <string name="wear_tourist_precise_needed">درست لوکیشن درکار ہے</string>
 </resources>

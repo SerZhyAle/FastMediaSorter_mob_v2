@@ -27,4 +27,12 @@
     <string name="ticket_inbox_queued_notice">工单已排队等待发送</string>
     <string name="ticket_inbox_stage_failed">无法保存工单：%1$s</string>
     <string name="ticket_inbox_discard">从列表中移除</string>
+    <string name="ticket_inbox_destination_label">发送到</string>
+    <string name="ticket_inbox_state_folder_waiting">等待电脑上的文件夹：%1$s</string>
+    <string name="ticket_inbox_state_folder_sent">已在文件夹中 - 等待电脑处理</string>
+    <string name="ticket_inbox_grant_drive">允许访问 Google Drive</string>
+    <string name="ticket_inbox_state_needs_access">需要访问 Google Drive - 请用上方的按钮允许</string>
+    <string name="ticket_inbox_drive_access_granted">已授予访问权限 - 等待中的工单现在会发出</string>
+    <string name="ticket_inbox_drive_access_declined">未授予访问权限 - 在你允许之前，工单会留在列表中</string>
+    <string name="ticket_inbox_drive_access_failed">Google 无法显示授权界面 - 请稍后再试</string>
 </resources>

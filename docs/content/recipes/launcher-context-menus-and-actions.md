@@ -10,11 +10,11 @@ availability: SUPPORT_LAUNCHER
 recipe_number: "08"
 canonical_url: documentation/launcher/context-menus-and-actions.html
 why: |
-  A long press on the FastMediaSorter desktop rarely does just one thing. Depending on what you're holding, it can open a rich menu, start creating something new, or turn a shared contact, place or channel into a square that keeps itself current from then on.
+  A long press on the Fast Media Sorter & Organizer desktop rarely does just one thing. Depending on what you're holding, it can open a rich menu, start creating something new, or turn a shared contact, place or channel into a square that keeps itself current from then on.
 
   This page is a tour of what each long press offers, and of the squares that build or update themselves on their own - so nothing on the desktop ever feels like a mystery.
 ingredients:
-  - "FastMediaSorter in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition), with the [launcher](term:launcher) [desktop](term:desktop) open - see [Your launcher desktop](page:launcher.desktop-grid-and-icons)."
+  - "Fast Media Sorter & Organizer in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition), with the [launcher](term:launcher) [desktop](term:desktop) open - see [Your launcher desktop](page:launcher.desktop-grid-and-icons)."
   - "A few empty squares to try the menus and the new squares on."
   - "Optional: a contact, a channel, or a place shared from a map app, if you want to try those specific squares."
 steps:
@@ -121,7 +121,7 @@ steps:
 
       The **Translator** square translates typed or pasted text fully offline, through the bundled engine; its caption shows the language pair and doubles as a button to change it. It says plainly when a language pack is still missing rather than failing quietly.
 
-      The [Now Playing](term:now-playing) [gadget](term:gadget) starts out showing this app's own playback, the same as ever. Turn on notification access from a button on the gadget itself - behind a plain-language explanation of what that grants - and it follows and controls whatever is playing in any app instead, falling back to FastMediaSorter's own playback whenever nothing else is. It draws the cover art the playing app publishes, falls back to that app's icon when there is none, and a tap on the card opens whichever app is currently playing.
+      The [Now Playing](term:now-playing) [gadget](term:gadget) starts out showing this app's own playback, the same as ever. Turn on notification access from a button on the gadget itself - behind a plain-language explanation of what that grants - and it follows and controls whatever is playing in any app instead, falling back to Fast Media Sorter & Organizer's own playback whenever nothing else is. It draws the cover art the playing app publishes, falls back to that app's icon when there is none, and a tap on the card opens whichever app is currently playing.
 
       The weather square's **Unit system** - metric or US measurements - lives in **Settings**, **General**, and without you touching it the square already shows Fahrenheit on a device set to the United States, Liberia or Myanmar, and Celsius everywhere else, read from the device's region rather than its language. The city you picked for it is remembered on its own, so resetting the launcher to defaults brings the weather back already showing your city instead of asking again.
     image_bookmark:

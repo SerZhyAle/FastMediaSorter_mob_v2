@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.09.06 11:05</sub>
+<sub class="doc-stamp">26.11.15 15:22</sub>
 
 # Document Registry Guide
 
@@ -34,5 +34,16 @@ That last sentence was prose only until S2618, and prose does not fail a build: 
 - It judges directories, not individual files, and a covered parent does not cover an unreached child.
 - Every directory holding documents must be reached by a record glob or named in `scripts/quality/document-registry-coverage-baseline.txt` with a reason of at least four words - the same floor `validate.ps1` applies to a `sitemap_exclude` reason.
 - A baseline row naming a directory that no longer holds documents fails as stale.
+
+Under `docs/` and `dev/` the gate judges files, not directories (S4653):
+
+- Every `.md` file there is matched by a record glob itself, or named by a baseline row: a file (`dev/foo.md`), a file glob (`dev/TASK_*.md`) or its directory.
+- A file row naming no file fails as stale.
+- The gitignored `dev/DOCUMENT_REGISTRY.jsonl` is read when present, and each of its globs must match a file.
+
+A record with `generated` true names two more fields (DOC-INTERNAL-QUALITY item W):
+
+- `generator` - the command that rewrites the files, for example `pwsh -NoProfile -File scripts/utils/help.ps1 -Generate`.
+- `check` - the drift check that fails while a committed file differs from what the generator writes, for example `pwsh -NoProfile -File scripts/quality/assert-script-cheatsheet-sync.ps1`; `none` when no check exists yet, which the gate prints as an advisory on every run.
 
 When the gate refuses, register the directory or add a baseline row. Registering is the better answer; a baseline row records that this repository agreed to stop maintaining that tree as documentation.

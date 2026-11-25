@@ -72,7 +72,7 @@
         "account-row": {
           "name": "Account entry",
           "summary": "One saved sign-in: its name and its details.",
-          "details": "Under the name, a grey line shows how many cookies are stored, when the entry was saved and when it was last used, or not yet used. An entry called Not authorized (you declined) is not a real sign-in: it only remembers that you declined to sign in to that site, so the app stops offering. It has the delete button only; delete it to be asked again."
+          "details": "Under the name, a gray line shows how many cookies are stored, when the entry was saved and when it was last used, or not yet used. An entry called Not authorized (you declined) is not a real sign-in: it only remembers that you declined to sign in to that site, so the app stops offering. It has the delete button only; delete it to be asked again."
         },
         "relogin": {
           "summary": "Signs in to the same site again and renews the entry.",

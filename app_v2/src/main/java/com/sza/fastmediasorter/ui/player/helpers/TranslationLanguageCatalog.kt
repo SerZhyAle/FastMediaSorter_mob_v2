@@ -22,8 +22,17 @@ data class LanguageItem(
     val capabilities: Set<LanguageCapability>
 )
 
+/**
+ * The catalog has no Context, so the auto-detect row carries an English placeholder name; a screen swaps in
+ * its translated string with this before showing the row. A real language is returned unchanged.
+ */
+fun LanguageItem.withAutoDetectLabel(label: String): LanguageItem {
+    if (code != TranslationLanguageCatalog.AUTO_DETECT_CODE) return this
+    return copy(localizedName = label, nativeName = label)
+}
+
 object TranslationLanguageCatalog {
-    private const val AUTO_DETECT_CODE = "auto"
+    const val AUTO_DETECT_CODE = "auto"
     private const val AUTO_DETECT_LABEL = "Auto-detect"
     private const val AUTO_DETECT_GLYPH = "🌐"
 
@@ -112,7 +121,12 @@ object TranslationLanguageCatalog {
     }
 
     fun formatLanguage(item: LanguageItem): String {
-        val name = "${item.localizedName} (${item.nativeName})"
+        // Rows with one spelling ("Auto-detect", "Default") would otherwise read as a repeated label.
+        val name = if (item.localizedName.equals(item.nativeName, ignoreCase = true)) {
+            item.localizedName
+        } else {
+            "${item.localizedName} (${item.nativeName})"
+        }
         return if (item.glyph.isBlank()) name else "${item.glyph} $name"
     }
 

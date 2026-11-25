@@ -1,11 +1,12 @@
 ---
+source_sha256: ac79505e0d8b01f484b7242a13c95b251413d78963322ebfc4f1b04041298295
 layout: doc
-title: "Сервер обміну: ваші пристрої з будь-якої мережі"
+title: "Media Exchange Server: ваші пристрої з будь-якої мережі"
 description: "Один акаунт для всіх пристроїв і доступ з будь-якої мережі без налаштування роутера - хто тримає сервер обміну, як він працює, що бачить і що зберігає, і як ладнають між собою версії програм."
 category: "Обмін медіа"
 permalink: /docs/media-exchange-portal/exchange-server-uk.html
 ---
-<sub class="doc-stamp">26.10.22 01:26</sub>
+<sub class="doc-stamp">26.11.23 11:23</sub>
 
 # Сервер обміну: ваші пристрої з будь-якої мережі
 
@@ -31,6 +32,8 @@ permalink: /docs/media-exchange-portal/exchange-server-uk.html
 2. **ПК або телефон публікує** свої спільні теки.
 3. **Будь-який інший пристрій бачить** список усіх ваших тек і під'єднує потрібні.
 4. **Відкриття теки просить у сервера закритий зв'язок між двома пристроями**, і сервер поєднує два вихідні під'єднання, не читаючи переданих даних. Цим зв'язком тека й далі йде зашифрованою, від пристрою до пристрою (через SFTP - стандартний спосіб, яким пристрої діляться теками).
+
+[FastMediaSorter for Web](https://serzhyale.github.io/FastMediaSorter_WEB/) підключається до того самого облікового запису обміну як ще один пристрій у браузері й використовує той самий протокол обміну, що й установлені програми.
 
 В одній мережі Wi-Fi пристрої й далі під'єднуються один до одного напряму. Тека для людини поза вашим акаунтом видається запрошенням виду «гість» або посиланням із паролем - див. [люди поза вашим акаунтом](exchange-accounts-uk.html#outside).
 
@@ -106,6 +109,7 @@ permalink: /docs/media-exchange-portal/exchange-server-uk.html
 - [Розгорніть свій сервер обміну](exchange-server-quick-start-uk.html)
 - [Встановлення й перевірка сервера обміну](exchange-server-install-uk.html)
 - [Акаунти, запрошення та паролі](exchange-accounts-uk.html)
+- [Увійти у STREAMS Player для Windows](streamsplayer-uk.html#sign-in) або [перевірити з'єднання](streamsplayer-uk.html#connection-troubleshooting).
 - [Буфер на сервері](exchange-clipboard-uk.html)
 - [Як видалити акаунт](account-deletion-uk.html)
 - [Телефон як SFTP-сервер](../../documentation/network/phone-as-sftp-server-uk.html)

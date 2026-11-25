@@ -190,6 +190,28 @@ if ($stagedAfter.Count -eq 0 -and $stillUntracked -contains 'u.kt') { Write-Host
 else { Write-Host "  FAIL  the baseline touched the real index: staged=[$($stagedAfter -join ', ')] untracked=[$($stillUntracked -join ', ')]"; $failures++ }
 Reset-Fixture
 
+# External repository support: an existing file in an external git repo is not new, an uncommitted new file escalates.
+$extFixture = Join-Path $repoRoot "temp/scratch/trivial-scope-ext-$PID"
+if (Test-Path -LiteralPath $extFixture) { Remove-Item -LiteralPath $extFixture -Recurse -Force }
+New-Item -ItemType Directory -Force -Path $extFixture | Out-Null
+& git -C $extFixture init -q *> $null
+& git -C $extFixture config user.email suite@example.com *> $null
+& git -C $extFixture config user.name suite *> $null
+Set-Content -LiteralPath (Join-Path $extFixture 'ext-doc.md') -Value '# external doc' -Encoding utf8
+& git -C $extFixture add 'ext-doc.md' *> $null
+& git -C $extFixture -c user.email=suite@example.com -c user.name=suite commit -q -m 'base ext' *> $null
+
+$extDocPath = (Join-Path $extFixture 'ext-doc.md') -replace '\\', '/'
+Add-Line 'a.kt' 'fun extra() = 2'
+Set-Content -LiteralPath $extDocPath -Value '# modified external doc' -Encoding utf8
+Invoke-Case 'an existing external catalog file is not judged as new' 0 @('-RepoRoot', $fixture, '-Files', "a.kt,$extDocPath") 'PASS'
+
+$extNewPath = (Join-Path $extFixture 'ext-new.md') -replace '\\', '/'
+Set-Content -LiteralPath $extNewPath -Value '# brand new external file' -Encoding utf8
+Invoke-Case 'a brand-new external catalog file escalates' 1 @('-RepoRoot', $fixture, '-Files', "a.kt,$extNewPath") 'is a new file'
+
+Remove-Item -LiteralPath $extFixture -Recurse -Force -ErrorAction SilentlyContinue
+
 Remove-Item -LiteralPath $fixture -Recurse -Force -ErrorAction SilentlyContinue
 
 Write-Host ''

@@ -144,6 +144,9 @@ $logEntry = "$timestamp | wear-release | $destName"
 Add-Content -Path $journalPath -Value $logEntry
 Write-Host "Build logged to journal" -ForegroundColor Gray
 
+# S4679: record the build in the release ledger; the wrapper reports and never fails the build.
+& "$PSScriptRoot\..\utils\log-release-ledger-build.ps1" -Package wear -Flavor standard -Kind release -Version $VersionName -Artifact "$downloadsDir\$destName"
+
 # Mirror to Google Drive - raw file plus password ZIP. The pair used to be written out
 # here; it now lives in one place so the release path can call the same thing.
 & "$PSScriptRoot\..\utils\copy-to-drive.ps1" -Path "$downloadsDir\$destName" -Name $destName

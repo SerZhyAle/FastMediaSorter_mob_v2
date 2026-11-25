@@ -57,10 +57,11 @@ class StreamBroadcastEndManager @Inject constructor(
         val id = session.broadcastId
         if (playedUrl != playingUrl) {
             playingUrl = playedUrl
+            Timber.d("S4607: inline removal watch, bound to an entry=${session.entryKey != null}")
             hold.reset()
             removalWatch?.cancel()
             removalWatch = id?.let {
-                owner.collectOnLifecycle(observeRemoval(it)) { removed ->
+                owner.collectOnLifecycle(observeRemoval(it, session.entryKey)) { removed ->
                     val readNow = hold.onDirectory(removed)
                     if (readNow) {
                         onStopped(owner, playedUrl, BroadcastStopSignal.DirectoryRemoved, host)
@@ -99,6 +100,40 @@ class StreamBroadcastEndManager @Inject constructor(
                 BroadcastEndDecision.LostConnection -> retryOrAsk(session, host)
             }
         }
+    }
+
+    /**
+     * The screen came to the front: a broadcast the background service ended while no screen held it gets its ended
+     * dialog now. The service already stopped the sound and counted the outcome.
+     */
+    fun onScreenStarted(owner: AppCompatActivity, host: Host) {
+        val source = BroadcastPlaybackSessions.consumeEndedInService() ?: return
+        val session = BroadcastPlaybackSession(source, null)
+        StreamUnavailableDialog.showEnded(
+            activity = owner,
+            channelTitle = source.title,
+            removable = !source.id.startsWith(ObserveLiveBroadcastSourcesUseCase.ID_PREFIX),
+            onReconnect = { host.replayFromTop(session) },
+            onRemove = { host.remove(session) },
+            onDismiss = {},
+        )
+    }
+
+    /**
+     * A broadcast row's failure that outlived the retry ladder: the ended dialog when the directory removed the
+     * broadcast while it delivered (item U), else the unavailable one. False for any other row.
+     */
+    fun onFailureSurfaced(owner: AppCompatActivity, playedUrl: String, host: Host): Boolean {
+        val session = BroadcastPlaybackSessions.forUrl(playedUrl) ?: return false
+        pending?.cancel()
+        if (hold.atFailure()) {
+            Timber.i("StreamBroadcastEndManager: broadcast failed after the directory removed it - ended")
+            pending = owner.lifecycleScope.launch { showEnded(owner, session, host) }
+        } else {
+            stopWatching()
+            host.showUnavailable(session)
+        }
+        return true
     }
 
     private suspend fun retryOrAsk(session: BroadcastPlaybackSession, host: Host) {

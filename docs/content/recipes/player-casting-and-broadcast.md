@@ -11,12 +11,12 @@ availability_note: Chromecast - Standard, noLegal, Lite and Legacy; Live Broadca
 recipe_number: "04"
 canonical_url: documentation/player/casting-and-broadcast.html
 why: |
-  A phone screen is great in your hand and small for a room full of people. This recipe covers the two ways FastMediaSorter sends what is on your phone somewhere else.
+  A phone screen is great in your hand and small for a room full of people. This recipe covers the two ways Fast Media Sorter & Organizer sends what is on your phone somewhere else.
 
   **Chromecast** plays the video you are watching on a TV. The phone becomes the remote control. **Live Broadcast** goes the other way round: your phone's microphone, or its camera and microphone, become a live channel that other people open on their own devices - a baby monitor, a talk in the next room, a view of the garden.
 ingredients:
-  - "Chromecast: FastMediaSorter in the Standard, noLegal, Lite or Legacy [edition](term:edition), and a [Chromecast](term:chromecast) or a TV with Chromecast built in on the same Wi-Fi network as the phone."
-  - "Live Broadcast: the Standard, noLegal or Legacy edition. The phone and the people who watch must be on the same Wi-Fi network."
+  - "Chromecast: Fast Media Sorter & Organizer in the Standard, noLegal, Lite or Legacy [edition](term:edition), and a [Chromecast](term:chromecast) or a TV with Chromecast built in on the same Wi-Fi network as the phone."
+  - "Live Broadcast: the Standard, noLegal or Legacy edition. On the same Wi-Fi network the people who watch connect to the phone directly; from another network they connect through your [exchange server](../../docs/media-exchange-portal/exchange-server.html)."
   - "Live Broadcast asks for access to the microphone, to the camera when you send a picture, and to notifications so the broadcast keeps running while the screen is off. See [understanding app permissions](page:getting-started.permissions-guide)."
 steps:
   - number: 1
@@ -79,7 +79,7 @@ steps:
       - **Export File** - saves a small file that describes the broadcast.
       - **Send to** - sends the link through any messenger or mail app.
 
-      Another phone with FastMediaSorter scans the QR code to add the broadcast as a channel - see [live streams](page:streams.live-stream-playback). **Send to watch** sends it to your paired watch. The **How to watch this** link opens a page that explains to the other person, in their language, how to open the broadcast on an Android phone, a Wear OS watch or a Windows computer.
+      Another phone with Fast Media Sorter & Organizer scans the QR code to add the broadcast as a channel - see [live streams](page:streams.live-stream-playback). **Send to watch** sends it to your paired watch. The **How to watch this** link opens a page that explains to the other person, in their language, how to open the broadcast on an Android phone, a Wear OS watch or a Windows computer.
 
       The broadcast is published under your phone's name, so listeners know whose it is. You can change it in the broadcast settings with **Broadcast title**.
     image_bookmark:
@@ -101,14 +101,14 @@ steps:
     id: feedback
     title: When the sound starts to howl
     text: |
-      If someone listens to the broadcast out loud in the same room, their speaker can feed back into your microphone and the sound grows into a howl. FastMediaSorter notices this and turns the microphone down until the howl stops, then slowly gives the volume back. While it holds the sound down, the screen says: "Sound turned down: a listener's speaker is feeding back into the microphone. Move the listening device away or lower its volume." So a quieter broadcast does not mean the microphone is broken.
+      If someone listens to the broadcast out loud in the same room, their speaker can feed back into your microphone and the sound grows into a howl. Fast Media Sorter & Organizer notices this and turns the microphone down until the howl stops, then slowly gives the volume back. While it holds the sound down, the screen says: "Sound turned down: a listener's speaker is feeding back into the microphone. Move the listening device away or lower its volume." So a quieter broadcast does not mean the microphone is broken.
 
       This protection is called **Feedback guard**. It is on by default; you can turn it off in the broadcast settings.
 outcome: |
   Your video plays on the big TV with the phone as a remote, or your phone sends a live sound or camera picture that family and friends open on their phones, watches or computers with one scan of a QR code.
 tips:
   - "**Chromecast not in the list?** The phone and the TV must be on the same Wi-Fi network. Guest networks often keep devices apart."
-  - "**Nobody can connect to the broadcast?** Check that everyone is on the same Wi-Fi. Some routers block devices from talking to each other - look for an option called client or AP isolation."
+  - "**Nobody can connect to the broadcast?** On the same Wi-Fi network, check that everyone is on it. Some routers block devices from talking to each other - look for an option called client or AP isolation. From another network, the broadcast plays through your [exchange server](../../docs/media-exchange-portal/exchange-server.html) once the phone is signed in to it in **My devices**."
   - "**Music on a Chromecast** works the same way from the audio player - see [playing and organizing music files](page:audio.playing-and-organizing-music)."
   - "**Want to record the screen instead?** See [recording the screen with audio](page:capture.screen-recording-and-audio)."
   - "**Want a phone or a watch to go on air for your other devices?** The [media exchange portal](../../docs/media-exchange-portal/live-broadcast.html) describes the routes between devices, step by step."
@@ -130,6 +130,6 @@ next_recipes:
     description: Keep watching in a small window.
 ---
 
-<sub class="doc-stamp">26.10.15 21:43</sub>
+<sub class="doc-stamp">26.11.14 03:05</sub>
 
 Send the video you are watching to a TV with Chromecast, or turn your phone into a small live sound or camera station that others open with a QR code.

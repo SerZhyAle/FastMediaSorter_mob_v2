@@ -29,6 +29,17 @@
             android:text="@string/ticket_inbox_refresh" />
     </LinearLayout>
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnTicketGrantDrive"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="@dimen/touch_target_min_height"
+        android:nextFocusUp="@+id/btnTicketRefresh"
+        android:nextFocusDown="@+id/listTicketOutbox"
+        android:text="@string/ticket_inbox_grant_drive"
+        android:visibility="gone" />
+
     <ProgressBar
         android:id="@+id/progressTicket"
         style="?android:attr/progressBarStyleHorizontal"

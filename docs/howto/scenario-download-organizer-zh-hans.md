@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "下载整理器（快速分类）- FastMediaSorter v2"
+title: "下载整理器（快速分类）- Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-download-organizer-zh-hans.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -11,7 +11,7 @@ permalink: /docs/howto/scenario-download-organizer-zh-hans.html
 
 > **难度：** 入门 &bull; **版本：** 任意版本（Standard、Lite、Photos、Legacy、VR、noLegal）
 
-**快速分类**是 FastMediaSorter 的招牌功能：只需设置一次文件夹，之后只要点击一个数字，就能分类数百个文件。不需要拖放，不需要菜单。只要点击 **1**、**2** 或 **3** - 文件就会立即送到正确的位置。
+**快速分类**是 Fast Media Sorter & Organizer 的招牌功能：只需设置一次文件夹，之后只要点击一个数字，就能分类数百个文件。不需要拖放，不需要菜单。只要点击 **1**、**2** 或 **3** - 文件就会立即送到正确的位置。
 
 **实际例子：** 您的下载文件夹里有 200 个文件 - 截图、工作文档、家庭照片、表情包、收据。有了快速分类，大约 5 分钟就能把这 200 个文件全部整理完。没有它 - 那就祝您好运了。
 
@@ -38,7 +38,7 @@ permalink: /docs/howto/scenario-download-organizer-zh-hans.html
 
 > **下载文件夹是浏览器、Telegram、WhatsApp 等应用保存文件的地方。** 这通常是手机上最杂乱的地方。
 
-![FastMediaSorter 主屏幕 - 已添加下载资源卡片，显示本地标记](screenshots/screenshot-dl-step1.png)
+![Fast Media Sorter & Organizer 主屏幕 - 已添加下载资源卡片，显示本地标记](screenshots/screenshot-dl-step1.png)
 
 ---
 
@@ -52,12 +52,12 @@ permalink: /docs/howto/scenario-download-organizer-zh-hans.html
 - **保留** - 值得长期保存的内容
 - **垃圾** - 查看后要删除的文件
 
-**您可以直接在 FastMediaSorter 中创建这些文件夹：**
+**您可以直接在 Fast Media Sorter & Organizer 中创建这些文件夹：**
 1. 打开下载资源
 2. 点击**菜单 <img src="../icons/doc/ic_more_vert.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** 按钮 → **创建文件夹**
 3. 输入文件夹名称 → 点击**确定**
 
-或者在手机自带的文件管理器中创建这些文件夹 - 它们会自动出现在 FastMediaSorter 中。
+或者在手机自带的文件管理器中创建这些文件夹 - 它们会自动出现在 Fast Media Sorter & Organizer 中。
 
 ---
 

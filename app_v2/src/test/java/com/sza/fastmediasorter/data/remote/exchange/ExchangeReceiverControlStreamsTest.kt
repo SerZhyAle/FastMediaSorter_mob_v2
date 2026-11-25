@@ -12,6 +12,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
@@ -44,7 +46,11 @@ class ExchangeReceiverControlStreamsTest {
         coEvery { client.openAuthenticated(entry, any()) } returns session
         val streams = ExchangeReceiverControlStreams(client, Dispatchers.IO)
 
-        val event = async(start = CoroutineStart.UNDISPATCHED) { withTimeout(TIMEOUT_MS) { streams.events.first() } }
+        val event = async(start = CoroutineStart.UNDISPATCHED) {
+            withTimeout(TIMEOUT_MS) {
+                streams.events.first { it.envelope.type == DeviceExchangeEnvelope.TYPE_CAST_OFFER }
+            }
+        }
         val run = launch(Dispatchers.IO) { streams.run(MutableStateFlow(listOf(entry))) }
 
         val received = event.await()
@@ -52,6 +58,29 @@ class ExchangeReceiverControlStreamsTest {
         assertEquals(DeviceExchangeEnvelope.TYPE_CAST_OFFER, received.envelope.type)
         assertTrue(streams.send(entry.identity, answer))
         verify { session.send(answer) }
+        run.cancelAndJoin()
+        assertTrue(closed.await(TIMEOUT_MS, TimeUnit.MILLISECONDS))
+    }
+
+    @Test
+    fun `a connected stream emits the welcome marker and then a notes_changed of its entry`() = runBlocking {
+        val closed = CountDownLatch(1)
+        val notesChanged = DeviceExchangeEnvelope.of(ExchangeNotesEnvelopes.TYPE_NOTES_CHANGED)
+        val client = mockk<DeviceExchangeAccountClient>()
+        coEvery { client.openAuthenticated(entry, any()) } returns blockingSession(listOf(notesChanged), closed)
+        val streams = ExchangeReceiverControlStreams(client, Dispatchers.IO)
+
+        val events = async(start = CoroutineStart.UNDISPATCHED) {
+            withTimeout(TIMEOUT_MS) { streams.events.take(2).toList() }
+        }
+        val run = launch(Dispatchers.IO) { streams.run(MutableStateFlow(listOf(entry))) }
+
+        val received = events.await()
+        assertEquals(
+            listOf(DeviceExchangeEnvelope.TYPE_WELCOME, ExchangeNotesEnvelopes.TYPE_NOTES_CHANGED),
+            received.map { it.envelope.type },
+        )
+        assertTrue(received.all { it.entry == entry })
         run.cancelAndJoin()
         assertTrue(closed.await(TIMEOUT_MS, TimeUnit.MILLISECONDS))
     }

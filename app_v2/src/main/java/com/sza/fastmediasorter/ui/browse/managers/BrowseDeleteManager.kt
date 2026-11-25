@@ -75,6 +75,10 @@ class BrowseDeleteManager(
         val resource = stateFlow.value.resource ?: return
         val selectedSet = selectedPaths.toSet()
         val knownFiles = stateFlow.value.mediaFiles.associateBy { it.path }
+        // The path the screen shows, as copy/move pass it: the file's parent differs from it in a flat
+        // listing, and BrowseFileOperationsManager.maybeReattachToBrowseFolder would then navigate away.
+        val screenBrowsePath = stateFlow.value.currentPath
+        Timber.d("S4768: delete enqueue screenBrowsePath=$screenBrowsePath files=${selectedSet.size}")
         val settings = settingsRepository.getSettings()
         scope.launch(ioDispatcher) {
             val softDelete = settings.first().useTrash &&
@@ -84,7 +88,7 @@ class BrowseDeleteManager(
                 sourceResourceId = resource.id,
                 sourceResourceName = resource.name,
                 sourceCredentialsId = resource.credentialsId,
-                currentBrowsePath = selectedPaths.firstOrNull()?.substringBeforeLast('/', ""),
+                currentBrowsePath = screenBrowsePath,
                 destinationPath = resource.path,
                 destinationName = resource.name,
                 overwriteFiles = false,

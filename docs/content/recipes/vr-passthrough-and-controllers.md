@@ -12,7 +12,7 @@ availability_note: noLegal and VR, on a compatible headset
 recipe_number: "03"
 canonical_url: documentation/vr/passthrough-and-controllers.html
 why: |
-  There is no touchscreen inside a headset. Every button [VR Cinema](term:vr-cinema) offers - play, seek, subtitles, the depth of a 3D film - has to live somewhere you can see it without breaking the scene and reach it without a keyboard or a mouse. FastMediaSorter's answer is a [panel](term:panel) that floats in front of you, aimed at with a controller ray or a pinch of the fingers, that shows only the buttons that make sense for whatever is currently playing and gets out of the way the moment you stop looking at it.
+  There is no touchscreen inside a headset. Every button [VR Cinema](term:vr-cinema) offers - play, seek, subtitles, the depth of a 3D film - has to live somewhere you can see it without breaking the scene and reach it without a keyboard or a mouse. Fast Media Sorter & Organizer's answer is a [panel](term:panel) that floats in front of you, aimed at with a controller ray or a pinch of the fingers, that shows only the buttons that make sense for whatever is currently playing and gets out of the way the moment you stop looking at it.
 
   This page is the controls themselves, end to end: the banner that always tells you what you are watching, the floating panel and its buttons, the settings panel behind the menu button, and the controller, thumbstick, haptic and hand-tracking input that drives all of it. Getting into VR Cinema in the first place is covered in [spatial 3D/360 cinema and video playback](page:vr.spatial-cinema-playback).
 ingredients:
@@ -23,7 +23,7 @@ steps:
     id: head-locked-banner
     title: The banner that always tells you what is playing
     text: |
-      A banner stays locked to your head rather than to the scene, so it is always readable no matter which way you turn: the current filename, the projection FastMediaSorter detected - 360°, 180°, cylinder or flat - and the stereo layout it is using. If something about the file goes wrong, the same banner turns red instead of silently vanishing, so you always know at a glance whether what you are looking at is actually working.
+      A banner stays locked to your head rather than to the scene, so it is always readable no matter which way you turn: the current filename, the projection Fast Media Sorter & Organizer detected - 360°, 180°, cylinder or flat - and the stereo layout it is using. If something about the file goes wrong, the same banner turns red instead of silently vanishing, so you always know at a glance whether what you are looking at is actually working.
   - number: 2
     id: floating-panel
     title: The floating control panel
@@ -76,7 +76,7 @@ steps:
     id: haptics-and-hands
     title: Haptics, and playing hands-free
     text: |
-      Every click on the panel gives the controller a short vibration, and hovering the ray over a button gives it a lighter one - a bit of feedback that does not depend on looking at exactly the right pixel. Set the controllers aside and FastMediaSorter still works: hand tracking recognizes a pinch as a click, aiming the ray with your hand the same way you would with a controller, and it processes hand gestures for leaving the session too, so nothing here strictly requires holding anything.
+      Every click on the panel gives the controller a short vibration, and hovering the ray over a button gives it a lighter one - a bit of feedback that does not depend on looking at exactly the right pixel. Set the controllers aside and Fast Media Sorter & Organizer still works: hand tracking recognizes a pinch as a click, aiming the ray with your hand the same way you would with a controller, and it processes hand gestures for leaving the session too, so nothing here strictly requires holding anything.
   - number: 9
     id: fps-overlay
     title: Curious how smooth it is? Turn on the FPS overlay

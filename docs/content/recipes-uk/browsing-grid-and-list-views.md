@@ -13,7 +13,7 @@ why: |
 
   Ніщо на цій сторінці саме по собі не змінює ваші файли. Увімкнення параметра чи відкриття меню лише змінює те, як екран показує вже наявний вміст.
 ingredients:
-  - "Встановлений FastMediaSorter. Браузер файлів є в кожній [редакції](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR і FOSS."
+  - "Встановлений Fast Media Sorter & Organizer. Браузер файлів є в кожній [редакції](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR і FOSS."
   - "Принаймні один доданий [ресурс](term:resource), щоб було що відкривати. Якщо ще жодного не додали, дивіться рецепт [Налаштування локальних і знімних сховищ](page:storage.storage-sources-setup)."
   - "Встановлення застосунку прямо з браузера працює лише в sideload-[редакції noLegal](term:nolegal-edition)."
 steps:

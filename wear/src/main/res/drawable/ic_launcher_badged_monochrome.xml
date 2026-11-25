@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    S4695: the themed-icon layer of an edition or a debug build - the shared silhouette plus the generated
+    badge disc, so an Android 13+ themed icon keeps the badge the coloured icon carries.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/ic_launcher_monochrome" />
+    <item android:drawable="@drawable/ic_launcher_badge_monochrome" />
+</layer-list>

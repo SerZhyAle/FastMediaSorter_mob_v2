@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Conecte o Smartwatch a NAS e Compartilhamentos de PC - FastMediaSorter v2"
+title: "Conecte o Smartwatch a NAS e Compartilhamentos de PC - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-watch-network-pt.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -13,7 +13,7 @@ permalink: /docs/howto/scenario-watch-network-pt.html
 
 > **Somente na versão completa** - este guia não está implementado na versão distribuída pelo Google Play. Ele se aplica à versão completa, um download direto do APK em [Downloads](../DOWNLOADS.md).
 
-O FastMediaSorter no Wear OS se conecta diretamente ao armazenamento da sua rede doméstica (NAS, pastas compartilhadas de PC, servidores FTP ou SFTP) pelo Wi-Fi. Você pode navegar por arquivos remotos, transmitir música para fones de ouvido Bluetooth e sincronizar suas pastas favoritas sem precisar do seu celular.
+O Fast Media Sorter & Organizer no Wear OS se conecta diretamente ao armazenamento da sua rede doméstica (NAS, pastas compartilhadas de PC, servidores FTP ou SFTP) pelo Wi-Fi. Você pode navegar por arquivos remotos, transmitir música para fones de ouvido Bluetooth e sincronizar suas pastas favoritas sem precisar do seu celular.
 
 > **Novo em compartilhamentos de rede?** Se você ainda não configurou uma pasta compartilhada no seu PC ou NAS, comece primeiro com o nosso guia [Conectar a um NAS / Compartilhamento do Windows (SMB)](scenario-smb-setup-pt.md).
 
@@ -36,7 +36,7 @@ O FastMediaSorter no Wear OS se conecta diretamente ao armazenamento da sua rede
 
 ![Tela de Recursos no Wear OS](screenshots/screenshot-wear-network-step1.png)
 
-> **Atalho Sincronizar do Celular:** Se você já adicionou seus compartilhamentos SMB ou SFTP no FastMediaSorter no seu celular Android, toque em **Sincronizar do Celular** para importar todas as configurações de conexão para o seu relógio com um toque.
+> **Atalho Sincronizar do Celular:** Se você já adicionou seus compartilhamentos SMB ou SFTP no Fast Media Sorter & Organizer no seu celular Android, toque em **Sincronizar do Celular** para importar todas as configurações de conexão para o seu relógio com um toque.
 
 ---
 

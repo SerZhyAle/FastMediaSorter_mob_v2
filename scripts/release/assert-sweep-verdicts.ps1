@@ -11,7 +11,13 @@
 
       - the file is missing or does not parse - exit 2;
       - pass is not true, or blocked is true - exit 1;
-      - a group the verdict JUDGED changed after the file was written (S4498): the groups are
+      - a PASSED verdict older than a change to a group it JUDGED is STALE-ACCEPTED (S4904, owner
+        order 2026-11-25): printed with the group and the change time, exit 0. A release campaign
+        runs each long device sweep once; the delta after it is covered by the release build, the
+        unit suite and lint that /skill-release runs on the final tree, and by each ticket's own
+        checks. Staleness is still computed and printed, never a reason to walk a device again.
+        A FAILED or BLOCKED verdict stays exit 1 whether stale or not.
+        How staleness is read (S4498): the judged groups are
         `verdictGroups` in scripts\quality\release-scope-fingerprint.groups.json (phone-src for the
         phone, wear-src for the watch), their `since` stamp is in temp\RELEASE-FREEZE-FINGERPRINTS.json
         (phone) or temp\RELEASE-FREEZE-FINGERPRINTS-WEAR.json (watch) - the verdict is about an older
@@ -26,8 +32,9 @@
     -NoWearReason: an unexplained absence is exactly the silent drop this check exists to catch.
 
     Exit codes:
-      0 - every verdict exists, passed, is not blocked and is not older than the groups it judged
-      1 - a verdict FAILED, is BLOCKED, or is stale (a group it judged changed after it was written)
+      0 - every verdict exists, passed and is not blocked; a passed verdict older than a judged group
+          is printed STALE-ACCEPTED and still counts (S4904)
+      1 - a verdict FAILED or is BLOCKED
       2 - a verdict file, a fingerprint record or the verdictGroups map is missing or unreadable, or
           the arguments are unusable (no watch verdict without -NoWear, -NoWear without a reason)
 
@@ -172,14 +179,18 @@ foreach ($check in $checks) {
     }
     $written = $file.LastWriteTime.ToString('s')
     $blocked = ($verdict.PSObject.Properties.Name -contains 'blocked') -and [bool]$verdict.blocked
-    $result = if ($file.LastWriteTime -lt $fingerprint.At) { 'STALE' }
-              elseif ($blocked) { 'BLOCKED' }
+    # S4904: a failure outranks staleness, and staleness alone never sends the campaign back to a
+    # device walk - the sweep is run once per release.
+    $result = if ($blocked) { 'BLOCKED' }
               elseif (-not [bool]$verdict.pass) { 'FAIL' }
+              elseif ($file.LastWriteTime -lt $fingerprint.At) { 'STALE-ACCEPTED' }
               else { 'PASS' }
-    $colour = if ($result -eq 'PASS') { 'Green' } else { 'Red' }
-    $note = if ($result -eq 'STALE') { " - group $($fingerprint.Group) changed at $($fingerprint.At.ToString('s')), after the verdict was written" } else { '' }
-    Write-Host ("  {0,-5} {1,-7} {2}  written {3}{4}" -f $check.Scope, $result, $path, $written, $note) -ForegroundColor $colour
-    if ($result -ne 'PASS') { $worst = [Math]::Max($worst, 1) }
+    $colour = switch ($result) { 'PASS' { 'Green' } 'STALE-ACCEPTED' { 'Yellow' } default { 'Red' } }
+    $note = if ($result -eq 'STALE-ACCEPTED') {
+        " - group $($fingerprint.Group) changed at $($fingerprint.At.ToString('s')), after the verdict; covered by the release build, fu and lint, not by a second sweep"
+    } else { '' }
+    Write-Host ("  {0,-5} {1,-14} {2}  written {3}{4}" -f $check.Scope, $result, $path, $written, $note) -ForegroundColor $colour
+    if ($result -eq 'BLOCKED' -or $result -eq 'FAIL') { $worst = [Math]::Max($worst, 1) }
 }
 if ($NoWear) {
     Write-Host ("  wear  SKIPPED   -NoWear: {0}" -f $NoWearReason) -ForegroundColor Yellow
@@ -188,8 +199,8 @@ if ($NoWear) {
 # 2 outranks 1: a verdict that could not be read says nothing, and "nothing" must not be ranked
 # below a known failure that a fix could clear while the unread one stays unread.
 switch ($worst) {
-    0 { Write-Host 'assert-sweep-verdicts: PASS - every sweep verdict passed and is current.' -ForegroundColor Green }
-    1 { Write-Host 'assert-sweep-verdicts: FAIL - a verdict failed, is blocked or is stale; the release does not proceed.' -ForegroundColor Red }
+    0 { Write-Host 'assert-sweep-verdicts: PASS - every sweep verdict passed (a STALE-ACCEPTED line names a change made after its sweep).' -ForegroundColor Green }
+    1 { Write-Host 'assert-sweep-verdicts: FAIL - a verdict failed or is blocked; the release does not proceed.' -ForegroundColor Red }
     default { Write-Host 'assert-sweep-verdicts: COULD NOT VERIFY - a verdict or a fingerprint record is missing or unreadable.' -ForegroundColor Red }
 }
 exit $worst

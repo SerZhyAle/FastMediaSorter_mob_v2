@@ -86,6 +86,7 @@ class ResourceTableAdapter(
             } else {
                 ResourceAdapter.formatMediaTypes(context, resource.supportedMediaTypes, resource.allFiles)
             }
+            ResourceAdapter.bindMediaTypeDescription(binding.tvResourceTableContent, resource)
             binding.tvResourceTablePath.text = ResourceAdapter.displayPath(resource)
 
             binding.btnResourceTableMore.isVisible = !isFavoritesEntry

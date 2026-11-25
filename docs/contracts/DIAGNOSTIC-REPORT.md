@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.29 05:03</sub>
+<sub class="doc-stamp">26.11.15 14:24</sub>
 
 # Pointer - `DIAGNOSTIC-REPORT`
 
@@ -11,7 +11,7 @@
 
 ## What this repository must do to stay conformant
 
-- Package logs and diagnostics into `fastmediasorter_logs.zip`, bounded per rule 4: a file above 16 MB is packed as its first 1 MB and last 7 MB around a `[Diag] LOG TRUNCATED` marker; session logs rotate at 5 MB each, the last 10 kept.
+- Package logs and diagnostics into `FastMediaSorter-logs-<version>-yyyyMMdd-HHmmss.zip` with an `environment.txt` summary (section 8 A, rule 2), bounded per rule 4: a file above 16 MB is packed as its first 1 MB and last 7 MB around a `[Diag] LOG TRUNCATED` marker; session logs rotate at 5 MB each, the last 10 kept.
 - Redact every secret shape rule 3 names (section 7) - secret query parameters including the
   signed-CDN family, credential-in-path segments, URL userinfo whose password contains `/`, `?` or `#`,
   PINs and private auth keys: the value becomes `[REDACTED]`, the parameter name stays.

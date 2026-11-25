@@ -79,6 +79,15 @@ class CommandPanelController(
          * PopupMenu, at [order] (the command's priority). No-op when there is no current file.
          */
         fun onSendToOverflowSubMenuRequested(menu: android.view.Menu, order: Int)
+
+        /**
+         * True while the text editor panel is open. The editor's actions carry «Send to..» (saving first),
+         * so the player overflow drops its own entry to avoid showing it twice.
+         */
+        fun isTextEditorOpen(): Boolean
+
+        /** S4676: append the open text editor's actions (Save, Send to.., Calculator) to [menu]. */
+        fun onEditorOverflowItemsRequested(menu: android.view.Menu)
         fun onEditClicked()
         fun onUndoClicked()
         fun onFullscreenClicked()
@@ -104,6 +113,8 @@ class CommandPanelController(
         fun onReopenEncodingClicked()
         fun onToggleMarkdownClicked()
         fun onReaderSettingsClicked()
+        fun onTextZoomInClicked()
+        fun onTextZoomOutClicked()
         fun onReadAloudClicked()
         fun onPdfScrollModeClicked()
         fun onPdfColorModeClicked()
@@ -330,6 +341,17 @@ class CommandPanelController(
     /** Update command availability based on state */
     fun updateCommandAvailability(state: PlayerViewModel.PlayerState) {
         availabilityUpdater.update(state)
+        if (callback.isTextEditorOpen()) {
+            // The editor hides these itself when it opens; the pass above re-shows whatever the planner
+            // put on the bar, and the big-buttons sync it posts reads visibility only after this returns.
+            Timber.d("S4724: editor open, editor-owned bar buttons held hidden after the layout pass")
+            safeViews.btnEditTextCmd.isVisible = false
+            safeViews.btnCopyTextCmd.isVisible = false
+            safeViews.btnTranslateTextCmd.isVisible = false
+            safeViews.btnSearchTextCmd.isVisible = false
+            // S4676: the editor's actions live only in this menu, so it must stay reachable while editing.
+            safeViews.btnOverflowMenu.isVisible = true
+        }
     }
 
     /**
@@ -362,16 +384,16 @@ class CommandPanelController(
     fun updateSlideshowButtonColor(isActive: Boolean) {
         val button = binding.btnSlideshowCmd
         button.alpha = if (isActive) 1.0f else 0.5f
-        // The command bar is a fixed dark overlay: idle takes the overlay's content colour, active the
-        // theme's error role (ICON-RENDER rule 2), so no theme can turn the toggle invisible.
+        // The top panel stays dark in both themes, so idle takes the panel's own tint selector. A
+        // theme-following overlay colour is black at night and hid the icon on the black panel; active
+        // takes the theme's error role (ICON-RENDER rule 2).
         if (isActive) {
             val active = MaterialColors.getColor(button, androidx.appcompat.R.attr.colorError)
             button.imageTintList = ColorStateList.valueOf(active)
             button.backgroundTintList =
                 ColorStateList.valueOf(ColorUtils.setAlphaComponent(active, ACTIVE_TOGGLE_BACKGROUND_ALPHA))
         } else {
-            button.imageTintList =
-                ColorStateList.valueOf(ContextCompat.getColor(button.context, R.color.player_overlay_on_primary))
+            button.imageTintList = ContextCompat.getColorStateList(button.context, R.color.selector_player_button_tint)
             button.backgroundTintList = ColorStateList.valueOf(Color.TRANSPARENT)
         }
     }
@@ -602,11 +624,18 @@ class CommandPanelController(
         val currentFile = state.currentFile ?: return
         val context = binding.root.context
 
-        val commands = latestOverflowCommands
-        if (commands.isEmpty()) return
+        val editorOpen = callback.isTextEditorOpen()
+        val commands = latestOverflowCommands.filterNot {
+            editorOpen && it == CommandPanelLayoutPlanner.PlayerCommand.SEND_TO
+        }
+        if (commands.isEmpty() && !editorOpen) return
+        if (editorOpen) {
+            Timber.d("S4636: overflow built without Send to.. while the text editor is open")
+        }
 
-        // S0158: Big Buttons Mode uses a custom ListPopupWindow with doubled row height
-        if (bigButtonsMode) {
+        // S0158: Big Buttons Mode uses a custom ListPopupWindow with doubled row height.
+        // S4676: its rows are planner commands only, so the editor's actions need the PopupMenu.
+        if (bigButtonsMode && !editorOpen) {
             bigButtonsModeManager.buildBigButtonsOverflowMenu(anchor, commands, bigButtonsMode = true) { cmd ->
                 handleOverflowCommand(cmd)
             }
@@ -615,8 +644,17 @@ class CommandPanelController(
 
         val popup = PopupMenu(context, anchor)
         popup.setForceShowIcon(true)
+        Timber.d("S4570: embedded overflow built with a glyph on every item")
 
         val iconColor = context.popupIconColor()
+
+        if (editorOpen) {
+            callback.onEditorOverflowItemsRequested(popup.menu)
+            for (i in 0 until popup.menu.size()) {
+                val item = popup.menu.getItem(i)
+                item.icon = item.icon?.mutate()?.apply { setTint(iconColor) }
+            }
+        }
 
         // S1364: count the section's members before creating it - Android does not hide an empty
         // submenu, and on a video or text file none of these commands is emitted at all. Same
@@ -630,7 +668,13 @@ class CommandPanelController(
                 android.view.Menu.NONE,
                 editCommands.minOf { it.priority },
                 context.getString(R.string.menu_edit_submenu_title)
-            ).apply { clearHeader() }
+            ).apply {
+                clearHeader()
+                // S4570: a submenu header is a member of the parent set, which force-shows icons.
+                item.icon = androidx.core.content.ContextCompat.getDrawable(context, R.drawable.ic_edit)
+                    ?.mutate()
+                    ?.apply { setTint(iconColor) }
+            }
         }
 
         // Build menu dynamically in priority order
@@ -772,6 +816,8 @@ class CommandPanelController(
             R.id.menu_reopen_encoding -> callback.onReopenEncodingClicked()
             R.id.menu_toggle_markdown -> callback.onToggleMarkdownClicked()
             R.id.menu_reader_settings -> callback.onReaderSettingsClicked()
+            R.id.menu_text_zoom_in -> callback.onTextZoomInClicked()
+            R.id.menu_text_zoom_out -> callback.onTextZoomOutClicked()
             R.id.menu_read_aloud -> callback.onReadAloudClicked()
             R.id.menu_pdf_scroll_mode -> callback.onPdfScrollModeClicked()
             R.id.menu_pdf_color_mode -> callback.onPdfColorModeClicked()

@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.11.12 03:27</sub>
+<sub class="doc-stamp">26.11.20 20:17</sub>
 
 # Pointer - `SITE-FAMILY-MAP`
 
 | | |
 | --- | --- |
 | **Id** | `SITE-FAMILY-MAP` |
-| **Version** | 1.12, active. Owner: the sza.od.ua hub |
+| **Version** | 1.17, active. Owner: the sza.od.ua hub |
 | **Home** | `product-web-pages/SITE-FAMILY-MAP.md` in the shared contracts catalog |
 | **Role here** | consumer - the footer of the product site |
 
@@ -15,12 +15,16 @@
 - The `Tool` cell is the product's own display name, so the Windows row reads *Fast Media Sorter & Sharing for
   Windows* (1.9). A help-index cell (1.6, 1.7) is a column of its row and never a footer link (rule 6), and the
   shared pages this product owns are the map's section 2a records (1.8); their canonical addresses stay permanent.
+- 1.13 to 1.17 are additive: the Windows row's help-index cell, the rows DeviceInfo, Tourist and FastMediaSorter for
+  Web (with the FMS-Web, FMS-mob and FMS-Lite cross-link pair of rule 4), and the permanence of the three
+  `media-exchange-server-page` addresses, the repository and `docs/` segments included. The footer source carries the
+  three new rows, and those three addresses stay permanent.
 - One contact everywhere: the email and the GitHub account the map names.
 - A cross-link to a sibling inside body copy stays body copy, not a second footer.
 - The deviations currently open are recorded as exceptions in the catalog's registry.
 
 ## Where it lives here
 
-- The footer of `index.html`, `nolegal.html` and their `-ru` / `-uk` translations.
-- The grid's one copy is `scripts/site/family-footer.json`; `scripts/site/render-family-footer.ps1` renders it into the six pages between the `family-footer` markers. A map change is an edit of that file plus a render.
+- The footer of `index.html`, `nolegal.html` and their `-ru` / `-uk` translations, and of each translated landing page `index-<locale>.html`.
+- The grid's one copy is `scripts/site/family-footer.json`; `scripts/site/render-family-footer.ps1` renders it into the sixteen pages between the `family-footer` markers. A map change is an edit of that file plus a render.
 - `scripts/quality/assert-site-family-map.ps1` (release scope) holds the pages to the source, the source to the map's section 2 (URL and `Tool` name), this product's row to `_config.yml`, and rule 3 on the pages and `README.md`.

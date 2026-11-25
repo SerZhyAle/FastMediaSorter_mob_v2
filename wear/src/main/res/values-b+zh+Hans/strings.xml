@@ -99,7 +99,7 @@
     <string name="phone_resource_loading">正在从手机加载..</string>
     <string name="phone_resource_retry">重试</string>
     <string name="phone_resource_empty">你的手机在此处没有可显示的内容。请打开其他文件夹或重试。</string>
-    <string name="phone_resource_unavailable">FastMediaSorter 未响应您的手机。请在手机上打开它，并让手机保持在附近。</string>
+    <string name="phone_resource_unavailable">Fast Media Sorter &amp; Organizer 未响应您的手机。请在手机上打开它，并让手机保持在附近。</string>
     <string name="phone_resource_access_denied">你的手机未将此文件夹共享给手表。</string>
     <string name="phone_resource_unsupported">手表无法打开此类文件。</string>
     <string name="phone_resource_transfer_rejected">此文件过大，无法发送到手表。</string>
@@ -383,9 +383,9 @@
     <string name="phone_resource_no_resource_for_type">没有设置电话资源来保存此类型。</string>
     <string name="wear_folder_load_more">显示更多</string>
     <string name="wear_file_op_outcome_needs_consent">未确认 - 没有任何改变</string>
-    <string name="wear_sync_no_phone_paired">未连接手机。请配对手机并在其上安装 FastMediaSorter。</string>
+    <string name="wear_sync_no_phone_paired">未连接手机。请配对手机并在其上安装 Fast Media Sorter &amp; Organizer。</string>
     <string name="wear_sync_request_failed">无法联系手机，请重试。</string>
-    <string name="phone_resource_not_paired">此手表未连接任何手机。请配对一部手机并在其上安装 FastMediaSorter。</string>
+    <string name="phone_resource_not_paired">此手表未连接任何手机。请配对一部手机并在其上安装 Fast Media Sorter &amp; Organizer。</string>
     <string name="wear_streams_sort_most_used">常用</string>
     <string name="streams_rubric_general">综合</string>
     <string name="streams_rubric_news">新闻</string>
@@ -767,7 +767,7 @@
     <string name="wear_cast_phone_busy">你的手机没有响应 - 请确认它在附近</string>
     <string name="wear_cast_not_castable">只有来自手机来源的流媒体和文件才能在 TV 上显示</string>
     <string name="wear_stream_stalled">流媒体已停止发送。播放已停止以节省电量。</string>
-    <string name="phone_resource_companion_disabled">手机上的 Wear 伴侣开关已关闭。请在 FastMediaSorter 设置中开启它，然后重试。</string>
+    <string name="phone_resource_companion_disabled">手机上的 Wear 伴侣开关已关闭。请在 Fast Media Sorter &amp; Organizer 设置中开启它，然后重试。</string>
     <string name="wear_tourist_app">旅行者</string>
     <string name="wear_tourist_metric_speed">速度</string>
     <string name="wear_tourist_metric_altitude">海拔</string>
@@ -809,7 +809,6 @@
     <string name="wear_clipboard_no_phone">附近没有手机</string>
     <string name="wear_clipboard_no_answer">手机没有响应</string>
     <string name="wear_clipboard_refused">手机拒绝了：%1$s</string>
-    <string name="wear_tourist_press_button_to_unlock">按下手表按钮以解锁</string>
     <string name="wear_tourist_metric_body_temperature">体温</string>
     <string name="wear_onboarding_welcome_title">欢迎</string>
     <string name="wear_onboarding_welcome_body">直接在手腕上浏览、播放和整理媒体。</string>
@@ -934,12 +933,12 @@
     <string name="about_watch_face_caption">适用于 Wear OS 6 及更高版本</string>
     <string name="about_watch_face_no_store">此手表没有 Google Play</string>
     <string name="wear_companion_hint_connect">连接手机即可查看资源和手机</string>
-    <string name="wear_companion_hint_install">在手机上安装 FastMediaSorter 即可查看资源和手机</string>
-    <string name="wear_companion_offer_title">你的手机上没有 FastMediaSorter</string>
+    <string name="wear_companion_hint_install">在手机上安装 Fast Media Sorter &amp; Organizer 即可查看资源和手机</string>
+    <string name="wear_companion_offer_title">你的手机上没有 Fast Media Sorter &amp; Organizer</string>
     <string name="wear_companion_offer_message">安装后即可在手表上浏览手机及其资源</string>
     <string name="wear_companion_offer_install">安装</string>
     <string name="wear_companion_offer_later">以后再说</string>
-    <string name="wear_companion_install_row">在手机上安装 FastMediaSorter</string>
+    <string name="wear_companion_install_row">在手机上安装 Fast Media Sorter &amp; Organizer</string>
     <string name="wear_tourist_metric_pressure">气压</string>
     <string name="wear_tourist_metric_baro_altitude">气压海拔</string>
     <string name="wear_tourist_metric_elevation_gain_loss">爬升</string>
@@ -1106,4 +1105,11 @@
     <string name="wear_scheduled_message_channel_name">定时消息</string>
     <string name="wear_audio_fetching">正在加载曲目..</string>
     <string name="wear_stream_ended">此直播已停播。请在重新开播时重试。</string>
+    <string name="wear_tourist_lock_exit_hint">已锁定。快速连续滑动返回 3 次即可解锁</string>
+    <string name="wear_broadcast_waiting_until">广播尚未开始。链接在 %1$s 前有效</string>
+    <string name="wear_broadcast_started">广播已开始</string>
+    <string name="wear_broadcast_expired">此链接已失效</string>
+    <string name="wear_broadcast_play">播放</string>
+    <string name="wear_tourist_no_fix_approximate">正在搜索位置..</string>
+    <string name="wear_tourist_precise_needed">需要精确位置</string>
 </resources>

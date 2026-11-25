@@ -223,6 +223,11 @@ fun VideoPlayerScreen(
         viewModel.onHostStopped()
     }
 
+    // S4629: the broadcast endpoint walk runs only under a visible screen.
+    LifecycleEventEffect(Lifecycle.Event.ON_START) {
+        viewModel.onHostStarted()
+    }
+
     WearScreenScaffold(
         showTimeText = uiState.showControls,
         contentPadding = PaddingValues(0.dp)

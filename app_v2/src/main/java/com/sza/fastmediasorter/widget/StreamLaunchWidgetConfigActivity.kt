@@ -4,6 +4,7 @@ import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
@@ -45,7 +46,9 @@ class StreamLaunchWidgetConfigActivity : AppCompatActivity() {
     private var applyingPick = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        Timber.d("S4879: StreamLaunchWidgetConfigActivity onCreate with enableEdgeToEdge")
         setContentView(R.layout.activity_stream_launch_widget_config)
 
         appWidgetId = intent?.getIntExtra(

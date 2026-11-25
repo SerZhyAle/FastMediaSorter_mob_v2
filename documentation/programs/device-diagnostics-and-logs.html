@@ -92,7 +92,7 @@ layout: null
           "@type": "HowToStep",
           "position": 5,
           "name": "Save or send the debug log",
-          "text": "The app keeps a debug log - a diary of what it was doing, what went wrong and why. When something fails, do the thing once more so the log catches it, then open Settings, the General tab, the group Backups, restore and settings export: - Share Debug Logs packs the log into one archive, fastmediasorter_logs.zip, and opens the Android share menu - pick your email app or messenger and send it to the author. - Save Debug Logs saves the same archive to a folder you pick. If your device has no folder picker, the app offers to share the archive instead. Touching and holding the version line on the same tab shares the log as well. Passwords, keys and tokens are replaced by stars before a line is written, so they never reach the file, even for settings with new names. The log also carries what happened with live channels and audio - which stream quality was chosen, when it stepped down, which decoder played it - because that is where most playback problems hide. Each error is written once, with a single explanation, so the log stays short enough to read.",
+          "text": "The app keeps a debug log - a diary of what it was doing, what went wrong and why. When something fails, do the thing once more so the log catches it, then open Settings, the General tab, the group Backups, restore and settings export: - Share Debug Logs packs the log into one archive, FastMediaSorter-logs---.zip (named by the app version and the export time; environment.txt inside lists the app and Android versions), and opens the Android share menu - pick your email app or messenger and send it to the author. - Save Debug Logs saves the same archive to a folder you pick. If your device has no folder picker, the app offers to share the archive instead. Touching and holding the version line on the same tab shares the log as well. Passwords, keys and tokens are replaced by stars before a line is written, so they never reach the file, even for settings with new names. The log also carries what happened with live channels and audio - which stream quality was chosen, when it stepped down, which decoder played it - because that is where most playback problems hide. Each error is written once, with a single explanation, so the log stays short enough to read.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/programs/device-diagnostics-and-logs.html#debug-log"
         },
         {
@@ -109,6 +109,7 @@ layout: null
     </script>
 
     <link rel="icon" type="image/x-icon" href="../../favicon.ico">
+    <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
     <link rel="icon" type="image/png" sizes="32x32" href="../../favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="../../favicon-16x16.png">
 
@@ -141,7 +142,7 @@ layout: null
 </head>
 
 <body class="doc-body">
-<div class="doc-stamp">26.10.07 01:10</div>
+<div class="doc-stamp">26.11.15 14:24</div>
     <a class="doc-skip-link" href="#main-content">Skip to content</a>
 
     <!-- Header Chrome -->
@@ -177,7 +178,7 @@ layout: null
                     </div>
                 </div>
 
-                <a href="../../index.html" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <a href="../../index.html" title="Fast Media Sorter &amp; Organizer Home" class="doc-header-home"><img src="../../apple-touch-icon.png" alt="Fast Media Sorter &amp; Organizer icon" class="doc-app-icon"></a>
                 <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Theme</span></button>
             </nav>
         </div>
@@ -429,7 +430,7 @@ layout: null
                 <h1>System Information and the Debug Log - Helping the Author Find a Problem</h1>
 
                 <p class="doc-lead">
-                    Two tools help when something in FastMediaSorter does not work as it should: the <strong>System information</strong> report about your phone and the app, and the <strong>debug log</strong> of what the app was doing. This page shows how to open, read, copy, save and send both, and how to read the exact build from the version number.
+                    Two tools help when something in Fast Media Sorter & Organizer does not work as it should: the <strong>System information</strong> report about your phone and the app, and the <strong>debug log</strong> of what the app was doing. This page shows how to open, read, copy, save and send both, and how to read the exact build from the version number.
                 </p>
 
                 <h2 id="why">Why You'll Love This</h2>
@@ -443,7 +444,7 @@ layout: null
                         <span>Before You Begin: Ingredients &amp; Prerequisites</span>
                     </div>
                     <ul class="doc-prereq-list">
-                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> FastMediaSorter in any <span class="doc-link-term" data-term="edition">edition</span> - see <a href="../flavors/overview-and-comparison.html" class="doc-link">The seven editions of FastMediaSorter</a>.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Fast Media Sorter & Organizer in any <span class="doc-link-term" data-term="edition">edition</span> - see <a href="../flavors/overview-and-comparison.html" class="doc-link">The seven editions of Fast Media Sorter & Organizer</a>.</li>
                         <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> An app that can send a file - email, a messenger or cloud storage - if you want to send a report.</li>
                         <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> For the watch report: a paired <span class="doc-link-term" data-term="watch">watch</span> with FastMedia Wear - see <a href="../wear/installation-and-pairing.html" class="doc-link">Installing on Wear OS and pairing with the phone</a>.</li>
                     </ul>
@@ -539,7 +540,7 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>The app keeps a debug log - a diary of what it was doing, what went wrong and why. When something fails, do the thing once more so the log catches it, then open <strong>Settings</strong>, the <strong>General</strong> tab, the group <strong>Backups, restore and settings export</strong>:</p>
-                        <ul><li><strong>Share Debug Logs</strong> packs the log into one archive, <code>fastmediasorter_logs.zip</code>, and opens the Android share menu - pick your email app or messenger and send it to the author.</li><li><strong>Save Debug Logs</strong> saves the same archive to a folder you pick. If your device has no folder picker, the app offers to share the archive instead.</li></ul>
+                        <ul><li><strong>Share Debug Logs</strong> packs the log into one archive, <code>FastMediaSorter-logs-<version>-<date>-<time>.zip</code> (named by the app version and the export time; <code>environment.txt</code> inside lists the app and Android versions), and opens the Android share menu - pick your email app or messenger and send it to the author.</li><li><strong>Save Debug Logs</strong> saves the same archive to a folder you pick. If your device has no folder picker, the app offers to share the archive instead.</li></ul>
                         <p>Touching and holding the version line on the same tab shares the log as well.</p>
                         <p>Passwords, keys and tokens are replaced by stars before a line is written, so they never reach the file, even for settings with new names. The log also carries what happened with live <span class="doc-link-term" data-term="channel">channels</span> and audio - which stream quality was chosen, when it stepped down, which decoder played it - because that is where most playback problems hide. Each error is written once, with a single explanation, so the log stays short enough to read.</p>
                         <div class="doc-img-bookmark"

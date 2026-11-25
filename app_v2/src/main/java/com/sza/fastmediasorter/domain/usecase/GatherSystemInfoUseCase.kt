@@ -74,7 +74,6 @@ class GatherSystemInfoUseCase @Inject constructor(
      */
     operator fun invoke(appCameraView: List<String> = emptyList()): SystemInfoReport {
         val base = buildSections(appCameraView)
-        Timber.d("S4543: system info report gathered, base sections: ${base.size}")
         // Collect flavor-contributed sections defensively: a throwing contributor degrades the
         // extended part to empty, never breaking the base report (matches safe/safeList style).
         val extended: List<ExtendedDiagnosticsSection> = try {

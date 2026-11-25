@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Home Cinema & VR Streaming - FastMediaSorter v2"
+title: "Home Cinema & VR Streaming - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-home-cinema.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -19,7 +19,7 @@ Watch your series collection directly from your home PC - on your phone, tablet,
 
 - Phone / tablet / VR headset on the same **home Wi-Fi network** as your PC
 - Videos on your **PC or NAS** (your router box with storage)
-- FastMediaSorter installed
+- Fast Media Sorter & Organizer installed
 
 ---
 
@@ -37,7 +37,7 @@ On **Windows:**
 
 ---
 
-## Step 2 - Add the Video Folder in FastMediaSorter
+## Step 2 - Add the Video Folder in Fast Media Sorter & Organizer {#step-2---add-the-video-folder-in-fastmediasorter}
 
 1. Open the app → tap **Add <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** → **"Network folder (SMB)"**
 2. Tap **"Scan Network"** - the app scans your home network for available PCs
@@ -102,7 +102,7 @@ When **"Auto-next"** is enabled, the next episode starts automatically when the 
 
 > **This section is for people with a VR headset (like Meta Quest 2/3 or Pico 4).** If you don't have one, skip this step.
 
-Android-based VR headsets can run FastMediaSorter. Install it via sideloading:
+Android-based VR headsets can run Fast Media Sorter & Organizer. Install it via sideloading:
 1. Download the APK from the [Downloads page](../DOWNLOADS.md)
 2. On your headset, enable **"Install from unknown sources"** in Developer settings
 3. Install the APK using SideQuest or directly via ADB
@@ -113,7 +113,7 @@ Once installed, the video player works exactly the same:
 - Use **thumbstick** to swipe between episodes (if your headset maps media buttons)
 - For regular 2D movies and series - works immediately, no extra setup
 
-> **For VR cinema experience:** you can use a dedicated VR cinema app as a launcher, and then choose "Open with FastMediaSorter" for file management. FastMediaSorter handles the file browsing; the VR cinema app handles immersive 360° display.
+> **For VR cinema experience:** you can use a dedicated VR cinema app as a launcher, and then choose "Open with Fast Media Sorter & Organizer" for file management. Fast Media Sorter & Organizer handles the file browsing; the VR cinema app handles immersive 360° display.
 
 ---
 

@@ -7,6 +7,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Help - Edit Resource</title>
 <link rel="stylesheet" href="../help.css">
+<link rel="icon" type="image/png" href="../img/product-mark.png">
 </head>
 <body class="help">
 <main class="container">
@@ -14,18 +15,19 @@
 <a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>Edit Resource</span>
 </nav>
 <header class="hero">
+<img class="product-mark" src="../img/product-mark.png" width="48" height="48" alt="Fast Media Sorter">
 <h1>Edit Resource</h1>
 </header>
 <h2>What this is for</h2>
 <p class="lead">Edit Resource changes a resource you already added: its name and icon, the address or path it points to, which files it shows and how it behaves. Open it from the resource list by holding a resource or with the edit button in its row. The same screen sets up a new internet stream and saves a copy of a resource.</p>
 <h2>In this order</h2>
 <ol class="order">
-<li>Start with the name <a class="ref" href="#name">6</a>. Names must be unique: if yours is taken, the app says so and offers Use suggested name <a class="ref" href="#use-suggested-name">7</a>.</li>
-<li>Open Connection Settings <a class="ref" href="#connection">8</a> to correct the path, the address and port, the sign-in or the stream address. For a network or cloud resource, check the new values with Test Connection <a class="ref" href="#test-connection">9</a>; Retry <a class="ref" href="#retry">10</a> repeats the last action after a failure.</li>
-<li>Decide what the resource shows: Content Scanning Conditions <a class="ref" href="#scanning">11</a> and the file types in Media Types <a class="ref" href="#media-types">12</a>. Resource Profile <a class="ref" href="#profile">13</a> fills in a ready set in one tap.</li>
+<li>Start with the name <span class="nb"><a class="ref" href="#name">6</a>.</span> Names must be unique: if yours is taken, the app says so and offers Use suggested name <span class="nb"><a class="ref" href="#use-suggested-name">7</a>.</span></li>
+<li>Open Connection Settings <a class="ref" href="#connection">8</a> to correct the path, the address and port, the sign-in or the stream address. For a network or cloud resource, check the new values with Test Connection <span class="nb"><a class="ref" href="#test-connection">9</a>;</span> Retry <a class="ref" href="#retry">10</a> repeats the last action after a failure.</li>
+<li>Decide what the resource shows: Content Scanning Conditions <a class="ref" href="#scanning">11</a> and the file types in Media Types <span class="nb"><a class="ref" href="#media-types">12</a>.</span> Resource Profile <a class="ref" href="#profile">13</a> fills in a ready set in one tap.</li>
 <li>Use Destination Settings <a class="ref" href="#destination">14</a> to use the resource for Quick Sort or to make it read-only, and Advanced Settings <a class="ref" href="#advanced">15</a> for a comment, a PIN and the slideshow interval.</li>
 <li>Pick an icon <a class="ref" href="#pick-icon">3</a> if you want the resource to stand out in the list.</li>
-<li>Press Save Changes <a class="ref" href="#save">5</a>; it stays off until something valid has changed. Save as Copy <a class="ref" href="#save-as-copy">4</a> keeps the original and stores your edits as a new resource, and Reset Changes <a class="ref" href="#reset-changes">2</a> brings back the saved values.</li>
+<li>Press Save Changes <span class="nb"><a class="ref" href="#save">5</a>;</span> it stays off until something valid has changed. Save as Copy <a class="ref" href="#save-as-copy">4</a> keeps the original and stores your edits as a new resource, and Reset Changes <a class="ref" href="#reset-changes">2</a> brings back the saved values.</li>
 <li>Statistics <a class="ref" href="#statistics">16</a> tell you when the resource was created and opened, and Add to Home Screen <a class="ref" href="#add-to-home">17</a> puts a shortcut to it on your home screen.</li>
 </ol>
 <h2>The elements</h2>
@@ -50,13 +52,13 @@
 </div>
 </details>
 <details class="el" id="pick-icon">
-<summary><span class="mk">3</span><span><span class="name">Pick resource icon</span><span class="one">Chooses the picture that stands for this resource in lists.</span></span></summary>
+<summary><span class="mk">3</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10,4H4c-1.1,0 -1.99,0.9 -1.99,2L2,18c0,1.1 0.9,2 2,2h16c1.1,0 2,-0.9 2,-2V8c0,-1.1 -0.9,-2 -2,-2h-8l-2,-2z" fill="currentColor"/></svg>Pick resource icon</span><span class="one">Chooses the picture that stands for this resource in lists.</span></span></summary>
 <div class="full">
 <p>Opens the Choose an icon sheet; the button itself shows the icon the resource has now. The new icon is stored when you press Save Changes. If you change the profile and have not chosen an icon by hand in this session, the icon follows the profile on its own.</p>
 </div>
 </details>
 <details class="el" id="save-as-copy">
-<summary><span class="mk">4</span><span><span class="name">Save as Copy</span><span class="one">Stores your edits as a new resource and leaves the original as it is.</span></span></summary>
+<summary><span class="mk">4</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M16,1L4,1C2.9,1 2,1.9 2,3L2,17L4,17L4,3L16,3L16,1ZM19,5L8,5C6.9,5 6,5.9 6,7L6,21C6,22.1 6.9,23 8,23L19,23C20.1,23 21,22.1 21,21L21,7C21,5.9 20.1,5 19,5ZM19,21L8,21L8,7L19,7L19,21Z" fill="currentColor"/></svg>Save as Copy</span><span class="one">Stores your edits as a new resource and leaves the original as it is.</span></span></summary>
 <div class="full">
 <p>Available when you edit an existing resource. The copy gets a free name based on the original one, and the editor stays on the original afterwards. It is greyed out while the form has errors or a test or save is running.</p>
 </div>
@@ -93,7 +95,7 @@
 <details class="el" id="test-connection">
 <summary><span class="mk">9</span><span><span class="name">Test Connection</span><span class="one">Checks the connection settings before you save them.</span></span></summary>
 <div class="full">
-<p>Shown for network and cloud resources. The app first checks that the form is filled in correctly, then connects and shows the result in a coloured line: green for success, with a count of what it found, a warning colour for a partial result and red for a failure. Nothing is saved by the test.</p>
+<p>Shown for network and cloud resources. The app first checks that the form is filled in correctly, then connects and shows the result in a colored line: green for success, with a count of what it found, a warning color for a partial result and red for a failure. Nothing is saved by the test.</p>
 </div>
 </details>
 <details class="el" id="retry">
@@ -176,7 +178,7 @@
 <li><a href="index.html"><b>Help index</b></a></li>
 </ul>
 <footer class="help-foot">
-<span>Fast Media Sorter, 2026-10-26</span>
+<span>Fast Media Sorter, 2026-11-24</span>
 <a href="index.html">Help index</a>
 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
 </footer>

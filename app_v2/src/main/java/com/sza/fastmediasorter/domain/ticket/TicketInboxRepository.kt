@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.domain.ticket
 
 import com.sza.fastmediasorter.domain.model.ticket.TicketAttachmentRole
+import com.sza.fastmediasorter.domain.model.ticket.TicketDestination
+import com.sza.fastmediasorter.domain.model.ticket.TicketOrigin
 import com.sza.fastmediasorter.domain.model.ticket.TicketOutboxEntry
 import com.sza.fastmediasorter.domain.model.ticket.TicketProject
 import kotlinx.coroutines.flow.StateFlow
@@ -17,7 +19,11 @@ data class TicketAttachmentSource(
 data class TicketDraft(
     val text: String,
     val project: String?,
-    val attachments: List<TicketAttachmentSource>
+    val attachments: List<TicketAttachmentSource>,
+    /** S4806: where the packet is delivered; Drive unless the surface chose a folder or the direct channel. */
+    val destination: TicketDestination = TicketDestination.Drive,
+    /** S4663: the surface that stages the draft; the feedback channel passes its own explicitly. */
+    val origin: TicketOrigin = TicketOrigin.TICKET
 )
 
 /** S4554: one delivery pass - how many packets reached Drive and how many still wait. */

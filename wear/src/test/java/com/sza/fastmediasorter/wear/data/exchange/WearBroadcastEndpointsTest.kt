@@ -115,5 +115,27 @@ class WearBroadcastEndpointsTest {
         assertNull(WearBroadcastEndpoints.parse("b1", null, null).firstOrNull())
     }
 
+    // S4692, LIVE-BROADCAST item S: a pending descriptor names the instant its link stops working.
+
+    @Test
+    fun `pending until is read as epoch millis`() {
+        val json = """{"pending":{"until":"2026-11-01T18:00:00Z"}}"""
+        val until = WearBroadcastEndpoints.pendingUntilMs(descriptor(json))
+
+        assertEquals(1_793_556_000_000L, until)
+    }
+
+    @Test
+    fun `a descriptor without pending is not waiting`() {
+        assertNull(WearBroadcastEndpoints.pendingUntilMs(descriptor("""{"endpoints":[]}""")))
+        assertNull(WearBroadcastEndpoints.pendingUntilMs(null))
+    }
+
+    @Test
+    fun `a pending member without a readable until reads as expired`() {
+        assertEquals(0L, WearBroadcastEndpoints.pendingUntilMs(descriptor("""{"pending":{"until":"soon"}}""")))
+        assertEquals(0L, WearBroadcastEndpoints.pendingUntilMs(descriptor("""{"pending":{}}""")))
+    }
+
     private fun descriptor(json: String) = JsonParser.parseString(json).asJsonObject
 }

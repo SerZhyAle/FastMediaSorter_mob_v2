@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "पीसी पर शेड्यूल्ड कैमरा बैकअप - FastMediaSorter v2"
+title: "पीसी पर शेड्यूल्ड कैमरा बैकअप - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-camera-backup-hi.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -21,7 +21,7 @@ permalink: /docs/howto/scenario-camera-backup-hi.html
 
 - फोन और पीसी **एक ही घरेलू Wi-Fi** (एक ही राउटर) से जुड़े हों
 - पीसी पर एक फ़ोल्डर जहां फ़ोटो सेव होंगी (जैसे `C:\PhoneBackup`)
-- ऐसे एडिशन में FastMediaSorter इंस्टॉल हो जिसमें नेटवर्क सोर्स हों (**Standard**, Photos, Legacy, VR, noLegal)
+- ऐसे एडिशन में Fast Media Sorter & Organizer इंस्टॉल हो जिसमें नेटवर्क सोर्स हों (**Standard**, Photos, Legacy, VR, noLegal)
 
 > **पक्का नहीं है कि आपके पास कौन-सा एडिशन है?** **सेटिंग्स** <img src="../icons/doc/ic_settings.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> → **System information** खोलें. **Edition** पंक्ति एडिशन का नाम बताती है (Standard / Lite / आदि).
 
@@ -43,7 +43,7 @@ permalink: /docs/howto/scenario-camera-backup-hi.html
 
 ## चरण 2 - ऐप को अपने पीसी फ़ोल्डर से जोड़ें
 
-अब FastMediaSorter को बताएं कि फ़ोटो कहां भेजनी हैं.
+अब Fast Media Sorter & Organizer को बताएं कि फ़ोटो कहां भेजनी हैं.
 
 > **SMB क्या है?** यह बस Windows का घरेलू Wi-Fi पर फ़ोल्डर शेयर करने का तरीका है. आपको जानकारी की गहराई में जाने की ज़रूरत नहीं - बस चरणों का पालन करें.
 
@@ -94,7 +94,7 @@ permalink: /docs/howto/scenario-camera-backup-hi.html
 | **Schedule** | कब चलाना है | `Daily at 02:00` - जब आप सो रहे हों तब चलता है |
 | **Run on Wi-Fi only** | इसे ON करें | गलती से मोबाइल डेटा से बैकअप होने से रोकता है |
 
-> **"Camera Photos" क्या है?** यह एक विशेष वर्चुअल फ़ोल्डर है जिसे FastMediaSorter अपने आप बनाता है. यह हमेशा आपके कैमरे से खींची गई सभी फ़ोटो दिखाता है - भले ही वे फोन में अलग-अलग फ़ोल्डरों में सेव हों. मैनुअल पथ चुनने की बजाय हमेशा इसे प्राथमिकता दें.
+> **"Camera Photos" क्या है?** यह एक विशेष वर्चुअल फ़ोल्डर है जिसे Fast Media Sorter & Organizer अपने आप बनाता है. यह हमेशा आपके कैमरे से खींची गई सभी फ़ोटो दिखाता है - भले ही वे फोन में अलग-अलग फ़ोल्डरों में सेव हों. मैनुअल पथ चुनने की बजाय हमेशा इसे प्राथमिकता दें.
 
 ![Add Schedule - Source: Camera Photos, Operation: Copy, Destination: SMB](screenshots/screenshot-cb-step5.png)
 
@@ -154,7 +154,7 @@ permalink: /docs/howto/scenario-camera-backup-hi.html
 
 | समस्या | क्या करें |
 |---------|------------|
-| शेड्यूल रात में नहीं चलता | **Android Settings → Apps → FastMediaSorter → Battery** पर जाएं → इसे **Unrestricted** पर सेट करें |
+| शेड्यूल रात में नहीं चलता | **Android Settings → Apps → Fast Media Sorter & Organizer → Battery** पर जाएं → इसे **Unrestricted** पर सेट करें |
 | "Destination not reachable" एरर | बैकअप के समय आपके फोन का Wi-Fi चालू होना चाहिए. अगर रात 2 बजे Wi-Fi बंद था, तो बैकअप छोड़ दिया जाता है और अगली रात अपने आप फिर से कोशिश होती है |
 | कुछ फ़ोटो बैकअप नहीं हुईं | सोर्स के रूप में **"Camera Photos"** वर्चुअल रिसोर्स इस्तेमाल करें - यह आपके फोन के सभी कैमरा फ़ोल्डरों की फ़ोटो पकड़ लेता है |
 | पीसी पर डुप्लिकेट फ़ाइलें दिख रही हैं | पक्का करें कि Operation "Copy (overwrite)" नहीं बल्कि **"Copy (skip existing)"** पर सेट है |

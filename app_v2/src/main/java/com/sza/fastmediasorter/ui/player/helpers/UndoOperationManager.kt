@@ -4,6 +4,7 @@ import android.view.View
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.UndoOperation
+import com.sza.fastmediasorter.ui.browse.transfer.TransferDoneMessage
 
 class UndoOperationManager(
     private val rootView: View,
@@ -45,7 +46,7 @@ class UndoOperationManager(
             }
             com.sza.fastmediasorter.domain.model.FileOperationType.MOVE -> {
                 val destination = operation.destinationFolder?.substringAfterLast('/') ?: "destination"
-                context.getString(R.string.msg_move_success_count, count, destination)
+                TransferDoneMessage.movedTo(context, count, destination)
             }
             com.sza.fastmediasorter.domain.model.FileOperationType.RENAME -> {
                 // If single file rename and we have old/new names, we could show them

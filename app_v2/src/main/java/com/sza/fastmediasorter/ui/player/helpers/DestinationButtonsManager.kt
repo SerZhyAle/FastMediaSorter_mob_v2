@@ -54,6 +54,40 @@ class DestinationButtonsManager(
     private var cachedMaxRecipients: Int? = null
     private var cachedPanelContentWidthPx: Int? = null
     private var isPopulateDeferredUntilLayout = false
+    private var wasEditorVisible = false
+
+    private val editorLayoutChangeListener = View.OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+        val inLandscape = isLandscape()
+        val textEditContainer = safeViews.findNullable<View>(R.id.textEditContainer)
+        val isEditorVisible = textEditContainer?.isVisible == true
+        if (inLandscape && isEditorVisible && !wasEditorVisible) {
+            Timber.d("S4841: landscape editor opens with destination panels")
+            wasEditorVisible = true
+            if (safeViews.copyToButtonsGrid.isVisible || safeViews.moveToButtonsGrid.isVisible) {
+                Timber.d("DestinationButtonsManager: auto-collapsing destination panels in landscape for editor")
+                updateCopyPanelVisibility(true)
+                updateMovePanelVisibility(true)
+            }
+        } else if (wasEditorVisible && !isEditorVisible) {
+            wasEditorVisible = false
+            if (inLandscape) {
+                Timber.d("DestinationButtonsManager: restoring destination panels in landscape after editor exit")
+                updateCopyPanelVisibility(cachedCopyCollapsed ?: false)
+                updateMovePanelVisibility(cachedMoveCollapsed ?: false)
+            }
+        }
+    }
+
+    init {
+        root.addOnLayoutChangeListener(editorLayoutChangeListener)
+    }
+
+    fun detach() {
+        root.removeOnLayoutChangeListener(editorLayoutChangeListener)
+    }
+
+    private fun isLandscape(): Boolean =
+        root.resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
 
     interface DestinationButtonsCallback {
         fun onCopyClicked(destination: MediaResource)
@@ -249,9 +283,18 @@ class DestinationButtonsManager(
                     root.requestLayout()
 
                     // Restore collapsed state AFTER showing panels
-                    Timber.d("DestinationButtonsManager: RESTORING panel states - copy=$copyCollapsed, move=$moveCollapsed")
-                    updateCopyPanelVisibility(copyCollapsed)
-                    updateMovePanelVisibility(moveCollapsed)
+                    val inLandscapeEditor = isLandscape() &&
+                        (safeViews.findNullable<View>(R.id.textEditContainer)?.isVisible == true)
+                    val effectiveCopy = if (inLandscapeEditor) true else copyCollapsed
+                    val effectiveMove = if (inLandscapeEditor) true else moveCollapsed
+                    Timber.d(
+                        "DestinationButtonsManager: RESTORING panel states - copy=%s, move=%s (editor=%s)",
+                        effectiveCopy,
+                        effectiveMove,
+                        inLandscapeEditor
+                    )
+                    updateCopyPanelVisibility(effectiveCopy)
+                    updateMovePanelVisibility(effectiveMove)
                 }
 
                 // Update command availability to refresh panel visibility
@@ -631,10 +674,11 @@ class DestinationButtonsManager(
     /**
      * Number the addressable groups when non-touch input is active (TV remote / D-pad / keyboard); clear all badges otherwise.
      * Each button shows the key bound to its own global slot (MEDIA-VIEWER rule 4.2): Move buttons read
-     * `sorting.op_slot_<slot>`, Copy buttons `sorting.copy_slot_<slot>` with the Shift chord; the position
+     * `sorting.op_slot_<slot>`, Copy buttons `sorting.copy_slot_<slot>` with the arrow badge; the position
      * digit is the fallback. A button past slot 10 or in a collapsed group carries no badge.
      */
     fun refreshSlotBadges() {
+        Timber.d("S4638: refreshSlotBadges numbering=${shouldNumberSlots()}")
         val numberable = if (shouldNumberSlots()) addressableButtons().toSet() else emptySet()
         listOf(safeViews.copyToButtonsGrid to true, safeViews.moveToButtonsGrid to false).forEach { (grid, isCopy) ->
             flattenButtons(grid).forEach { button ->
@@ -645,12 +689,15 @@ class DestinationButtonsManager(
         }
     }
 
-    /** Badge of one slot: the bound key of its command, Shift-prefixed for Copy, the position digit as fallback. */
+    /**
+     * Badge of one slot: the bound key of its command, the position digit as fallback. Copy shows the arrow
+     * in front of the bare key only - the arrow already says Shift, so the formatted modifier name is dropped.
+     */
     private fun slotBadgeGlyph(slot: Int, isCopy: Boolean): String? {
         val commandId = if (isCopy) "sorting.copy_slot_$slot" else "sorting.op_slot_$slot"
         val bound = slotKeyGlyph(commandId)
         return when {
-            isCopy -> bound?.let { "⇧$it" } ?: positionDigit(slot)?.let { "⇧$it" }
+            isCopy -> (bound?.substringAfterLast('+') ?: positionDigit(slot))?.let { "⇧$it" }
             else -> bound ?: positionDigit(slot)
         }
     }

@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.usecase.CalculateOptimalCacheSizeUseCase
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.util.showBoundTo
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -27,6 +28,8 @@ class GeneralSettingsCacheHelper(
     // S0707: shared with the other General-settings input owners so the cancel-path restore
     // write below cannot re-trigger actvCacheSizeLimit's commit listener mid-update.
     private val setIsUpdatingSpinner: (Boolean) -> Unit,
+    // The one IO seam of the cache screen: a host holding the @IoDispatcher binding or a test passes its own.
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
     fun checkAndSuggestOptimalCacheSize() {
         fragment.viewLifecycleOwner.lifecycleScope.launch {
@@ -35,7 +38,7 @@ class GeneralSettingsCacheHelper(
             // default 2048 MB look permanently mis-sized.
             val settings = viewModel.awaitPersistedSettings()
             if (!settings.isCacheSizeUserModified) {
-                val optimalSizeMb = calculateOptimalCacheSizeUseCase()
+                val optimalSizeMb = withContext(ioDispatcher) { calculateOptimalCacheSizeUseCase() }
                 if (settings.cacheSizeMb != optimalSizeMb) applyOptimalCacheSize(optimalSizeMb)
             }
         }
@@ -66,7 +69,7 @@ class GeneralSettingsCacheHelper(
     }
 
     fun updateCacheSize() {
-        fragment.viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+        fragment.viewLifecycleOwner.lifecycleScope.launch(ioDispatcher) {
             try {
                 val cacheDir = fragment.requireContext().cacheDir
                 val audioMetaCacheDir = java.io.File(fragment.requireContext().filesDir, AudioMetadataCacheRepository.CACHE_DIR_NAME)
@@ -94,7 +97,7 @@ class GeneralSettingsCacheHelper(
 
     fun autoCalculateCacheSize() {
         fragment.viewLifecycleOwner.lifecycleScope.launch {
-            val storageInfo = withContext(Dispatchers.IO) {
+            val storageInfo = withContext(ioDispatcher) {
                 val optimalSizeMb = calculateOptimalCacheSizeUseCase()
                 optimalSizeMb to calculateOptimalCacheSizeUseCase.getStorageInfo()
             }
@@ -131,7 +134,7 @@ class GeneralSettingsCacheHelper(
             .setPositiveButton(R.string.ok) { _, _ ->
                 binding.btnClearCache.isEnabled = false
                 binding.btnClearCache.text = fragment.getString(R.string.cache_size_calculating)
-                fragment.viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                fragment.viewLifecycleOwner.lifecycleScope.launch(ioDispatcher) {
                     try {
                         try { com.bumptech.glide.Glide.get(fragment.requireContext()).clearDiskCache() }
                         catch (e: Exception) { Timber.e(e, "Glide clearDiskCache failed") }
@@ -194,7 +197,7 @@ class GeneralSettingsCacheHelper(
      * when the process initialises, so the new value lands on the next ordinary launch; forcing a
      * restart for a change the user never asked for is what produced the Settings restart cycle.
      */
-    private fun applyOptimalCacheSize(optimalSizeMb: Int) {
+    private suspend fun applyOptimalCacheSize(optimalSizeMb: Int) {
         persistCacheSize(newCacheSizeMb = optimalSizeMb, isUserModified = false)
         if (!fragment.isAdded) return
         Toast.makeText(
@@ -206,25 +209,33 @@ class GeneralSettingsCacheHelper(
 
     private fun applyCacheSizeAndRestart(newCacheSizeMb: Int, isUserModified: Boolean) {
         val context = fragment.requireContext()
-        // Reached from a dialog the user operated, so the screen has rendered and settings.value is loaded.
-        persistCacheSize(newCacheSizeMb, isUserModified)
-        // The user confirmed a restart, and only a fresh process re-reads the Glide cache size.
-        // saveLanguage() re-applies the current language purely to make LocaleManager kill the process.
-        LocaleHelper.saveLanguage(context, LocaleHelper.getLanguage(context))
-        LocaleHelper.markReturnToSettings(context)
-        LocaleHelper.restartApp(fragment.requireActivity())
+        fragment.viewLifecycleOwner.lifecycleScope.launch {
+            // Reached from a dialog the user operated, so the screen has rendered and settings.value is loaded.
+            // The write is awaited before the restart so it is queued ahead of the process kill.
+            persistCacheSize(newCacheSizeMb, isUserModified)
+            // The user confirmed a restart, and only a fresh process re-reads the Glide cache size.
+            // saveLanguage() re-applies the current language purely to make LocaleManager kill the process.
+            LocaleHelper.saveLanguage(context, LocaleHelper.getLanguage(context))
+            LocaleHelper.markReturnToSettings(context)
+            LocaleHelper.restartApp(fragment.requireActivity())
+        }
     }
 
     // S1535/S3819: a transform, never a copy of viewModel.settings.value - that value can still be the
     // AppSettings() seed right after awaitPersistedSettings(), and copying it would write every other
     // setting back to its default.
-    private fun persistCacheSize(newCacheSizeMb: Int, isUserModified: Boolean) {
+    private suspend fun persistCacheSize(newCacheSizeMb: Int, isUserModified: Boolean) {
+        Timber.d("S4580: persistCacheSize writes glide_config on IO")
         viewModel.updateSettings { it.copy(cacheSizeMb = newCacheSizeMb, isCacheSizeUserModified = isUserModified) }
-        fragment.requireContext()
-            .getSharedPreferences("glide_config", android.content.Context.MODE_PRIVATE)
-            .edit()
-            .putInt("cache_size_mb", newCacheSizeMb)
-            .apply()
+        val appContext = fragment.requireContext().applicationContext
+        // Loading the prefs file is a disk read; apply() keeps the write itself asynchronous.
+        withContext(ioDispatcher) {
+            appContext
+                .getSharedPreferences("glide_config", android.content.Context.MODE_PRIVATE)
+                .edit()
+                .putInt("cache_size_mb", newCacheSizeMb)
+                .apply()
+        }
     }
 
     private fun showAudioCacheSizeWarning() {
@@ -233,7 +244,7 @@ class GeneralSettingsCacheHelper(
             .setTitle(R.string.audio_cache_size_warning_title)
             .setMessage(R.string.audio_cache_size_warning_message)
             .setPositiveButton(R.string.delete_old_files) { _, _ ->
-                fragment.viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                fragment.viewLifecycleOwner.lifecycleScope.launch(ioDispatcher) {
                     audioMetadataCacheRepository.trimIfNeeded()
                 }
             }

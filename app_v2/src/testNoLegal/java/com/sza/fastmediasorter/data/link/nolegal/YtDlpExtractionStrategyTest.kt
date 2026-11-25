@@ -86,9 +86,15 @@ class YtDlpExtractionStrategyTest {
     }
 
     @Test
+    fun refusedInstagramSession_unauthorizedOnInstagram_isRefused() {
+        assertTrue(YtDlpExtractionStrategy.isRefusedInstagramSession("www.instagram.com", UNAUTHORIZED))
+    }
+
+    @Test
     fun refusedInstagramSession_lookalikeOrOtherHost_isNotRefused() {
         assertFalse(YtDlpExtractionStrategy.isRefusedInstagramSession("www.tiktok.com", PARSE_FAILURE))
         assertFalse(YtDlpExtractionStrategy.isRefusedInstagramSession("notinstagram.com", PARSE_FAILURE))
+        assertFalse(YtDlpExtractionStrategy.isRefusedInstagramSession("www.tiktok.com", UNAUTHORIZED))
     }
 
     @Test
@@ -100,5 +106,7 @@ class YtDlpExtractionStrategyTest {
 
     private companion object {
         const val PARSE_FAILURE = "DownloadError: ERROR: [Instagram] abc: Failed to parse JSON (caused by ..)"
+        const val UNAUTHORIZED =
+            "DownloadError: ERROR: [Instagram] abc: Video info extraction failed: HTTP Error 401: Unauthorized"
     }
 }

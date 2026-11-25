@@ -505,6 +505,9 @@ data class AppSettings(
     val recordGnssTrack: Boolean get() = programs.recordGnssTrack
     val enableSystemInfo: Boolean get() = programs.enableSystemInfo
     val enableTourist: Boolean get() = programs.enableTourist
+    val enableNotes: Boolean get() = programs.enableNotes
+    val enableFeedback: Boolean get() = programs.enableFeedback
+    val feedbackInboxResourceId: Long? get() = programs.feedbackInboxResourceId
     val enableWearCompanion: Boolean get() = programs.enableWearCompanion
     val suppressWearMediaTakeover: Boolean get() = programs.suppressWearMediaTakeover
     val showProgramsPanelInMainWindow: Boolean get() = programs.showProgramsPanelInMainWindow

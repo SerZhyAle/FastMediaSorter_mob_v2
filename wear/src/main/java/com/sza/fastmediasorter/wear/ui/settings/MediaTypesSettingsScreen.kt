@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.wear.ui.settings
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,7 +23,6 @@ import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.browse.BrowseCategoryCatalog
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
-import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.StandardWearToggleChip
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
@@ -33,9 +31,9 @@ import com.sza.fastmediasorter.wear.ui.common.WearSettingsRow
 import com.sza.fastmediasorter.wear.ui.common.packSettingsRows
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.testing.WearTestTags
-import com.sza.fastmediasorter.wear.util.GridColumnFit
 
 private val TITLE_BOTTOM_PADDING = 8.dp
+private const val CHIPS_PER_ROW = 1
 
 @Composable
 fun MediaTypesSettingsScreen(
@@ -44,8 +42,6 @@ fun MediaTypesSettingsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    // S1949: every label on this screen measures 17-21 characters in its worst locale - under the
-    // 32-character threshold - so the toggles share rows instead of each taking the full width.
     // Built once rather than per row: asking the state per type would rebuild the whole allowed set
     // on every cell of every recomposition.
     val allowed = uiState.allowedContentTypes()
@@ -70,14 +66,15 @@ fun MediaTypesSettingsScreen(
         scrollState = listState,
         positionIndicator = { PositionIndicator(listState) }
     ) {
-        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-            val columns = GridColumnFit.columnsFor(WearViewMode.GRID_2, maxWidth.value.toInt())
+        // A checkbox row spends 14 + 24 + 8 dp before its caption and the toolkit keeps a 28 dp trailing
+        // box empty, so a half-width cell on the 192 dp glass (about 66 dp) leaves the caption 0 dp.
+        Box(modifier = Modifier.fillMaxSize()) {
             WearListColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = listState
             ) {
                 item { SettingsHeading(R.string.media_types) }
-                items(packSettingsRows(typeToggles, columns)) { row ->
+                items(packSettingsRows(typeToggles, CHIPS_PER_ROW)) { row ->
                     WearSettingsRow(row)
                 }
             }

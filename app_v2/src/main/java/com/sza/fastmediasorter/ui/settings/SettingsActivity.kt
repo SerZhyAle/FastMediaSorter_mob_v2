@@ -41,7 +41,10 @@ import com.sza.fastmediasorter.ui.scheduledops.ScheduledOperationsActivity
 import com.sza.fastmediasorter.ui.settings.fragments.BaseSettingsFragment
 import com.sza.fastmediasorter.ui.settings.fragments.MediaSettingsFragment
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import com.sza.fastmediasorter.utils.dimenIgnoringFontScale
 import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
+import com.sza.fastmediasorter.utils.keepLongestWordOnOneLine
+import com.sza.fastmediasorter.utils.matchSystemBarIconsToBackground
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -221,6 +224,11 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.VANILLA_ICE_CREAM
         ) {
             applyEdgeToEdgeInsets()
+        } else {
+            // Below API 35 this screen opts out of edge-to-edge, so the bars show the window background
+            // and the default light icons are invisible on it (S4703).
+            matchSystemBarIconsToBackground()
+            Timber.d("S4703: settings system-bar icons matched to background, sdk=${android.os.Build.VERSION.SDK_INT}")
         }
     }
 
@@ -261,6 +269,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             tab.text = getString(adapter.getTabTitleResId(position))
         }.attach()
         if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] TabLayoutMediator attached")
+        Timber.d("S4634: four-tab strip attached tabs=${binding.tabLayout.tabCount}")
         setupConnectedTabs(adapter)
 
         val initialTab = intent.getIntExtra(EXTRA_INITIAL_TAB, -1)
@@ -321,6 +330,28 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         }
     }
 
+    private val connectedTabListener = object : TabLayout.OnTabSelectedListener {
+        override fun onTabSelected(tab: TabLayout.Tab) = syncConnectedTabState(tab, true)
+        override fun onTabUnselected(tab: TabLayout.Tab) = syncConnectedTabState(tab, false)
+        override fun onTabReselected(tab: TabLayout.Tab) = syncConnectedTabState(tab, true)
+    }
+
+    // Held apart from binding: the EXTRA_OPEN_SCHEDULED redirect finishes before setupViews binds anything.
+    private var connectedTabLayout: TabLayout? = null
+
+    private val wideTabFitListener = View.OnLayoutChangeListener { _, left, _, right, _, oldLeft, _, oldRight, _ ->
+        // Posted: switching the tab mode requests a layout, which must not start inside this one.
+        val tabs = connectedTabLayout
+        if (tabs != null && right - left != oldRight - oldLeft) tabs.post { fitWideTabs(tabs) }
+    }
+
+    override fun onDestroy() {
+        connectedTabLayout?.removeOnTabSelectedListener(connectedTabListener)
+        connectedTabLayout?.removeOnLayoutChangeListener(wideTabFitListener)
+        connectedTabLayout = null
+        super.onDestroy()
+    }
+
     private fun setupConnectedTabs(adapter: SettingsPagerAdapter) {
         val useFixedTabs = binding.tabLayout.tabCount <= 4
         binding.tabLayout.tabMode = if (useFixedTabs) TabLayout.MODE_FIXED else TabLayout.MODE_SCROLLABLE
@@ -337,14 +368,12 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         }
 
         if (useFixedTabs) {
-            forceEqualTabWidths()
+            forceEqualTabWidths(binding.tabLayout)
+            watchWideTabFit(binding.tabLayout)
         }
 
-        binding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-            override fun onTabSelected(tab: TabLayout.Tab) = syncConnectedTabState(tab, true)
-            override fun onTabUnselected(tab: TabLayout.Tab) = syncConnectedTabState(tab, false)
-            override fun onTabReselected(tab: TabLayout.Tab) = syncConnectedTabState(tab, true)
-        })
+        binding.tabLayout.addOnTabSelectedListener(connectedTabListener)
+        connectedTabLayout = binding.tabLayout
 
         // Capture tabLayout so the posted runnable never dereferences `binding`: on a launch/recreate
         // race the activity can be torn down before this frame runs, and `binding` then throws
@@ -385,6 +414,11 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             background = ResourcesCompat.getDrawable(resources, resolveConnectedTabBackground(position, tabCount), theme)
             isDuplicateParentStateEnabled = true
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            // A tab owns a quarter of the strip whatever the font scale, so the label shrinks to its widest
+            // word. The floor ignores the scale: a scaled one stops above the width the word needs (S4788).
+            val floorPx = resources.dimenIgnoringFontScale(R.dimen.text_size_tiny)
+            keepLongestWordOnOneLine(floorPx)
+            Timber.d("S4788: settings tab label fit floor=%.1f px", floorPx)
         }
     }
 
@@ -400,8 +434,8 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         tab.customView?.refreshDrawableState()
     }
 
-    private fun forceEqualTabWidths() {
-        val tabStrip = binding.tabLayout.getChildAt(0) as? LinearLayout ?: return
+    private fun forceEqualTabWidths(tabLayout: TabLayout) {
+        val tabStrip = tabLayout.getChildAt(0) as? LinearLayout ?: return
         val isWide = resources.configuration.isWideLayout()
         val landscapeTabWidth = resources.getDimensionPixelSize(R.dimen.settings_tab_land_width)
         for (index in 0 until tabStrip.childCount) {
@@ -417,6 +451,39 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             child.layoutParams = params
         }
         tabStrip.requestLayout()
+    }
+
+    /**
+     * The wide-layout tab width is a fixed 140dp per tab, which fits only when the toolbar leaves the row
+     * that much room. A small landscape phone leaves a fraction of it, and a fixed-mode TabLayout then clips
+     * the surplus tabs - the selected one included - without ever scrolling. The row's measured width decides,
+     * and it is re-read on every change because the side insets arrive after the first layout.
+     */
+    private fun watchWideTabFit(tabLayout: TabLayout) {
+        if (!resources.configuration.isWideLayout()) return
+        tabLayout.addOnLayoutChangeListener(wideTabFitListener)
+        fitWideTabs(tabLayout)
+    }
+
+    private fun fitWideTabs(tabLayout: TabLayout) {
+        val width = tabLayout.width
+        if (isDestroyed || width <= 0) return
+        val needed = tabLayout.tabCount * resources.getDimensionPixelSize(R.dimen.settings_tab_land_width)
+        val scrollable = width < needed
+        Timber.d("S4704: wide tab fit width=$width needed=$needed scrollable=$scrollable")
+        if (scrollable == (tabLayout.tabMode == TabLayout.MODE_SCROLLABLE)) return
+        if (scrollable) {
+            tabLayout.tabMode = TabLayout.MODE_SCROLLABLE
+            tabLayout.tabGravity = TabLayout.GRAVITY_START
+            // Switching the mode resets the scroll offset; the selected tab must stay in view afterwards.
+            tabLayout.post {
+                if (!isDestroyed) tabLayout.setScrollPosition(tabLayout.selectedTabPosition, 0f, false)
+            }
+        } else {
+            tabLayout.tabMode = TabLayout.MODE_FIXED
+            tabLayout.tabGravity = TabLayout.GRAVITY_FILL
+            forceEqualTabWidths(tabLayout)
+        }
     }
 
     private fun applyEdgeToEdgeInsets() {

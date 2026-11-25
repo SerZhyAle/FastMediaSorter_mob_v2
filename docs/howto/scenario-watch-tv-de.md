@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "TV-Sender auf Ihrer Smartwatch ansehen - FastMediaSorter v2"
+title: "TV-Sender auf Ihrer Smartwatch ansehen - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-watch-tv-de.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -23,7 +23,7 @@ FastMedia Wear spielt Live-TV- und Radiosender direkt an Ihrem Handgelenk ab. Di
 
 - Eine Smartwatch mit **Wear OS 2.0** oder neuer, auf der FastMedia Wear installiert ist
 - Ein Wi-Fi-Netzwerk, dem die Uhr beitreten kann, oder ein gekoppeltes Handy, um die Verbindung weiterzuleiten
-- Optional: FastMediaSorter auf Ihrem Android-Handy, wenn Sie eigene Sender an die Uhr senden möchten
+- Optional: Fast Media Sorter & Organizer auf Ihrem Android-Handy, wenn Sie eigene Sender an die Uhr senden möchten
 
 ---
 
@@ -47,7 +47,7 @@ Eine frische Installation hat noch keine Sender, und der Bildschirm sagt das auc
 Es gibt zwei Wege, sie zu füllen, und sie funktionieren zusammen:
 
 - **Den gemeinsamen Katalog herunterladen.** Tippen Sie auf **Katalog aktualisieren**. Die Uhr lädt die veröffentlichte Senderbank in einem Archiv herunter - viele Tausend TV- und Radiosender mit ihren Themen, Sprachen und Ländern.
-- **Sender vom Handy senden.** Ein von Ihnen selbst in FastMediaSorter auf dem Handy hinzugefügter Sender kann mit **An Uhr senden** aus der Streamliste des Handys hinübergeschickt werden. Auf dem Handy gepinnte Sender werden ebenfalls in der Liste der Uhr nach oben gehoben, direkt hinter denen, die Sie auf der Uhr selbst gepinnt haben, sodass die zwei oder drei, die Sie tatsächlich ansehen, ohne Scrollen erreichbar sind. Das Entpinnen auf dem Handy entzieht den Sender wieder dieser Gruppe, und ein Sender, den der eigene Katalog der Uhr nicht führt, wird einfach übersprungen.
+- **Sender vom Handy senden.** Ein von Ihnen selbst in Fast Media Sorter & Organizer auf dem Handy hinzugefügter Sender kann mit **An Uhr senden** aus der Streamliste des Handys hinübergeschickt werden. Auf dem Handy gepinnte Sender werden ebenfalls in der Liste der Uhr nach oben gehoben, direkt hinter denen, die Sie auf der Uhr selbst gepinnt haben, sodass die zwei oder drei, die Sie tatsächlich ansehen, ohne Scrollen erreichbar sind. Das Entpinnen auf dem Handy entzieht den Sender wieder dieser Gruppe, und ein Sender, den der eigene Katalog der Uhr nicht führt, wird einfach übersprungen.
 
 Vom Handy gesendete Sender überstehen eine Katalog-Aktualisierung - die Aktualisierung ersetzt die gemeinsame Bank und lässt Ihre eigenen Zeilen unangetastet.
 

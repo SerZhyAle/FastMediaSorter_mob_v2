@@ -99,6 +99,8 @@
         <attr name="sdr_helpTitle" format="string|reference" />
         <attr name="sdr_helpMessage" format="string|reference" />
         <attr name="sdr_entries" format="reference" />
+        <!-- Optional leading feature icon (decorative). Hidden when unset. S4570. -->
+        <attr name="sdr_icon" format="reference" />
         <!-- Renders the label inline to the left of the field on one line (dense landscape, S0618). Default false = stacked. -->
         <attr name="sdr_inline" format="boolean" />
         <!-- Caps the dropdown field to a fixed width instead of filling the row, for short-value selectors. Default unset = match_parent (stacked) / weight (inline). -->
@@ -114,6 +116,8 @@
         <attr name="sir_title" format="string|reference" />
         <attr name="sir_hint" format="string|reference" />
         <attr name="sir_inputType" format="integer" />
+        <!-- Optional leading feature icon (decorative). Hidden when unset. S4570. -->
+        <attr name="sir_icon" format="reference" />
         <attr name="sir_showHelp" format="boolean" />
         <attr name="sir_helpTitle" format="string|reference" />
         <attr name="sir_helpMessage" format="string|reference" />

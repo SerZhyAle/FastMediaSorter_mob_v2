@@ -27,6 +27,7 @@ class StreamsFilterTest {
         mediaKind: String = "VIDEO",
         sourceOrigin: String = "CATALOG",
         pinned: Boolean = false,
+        lastPlayedAt: Long? = null,
     ) = StreamSourceEntity(
         id = id,
         url = "http://example/$id",
@@ -40,6 +41,7 @@ class StreamsFilterTest {
         language = language,
         country = country,
         pinned = pinned,
+        lastPlayedAt = lastPlayedAt,
     )
 
     /**
@@ -333,6 +335,30 @@ class StreamsFilterTest {
     }
 
     @Test
+    fun `query matches the localized rubric label beside the raw topic`() {
+        // S4614: the row shows the rubric label, so a reader types the word on screen. The raw catalog id
+        // must keep matching too - the label extends the query, it does not replace the topic.
+        val sources = listOf(
+            source("docRow", title = "zzz", topic = "Documentary"),
+            source("newsRow", title = "yyy", topic = "News"),
+        )
+        val labelOf: (String?) -> String? = { topic ->
+            when (topic) {
+                "Documentary" -> "Документальное"
+                "News" -> "Новости"
+                else -> topic
+            }
+        }
+        fun hits(query: String) = ids(StreamsViewModel.applyFilter(sources, StreamsFilter(query = query), labelOf))
+
+        assertEquals(setOf("docRow"), hits("документ"))
+        assertEquals(setOf("docRow"), hits("ДОКУМЕНТ"))
+        assertEquals(setOf("docRow"), hits("documentary"))
+        assertEquals(setOf("newsRow"), hits("новост"))
+        assertEquals(setOf("docRow", "newsRow"), ids(StreamsViewModel.applyFilter(sources, StreamsFilter(), labelOf)))
+    }
+
+    @Test
     fun `query reaches an unpinned row at the far end of the catalog`() {
         // S1502: guards against a future paging/truncation change satisfying the filter by only walking
         // the head of the catalog - the sole match here is last, unpinned, and matches by topic only.
@@ -367,8 +393,74 @@ class StreamsFilterTest {
         assertTrue("a row is pinned XOR unpinned", (pinnedIds intersect unpinnedIds).isEmpty())
     }
 
+    @Test
+    fun `recent keeps only played rows and drops live broadcasts`() {
+        val sources = listOf(
+            source("neverPlayed"),
+            source("played", lastPlayedAt = PLAYED_OLDER),
+            source("manualPlayed", sourceOrigin = "MANUAL", lastPlayedAt = PLAYED_MIDDLE),
+            source("livePlayed", sourceOrigin = "LIVE_BROADCAST", lastPlayedAt = PLAYED_NEWEST),
+        )
+
+        assertEquals(
+            setOf("played", "manualPlayed"),
+            ids(StreamsViewModel.applyFilter(sources, StreamsFilter(mediaKind = MediaKindFilter.RECENT))),
+        )
+    }
+
+    @Test
+    fun `recent orders newest play first over the chosen sort mode`() {
+        val sources = listOf(
+            source("a-older", lastPlayedAt = PLAYED_OLDER),
+            source("b-newest", lastPlayedAt = PLAYED_NEWEST),
+            source("c-middle", lastPlayedAt = PLAYED_MIDDLE),
+        )
+
+        val result = StreamsViewModel.applyFilter(
+            sources,
+            StreamsFilter(mediaKind = MediaKindFilter.RECENT, sort = SortMode.NAME),
+        )
+
+        assertEquals(listOf("b-newest", "c-middle", "a-older"), ordered(result).map { it.id })
+    }
+
+    @Test
+    fun `an added row the filter already shows keeps the filter`() {
+        val added = source("m", mediaKind = "AUDIO", sourceOrigin = "MANUAL")
+
+        assertEquals(null, StreamsViewModel.revealFilterFor(added, StreamsFilter()))
+    }
+
+    @Test
+    fun `an added row hidden by a media category moves the filter to Own and keeps the facets`() {
+        val added = source("m", mediaKind = "AUDIO", sourceOrigin = "MANUAL", category = "News")
+        val filter = StreamsFilter(mediaKind = MediaKindFilter.VIDEO, category = "News")
+
+        val revealed = StreamsViewModel.revealFilterFor(added, filter)
+
+        assertEquals(filter.copy(mediaKind = MediaKindFilter.OWN), revealed)
+    }
+
+    @Test
+    fun `an added row Own still hides has the dialog facets cleared but not the query`() {
+        val added = source("m", mediaKind = "AUDIO", sourceOrigin = "MANUAL")
+        val filter = StreamsFilter(
+            query = "m",
+            mediaKind = MediaKindFilter.AUDIO,
+            language = "english",
+            pinnedOnly = true,
+        )
+
+        val revealed = StreamsViewModel.revealFilterFor(added, filter)
+
+        assertEquals(StreamsFilter(query = "m", mediaKind = MediaKindFilter.OWN), revealed)
+    }
+
     private companion object {
         // Large enough that a head-only scan would miss the needle, small enough to stay a unit test.
         const val FAR_END_ROWS = 500
+        const val PLAYED_OLDER = 1_000L
+        const val PLAYED_MIDDLE = 2_000L
+        const val PLAYED_NEWEST = 3_000L
     }
 }

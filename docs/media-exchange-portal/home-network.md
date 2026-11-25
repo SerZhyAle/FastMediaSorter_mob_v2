@@ -16,13 +16,13 @@ The home network way needs no server of anyone else: your own router, and one de
 ## Who shares, who opens
 
 - **A Windows PC shares** the folders you pick with **Share Manager**, the tray program that is the folder-sharing part of [Fast Media Sorter & Sharing for Windows](windows-servers.html#three-parts). Start [viewer first](windows-servers.html#viewer-first) for a PC you also work on, or [server first](windows-servers.html#server-first) with the Server edition for a PC that has to stay available with nobody signed in - it runs the same sharing in the background, as a Windows service. Folder sharing ships switched off and starts only once you switch it on. The exchange server is a different part and is not needed for the home network.
-- **A phone shares** its own folders: FastMediaSorter switches the sharing on from **Settings**, the **General** tab, the **Share from phone** card, with the **SFTP server** switch (SFTP is the standard way devices share folders).
+- **A phone shares** its own folders: Fast Media Sorter & Organizer switches the sharing on from **Settings**, the **General** tab, the **Share from phone** card, with the **SFTP server** switch (SFTP is the standard way devices share folders).
 - **A NAS (a small storage box on your network) or a PC with Windows sharing** offers its shared folders as they are (SMB, the sharing built into Windows), with nothing to install.
-- **Every other device opens them**: a phone, a tablet, an Android TV and a VR headset add the folder as a network resource in FastMediaSorter; the watch opens network folders too.
+- **Every other device opens them**: a phone, a tablet, an Android TV and a VR headset add the folder as a network resource in Fast Media Sorter & Organizer; the watch opens network folders too.
 
 ## At home
 
-Inside the home network the devices connect to each other directly, at full local speed. FastMediaSorter finds the sharing devices on your network by itself (SMB, FTP and SFTP servers), so in most cases you pick one from a list instead of typing an address. A folder shared from a PC or a phone arrives by scanning its QR code, with the address, the login and the key that proves it is the right device already filled in.
+Inside the home network the devices connect to each other directly, at full local speed. Fast Media Sorter & Organizer finds the sharing devices on your network by itself (SMB, FTP and SFTP servers), so in most cases you pick one from a list instead of typing an address. A folder shared from a PC or a phone arrives by scanning its QR code, with the address, the login and the key that proves it is the right device already filled in.
 
 ## From outside, in six steps
 

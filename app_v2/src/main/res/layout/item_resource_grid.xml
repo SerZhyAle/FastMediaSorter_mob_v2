@@ -63,7 +63,7 @@
         android:textSize="@dimen/item_detail_text_size_tiny"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btnMoreActions"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvResourceName"
         tools:text="I V A G T P" />

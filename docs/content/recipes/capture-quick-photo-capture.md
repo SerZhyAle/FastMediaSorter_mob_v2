@@ -11,11 +11,11 @@ availability_note: All editions for the Quick capture menu and tap-to-focus; the
 recipe_number: "1"
 canonical_url: documentation/capture/quick-photo-capture.html
 why: |
-  Your phone already has a camera app, so why does FastMediaSorter carry its own? Because a quick snap deserves to land straight in your Pictures folder without switching apps, and because the app's [camera](term:camera) can do a few things the stock one never will - like showing you exactly what you're about to save before you save it, or letting your watch peek through it.
+  Your phone already has a camera app, so why does Fast Media Sorter & Organizer carry its own? Because a quick snap deserves to land straight in your Pictures folder without switching apps, and because the app's [camera](term:camera) can do a few things the stock one never will - like showing you exactly what you're about to save before you save it, or letting your watch peek through it.
 
   Open it from the Programs menu, take the photo or the clip, and you're back in the app a second later. This page is the tour of the viewfinder, the gestures, video recording and the watch trick. The deeper controls - lenses, zoom range, shooting profiles and the full settings dialog - are one page over, in [Lenses, Zoom, Shooting Profiles and Camera Settings](page:capture.camera-lenses-zoom-and-profiles).
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition). The fuller viewfinder (zoom presets, Send To, Camera settings) needs Standard, Lite, Photos or Legacy; video recording and the Samsung-style gestures need Standard."
+  - "Fast Media Sorter & Organizer in any [edition](term:edition). The fuller viewfinder (zoom presets, Send To, Camera settings) needs Standard, Lite, Photos or Legacy; video recording and the Samsung-style gestures need Standard."
   - "Camera permission, and microphone permission if you plan to record video with sound. Android asks the first time you need either."
   - "For the last step only: a paired [watch](term:watch) and a phone on the Standard or noLegal edition."
 steps:
@@ -148,7 +148,7 @@ steps:
       title: "Screenshot: Phone camera on the watch"
       desc: Watch screen, phone camera live view active, Cameras list and Stop control visible.
 outcome: |
-  The quick photo is already in your camera roll, the clip you recorded is in Movies, and you never had to leave FastMediaSorter to take either one. On the watch, you got a look through the phone's lens without picking the phone up at all.
+  The quick photo is already in your camera roll, the clip you recorded is in Movies, and you never had to leave Fast Media Sorter & Organizer to take either one. On the watch, you got a look through the phone's lens without picking the phone up at all.
 tips:
   - "**Your files are already named for you.** Captures get a source prefix plus the exact time - `photo_260924_143210.jpg`, `screenshot_..`, `audio_..`, `video_..`, `screen_video_..` - and if two would land with the same name, the second one gets \" (2)\" added automatically. Nothing overwrites anything by accident."
   - "**The quick-access panel can start these too.** If you've set up the app's on-screen quick-access panel, quick photo capture, voice recording and screen recording can live there as one-tap tiles - see [Screen-Edge Gestures and the Quick-Access Panel](page:capture.edge-gestures-and-quick-access-panel)."

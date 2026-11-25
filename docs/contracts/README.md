@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.23 12:07</sub>
+<sub class="doc-stamp">26.11.24 12:37</sub>
 
 # Contract pointers
 
@@ -29,6 +29,7 @@ catalog registry to one set of ids and versions.
 | [`SHARE-SESSION.md`](SHARE-SESSION.md) | `SHARE-SESSION` | client - the SFTP connection to a shared folder |
 | [`ANYWHERE-ACCESS.md`](ANYWHERE-ACCESS.md) | `ANYWHERE-ACCESS` | owner; reference producer (phone shares over rendezvous/tunnel) and consumer (reads others' shares) |
 | [`DEVICE-EXCHANGE.md`](DEVICE-EXCHANGE.md) | `DEVICE-EXCHANGE` | owner; phone - resource producer and consumer, broadcaster, receiver; watch - broadcaster of sound and receiver of sound and video |
+| [`REMOTE-CONTROL.md`](REMOTE-CONTROL.md) | `REMOTE-CONTROL` | target - the phone app answers commands from the account's other devices |
 | [`OCR-OVERLAY.md`](OCR-OVERLAY.md) | `OCR-OVERLAY` | consumer - the player's OCR + translation overlay |
 | [`LETTERBOX-FILL.md`](LETTERBOX-FILL.md) | `LETTERBOX-BARS`, `LETTERBOX-HALO` | consumer - the player's edge-extended background behind a fitted photo |
 | [`OCR-ACCURACY.md`](OCR-ACCURACY.md) | `OCR-ACCURACY` | owner of the record |
@@ -43,12 +44,14 @@ catalog registry to one set of ids and versions.
 | [`CHECK-PLACEMENT.md`](CHECK-PLACEMENT.md) | `CHECK-PLACEMENT` | owner |
 | [`BUILD-EVIDENCE.md`](BUILD-EVIDENCE.md) | `BUILD-EVIDENCE` | owner |
 | [`ICON-RENDER.md`](ICON-RENDER.md) | `ICON-RENDER` | owner and reference implementation; phone, launcher, watch, docs and site |
+| [`PRODUCT-IDENTITY.md`](PRODUCT-IDENTITY.md) | `PRODUCT-IDENTITY` | consumer - one master of the product mark, generated renditions, help head and glyphs |
 | [`PAGE-CONTENT.md`](PAGE-CONTENT.md) | `PAGE-CONTENT` | consumer - the product site |
 | [`PAGE-STYLE.md`](PAGE-STYLE.md) | `PAGE-STYLE` | consumer - the product site |
 | [`SITE-FAMILY-MAP.md`](SITE-FAMILY-MAP.md) | `SITE-FAMILY-MAP` | consumer - the product site's footer |
 | [`MEDIA-CLASSIFICATION.md`](MEDIA-CLASSIFICATION.md) | `MEDIA-CLASSIFICATION` | owner; producer and consumer (file and stream media category classifier) |
 | [`CAPTURE-OUTPUT.md`](CAPTURE-OUTPUT.md) | `CAPTURE-OUTPUT` | owner; producer (screenshots, recordings, photos, frames, text and translation files) |
 | [`PACKAGE-VERSIONING.md`](PACKAGE-VERSIONING.md) | `PACKAGE-VERSIONING` | owner and reference implementation (the version stamps of the phone app, the watch app and the watch face) |
+| [`GOOGLE-PLAY.md`](GOOGLE-PLAY.md) | `GOOGLE-PLAY` | owner and publisher (the phone and watch console app and the watch face console app) |
 | [`LAN-DISCOVERY.md`](LAN-DISCOVERY.md) | `LAN-DISCOVERY` | consumer (companion SFTP mDNS/DNS-SD discovery) |
 | [`UPDATE-MANIFEST.md`](UPDATE-MANIFEST.md) | `UPDATE-MANIFEST` | declared consumer; no feed client ships yet |
 | [`DIAGNOSTIC-REPORT.md`](DIAGNOSTIC-REPORT.md) | `DIAGNOSTIC-REPORT` | producer and consumer (sanitized diagnostic logs and export bundle) |
@@ -62,9 +65,10 @@ catalog registry to one set of ids and versions.
 | [`PRODUCT-SITE.md`](PRODUCT-SITE.md) | `SITE-STRUCTURE`, `SITE-EXPERIENCE`, `SITE-REPRESENTATION` | owner and reference implementation (the product site and its help portal: pages, look and behaviour, how the product and each function are presented) |
 | [`INPUT-PARITY.md`](INPUT-PARITY.md) | `INPUT-PARITY` | steward of the touch, gamepad and TV remote / D-pad columns |
 | [`MEDIA-VIEWER.md`](MEDIA-VIEWER.md) | `MEDIA-VIEWER` | consumer, scoped - the phone's Browse list and player, the watch image slideshow |
-| [`UI-SIZING.md`](UI-SIZING.md) | `UI-SIZING` | consumer - phone, launcher and watch (migration S4352) |
-| [`BUTTONS.md`](BUTTONS.md) | `BUTTONS` | consumer - phone, launcher, watch and the help pages (migration S4352) |
-| [`BOOLEAN-OPTION.md`](BOOLEAN-OPTION.md) | `BOOLEAN-OPTION` | consumer - phone, launcher and watch settings (migration S4352) |
-| [`COLLAPSIBLE-GROUP.md`](COLLAPSIBLE-GROUP.md) | `COLLAPSIBLE-GROUP` | consumer - phone and launcher (migration S4352) |
-| [`SETTINGS-NAVIGATION.md`](SETTINGS-NAVIGATION.md) | `SETTINGS-NAVIGATION` | consumer - main settings, settings dialogs and watch settings (migration S4352) |
+| [`UI-SIZING.md`](UI-SIZING.md) | `UI-SIZING` | consumer - phone, launcher and watch (migration S4619) |
+| [`BUTTONS.md`](BUTTONS.md) | `BUTTONS` | consumer - phone, launcher, watch and the help pages (migration S4619) |
+| [`BOOLEAN-OPTION.md`](BOOLEAN-OPTION.md) | `BOOLEAN-OPTION` | consumer - phone, launcher and watch settings (migration S4619) |
+| [`COLLAPSIBLE-GROUP.md`](COLLAPSIBLE-GROUP.md) | `COLLAPSIBLE-GROUP` | consumer - phone, launcher and watch (migration S4619) |
+| [`SETTINGS-NAVIGATION.md`](SETTINGS-NAVIGATION.md) | `SETTINGS-NAVIGATION` | consumer - main settings, settings dialogs and watch settings (phone form by owner decision S4634) |
 | [`EXCHANGE-MARK.md`](EXCHANGE-MARK.md) | `EXCHANGE-MARK` | consumer - mark of the exchange server on phone, watch, portal and docs |
+| [`RELEASE-LEDGER.md`](RELEASE-LEDGER.md) | `RELEASE-LEDGER` | adopter - the release ledger of the phone, watch app and watch face; the canon ships the only writer |

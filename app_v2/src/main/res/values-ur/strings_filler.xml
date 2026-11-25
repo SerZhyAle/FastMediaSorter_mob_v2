@@ -30,4 +30,8 @@
     <string name="filler_result_busy">بھرنا پہلے سے جاری ہے۔</string>
     <string name="filler_settings_toggle_subtitle">اسٹوریج ڈیوائس کی خالی جگہ کو عارضی فائلوں سے بھر دیتا ہے، پھر انہیں حذف کر دیتا ہے</string>
     <string name="filler_settings_toggle_subtitle_pending">پچھلے رن کی عارضی فائلیں اب بھی اسٹوریج پر موجود ہیں۔ پروگرام اس وقت تک فہرست میں رہے گا جب تک آپ اس میں سے انہیں حذف نہیں کر دیتے۔</string>
+    <string name="filler_estimate">%1$d%% مکمل، باقی وقت: %2$s</string>
+    <string name="filler_estimate_calculating">%1$d%% مکمل، باقی وقت: حساب ہو رہا ہے..</string>
+    <string name="filler_reserve_slider_description">سسٹم کے لیے خالی رکھی گئی جگہ</string>
+    <string name="filler_confirm_reserve_lowered">یہ معمول کی %1$s سے کم ہے، اس لیے عمل کے دوران سسٹم اور دوسری ایپس کے لیے کم جگہ ہو گی۔</string>
 </resources>

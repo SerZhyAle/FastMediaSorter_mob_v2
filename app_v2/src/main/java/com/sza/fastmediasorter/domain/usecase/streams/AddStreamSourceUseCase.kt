@@ -19,6 +19,9 @@ class AddStreamSourceUseCase @Inject constructor(
      *
      * S4289: [mediaKind] is the kind a caller knows better than the url does (a broadcast states its mode);
      * null or an unrecognised value keeps the url classification.
+     *
+     * S4606: [category] is the free-text list label a user typed for this channel; stored trimmed, blank
+     * is null. Defaulted so playlist and broadcast imports, which have none to offer, are unchanged.
      */
     suspend operator fun invoke(
         url: String,
@@ -26,6 +29,7 @@ class AddStreamSourceUseCase @Inject constructor(
         sourceDeviceId: String? = null,
         broadcastEndpoints: String? = null,
         mediaKind: String? = null,
+        category: String? = null,
     ): AddResult {
         val trimmedUrl = url.trim()
         val rejection = rejectionFor(trimmedUrl)
@@ -43,10 +47,11 @@ class AddStreamSourceUseCase @Inject constructor(
             addedAt = System.currentTimeMillis(),
             sourceDeviceId = sourceDeviceId?.trim()?.takeIf { it.isNotEmpty() },
             broadcastEndpoints = broadcastEndpoints,
+            category = category?.trim()?.takeIf { it.isNotEmpty() },
         )
         repository.add(entity)
         statsSink.record(StatsEvent.StreamAdded)
-        return AddResult.Success
+        return AddResult.Success(entity)
     }
 
     /**
@@ -67,7 +72,8 @@ class AddStreamSourceUseCase @Inject constructor(
     }
 
     sealed interface AddResult {
-        data object Success : AddResult
+        /** S4886: carries the inserted row so the streams screen can tell whether its filter hides it. */
+        data class Success(val source: StreamSourceEntity) : AddResult
         data object InvalidUrl : AddResult
 
         /** S1147: url already belongs to an existing row (unique index_stream_sources_url collision). */

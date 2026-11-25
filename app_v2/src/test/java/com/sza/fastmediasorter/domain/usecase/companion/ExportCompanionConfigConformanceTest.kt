@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.domain.usecase.companion
 import android.content.Context
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import com.sza.fastmediasorter.data.companion.CompanionConfigException
 import com.sza.fastmediasorter.data.companion.CompanionConfigParser
 import com.sza.fastmediasorter.data.companion.CompanionConfigSerializer
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
@@ -76,6 +77,23 @@ class ExportCompanionConfigConformanceTest {
         val file = useCase().invoke(readOnlyResource, includePassword = true).getOrThrow()
 
         assertEquals(EXPECTED_READ_ONLY, maskCreatedAt(file.readText(Charsets.UTF_8)))
+    }
+
+    @Test
+    fun `an unpinned resource is refused before any bytes are written`() = runTest {
+        val unpinned = readOnlyResource.copy(hostKeyFingerprint = null)
+
+        val fileResult = useCase().invoke(unpinned, includePassword = true)
+        val qrResult = useCase().exportQrPayload(unpinned, includePassword = true)
+
+        listOf(fileResult, qrResult).forEach { result ->
+            assertEquals(
+                CompanionConfigException.Reason.UNPINNED_HOST_KEY,
+                (result.exceptionOrNull() as? CompanionConfigException)?.reason
+            )
+        }
+        val leftovers = tempFolder.root.listFiles().orEmpty().filter { it.name.endsWith(".fmscfg") }
+        assertTrue("no config file may exist after the refusal", leftovers.isEmpty())
     }
 
     @Test

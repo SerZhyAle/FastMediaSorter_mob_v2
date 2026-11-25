@@ -22,6 +22,15 @@ class KnownAuthResourcesTest {
     }
 
     @Test
+    fun `picker lists each service once while both threads domains still match`() {
+        val names = KnownAuthResources.pickerEntries.map { it.displayName }
+        assertEquals(names.distinct(), names)
+        assertEquals(1, names.count { it == "Threads" })
+        assertEquals("threads.net", KnownAuthResources.matchHost("threads.net")?.host)
+        assertEquals("threads.com", KnownAuthResources.matchHost("threads.com")?.host)
+    }
+
+    @Test
     fun `marks only preview sensitive hosts`() {
         assertTrue(KnownAuthResources.isPreviewSensitiveHost("x.com"))
         assertTrue(KnownAuthResources.isPreviewSensitiveHost("www.instagram.com"))

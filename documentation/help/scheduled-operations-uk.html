@@ -5,8 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex">
 <title>Довідка - Операції над файлами за розкладом</title>
 <link rel="stylesheet" href="help.css">
+<link rel="icon" type="image/png" href="img/product-mark.png">
 </head>
 <body class="help">
 <main class="container">
@@ -14,6 +16,7 @@
 <a href="index-uk.html">Зміст довідки</a><span class="sep" aria-hidden="true">/</span><span>Операції над файлами за розкладом</span>
 </nav>
 <header class="hero">
+<img class="product-mark" src="img/product-mark.png" width="48" height="48" alt="Fast Media Sorter">
 <h1>Операції над файлами за розкладом</h1>
 </header>
 <h2>Для чого цей екран</h2>
@@ -24,12 +27,12 @@
 </figure>
 <h2>Порядок дій</h2>
 <ol class="order">
-<li>Увімкніть «Використовувати операції за розкладом» <a class="ref" href="#enabled">2</a>. На Android 13 і новіших натисніть кнопку сповіщень <a class="ref" href="#notification-permission">3</a>, якщо вона з’явилася, - так ви побачите, коли запуск розпочався або не вдався.</li>
+<li>Увімкніть «Використовувати операції за розкладом» <span class="nb"><a class="ref" href="#enabled">2</a>.</span> На Android 13 і новіших натисніть кнопку сповіщень <span class="nb"><a class="ref" href="#notification-permission">3</a>,</span> якщо вона з’явилася, - так ви побачите, коли запуск розпочався або не вдався.</li>
 <li>Натисніть «Додати» <a class="ref" href="#add">4</a> і один раз опишіть завдання: джерело, операцію, призначення, які файли брати, коли починати і як часто повторювати. Нове завдання спершу перевірте як копіювання, а потім довіряйте йому переміщення чи видалення.</li>
-<li>Нова картка з’явиться в списку <a class="ref" href="#list">11</a>. Її перемикач <a class="ref" href="#op-switch">12</a> призупиняє лише це завдання, не видаляючи його.</li>
-<li>Не впевнені, що все працює? Натисніть «Запустити» <a class="ref" href="#op-run-now">15</a> на картці та відкрийте її «Історію» <a class="ref" href="#op-history">14</a>, щоб побачити, що зроблено.</li>
+<li>Нова картка з’явиться в списку <span class="nb"><a class="ref" href="#list">11</a>.</span> Її перемикач <a class="ref" href="#op-switch">12</a> призупиняє лише це завдання, не видаляючи його.</li>
+<li>Не впевнені, що все працює? Натисніть «Запустити» <a class="ref" href="#op-run-now">15</a> на картці та відкрийте її «Історію» <span class="nb"><a class="ref" href="#op-history">14</a>,</span> щоб побачити, що зроблено.</li>
 <li>Значок попередження <a class="ref" href="#op-warning">13</a> означає, що останній запуск не вдався або був пропущений. «Історія» <a class="ref" href="#history">7</a> показує журнал усіх запусків, «Історія» на картці <a class="ref" href="#op-history">14</a> - запуски одного завдання.</li>
-<li>Щоб призупинити все на якийсь час, натисніть «Пауза всіх» <a class="ref" href="#pause">6</a>. «Запустити всі зараз» <a class="ref" href="#run-all">5</a> одразу запускає всі ввімкнені завдання поза розкладом.</li>
+<li>Щоб призупинити все на якийсь час, натисніть «Пауза всіх» <span class="nb"><a class="ref" href="#pause">6</a>.</span> «Запустити всі зараз» <a class="ref" href="#run-all">5</a> одразу запускає всі ввімкнені завдання поза розкладом.</li>
 <li>«Редагувати» <a class="ref" href="#op-edit">16</a> змінює завдання, «Видалити» <a class="ref" href="#op-delete">17</a> прибирає одне, «Очистити все» <a class="ref" href="#clear-all">8</a> - усі. «Очистити журнал» <a class="ref" href="#history-clear">10</a> спорожняє історію запусків, не чіпаючи завдань.</li>
 </ol>
 <h2>Елементи</h2>
@@ -66,7 +69,7 @@
 </div>
 </details>
 <details class="el" id="run-all">
-<summary><span class="mk">5</span><span><span class="name">Запустити всі зараз</span><span class="one">Одразу запускає всі ввімкнені операції по одному разу.</span></span></summary>
+<summary><span class="mk">5</span><span><span class="name"><svg class="glyph" viewBox="0 0 24.0 24.0" aria-hidden="true" focusable="false"><path d="M8,5v14l11,-7z" fill="currentColor"/></svg>Запустити всі зараз</span><span class="one">Одразу запускає всі ввімкнені операції по одному разу.</span></span></summary>
 <div class="full">
 <p>Завдання виконуються одне за одним, а звичайний розклад лишається як був. Операції з вимкненим перемикачем пропускаються, а поки діє «Пауза всіх», нічого не відбувається. Додаткового запитання немає, тому перед натисканням переконайтеся, що завдання на переміщення чи видалення справді готове.</p>
 <dl class="facts">
@@ -81,7 +84,7 @@
 </div>
 </details>
 <details class="el" id="history">
-<summary><span class="mk">7</span><span><span class="name">Історія</span><span class="one">Показує або приховує журнал усіх запусків.</span></span></summary>
+<summary><span class="mk">7</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M13,3c-4.97,0 -9,4.03 -9,9H1l3.89,3.89 0.07,0.14L9,12H6c0,-3.87 3.13,-7 7,-7s7,3.13 7,7 -3.13,7 -7,7c-1.93,0 -3.68,-0.79 -4.94,-2.06l-1.42,1.42C8.27,19.99 10.51,21 13,21c4.97,0 9,-4.03 9,-9s-4.03,-9 -9,-9zm-1,5v5l4.28,2.54 0.72,-1.21 -3.5,-2.08V8H12z" fill="currentColor"/></svg>Історія</span><span class="one">Показує або приховує журнал усіх запусків.</span></span></summary>
 <div class="full">
 <p>Панель «Історія запусків» відкривається під кнопками, найновіші запуски - згори: коли минув запуск, яка це була операція, звідки й куди та чим усе закінчилося. Помилки виділено кольором помилки. Натисніть кнопку ще раз, щоб приховати панель.</p>
 </div>
@@ -146,13 +149,13 @@
 </div>
 </details>
 <details class="el" id="op-edit">
-<summary><span class="mk">16</span><span><span class="name">Редагувати</span><span class="one">Змінює джерело, призначення, файли чи час цієї операції.</span></span></summary>
+<summary><span class="mk">16</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3,17.25V21h3.75L17.81,9.94l-3.75,-3.75L3,17.25zM20.71,7.04c0.39,-0.39 0.39,-1.02 0,-1.41l-2.34,-2.34c-0.39,-0.39 -1.02,-0.39 -1.41,0l-1.83,1.83 3.75,3.75 1.83,-1.83z" fill="currentColor"/></svg>Редагувати</span><span class="one">Змінює джерело, призначення, файли чи час цієї операції.</span></span></summary>
 <div class="full">
 <p>Відкривається та сама форма, що й під час додавання, із поточними налаштуваннями. Кнопка «Зберегти в список операцій» зберігає зміни; якщо закрити форму без збереження, операція залишиться як була.</p>
 </div>
 </details>
 <details class="el" id="op-delete">
-<summary><span class="mk">17</span><span><span class="name">Видалити</span><span class="one">Прибирає цю операцію.</span></span></summary>
+<summary><span class="mk">17</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6,19c0,1.1 0.9,2 2,2h8c1.1,0 2,-0.9 2,-2L18,7H6v12ZM19,4h-3.5l-1,-1h-5l-1,1H5v2h14V4Z" fill="currentColor"/></svg>Видалити</span><span class="one">Прибирає цю операцію.</span></span></summary>
 <div class="full">
 <p>Спершу застосунок питає «Видалити це завдання?». Після підтвердження операція та її розклад видаляються разом з її власним списком запусків і папкою, вибраною лише для цього завдання. Ваші файли не зачіпаються.</p>
 <dl class="facts">
@@ -179,7 +182,7 @@
 <li><a href="index-uk.html"><b>Зміст довідки</b></a></li>
 </ul>
 <footer class="help-foot">
-<span>Fast Media Sorter, 2026-10-29</span>
+<span>Fast Media Sorter, 2026-11-24</span>
 <a href="index-uk.html">Зміст довідки</a>
 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Поставити запитання або повідомити про проблему</a>
 </footer>

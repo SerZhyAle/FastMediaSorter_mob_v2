@@ -5,16 +5,27 @@
     android:orientation="vertical"
     android:paddingVertical="8dp">
 
-    <TextView
-        android:id="@+id/tvThumbnailTitle"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/pdf_thumbnails"
-        android:textSize="16sp"
-        android:textStyle="bold"
         android:paddingStart="8dp"
         android:paddingEnd="8dp"
-        android:paddingBottom="8dp" />
+        android:baselineAligned="false"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvThumbnailTitle"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="@string/pdf_thumbnails"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:paddingBottom="8dp" />
+
+        <include layout="@layout/view_dialog_help_button" />
+    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvThumbnails"

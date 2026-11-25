@@ -1,0 +1,28 @@
+{
+  "readOn": "2026-09-21",
+  "source": "Play Console target API level requirement page, as recorded in catalog contract GOOGLE-PLAY rule 8",
+  "floors": [
+    {
+      "formFactor": "phone",
+      "label": "Phone and tablet",
+      "targetSdk": 36,
+      "appliesTo": "new apps and updates",
+      "enforcedFrom": "2026-08-31"
+    },
+    {
+      "formFactor": "wear",
+      "label": "Wear OS",
+      "targetSdk": 35,
+      "appliesTo": "new apps and updates",
+      "enforcedFrom": "2026-08-31"
+    }
+  ],
+  "information": [
+    {
+      "formFactor": "wear",
+      "label": "Wear OS",
+      "requirement": "64-bit native code",
+      "enforcedFrom": "2026-09-15"
+    }
+  ]
+}

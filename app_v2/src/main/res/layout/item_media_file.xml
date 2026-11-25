@@ -28,6 +28,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="4dp"
+        android:layout_marginEnd="@dimen/margin_small"
         android:ellipsize="end"
         android:includeFontPadding="true"
         android:maxLines="2"
@@ -35,7 +36,7 @@
         android:textStyle="bold"
         app:layout_constraintVertical_chainStyle="packed"
         app:layout_constraintBottom_toTopOf="@+id/tvFileInfo"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/barrierActions"
         app:layout_constraintStart_toEndOf="@+id/ivThumbnail"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="IMG_20231106_123456.jpg" />
@@ -44,11 +45,12 @@
         android:id="@+id/tvFileInfo"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/margin_small"
         android:includeFontPadding="true"
         android:textColor="?attr/colorOnSurfaceVariant"
         android:textSize="@dimen/item_detail_text_size"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/barrierActions"
         app:layout_constraintStart_toStartOf="@+id/tvFileName"
         app:layout_constraintTop_toBottomOf="@+id/tvFileName"
         tools:text="2.5 MB • 2023-11-06" />
@@ -150,10 +152,12 @@
         app:tint="@color/selector_themed_button_tint"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/btnPlayInline"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:visibility="visible" />
 
+    <!-- Leftmost of the action cluster: only audio rows show it, so anchoring it at the end edge shifted
+         the star and the overflow button left on those rows alone. -->
     <ImageButton
         android:id="@+id/btnPlayInline"
         android:layout_width="32dp"
@@ -167,7 +171,7 @@
         app:tint="@color/selector_themed_button_tint"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/btnFavorite"
         app:layout_constraintTop_toTopOf="parent"
         tools:visibility="visible" />
 
@@ -184,6 +188,15 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         tools:visibility="visible" />
+
+    <!-- Left edge of the trailing action cluster. The default barrierAllowsGoneWidgets=true keeps this at
+         parent end when every control is gone, so a text view never collapses against an empty cluster. -->
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/barrierActions"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="start"
+        app:constraint_referenced_ids="btnFavorite,btnOverflowMenu,btnCopyItem,btnMoveItem,btnRenameItem,btnDeleteItem,btnPlayInline,ivDragHandle" />
 
     <!-- Selection checkbox overlays the thumbnail bottom-left corner (S0419). Declared last for top
          z-order; a self-contrasting white/black box stays visible without covering the thumbnail. -->

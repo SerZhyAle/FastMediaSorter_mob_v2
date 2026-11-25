@@ -40,9 +40,11 @@
 #>
 [CmdletBinding()]
 param(
-    [ValidateSet('sections', 'variants', 'schemes', 'all')]
+    [ValidateSet('sections', 'variants', 'schemes', 'freshness', 'all')]
     [string] $Dimension = 'all',
-    [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+    [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path,
+    [switch] $Strict,
+    [switch] $Quiet
 )
 
 $ErrorActionPreference = 'Stop'
@@ -166,15 +168,35 @@ function Test-Schemes {
     Stop-CouldNotVerify "render-usage-schemes.ps1 -Check exited $code - $detail"
 }
 
+function Test-Freshness {
+    <#
+        Item G (S4653): a translation carries the fingerprint of the English body it was rebuilt from. Stale is
+        advisory per ticket - the original leads until the release - and a finding under -Strict, which the
+        release-scope runner passes.
+    #>
+    . (Join-Path $PSScriptRoot '../docs/lib/portal-fingerprint.ps1')
+    foreach ($page in @(Get-ChildItem -LiteralPath $portalDir -File -Filter *.md | Where-Object { $_.BaseName -match '-[a-z]{2}$' })) {
+        $original = Join-Path $portalDir ($page.Name -replace '-[a-z]{2}\.md$', '.md')
+        if (-not (Test-Path -LiteralPath $original)) { continue }
+        if ((Get-PortalSourceStamp -Path $page.FullName) -eq (Get-PortalBodyFingerprint -Path $original)) { continue }
+        $text = "freshness: $($page.Name) was not rebuilt from the current English page; rebuild it, then run pwsh -NoProfile -File scripts/docs/stamp-portal-translation.ps1 -Pages $($page.Name)"
+        if ($Strict) { $findings.Add($text) } else { $script:freshnessAdvisories.Add($text) }
+    }
+}
+
 $all = $Dimension -eq 'all'
 if ($all -or $Dimension -eq 'sections') { Test-Sections }
 if ($all -or $Dimension -eq 'variants') { Test-Variants }
 if ($all -or $Dimension -eq 'schemes') { Test-Schemes }
+$freshnessAdvisories = [System.Collections.Generic.List[string]]::new()
+if ($all -or $Dimension -eq 'freshness') { Test-Freshness }
 
 if ($findings.Count -gt 0) {
     Write-Host "assert-portal-pages: FAIL ($($findings.Count) finding(s)):" -ForegroundColor Red
     foreach ($finding in $findings) { Write-Host "  - $finding" }
     exit 1
 }
+foreach ($advisory in $freshnessAdvisories) { if (-not $Quiet) { Write-Host "  advisory: $advisory" -ForegroundColor Yellow } }
+if ($freshnessAdvisories.Count -gt 0) { Write-Host "assert-portal-pages: PASS WITH ADVISORIES ($($freshnessAdvisories.Count) stale translation(s); fatal with -Strict, the release scope)" -ForegroundColor Yellow; exit 0 }
 Write-Host "assert-portal-pages: PASS (dimension: $Dimension, $($sectionPages.Count) section(s) x $($languages.Count) language(s))" -ForegroundColor Green
 exit 0

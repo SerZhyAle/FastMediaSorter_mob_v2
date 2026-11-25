@@ -3,12 +3,14 @@ package com.sza.fastmediasorter.ui.player.helpers
 import com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
 import com.sza.fastmediasorter.domain.usecase.SaveTextNoteUseCase
 import com.sza.fastmediasorter.ui.editor.actions.EditorActionCallbacks
+import timber.log.Timber
 import java.io.File
 
 internal class FallbackEditorActions(
     val rebaselineDirtyTracker: (String) -> Unit,
     val isDirty: () -> Boolean,
     val saveEditedText: (() -> Unit) -> Unit,
+    val saveContentDocument: (() -> Unit) -> Boolean,
     val sendTo: (String) -> Unit,
     val finishActivity: () -> Unit,
 )
@@ -34,6 +36,7 @@ internal class TextEditorActionPanelCallbacks(
     )
 
     private fun onSave() {
+        if (fallbackActions.saveContentDocument {}) return
         val flow = getSaveFlow()
         val localFile = getCurrentLocalFile()
         val capturedContent = safeViews.etTextContent.text.toString()
@@ -62,6 +65,7 @@ internal class TextEditorActionPanelCallbacks(
             fallbackActions.finishActivity()
             return
         }
+        if (fallbackActions.saveContentDocument(fallbackActions.finishActivity)) return
         if (flow != null && localFile != null) {
             flow.commit(
                 currentLocalFile = localFile,
@@ -87,6 +91,14 @@ internal class TextEditorActionPanelCallbacks(
         val flow = getSaveFlow()
         val localFile = getCurrentLocalFile()
         val capturedContent = safeViews.etTextContent.text.toString()
+        // A staged new note has no real name yet: it must still pass through the save dialog on a clean buffer.
+        val isStagedNote = localFile != null && getTextNoteStagingRegistry()?.lookup(localFile) != null
+        Timber.d("S4833: editor send-to dirty=${fallbackActions.isDirty()} staged=$isStagedNote")
+        if (!fallbackActions.isDirty() && !isStagedNote) {
+            fallbackActions.sendTo(capturedContent)
+            return
+        }
+        if (fallbackActions.saveContentDocument { fallbackActions.sendTo(capturedContent) }) return
         if (flow != null && localFile != null) {
             flow.commit(
                 currentLocalFile = localFile,

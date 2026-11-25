@@ -129,3 +129,10 @@ if (fmsPackagingRequested && !fmsStableVersionRequested) {
     extra["fmsStampedAppVersionCode"] = stampedAppVersionCode(raw)
     extra["fmsStampedWearVersionCode"] = stampedWearVersionCode(raw)
 }
+
+// The one case where a packaged artifact carries the checked-in sentinel on purpose: nobody passed a
+// version and the stable-version opt-out above skipped the stamp. BuildConfig.VERSION_NAME cannot tell
+// the tester which build he holds then, so app_v2 adds a build-minute asset for the debug overlay. A
+// compile-only run is not in this set - it packages nothing, so nothing is left to identify.
+extra["fmsSentinelPackagingBuild"] =
+    fmsPackagingRequested && fmsStableVersionRequested && fmsPassedVersionName == null

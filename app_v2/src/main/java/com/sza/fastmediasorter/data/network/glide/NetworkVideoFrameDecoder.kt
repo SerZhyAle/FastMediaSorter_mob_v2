@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
+import com.sza.fastmediasorter.domain.model.MediaExtensions
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ThumbnailCacheRepository
 import com.sza.fastmediasorter.utils.GlideCacheStats
@@ -82,9 +83,9 @@ class NetworkVideoFrameDecoder(
 ) : ResourceDecoder<NetworkFileData, Drawable> {
 
     companion object {
-        private val VIDEO_EXTENSIONS = setOf(
-            "mp4", "mov", "avi", "mkv", "webm", "3gp", "flv", "wmv", "m4v", "mpg", "mpeg"
-        )
+        // Derived from the shared classification; handles() consults NetworkThumbnailExtractionPolicy
+        // first, so the blocked containers in this set (avi, ts, vob, ...) still never reach extraction.
+        private val VIDEO_EXTENSIONS = MediaExtensions.VIDEO
 
         private val IMAGE_EXTENSIONS = setOf(
             "jpg",

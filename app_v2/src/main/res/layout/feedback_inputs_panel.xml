@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S4573: the input buttons, attachment list, computer folder and Send of the feedback form; shared by both orientations. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="@dimen/margin_medium">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/feedbackPasteButton"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/feedback_paste_image"
+            android:focusable="true"
+            android:nextFocusRight="@id/feedbackPickButton"
+            android:nextFocusForward="@id/feedbackPickButton"
+            app:icon="@drawable/ic_paste" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/feedbackPickButton"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/feedback_pick_image"
+            android:focusable="true"
+            android:nextFocusRight="@id/feedbackPhotoButton"
+            android:nextFocusForward="@id/feedbackPhotoButton"
+            app:icon="@drawable/ic_image" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/feedbackPhotoButton"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/feedback_take_photo"
+            android:focusable="true"
+            android:nextFocusRight="@id/feedbackVoiceButton"
+            android:nextFocusForward="@id/feedbackVoiceButton"
+            app:icon="@drawable/ic_camera_capture" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/feedbackVoiceButton"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/feedback_record_voice"
+            android:focusable="true"
+            android:nextFocusRight="@id/feedbackLogsButton"
+            android:nextFocusForward="@id/feedbackLogsButton"
+            app:icon="@drawable/ic_microphone" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/feedbackLogsButton"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/feedback_attach_logs"
+            android:focusable="true"
+            android:nextFocusForward="@id/feedbackFolderSpinner"
+            app:icon="@drawable/ic_diagnostic_logs" />
+
+        <TextView
+            android:id="@+id/feedbackRecordingText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/feedback_recording"
+            android:textAppearance="?attr/textAppearanceLabelLarge"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/feedbackAttachmentList"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:contentDescription="@string/feedback_attachments_label"
+        android:paddingHorizontal="@dimen/margin_medium" />
+
+    <include
+        android:id="@+id/feedbackFolderRow"
+        layout="@layout/view_feedback_folder_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/feedbackSendButton"
+        style="@style/Widget.FastMediaSorter.Button.DialogConfirm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_margin="@dimen/margin_medium"
+        android:focusable="true"
+        android:text="@string/feedback_send" />
+</LinearLayout>

@@ -3,13 +3,13 @@ layout: doc
 title: "FastMedia Wear - Smartwatch Media Companion & Standalone App"
 permalink: /docs/wear/
 ---
-<sub class="doc-stamp">26.10.18 23:34</sub>
+<sub class="doc-stamp">26.11.14 03:11</sub>
 
 # <img src="../icons/doc/ic_watch.png" alt="" width="24" height="24" style="vertical-align:text-bottom"> FastMedia Wear OS Portal
 
 [📱 Main App Home](../README.md) | [📖 All Step-by-Step Guides](../howto/index.md) | [📘 Watch documentation](https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/#wear) | [Русский](index-ru.md) | [Українська](index-uk.md)
 
-Welcome to the **FastMedia Wear OS Web Portal** - your complete guide to the standalone media player, network resource browser, and smartwatch companion for Wear OS. FastMedia Wear pairs seamlessly with the [FastMediaSorter Main Application](../README.md) for phones and tablets.
+Welcome to the **FastMedia Wear OS Web Portal** - your complete guide to the standalone media player, network resource browser, and smartwatch companion for Wear OS. FastMedia Wear pairs seamlessly with the [Fast Media Sorter & Organizer Main Application](../README.md) for phones and tablets.
 
 ---
 
@@ -62,7 +62,7 @@ A part marked **"Full version only"** is not in the version distributed through 
 
 ### 📲 Paired Phone Integration
 
-- **Rows That Follow the Phone:** Resources, Phone and Phone camera appear on the home screen only while a phone with FastMediaSorter is connected; a short line under the home rows says whether to connect the phone or install the app on it. Resources stays whenever a network resource is saved on the watch itself. The watch offers once to open the phone app's store page on the phone, and the same link waits in **Settings - About**.
+- **Rows That Follow the Phone:** Resources, Phone and Phone camera appear on the home screen only while a phone with Fast Media Sorter & Organizer is connected; a short line under the home rows says whether to connect the phone or install the app on it. Resources stays whenever a network resource is saved on the watch itself. The watch offers once to open the phone app's store page on the phone, and the same link waits in **Settings - About**.
 - **Phone Media Browsing:** Recents, Videos, Audio, Images, Documents, All and Browse - the same categories, under the same names and colours, that your watch's own storage and your network shares offer. **All** is a flat list of media files, newest first and without folders; **Browse** walks the folders of your smartphone and shows everything in them. If no resource on your phone is set up to hold a category, opening it says so instead of showing an empty list.
 - **Selective Resource Transfer:** Choose which network resources on your phone - SMB, FTP or SFTP - to make available on your watch.
 - **Remote Log Diagnostics:** Send watch diagnostic logs to the developer via the paired phone app.
@@ -88,7 +88,7 @@ A part marked **"Full version only"** is not in the version distributed through 
 - **Mini-Game:** On-watch entertainment usable completely offline without a phone connection. Every board is drawn at random, so two games in a row never repeat and restarting a level gives you a fresh one; leaving the game and coming back returns the board and the position you left. Each new board opens with a short arrow pointing from you to the nearest exit, then fades on its own. A back arrow at the left middle of the screen leaves the game and a small skip-turn button opposite it lets the shadows move while you stay put; both are also in the menu a long press opens.
 - **Tourist Dashboard:** Real-time outdoor navigation and telemetry hub. Displays high-contrast metrics including speed, altitude, magnetic compass heading, GPS coordinates, visible GNSS satellites, step counts, accumulated trip distance, and solar sunrise/sunset times. Tapping any secondary telemetry card promotes it to the primary interactive Hero display, and quick action chips provide instant reset controls for trip distance and session steps.
 
-- **Broadcast:** Turns the watch into the source instead of the listener. Start it from the Programs grid, or from the home-screen row under Programs whenever the broadcast is the last program you opened, and the watch opens its microphone and serves the sound over Wi-Fi to anyone you share the address with - several listeners at once. Tap Show QR code and the address appears as a code the other device scans; the listener adds it exactly as they would a broadcast from a phone. The listener has to be on the same Wi-Fi as the watch, and if the watch has no Wi-Fi up it says so instead of starting a broadcast nobody could reach. It keeps running with the screen off and after you go back to the home screen, and it is always visible while it does: the screen shows it is on air and the ongoing notification carries a Stop broadcast button. One tap ends it and gives the microphone and the network back. A second button, the black screen, blanks the watch screen while the broadcast keeps running - a double tap, a press and hold, or the watch button brings the controls back - and the QR code sizes itself to the dial, so it always fits the round display whole. On a Windows PC the broadcast plays in StreamsPlayer: open the watch's address, or paste the text of its QR code. The same route turns the watch into a microphone for any Windows program - install the free VB-CABLE virtual audio cable, give StreamsPlayer the CABLE Input device in the Windows volume mixer, and choose CABLE Output as the microphone in the program. While it serves sound the watch is kept from dozing off on it, so a wrist that dropped or a watch left on the charger no longer cuts the listeners off mid-sentence. There is nothing to allow for background work: Wear OS has no per-app battery setting of that kind, so the watch keeps its processor awake for the length of the broadcast and runs it as a foreground service instead. A very long, completely undisturbed sleep may still end a broadcast, and you start it again from the watch. A broadcast is hungry: with the screen on it uses about a third of the watch's battery an hour, so keep the watch on its charger for a long call.
+- **Broadcast:** Turns the watch into the source instead of the listener. Start it from the Programs grid, or from the home-screen row under Programs whenever the broadcast is the last program you opened, and the watch opens its microphone and serves the sound over Wi-Fi to anyone you share the address with - up to four listeners at once. Tap Show QR code and the address appears as a code the other device scans; the listener adds it exactly as they would a broadcast from a phone. A listener on the same Wi-Fi as the watch connects directly, and a listener on another network connects through your exchange server once the watch has its own entry there; if the watch has no Wi-Fi up it says so instead of starting a broadcast nobody could reach. It keeps running with the screen off and after you go back to the home screen, and it is always visible while it does: the screen shows it is on air and the ongoing notification carries a Stop broadcast button. One tap ends it and gives the microphone and the network back. A second button, the black screen, blanks the watch screen while the broadcast keeps running - a double tap, a press and hold, or the watch button brings the controls back - and the QR code sizes itself to the dial, so it always fits the round display whole. On a Windows PC the broadcast plays in StreamsPlayer: open the watch's address, or paste the text of its QR code. The same route turns the watch into a microphone for any Windows program - install the free VB-CABLE virtual audio cable, give StreamsPlayer the CABLE Input device in the Windows volume mixer, and choose CABLE Output as the microphone in the program. While it serves sound the watch is kept from dozing off on it, so a wrist that dropped or a watch left on the charger no longer cuts the listeners off mid-sentence. There is nothing to allow for background work: Wear OS has no per-app battery setting of that kind, so the watch keeps its processor awake for the length of the broadcast and runs it as a foreground service instead. A very long, completely undisturbed sleep may still end a broadcast, and you start it again from the watch. A broadcast is hungry: with the screen on it uses about a third of the watch's battery an hour, so keep the watch on its charger for a long call.
 
 ### 🧩 Wear OS Tiles
 
@@ -103,8 +103,8 @@ A part marked **"Full version only"** is not in the version distributed through 
 
 - **What it shows:** a large time, the date, waves and drifting particles, and battery bars.
 - **Battery bars:** the thin top bar is the watch's charge and the bottom bar is the paired phone's. A bar is white above 25%, amber from 11% to 25% and red at 10% and below. While that device charges - even at 100% - its bar turns green and gets a white outline, so the state reads without relying on color. A bar that has no fresh phone report shows only its empty track. Both bars hide in the always-on screen. Update the watch app and the face together: an older face does not show the phone's charging state.
-- **Up to eight round buttons:** shortcuts to FastMediaSorter or other watch data. The buttons appear together with the FastMediaSorter watch app.
-- **How to get it:** search for FastMediaSorter in Google Play on the watch, or open the Wear settings of the phone app, which offers to open the page on the watch. Then pick the face in the watch's face picker.
+- **Up to eight round buttons:** shortcuts to FastMedia Wear or other watch data. The buttons appear together with the FastMedia Wear app.
+- **How to get it:** search for FastMediaSorter Watch Face in Google Play on the watch, or open the Wear settings of the phone app, which offers to open the page on the watch. Then pick the face in the watch's face picker.
 
 ---
 
@@ -139,7 +139,7 @@ FastMedia Wear adapts dynamically to every smartwatch screen shape and density.
 
 ## 🔗 Phone & Watch Integration
 
-FastMedia Wear operates both as an independent standalone smartwatch app and as a companion to the [FastMediaSorter Main Phone App](../README.md).
+FastMedia Wear operates both as an independent standalone smartwatch app and as a companion to the [Fast Media Sorter & Organizer Main Phone App](../README.md).
 
 | Feature | Standalone Watch App | Paired with Phone App |
 |---------|----------------------|-----------------------|
@@ -153,7 +153,7 @@ FastMedia Wear operates both as an independent standalone smartwatch app and as 
 The table describes the full version. The Google Play version leaves out the health programs, the water flashlight and the distress signal.
 
 ### Learn More About the Phone & Tablet App
-- [Main Application Documentation](../README.md) - Complete overview of FastMediaSorter for Android phones, tablets, and TV.
+- [Main Application Documentation](../README.md) - Complete overview of Fast Media Sorter & Organizer for Android phones, tablets, and TV.
 - [First Launch & Device Profiles](../QUICK_START.md#first-launch-choose-your-device-profile-30-seconds-) - Pre-configure your phone for Photo Frame, In-Car Music, or Home Cinema.
 - [All Step-by-Step Scenario Guides](../howto/index.md) - 15+ guides for network shares, camera backups, and media organization.
 

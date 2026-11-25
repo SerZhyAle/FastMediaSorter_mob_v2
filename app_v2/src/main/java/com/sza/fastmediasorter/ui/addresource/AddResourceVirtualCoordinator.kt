@@ -16,8 +16,10 @@ import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.AddResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.MediaScannerFactory
+import com.sza.fastmediasorter.domain.usecase.ResolveScanFilterUseCase
 import com.sza.fastmediasorter.domain.usecase.ScanLocalFoldersUseCase
 import com.sza.fastmediasorter.util.VirtualPathUtils
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -31,6 +33,7 @@ import timber.log.Timber
 internal class AddResourceVirtualCoordinator(
     private val context: Context,
     private val scanLocalFoldersUseCase: ScanLocalFoldersUseCase,
+    private val resolveScanFilterUseCase: ResolveScanFilterUseCase,
     private val addResourceUseCase: AddResourceUseCase,
     private val mediaScannerFactory: MediaScannerFactory,
     private val resourceRepository: ResourceRepository,
@@ -113,13 +116,6 @@ internal class AddResourceVirtualCoordinator(
                 val supportedTypes = bridge.supportedMediaTypes()
                 val scanner = mediaScannerFactory.getScanner(ResourceType.LOCAL)
 
-                val fileCount = try {
-                    scanner.getFileCount(path, supportedTypes, sizeFilter = null, credentialsId = null, scanSubdirectories = true)
-                } catch (e: Exception) {
-                    Timber.e(e, "Error counting files in $path")
-                    0
-                }
-
                 val isWritable = try {
                     withTimeout(5000) { scanner.isWritable(path, credentialsId = null) }
                 } catch (e: TimeoutCancellationException) {
@@ -150,7 +146,7 @@ internal class AddResourceVirtualCoordinator(
                     type = ResourceType.LOCAL,
                     supportedMediaTypes = supportedTypes,
                     createdDate = System.currentTimeMillis(),
-                    fileCount = fileCount,
+                    fileCount = 0,
                     isDestination = false,
                     destinationOrder = null,
                     isWritable = isWritable,
@@ -165,9 +161,27 @@ internal class AddResourceVirtualCoordinator(
                     accessPin = accessPin?.ifBlank { null }
                 )
 
+                val filter = resolveScanFilterUseCase(resource, settings)
+                Timber.d("S4850: counting local folder with browse filters")
+                val fileCount = try {
+                    scanner.scanFolder(
+                        path = path,
+                        supportedTypes = filter.mediaTypes,
+                        sizeFilter = filter.sizeFilter,
+                        scanSubdirectories = resource.scanSubdirectories,
+                        showHiddenFiles = settings.showHiddenFiles || resource.showHiddenFiles
+                    ).size
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Timber.e(e, "Error counting files in $path")
+                    0
+                }
+                val countedResource = resource.copy(fileCount = fileCount)
+
                 bridge.mutate { state ->
                     state.copy(
-                        resourcesToAdd = state.resourcesToAdd + resource,
+                        resourcesToAdd = state.resourcesToAdd + countedResource,
                         // auto-select so the user doesn't have to tap twice
                         selectedPaths = state.selectedPaths + resource.path
                     )

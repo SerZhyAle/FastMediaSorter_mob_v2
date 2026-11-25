@@ -15,7 +15,7 @@ why: |
 
   A children's race, laps around the stadium, a plank that must last two minutes - the stopwatch measures up to four people at once, plays music while it runs, and writes the result into a file you can send to the coach.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition) - see [The seven editions of FastMediaSorter](page:flavors.overview-and-comparison)."
+  - "Fast Media Sorter & Organizer in any [edition](term:edition) - see [The seven editions of Fast Media Sorter & Organizer](page:flavors.overview-and-comparison)."
   - "**Calculator** and **Stopwatch** switched on in **Settings**, the **Management** tab, **Additional programs and scenarios** - both are off after installation. See [Built-in programs](page:programs.built-in-mini-apps)."
   - "For music during a run: some audio files on the phone."
 steps:
@@ -23,7 +23,7 @@ steps:
     id: open-calculator
     title: Open the calculator
     text: |
-      Open **Calculator** from the programs menu or the [programs panel](term:programs-panel) of the [resource list](term:resource-list), or put the **Calculator** [widget](term:widget) on your home screen - see [FastMediaSorter widgets for your home screen](page:launcher.home-screen-widgets). If the calculator is switched off, the widget says **Calculator is off** and offers **Open Settings**.
+      Open **Calculator** from the programs menu or the [programs panel](term:programs-panel) of the [resource list](term:resource-list), or put the **Calculator** [widget](term:widget) on your home screen - see [Fast Media Sorter & Organizer widgets for your home screen](page:launcher.home-screen-widgets). If the calculator is switched off, the widget says **Calculator is off** and offers **Open Settings**.
 
       From the text editor you can also select a sum written in a note, such as `12*7+5`, and send it to the calculator - see [Reading and editing text files](page:documents.text-code-editor).
     image_bookmark:
@@ -130,7 +130,7 @@ next_recipes:
     badge: Programs
     badge_type: docs
     description: A small turn-based puzzle for a pause.
-  - title: FastMediaSorter widgets for your home screen
+  - title: Fast Media Sorter & Organizer widgets for your home screen
     url: page:launcher.home-screen-widgets
     badge: Launcher
     badge_type: docs
@@ -139,4 +139,4 @@ next_recipes:
 
 <sub class="doc-stamp">26.10.07 01:10</sub>
 
-Two everyday [programs](term:program) come with FastMediaSorter: a calculator that shows the answer as you type and keeps a history, and a stopwatch for up to four people. This page shows how to open them, what each key and button does, and how to set them up.
+Two everyday [programs](term:program) come with Fast Media Sorter & Organizer: a calculator that shows the answer as you type and keeps a history, and a stopwatch for up to four people. This page shows how to open them, what each key and button does, and how to set them up.

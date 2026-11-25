@@ -4,12 +4,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.CompactChip
@@ -21,6 +23,8 @@ private val ATHLETE_H_PADDING = 14.dp
 private val ATHLETE_V_PADDING = 6.dp
 private val ROW_SPACING = 6.dp
 private val COLUMN_SPACING = 4.dp
+private val RESET_CHIP_H_PADDING = 8.dp
+private const val RESET_LABEL_MAX_LINES = 2
 
 /**
  * S3007 / S3015: Quick action buttons for resetting metrics and entering athlete mode. S3115 moved the
@@ -44,25 +48,13 @@ fun TouristActionsRow(
             horizontalArrangement = Arrangement.spacedBy(ROW_SPACING, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            CompactChip(
+            ResetChip(
                 onClick = onResetTrip,
-                label = {
-                    Text(
-                        text = stringResource(R.string.wear_tourist_action_reset_trip),
-                        style = MaterialTheme.typography.caption3,
-                    )
-                },
-                colors = ChipDefaults.secondaryChipColors(),
+                label = stringResource(R.string.wear_tourist_action_reset_trip),
             )
-            CompactChip(
+            ResetChip(
                 onClick = onResetSteps,
-                label = {
-                    Text(
-                        text = stringResource(R.string.wear_tourist_action_reset_steps),
-                        style = MaterialTheme.typography.caption3,
-                    )
-                },
-                colors = ChipDefaults.secondaryChipColors(),
+                label = stringResource(R.string.wear_tourist_action_reset_steps),
             )
         }
         Row(
@@ -111,4 +103,31 @@ fun TouristActionsRow(
             )
         }
     }
+}
+
+/**
+ * One of the two reset chips. Equal weights split the 153.6 dp content box of a 192 dp round watch in
+ * half: without them the first chip took its natural width and the second got the remainder, which
+ * wrapped "Reset Steps" onto a second line inside a one-line button. The label may still use two
+ * centred lines, so a long translation wraps in both chips alike instead of overflowing one.
+ */
+@Composable
+private fun RowScope.ResetChip(
+    onClick: () -> Unit,
+    label: String,
+) {
+    CompactChip(
+        onClick = onClick,
+        label = {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.caption3,
+                textAlign = TextAlign.Center,
+                maxLines = RESET_LABEL_MAX_LINES,
+            )
+        },
+        colors = ChipDefaults.secondaryChipColors(),
+        contentPadding = PaddingValues(horizontal = RESET_CHIP_H_PADDING),
+        modifier = Modifier.weight(1f),
+    )
 }

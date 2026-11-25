@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.delivery
 
 import android.content.Context
+import androidx.annotation.VisibleForTesting
 import com.sza.fastmediasorter.core.capability.InstallSourceProvider
 import com.sza.fastmediasorter.domain.delivery.ArtworkManifestSource
 import com.sza.fastmediasorter.domain.delivery.BundledDeliverableSets
@@ -9,6 +10,7 @@ import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.delivery.DeliverableSetDownloader
 import com.sza.fastmediasorter.domain.delivery.DownloadProgress
 import com.sza.fastmediasorter.domain.delivery.PayloadFile
+import com.sza.fastmediasorter.domain.streams.facets.StreamBankFetchRetry
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -21,6 +23,7 @@ import okhttp3.Request
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
+import java.io.InputStream
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -52,6 +55,10 @@ class RealDeliverableSetDownloader @Inject constructor(
         .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .build()
+
+    /** The wait of the publish-window retry; a test shortens it, because the flow runs on real time. */
+    @VisibleForTesting
+    internal var publishRetryDelayMillis: Long = StreamBankFetchRetry.RETRY_DELAY_MILLIS
 
     override fun download(set: DeliverableSet): Flow<DownloadProgress> {
         // S0971: a bundled set (OCR/DTS/translation `.so` shipped in the APK) has nothing to download -
@@ -116,9 +123,22 @@ class RealDeliverableSetDownloader @Inject constructor(
                 val totalEstimate = descriptor.files.sumOf { it.minSize }.coerceAtLeast(1L)
                 var completedBytes = 0L
 
+                // Only the artwork sets are republished in place, so only they have a publish window worth
+                // waiting out; a pinned native set answering 404 is a real answer and fails over at once.
+                val maxAttempts = if (set.isRepublishedInPlace()) StreamBankFetchRetry.MAX_ATTEMPTS else 1
+
                 for (file in descriptor.files) {
                     val staged = File(stagingDir, "${file.fileName}.tmp")
-                    val ok = downloadWithFailover(file, staged, completedBytes, totalEstimate)
+                    val fetch = FileFetch(
+                        dest = staged,
+                        baseBytes = completedBytes,
+                        totalEstimate = totalEstimate,
+                        maxAttempts = maxAttempts,
+                        // The verifier applies its size ceiling to a file with no pinned hash; stopping the
+                        // stream at the same line refuses earlier, never differently.
+                        capBytes = file.sha256.isBlank()
+                    )
+                    val ok = downloadWithFailover(file, fetch)
                     if (!ok) {
                         emit(DownloadProgress.Failed("all sources failed for ${file.fileName}"))
                         return@flow
@@ -161,60 +181,80 @@ class RealDeliverableSetDownloader @Inject constructor(
     /** Try each source URL in order; first one that fully downloads to [dest] wins. */
     private suspend fun FlowCollector<DownloadProgress>.downloadWithFailover(
         file: PayloadFile,
-        dest: File,
-        baseBytes: Long,
-        totalEstimate: Long
+        fetch: FileFetch
     ): Boolean {
         for (url in file.sources) {
             try {
-                if (downloadOne(url, dest, baseBytes, totalEstimate)) {
+                if (downloadOne(url, fetch)) {
                     return true
                 }
                 Timber.w("Delivery source returned no payload: %s", url)
             } catch (e: IOException) {
                 Timber.w(e, "Delivery source failed, trying next: %s", url)
             }
-            dest.delete()
+            fetch.dest.delete()
         }
         return false
     }
 
-    private suspend fun FlowCollector<DownloadProgress>.downloadOne(
-        url: String,
-        dest: File,
-        baseBytes: Long,
-        totalEstimate: Long
-    ): Boolean {
+    /**
+     * STREAM-BANK rule 11: publishing replaces an asset in place, so a 404 for a short window is expected
+     * and retried through [StreamBankFetchRetry], which is cancellable. Any other status is a real answer
+     * and goes to the next source at once.
+     */
+    private suspend fun FlowCollector<DownloadProgress>.downloadOne(url: String, fetch: FileFetch): Boolean {
         val request = Request.Builder().url(url).build()
-        downloadClient.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) {
-                Timber.w("Delivery source HTTP %d: %s", response.code, url)
-                return false
+        val outcome = StreamBankFetchRetry.fetch<Boolean>(
+            maxAttempts = fetch.maxAttempts,
+            delayMillis = publishRetryDelayMillis,
+            onRetry = { attempt -> Timber.i("Delivery source 404 on attempt %d, retrying: %s", attempt, url) }
+        ) {
+            downloadClient.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    val body = response.body
+                    if (body == null) {
+                        StreamBankFetchRetry.Attempt.Done(false)
+                    } else {
+                        writeBody(body.byteStream(), fetch)
+                        StreamBankFetchRetry.Attempt.Done(true)
+                    }
+                } else {
+                    Timber.w("Delivery source HTTP %d: %s", response.code, url)
+                    StreamBankFetchRetry.Attempt.HttpStatus(response.code)
+                }
             }
-            val body = response.body ?: return false
-            body.byteStream().use { input ->
-                dest.outputStream().use { output ->
-                    val buffer = ByteArray(BUFFER_SIZE)
-                    var fileBytes = 0L
-                    // Each emission becomes a notification update plus a WorkManager setProgress
-                    // (a Room write) in the worker; per-buffer emits made thousands of both per payload.
-                    var lastPercent = -1
-                    while (true) {
-                        val read = input.read(buffer)
-                        if (read < 0) break
-                        output.write(buffer, 0, read)
-                        fileBytes += read
-                        val cumulative = baseBytes + fileBytes
-                        val percent = ((cumulative * 100) / totalEstimate).toInt().coerceIn(0, 99)
-                        if (percent != lastPercent) {
-                            lastPercent = percent
-                            emit(DownloadProgress.Running(percent, cumulative, totalEstimate))
-                        }
+        }
+        return outcome is StreamBankFetchRetry.Attempt.Done && outcome.value
+    }
+
+    private suspend fun FlowCollector<DownloadProgress>.writeBody(source: InputStream, fetch: FileFetch) {
+        val ceiling = PayloadIntegrityVerifier.MAX_UNVERIFIED_RESOURCE_BYTES
+        source.use { input ->
+            fetch.dest.outputStream().use { output ->
+                val buffer = ByteArray(BUFFER_SIZE)
+                var fileBytes = 0L
+                // Each emission becomes a notification update plus a WorkManager setProgress
+                // (a Room write) in the worker; per-buffer emits made thousands of both per payload.
+                var lastPercent = -1
+                while (true) {
+                    val read = input.read(buffer)
+                    if (read < 0) break
+                    output.write(buffer, 0, read)
+                    fileBytes += read
+                    // Stop at the ceiling instead of filling filesDir first and refusing afterwards; the
+                    // failover loop treats this like any other dead source.
+                    if (fetch.capBytes && fileBytes > ceiling) {
+                        throw IOException("payload over the $ceiling byte ceiling")
+                    }
+                    val cumulative = fetch.baseBytes + fileBytes
+                    val percent = ((cumulative * 100) / fetch.totalEstimate).toInt().coerceIn(0, 99)
+                    if (percent != lastPercent) {
+                        lastPercent = percent
+                        emit(DownloadProgress.Running(percent, cumulative, fetch.totalEstimate))
                     }
                 }
             }
         }
-        return true
     }
 
     /**
@@ -251,6 +291,20 @@ class RealDeliverableSetDownloader @Inject constructor(
     // never gated. TRANSLATION is bundled (S0423), so it is never offered for download.
     private fun DeliverableSet.isNativeCodeSet(): Boolean =
         this == DeliverableSet.OCR_ENGINES || this == DeliverableSet.FFMPEG_DTS
+
+    // The two atlas sets are rebuilt and re-uploaded outside the build (S2652), which is what opens the
+    // publish window; every other set is pinned to a release asset that does not move.
+    private fun DeliverableSet.isRepublishedInPlace(): Boolean =
+        this == DeliverableSet.CHANNEL_PREVIEW_ATLAS || this == DeliverableSet.STREAM_LOGO_ATLAS
+
+    /** One file's fetch parameters: where it lands, how far the set has got, and how it may be retried and bounded. */
+    private class FileFetch(
+        val dest: File,
+        val baseBytes: Long,
+        val totalEstimate: Long,
+        val maxAttempts: Int,
+        val capBytes: Boolean
+    )
 
     private companion object {
         const val TIMEOUT_SECONDS = 15L

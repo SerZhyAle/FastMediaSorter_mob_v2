@@ -89,7 +89,6 @@
 
     <!-- Move Dialog -->
     <string name="moving_files">Moving..</string>
-    <string name="moved_n_files">Moved %1$d files.</string>
     <string name="moved_n_of_m_files">Moved %1$d of %2$d files.</string>
     <string name="move_failed">Could not move the files.</string>
 
@@ -261,7 +260,7 @@
     <string name="backup_account">Account: %s</string>
     <string name="google_sign_in_cancelled">Google sign-in was canceled</string>
     <string name="battery_optimization_hint_title">Battery Optimization Warning</string>
-    <string name="battery_optimization_hint_message">Battery optimization may prevent background audio playback. Disable battery optimization for FastMediaSorter in system settings for reliable background audio.</string>
+    <string name="battery_optimization_hint_message">Battery optimization may prevent background audio playback. Disable battery optimization for Fast Media Sorter &amp; Organizer in system settings for reliable background audio.</string>
     <string name="no_internet_connection">No internet connection. Try again later.</string>
     <string name="restart_required_title">Restart Required</string>
     <string name="restart_required_message">Settings have been imported. Please restart the app to apply changes.</string>
@@ -293,7 +292,6 @@
     <string name="confirm_delete_safe_mode">Confirm before delete</string>
     <string name="confirm_move_safe_mode">Confirm before move</string>
     <string name="confirm_delete_title">Delete Files?</string>
-    <string name="confirm_delete_message">Delete %1$d file(s)? This action cannot be undone.</string>
     <string name="confirm_move_title">Move Files?</string>
     <string name="confirm_move_message">Move %1$d file(s) to %2$s?</string>
 
@@ -490,9 +488,8 @@
 
     <!-- Language Change -->
     <string name="restart_app_title">Restart Application</string>
-    <string name="restart_app_message">To apply the new language (%1$s), the application needs to restart. Continue?</string>
     <string name="restart_app_cache_message">To apply the new cache size (%1$d MB), the application needs to restart. Continue?</string>
-    <string name="restart_app_compact_elements_message">To apply the new player controls size, the application needs to restart. Continue?</string>
+    <string name="restart_app_compact_elements_message">To apply the new size of interface elements, the application needs to restart. Continue?</string>
     <string name="restart">Restart</string>
 
     <!-- Error Dialog -->
@@ -987,7 +984,6 @@
     <string name="error_copy_failed">Could not copy the file.</string>
     <string name="error_file_exists_copy">File \"%1$s\" is already in \"%2$s\".\n\nTurn on \"Overwrite on copy\" in Settings -&gt; Copy &amp; Move if you want to replace it.</string>
     <string name="msg_move_success">Moved to %1$s.</string>
-    <string name="msg_move_success_count">Moved %1$d files to %2$s.</string>
     <string name="error_move_failed">Could not move the file.</string>
     <string name="error_file_exists_move">File \"%1$s\" is already in \"%2$s\".\n\nTurn on \"Overwrite on move\" in Settings -&gt; Copy &amp; Move if you want to replace it.</string>
     <string name="msg_delete_success">Deleted.</string>
@@ -1355,13 +1351,6 @@
     <string name="fragment_settings_video_tilVideoSizeMax_hint">Max (KB)</string>
     <string name="fragment_settings_video_tilVideoSizeMin_hint">Min (KB)</string>
     <string name="item_folder_tvFolderName_text">Folder Name</string>
-    <string name="item_resource_to_add_btnTypeAudio_text">A</string>
-    <string name="item_resource_to_add_btnTypeGif_text">G</string>
-    <string name="item_resource_to_add_btnTypeImage_text">I</string>
-    <string name="item_resource_to_add_btnTypePdf_text">P</string>
-    <string name="item_resource_to_add_btnTypeOffice_text">D</string>
-    <string name="item_resource_to_add_btnTypeText_text">T</string>
-    <string name="item_resource_to_add_btnTypeVideo_text">V</string>
     <string name="item_resource_tvAvailabilityIndicator_text">N/A</string>
     <string name="item_resource_tvWritableIndicator_text">🔒</string>
 
@@ -1569,7 +1558,7 @@
 
     <!-- Standalone Player File Operations -->
     <string name="confirm_delete_standalone">Delete \"%1$s\"?</string>
-    <string name="open_in_fms">Open in FastMediaSorter</string>
+    <string name="open_in_fms">Open in Fast Media Sorter &amp; Organizer</string>
     <string name="cd_add_to_favorites">Add to favorites</string>
     <string name="cd_remove_from_favorites">Remove from favorites</string>
 
@@ -1964,13 +1953,13 @@
     <string name="browse_transfer_notif_title_permission_required">Permission required</string>
     <string name="browse_transfer_notif_text_preparing">Preparing..</string>
     <string name="browse_transfer_notif_text_progress">%1$d%% - %2$s</string>
-    <string name="browse_transfer_notif_text_failed">Open FastMediaSorter for details</string>
-    <string name="browse_transfer_notif_text_auth_required">Open FastMediaSorter to sign in and continue</string>
-    <string name="browse_transfer_notif_text_permission_required">Open FastMediaSorter to grant permission and retry</string>
+    <string name="browse_transfer_notif_text_failed">Open Fast Media Sorter &amp; Organizer for details</string>
+    <string name="browse_transfer_notif_text_auth_required">Open Fast Media Sorter &amp; Organizer to sign in and continue</string>
+    <string name="browse_transfer_notif_text_permission_required">Open Fast Media Sorter &amp; Organizer to grant permission and retry</string>
     <string name="browse_transfer_notif_action_cancel">Cancel</string>
     <string name="midi_playback_failed">Couldn\'t play this MIDI file. Try another copy or skip to the next track.</string>
     <string name="tooltip_calculator_title">Calculator</string>
-    <string name="tooltip_calculator_message">Adds a basic calculator to the main menu and enables the calculator widget. The calculator stays inside FastMediaSorter.</string>
+    <string name="tooltip_calculator_message">Adds a basic calculator to the main menu and enables the calculator widget. The calculator stays inside Fast Media Sorter &amp; Organizer.</string>
 
     <!-- Device Profile Onboarding (S0327) -->
     <string name="profile_picker_title">Choose your device profile</string>
@@ -2081,7 +2070,7 @@
     <string name="cache_size_installed_toast">Cache set: %1$d MB</string>
     <string name="welcome_enable_all">Enable all</string>
     <string name="welcome_enable_all_content_description">Enable everything and finish setup</string>
-    <string name="default_player_choose_in_settings">In system settings, choose FastMediaSorter as the default app for this type.</string>
+    <string name="default_player_choose_in_settings">In system settings, choose Fast Media Sorter &amp; Organizer as the default app for this type.</string>
     <string name="s0413_audio_track_skipped">Skipped \"%1$s\" - this file cannot be played.</string>
     <string name="s0413_audio_queue_unplayable">Nothing here could be played.</string>
     <string name="settings_remote_sources_title">Remote resources (SMB/(S)FTP/Cloud)</string>
@@ -2099,8 +2088,8 @@
     <string name="settings_remote_source_cloud_help_message">Open files in cloud storage - Google Drive, OneDrive, and Dropbox. Connect an account to browse your cloud folders right inside the app.</string>
     <string name="settings_remote_source_disable_confirm_title">Hide these folders?</string>
     <string name="settings_remote_source_disable_confirm_message">The folders for this source will be hidden, not deleted. Your saved resources stay and reappear when you turn the source back on.</string>
-    <string name="screenshot_accessibility_service_description">Lets FastMediaSorter take screenshots with an edge gesture and save them, with no per-shot dialog. This covers screenshots only - screen video recording is separate and asks Android for permission at the start of every recording.</string>
-    <string name="screenshot_accessibility_permission_rationale">To take screenshots with the edge gesture, turn on the FastMediaSorter accessibility service:\n\n1. Tap Open settings, then enable FastMediaSorter in the accessibility list.\n2. If it shows Controlled by restricted setting or App was denied access: open this app in App info, tap the menu (3 dots), choose Allow restricted settings, confirm, then go back and enable it.\n\nIf you cannot enable it, tap Old method to use a version that asks for permission on every shot.</string>
+    <string name="screenshot_accessibility_service_description">Lets Fast Media Sorter &amp; Organizer take screenshots with an edge gesture and save them, with no per-shot dialog. This covers screenshots only - screen video recording is separate and asks Android for permission at the start of every recording.</string>
+    <string name="screenshot_accessibility_permission_rationale">To take screenshots with the edge gesture, turn on the Fast Media Sorter &amp; Organizer accessibility service:\n\n1. Tap Open settings, then enable Fast Media Sorter &amp; Organizer in the accessibility list.\n2. If it shows Controlled by restricted setting or App was denied access: open this app in App info, tap the menu (3 dots), choose Allow restricted settings, confirm, then go back and enable it.\n\nIf you cannot enable it, tap Old method to use a version that asks for permission on every shot.</string>
     <string name="screen_capture_rate_limited">Screenshot was too fast, try again</string>
     <string name="screenshot_gesture_permission_dialog_title">Enable screen gestures</string>
     <string name="screenshot_gesture_open_settings">Open settings</string>
@@ -2217,7 +2206,7 @@
     <string name="statistics_privacy_note">This data stays on your device. You send the summary to the author yourself, from your own email app.</string>
     <string name="statistics_send_to_author">Send to author</string>
     <string name="statistics_export">Export</string>
-    <string name="statistics_email_subject">FastMediaSorter statistics</string>
+    <string name="statistics_email_subject">Fast Media Sorter &amp; Organizer statistics</string>
     <string name="statistics_no_email_app">No app can send this - install a mail or sharing app and try again.</string>
     <string name="statistics_report_all_time">All-time totals</string>
     <string name="statistics_report_section_summary">Summary</string>
@@ -2228,7 +2217,7 @@
     <string name="statistics_report_tech_android">Android</string>
     <string name="statistics_report_unknown">unknown</string>
     <string name="error_dialog_report_to_author">Email crash report to author</string>
-    <string name="crash_report_email_subject">FastMediaSorter crash report</string>
+    <string name="crash_report_email_subject">Fast Media Sorter &amp; Organizer crash report</string>
     <string name="crash_report_email_body_intro">Please describe what you were doing when the problem occurred. Technical details and the app log are attached below.</string>
     <string name="crash_prompt_title">Send crash report?</string>
     <string name="crash_prompt_message">The app closed unexpectedly last time. Send a crash report with the app log to the author?</string>
@@ -2279,7 +2268,7 @@
     <string name="streams_pin_to_top">Pin to top</string>
     <string name="streams_remove">Remove</string>
     <string name="streams_add_url_hint">Stream URL (http, https, rtsp)</string>
-    <string name="streams_import_url_hint">Playlist URL (.m3u)</string>
+    <string name="streams_import_url_hint">Playlist URL (.m3u, .m3u8)</string>
     <string name="streams_title_hint">Title (optional)</string>
     <string name="streams_error_invalid_url">Enter a valid http, https or rtsp address.</string>
     <string name="streams_error_network">Could not load the list. Check the connection and try again.</string>
@@ -2341,7 +2330,7 @@
     <string name="app_launch_panel_action_move">Move</string>
     <string name="app_launch_panel_action_replace">Replace</string>
     <string name="app_launch_panel_action_remove">Remove</string>
-    <string name="app_launch_panel_own_app_label">FastMediaSorter</string>
+    <string name="app_launch_panel_own_app_label">Fast Media Sorter &amp; Organizer</string>
     <string name="app_picker_title">Choose an app</string>
     <string name="app_launch_panel_title">Quick launch</string>
     <string name="app_launch_panel_edit_action">Edit</string>
@@ -2376,8 +2365,8 @@
     <string name="app_launch_panel_add_chooser_title">Add to panel</string>
     <string name="app_launch_panel_path_external_app">Android app</string>
     <string name="app_launch_panel_path_os_part">Android OS settings</string>
-    <string name="app_launch_panel_path_app_feature">FastMediaSorter feature</string>
-    <string name="app_launch_panel_path_app_resource">FastMediaSorter resource</string>
+    <string name="app_launch_panel_path_app_feature">Fast Media Sorter &amp; Organizer feature</string>
+    <string name="app_launch_panel_path_app_resource">Fast Media Sorter &amp; Organizer resource</string>
     <string name="app_launch_panel_picker_feature_title">Choose a feature</string>
     <string name="app_launch_panel_picker_os_title">Choose Android OS setting</string>
     <string name="app_launch_panel_picker_resource_title">Choose a resource</string>
@@ -2466,7 +2455,7 @@
     <string name="screen_recording_card_title">Recording screen</string>
     <string name="screen_recording_stop">Stop recording</string>
     <string name="screen_recording_disclosure_title">Screen video recording</string>
-    <string name="screen_recording_disclosure_message">FastMediaSorter will record everything shown on your screen, including other apps, to a video file with microphone audio until you stop it. Recording continues in the background. Android asks you to choose this app or the entire screen at the start of every recording, and this step cannot be skipped.</string>
+    <string name="screen_recording_disclosure_message">Fast Media Sorter &amp; Organizer will record everything shown on your screen, including other apps, to a video file with microphone audio until you stop it. Recording continues in the background. Android asks you to choose this app or the entire screen at the start of every recording, and this step cannot be skipped.</string>
     <string name="screen_recording_disclosure_start">Start recording</string>
     <string name="screen_recording_saved">Screen recording saved: %1$s</string>
     <string name="screen_recording_error">Could not save the screen recording.</string>
@@ -2478,8 +2467,8 @@
     <string name="streams_remove_from_favorites">Remove from favorites</string>
     <string name="streams_country_flag">Country flag</string>
     <string name="perm_group_location">Location</string>
-    <string name="perm_title_location">Location for capture geotag</string>
-    <string name="perm_desc_location">Geotag your captures</string>
+    <string name="perm_title_location">Precise location</string>
+    <string name="perm_desc_location">Position and altitude for the Tourist dashboard</string>
     <string name="screenshot_gesture_action_launch_camera">Launch camera</string>
     <string name="screenshot_gesture_action_start_video_recording">Start video recording</string>
     <string name="screenshot_gesture_action_start_audio_recording">Start audio recording</string>
@@ -2525,7 +2514,6 @@
     <string name="sftp_share_export_action">Share</string>
     <string name="companion_import_title">Import access</string>
     <string name="companion_import_confirm_message">Add the SFTP resource \"%1$s\" on %2$s with %3$d folder(s)?</string>
-    <string name="companion_import_no_fingerprint_warning">This server has not been verified - connect only if you trust the sender.</string>
     <string name="companion_import_password_label">Password for this server</string>
     <string name="companion_import_action">Import</string>
     <string name="companion_import_password_required">Enter the password for this server.</string>
@@ -2549,7 +2537,7 @@
     <string name="edge_gesture_general_group_title">General gesture settings</string>
     <string name="edge_gesture_schema_content_description">Edge gesture map: tap a zone direction to assign an action</string>
     <string name="companion_qr_share_title">Scan to add the resource</string>
-    <string name="companion_qr_share_hint">In FastMediaSorter: Add resource -&gt; Scan QR</string>
+    <string name="companion_qr_share_hint">In Fast Media Sorter &amp; Organizer: Add resource -&gt; Scan QR</string>
     <string name="companion_qr_share_no_password_note">No password included - the recipient enters it when importing.</string>
     <string name="companion_qr_share_encode_failed">Could not generate the QR code.</string>
     <string name="sftp_share_show_qr_action">Show QR</string>
@@ -2569,7 +2557,7 @@
     <string name="gesture_action_explain_send_to_recipients">Captures the screen and sends it to your chosen recipients.</string>
     <string name="gesture_action_explain_share">Captures the screen and opens the system share sheet.</string>
     <string name="gesture_action_explain_crop_and_share">Captures the screen, lets you crop it, then shares the result.</string>
-    <string name="gesture_action_explain_open_app">Opens the app you pick for this gesture. With no app picked, opens FastMediaSorter.</string>
+    <string name="gesture_action_explain_open_app">Opens the app you pick for this gesture. With no app picked, opens Fast Media Sorter &amp; Organizer.</string>
     <string name="gesture_action_explain_open_panel">Opens the quick-access panel.</string>
     <string name="gesture_action_explain_launch_camera">Opens the in-app camera.</string>
     <string name="gesture_action_explain_take_photo">Takes a photo with the in-app camera and saves it.</string>
@@ -2648,7 +2636,7 @@
     <string name="launcher_home_mode_play">play</string>
     <string name="launcher_home_cell_with_mode">%1$s, %2$s</string>
     <string name="launcher_taskbar_start">Start</string>
-    <string name="launcher_menu_open_app">Open FastMediaSorter</string>
+    <string name="launcher_menu_open_app">Open Fast Media Sorter &amp; Organizer</string>
     <string name="launcher_menu_resources">My resources</string>
     <string name="launcher_menu_all_apps">All apps</string>
     <string name="launcher_menu_android_settings">Android settings</string>
@@ -2740,8 +2728,6 @@
     <string name="settings_streams_smart_buffering_summary">Bigger start-up cushion and quiet reconnects when the connection is shaky</string>
     <string name="streams_section_pinned">Pinned</string>
     <string name="streams_section_main">Channels</string>
-    <string name="streams_section_expand">Expand section</string>
-    <string name="streams_section_collapse">Collapse section</string>
     <string name="ext_channel_preview_atlas_title">Channel preview atlas</string>
     <string name="ext_channel_preview_atlas_desc">Shows a preview for video channels in grid mode before your first watch.</string>
     <string name="streams_atlas_prompt_message">Download channel previews so video channels show a picture before you play them?</string>
@@ -2877,7 +2863,7 @@
     <string name="launcher_tray_sim_signal_none">SIM %1$d, no service</string>
     <string name="launcher_now_playing_other_apps">Show other apps\' music</string>
     <string name="launcher_now_playing_access_title">Show music from other apps</string>
-    <string name="launcher_now_playing_access_message">FastMediaSorter reads the media session of whatever app is playing - the track title, the artist and the play state - so this gadget can show it and control playback. Android calls this permission notification access, but the app reads no notifications, only the media session. You grant it on an Android settings screen and can withdraw it there at any time.</string>
+    <string name="launcher_now_playing_access_message">Fast Media Sorter &amp; Organizer reads the media session of whatever app is playing - the track title, the artist and the play state - so this gadget can show it and control playback. Android calls this permission notification access, but the app reads no notifications, only the media session. You grant it on an Android settings screen and can withdraw it there at any time.</string>
     <string name="perm_title_notification_listener">Notification access</string>
     <string name="perm_desc_notification_listener">Lets the Now Playing gadget on the launcher desktop show and control what other apps are playing. The app reads media sessions only, never the content of notifications. Optional - granted on an Android settings screen.</string>
     <string name="perm_title_write_external_storage">Saving to device storage</string>
@@ -2901,7 +2887,7 @@
     <string name="perm_rationale_record_audio">The microphone records voice notes and the sound in a screen recording, and carries live sound when you start a broadcast. Without it recording and audio broadcasts cannot start.</string>
     <string name="perm_addendum_record_audio_screen_recording">A screen recording takes its sound from the microphone.</string>
     <string name="perm_addendum_post_notifications_screen_recording">The recording notification carries the stop control.</string>
-    <string name="perm_rationale_location">Location is used only to write coordinates into the photos and videos you shoot in the app. Nothing is sent anywhere.</string>
+    <string name="perm_rationale_location">Precise location is used to show position and altitude on the Tourist dashboard. Nothing is sent anywhere.</string>
     <string name="perm_addendum_post_notifications_scheduled_ops">Allow notifications for scheduled operations</string>
     <string name="perm_rationale_battery_optimization">Android may pause the app in the background, and a scheduled operation then runs late or not at all. Excluding the app from battery optimization keeps the schedule on time.</string>
     <string name="launcher_gadget_compass">Compass</string>
@@ -3374,7 +3360,7 @@
     <string name="wear_log_report_channel_name">Watch logs</string>
     <string name="wear_log_report_notification_title">Watch logs received</string>
     <string name="wear_log_report_notification_text">Tap to send them to the developer</string>
-    <string name="wear_log_report_email_subject">FastMediaSorter watch logs</string>
+    <string name="wear_log_report_email_subject">Fast Media Sorter &amp; Organizer watch logs</string>
     <string name="wear_log_report_email_body">The archive holds the logs of both the watch and the phone.</string>
     <string name="settings_unused_credentials_title">Unused credentials</string>
     <string name="settings_unused_credentials_button">Unused credentials - %1$d</string>
@@ -3510,9 +3496,9 @@
     <string name="wear_background_sent">Image is on the watch.</string>
     <string name="wear_background_failed">Couldn\'t send the image - pick another one or send again.</string>
     <string name="wear_background_watch_unreachable">Can\'t reach the watch - bring it closer and send again.</string>
-    <string name="perm_title_location_extended">Geotag, gadgets and network monitor</string>
-    <string name="perm_desc_location_extended">Geotag your captures, run the desktop gadgets and the network monitor</string>
-    <string name="perm_rationale_location_extended">Location is used to write coordinates into the photos and videos you shoot, to draw the compass, speed, altitude and map gadgets on the desktop, and to fill the GNSS and Wi-Fi sections of the network monitor. All of it stays on your device except the map gadgets: to draw the map they ask an online map service for a picture of your area, and ask Android for the name of the place. Nothing else is sent anywhere, and we have no servers of our own.</string>
+    <string name="perm_title_location_extended">Precise location</string>
+    <string name="perm_desc_location_extended">Desktop gadgets, network monitor sections and the Tourist dashboard</string>
+    <string name="perm_rationale_location_extended">Precise location is used to draw the compass, speed and altitude gadgets on the desktop, to fill the GNSS and Wi-Fi sections of the network monitor, and to show position and altitude on the Tourist dashboard. Nothing is sent anywhere, and we have no servers of our own.</string>
     <string name="wear_received_upload_notif_channel">Files from the watch</string>
     <string name="wear_received_upload_notif_progress">Saving %1$s to %2$s</string>
     <string name="wear_received_upload_notif_success">%1$s saved to %2$s</string>
@@ -3623,7 +3609,7 @@
     <string name="welcome_enable_all_explainer_step_permissions_title">Allow access</string>
     <string name="welcome_enable_all_explainer_step_permissions_body">Android shows its own request. Tap Allow. Some kinds of access open a separate settings page instead - turn the switch on there and press Back.</string>
     <string name="welcome_enable_all_explainer_step_default_app_title">Choose the app for your files</string>
-    <string name="welcome_enable_all_explainer_step_default_app_body">One of your own files opens so Android can ask which app should handle it. This is expected. Pick FastMediaSorter, tap Always, then press Back to return here.</string>
+    <string name="welcome_enable_all_explainer_step_default_app_body">One of your own files opens so Android can ask which app should handle it. This is expected. Pick Fast Media Sorter &amp; Organizer, tap Always, then press Back to return here.</string>
     <string name="welcome_enable_all_explainer_step_back_title">Back returns you here</string>
     <string name="welcome_enable_all_explainer_step_back_body">Every screen that is not ours is left with Back. Nothing is lost - setup continues where it stopped.</string>
     <string name="welcome_enable_all_explainer_continue">Got it, start</string>
@@ -3681,7 +3667,7 @@
     <string name="exif_orientation_rotate_270">Rotated 270° clockwise</string>
     <string name="exif_orientation_unknown">Unknown (%1$d)</string>
     <string name="storage_reach_limited_browse">Only photos, video and audio are available in this folder. To view documents, add the folder again and select it in the system folder window.</string>
-    <string name="reach_limited_nothing_readable">Documents cannot be read</string>
+    <string name="reach_limited_nothing_readable">Add a folder to see documents</string>
     <string name="storage_reach_limited_virtual">Documents and other files on this device are not visible to the app. To open them, add the folder you need through the system folder window.</string>
     <string name="storage_reach_limited_browse_reconnect">Only photos, video and audio are available in this folder. To view documents, open the three-dots menu on the folder row in the resource list and select Reconnect resource.</string>
     <string name="wear_settings_group_media_types">Media types</string>
@@ -3784,13 +3770,13 @@
     <string name="water_flashlight_title">Water flashlight</string>
     <string name="water_flashlight_locked_hint">Locked. Use the buttons</string>
     <string name="water_flashlight_settings_toggle_title">Water flashlight</string>
-    <string name="water_flashlight_settings_toggle_subtitle">Torch and screen at full brightness, locked against touch</string>
+    <string name="water_flashlight_settings_toggle_subtitle">Torch and screen at full brightness with touch lock</string>
     <string name="water_flashlight_help_title">Water flashlight</string>
-    <string name="water_flashlight_help_message">Lights the camera flash and the screen at once, then locks the screen: only the time and a reminder show, and only a hardware button closes it. Made for wet hands, where a touch screen presses itself. Leaving through a system gesture turns the light off as well. It does not replace the water-lock mode built into a watch or a phone - no app can reach that one.</string>
+    <string name="water_flashlight_help_message">The water flashlight lights the camera flash and screen and enables touch lock. Touch lock prevents accidental taps; it does not protect the device from water. Hold a volume button for 1.5 seconds or press volume buttons three times within 2 seconds to switch off the light. A system gesture can also close the screen.</string>
     <string name="widget_water_flashlight_label">Water flashlight</string>
-    <string name="widget_water_flashlight_description">Lights the flash and the screen and locks the screen - only a button closes it</string>
+    <string name="widget_water_flashlight_description">Flash and screen with touch lock; hold or triple-press a volume button to exit</string>
     <string name="tooltip_stopwatch_title">Stopwatch</string>
-    <string name="tooltip_stopwatch_message">Adds a stopwatch to the main menu. Measures one run or several in a row, for up to four participants at once, and keeps the result inside FastMediaSorter.</string>
+    <string name="tooltip_stopwatch_message">Adds a stopwatch to the main menu. Measures one run or several in a row, for up to four participants at once, and keeps the result inside Fast Media Sorter &amp; Organizer.</string>
     <string name="stopwatch_volume_label">Music volume</string>
     <string name="stopwatch_settings_title">Stopwatch settings</string>
     <string name="stopwatch_settings_participants">Participants</string>
@@ -3846,7 +3832,7 @@
     <string name="wear_listen_caption_idle">Hear what the watch microphone hears. The watch will ask you to confirm.</string>
     <string name="wear_listen_caption_waiting">Waiting for you to confirm on the watch..</string>
     <string name="wear_listen_caption_listening">Listening to the watch.</string>
-    <string name="wear_listen_refusal_not_asked">The watch could not ask you: turn its notifications on for FastMediaSorter.</string>
+    <string name="wear_listen_refusal_not_asked">The watch could not ask you: turn its notifications on for Fast Media Sorter &amp; Organizer.</string>
     <string name="wear_listen_refusal_declined">You declined the request on the watch.</string>
     <string name="wear_listen_refusal_expired">Nobody answered on the watch in time.</string>
     <string name="wear_listen_refusal_capture_failed">The watch could not open its microphone.</string>
@@ -4076,7 +4062,7 @@
     <string name="wear_system_info_channel_name">Watch system information</string>
     <string name="wear_system_info_notification_title">Watch report received</string>
     <string name="wear_system_info_notification_text">Tap to open or send the report</string>
-    <string name="wear_system_info_share_subject">FastMediaSorter watch system information</string>
+    <string name="wear_system_info_share_subject">Fast Media Sorter &amp; Organizer watch system information</string>
     <string name="wear_clipboard_channel_name">Watch clipboard</string>
     <string name="wear_clipboard_notification_title">Text from the watch</string>
     <string name="wear_clipboard_notification_text">It is on this phone\'s clipboard now</string>
@@ -4224,8 +4210,8 @@
     <string name="settings_sftp_server_apply_hint">Turn the server off and on again to apply the change</string>
     <string name="settings_sftp_server_show_qr">Show pairing code</string>
     <string name="settings_sftp_server_hide_qr">Hide pairing code</string>
-    <string name="settings_sftp_server_qr_description">Pairing code: scan it in FastMediaSorter on another device</string>
-    <string name="add_resource_sftp_pairing_invalid">This code is not a complete FastMediaSorter pairing code - show it again on the server phone and rescan</string>
+    <string name="settings_sftp_server_qr_description">Pairing code: scan it in Fast Media Sorter &amp; Organizer on another device</string>
+    <string name="add_resource_sftp_pairing_invalid">This code is not a complete Fast Media Sorter &amp; Organizer pairing code - show it again on the server phone and rescan</string>
     <string name="add_resource_sftp_pairing_filled">Connection details filled in from the pairing code - check them and save</string>
     <string name="add_resource_sftp_pairing_name">Device server %1$s</string>
     <string name="filedo_password_remember_leak">Anyone holding this phone unlocked can open, without typing it, every .fd-sec file this password fits.</string>
@@ -4336,8 +4322,8 @@
     <string name="wear_watchface_hint">There is a FastMediaSorter watch face for your watch.</string>
     <string name="wear_watchface_hint_action">Get it</string>
     <string name="wear_install_offer_title">A watch is connected</string>
-    <string name="wear_install_offer_message">%1$s is connected to this phone. Install FastMediaSorter on the watch to open your media right from the wrist, and get the FastMediaSorter watch face.</string>
-    <string name="wear_install_offer_message_face_only">FastMediaSorter is already on %1$s. Get the FastMediaSorter watch face too?</string>
+    <string name="wear_install_offer_message">%1$s is connected to this phone. Install Fast Media Sorter &amp; Organizer on the watch to open your media right from the wrist, and get the FastMediaSorter watch face.</string>
+    <string name="wear_install_offer_message_face_only">Fast Media Sorter &amp; Organizer is already on %1$s. Get the FastMediaSorter watch face too?</string>
     <string name="wear_install_offer_app">Install on watch</string>
     <string name="wear_install_offer_face">Watch face</string>
     <string name="wear_install_offer_app_no_watch">No watch connected - opening the watch app page here instead.</string>
@@ -4354,7 +4340,7 @@
     <string name="wear_stream_pins_push_no_watch">No watch within reach</string>
     <string name="wear_stream_pins_push_failed">The list did not reach the watch. Try again.</string>
     <string name="wear_stream_pins_picker_title">Pin a channel for the watch</string>
-    <string name="welcome_default_player_hint_side">Tap one of the buttons - a dialog will appear. Select FastMediaSorter and tap <b>Always</b>.</string>
+    <string name="welcome_default_player_hint_side">Tap one of the buttons - a dialog will appear. Select Fast Media Sorter &amp; Organizer and tap <b>Always</b>.</string>
     <string name="host_key_repin_warning_format">Nothing was loaded, to keep you safe. Update the fingerprint only if you trust this network. This will update the fingerprint on %1$d resource(s) sharing this address.</string>
     <string name="host_key_repin_confirm">Update fingerprint</string>
     <string name="host_key_repin_done">Fingerprint updated</string>
@@ -4680,4 +4666,108 @@
     <string name="launcher_app_category_accessibility">Accessibility</string>
     <string name="exchange_devices_menu_standard_settings">Standard settings</string>
     <string name="program_guard_disabled_toast">%1$s is turned off. Turn it on in Settings.</string>
+    <string name="screen_recording_notification_saving_title">Saving screen recording</string>
+    <string name="screen_recording_notification_saving_text">Recording stopped. Copying the video to its folder..</string>
+    <string name="quick_recorder_notification_saving">Saving the recording..</string>
+    <string name="tourist_tile_gyroscope">Gyroscope</string>
+    <string name="tourist_unit_degrees_per_second">°/s</string>
+    <string name="tourist_detail_gyroscope">Turning speed. Turn the phone and the shape turns with it</string>
+    <string name="tourist_detail_gyroscope_idle">Tap to see the phone turn in 3D</string>
+    <string name="launcher_app_category_rename_title">Rename category</string>
+    <string name="launcher_app_category_name_taken">A category with this name already exists.</string>
+    <string name="notes_title">Notes</string>
+    <string name="notes_new">New note</string>
+    <string name="notes_search_hint">Search notes</string>
+    <string name="notes_empty">No notes yet. Tap New note to write the first one.</string>
+    <string name="notes_delete">Delete</string>
+    <string name="notes_delete_title">Delete note?</string>
+    <string name="notes_delete_confirm">The note \"%1$s\" will be deleted from the device.</string>
+    <string name="notes_row_more">More actions for this note</string>
+    <string name="notes_error_folder">The notes folder is not available.</string>
+    <string name="notes_error_delete">The note could not be deleted.</string>
+    <string name="setting_enable_notes_desc">All your notes in one list with search; a new note is one tap away</string>
+    <string name="feedback_title">Send feedback</string>
+    <string name="setting_enable_feedback_desc">Text, a picture and a voice note in one form, sent through Send to.. and to your computer</string>
+    <string name="feedback_text_hint">What happened? What would you change?</string>
+    <string name="feedback_paste_image">Paste a picture from the clipboard</string>
+    <string name="feedback_pick_image">Pick an image or a screenshot</string>
+    <string name="feedback_take_photo">Take a photo with the camera</string>
+    <string name="feedback_record_voice">Record a voice note with the microphone</string>
+    <string name="feedback_stop_voice">Stop recording</string>
+    <string name="feedback_recording">Recording..</string>
+    <string name="feedback_attachments_label">Attached pictures and voice notes</string>
+    <string name="feedback_remove_attachment">Remove %1$s</string>
+    <string name="feedback_send">Send</string>
+    <string name="feedback_no_image_in_clipboard">The clipboard holds no picture</string>
+    <string name="feedback_voice_failed">The voice note could not be recorded</string>
+    <string name="feedback_empty">Write a few words or attach a picture or a voice note</string>
+    <string name="feedback_folder_label">Folder on the computer</string>
+    <string name="feedback_folder_none">None - Send to.. only</string>
+    <string name="feedback_folder_via_exchange">%1$s (exchange server)</string>
+    <string name="feedback_state_queued">Queued - goes to the folder as soon as the network is back</string>
+    <string name="feedback_state_waiting">Waiting for the folder on the computer: %1$s</string>
+    <string name="feedback_state_sent">In the folder - waiting for the computer</string>
+    <string name="feedback_state_processed">Became a task: %1$s</string>
+    <string name="feedback_state_failed">Refused by the computer: %1$s</string>
+    <string name="feedback_queued">Also queued for the folder on the computer</string>
+    <string name="feedback_stage_failed">The feedback could not be saved: %1$s</string>
+    <string name="notes_sync_now">Sync now</string>
+    <string name="notes_sync_status_syncing">Syncing..</string>
+    <string name="notes_sync_status_synced">Synced with %1$s</string>
+    <string name="notes_sync_status_failed">Notes could not be synced. They stay on this device.</string>
+    <string name="notes_sync_too_large">Too large to sync</string>
+    <string name="notes_sync_conflict">This note was changed on another device at the same time. Both versions are kept.</string>
+    <string name="notes_sync_limit_reached">This server keeps no more notes for this account. Delete some notes, or ask whoever runs the server.</string>
+    <string name="streams_error_playlist_hls_manifest">This address is an HLS manifest, not a playlist of streams.</string>
+    <string name="streams_category_hint">Category (optional)</string>
+    <string name="s4609_broadcast_stopped_text">Playback has stopped. Open Streams to see why.</string>
+    <string name="streams_filter_media_recent">Recent</string>
+    <string name="streams_media_filter_recent">Show recent streams only</string>
+    <string name="streams_pause">Pause</string>
+    <string name="streams_resume">Resume</string>
+    <string name="streams_paused">Paused</string>
+    <string name="streams_unavailable_refused_message">\"%1$s\" was refused by its server. Remove it from your list?</string>
+    <string name="streams_unavailable_certificate_message">\"%1$s\" uses a certificate this device does not trust. Remove it from your list?</string>
+    <string name="companion_import_no_access_path_error">This file has no address the app can connect to directly. Ask the sender to share it again with a local or forwarded address.</string>
+    <string name="companion_share_unpinned_error">Connect to this server once before sharing - the app needs its verified key.</string>
+    <string name="perm_rationale_access_coarse_location">Approximate location is used to write coordinates into the photos and videos you shoot in the app. Nothing is sent anywhere.</string>
+    <string name="perm_rationale_access_coarse_location_extended">Approximate location is used to write coordinates into the photos and videos you shoot in the app, and to place the map gadgets on the desktop: to draw a map they ask an online map service for a picture of your area and ask Android for the name of the place. Nothing else is sent anywhere, and we have no servers of our own.</string>
+    <string name="perm_desc_access_coarse_location_extended">Approximate coordinates for photos you shoot in the app and for the desktop map gadgets</string>
+    <string name="broadcast_import_secret_storage_failed">The broadcast key could not be stored securely on this device</string>
+    <string name="language_picker_no_results">No languages found</string>
+    <string name="tooltip_notes_title">Notes</string>
+    <string name="tooltip_notes_message">Adds Notes to the main menu. All your notes sit in one list with search, are kept on this device, and a new note is one tap away.</string>
+    <string name="tooltip_tourist_title">Tourist</string>
+    <string name="tooltip_tourist_message">Adds a navigation dashboard to the main menu: speed, altitude, compass, coordinates, steps, trip distance, sunrise and sunset. It shows your position on the map and shares your location.</string>
+    <string name="tooltip_network_monitor_title">Network Monitor</string>
+    <string name="tooltip_network_monitor_message">Adds a diagnostic program to the main menu. It shows the state of Wi-Fi, mobile network, Bluetooth, satellites and the internet, with the signal level and the network details, and keeps a history.</string>
+    <string name="tooltip_system_info_title">System information</string>
+    <string name="tooltip_system_info_message">Adds a system information screen to the programs panel and menu: hardware, system, battery, display and network. The full report can be copied or saved to Downloads.</string>
+    <string name="streams_error_no_network_refresh">No network. Connect to refresh channel status.</string>
+    <string name="stream_status_unconfirmed">Not confirmed online</string>
+    <string name="stream_info_outcome_unconfirmed">Not confirmed</string>
+    <string name="feedback_attach_logs">Attach the app\'s diagnostic logs</string>
+    <string name="feedback_no_logs">There are no logs to attach yet</string>
+    <string name="feedback_logs_failed">The log archive could not be built</string>
+    <string name="local_folder_guidance">Scan finds folders with media. Or choose a folder manually, then add the selected folders.</string>
+    <string name="folder_selection_virtual_all_added">All already added</string>
+    <string name="browse_empty_search_no_match">No files match “%1$s”</string>
+    <string name="browse_empty_search_no_match_hint">Check the spelling or clear the search.</string>
+    <string name="language_auto_detect">Auto-detect</string>
+    <string name="cd_switch_to_grid_view">Switch to grid view</string>
+    <string name="cd_switch_to_list_view">Switch to list view</string>
+    <string name="notes_row_select">Select</string>
+    <string name="notes_select_all">Select all</string>
+    <string name="notes_selected_count">Selected: %1$d</string>
+    <string name="notes_delete_selected">Delete selected</string>
+    <string name="notes_delete_selected_title">Delete notes?</string>
+    <string name="notes_delete_selected_confirm">The selected notes (%1$d) will be deleted from the device.</string>
+    <string name="notes_selection_cancel">Cancel selection</string>
+    <string name="notes_error_delete_selected">Some of the selected notes could not be deleted.</string>
+    <string name="s4874_broadcast_ended_text">The broadcast has ended.</string>
+    <string name="main_destination_legend">A coloured frame and → mark a Quick Sort destination: files you sort go there.</string>
+    <string name="main_first_step_hint_text">Add a folder to start: pick a device folder, a network share or a cloud folder with your files.</string>
+    <string name="main_first_step_hint_action">Add folder</string>
+    <string name="share_to_none_enabled">No Send to.. target is turned on for this kind of item. Turn one on in Settings - %1$s - %2$s</string>
+    <string name="streams_added_shown_in_own">Station added to Own</string>
 </resources>

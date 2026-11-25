@@ -111,6 +111,24 @@ class LauncherAllAppsGestureManagerTest {
         assertEquals(0, harness.doubleTaps)
     }
 
+    @Test
+    fun `tap followed at once by a page swipe does not dispatch the double tap callback`() {
+        val harness = GestureHarness()
+
+        harness.tapThenSwipe()
+
+        assertEquals(0, harness.doubleTaps)
+    }
+
+    @Test
+    fun `second touch held past the long press timeout does not dispatch the double tap callback`() {
+        val harness = GestureHarness()
+
+        harness.tapThenHold()
+
+        assertEquals(0, harness.doubleTaps)
+    }
+
     private inner class GestureHarness(
         canScrollDown: Boolean = false,
         canScrollUp: Boolean = false,
@@ -166,12 +184,30 @@ class LauncherAllAppsGestureManagerTest {
             manager.onTouchEvent(event(MotionEvent.ACTION_UP, 150L, 100f, 100f))
         }
 
+        fun tapThenSwipe() {
+            manager.onTouchEvent(event(MotionEvent.ACTION_DOWN, 0L, 100f, 100f))
+            manager.onTouchEvent(event(MotionEvent.ACTION_UP, 50L, 100f, 100f))
+            manager.onTouchEvent(event(MotionEvent.ACTION_DOWN, 100L, 100f, 100f))
+            manager.onTouchEvent(event(MotionEvent.ACTION_MOVE, 150L, 200f, 100f))
+            manager.onTouchEvent(event(MotionEvent.ACTION_UP, 200L, 300f, 100f))
+        }
+
+        fun tapThenHold() {
+            manager.onTouchEvent(event(MotionEvent.ACTION_DOWN, 0L, 100f, 100f))
+            manager.onTouchEvent(event(MotionEvent.ACTION_UP, 50L, 100f, 100f))
+            manager.onTouchEvent(event(MotionEvent.ACTION_DOWN, 100L, 100f, 100f))
+            manager.onTouchEvent(event(MotionEvent.ACTION_UP, 100L + HOLD_DURATION_MS, 100f, 100f))
+        }
+
         private fun event(action: Int, eventTime: Long, x: Float, y: Float): MotionEvent =
             MotionEvent.obtain(0L, eventTime, action, x, y, 0)
     }
 
     private companion object {
         const val FLING_DURATION_MS = 100L
+
+        /** Past the platform long-press timeout (500 ms), so the second touch is a press, not a tap. */
+        const val HOLD_DURATION_MS = 700L
 
         /** Large enough to contain every in-viewport coordinate the tests send. */
         const val VIEWPORT_SIZE = 1000

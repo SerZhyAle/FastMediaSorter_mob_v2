@@ -17,11 +17,13 @@ lang: pt
 
 ## Perguntas Gerais
 
-### O que é o FastMediaSorter?
-FastMediaSorter combina reprodução e gestão de ficheiros locais, de rede e nuvem. Launcher, transmissões e relógio dependem da edição. O acesso requer permissões; substituir o ecrã inicial exige escolha explícita no Android.
+<a id="o-que-é-o-fastmediasorter"></a>
+
+### O que é o Fast Media Sorter & Organizer?
+Fast Media Sorter & Organizer combina reprodução e gestão de ficheiros locais, de rede e nuvem. Launcher, transmissões e relógio dependem da edição. O acesso requer permissões; substituir o ecrã inicial exige escolha explícita no Android.
 
 ### É gratuito?
-Sim! O FastMediaSorter v2 é totalmente gratuito e de código aberto.
+Sim! O Fast Media Sorter & Organizer é totalmente gratuito e de código aberto.
 
 ### De qual versão do Android eu preciso?
 Abaixo estão os mínimos do código atual. VR/XR imersivo também exige headset/runtime compatível; **noLegal não é limitada a headsets**. Uma variante no código não garante APK publicado.
@@ -39,10 +41,10 @@ Abaixo estão os mínimos do código atual. VR/XR imersivo também exige headset
 Ficheiros locais não precisam de internet. SMB/SFTP/FTP na LAN precisam de rede acessível, não internet pública. Nuvem e transmissões da internet exigem internet; disponibilidade conforme edição.
 
 ### O app tem widgets?
-Sim! O FastMediaSorter v2 traz uma variedade de widgets de tela inicial - encontre-os tocando e segurando na tela inicial → Widgets → FastMediaSorter. Eles incluem atalhos de recursos, iniciadores de slideshow e muito mais.
+Sim! O Fast Media Sorter & Organizer traz uma variedade de widgets de tela inicial - encontre-os tocando e segurando na tela inicial → Widgets → Fast Media Sorter & Organizer. Eles incluem atalhos de recursos, iniciadores de slideshow e muito mais.
 
 ### O app pode substituir minha tela inicial?
-Em **Standard/noLegal**: **Definições → Geral → Janela de arranque principal → Ecrã principal do dispositivo**, depois escolher FastMediaSorter como Home Android. O **Área de trabalho como janela principal** não substitui o launcher do sistema.
+Em **Standard/noLegal**: **Definições → Geral → Janela de arranque principal → Ecrã principal do dispositivo**, depois escolher Fast Media Sorter & Organizer como Home Android. O **Área de trabalho como janela principal** não substitui o launcher do sistema.
 
 [Matriz de funções (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 
@@ -293,7 +295,9 @@ Standard, noLegal, Legacy, VR, XR e FOSS suportam áudio persistente em segundo 
 
 ## Streams de Internet
 
-### O FastMediaSorter toca rádio pela internet?
+<a id="o-fastmediasorter-toca-rádio-pela-internet"></a>
+
+### O Fast Media Sorter & Organizer toca rádio pela internet?
 **Transmissões** suporta rádio HTTP(S)/ICY, HLS/DASH e RTSP conforme fonte/codec. Disponível em **Standard, noLegal, Legacy, VR, XR**, não **Lite, Photos, FOSS**. URL não supera incompatibilidades ou DRM.
 
 [Matriz de funções (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
@@ -305,7 +309,7 @@ Toque em **Streams** na lista suspensa da janela principal (visível quando o St
 Na tela Streams, toque em **⋮** no final da barra de ferramentas, escolha **Adicionar stream** e cole a URL da estação. Toque em Salvar. A estação aparece na lista imediatamente.
 
 ### Posso importar uma playlist?
-Sim - toque em **⋮ > Importar de URL** e digite um endereço `.m3u` remoto. O mesmo menu tem **Atualizar catálogo do FastMediaSorter** para a lista selecionada (com marcadores de tópico e idioma), também disponível em **Configurações > Extensões** ou na tela de boas-vindas inicial.
+Sim - toque em **⋮ > Importar de URL** e digite um endereço `.m3u` remoto. O mesmo menu tem **Atualizar catálogo do Fast Media Sorter & Organizer** para a lista selecionada (com marcadores de tópico e idioma), também disponível em **Configurações > Extensões** ou na tela de boas-vindas inicial.
 
 ### Um stream não está reproduzindo - o que faço?
 Se um stream falhar, uma caixa aparece com as opções **Tentar novamente**, **Remover** e **Cancelar**. Redirecionamentos 301 entre protocolos são tratados automaticamente. Se o host estiver inativo ou muito lento, a importação do catálogo esgota o tempo rapidamente em vez de travar.
@@ -323,7 +327,7 @@ Sim, para streams de vídeo - toque em **Transmitir** no player e escolha um Chr
 
 ## Wear OS
 
-### O FastMediaSorter funciona em smartwatches com Wear OS?
+### O Fast Media Sorter & Organizer funciona em smartwatches com Wear OS? {#o-fastmediasorter-funciona-em-smartwatches-com-wear-os}
 A **aplicação Wear OS** separada exige API 28 mínimo; APK no relógio. Ligação pelo telefone: **Standard/noLegal**, identificadores/assinaturas compatíveis. O **mostrador WFF v4** separado exige Wear OS 6 / API 36.
 
 [Matriz de funções (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)

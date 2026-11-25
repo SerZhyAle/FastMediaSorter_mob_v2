@@ -12,6 +12,7 @@ import androidx.media3.datasource.HttpDataSource
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.domain.player.BroadcastPasswordRequiredException
 import com.sza.fastmediasorter.domain.player.BroadcastPlaybackPairs
+import timber.log.Timber
 import java.io.OutputStream
 
 /**
@@ -63,6 +64,7 @@ private class RadioHttpDataSource(
 ) : DataSource by delegate {
 
     override fun open(dataSpec: DataSpec): Long {
+        Timber.d("S4605: radio open, response headers forwarded to the player")
         val uri = dataSpec.uri
         val userInfo = uri.userInfo
         val host = uri.host
@@ -93,6 +95,10 @@ private class RadioHttpDataSource(
             reopenWithBroadcastPair(effectiveSpec, e)
         }
     }
+
+    // Kotlin `by` delegation skips Java default methods, so without this the player sees no response headers:
+    // no Content-Type hint for the extractor order and no icy-metaint to strip in-band blocks a server sends anyway.
+    override fun getResponseHeaders(): Map<String, List<String>> = delegate.responseHeaders
 
     /**
      * S4258, LIVE-BROADCAST item M: a protected broadcast answers 401 with its challenge, answered once with the

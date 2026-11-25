@@ -196,7 +196,7 @@
         },
         "send-link": {
           "summary": "Sends the link through any app you choose.",
-          "details": "Opens the system list of apps and contacts. The link opens the broadcast in FastMediaSorter on the other device; where the app is not installed, it opens a page on the site instead."
+          "details": "Opens the system list of apps and contacts. The link opens the broadcast in Fast Media Sorter & Organizer on the other device; where the app is not installed, it opens a page on the site instead."
         },
         "guests": {
           "summary": "Gives the live broadcast to another account of your exchange server.",
@@ -360,7 +360,7 @@
         },
         "send-link": {
           "summary": "Отправляет ссылку через любое выбранное приложение.",
-          "details": "Открывает системный список приложений и контактов. Ссылка открывает вещание в FastMediaSorter на другом устройстве; если приложения там нет, откроется страница на сайте."
+          "details": "Открывает системный список приложений и контактов. Ссылка открывает вещание в Fast Media Sorter & Organizer на другом устройстве; если приложения там нет, откроется страница на сайте."
         },
         "guests": {
           "summary": "Выдаёт живое вещание другому аккаунту вашего сервера обмена.",
@@ -524,7 +524,7 @@
         },
         "send-link": {
           "summary": "Надсилає посилання через будь-який вибраний застосунок.",
-          "details": "Відкриває системний список застосунків і контактів. Посилання відкриває мовлення у FastMediaSorter на іншому пристрої; якщо застосунку там немає, відкриється сторінка на сайті."
+          "details": "Відкриває системний список застосунків і контактів. Посилання відкриває мовлення у Fast Media Sorter & Organizer на іншому пристрої; якщо застосунку там немає, відкриється сторінка на сайті."
         },
         "guests": {
           "summary": "Надає живе мовлення іншому обліковому запису вашого сервера обміну.",

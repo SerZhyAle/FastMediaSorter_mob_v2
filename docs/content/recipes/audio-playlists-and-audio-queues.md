@@ -15,7 +15,7 @@ why: |
 
   There is no separate playlist to build. The [queue](term:queue) is simply the audio files of the folder you opened, in the order the folder is sorted. To change what plays, open a different folder or sort this one differently.
 ingredients:
-  - "FastMediaSorter in the Standard, noLegal, Lite, Legacy, VR or FOSS [edition](term:edition). The Photos edition does not play audio."
+  - "Fast Media Sorter & Organizer in the Standard, noLegal, Lite, Legacy, VR or FOSS [edition](term:edition). The Photos edition does not play audio."
   - "Listening in the background, the notification controls and the Quick Settings tile: Standard, noLegal, Legacy, VR and FOSS. In the Lite edition the music stops when you leave the player."
   - "A folder with a few tracks, opened in the [audio player](term:audio-player) as described in [Playing and organizing music files](page:audio.playing-and-organizing-music)."
 steps:
@@ -90,7 +90,7 @@ steps:
     id: interruptions
     title: Calls and other apps
     text: |
-      When a call comes in or another app starts playing sound, FastMediaSorter pauses the music at once. It does not start again by itself when the call ends - press play when you are ready. If another music app takes over for good, the player stops.
+      When a call comes in or another app starts playing sound, Fast Media Sorter & Organizer pauses the music at once. It does not start again by itself when the call ends - press play when you are ready. If another music app takes over for good, the player stops.
   - number: 6
     id: watch
     title: On a Wear OS watch

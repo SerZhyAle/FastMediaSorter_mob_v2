@@ -984,6 +984,21 @@
     "ru": "Добавляет панель «Турист» в меню программ и на поверхности лаунчера, чтобы панель навигации и телеметрии открывалась без захода в настройки. По умолчанию выключено.",
     "uk": "Додає панель «Турист» до меню програм і поверхонь лаунчера, щоб панель навігації та телеметрії відкривалася без заходу в налаштування. Типово вимкнено."
   },
+  "rowEnableNotes": {
+    "en": "Adds the Notes program to the app's program menus, the quick-access panel, the launcher and the app-icon shortcuts. Notes lists every note with search, creates a new note in one tap and opens it in the text editor. It is off by default.",
+    "ru": "Добавляет программу «Заметки» в меню программ, панель быстрого доступа, лаунчер и ярлыки значка приложения. «Заметки» показывают все заметки с поиском, создают новую заметку одним нажатием и открывают её в текстовом редакторе. По умолчанию выключено.",
+    "uk": "Додає програму «Нотатки» до меню програм, панелі швидкого доступу, лаунчера та ярликів значка застосунку. «Нотатки» показують усі нотатки з пошуком, створюють нову нотатку одним дотиком і відкривають її в текстовому редакторі. Типово вимкнено."
+  },
+  "rowEnableFeedback": {
+    "en": "Adds the Send feedback program to the app's program menus, the quick-access panel, the launcher and the app-icon shortcuts. One form takes text, pictures from the clipboard, the gallery or the camera and a voice note, and sends them through Send to.. and, when a folder on the computer is chosen, into that folder as a task for the computer. It is off by default.",
+    "ru": "Добавляет программу «Отправить отзыв» в меню программ, панель быстрого доступа, лаунчер и ярлыки значка приложения. Одна форма принимает текст, картинки из буфера обмена, галереи или камеры и голосовую заметку и отправляет их через «Отправить в..», а если выбрана папка на компьютере - ещё и в эту папку как задание для компьютера. По умолчанию выключено.",
+    "uk": "Додає програму «Надіслати відгук» до меню програм, панелі швидкого доступу, лаунчера та ярликів значка застосунку. Одна форма приймає текст, зображення з буфера обміну, галереї чи камери та голосову нотатку й надсилає їх через «Надіслати до..», а якщо вибрано теку на комп'ютері - ще й до цієї теки як завдання для комп'ютера. Типово вимкнено."
+  },
+  "feedbackFolderSpinner": {
+    "en": "The folder on the computer that receives each feedback as a task packet, written through the folder access of the exchange server or any writable network folder. None sends the feedback through Send to.. only. The line under it shows what became of the last feedback sent there.",
+    "ru": "Папка на компьютере, в которую каждый отзыв уходит пакетом задания - через доступ к папкам сервера обмена или в любую сетевую папку с правом записи. «Нет» отправляет отзыв только через «Отправить в..». Строка под выбором показывает, что стало с последним отзывом, отправленным туда.",
+    "uk": "Тека на комп'ютері, до якої кожен відгук іде пакетом завдання - через доступ до тек сервера обміну або до будь-якої мережевої теки з правом запису. «Немає» надсилає відгук лише через «Надіслати до..». Рядок під вибором показує, що сталося з останнім відгуком, надісланим туди."
+  },
   "rowEnableThumbnailPreload": {
     "en": "Preloads thumbnails for files ahead of scrolling so the grid loads faster.",
     "ru": "Предварительно загружает миниатюры файлов при прокрутке, чтобы сетка открывалась быстрее.",
@@ -1030,9 +1045,9 @@
     "uk": "Задає дію, яка виконується свайпом вниз у зоні жесту біля лівого краю (нижня смуга)."
   },
   "rowGestureLeftBottomDownTarget": {
-    "en": "Chooses the app or web address opened by swiping down in the left edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter.",
-    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вниз в зоне жеста у левого края (нижняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает FastMediaSorter.",
-    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вниз у зоні жесту біля лівого краю (нижня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває FastMediaSorter."
+    "en": "Chooses the app or web address opened by swiping down in the left edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer.",
+    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вниз в зоне жеста у левого края (нижняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает Fast Media Sorter & Organizer.",
+    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вниз у зоні жесту біля лівого краю (нижня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває Fast Media Sorter & Organizer."
   },
   "rowGestureLeftBottomRight": {
     "en": "Assigns the action triggered by swiping right from the left edge's lower gesture zone.",
@@ -1040,9 +1055,9 @@
     "uk": "Задає дію, яка виконується свайпом праворуч у зоні жесту біля лівого краю (нижня смуга)."
   },
   "rowGestureLeftBottomRightTarget": {
-    "en": "Chooses the app or web address opened by swiping right in the left edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter.",
-    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вправо в зоне жеста у левого края (нижняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает FastMediaSorter.",
-    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вправо у зоні жесту біля лівого краю (нижня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває FastMediaSorter."
+    "en": "Chooses the app or web address opened by swiping right in the left edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer.",
+    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вправо в зоне жеста у левого края (нижняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает Fast Media Sorter & Organizer.",
+    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вправо у зоні жесту біля лівого краю (нижня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває Fast Media Sorter & Organizer."
   },
   "rowGestureLeftBottomUp": {
     "en": "Assigns the action triggered by swiping up from the left edge's lower gesture zone.",
@@ -1050,9 +1065,9 @@
     "uk": "Задає дію, яка виконується свайпом вгору у зоні жесту біля лівого краю (нижня смуга)."
   },
   "rowGestureLeftBottomUpTarget": {
-    "en": "Chooses the app or web address opened by swiping up in the left edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter.",
-    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вверх в зоне жеста у левого края (нижняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает FastMediaSorter.",
-    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вгору у зоні жесту біля лівого краю (нижня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває FastMediaSorter."
+    "en": "Chooses the app or web address opened by swiping up in the left edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer.",
+    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вверх в зоне жеста у левого края (нижняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает Fast Media Sorter & Organizer.",
+    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вгору у зоні жесту біля лівого краю (нижня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває Fast Media Sorter & Organizer."
   },
   "rowGestureLeftTopDown": {
     "en": "Assigns the action triggered by swiping down from the left edge's upper gesture zone.",
@@ -1060,9 +1075,9 @@
     "uk": "Задає дію, яка виконується свайпом вниз у зоні жесту біля лівого краю (верхня смуга)."
   },
   "rowGestureLeftTopDownTarget": {
-    "en": "Chooses the app or web address opened by swiping down in the left edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter.",
-    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вниз в зоне жеста у левого края (верхняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает FastMediaSorter.",
-    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вниз у зоні жесту біля лівого краю (верхня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває FastMediaSorter."
+    "en": "Chooses the app or web address opened by swiping down in the left edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer.",
+    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вниз в зоне жеста у левого края (верхняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает Fast Media Sorter & Organizer.",
+    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вниз у зоні жесту біля лівого краю (верхня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває Fast Media Sorter & Organizer."
   },
   "rowGestureLeftTopRight": {
     "en": "Assigns the action triggered by swiping right from the left edge's upper gesture zone.",
@@ -1070,9 +1085,9 @@
     "uk": "Задає дію, яка виконується свайпом праворуч у зоні жесту біля лівого краю (верхня смуга)."
   },
   "rowGestureLeftTopRightTarget": {
-    "en": "Chooses the app or web address opened by swiping right in the left edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter.",
-    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вправо в зоне жеста у левого края (верхняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает FastMediaSorter.",
-    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вправо у зоні жесту біля лівого краю (верхня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває FastMediaSorter."
+    "en": "Chooses the app or web address opened by swiping right in the left edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer.",
+    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вправо в зоне жеста у левого края (верхняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает Fast Media Sorter & Organizer.",
+    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вправо у зоні жесту біля лівого краю (верхня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває Fast Media Sorter & Organizer."
   },
   "rowGestureLeftTopUp": {
     "en": "Assigns the action triggered by swiping up from the left edge's upper gesture zone.",
@@ -1080,9 +1095,9 @@
     "uk": "Задає дію, яка виконується свайпом вгору у зоні жесту біля лівого краю (верхня смуга)."
   },
   "rowGestureLeftTopUpTarget": {
-    "en": "Chooses the app or web address opened by swiping up in the left edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter.",
-    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вверх в зоне жеста у левого края (верхняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает FastMediaSorter.",
-    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вгору у зоні жесту біля лівого краю (верхня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває FastMediaSorter."
+    "en": "Chooses the app or web address opened by swiping up in the left edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer.",
+    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вверх в зоне жеста у левого края (верхняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает Fast Media Sorter & Organizer.",
+    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вгору у зоні жесту біля лівого краю (верхня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває Fast Media Sorter & Organizer."
   },
   "rowGestureOverlayEnabled": {
     "en": "Enables the left-edge gesture overlay, allowing swipe shortcuts to trigger file operations.",
@@ -1095,9 +1110,9 @@
     "uk": "Задає дію, яка виконується свайпом вниз у зоні жесту біля правого краю (нижня смуга)."
   },
   "rowGestureRightBottomDownTarget": {
-    "en": "Chooses the app or web address opened by swiping down in the right edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter.",
-    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вниз в зоне жеста у правого края (нижняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает FastMediaSorter.",
-    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вниз у зоні жесту біля правого краю (нижня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває FastMediaSorter."
+    "en": "Chooses the app or web address opened by swiping down in the right edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer.",
+    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вниз в зоне жеста у правого края (нижняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает Fast Media Sorter & Organizer.",
+    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вниз у зоні жесту біля правого краю (нижня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває Fast Media Sorter & Organizer."
   },
   "rowGestureRightBottomRight": {
     "en": "Assigns the action triggered by swiping right from the right edge's lower gesture zone.",
@@ -1105,9 +1120,9 @@
     "uk": "Задає дію, яка виконується свайпом праворуч у зоні жесту біля правого краю (нижня смуга)."
   },
   "rowGestureRightBottomRightTarget": {
-    "en": "Chooses the app or web address opened by swiping right in the right edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter.",
-    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вправо в зоне жеста у правого края (нижняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает FastMediaSorter.",
-    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вправо у зоні жесту біля правого краю (нижня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває FastMediaSorter."
+    "en": "Chooses the app or web address opened by swiping right in the right edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer.",
+    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вправо в зоне жеста у правого края (нижняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает Fast Media Sorter & Organizer.",
+    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вправо у зоні жесту біля правого краю (нижня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває Fast Media Sorter & Organizer."
   },
   "rowGestureRightBottomUp": {
     "en": "Assigns the action triggered by swiping up from the right edge's lower gesture zone.",
@@ -1115,9 +1130,9 @@
     "uk": "Задає дію, яка виконується свайпом вгору у зоні жесту біля правого краю (нижня смуга)."
   },
   "rowGestureRightBottomUpTarget": {
-    "en": "Chooses the app or web address opened by swiping up in the right edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter.",
-    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вверх в зоне жеста у правого края (нижняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает FastMediaSorter.",
-    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вгору у зоні жесту біля правого краю (нижня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває FastMediaSorter."
+    "en": "Chooses the app or web address opened by swiping up in the right edge's lower gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer.",
+    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вверх в зоне жеста у правого края (нижняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает Fast Media Sorter & Organizer.",
+    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вгору у зоні жесту біля правого краю (нижня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває Fast Media Sorter & Organizer."
   },
   "rowGestureRightTopDown": {
     "en": "Assigns the action triggered by swiping down from the right edge's upper gesture zone.",
@@ -1125,9 +1140,9 @@
     "uk": "Задає дію, яка виконується свайпом вниз у зоні жесту біля правого краю (верхня смуга)."
   },
   "rowGestureRightTopDownTarget": {
-    "en": "Chooses the app or web address opened by swiping down in the right edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter.",
-    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вниз в зоне жеста у правого края (верхняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает FastMediaSorter.",
-    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вниз у зоні жесту біля правого краю (верхня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває FastMediaSorter."
+    "en": "Chooses the app or web address opened by swiping down in the right edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer.",
+    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вниз в зоне жеста у правого края (верхняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает Fast Media Sorter & Organizer.",
+    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вниз у зоні жесту біля правого краю (верхня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває Fast Media Sorter & Organizer."
   },
   "rowGestureRightTopRight": {
     "en": "Assigns the action triggered by swiping right from the right edge's upper gesture zone.",
@@ -1135,9 +1150,9 @@
     "uk": "Задає дію, яка виконується свайпом праворуч у зоні жесту біля правого краю (верхня смуга)."
   },
   "rowGestureRightTopRightTarget": {
-    "en": "Chooses the app or web address opened by swiping right in the right edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter.",
-    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вправо в зоне жеста у правого края (верхняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает FastMediaSorter.",
-    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вправо у зоні жесту біля правого краю (верхня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває FastMediaSorter."
+    "en": "Chooses the app or web address opened by swiping right in the right edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer.",
+    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вправо в зоне жеста у правого края (верхняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает Fast Media Sorter & Organizer.",
+    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вправо у зоні жесту біля правого краю (верхня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває Fast Media Sorter & Organizer."
   },
   "rowGestureRightTopUp": {
     "en": "Assigns the action triggered by swiping up from the right edge's upper gesture zone.",
@@ -1145,9 +1160,9 @@
     "uk": "Задає дію, яка виконується свайпом вгору у зоні жесту біля правого краю (верхня смуга)."
   },
   "rowGestureRightTopUpTarget": {
-    "en": "Chooses the app or web address opened by swiping up in the right edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens FastMediaSorter.",
-    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вверх в зоне жеста у правого края (верхняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает FastMediaSorter.",
-    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вгору у зоні жесту біля правого краю (верхня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває FastMediaSorter."
+    "en": "Chooses the app or web address opened by swiping up in the right edge's upper gesture zone, and clears that target. Shown only while this direction's action needs one - launching an app or opening an address; with nothing chosen the gesture opens Fast Media Sorter & Organizer.",
+    "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вверх в зоне жеста у правого края (верхняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает Fast Media Sorter & Organizer.",
+    "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вгору у зоні жесту біля правого краю (верхня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває Fast Media Sorter & Organizer."
   },
   "rowEnableBroadcasting": {
     "en": "Enables audio and camera live broadcasting over HTTP/RTSP server from this device.",
@@ -1195,9 +1210,9 @@
     "uk": "Вибирає список закріплених трансляцій як набір даних для вивантаження або завантаження."
   },
   "rowLanguage": {
-    "en": "Opens a searchable list of the interface languages. On a Play install the chosen language is downloaded first; if it cannot be fetched, the app keeps the language it is using.",
-    "ru": "Открывает список языков интерфейса с поиском. В сборке из Play выбранный язык сначала догружается; если загрузить не удалось, приложение остаётся на текущем языке.",
-    "uk": "Відкриває список мов інтерфейсу з пошуком. У збірці з Play вибрана мова спочатку завантажується; якщо завантажити не вдалося, застосунок залишається поточною мовою."
+    "en": "Opens a searchable list of the interface languages. On a Play install the chosen language is downloaded first; if it cannot be fetched, the app keeps the language it is using. The change takes effect at once, with no restart.",
+    "ru": "Открывает список языков интерфейса с поиском. В сборке из Play выбранный язык сначала догружается; если загрузить не удалось, приложение остаётся на текущем языке. Изменение действует сразу, без перезапуска.",
+    "uk": "Відкриває список мов інтерфейсу з пошуком. У збірці з Play вибрана мова спочатку завантажується; якщо завантажити не вдалося, застосунок залишається поточною мовою. Зміна діє одразу, без перезапуску."
   },
   "rowLauncherAllAppsSwipeDown": {
     "en": "Chooses what this swipe does on the All apps panel. The list is deliberately short: back to the desktop, expand all apps, launch a chosen app, lock the screen, or unused. Screen lock is offered only in builds that can perform it. This direction runs only at the top of the list; by default it closes the panel and returns to the desktop.",
@@ -1300,9 +1315,9 @@
     "uk": "Блокує вхід у режим редагування робочого стола довгим натисканням; вхід через меню «Пуск» лишається доступним."
   },
   "rowLauncherPrimaryWindow": {
-    "en": "Selects what opens when FastMediaSorter launches or when the Home button is pressed: the device home screen, the in-app desktop without replacing the system home screen, or the resource list. On a Googlebook the device home screen is not offered and the in-app desktop is the default.",
-    "ru": "Выбирает, что открывается при запуске FastMediaSorter или нажатии кнопки «Домой»: домашний экран устройства, рабочий стол внутри приложения без смены системного домашнего экрана или список ресурсов. На Googlebook домашнего экрана устройства в списке нет, по умолчанию выбран рабочий стол.",
-    "uk": "Вибирає, що відкривається під час запуску FastMediaSorter або натискання кнопки «Додому»: домашній екран пристрою, робочий стіл усередині застосунку без заміни системного домашнього екрана або список ресурсів. На Googlebook домашнього екрана пристрою у списку немає, за замовчуванням вибрано робочий стіл."
+    "en": "Selects what opens when Fast Media Sorter & Organizer launches or when the Home button is pressed: the device home screen, the in-app desktop without replacing the system home screen, or the resource list. On a Googlebook the device home screen is not offered and the in-app desktop is the default.",
+    "ru": "Выбирает, что открывается при запуске Fast Media Sorter & Organizer или нажатии кнопки «Домой»: домашний экран устройства, рабочий стол внутри приложения без смены системного домашнего экрана или список ресурсов. На Googlebook домашнего экрана устройства в списке нет, по умолчанию выбран рабочий стол.",
+    "uk": "Вибирає, що відкривається під час запуску Fast Media Sorter & Organizer або натискання кнопки «Додому»: домашній екран пристрою, робочий стіл усередині застосунку без заміни системного домашнього екрана або список ресурсів. На Googlebook домашнього екрана пристрою у списку немає, за замовчуванням вибрано робочий стіл."
   },
   "rowLauncherOpenHomeSettings": {
     "en": "Opens Android's default-launcher chooser to switch the system home screen. Hidden on Googlebook and XR, where the system does not let another app become the home screen.",
@@ -1825,9 +1840,9 @@
     "uk": "Додає заповнення накопичувача до списку програм: воно заповнює вільне місце вибраної папки тимчасовими файлами й знову видаляє їх. Увімкнено за замовчуванням. Якщо залишилися файли перерваного запуску, програма залишається в списку, доки ви не видалите їх у ній."
   },
   "rowWaterFlashlight": {
-    "en": "Adds the water flashlight to the programs list: the camera flash and the screen light together, and only a hardware button closes it.",
-    "ru": "Добавляет водный фонарь в список программ: вспышка и экран горят вместе, а закрывается он только аппаратной кнопкой.",
-    "uk": "Додає водний ліхтар до списку програм: спалах і екран світять разом, а закривається він лише апаратною кнопкою."
+    "en": "Adds the water flashlight to the programs list: the camera flash and screen light together with touch lock. Hold a volume button or press it three times to switch the light off.",
+    "ru": "Добавляет водный фонарь в список программ: вспышка и экран светят вместе с блокировкой касаний. Удерживайте кнопку громкости или нажмите её три раза, чтобы выключить свет.",
+    "uk": "Додає водний ліхтар до списку програм: спалах і екран світять разом із блокуванням дотиків. Утримуйте кнопку гучності або натисніть її тричі, щоб вимкнути світло."
   },
   "rowZoneLeftBottomEnabled": {
     "en": "Enables the edge-gesture zone at the left edge's lower band.",
@@ -2065,14 +2080,14 @@
     "uk": "Замінює пароль входу на сервер новим випадковим; після цього клієнтам потрібен новий пароль."
   },
   "btnSftpServerShowQr": {
-    "en": "Shows a pairing code with the address, login and host key fingerprint for another FastMediaSorter to scan.",
-    "ru": "Показывает код для подключения с адресом, логином и отпечатком ключа сервера для сканирования в другом FastMediaSorter.",
-    "uk": "Показує код для підключення з адресою, логіном і відбитком ключа сервера для сканування в іншому FastMediaSorter."
+    "en": "Shows a pairing code with the address, login and host key fingerprint for another Fast Media Sorter & Organizer to scan.",
+    "ru": "Показывает код для подключения с адресом, логином и отпечатком ключа сервера для сканирования в другом Fast Media Sorter & Organizer.",
+    "uk": "Показує код для підключення з адресою, логіном і відбитком ключа сервера для сканування в іншому Fast Media Sorter & Organizer."
   },
   "btnSftpServerLegacyQr": {
-    "en": "Shows the pairing code without the exchange server part, for a FastMediaSorter too old to read the new code; it connects on the local network only.",
-    "ru": "Показывает код подключения без данных сервера обмена - для FastMediaSorter, слишком старого для нового кода; такой код работает только в локальной сети.",
-    "uk": "Показує код підключення без даних сервера обміну - для FastMediaSorter, надто старого для нового коду; такий код працює лише в локальній мережі."
+    "en": "Shows the pairing code without the exchange server part, for a Fast Media Sorter & Organizer too old to read the new code; it connects on the local network only.",
+    "ru": "Показывает код подключения без данных сервера обмена - для Fast Media Sorter & Organizer, слишком старого для нового кода; такой код работает только в локальной сети.",
+    "uk": "Показує код підключення без даних сервера обміну - для Fast Media Sorter & Organizer, надто старого для нового коду; такий код працює лише в локальній мережі."
   },
   "rowSftpDriveAccess": {
     "en": "Puts the SFTP server's address, login and password in your Google Drive app folder so your devices on the same Google account can connect; off by default, and while off those devices see the share but cannot connect to it.",
@@ -2098,6 +2113,66 @@
     "en": "Opens My devices, where you add, move, share and remove your exchange servers.",
     "ru": "Открывает «Мои устройства», где вы добавляете, переносите, передаёте и удаляете свои серверы обмена.",
     "uk": "Відкриває «Мої пристрої», де ви додаєте, переносите, передаєте й видаляєте свої сервери обміну."
+  },
+  "rowRemoteControlEnabled": {
+    "en": "Lets your other devices on this account send commands to this phone. It is off by default. Turning it on opens the device list in External control.",
+    "ru": "Разрешает другим устройствам вашей учётной записи отправлять команды этому телефону. По умолчанию выключено. При включении открывается список устройств на экране «Внешнее управление».",
+    "uk": "Дозволяє іншим пристроям вашого облікового запису надсилати команди цьому телефону. Типово вимкнено. Увімкнення відкриває список пристроїв на екрані «Зовнішнє керування»."
+  },
+  "btnOpenExternalControl": {
+    "en": "Opens the list of devices, consent requests, commands and log in External control. You can open it even while listening is off.",
+    "ru": "Открывает экран «Внешнее управление» со списком устройств, запросами на подтверждение, командами и журналом. Экран доступен и при выключенном приёме.",
+    "uk": "Відкриває екран «Зовнішнє керування» зі списком пристроїв, запитами на підтвердження, командами й журналом. Екран доступний і з вимкненим прийманням."
+  },
+  "headerExternalControlThis": {
+    "en": "Shows whether this phone is ready to listen.",
+    "ru": "Показывает, готов ли телефон принимать команды.",
+    "uk": "Показує, чи готовий телефон приймати команди."
+  },
+  "rowExternalControlListening": {
+    "en": "Changes the same listening switch that appears under Exchange server.",
+    "ru": "Изменяет тот же переключатель приёма команд, что и в настройках сервера обмена.",
+    "uk": "Змінює той самий перемикач приймання команд, що й у налаштуваннях сервера обміну."
+  },
+  "btnExternalControlStateAction": {
+    "en": "Opens exchange settings or opens sign-in again, depending on what the connection needs.",
+    "ru": "Открывает настройки обмена или повторный вход, в зависимости от состояния подключения.",
+    "uk": "Відкриває налаштування обміну або повторний вхід, залежно від стану підключення."
+  },
+  "headerExternalControlWaiting": {
+    "en": "Shows the request that needs your answer.",
+    "ru": "Показывает запрос, который ждёт вашего ответа.",
+    "uk": "Показує запит, який чекає на вашу відповідь."
+  },
+  "btnExternalControlDecline": {
+    "en": "Declines the current request.",
+    "ru": "Отклоняет текущий запрос.",
+    "uk": "Відхиляє поточний запит."
+  },
+  "btnExternalControlAllow": {
+    "en": "Allows the current request.",
+    "ru": "Разрешает текущий запрос.",
+    "uk": "Дозволяє поточний запит."
+  },
+  "headerExternalControlControllers": {
+    "en": "Lists account devices and the kinds of commands each can send.",
+    "ru": "Показывает устройства учётной записи и виды команд, которые каждое может отправлять.",
+    "uk": "Показує пристрої облікового запису й види команд, які кожен може надсилати."
+  },
+  "headerExternalControlCommands": {
+    "en": "Lists the commands this app accepts and their kinds.",
+    "ru": "Показывает команды, которые принимает приложение, и их виды.",
+    "uk": "Показує команди, які приймає застосунок, і їхні види."
+  },
+  "headerExternalControlLog": {
+    "en": "Shows the latest 20 requests on this phone.",
+    "ru": "Показывает 20 последних запросов на этом телефоне.",
+    "uk": "Показує 20 останніх запитів на цьому телефоні."
+  },
+  "btnExternalControlFullLog": {
+    "en": "Shows every saved request, newest first.",
+    "ru": "Показывает все сохранённые запросы, сначала самые новые.",
+    "uk": "Показує всі збережені запити, спочатку найновіші."
   },
   "btnSftpExchangePortal": {
     "en": "Opens the portal page about reaching your shared folders from outside the home network, step by step.",

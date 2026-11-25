@@ -27,4 +27,12 @@
     <string name="ticket_inbox_queued_notice">ٹکٹ بھیجنے کے لیے قطار میں شامل</string>
     <string name="ticket_inbox_stage_failed">ٹکٹ محفوظ نہیں ہو سکا: %1$s</string>
     <string name="ticket_inbox_discard">فہرست سے ہٹائیں</string>
+    <string name="ticket_inbox_destination_label">یہاں پہنچائیں</string>
+    <string name="ticket_inbox_state_folder_waiting">کمپیوٹر پر فولڈر کا انتظار: %1$s</string>
+    <string name="ticket_inbox_state_folder_sent">فولڈر میں - کمپیوٹر کا انتظار</string>
+    <string name="ticket_inbox_grant_drive">Google Drive تک رسائی کی اجازت دیں</string>
+    <string name="ticket_inbox_state_needs_access">Google Drive تک رسائی درکار ہے - اوپر والے بٹن سے اجازت دیں</string>
+    <string name="ticket_inbox_drive_access_granted">رسائی مل گئی - انتظار کرنے والے ٹکٹس اب روانہ ہو رہے ہیں</string>
+    <string name="ticket_inbox_drive_access_declined">رسائی نہیں دی گئی - جب تک آپ اجازت نہ دیں ٹکٹس فہرست میں رہیں گے</string>
+    <string name="ticket_inbox_drive_access_failed">Google رسائی کی اسکرین نہیں دکھا سکا - کچھ دیر بعد دوبارہ کوشش کریں</string>
 </resources>

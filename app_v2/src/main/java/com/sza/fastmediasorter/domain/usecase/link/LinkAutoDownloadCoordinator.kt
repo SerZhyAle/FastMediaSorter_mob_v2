@@ -216,7 +216,6 @@ class LinkAutoDownloadCoordinator @Inject constructor(
         } else {
             emptySet()
         }
-        Timber.d("S4509: revoked-session check host=$host previewLike=$previewLike revoked=$revoked")
         return if (host != null && revoked.isNotEmpty()) {
             Timber.i("LinkAutoDownloadCoordinator: session revoked by server host=%s cookies=%s", host, revoked)
             Result.Failed.AuthRequired(host = host, originalUrl = url)
@@ -270,6 +269,9 @@ class LinkAutoDownloadCoordinator @Inject constructor(
 
         var openedStream: OpenResult.Stream? = null
         var socialPreviewHost: String? = null
+        // A stored session the site refused is dead: hasAnySession() still counts it, so the preview-only
+        // result would otherwise claim a live sign-in and offer no way to sign in again.
+        var previewSessionRefused = false
         // S0822: set when a probe fails with an okhttp redirect loop on a known social host -
         // the login wall bounced the request in circles, so this is an auth problem (actionable
         // re-login) rather than a genuine "no media on the page".
@@ -341,12 +343,14 @@ class LinkAutoDownloadCoordinator @Inject constructor(
                             is OpenResult.Batch -> return runBatch(opened, settings, callbacks)
                             is OpenResult.SocialPreviewOnly -> {
                                 Timber.i(
-                                    "preview-only result: host=%s strategy=%s accountId=%s",
+                                    "preview-only result: host=%s strategy=%s accountId=%s sessionRefused=%s",
                                     opened.host,
                                     strategy.id,
                                     accountId ?: "none",
+                                    opened.sessionRefused,
                                 )
                                 if (socialPreviewHost == null) socialPreviewHost = opened.host
+                                if (opened.sessionRefused) previewSessionRefused = true
                                 continue
                             }
                             is OpenResult.NotFound -> continue
@@ -391,7 +395,7 @@ class LinkAutoDownloadCoordinator @Inject constructor(
             if (stream == null) {
                 val previewHost = socialPreviewHost
                 if (previewHost != null) {
-                    val hadSession = runCatching {
+                    val hadSession = !previewSessionRefused && runCatching {
                         authSessionRepository.hasAnySession(
                             previewHost
                         )

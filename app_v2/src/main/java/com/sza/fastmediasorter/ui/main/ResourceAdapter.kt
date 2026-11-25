@@ -13,6 +13,7 @@ import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MotionEvent
 import android.view.ViewGroup
+import androidx.appcompat.widget.TooltipCompat
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.recyclerview.widget.DiffUtil
@@ -32,13 +33,16 @@ import com.sza.fastmediasorter.domain.model.isAllFilesPredefined
 import com.sza.fastmediasorter.domain.model.isFileCountUnknown
 import com.sza.fastmediasorter.ui.common.MediaColorCategory
 import com.sza.fastmediasorter.ui.common.MediaTypeColorCatalog
+import com.sza.fastmediasorter.ui.common.RowTouchTarget
 import com.sza.fastmediasorter.ui.common.tintIconsFromTheme
 import com.sza.fastmediasorter.ui.icon.ResourceIconComposer
 import com.sza.fastmediasorter.util.LimitedStorageReach
 import com.sza.fastmediasorter.util.VirtualPathUtils
+import com.sza.fastmediasorter.utils.SafHelper
 import com.sza.fastmediasorter.utils.keepLongestWordOnOneLine
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import com.sza.fastmediasorter.utils.setOnLongClickListenerDebounced
+import timber.log.Timber
 
 /** Callback from the adapter to the host (MainActivity) to start an ItemTouchHelper drag. */
 interface DragStartListener {
@@ -218,18 +222,11 @@ class ResourceAdapter(
         private val DOCUMENT_TYPES = setOf(MediaType.TEXT, MediaType.PDF, MediaType.EPUB, MediaType.OFFICE_DOCUMENT)
         private val IMAGE_TYPES = setOf(MediaType.IMAGE, MediaType.GIF)
 
+        private const val FAVORITES_ENTRY_ID = -100L
+
         // Badge order is the on-screen order of the letters; the letter carries the sub-type, which is
         // why sub-types of one family may share that family's colour (S2046).
-        private val BADGE_LETTERS = listOf(
-            MediaType.IMAGE to "I",
-            MediaType.VIDEO to "V",
-            MediaType.AUDIO to "A",
-            MediaType.GIF to "G",
-            MediaType.TEXT to "T",
-            MediaType.PDF to "P",
-            MediaType.EPUB to "E",
-            MediaType.OFFICE_DOCUMENT to "O",
-        )
+        private val BADGE_LETTERS = MediaTypeColorCatalog.badgeEntries.map { it.type to it.letter }
 
         private fun categoryColor(context: android.content.Context, category: MediaColorCategory): Int =
             ContextCompat.getColor(context, MediaTypeColorCatalog.colorFor(category))
@@ -326,14 +323,17 @@ class ResourceAdapter(
             }
         }
 
-        /** Formats supported media types as colored IVAGTPE string, or "ALL" for allFiles mode. */
+        /** Formats supported media types as colored IVAGTPE string, or the localized "ALL" word for allFiles mode. */
         fun formatMediaTypes(context: android.content.Context, types: Set<MediaType>, allFiles: Boolean): CharSequence {
             val iconSizePx = iconSizePxOf(context)
             val key = MediaTypeFormatKey(types, allFiles, nightModeOf(context), iconSizePx)
             mediaTypeFormatCache[key]?.let { return it }
 
             if (allFiles) {
-                return "ALL"
+                // Never stored in mediaTypeFormatCache: the key carries no locale, so a cached word would
+                // outlive a live language switch. The resource tab's word is reused because it already
+                // exists in every declared locale.
+                return context.getString(R.string.tab_all_resources)
             }
 
             // Single category: audio=note, docs=book, video=video icon, images=image icon.
@@ -417,10 +417,35 @@ class ResourceAdapter(
             chip.setTextColor(if (luminance > LIGHT_CHIP_LUMINANCE) DARK_TEXT_COLOR else android.graphics.Color.WHITE)
         }
 
-        /** The address a row shows: a cloud resource names its provider and account, not a folder id. */
+        /** True when [formatMediaTypes] renders multi-type letter badges rather than All or a single icon. */
+        fun usesLetterBadges(types: Set<MediaType>, allFiles: Boolean): Boolean {
+            val isSingleCategory = types == setOf(MediaType.AUDIO) ||
+                types == setOf(MediaType.VIDEO) ||
+                (types.isNotEmpty() && types.all { it in DOCUMENT_TYPES }) ||
+                (types.isNotEmpty() && types.all { it in IMAGE_TYPES })
+            return !allFiles && !isSingleCategory && BADGE_LETTERS.any { it.first in types }
+        }
+
+        internal fun bindMediaTypeDescription(view: android.widget.TextView, resource: MediaResource) {
+            val description = if (resource.id == FAVORITES_ENTRY_ID) {
+                ""
+            } else {
+                MediaTypeColorCatalog.formatDescription(
+                    view.context,
+                    resource.supportedMediaTypes,
+                    resource.allFiles,
+                )
+            }
+            view.contentDescription = description.ifEmpty { null }
+            TooltipCompat.setTooltipText(view, description.ifEmpty { null })
+        }
+
+        /** The address a row shows: SAF URIs are formatted cleanly; cloud names its provider and account. */
         fun displayPath(resource: MediaResource): String {
             val provider = resource.cloudProvider
-            if (resource.type != ResourceType.CLOUD || provider == null) return resource.path
+            if (resource.type != ResourceType.CLOUD || provider == null) {
+                return SafHelper.formatDisplayPath(resource.path)
+            }
             val account = resource.accountId?.takeIf { it.isNotEmpty() }
             return if (account != null) "${provider.name} ($account)" else "${provider.name} / ${resource.name}"
         }
@@ -535,6 +560,20 @@ class ResourceAdapter(
         }
     }
 
+    // UI-SIZING 1.2 rule 4: ordinary mode gives a card action button the 48dp hit target; compact keeps the
+    // declared size, which is larger than 24dp on tablets and must not shrink there.
+    private fun cardActionButtonPx(resources: android.content.res.Resources): Int =
+        if (useCompactElements) {
+            resources.getDimensionPixelSize(R.dimen.item_icon_size_small)
+        } else {
+            RowTouchTarget.targetPx(resources, compact = false)
+        }
+
+    // Only the quick-slideshow icon is a target of its own: any other icon forwards its tap to the row body, and
+    // compact mode keeps the declared 24dp floor, so neither grows a hit area.
+    private fun quickIconHitAreaPx(resources: android.content.res.Resources, quickEligible: Boolean): Int =
+        if (quickEligible && !useCompactElements) RowTouchTarget.targetPx(resources, compact = false) else 0
+
     // S0727: toggle the per-row "Open in new window" menu entry after construction, so the persisted
     // allowSeparateWindow preference can be applied off the Main thread.
     fun setOpenInNewWindowVisible(visible: Boolean) {
@@ -600,6 +639,7 @@ class ResourceAdapter(
         val moreActionsButton: android.view.View get() = binding.btnMoreActions
 
         init {
+            Timber.d("S4631: resource tile action target ${cardActionButtonPx(binding.root.resources)}px")
             binding.tvResourceName.keepLongestWordOnOneLine(
                 binding.root.resources.getDimension(R.dimen.text_size_tiny)
             )
@@ -632,6 +672,8 @@ class ResourceAdapter(
                 ivResourceTypeIcon.setImageDrawable(iconDrawable)
 
                 val quickEligibleGrid = isQuickSlideshowEligible(resource)
+                val iconHitAreaPx = quickIconHitAreaPx(root.resources, quickEligibleGrid)
+                RowTouchTarget.expandHitArea(ivResourceTypeIcon, iconHitAreaPx)
                 if (quickEligibleGrid) {
                     ivResourceTypeIcon.isClickable = true
                     ivResourceTypeIcon.isFocusable = true
@@ -685,7 +727,12 @@ class ResourceAdapter(
                     android.view.View.GONE
                 }
 
-                tvMediaTypes.text = if (resource.id == -100L) "" else formatMediaTypes(root.context, resource.supportedMediaTypes, resource.allFiles)
+                tvMediaTypes.text = if (resource.id == FAVORITES_ENTRY_ID) {
+                    ""
+                } else {
+                    formatMediaTypes(root.context, resource.supportedMediaTypes, resource.allFiles)
+                }
+                bindMediaTypeDescription(tvMediaTypes, resource)
                 root.setOnClickListenerDebounced { onItemClick(resource) }
                 root.setOnLongClickListenerDebounced {
                     if (resource.id != -100L) {
@@ -729,10 +776,17 @@ class ResourceAdapter(
                 // overflowModeEnabled left a tile with no action surface at all - on every device and
                 // every orientation - and seven of the ten device profile presets ship that setting
                 // off. The button is now present for any real resource.
+                // S4791: the button is pinned to the bottom-end corner, so the strip that holds the media
+                // types must be as tall as the button or it rises over the last line of the name. Set for
+                // every tile, the button-less one included, so a recycled holder never keeps a stale height
+                // and neighbouring tiles stay one height.
+                tvMediaTypes.minHeight = cardActionButtonPx(root.resources)
+                Timber.d("S4791: resource tile bottom strip ${tvMediaTypes.minHeight}px")
                 if (resource.id == -100L) {
                     btnMoreActions.visibility = android.view.View.GONE
                 } else {
                     btnMoreActions.visibility = android.view.View.VISIBLE
+                    RowTouchTarget.resize(btnMoreActions, cardActionButtonPx(root.resources))
                     // S0977: the name in the spoken label keeps each card's overflow uniquely targetable by E2E
                     btnMoreActions.contentDescription =
                         btnMoreActions.context.getString(R.string.resource_more_actions_for, resource.name)
@@ -763,6 +817,10 @@ class ResourceAdapter(
 
         val moreActionsButton: android.view.View get() = binding.btnMoreActions
 
+        private val inlineActionButtons by lazy {
+            listOf(binding.btnEdit, binding.btnCopy, binding.btnMoveUp, binding.btnMoveDown, binding.btnDelete)
+        }
+
         fun bind(resource: MediaResource, selectedId: Long?) {
             binding.apply {
                 tvResourceName.text = resource.name
@@ -784,6 +842,7 @@ class ResourceAdapter(
                 }
 
                 tvResourcePath.text = displayPath(resource)
+                Timber.d("S4847: row=${resource.name} path=${tvResourcePath.text} iconId=${resource.iconId}")
 
                 if (!resource.comment.isNullOrBlank()) {
                     tvResourceComment.text = resource.comment
@@ -798,6 +857,8 @@ class ResourceAdapter(
                 ivResourceTypeIcon.setImageDrawable(iconDrawable)
 
                 val quickEligibleList = isQuickSlideshowEligible(resource)
+                val iconHitAreaPx = quickIconHitAreaPx(root.resources, quickEligibleList)
+                RowTouchTarget.expandHitArea(ivResourceTypeIcon, iconHitAreaPx)
                 if (quickEligibleList) {
                     ivResourceTypeIcon.isClickable = true
                     ivResourceTypeIcon.isFocusable = true
@@ -868,7 +929,12 @@ class ResourceAdapter(
                     ivResourceTypeIcon.layoutParams.height = iconSize
                 }
 
-                tvMediaTypes.text = if (resource.id == -100L) "" else formatMediaTypes(root.context, resource.supportedMediaTypes, resource.allFiles)
+                tvMediaTypes.text = if (resource.id == FAVORITES_ENTRY_ID) {
+                    ""
+                } else {
+                    formatMediaTypes(root.context, resource.supportedMediaTypes, resource.allFiles)
+                }
+                bindMediaTypeDescription(tvMediaTypes, resource)
 
                 tvDestinationMark.text = if (resource.isDestination) "→" else ""
 
@@ -1003,12 +1069,17 @@ class ResourceAdapter(
                     layoutInlineActions.visibility = android.view.View.GONE
                     ivDragHandle.visibility = android.view.View.GONE
                 } else {
+                    Timber.d("S4631: resource row action target ${cardActionButtonPx(root.resources)}px")
                     val isPredefinedVirtualResource = resource.path in VirtualPathUtils.ALL_VIRTUAL_PATHS
 
                     val showInlineActions = !overflowModeEnabled &&
                         root.resources.getBoolean(R.bool.is_resource_actions_inline)
                     if (showInlineActions) {
                         layoutInlineActions.visibility = android.view.View.VISIBLE
+                        val inlineButtonPx = cardActionButtonPx(root.resources)
+                        for (inlineButton in inlineActionButtons) {
+                            RowTouchTarget.resize(inlineButton, inlineButtonPx)
+                        }
                         btnEdit.setOnClickListenerDebounced { onEditClick(resource) }
                         btnCopy.visibility = if (isPredefinedVirtualResource) android.view.View.GONE else android.view.View.VISIBLE
                         btnCopy.setOnClickListenerDebounced { onCopyFromClick(resource) }
@@ -1026,6 +1097,7 @@ class ResourceAdapter(
                     // or on any phone in landscape, and the storage-reach banner sends the user to one
                     // of those eleven.
                     btnMoreActions.visibility = android.view.View.VISIBLE
+                    RowTouchTarget.resize(btnMoreActions, cardActionButtonPx(root.resources))
                     // S0977: the name in the spoken label keeps each card's overflow uniquely targetable by E2E
                     btnMoreActions.contentDescription =
                         btnMoreActions.context.getString(R.string.resource_more_actions_for, resource.name)

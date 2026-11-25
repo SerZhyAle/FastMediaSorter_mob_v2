@@ -2,7 +2,7 @@
 page_id: programs.mini-game
 title: The Mini-Game - Kryvavitsa and the Monster
 nav_title: Mini-game
-description: How to switch on and play Kryvavitsa and the Monster, the small turn-based puzzle built into FastMediaSorter - the rules and the score, the controls for touch, keyboard, D-pad and gamepad, the three looks, restarting a level, the home-screen widget and the watch version.
+description: How to switch on and play Kryvavitsa and the Monster, the small turn-based puzzle built into Fast Media Sorter & Organizer - the rules and the score, the controls for touch, keyboard, D-pad and gamepad, the three looks, restarting a level, the home-screen widget and the watch version.
 category: "Programs, Statistics and Diagnostics"
 category_slug: programs
 ticket: S2961
@@ -15,7 +15,7 @@ why: |
 
   You lead a monster to the exit while its hunters close in. Every level is a little maze, and pushing a wall in the right place is often the whole trick.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition) - see [The seven editions of FastMediaSorter](page:flavors.overview-and-comparison)."
+  - "Fast Media Sorter & Organizer in any [edition](term:edition) - see [The seven editions of Fast Media Sorter & Organizer](page:flavors.overview-and-comparison)."
   - "**Mini-game** switched on in **Settings**, the **Management** tab, **Additional programs and scenarios**. It is off after installation - see [Built-in programs](page:programs.built-in-mini-apps)."
 steps:
   - number: 1
@@ -106,7 +106,7 @@ next_recipes:
     badge: Programs
     badge_type: docs
     description: Everyday sums and a stopwatch for up to four people.
-  - title: FastMediaSorter widgets for your home screen
+  - title: Fast Media Sorter & Organizer widgets for your home screen
     url: page:launcher.home-screen-widgets
     badge: Launcher
     badge_type: docs
@@ -115,4 +115,4 @@ next_recipes:
 
 <sub class="doc-stamp">26.10.07 01:10</sub>
 
-**Kryvavitsa and the Monster** is a small turn-based puzzle built into FastMediaSorter. This page shows how to switch it on, the rules and the score, how to play with touch, keyboard, D-pad or gamepad, how to restart a level, the three looks and the watch version.
+**Kryvavitsa and the Monster** is a small turn-based puzzle built into Fast Media Sorter & Organizer. This page shows how to switch it on, the rules and the score, how to play with touch, keyboard, D-pad or gamepad, how to restart a level, the three looks and the watch version.

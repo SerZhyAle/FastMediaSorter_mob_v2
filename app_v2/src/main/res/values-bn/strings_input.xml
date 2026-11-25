@@ -262,4 +262,10 @@
     <string name="kbm_help_player_audio_track">পরবর্তী অডিও ট্র্যাক</string>
     <string name="kbm_help_player_slideshow">স্লাইডশো (আবার S: দ্রুততর) / এলোমেলো স্লাইডশো</string>
     <string name="kbm_help_player_space">ভিডিও চালান / বিরতি দিন; ছবিতে পরবর্তী ফাইল</string>
+    <string name="keybinding_label_playback_ab_loop">A-B লুপ</string>
+    <string name="keybinding_label_navigation_file_grid">থাম্বনেইল গ্রিড</string>
+    <string name="keybinding_label_navigation_file_list">ফাইল তালিকা</string>
+    <string name="keybinding_label_navigation_file_number">ফাইলে যান</string>
+    <string name="keybinding_label_player_black_screen">কালো স্ক্রিন</string>
+    <string name="keybinding_label_sorting_create_text_note">টেক্সট নোট তৈরি করুন</string>
 </resources>

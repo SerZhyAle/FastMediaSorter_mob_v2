@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "ٹیبلٹ پر ڈیجیٹل فوٹو فریم - FastMediaSorter v2"
+title: "ٹیبلٹ پر ڈیجیٹل فوٹو فریم - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-photo-frame-ur.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -47,7 +47,7 @@ permalink: /docs/howto/scenario-photo-frame-ur.html
 2. **Sign in** پر ٹیپ کریں → براؤزر میں تصدیق مکمل کریں
 3. اپنی تصاویر والا فولڈر منتخب کریں → **Done**
 
-![FastMediaSorter مین اسکرین - فوٹو فولڈر شامل کرنے کے بعد فوٹو ریسورس کارڈز نظر آ رہے ہیں](screenshots/screenshot-pf-step1.png)
+![Fast Media Sorter & Organizer مین اسکرین - فوٹو فولڈر شامل کرنے کے بعد فوٹو ریسورس کارڈز نظر آ رہے ہیں](screenshots/screenshot-pf-step1.png)
 
 ---
 
@@ -123,12 +123,12 @@ Android ترتیبات → Display → Screen timeout → **"Never"** (یا زی
 یہ مرحلہ سہولت کے لیے ہے: کیا آپ ٹیبلٹ اٹھاتے ہی فوری طور پر فوٹو فریم شروع کرنا چاہتے ہیں - ایپ کھولے اور نیویگیٹ کیے بغیر؟
 
 1. اپنی ہوم اسکرین کو لانگ پریس کریں → **Widgets** پر ٹیپ کریں
-2. ویجٹ لسٹ میں **FastMediaSorter** تلاش کریں
+2. ویجٹ لسٹ میں **Fast Media Sorter & Organizer** تلاش کریں
 3. **"Resource Shortcut"** ویجٹ کو اپنی ہوم اسکرین پر گھسیٹیں
 4. جب پوچھا جائے، اپنا فوٹو ریسورس منتخب کریں
 5. کسی بھی وقت ویجٹ پر ٹیپ کریں → سلائیڈ شو فوری طور پر شروع ہو جاتا ہے
 
-![FastMediaSorter ریسورس شارٹ کٹ ویجٹس رکھی ہوئی Android ہوم اسکرین](screenshots/screenshot-pf-step6.png)
+![Fast Media Sorter & Organizer ریسورس شارٹ کٹ ویجٹس رکھی ہوئی Android ہوم اسکرین](screenshots/screenshot-pf-step6.png)
 
 ---
 

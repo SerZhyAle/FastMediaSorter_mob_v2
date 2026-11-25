@@ -8,6 +8,9 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.core.content.res.use
+import androidx.core.view.AccessibilityDelegateCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import com.google.android.material.checkbox.MaterialCheckBox
 import com.sza.fastmediasorter.R
 
@@ -65,6 +68,7 @@ class FormCheckboxRow @JvmOverloads constructor(
         help = HelpRowDelegate(findViewById(R.id.fcr_iconHelp), "FormCheckboxRow")
 
         bindRowClicks()
+        bindAccessibility()
         applyAttributes(attrs, defStyleAttr)
         help.syncVisibility()
     }
@@ -155,6 +159,21 @@ class FormCheckboxRow @JvmOverloads constructor(
         checkBox.setOnCheckedChangeListener { _, value ->
             checkedChangeListener?.invoke(value)
         }
+    }
+
+    // The row, not the inner control, is the focus stop, so the row must carry the control's role and state.
+    private fun bindAccessibility() {
+        ViewCompat.setAccessibilityDelegate(
+            this,
+            object : AccessibilityDelegateCompat() {
+                override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
+                    super.onInitializeAccessibilityNodeInfo(host, info)
+                    info.className = android.widget.CheckBox::class.java.name
+                    info.isCheckable = true
+                    info.isChecked = checkBox.isChecked
+                }
+            },
+        )
     }
 
     private fun applyAttributes(attrs: AttributeSet?, defStyleAttr: Int) {

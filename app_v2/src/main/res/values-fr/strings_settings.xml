@@ -43,7 +43,7 @@
     <string name="settings_default_document_type_pdf">PDF</string>
     <string name="settings_default_document_type_title">Type de document</string>
     <string name="settings_default_player_dialog_confirm">Ouvrir les paramètres</string>
-    <string name="settings_default_player_dialog_message">Vous allez être redirigé vers les paramètres système Android, où vous pourrez choisir FastMediaSorter comme application par défaut pour ce type de fichier.</string>
+    <string name="settings_default_player_dialog_message">Vous allez être redirigé vers les paramètres système d\'Android, où vous pourrez choisir Fast Media Sorter &amp; Organizer comme application par défaut pour ce type de fichier.</string>
     <string name="settings_default_player_dialog_title">Définir par défaut</string>
     <string name="settings_general_actions">Actions</string>
     <string name="settings_general_behavior">Comportement de l\'application</string>
@@ -165,7 +165,7 @@
     <string name="setting_photos_during_audio_desc">Images aléatoires pendant la lecture (choisissez une liste audio et regardez des images)</string>
     <string name="setting_play_to_end_desc">Lire le média jusqu\'au bout au lieu d\'utiliser l\'intervalle du diaporama</string>
     <string name="setting_prevent_sleep_desc">Garder l\'écran allumé pendant l\'utilisation de l\'application</string>
-    <string name="setting_primary_media_player_desc">Afficher FastMediaSorter dans \"Ouvrir avec\" et gérer les touches multimédias</string>
+    <string name="setting_primary_media_player_desc">Afficher Fast Media Sorter &amp; Organizer dans \"Ouvrir avec\" et gérer les boutons multimédias</string>
     <string name="setting_resume_on_next_launch">Reprendre la lecture au prochain lancement</string>
     <string name="setting_resume_on_next_launch_desc">Au démarrage de l\'application, rouvrir automatiquement le dernier fichier lu là où vous vous êtes arrêté</string>
     <string name="setting_safe_mode_desc">Confirmer avant les opérations destructrices (suppression, déplacement)</string>
@@ -278,7 +278,7 @@
     <string name="setting_mic_recording_destination_default_recordings">Par défaut : dossier Enregistrements (Musique sous Android 11 et versions antérieures)</string>
     <string name="setting_screen_recording_destination_default_movies">Par défaut : dossier Films</string>
     <string name="drive_channel_enabled_title">Fichiers via Google Drive</string>
-    <string name="drive_channel_enabled_subtitle">Envoyez et recevez des fichiers entre vos propres appareils via votre Google Drive, sans le serveur d\'échange</string>
+    <string name="drive_channel_enabled_subtitle">Envoyez et recevez des fichiers entre vos propres appareils via votre Google Drive et annoncez-leur vos diffusions, sans le serveur d\'échange</string>
     <string name="drive_channel_background_title">Vérifier via Google Drive en arrière-plan</string>
     <string name="drive_channel_background_subtitle">Toutes les 15 minutes, pour que vos autres appareils puissent ouvrir les dossiers partagés de ce téléphone lorsque l\'application est fermée</string>
     <string name="drive_channel_row_from">De %1$s</string>

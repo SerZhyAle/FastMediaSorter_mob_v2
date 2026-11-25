@@ -7,7 +7,7 @@ permalink: /docs/ICON_LEGEND-ru.html
 
 # Легенда значков
 
-Это настоящие значки интерфейса FastMediaSorter, и рядом с каждым - точная подпись, которую он показывает на экране.
+Это настоящие значки интерфейса Fast Media Sorter & Organizer, и рядом с каждым - точная подпись, которую он показывает на экране.
 
 ## Навигация по программам
 
@@ -42,6 +42,7 @@ permalink: /docs/ICON_LEGEND-ru.html
 | <img src="icons/svg/ic_clipboard_get_server.svg" alt="ic_clipboard_get_server" width="24" height="24"> | Получить буфер с сервера |
 | <img src="icons/svg/ic_clipboard_send_server.svg" alt="ic_clipboard_send_server" width="24" height="24"> | Отправить буфер на сервер |
 | <img src="icons/svg/ic_resource_favorites.svg" alt="ic_resource_favorites" width="24" height="24"> | Избранное |
+| <img src="icons/svg/ic_send_plane.svg" alt="ic_send_plane" width="24" height="24"> | Отправить отзыв |
 | <img src="icons/svg/ic_front_flashlight.svg" alt="ic_front_flashlight" width="24" height="24"> | Фронтальный фонарик |
 | <img src="icons/svg/ic_game_kryvavitsa.svg" alt="ic_game_kryvavitsa" width="24" height="24"> | Мини-игра |
 | <img src="icons/svg/ic_cloud_download.svg" alt="ic_cloud_download" width="24" height="24"> | Загрузить по ссылке |
@@ -49,6 +50,7 @@ permalink: /docs/ICON_LEGEND-ru.html
 | <img src="icons/svg/ic_mirror.svg" alt="ic_mirror" width="24" height="24"> | Зеркало |
 | <img src="icons/svg/ic_network_monitor.svg" alt="ic_network_monitor" width="24" height="24"> | Сетевой монитор |
 | <img src="icons/svg/ic_nfc.svg" alt="ic_nfc" width="24" height="24"> | NFC |
+| <img src="icons/svg/ic_send_note.svg" alt="ic_send_note" width="24" height="24"> | Заметки |
 | <img src="icons/svg/ic_camera_ocr_translate.svg" alt="ic_camera_ocr_translate" width="24" height="24"> | Быстрый перевод с камеры |
 | <img src="icons/svg/ic_camera_flash_on.svg" alt="ic_camera_flash_on" width="24" height="24"> | Фонарик камеры |
 | <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Быстрая съёмка |
@@ -91,12 +93,18 @@ permalink: /docs/ICON_LEGEND-ru.html
 | <img src="icons/svg/ic_behavior.svg" alt="ic_behavior" width="24" height="24"> | Поведение и правила программы |
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Вещание |
 | <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Фотографирование |
+| <img src="icons/svg/ic_copy.svg" alt="ic_copy" width="24" height="24"> | Копирование, перемещение и перезапись |
+| <img src="icons/svg/ic_developer_options.svg" alt="ic_developer_options" width="24" height="24"> | Отладочные журналы и тестовые инструменты |
 | <img src="icons/svg/ic_app_logo.svg" alt="ic_app_logo" width="24" height="24"> | Назначения быстрой сортировки |
 | <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Просмотр текста, PDF, EPUB и Office |
 | <img src="icons/svg/ic_folder.svg" alt="ic_folder" width="24" height="24"> | Интерфейс браузера файлов |
+| <img src="icons/svg/ic_rename.svg" alt="ic_rename" width="24" height="24"> | Удаление и переименование в плеере |
 | <img src="icons/svg/ic_image.svg" alt="ic_image" width="24" height="24"> | Изображения, GIF и слайд-шоу |
+| <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Общие настройки интерфейса |
+| <img src="icons/svg/ic_view_list.svg" alt="ic_view_list" width="24" height="24"> | Интерфейс списка ресурсов |
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Диктофон |
 | <img src="icons/svg/ic_translate.svg" alt="ic_translate" width="24" height="24"> | Перевод, оцифровка (OCR) |
+| <img src="icons/svg/ic_play.svg" alt="ic_play" width="24" height="24"> | Интерфейс и команды плеера |
 | <img src="icons/svg/ic_wifi.svg" alt="ic_wifi" width="24" height="24"> | Удалённые ресурсы (SMB/(S)FTP/Облако) |
 | <img src="icons/svg/ic_delete.svg" alt="ic_delete" width="24" height="24"> | Удаление файлов, корзина |
 | <img src="icons/svg/ic_schedule.svg" alt="ic_schedule" width="24" height="24"> | Запланированные операции по расписанию |
@@ -105,9 +113,11 @@ permalink: /docs/ICON_LEGEND-ru.html
 | <img src="icons/svg/ic_share.svg" alt="ic_share" width="24" height="24"> | Команды отправить файл в.. |
 | <img src="icons/svg/ic_exchange_mono.svg" alt="ic_exchange_mono" width="24" height="24"> | Доступ отовсюду |
 | <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | Доступ к этому телефону |
+| <img src="icons/svg/ic_sort.svg" alt="ic_sort" width="24" height="24"> | Сортировка, слайд-шоу и порядок запуска |
 | <img src="icons/svg/ic_stream.svg" alt="ic_stream" width="24" height="24"> | Трансляции |
 | <img src="icons/svg/ic_refresh.svg" alt="ic_refresh" width="24" height="24"> | Фоновая синхронизация, сеть и кэш |
 | <img src="icons/svg/ic_android.svg" alt="ic_android" width="24" height="24"> | Взаимодействие с операционной системой |
+| <img src="icons/svg/ic_gesture.svg" alt="ic_gesture" width="24" height="24"> | Сенсорные зоны и экранные подсказки |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Видео, настройки плеера |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Видеосъёмка |
 | <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Wear-компаньон |
@@ -116,46 +126,99 @@ permalink: /docs/ICON_LEGEND-ru.html
 
 | Значок | Значение |
 |---|---|
+| <img src="icons/svg/ic_cloud_download.svg" alt="ic_cloud_download" width="24" height="24"> | Загрузки OCR и перевода |
 | <img src="icons/svg/ic_delete.svg" alt="ic_delete" width="24" height="24"> | Разрешить удаление |
 | <img src="icons/svg/ic_rename.svg" alt="ic_rename" width="24" height="24"> | Разрешить переименование |
+| <img src="icons/svg/ic_open_in_browse.svg" alt="ic_open_in_browse" width="24" height="24"> | Разрешить новые окна |
+| <img src="icons/svg/ic_graphic_eq.svg" alt="ic_graphic_eq" width="24" height="24"> | Визуализатор при отсутствии обложки |
+| <img src="icons/svg/ic_accessibility.svg" alt="ic_accessibility" width="24" height="24"> | Режим большие кнопки |
+| <img src="icons/svg/ic_rename.svg" alt="ic_rename" width="24" height="24"> | Спрашивать имя каждой фотографии |
+| <img src="icons/svg/ic_copy.svg" alt="ic_copy" width="24" height="24"> | Сохранять фотографии в буфер обмена |
+| <img src="icons/svg/ic_location.svg" alt="ic_location" width="24" height="24"> | Геотегирование фото |
+| <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Только распознавание |
 | <img src="icons/svg/ic_camera_ocr_translate.svg" alt="ic_camera_ocr_translate" width="24" height="24"> | Быстрый перевод с камеры |
+| <img src="icons/svg/ic_edit.svg" alt="ic_edit" width="24" height="24"> | Открывать снятое фото для редактирования |
 | <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Включить съёмку фото |
+| <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Воспроизводить сразу |
+| <img src="icons/svg/ic_density_small.svg" alt="ic_density_small" width="24" height="24"> | Компактные элементы (глобально) |
+| <img src="icons/svg/ic_check.svg" alt="ic_check" width="24" height="24"> | Подтверждать удаление |
+| <img src="icons/svg/ic_hotkeys.svg" alt="ic_hotkeys" width="24" height="24"> | Управление и клавиши |
+| <img src="icons/svg/ic_crop.svg" alt="ic_crop" width="24" height="24"> | Обрезать изображения на весь экран |
+| <img src="icons/svg/ic_profile_personal_smartphone.svg" alt="ic_profile_personal_smartphone" width="24" height="24"> | Профиль устройства |
+| <img src="icons/svg/ic_animation.svg" alt="ic_animation" width="24" height="24"> | Отключить анимацию |
+| <img src="icons/svg/ic_color_palette.svg" alt="ic_color_palette" width="24" height="24"> | Динамический фон |
 | <img src="icons/svg/ic_game_kryvavitsa.svg" alt="ic_game_kryvavitsa" width="24" height="24"> | Мини-игра |
+| <img src="icons/svg/ic_sync.svg" alt="ic_sync" width="24" height="24"> | Включить фоновую синхронизацию |
 | <img src="icons/svg/ic_calculator.svg" alt="ic_calculator" width="24" height="24"> | Калькулятор |
 | <img src="icons/svg/ic_resource_favorites.svg" alt="ic_resource_favorites" width="24" height="24"> | Включить избранное |
+| <img src="icons/svg/ic_send_plane.svg" alt="ic_send_plane" width="24" height="24"> | Отправить отзыв |
 | <img src="icons/svg/ic_storage.svg" alt="ic_storage" width="24" height="24"> | Заполнение накопителя |
 | <img src="icons/svg/ic_network_monitor.svg" alt="ic_network_monitor" width="24" height="24"> | Сетевой монитор |
+| <img src="icons/svg/ic_send_note.svg" alt="ic_send_note" width="24" height="24"> | Заметки |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Разрешить распознавание текста |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Фоновое воспроизведение |
+| <img src="icons/svg/ic_image.svg" alt="ic_image" width="24" height="24"> | Показывать случайные фото при воспроизведении аудио |
 | <img src="icons/svg/ic_picture_in_picture.svg" alt="ic_picture_in_picture" width="24" height="24"> | Включить картинку в картинке |
 | <img src="icons/svg/ic_schedule.svg" alt="ic_schedule" width="24" height="24"> | Использовать операции по расписанию |
 | <img src="icons/svg/ic_sos.svg" alt="ic_sos" width="24" height="24"> | Аварийный сигнал SOS |
+| <img src="icons/svg/ic_series_chart.svg" alt="ic_series_chart" width="24" height="24"> | Сбор статистики |
 | <img src="icons/svg/ic_stopwatch.svg" alt="ic_stopwatch" width="24" height="24"> | Секундомер |
 | <img src="icons/svg/ic_stream.svg" alt="ic_stream" width="24" height="24"> | Включить трансляции |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Сведения о системе |
+| <img src="icons/svg/ic_image.svg" alt="ic_image" width="24" height="24"> | Предзагрузка миниатюр |
 | <img src="icons/svg/ic_tourist.svg" alt="ic_tourist" width="24" height="24"> | Турист |
 | <img src="icons/svg/ic_translate.svg" alt="ic_translate" width="24" height="24"> | Включить перевод |
 | <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Wear-компаньон |
 | <img src="icons/svg/ic_camera_flash_on.svg" alt="ic_camera_flash_on" width="24" height="24"> | Фонарь в шторке уведомлений |
+| <img src="icons/svg/ic_screen_rotation.svg" alt="ic_screen_rotation" width="24" height="24"> | Поворачивать экран плеера вслед за ОС |
 | <img src="icons/svg/ic_front_flashlight.svg" alt="ic_front_flashlight" width="24" height="24"> | Фронтальный фонарик |
 | <img src="icons/svg/ic_gesture.svg" alt="ic_gesture" width="24" height="24"> | Оверлей жестов |
+| <img src="icons/svg/ic_fullscreen.svg" alt="ic_fullscreen" width="24" height="24"> | Прятать элементы ОС в полноэкранном режиме |
+| <img src="icons/svg/ic_language.svg" alt="ic_language" width="24" height="24"> | Language/Язык/Мова |
+| <img src="icons/svg/ic_blur_on.svg" alt="ic_blur_on" width="24" height="24"> | Ореол вокруг полос |
+| <img src="icons/svg/ic_blur_on.svg" alt="ic_blur_on" width="24" height="24"> | Выращивать ореол на новом фото |
+| <img src="icons/svg/ic_hd.svg" alt="ic_hd" width="24" height="24"> | Загружать изображения полностью |
+| <img src="icons/svg/ic_rename.svg" alt="ic_rename" width="24" height="24"> | Спрашивать имя файла |
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Включить запись с микрофона |
 | <img src="icons/svg/ic_mirror.svg" alt="ic_mirror" width="24" height="24"> | Зеркало |
+| <img src="icons/svg/ic_text_settings.svg" alt="ic_text_settings" width="24" height="24"> | Шрифт для OCR |
+| <img src="icons/svg/ic_text_increase.svg" alt="ic_text_increase" width="24" height="24"> | Размер шрифта для OCR |
 | <img src="icons/svg/ic_history.svg" alt="ic_history" width="24" height="24"> | Статистика |
+| <img src="icons/svg/ic_settings.svg" alt="ic_settings" width="24" height="24"> | Настройки секундомера |
+| <img src="icons/svg/ic_fullscreen.svg" alt="ic_fullscreen" width="24" height="24"> | Открывать видеофайлы в полноэкранном режиме |
+| <img src="icons/svg/ic_stereo_3d.svg" alt="ic_stereo_3d" width="24" height="24"> | Показывать 3D-контент с одного глаза |
+| <img src="icons/svg/ic_play.svg" alt="ic_play" width="24" height="24"> | Сразу играть ожидаемые трансляции |
+| <img src="icons/svg/ic_developer_options.svg" alt="ic_developer_options" width="24" height="24"> | Показывать FPS поверх плеера |
+| <img src="icons/svg/ic_exchange_mono.svg" alt="ic_exchange_mono" width="24" height="24"> | Принимать команды с моих других устройств |
+| <img src="icons/svg/ic_save.svg" alt="ic_save" width="24" height="24"> | Сохранять загруженные медиаданные локально |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Видеозапись экрана |
+| <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Искать обложки аудио онлайн |
+| <img src="icons/svg/ic_wifi.svg" alt="ic_wifi" width="24" height="24"> | Искать только по Wi-Fi |
 | <img src="icons/svg/ic_cloud.svg" alt="ic_cloud" width="24" height="24"> | Доступ через Google Drive |
 | <img src="icons/svg/ic_exchange_mono.svg" alt="ic_exchange_mono" width="24" height="24"> | Сервер обмена |
 | <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | SFTP-сервер |
 | <img src="icons/svg/ic_black_screen.svg" alt="ic_black_screen" width="24" height="24"> | Показывать кнопку «Чёрный экран» |
+| <img src="icons/svg/ic_menu.svg" alt="ic_menu" width="24" height="24"> | Показывать панель команд по умолчанию |
+| <img src="icons/svg/ic_gesture_action_play_pause.svg" alt="ic_gesture_action_play_pause" width="24" height="24"> | Показывать панель плеера |
+| <img src="icons/svg/ic_view_grid.svg" alt="ic_view_grid" width="24" height="24"> | Показывать миниатюры видеофайлов |
+| <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Музыка во время слайд-шоу |
+| <img src="icons/svg/ic_density_small.svg" alt="ic_density_small" width="24" height="24"> | Компактные кнопки плеера |
+| <img src="icons/svg/ic_cloud_download.svg" alt="ic_cloud_download" width="24" height="24"> | Сверхинтеллектуальная буферизация трансляций |
 | <img src="icons/svg/ic_resource_cloud.svg" alt="ic_resource_cloud" width="24" height="24"> | В облачных ресурсах |
 | <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | Компьютер в интернете (S)FTP |
 | <img src="icons/svg/ic_resource_smb.svg" alt="ic_resource_smb" width="24" height="24"> | Локальная сеть (Ethernet) SMB |
 | <img src="icons/svg/ic_picture_in_picture.svg" alt="ic_picture_in_picture" width="24" height="24"> | Включить картинку в картинке |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Поддержка аудио |
+| <img src="icons/svg/ic_gif.svg" alt="ic_gif" width="24" height="24"> | Поддержка GIF анимации |
 | <img src="icons/svg/ic_image.svg" alt="ic_image" width="24" height="24"> | Поддержка статичных изображений |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Поддержка видео |
 | <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Подавлять медиа-управление на часах |
+| <img src="icons/svg/ic_wifi.svg" alt="ic_wifi" width="24" height="24"> | Только по Wi-Fi |
+| <img src="icons/svg/ic_text_layer.svg" alt="ic_text_layer" width="24" height="24"> | Результат перевода в блоках |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Включить запись видео |
+| <img src="icons/svg/ic_play.svg" alt="ic_play" width="24" height="24"> | Открывать записанное видео в плеере |
+| <img src="icons/svg/ic_copy.svg" alt="ic_copy" width="24" height="24"> | Сохранять кадры видео в буфер обмена |
+| <img src="icons/svg/ic_graphic_eq.svg" alt="ic_graphic_eq" width="24" height="24"> | Визуализировать аудиотрансляции как музыку |
 | <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Разрешить часам видеть мою камеру |
 | <img src="icons/svg/ic_water_flashlight.svg" alt="ic_water_flashlight" width="24" height="24"> | Водный фонарь |
 
@@ -180,6 +243,7 @@ permalink: /docs/ICON_LEGEND-ru.html
 | <img src="icons/svg/ic_star_outline.svg" alt="ic_star_outline" width="24" height="24"> | Избранное |
 | <img src="icons/svg/ic_view_grid.svg" alt="ic_view_grid" width="24" height="24"> | Сетка миниатюр |
 | <img src="icons/svg/ic_view_list.svg" alt="ic_view_list" width="24" height="24"> | Список файлов |
+| <img src="icons/svg/ic_go_to_page.svg" alt="ic_go_to_page" width="24" height="24"> | Перейти к файлу |
 | <img src="icons/svg/ic_skip_previous.svg" alt="ic_skip_previous" width="24" height="24"> | Предыдущий кадр недоступен: декодер не поддерживает шаг назад. |
 | <img src="icons/svg/ic_skip_next.svg" alt="ic_skip_next" width="24" height="24"> | Следующий кадр |
 | <img src="icons/svg/ic_fullscreen.svg" alt="ic_fullscreen" width="24" height="24"> | Во весь экран |
@@ -219,6 +283,8 @@ permalink: /docs/ICON_LEGEND-ru.html
 | <img src="icons/svg/ic_slideshow.svg" alt="ic_slideshow" width="24" height="24"> | Слайд-шоу |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Информация о канале |
 | <img src="icons/svg/ic_text_settings.svg" alt="ic_text_settings" width="24" height="24"> | Настройки текста |
+| <img src="icons/svg/ic_zoom_in.svg" alt="ic_zoom_in" width="24" height="24"> | Увеличить |
+| <img src="icons/svg/ic_zoom_out.svg" alt="ic_zoom_out" width="24" height="24"> | Уменьшить |
 | <img src="icons/svg/ic_document.svg" alt="ic_document" width="24" height="24"> | Переключить Markdown |
 | <img src="icons/svg/ic_translate.svg" alt="ic_translate" width="24" height="24"> | Перевести |
 | <img src="icons/svg/ic_translate.svg" alt="ic_translate" width="24" height="24"> | Перевести |

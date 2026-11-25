@@ -116,6 +116,9 @@ $logEntry = "$timestamp | standard-debug | $destName"
 Add-Content -Path $journalPath -Value $logEntry
 Write-Host "Build logged to journal" -ForegroundColor Gray
 
+# S4679: record the build in the release ledger; the wrapper reports and never fails the build.
+& "$PSScriptRoot\..\utils\log-release-ledger-build.ps1" -Package phone -Flavor standard -Kind debug -Version $versionName -Artifact "$downloadsDir\$destName"
+
 & "$PSScriptRoot\..\utils\publish-artifact.ps1" -Path "$downloadsDir\$destName" -Name $destName
 
 }

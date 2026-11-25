@@ -10,11 +10,11 @@ availability: SUPPORT_DOCUMENTS
 recipe_number: "01"
 canonical_url: documentation/documents/pdf-epub-viewing.html
 why: |
-  A bank statement, a user manual, a train ticket, a school handout - so many things arrive as PDF files. You do not need a separate PDF app for them: tap the file in FastMediaSorter and it opens in the built-in [reader](term:reader), page by page, sharp enough to zoom into the small print.
+  A bank statement, a user manual, a train ticket, a school handout - so many things arrive as PDF files. You do not need a separate PDF app for them: tap the file in Fast Media Sorter & Organizer and it opens in the built-in [reader](term:reader), page by page, sharp enough to zoom into the small print.
 
   The reader remembers where you stopped, can show a whole document as one long scroll, dims the page for reading at night, finds a word on the page, reads the text aloud and even translates it without the internet. When you need the pages somewhere else, it saves them as pictures or sends the document to a printer.
 ingredients:
-  - "FastMediaSorter in an [edition](term:edition) with the reader: Standard, noLegal, Legacy, VR or FOSS. The Lite and Photos editions do not open documents."
+  - "Fast Media Sorter & Organizer in an [edition](term:edition) with the reader: Standard, noLegal, Legacy, VR or FOSS. The Lite and Photos editions do not open documents."
   - "A PDF file - on this device, in a [network folder](term:network-folder) or in [cloud storage](term:cloud-storage). Files from a network or the cloud are downloaded first, so the first page may take a moment."
   - "**Support PDF documents** switched on in **Settings**, the **Media** tab, **Documents**. It is on from the start."
   - "For tapping links inside a PDF and for picking the exact word under your finger: Android 15 or newer."
@@ -26,7 +26,7 @@ steps:
     text: |
       In the [file browser](term:file-browser) tap the PDF file. It opens in the reader on the page where you stopped last time - or on the first page, if you have never opened it before. PDF files in the file browser show a small picture of their first page, so you can tell them apart before opening.
 
-      You can also open a PDF that another app hands over, for example an attachment in your e-mail: choose FastMediaSorter in the **Open with** list. It opens in a separate reader window with the same tools. To have every PDF open in FastMediaSorter straight away, switch on **Set as default document viewer** in **Settings**, the **Media** tab, **Documents**.
+      You can also open a PDF that another app hands over, for example an attachment in your e-mail: choose Fast Media Sorter & Organizer in the **Open with** list. It opens in a separate reader window with the same tools. To have every PDF open in Fast Media Sorter & Organizer straight away, switch on **Set as default document viewer** in **Settings**, the **Media** tab, **Documents**.
 
       To see all your PDFs, books and text files in one list, add the [All Documents](term:all-documents) resource on the [resource list](term:resource-list).
     image_bookmark:

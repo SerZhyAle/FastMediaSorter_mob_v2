@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.sza.fastmediasorter.ui.common.widget.MaxHeightLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/languagePickerRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:baselineAligned="false"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/padding_normal"
+    android:paddingTop="@dimen/padding_small"
+    android:paddingEnd="@dimen/padding_normal"
+    android:paddingBottom="@dimen/padding_small">
+
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:overScrollMode="ifContentScrolls"
+        android:paddingEnd="@dimen/padding_normal">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_tiny"
+                android:baselineAligned="false"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvLanguagePickerTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="2"
+                    android:textAppearance="@style/TextAppearance.FastMediaSorter.Dialog.Title" />
+
+                <include layout="@layout/view_dialog_help_button" />
+            </LinearLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/search_hint"
+                app:boxBackgroundMode="outline"
+                app:endIconMode="clear_text">
+
+                <com.sza.fastmediasorter.ui.common.widget.SafeSelectionTextInputEditText
+                    android:id="@+id/editLanguageSearch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:imeOptions="actionSearch|flagNoExtractUi"
+                    android:inputType="text"
+                    android:nextFocusDown="@+id/recyclerLanguages"
+                    android:nextFocusRight="@+id/recyclerLanguages"
+                    android:singleLine="true" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+    <FrameLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1.35">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerLanguages"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:minHeight="@dimen/button_height"
+            android:nextFocusLeft="@+id/editLanguageSearch"
+            android:nextFocusUp="@+id/editLanguageSearch"
+            android:overScrollMode="ifContentScrolls"
+            android:scrollbars="vertical" />
+
+        <TextView
+            android:id="@+id/tvLanguageEmpty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:focusable="false"
+            android:gravity="center"
+            android:padding="@dimen/padding_normal"
+            android:text="@string/language_picker_no_results"
+            android:textAppearance="@style/TextAppearance.FastMediaSorter.Dialog.Body"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:visibility="gone" />
+
+    </FrameLayout>
+
+</com.sza.fastmediasorter.ui.common.widget.MaxHeightLinearLayout>

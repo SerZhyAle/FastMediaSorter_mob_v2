@@ -14,6 +14,7 @@
          leave an empty section, which Android does not remove on its own. -->
     <item
         android:id="@+id/menu_edit_section_standalone"
+        android:icon="@drawable/ic_edit"
         android:title="@string/menu_edit_submenu_title"
         app:showAsAction="never">
         <menu>

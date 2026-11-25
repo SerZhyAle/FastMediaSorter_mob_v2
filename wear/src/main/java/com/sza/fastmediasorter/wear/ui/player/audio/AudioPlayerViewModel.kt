@@ -38,6 +38,7 @@ import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearNetworkChannelMonitor
 import com.sza.fastmediasorter.wear.domain.repository.WearNowPlayingRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ClassifyWearStreamMediaKindUseCase
@@ -45,6 +46,7 @@ import com.sza.fastmediasorter.wear.domain.usecase.DownloadNetworkFileUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PublishPlaybackStateUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ResolveAlbumArtUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ToggleFavoriteUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.WalkWearBroadcastEndpointsUseCase
 import com.sza.fastmediasorter.wear.service.WearPlaybackService
 import com.sza.fastmediasorter.wear.ui.player.common.PlaybackProgressTicker
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerCastManager
@@ -57,7 +59,9 @@ import com.sza.fastmediasorter.wear.ui.player.common.streamFailure
 import com.sza.fastmediasorter.wear.ui.player.common.togglePlayPause
 import com.sza.fastmediasorter.wear.ui.player.common.wearPlaybackStatePayload
 import com.sza.fastmediasorter.wear.ui.player.helpers.AudioPrefetchManager
+import com.sza.fastmediasorter.wear.ui.player.helpers.BroadcastEndpointWalkManager
 import com.sza.fastmediasorter.wear.ui.player.helpers.StreamPlaybackSessionFactory
+import com.sza.fastmediasorter.wear.ui.player.helpers.toPlayerMetadata
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -101,6 +105,8 @@ class AudioPlayerViewModel @Inject constructor(
     private val backgroundSessionState: WearBackgroundSessionState,
     val fileOperations: com.sza.fastmediasorter.wear.ui.player.common.PlayerFileOperationsManager,
     val castManager: PlayerCastManager,
+    private val walkBroadcastEndpoints: WalkWearBroadcastEndpointsUseCase,
+    private val networkChannelMonitor: WearNetworkChannelMonitor,
     @ApplicationScope private val applicationScope: CoroutineScope,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -232,6 +238,7 @@ class AudioPlayerViewModel @Inject constructor(
                     }
                     refreshStationFormat()
                     publishPlaybackState()
+                    networkSelection?.broadcastRoute?.let { playedBroadcastId = it.record.broadcastId }
                 }
                 Player.STATE_ENDED -> {
                     // S1837: a finished track advances through the set's own rule, so auto-advance
@@ -282,21 +289,64 @@ class AudioPlayerViewModel @Inject constructor(
             } else {
                 // S4473: this callback used to be silent for everything but a voice note, which left an
                 // idle player drawn as a paused one - 0:00 and a Play button that could not restart it.
-                showStreamFailure(error.streamFailure())
+                // S4610: a broadcast first walks on to its next endpoint; only an exhausted walk reaches the
+                // screen. A host that is not visible keeps the failure, as a stream handed off would.
+                val route = networkSelection?.broadcastRoute
+                if (route != null && isHostVisible) {
+                    loadJob?.cancel()
+                    broadcastWalk.walk(
+                        route,
+                        fromTop = false,
+                        failure = error.streamFailure(),
+                        afterPlay = playedBroadcastId == route.record.broadcastId,
+                    )
+                } else {
+                    showStreamFailure(error.streamFailure())
+                }
             }
         }
-
-        /**
-         * S4473: puts the source's failure or its producer's end on the screen and settles the session
-         * under it. Pausing is what releases the display hold, which follows `playWhenReady`.
-         */
-        private fun showStreamFailure(failure: WearStreamFailure) {
-            exoPlayer.pause()
-            streamPlaybackSession.stop()
-            _uiState.update { it.withStreamFailure(failure) }
-            publishPlaybackState()
-        }
     }
+
+    /**
+     * S4473: puts the source's failure or its producer's end on the screen and settles the session
+     * under it. Pausing is what releases the display hold, which follows `playWhenReady`.
+     */
+    private fun showStreamFailure(failure: WearStreamFailure) {
+        playedBroadcastId = null
+        exoPlayer.pause()
+        streamPlaybackSession.stop()
+        _uiState.update { it.withStreamFailure(failure) }
+        publishPlaybackState()
+    }
+
+    /** S4610: whether the screen is in front; a walk swaps the player's endpoint only under a visible screen. */
+    private var isHostVisible = true
+
+    /**
+     * DEVICE-EXCHANGE item DY: the broadcast that reached READY since its failure screen was last shown. Only a walk
+     * after a broadcast that played asks the after-end reconnect; one that never sounded is merely unreachable.
+     */
+    private var playedBroadcastId: String? = null
+
+    private val broadcastWalk = BroadcastEndpointWalkManager(
+        scope = viewModelScope,
+        walkEndpoints = walkBroadcastEndpoints,
+        networkChannel = networkChannelMonitor.channel,
+        // Only a broadcast that is meant to sound, under a visible screen, and not already on its failure screen.
+        reconnectRoute = {
+            val playing = exoPlayer.playWhenReady && _uiState.value.streamFailure == null
+            networkSelection?.broadcastRoute?.takeIf { playing && isHostVisible }
+        },
+        onMoved = { next ->
+            networkSelection?.copy(streamUri = next.url, broadcastRoute = next.route)?.let { moved ->
+                networkSelection = moved
+                exoPlayer.stop()
+                exoPlayer.clearMediaItems()
+                loadNetworkAudio(moved)
+            }
+        },
+        onExhausted = ::showStreamFailure,
+    )
 
     private val streamPlaybackSession = streamPlaybackSessionFactory.create(
         scope = viewModelScope,
@@ -390,14 +440,10 @@ class AudioPlayerViewModel @Inject constructor(
     }
 
     fun onHostStarted() {
+        isHostVisible = true
         if (backgroundSessionState.session.value != null) {
             attachToBackgroundSessionOrLoad()
         }
-    }
-
-    private fun loadAudioFile() {
-        Timber.d("Loading audio file with fileId: $fileId")
-        loadMediaFile()
     }
 
     /**
@@ -411,7 +457,7 @@ class AudioPlayerViewModel @Inject constructor(
     private fun attachToBackgroundSessionOrLoad() {
         val background = backgroundSessionState.session.value
         if (background == null) {
-            loadAudioFile()
+            loadMediaFile()
             return
         }
         context.startService(WearPlaybackService.stopIntent(context))
@@ -477,11 +523,7 @@ class AudioPlayerViewModel @Inject constructor(
             checkFavoriteState()
             background.streamMediaKind?.let(streamPlaybackSession::prepare)
             val metadata = _uiState.value.mediaFile?.let { file ->
-                MediaMetadata.Builder()
-                    .setTitle(file.title?.takeIf { it.isNotBlank() } ?: file.name)
-                    .setArtist(file.artist?.takeIf { it.isNotBlank() })
-                    .apply { file.albumArt?.let { setArtworkUri(it) } }
-                    .build()
+                file.toPlayerMetadata()
             }
             val mediaItemBuilder = MediaItem.Builder()
                 .setUri(Uri.parse(background.mediaUri))
@@ -610,11 +652,7 @@ class AudioPlayerViewModel @Inject constructor(
     }
 
     private fun playLocalFile(file: WearMediaFile) {
-        val metadata = MediaMetadata.Builder()
-            .setTitle(file.title?.takeIf { it.isNotBlank() } ?: file.name)
-            .setArtist(file.artist?.takeIf { it.isNotBlank() })
-            .apply { file.albumArt?.let { setArtworkUri(it) } }
-            .build()
+        val metadata = file.toPlayerMetadata()
         val mediaItem = MediaItem.Builder()
             .setUri(file.uri)
             .setMediaMetadata(metadata)
@@ -676,11 +714,7 @@ class AudioPlayerViewModel @Inject constructor(
                 return
             }
             _uiState.update { it.copy(isLoading = true) }
-            val metadata = MediaMetadata.Builder()
-                .setTitle(selected.file.title?.takeIf { it.isNotBlank() } ?: selected.file.name)
-                .setArtist(selected.file.artist?.takeIf { it.isNotBlank() })
-                .apply { selected.file.albumArt?.let { setArtworkUri(it) } }
-                .build()
+            val metadata = selected.file.toPlayerMetadata()
             val mediaItem = MediaItem.Builder()
                 .setUri(Uri.parse(selected.streamUri))
                 .setMediaMetadata(metadata)
@@ -698,11 +732,7 @@ class AudioPlayerViewModel @Inject constructor(
         currentCoroutineContext().ensureActive()
         downloaded.fold(
             onSuccess = { cachedFile ->
-                val metadata = MediaMetadata.Builder()
-                    .setTitle(selected.file.title?.takeIf { it.isNotBlank() } ?: selected.file.name)
-                    .setArtist(selected.file.artist?.takeIf { it.isNotBlank() })
-                    .apply { selected.file.albumArt?.let { setArtworkUri(it) } }
-                    .build()
+                val metadata = selected.file.toPlayerMetadata()
                 val mediaItem = MediaItem.Builder()
                     .setUri(Uri.fromFile(cachedFile))
                     .setMediaMetadata(metadata)
@@ -769,17 +799,20 @@ class AudioPlayerViewModel @Inject constructor(
      * paging kept current, a local file by its uri, and the first-open path when neither is remembered.
      */
     fun retryPlayback() {
-        if (_uiState.value.streamFailure == null) return
+        val failure = _uiState.value.streamFailure ?: return
         _uiState.update { it.withRetryStarted() }
         exoPlayer.stop()
         exoPlayer.clearMediaItems()
         loadJob?.cancel()
         val selection = networkSelection
         val file = _uiState.value.mediaFile
+        val route = selection?.broadcastRoute
         when {
+            // S4610: a retry is a reconnect, which starts at the top of the endpoint list (DEVICE-EXCHANGE 7.7).
+            route != null -> broadcastWalk.walk(route, fromTop = true, failure = failure)
             selection != null -> loadJob = viewModelScope.launch { loadNetworkAudio(selection) }
             file != null -> playLocalFile(file)
-            else -> loadAudioFile()
+            else -> loadMediaFile()
         }
     }
 
@@ -818,6 +851,7 @@ class AudioPlayerViewModel @Inject constructor(
      * With the setting off, or on a player that is not playing, S0902's behaviour stands exactly.
      */
     fun onHostStopped() {
+        isHostVisible = false
         val action = WearBackgroundPlaybackPolicy.onHostStopped(
             backgroundPlaybackEnabled = backgroundPlaybackEnabled,
             isAudioContent = true,

@@ -17,11 +17,13 @@ lang: zh-Hans
 
 ## 常规问题
 
-### FastMediaSorter 是什么？
-FastMediaSorter 集成媒体播放与本地、网络、云端文件管理。桌面启动器、直播和手表联动取决于版本。文件访问需要授权；替换主屏幕必须由您在 Android 中明确选择。
+<a id="fastmediasorter-是什么"></a>
+
+### Fast Media Sorter & Organizer 是什么？
+Fast Media Sorter & Organizer 集成媒体播放与本地、网络、云端文件管理。桌面启动器、直播和手表联动取决于版本。文件访问需要授权；替换主屏幕必须由您在 Android 中明确选择。
 
 ### 它是免费的吗？
-是的！FastMediaSorter v2 完全免费且开源。
+是的！Fast Media Sorter & Organizer 完全免费且开源。
 
 ### 我需要什么 Android 版本？
 以下为当前源码配置的最低安装版本。沉浸式 VR/XR 还需兼容头显与运行环境；**noLegal 并非仅供头显使用**。源码中存在某个变体不代表已有公开 APK。
@@ -39,10 +41,10 @@ FastMediaSorter 集成媒体播放与本地、网络、云端文件管理。桌�
 本地文件不需要互联网。局域网 SMB/SFTP/FTP 需要能访问服务器的网络，不需要公网。云服务与互联网直播需要互联网；功能取决于版本。
 
 ### 应用有小组件吗？
-有！FastMediaSorter v2 提供多种主屏幕小组件 - 长按主屏幕 → Widgets → FastMediaSorter 即可找到它们。包括资源快捷方式、幻灯片放映启动器等等。
+有！Fast Media Sorter & Organizer 提供多种主屏幕小组件 - 长按主屏幕 → Widgets → Fast Media Sorter & Organizer 即可找到它们。包括资源快捷方式、幻灯片放映启动器等等。
 
 ### 应用能替代我的主屏幕吗？
-在 **Standard/noLegal** 中选择 **设置 → 常规 → 主启动窗口 → 设备主屏幕**，再在 Android 中指定 FastMediaSorter 为主屏幕应用。**桌面作为主窗口**不会替换系统启动器。
+在 **Standard/noLegal** 中选择 **设置 → 常规 → 主启动窗口 → 设备主屏幕**，再在 Android 中指定 Fast Media Sorter & Organizer 为主屏幕应用。**桌面作为主窗口**不会替换系统启动器。
 
 [版本功能矩阵（EN）](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 
@@ -293,7 +295,9 @@ Standard、noLegal、Legacy、VR、XR、FOSS 支持音频和持续后台播放�
 
 ## 网络直播流
 
-### FastMediaSorter 能播放网络电台吗？
+<a id="fastmediasorter-能播放网络电台吗"></a>
+
+### Fast Media Sorter & Organizer 能播放网络电台吗？
 **直播**支持 HTTP(S)/ICY 电台、HLS/DASH 和 RTSP，取决于来源与编码。适用于 **Standard、noLegal、Legacy、VR、XR**，不适用于 **Lite、Photos、FOSS**。粘贴 URL 不能绕过不兼容服务或 DRM。
 
 [版本功能矩阵（EN）](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
@@ -305,7 +309,7 @@ Standard、noLegal、Legacy、VR、XR、FOSS 支持音频和持续后台播放�
 在 Streams 界面中，点按工具栏末端的 **⋮**，选择 **Add stream**，粘贴电台网址。点按 Save。该电台会立即出现在列表中。
 
 ### 我能导入播放列表吗？
-可以 - 点按 **⋮ > Import from URL**，输入一个远程 `.m3u` 地址。同一个菜单中还有 **Update FastMediaSorter catalog**，用于获取精选列表（带主题和语言筛选标签），也可从 **Settings > Extensions** 或欢迎引导界面进入。
+可以 - 点按 **⋮ > Import from URL**，输入一个远程 `.m3u` 地址。同一个菜单中还有 **Update Fast Media Sorter & Organizer catalog**，用于获取精选列表（带主题和语言筛选标签），也可从 **Settings > Extensions** 或欢迎引导界面进入。
 
 ### 某个流播放不了，该怎么办？
 如果一个流播放失败，会弹出带有 **Retry**、**Remove** 和 **Cancel** 选项的对话框。跨协议的 301 重定向会自动处理。如果主机已失效或非常慢，目录导入会很快超时而不是一直卡住。
@@ -323,7 +327,9 @@ Standard、noLegal、Legacy、VR、XR、FOSS 支持音频和持续后台播放�
 
 ## Wear OS
 
-### FastMediaSorter 支持 Wear OS 智能手表吗？
+<a id="fastmediasorter-支持-wear-os-智能手表吗"></a>
+
+### Fast Media Sorter & Organizer 支持 Wear OS 智能手表吗？
 独立 **Wear OS 应用**最低 API 28，APK 安装到手表。手机联动目前要求 **Standard/noLegal** 及兼容包标识/签名。独立 **WFF v4 表盘**要求 Wear OS 6 / API 36。
 
 [版本功能矩阵（EN）](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)

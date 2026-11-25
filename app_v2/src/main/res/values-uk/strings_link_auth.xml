@@ -26,4 +26,5 @@
     <string name="s0157_dismissed_label">Не авторизовано (ви відмовились)</string>
     <string name="s0157_last_used_never">ще не використовувалась</string>
     <string name="s0157_last_used_fmt">останній раз %1$s</string>
+    <string name="s4581_pick_account_add_new">+ Додати акаунт</string>
 </resources>

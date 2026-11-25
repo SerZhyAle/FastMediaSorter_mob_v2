@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Digitaler Bilderrahmen auf dem Tablet - FastMediaSorter v2"
+title: "Digitaler Bilderrahmen auf dem Tablet - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-photo-frame-de.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -47,7 +47,7 @@ Wählen Sie, wo sich Ihre Fotos befinden:
 2. Tippen Sie auf **Anmelden** → schließen Sie die Authentifizierung im Browser ab
 3. Wählen Sie den Ordner mit Ihren Fotos aus → **Fertig**
 
-![FastMediaSorter Hauptbildschirm - Fotoressourcenkarten nach dem Hinzufügen eines Fotoordners sichtbar](screenshots/screenshot-pf-step1.png)
+![Fast Media Sorter & Organizer Hauptbildschirm - Fotoressourcenkarten nach dem Hinzufügen eines Fotoordners sichtbar](screenshots/screenshot-pf-step1.png)
 
 ---
 
@@ -123,12 +123,12 @@ Android-Einstellungen → Display → Bildschirm-Zeitlimit → auf **„Nie“**
 Dieser Schritt dient der Bequemlichkeit: Möchten Sie den Bilderrahmen sofort starten, wenn Sie das Tablet in die Hand nehmen - ohne die App zu öffnen und zu navigieren?
 
 1. Halten Sie Ihren Startbildschirm gedrückt → tippen Sie auf **Widgets**
-2. Suchen Sie **FastMediaSorter** in der Widget-Liste
+2. Suchen Sie **Fast Media Sorter & Organizer** in der Widget-Liste
 3. Ziehen Sie das Widget **„Ressourcen-Verknüpfung“** auf Ihren Startbildschirm
 4. Wählen Sie bei Aufforderung Ihre Fotoressource aus
 5. Tippen Sie jederzeit auf das Widget → die Diashow startet sofort
 
-![Android-Startbildschirm mit platzierten FastMediaSorter-Ressourcen-Verknüpfungs-Widgets](screenshots/screenshot-pf-step6.png)
+![Android-Startbildschirm mit platzierten Fast Media Sorter & Organizer-Ressourcen-Verknüpfungs-Widgets](screenshots/screenshot-pf-step6.png)
 
 ---
 

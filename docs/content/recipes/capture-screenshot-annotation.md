@@ -10,11 +10,11 @@ availability: screenCapture
 recipe_number: "3"
 canonical_url: documentation/capture/screenshot-annotation.html
 why: |
-  A confirmation code, a boarding pass, a joke in a group chat - some things on your screen are worth keeping exactly as they look right now. FastMediaSorter turns a single swipe at the screen edge into a screenshot, and can immediately do something useful with it: open it for editing, translate the text on it, or send it on - without you opening the app first.
+  A confirmation code, a boarding pass, a joke in a group chat - some things on your screen are worth keeping exactly as they look right now. Fast Media Sorter & Organizer turns a single swipe at the screen edge into a screenshot, and can immediately do something useful with it: open it for editing, translate the text on it, or send it on - without you opening the app first.
 
   Screen capture is not a separate program you launch. It rides on the same [edge gesture](term:edge-gesture) system used for quick photos and app shortcuts, so once it is set up, it works from inside any app.
 ingredients:
-  - "FastMediaSorter in the Standard or noLegal [edition](term:edition). Screen capture is not part of the Lite, Photos, Legacy, VR or FOSS editions."
+  - "Fast Media Sorter & Organizer in the Standard or noLegal [edition](term:edition). Screen capture is not part of the Lite, Photos, Legacy, VR or FOSS editions."
   - "The **Display over other apps** permission, so the gesture strip can sit on top of whatever you are looking at."
   - "Android's own on-screen confirmation before a capture - on Standard, before every one; on noLegal, only until you turn on the accessibility shortcut described below."
 steps:
@@ -35,7 +35,7 @@ steps:
     id: swipe-to-capture
     title: Swipe to capture
     text: |
-      Perform the swipe on the band you assigned - a short drag from a corner band that FastMediaSorter reads as **Up**, **Right** or **Down**, wherever exactly it started. The first time, a one-time notice explains what is about to happen - **"Screen capture needs your permission"**: "The app can capture the current device screen, including other apps, only after you confirm the Android system prompt.." Tap **Continue**, then confirm Android's own screen-capture prompt. This is the same Play-safe capture flow behind every screenshot action on this page; on Standard, that Android prompt appears before every single shot, since there is no way around it in a Play-published app.
+      Perform the swipe on the band you assigned - a short drag from a corner band that Fast Media Sorter & Organizer reads as **Up**, **Right** or **Down**, wherever exactly it started. The first time, a one-time notice explains what is about to happen - **"Screen capture needs your permission"**: "The app can capture the current device screen, including other apps, only after you confirm the Android system prompt.." Tap **Continue**, then confirm Android's own screen-capture prompt. This is the same Play-safe capture flow behind every screenshot action on this page; on Standard, that Android prompt appears before every single shot, since there is no way around it in a Play-published app.
   - number: 3
     id: choose-what-happens-next
     title: Choose what happens to the shot

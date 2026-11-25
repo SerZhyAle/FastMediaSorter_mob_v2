@@ -10,11 +10,11 @@ availability: all
 recipe_number: "02"
 canonical_url: documentation/browsing/sorting-and-filtering.html
 why: |
-  A folder that grew to a few hundred photos, downloads or recordings stops being useful the moment you cannot find anything in it. FastMediaSorter lets you put that folder in an order that makes sense - by name, by date, by size, or in whatever order you drag the files into yourself - and narrow it down to just the files you are looking for, without ever leaving the file browser.
+  A folder that grew to a few hundred photos, downloads or recordings stops being useful the moment you cannot find anything in it. Fast Media Sorter & Organizer lets you put that folder in an order that makes sense - by name, by date, by size, or in whatever order you drag the files into yourself - and narrow it down to just the files you are looking for, without ever leaving the file browser.
 
   None of this touches your files. Sorting, filtering and searching only change what you see and in what order; the files on disk stay exactly where and as they were.
 ingredients:
-  - "FastMediaSorter installed, with a [resource](term:resource) open in the [file browser](page:browsing.grid-and-list-views)."
+  - "Fast Media Sorter & Organizer installed, with a [resource](term:resource) open in the [file browser](page:browsing.grid-and-list-views)."
   - "Sort modes, shuffle, manual reordering, filters and live search are part of every [edition](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR and FOSS."
   - "More than a couple of files to look at - sorting and filtering an almost-empty folder has little to show for it."
 steps:
@@ -24,7 +24,7 @@ steps:
     text: |
       Open a resource in the file browser and tap the sort button in the top bar - it already shows the current order, such as "Date ↓". Tap **Sort by** and pick a mode: by name, date, size or type, or - for a folder of one kind of file - by artist, title, duration or the date a photo was taken.
 
-      FastMediaSorter remembers the sort mode for each resource on its own, so the folder greets you with the same order the next time you open it.
+      Fast Media Sorter & Organizer remembers the sort mode for each resource on its own, so the folder greets you with the same order the next time you open it.
     image_bookmark:
       shot_id: browsing.sort-by-menu-open
       device_profile: phone
@@ -37,7 +37,7 @@ steps:
     id: random-shuffle
     title: Shuffle the list, then shuffle it again
     text: |
-      Pick **Random** in the Sort by menu and your files line up in a fresh, mixed order. Change your mind about the mix without leaving the screen: tap **Random** again - it is already selected - and FastMediaSorter reshuffles on the spot, landing on a different order every time, with no folder rescan needed.
+      Pick **Random** in the Sort by menu and your files line up in a fresh, mixed order. Change your mind about the mix without leaving the screen: tap **Random** again - it is already selected - and Fast Media Sorter & Organizer reshuffles on the spot, landing on a different order every time, with no folder rescan needed.
     image_bookmark:
       shot_id: browsing.random-shuffle-active
       device_profile: phone
@@ -52,7 +52,7 @@ steps:
     text: |
       Pick **Manual Order** to take the sequence into your own hands. Long-press a file and drag it to a new spot; a small drag handle appears on each row while manual order is active, showing you where dragging is allowed.
 
-      FastMediaSorter keeps the order you set for that folder, so it stays exactly as you left it the next time you open it.
+      Fast Media Sorter & Organizer keeps the order you set for that folder, so it stays exactly as you left it the next time you open it.
     image_bookmark:
       shot_id: browsing.manual-sort-drag-handle
       device_profile: phone
@@ -67,7 +67,7 @@ steps:
     text: |
       Tap the filter icon in the top bar to open **Filter**. Set a date range, a size range in megabytes, or tick only the media types you want - photos, videos, music, GIFs, documents and more, depending on what the resource holds. Tap **Apply filter** and the list narrows right away.
 
-      The filter belongs to that one resource and never leaks into another one you open afterwards. Come back to the same resource later and FastMediaSorter tells you it restored the filter you left it with.
+      The filter belongs to that one resource and never leaks into another one you open afterwards. Come back to the same resource later and Fast Media Sorter & Organizer tells you it restored the filter you left it with.
     image_bookmark:
       shot_id: browsing.filter-dialog-open
       device_profile: phone
@@ -93,7 +93,7 @@ steps:
     id: filtered-empty-state
     title: When the list comes up empty
     text: |
-      If a folder looks empty after filtering, FastMediaSorter says why instead of leaving you guessing. When the **Maximum file size** setting is the reason files are missing, Browse names the setting and tells you how many files it is hiding, with a direct hint to raise the limit in Settings.
+      If a folder looks empty after filtering, Fast Media Sorter & Organizer says why instead of leaving you guessing. When the **Maximum file size** setting is the reason files are missing, Browse names the setting and tells you how many files it is hiding, with a direct hint to raise the limit in Settings.
     image_bookmark:
       shot_id: browsing.filtered-empty-state
       device_profile: phone
@@ -120,7 +120,7 @@ outcome: |
 tips:
   - "**Want every new resource to start already sorted your way?** Set a default in Settings, the Player tab, Sorting, slideshow and playback order section, field Default sort mode."
   - "**Sorting works the same in grid and list.** The Sort by menu and the Filter dialog behave identically whether Browse is showing thumbnails or a detail list - see [Browsing media collections](page:browsing.grid-and-list-views)."
-  - "**A big folder feels slow to sort on first open?** See [Thumbnail caching and indexing](page:browsing.media-indexing-and-caching) for how FastMediaSorter keeps large folders responsive."
+  - "**A big folder feels slow to sort on first open?** See [Thumbnail caching and indexing](page:browsing.media-indexing-and-caching) for how Fast Media Sorter & Organizer keeps large folders responsive."
   - "**Filtering by file name too?** That comes from the same box as live search - type a name there and Filter keeps it alongside your date, size and type choices."
 next_recipes:
   - title: Browsing media collections
@@ -137,7 +137,7 @@ next_recipes:
     url: page:browsing.media-indexing-and-caching
     badge: Browsing
     badge_type: docs
-    description: How FastMediaSorter keeps thumbnails and large folders fast to browse.
+    description: How Fast Media Sorter & Organizer keeps thumbnails and large folders fast to browse.
 ---
 
 <sub class="doc-stamp">26.10.07 01:10</sub>

@@ -9,7 +9,7 @@ permalink: /docs/TROUBLESHOOTING-ar.html
 
 # 🔧 دليل استكشاف الأخطاء وإصلاحها
 
-الدليل الحالي لاستكشاف أخطاء FastMediaSorter v2 وإصلاحها. استخدم جدول الإصدارات المرجعي في [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) عندما تعتمد المشكلة على مسار البناء المختار (Standard أو Lite أو Photos أو Legacy أو XR / noLegal).
+الدليل الحالي لاستكشاف أخطاء Fast Media Sorter & Organizer وإصلاحها. استخدم جدول الإصدارات المرجعي في [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) عندما تعتمد المشكلة على مسار البناء المختار (Standard أو Lite أو Photos أو Legacy أو XR / noLegal).
 
 ---
 
@@ -53,7 +53,7 @@ permalink: /docs/TROUBLESHOOTING-ar.html
 ### ❌ "فشل تسجيل الدخول إلى Google Drive"
 
 **الحل:**
-1. امسح بيانات التطبيق: الإعدادات ← التطبيقات ← FastMediaSorter ← مسح البيانات
+1. امسح بيانات التطبيق: الإعدادات ← التطبيقات ← Fast Media Sorter & Organizer ← مسح البيانات
 2. أعد تثبيت التطبيق
 3. تحقق من إعدادات حساب Google ← الأمان ← تطبيقات الجهات الخارجية
 
@@ -63,7 +63,7 @@ permalink: /docs/TROUBLESHOOTING-ar.html
 
 **الحل:**
 1. تحقق من حالة حساب Microsoft
-2. امسح بيانات التطبيق: الإعدادات ← التطبيقات ← FastMediaSorter ← مسح البيانات
+2. امسح بيانات التطبيق: الإعدادات ← التطبيقات ← Fast Media Sorter & Organizer ← مسح البيانات
 3. تحقق من إعدادات حساب Microsoft ← الخصوصية ← التطبيقات والخدمات
 
 ---
@@ -72,7 +72,7 @@ permalink: /docs/TROUBLESHOOTING-ar.html
 
 **الحل:**
 1. تحقق من حالة حساب Dropbox
-2. امسح بيانات التطبيق: الإعدادات ← التطبيقات ← FastMediaSorter ← مسح البيانات
+2. امسح بيانات التطبيق: الإعدادات ← التطبيقات ← Fast Media Sorter & Organizer ← مسح البيانات
 3. تحقق من إعدادات حساب Dropbox ← الأمان ← التطبيقات المتصلة
 
 ---
@@ -182,7 +182,7 @@ permalink: /docs/TROUBLESHOOTING-ar.html
 ### ❌ "يتعطّل التطبيق عند بدء التشغيل"
 
 **الحل:**
-1. امسح ذاكرة التخزين المؤقت للتطبيق: الإعدادات ← التطبيقات ← FastMediaSorter ← مسح ذاكرة التخزين المؤقت
+1. امسح ذاكرة التخزين المؤقت للتطبيق: الإعدادات ← التطبيقات ← Fast Media Sorter & Organizer ← مسح ذاكرة التخزين المؤقت
 2. إذا استمرت المشكلة: امسح بيانات التطبيق (⚠️ يفقد الإعدادات)
 3. أعد تثبيت التطبيق كملاذ أخير
 

@@ -39,6 +39,7 @@ import com.sza.fastmediasorter.ui.settings.helpers.LauncherScreenTimeoutSettings
 import com.sza.fastmediasorter.ui.settings.helpers.LauncherSwipePayloadPickerManager
 import com.sza.fastmediasorter.ui.settings.helpers.ScreenshotGestureActionPickerManager
 import com.sza.fastmediasorter.util.showBoundTo
+import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.utils.getEnumByName
 import com.sza.fastmediasorter.utils.putEnumName
@@ -146,6 +147,10 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             dismiss()
             return
         }
+        // Additive on top of the layout's padding_normal: fitsSystemWindows on the root replaced that padding
+        // with the bare inset, which left the content flush against the side edge.
+        binding.root.applySystemBarInsetPadding()
+        Timber.d("S4781: launcher settings root inset padding applied")
         binding.btnClose.setOnClickListener { dismiss() }
         desktopSwipeSettingsManager = LauncherDesktopSwipeSettingsManager(
             host = this,

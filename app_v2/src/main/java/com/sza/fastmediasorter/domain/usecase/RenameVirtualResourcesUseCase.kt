@@ -12,7 +12,9 @@ import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceProfile
+import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
+import com.sza.fastmediasorter.util.NotesFolderPolicy
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
@@ -30,7 +32,8 @@ import javax.inject.Inject
  * silently stopped matching, which is exactly the bug this class exists to prevent.
  *
  * Covered: the six virtual:// resources, the predefined All Files resource
- * (identified by [ResourceProfile.ALL_FILES], never by name), and the Downloads destination.
+ * (identified by [ResourceProfile.ALL_FILES], never by name), the notes folder (by path), and the
+ * Downloads destination.
  *
  * S2627: the current language is resolved BEFORE any comparison, and the remaining declared
  * languages only when the stored value already differs from it. The pass moved off the
@@ -87,6 +90,14 @@ class RenameVirtualResourcesUseCase @Inject constructor(
             }
             for (resource in allFiles) {
                 if (applyLocalizedDefaults(resource, R.string.all_files, null, languages, currentLang)) updatedCount++
+            }
+
+            // S4823: the Notes screen names its folder resource in the language active at first open.
+            val notes = allResources.filter {
+                it.type == ResourceType.LOCAL && NotesFolderPolicy.isNotesDirectory(it.path)
+            }
+            for (resource in notes) {
+                if (applyLocalizedDefaults(resource, R.string.notes_title, null, languages, currentLang)) updatedCount++
             }
 
             val downloadsPath = Environment

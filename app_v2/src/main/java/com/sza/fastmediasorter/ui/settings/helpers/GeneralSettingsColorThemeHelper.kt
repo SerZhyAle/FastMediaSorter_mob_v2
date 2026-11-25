@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.settings.helpers
 
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.theme.ColorThemePrefs
@@ -9,6 +10,8 @@ import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import kotlinx.coroutines.launch
+import timber.log.Timber
 
 /**
  * S0328: owns the "Color theme" spinner in Settings → General.
@@ -78,10 +81,14 @@ class GeneralSettingsColorThemeHelper(
             .setMessage(R.string.restart_app_color_theme_message)
             .setCancelable(false)
             .setPositiveButton(R.string.restart) { _, _ ->
-                viewModel.updateSettings { it.copy(colorTheme = newValue) }
-                ColorThemePrefs.applyMode(newValue)
-                LocaleHelper.markReturnToSettings(fragment.requireContext())
-                LocaleHelper.restartApp(fragment.requireActivity())
+                val activity = fragment.requireActivity()
+                fragment.viewLifecycleOwner.lifecycleScope.launch {
+                    Timber.d("S4824: theme restart confirmed value=%s, awaiting write", newValue)
+                    viewModel.updateSettingsAwaitingWrite { it.copy(colorTheme = newValue) }
+                    ColorThemePrefs.applyMode(newValue)
+                    LocaleHelper.markReturnToSettings(activity)
+                    LocaleHelper.restartApp(activity)
+                }
             }
             .setNegativeButton(R.string.cancel) { dialog, _ ->
                 setIsUpdatingSpinner(true)

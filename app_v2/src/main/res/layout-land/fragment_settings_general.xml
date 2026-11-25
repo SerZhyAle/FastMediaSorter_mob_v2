@@ -12,7 +12,7 @@
 
             <TextView android:id="@+id/textDeviceStorageValue" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_tiny" android:text=".." android:textSize="@dimen/device_storage_text_size" android:textColor="@color/text_color_secondary" />
 
-            <ImageButton android:id="@+id/btnDeviceStorageRefresh" android:layout_width="@dimen/device_storage_button_size" android:layout_height="@dimen/device_storage_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/btn_refresh_storage" android:src="@drawable/ic_refresh" app:tint="@color/text_color_secondary" />
+            <ImageButton android:id="@+id/btnDeviceStorageRefresh" android:layout_width="@dimen/device_storage_button_size" android:layout_height="@dimen/device_storage_button_size" android:padding="@dimen/device_storage_button_padding" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/btn_refresh_storage" android:src="@drawable/ic_refresh" app:tint="@color/text_color_secondary" />
 
         </LinearLayout>
 
@@ -25,6 +25,7 @@
                     android:id="@+id/headerInterface"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:csh_icon="@drawable/ic_display"
                     app:csh_title="@string/settings_category_interface" />
 
                 <LinearLayout android:id="@+id/containerInterface" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/settings_margin_standard" android:paddingEnd="@dimen/settings_margin_standard" android:paddingBottom="@dimen/settings_margin_standard">
@@ -48,6 +49,7 @@
                              the whole line - so the density of R6 is what gives way, not the alignment. -->
                         <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
                             android:id="@+id/rowLanguage"
+                            app:ssr_icon="@drawable/ic_language"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/margin_tiny"
@@ -58,6 +60,7 @@
                         <!-- Color theme (S0328). Value text mode, parity with the Language row above it. -->
                         <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
                             android:id="@+id/spinnerColorTheme"
+                            app:sdr_icon="@drawable/ic_theme_contrast"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/margin_tiny"
@@ -70,6 +73,7 @@
                              Landscape: inline (chevron right after the value, no tall band) to cut wasted vertical space. -->
                         <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
                             android:id="@+id/rowDeviceProfile"
+                            app:ssr_icon="@drawable/ic_profile_personal_smartphone"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/margin_tiny"
@@ -89,6 +93,7 @@
                          reads as subordinate to the toggle. -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
                         android:id="@+id/rowLauncherPrimaryWindow"
+                        app:sdr_icon="@drawable/ic_launcher_mode"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/margin_tiny"
@@ -114,6 +119,7 @@
                     <!-- Global scaling (compact elements). Orientation parity with portrait (S0616). -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                         android:id="@+id/rowCompactElements"
+                        app:str_icon="@drawable/ic_density_small"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/margin_tiny"
@@ -126,6 +132,7 @@
                     <!-- S2209: keep the global animation policy reachable in landscape too. -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                         android:id="@+id/rowDisableAnimations"
+                        app:str_icon="@drawable/ic_animation"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/margin_tiny"
@@ -136,6 +143,7 @@
                          animation switch, so it carries its stricter sibling too. -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
                         android:id="@+id/rowPowerSaving"
+                        app:sdr_icon="@drawable/ic_battery"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/margin_tiny"
@@ -147,6 +155,7 @@
                          the launcher settings dialog, applies app-wide. -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
                         android:id="@+id/rowUnitSystem"
+                        app:sdr_icon="@drawable/ic_straighten"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/margin_tiny"
@@ -165,6 +174,7 @@
 
                             <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                                 android:id="@+id/rowAllowSeparateWindow"
+                                app:str_icon="@drawable/ic_open_in_browse"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 app:str_title="@string/setting_allow_separate_window"
@@ -205,6 +215,7 @@
                     android:id="@+id/headerMainWindowInterface"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:csh_icon="@drawable/ic_view_list"
                     app:csh_title="@string/settings_category_main_window_interface" />
 
                 <LinearLayout android:id="@+id/containerMainWindowInterface" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/settings_margin_standard" android:paddingEnd="@dimen/settings_margin_standard" android:paddingBottom="@dimen/settings_margin_standard">
@@ -272,7 +283,7 @@
 
                     <!-- Landscape: All Files + Show Hidden Files share one horizontal row to save vertical space.
                          layoutShowHiddenFiles is GONE until All Files is enabled (GeneralSettingsObserversHelper),
-                         so All Files spans the full width on its own - leaving room for the create-resource CTA. -->
+                         so All Files spans the full width on its own; the create-resource CTA is added under its row at runtime. -->
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/margin_tiny" android:baselineAligned="false" android:orientation="horizontal">
 
                         <LinearLayout android:id="@+id/layoutAllFiles" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
@@ -783,6 +794,38 @@
                             app:icon="@drawable/ic_refresh" />
                     </LinearLayout>
 
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/resource_field_margin_top"
+                        android:accessibilityHeading="true"
+                        android:text="@string/external_control_name"
+                        android:textAppearance="@style/TextAppearance.Material3.TitleSmall" />
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowRemoteControlEnabled"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:nextFocusUp="@id/btnSftpExchangeMyDevices"
+                        android:nextFocusDown="@id/btnOpenExternalControl"
+                        app:str_icon="@drawable/ic_exchange_mono"
+                        app:str_title="@string/external_control_switch"
+                        app:str_subtitle="@string/external_control_switch_note" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnOpenExternalControl"
+                        style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:nextFocusUp="@id/rowRemoteControlEnabled"
+                        android:nextFocusDown="@id/btnSftpExchangeFoldersPortal"
+                        android:text="@string/external_control_open" />
+
+
                     <!-- S4273: SITE-STRUCTURE 0.2 item E - the page of the folders this section publishes through the server. -->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnSftpExchangeFoldersPortal"
@@ -791,7 +834,7 @@
                         android:layout_height="wrap_content"
                         android:focusable="true"
                         android:clickable="true"
-                        android:nextFocusUp="@id/btnSftpExchangeMyDevices"
+                        android:nextFocusUp="@id/btnOpenExternalControl"
                         android:nextFocusDown="@id/btnSftpExchangePortal"
                         android:text="@string/exchange_portal_link_folders_exchange_server" />
 
@@ -1078,14 +1121,14 @@
                              summary label is kept above the compound row. -->
                         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/dialog_field_spacing" android:orientation="vertical">
                             <TextView android:id="@+id/tvNetworkParallelismLabel" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:text="@string/network_parallelism_summary" android:textColor="@color/text_color_secondary" android:textSize="@dimen/text_size_small" />
-                            <com.sza.fastmediasorter.ui.common.widget.SettingsInputRow android:id="@+id/actvNetworkParallelism" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" app:sir_fieldMaxWidth="@dimen/settings_input_numeric_max_width" app:sir_title="@string/network_parallelism_title" app:sir_inputType="2" />
+                            <com.sza.fastmediasorter.ui.common.widget.SettingsInputRow android:id="@+id/actvNetworkParallelism" app:sir_icon="@drawable/ic_internet" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" app:sir_fieldMaxWidth="@dimen/settings_input_numeric_max_width" app:sir_title="@string/network_parallelism_title" app:sir_inputType="2" />
                         </LinearLayout>
 
                         <!-- S0567: Prefetch Cache migrated to SettingsDropdownRow with help folded in
                              (standalone help icon removed). The descriptive label is kept above. -->
                         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/dialog_field_spacing" android:orientation="vertical">
                             <TextView android:id="@+id/tvPrefetchCacheLabel" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_field_margin_top" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:text="@string/pref_prefetch_cache_title" android:textColor="@color/text_color_secondary" android:textSize="@dimen/text_size_small" />
-                            <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow android:id="@+id/actvPrefetchCache" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width" app:sdr_title="@string/pref_prefetch_cache_title" app:sdr_showHelp="true" app:sdr_helpTitle="@string/pref_prefetch_cache_help_title" app:sdr_helpMessage="@string/pref_prefetch_cache_help_message" />
+                            <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow android:id="@+id/actvPrefetchCache" app:sdr_icon="@drawable/ic_cloud_download" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width" app:sdr_title="@string/pref_prefetch_cache_title" app:sdr_showHelp="true" app:sdr_helpTitle="@string/pref_prefetch_cache_help_title" app:sdr_helpMessage="@string/pref_prefetch_cache_help_message" />
                         </LinearLayout>
 
                     </LinearLayout>
@@ -1118,6 +1161,7 @@
 
                             <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                                 android:id="@+id/rowEnableBackgroundSync"
+                                app:str_icon="@drawable/ic_sync"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 app:str_title="@string/enable_background_sync"
@@ -1153,6 +1197,7 @@
 
                             <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                                 android:id="@+id/rowEnableThumbnailPreload"
+                                app:str_icon="@drawable/ic_image"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:nextFocusRight="@+id/rowThumbnailPreloadWifiOnly"
@@ -1165,6 +1210,7 @@
 
                             <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                                 android:id="@+id/rowThumbnailPreloadWifiOnly"
+                                app:str_icon="@drawable/ic_wifi"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:nextFocusLeft="@+id/rowEnableThumbnailPreload"
@@ -1180,7 +1226,7 @@
                          readout re-anchored to the new row id so the action row still lays out beside it. -->
                     <androidx.constraintlayout.widget.ConstraintLayout android:id="@+id/containerCache" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom">
 
-                        <com.sza.fastmediasorter.ui.common.widget.SettingsInputRow android:id="@+id/actvCacheSizeLimit" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" app:sir_title="@string/cache_size_limit" app:sir_inputType="2" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintWidth_max="200dp" app:layout_constraintHorizontal_bias="0" />
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsInputRow android:id="@+id/actvCacheSizeLimit" app:sir_icon="@drawable/ic_storage" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" app:sir_title="@string/cache_size_limit" app:sir_inputType="2" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintWidth_max="200dp" app:layout_constraintHorizontal_bias="0" />
 
                         <com.google.android.material.button.MaterialButton android:id="@+id/btnAutoCalculateCache" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="80dp" android:layout_marginEnd="@dimen/margin_small" android:text="@string/auto_calculate_cache" app:icon="@drawable/ic_schedule" app:layout_constraintStart_toEndOf="@+id/actvCacheSizeLimit" app:layout_constraintTop_toTopOf="@+id/actvCacheSizeLimit" app:layout_constraintBottom_toBottomOf="@+id/actvCacheSizeLimit" />
 
@@ -1199,6 +1245,7 @@
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowEnableStatistics"
+                            app:str_icon="@drawable/ic_series_chart"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             app:str_title="@string/settings_statistics_collection_title"
@@ -1234,6 +1281,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:visibility="gone"
+                    app:csh_icon="@drawable/ic_developer_options"
                     app:csh_title="@string/debug_settings_title" />
 
                 <LinearLayout android:id="@+id/containerDebugSettings" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/settings_margin_standard" android:paddingEnd="@dimen/settings_margin_standard" android:paddingBottom="@dimen/settings_margin_standard" android:visibility="gone">

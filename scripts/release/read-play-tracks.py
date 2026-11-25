@@ -9,7 +9,7 @@ Emits one JSON object on stdout:
     {
       "package": "com.sza.fastmediasorter",
       "tracks": [{"track": "production", "releases": [{"status": .., "versionCodes": [..],
-                                                       "name": ..}]}, ..],
+                                                       "name": .., "releaseNotesLanguages": [..]}]}, ..],
       "phone_production": {"version_code": 260825013, "version_name": "2.60.8250.134"},
       "wear_production":  {"version_code": 26082501,  "version_name": "2.60.8250.134"}
     }
@@ -17,6 +17,10 @@ Emits one JSON object on stdout:
 The two convenience members carry the completed release of `production` / `wear:production`,
 or null when that track holds none. `version_name` is the release's `name` field, which is the
 versionName the store shows; a release that states no name reports null.
+
+`releaseNotesLanguages` lists the language code of each release-notes block exactly as Play stores
+it, in stored order. It answers GOOGLE-PLAY rule 26: a release sent through the API under `uk-UA`
+reads back as `uk-UA` or as `uk`, and the codes are the only part of the notes this reader emits.
 
 Exit codes:
   0 - state read and printed
@@ -26,10 +30,10 @@ import argparse
 import json
 import os
 import sys
+from play_publishing import probe_edit
 
 PACKAGE_NAME = "com.sza.fastmediasorter"
 KEY_PATH = os.path.join(".secrets", "play-console-key.json")
-SCOPE = "https://www.googleapis.com/auth/androidpublisher"
 
 PHONE_TRACK = "production"
 WEAR_TRACK = "wear:production"
@@ -63,60 +67,41 @@ def completed_release(tracks, track_name):
 
 def main(argv):
     args = parse_args(argv)
-
-    if not os.path.exists(args.key):
-        print(f"read-play-tracks: service-account key not found at '{args.key}'.", file=sys.stderr)
-        return 2
-
     try:
-        from google.oauth2 import service_account
-        from googleapiclient.discovery import build
-    except ImportError as exc:
-        print(f"read-play-tracks: Google API client unavailable ({exc}).", file=sys.stderr)
-        return 2
-
-    try:
-        creds = service_account.Credentials.from_service_account_file(args.key, scopes=[SCOPE])
-        service = build("androidpublisher", "v3", credentials=creds, cache_discovery=False)
-        edit = service.edits().insert(packageName=args.package, body={}).execute()
-        edit_id = edit["id"]
+        with probe_edit(args.package, args.key) as (service, edit_id):
+            payload = read_tracks(service, args.package, edit_id)
     except Exception as exc:
-        print(f"read-play-tracks: could not open a Play edit ({exc}).", file=sys.stderr)
+        print(f"read-play-tracks: could not read tracks ({exc}).", file=sys.stderr)
         return 2
+    print(json.dumps(payload, indent=2))
+    return 0
 
-    try:
-        listed = service.edits().tracks().list(packageName=args.package, editId=edit_id).execute()
-        tracks = listed.get("tracks", []) or []
-        payload = {
-            "package": args.package,
-            "tracks": [
-                {
-                    "track": track.get("track"),
-                    "releases": [
-                        {
-                            "status": release.get("status"),
-                            "versionCodes": release.get("versionCodes"),
-                            "name": release.get("name"),
-                        }
-                        for release in (track.get("releases", []) or [])
-                    ],
-                }
-                for track in tracks
-            ],
-            "phone_production": completed_release(tracks, PHONE_TRACK),
-            "wear_production": completed_release(tracks, WEAR_TRACK),
-        }
-        print(json.dumps(payload, indent=2))
-        return 0
-    except Exception as exc:
-        print(f"read-play-tracks: could not list tracks ({exc}).", file=sys.stderr)
-        return 2
-    finally:
-        # Discarding the edit is the whole reason this script is safe to run at any time.
-        try:
-            service.edits().delete(packageName=args.package, editId=edit_id).execute()
-        except Exception as exc:
-            print(f"read-play-tracks: warning - edit {edit_id} was not deleted ({exc}).", file=sys.stderr)
+
+def read_tracks(service, package, edit_id):
+    listed = service.edits().tracks().list(packageName=package, editId=edit_id).execute()
+    tracks = listed.get("tracks", []) or []
+    return {
+        "package": package,
+        "tracks": [
+            {
+                "track": track.get("track"),
+                "releases": [
+                    {
+                        "status": release.get("status"),
+                        "versionCodes": release.get("versionCodes"),
+                        "name": release.get("name"),
+                        "releaseNotesLanguages": [
+                            note.get("language") for note in (release.get("releaseNotes", []) or [])
+                        ],
+                    }
+                    for release in (track.get("releases", []) or [])
+                ],
+            }
+            for track in tracks
+        ],
+        "phone_production": completed_release(tracks, PHONE_TRACK),
+        "wear_production": completed_release(tracks, WEAR_TRACK),
+    }
 
 
 if __name__ == "__main__":

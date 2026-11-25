@@ -474,9 +474,9 @@ class ImportSettingsUseCase @Inject constructor(
             scheduledOperationRepository.getById(id)?.let { workManagerScheduler.scheduleOperationUnlessPaused(it) }
         }
 
-        // S2571: last action of the import - on API 33+ saveLanguage restarts the activity stack, which
-        // cancels this coroutine, so anything after it would be lost. Skipped when the imported language
-        // already matches the effective one, so an ordinary import triggers no restart at all.
+        // S2571: last action of the import - applyLanguageLive re-creates the activity stack, which
+        // can cancel this coroutine, so anything after it would be lost. Skipped when the imported language
+        // already matches the effective one, so an ordinary import re-creates nothing.
         applyImportedLanguage(importedLanguage)
     }
 
@@ -488,7 +488,7 @@ class ImportSettingsUseCase @Inject constructor(
         val language = importedLanguage?.trim().orEmpty()
         if (language.isEmpty() || language == LocaleHelper.getLanguage(context)) return
         Timber.d("Import: applying interface language %s", language)
-        LocaleHelper.saveLanguage(context, language)
+        LocaleHelper.applyLanguageLive(context, language)
     }
 
     /**

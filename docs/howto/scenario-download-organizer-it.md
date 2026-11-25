@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Organizzatore dei download (ordinamento rapido) - FastMediaSorter v2"
+title: "Organizzatore dei download (ordinamento rapido) - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-download-organizer-it.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -11,7 +11,7 @@ permalink: /docs/howto/scenario-download-organizer-it.html
 
 > **Livello:** Principiante &bull; **Edizione:** Qualsiasi (Standard, Lite, Photos, Legacy, VR, noLegal)
 
-**L'ordinamento rapido** è la funzione di punta di FastMediaSorter: configura le tue cartelle una volta sola, poi ordina centinaia di file semplicemente toccando un numero. Niente trascinamento. Niente menu. Basta toccare **1**, **2** o **3** - e il file finisce subito al posto giusto.
+**L'ordinamento rapido** è la funzione di punta di Fast Media Sorter & Organizer: configura le tue cartelle una volta sola, poi ordina centinaia di file semplicemente toccando un numero. Niente trascinamento. Niente menu. Basta toccare **1**, **2** o **3** - e il file finisce subito al posto giusto.
 
 **Esempio reale:** hai 200 file nella cartella Download - screenshot, documenti di lavoro, foto di famiglia, meme, ricevute. Con l'ordinamento rapido puoi ordinarli tutti e 200 in circa 5 minuti. Senza, buona fortuna.
 
@@ -38,7 +38,7 @@ La cartella appare sulla schermata principale come una card.
 
 > **La cartella Download è dove il tuo browser, Telegram, WhatsApp e altre app salvano i file.** Di solito è il posto più disordinato di ogni telefono.
 
-![Schermata principale di FastMediaSorter - card della risorsa Download aggiunta, distintivo Locale visibile](screenshots/screenshot-dl-step1.png)
+![Schermata principale di Fast Media Sorter & Organizer - card della risorsa Download aggiunta, distintivo Locale visibile](screenshots/screenshot-dl-step1.png)
 
 ---
 
@@ -52,12 +52,12 @@ Pensala come le cartelle fisiche sulla tua scrivania. Esempi:
 - **Da conservare** - cose che vale la pena salvare a lungo termine
 - **Cestino** - file da eliminare dopo averli rivisti
 
-**Puoi creare queste cartelle direttamente dentro FastMediaSorter:**
+**Puoi creare queste cartelle direttamente dentro Fast Media Sorter & Organizer:**
 1. Apri la risorsa Download
 2. Tocca il pulsante **menu <img src="../icons/doc/ic_more_vert.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** → **Crea cartella**
 3. Digita il nome della cartella → tocca **OK**
 
-Oppure crea le cartelle nel gestore file normale del tuo telefono - compariranno automaticamente in FastMediaSorter.
+Oppure crea le cartelle nel gestore file normale del tuo telefono - compariranno automaticamente in Fast Media Sorter & Organizer.
 
 ---
 

@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityBrowseBinding
+import timber.log.Timber
 
 /**
  * Adaptive priority+overflow controller for the Browse top command bar (S0374).
@@ -27,6 +28,13 @@ import com.sza.fastmediasorter.databinding.ActivityBrowseBinding
  * btnSearch (S2171) is reserved the same way: it is the sole entry point to live search, and
  * hiding it behind "⋮" on a narrow bar would defeat the "search in a couple of taps" contract.
  * Unlike btnPath it has no visibility gate, so its width is always subtracted from the budget.
+ *
+ * btnHelpHeader (S4328) is the same kind of anchor: the "?" is fixed at the bar's end and is never
+ * an overflow candidate, so a budget that ignored it was one button wider than the bar and the
+ * trailing commands were cut by the screen edge (S4767).
+ *
+ * Widths are natural widths, never the live ones: a LinearLayout squeezes its trailing children
+ * when the row overflows, and a squeezed live width would tell the allocator that the row fits.
  */
 class BrowseCommandOverflowManager(
     private val binding: ActivityBrowseBinding
@@ -47,6 +55,9 @@ class BrowseCommandOverflowManager(
     private var recomputing = false
 
     private var released = false
+
+    /** Set when a natural-width probe moved a view's measured width away from the laid-out one. */
+    private var probeDisturbedLayout = false
 
     // A named runnable so release() can pull it back out of the message queue: View.post survives
     // Activity.onDestroy while the layout is still attached, and its callback reaches into the
@@ -87,6 +98,7 @@ class BrowseCommandOverflowManager(
     }
 
     private fun applyPartition() {
+        probeDisturbedLayout = false
         val eligible = candidates().filter { c ->
             if (c.barView == null) return@filter false
             if (c.alwaysEligible) true else featureGatedEligible[c.menuId] == true
@@ -98,10 +110,12 @@ class BrowseCommandOverflowManager(
         val anchorWidth = binding.btnResourceOps?.let { measuredWidthOf(it) } ?: 0
         // Probe btnPath only while it is on the bar: measuredWidthOf would otherwise hand back its
         // cached width for a GONE button and shrink the budget at resource root for nothing, and on
-        // a cold cache the force-measure fallback would poison measuredHeight (S1258 note below).
+        // a cold cache the force-measure fallback would poison measuredHeight (S1258 note on
+        // probeNaturalWidth).
         val pathWidth = if (binding.btnPath.isVisible) measuredWidthOf(binding.btnPath) else 0
         val searchWidth = measuredWidthOf(binding.btnSearch)
-        val reserved = anchorWidth + pathWidth + searchWidth
+        val helpWidth = measuredWidthOf(binding.btnHelpHeader)
+        val reserved = anchorWidth + pathWidth + searchWidth + helpWidth
 
         val slots = eligible.map { c ->
             CommandSlot(
@@ -112,6 +126,7 @@ class BrowseCommandOverflowManager(
         }
 
         val allocation = allocateCommandBar(slots, available, reserved)
+        Timber.d("S4767: browse bar available=$available reserved=$reserved overflow=${allocation.overflowIds.size}")
 
         eligible.forEach { c ->
             val view = c.barView ?: return@forEach
@@ -124,6 +139,10 @@ class BrowseCommandOverflowManager(
         overflowedIds.clear()
         overflowedIds.addAll(allocation.overflowIds)
 
+        // A probe left a view measured at its natural width while the bar still holds the squeezed
+        // layout; one re-layout reconciles them whether or not a visibility flip already asked for it.
+        if (probeDisturbedLayout) binding.layoutControls.requestLayout()
+
         // S2989: always invoke onOverflowChanged so restitchBrowseControlChain runs after every
         // partition pass, keeping D-pad nextFocusLeft/nextFocusRight IDs in sync with button visibilities.
         onOverflowChanged?.invoke()
@@ -134,25 +153,46 @@ class BrowseCommandOverflowManager(
             it.marginStart + it.marginEnd
         } ?: 0
 
-        val live = view.measuredWidth
-        if (view.isVisible && live > 0) {
-            val total = live + margins
+        if (view.isVisible && view.measuredWidth > 0) {
+            val total = probeNaturalWidth(view) + margins
             widthCache[view.id] = total
             return total
         }
         widthCache[view.id]?.let { return it }
 
         // Never measured while visible: force a one-off measure.
-        view.measure(
-            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
-        )
-        val measured = view.measuredWidth + margins
-        // S1258: the probe poisons measuredHeight (TextView centers text against it while icons
-        // use the real height). Dirty the view so the next real layout pass re-measures it.
-        view.forceLayout()
+        val measured = probeNaturalWidth(view) + margins
         if (measured > 0) widthCache[view.id] = measured
         return measured
+    }
+
+    /**
+     * Width the view asks for when nothing squeezes it. The live `measuredWidth` is not that: the
+     * bar is a horizontal LinearLayout, which hands its trailing children whatever room is left, so
+     * a button it already squeezed reports the squeezed width and the allocator would read an
+     * overflowing row as one that fits (S4767).
+     *
+     * The height is pinned to the live one so the probe moves nothing but the width. A view that
+     * was never measured has no live height; it is probed with an open height, which S1258 showed
+     * poisons measuredHeight (TextView centers text against it while icons use the real height).
+     * Either way the view is dirtied when the probe changed its measurement, so the next real
+     * layout pass re-measures it.
+     */
+    private fun probeNaturalWidth(view: View): Int {
+        val liveWidth = view.measuredWidth
+        val liveHeight = view.measuredHeight
+        val heightSpec = if (liveHeight > 0) {
+            View.MeasureSpec.makeMeasureSpec(liveHeight, View.MeasureSpec.EXACTLY)
+        } else {
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+        }
+        view.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED), heightSpec)
+        val natural = view.measuredWidth
+        if (natural != liveWidth || liveHeight <= 0) {
+            view.forceLayout()
+            probeDisturbedLayout = true
+        }
+        return natural
     }
 
     /**

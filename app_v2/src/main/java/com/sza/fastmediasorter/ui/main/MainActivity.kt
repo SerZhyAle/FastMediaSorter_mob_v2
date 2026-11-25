@@ -66,6 +66,7 @@ import com.sza.fastmediasorter.ui.main.helpers.MainCommandBarTooltipManager
 import com.sza.fastmediasorter.ui.main.helpers.MainCommandOverflowMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainDropdownMenuPopupManager
 import com.sza.fastmediasorter.ui.main.helpers.MainExitButtonManager
+import com.sza.fastmediasorter.ui.main.helpers.MainFirstRunHintsManager
 import com.sza.fastmediasorter.ui.main.helpers.MainFullExitManager
 import com.sza.fastmediasorter.ui.main.helpers.MainHelpEntryManager
 import com.sza.fastmediasorter.ui.main.helpers.MainHelperFactory
@@ -143,6 +144,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private lateinit var resumeHelper: MainResumePlaybackHelper
     private lateinit var permissionsHelper: MainStoragePermissionsHelper
     private lateinit var bannerManager: MainChromeOsBannerManager
+    private val firstRunHints by lazy {
+        MainFirstRunHintsManager(this, binding.mainFirstRunHints, viewModel::addResource)
+    }
     private lateinit var tabsManager: MainResourceTabsManager
     private lateinit var layoutChrome: MainLayoutChromeManager
     private lateinit var commandOverflowMenuManager: MainCommandOverflowMenuManager
@@ -489,6 +493,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             storagePermissionLauncher = storagePermissionLauncher
         )
         bannerManager = MainChromeOsBannerManager(this)
+        firstRunHints.setup()
         // S1443: constructed before the chrome manager so it captures each chip's inflated row index
         // while every chip still sits where the layout put it.
         collapsedChipsPlacement = MainCollapsedChipsPlacementManager(
@@ -1186,6 +1191,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 override fun onSortPressed(column: ResourceTableColumn) = viewModel.toggleTableSort(column)
                 override fun onShowingChanged() {
                     tablePane.applyListVisibility(viewModel.resourceListUiState.value is UiState.Content)
+                    layoutChrome.updateMediaTypeLegend(viewModel.state.value.resources, tablePane.isShowing)
+                    firstRunHints.render(viewModel.state.value.resources, tablePane.isShowing)
                     layoutChrome.applyControlBarOverflow()
                 }
             },
@@ -1302,6 +1309,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             // Use state.resources.size instead of adapter.itemCount
             // because submitList() updates itemCount asynchronously
             layoutChrome.updateFilterWarning(state)
+            layoutChrome.updateMediaTypeLegend(state.resources, tablePane.isShowing)
+            firstRunHints.render(state.resources, tablePane.isShowing)
 
             // Sync TabLayout selection with ViewModel state
             // Skip FAVORITES tab - it's action-only (opens Browse), not a filter
@@ -1321,6 +1330,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             }
             tablePane.render(viewModel.state.value, uiState is UiState.Content)
             tablePane.applyListVisibility(uiState is UiState.Content)
+            layoutChrome.updateMediaTypeLegend(viewModel.state.value.resources, tablePane.isShowing)
+            firstRunHints.render(viewModel.state.value.resources, tablePane.isShowing)
             binding.emptyStateView.isVisible = uiState === UiState.Empty
             binding.errorStateView.isVisible = uiState is UiState.Error
 
@@ -1415,6 +1426,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         layoutChrome.setCommandEligible(R.id.btnFavorites, settings.enableFavorites)
         resourceAdapter.setUseCompactElements(settings.useCompactElements)
         resourceAdapter.setOverflowModeEnabled(settings.resourceOpsInOverflowMenu) // S0160
+        layoutChrome.setResourceOpsInOverflow(settings.resourceOpsInOverflowMenu) // S4792
         // S2536: through the policy, not the raw setting. This was the last draw-side consumer still
         // reading the flag directly, which stopped mattering only while the two could not disagree -
         // a power-saving level now says "no animation" with the user's own switch still off.

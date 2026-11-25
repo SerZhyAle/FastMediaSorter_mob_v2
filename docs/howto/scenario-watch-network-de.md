@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Smartwatch mit NAS & PC-Freigaben verbinden - FastMediaSorter v2"
+title: "Smartwatch mit NAS & PC-Freigaben verbinden - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-watch-network-de.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -13,7 +13,7 @@ permalink: /docs/howto/scenario-watch-network-de.html
 
 > **Nur Vollversion** - diese Anleitung ist in der über Google Play vertriebenen Version nicht umgesetzt. Sie gilt für die Vollversion, einen direkten APK-Download von [Downloads](../DOWNLOADS.md).
 
-FastMediaSorter unter Wear OS verbindet sich direkt über Wi-Fi mit Ihrem Heimnetzwerkspeicher (NAS, PC-Freigabeordner, FTP- oder SFTP-Server). Sie können auf entfernte Dateien zugreifen, Musik an Bluetooth-Kopfhörer streamen und Ihre bevorzugten Ordner synchronisieren, ohne Ihr Handy zu benötigen.
+Fast Media Sorter & Organizer unter Wear OS verbindet sich direkt über Wi-Fi mit Ihrem Heimnetzwerkspeicher (NAS, PC-Freigabeordner, FTP- oder SFTP-Server). Sie können auf entfernte Dateien zugreifen, Musik an Bluetooth-Kopfhörer streamen und Ihre bevorzugten Ordner synchronisieren, ohne Ihr Handy zu benötigen.
 
 > **Neu bei Netzwerkfreigaben?** Wenn Sie noch keinen freigegebenen Ordner auf Ihrem PC oder NAS eingerichtet haben, beginnen Sie zuerst mit unserer Anleitung [Mit NAS / Windows-Freigabe verbinden (SMB)](scenario-smb-setup-de.md).
 
@@ -36,7 +36,7 @@ FastMediaSorter unter Wear OS verbindet sich direkt über Wi-Fi mit Ihrem Heimne
 
 ![Ressourcen-Bildschirm unter Wear OS](screenshots/screenshot-wear-network-step1.png)
 
-> **Verknüpfung „Vom Handy synchronisieren“:** Wenn Sie Ihre SMB- oder SFTP-Freigaben bereits in FastMediaSorter auf Ihrem Android-Handy hinzugefügt haben, tippen Sie auf **Vom Handy synchronisieren**, um alle Verbindungseinstellungen mit einem Fingertipp auf Ihre Uhr zu importieren.
+> **Verknüpfung „Vom Handy synchronisieren“:** Wenn Sie Ihre SMB- oder SFTP-Freigaben bereits in Fast Media Sorter & Organizer auf Ihrem Android-Handy hinzugefügt haben, tippen Sie auf **Vom Handy synchronisieren**, um alle Verbindungseinstellungen mit einem Fingertipp auf Ihre Uhr zu importieren.
 
 ---
 

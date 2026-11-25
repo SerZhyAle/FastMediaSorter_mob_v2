@@ -1,8 +1,8 @@
 ---
 page_id: wear.installation-and-pairing
-title: Putting FastMediaSorter on Your Watch - Installing, Pairing and the Wear Companion
+title: Putting Fast Media Sorter & Organizer on Your Watch - Installing, Pairing and the Wear Companion
 nav_title: Installing and pairing the watch
-description: How to install the FastMediaSorter watch app on a Wear OS watch, switch on Wear Companion on the phone, open its window and make the watch one of your resources.
+description: How to install the Fast Media Sorter & Organizer watch app on a Wear OS watch, switch on Wear Companion on the phone, open its window and make the watch one of your resources.
 category: Wear OS Watch
 category_slug: wear
 ticket: S2964
@@ -14,11 +14,11 @@ canonical_url: documentation/wear/installation-and-pairing.html
 why: |
   A [watch](term:watch) on your wrist is closer than the phone in your pocket. With the [watch app](term:watch-app) installed, you can play music, look at photos, open network folders and start the built-in [programs](term:program) right on the watch.
 
-  The watch app works on its own, but it gets much more useful once it knows your [phone](term:phone). The phone side of that link is [Wear Companion](term:wear-companion) - a program inside FastMediaSorter that connects to the watch and decides what the phone shares with it. This page gets both halves installed and talking to each other.
+  The watch app works on its own, but it gets much more useful once it knows your [phone](term:phone). The phone side of that link is [Wear Companion](term:wear-companion) - a program inside Fast Media Sorter & Organizer that connects to the watch and decides what the phone shares with it. This page gets both halves installed and talking to each other.
 ingredients:
   - "A [Wear OS](term:wear-os) watch built on Android 9 or newer - every Wear OS 3, 4 and 5 watch qualifies. Galaxy Watch 3, Galaxy Watch Active and Active 2 run Tizen, not Wear OS, and cannot install the app."
   - "The watch already paired with your Android phone in the watch maker's own app, such as Galaxy Wearable or Google Pixel Watch."
-  - "FastMediaSorter on the phone in the Standard or [noLegal edition](term:nolegal-edition). The other [editions](term:edition) carry no Wear Companion."
+  - "Fast Media Sorter & Organizer on the phone in the Standard or [noLegal edition](term:nolegal-edition). The other [editions](term:edition) carry no Wear Companion."
   - "A few minutes and an internet connection on the watch or on the phone."
 steps:
   - number: 1
@@ -36,7 +36,7 @@ steps:
     title: Install from Google Play
     text: |
       1. On the watch, open **Play Store** from the apps list.
-      2. Search for **FastMediaSorter** and tap **Install**.
+      2. Search for **Fast Media Sorter & Organizer** and tap **Install**.
       3. Wait until the app appears in the watch's apps list.
 
       Typing on a small screen is awkward? Open Google Play on the phone instead, find the app and choose your watch as the device to install on - the watch downloads it by itself.
@@ -44,10 +44,10 @@ steps:
       shot_id: wear.play-store-install
       device_profile: watch
       screen_state: wear-play-store-app-page
-      alt: The Google Play page of FastMediaSorter on a round watch with the Install button
+      alt: The Google Play page of Fast Media Sorter & Organizer on a round watch with the Install button
       caption: "Install straight from the watch's Play Store."
       title: "Screenshot: Play Store on the watch"
-      desc: Watch Play Store, FastMediaSorter listing open, Install button visible.
+      desc: Watch Play Store, Fast Media Sorter & Organizer listing open, Install button visible.
   - number: 3
     id: install-apk
     title: Or install the full version from an APK
@@ -67,7 +67,7 @@ steps:
     text: |
       The phone keeps its watch features out of sight until you say you own a watch.
 
-      1. On the phone, open FastMediaSorter and go to [Settings](term:settings), the **Management** tab.
+      1. On the phone, open Fast Media Sorter & Organizer and go to [Settings](term:settings), the **Management** tab.
       2. Expand the **Wear Companion** group.
       3. Turn on the **Wear Companion** switch - "Show the watch companion in the programs panel and menu".
 
@@ -110,7 +110,7 @@ steps:
     text: |
       Open the watch app on the watch. Its home screen lists the sections **Resources**, **Phone**, **Local**, **Streams** (when that section is on), **Apps**, then a row with the program you opened last and **Favorites** at the end.
 
-      Tap **Phone**: in the full version it shows the files of your phone, grouped the way the phone groups them. If the phone's Wear Companion switch is off, the watch does not pretend the phone is missing - it says exactly what to do: "The Wear Companion switch is off on your phone. Turn it on in FastMediaSorter settings, then retry."
+      Tap **Phone**: in the full version it shows the files of your phone, grouped the way the phone groups them. If the phone's Wear Companion switch is off, the watch does not pretend the phone is missing - it says exactly what to do: "The Wear Companion switch is off on your phone. Turn it on in Fast Media Sorter & Organizer settings, then retry."
 
       Which network folders the watch gets, and how the two keep their settings in step, is the subject of [syncing the phone and the watch](page:wear.companion-data-sync).
     image_bookmark:
@@ -120,13 +120,13 @@ steps:
       alt: The home screen of the watch app on a round watch with the Resources, Phone, Local, Streams and Apps sections
       caption: "The watch app's home screen."
       title: "Screenshot: Watch home screen"
-      desc: Round watch, FastMediaSorter home screen, section list Resources, Phone, Local, Streams, Apps visible.
+      desc: Round watch, Fast Media Sorter & Organizer home screen, section list Resources, Phone, Local, Streams, Apps visible.
 outcome: |
   The watch app is on your wrist, Wear Companion is switched on and reachable from the programs panel, the phone shows the watch as connected, and the watch is a resource in the resource list that you can send files to.
 tips:
   - "**Using a screen reader?** Every control of the Wear Companion window says what it is: each switch reads its name and state, the group headers announce whether they are expanded and can be opened and closed from TalkBack, and each button says what it does."
   - "**No Wear Companion group in Settings?** Your phone runs an edition without the watch link - Lite, Photos, Legacy, VR or FOSS. Install the Standard or noLegal edition to use a watch."
-  - "**The watch says the phone is not connected?** Check the pairing in the watch maker's app first; the FastMediaSorter link rides on it."
+  - "**The watch says the phone is not connected?** Check the pairing in the watch maker's app first; the Fast Media Sorter & Organizer link rides on it."
   - "**Getting around on the watch:** every watch screen has a back arrow at the middle of the left edge, and a black-screen button (a phone with a dark screen) opposite it that blanks the screen. A double tap, a press and hold or the watch's own button brings the screen back."
   - "**Want the watch face too?** [FastMediaSorter Watch Face](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface) is a separate, free watch face for Wear OS 6 and newer. Install it from Google Play on the watch - search for FastMediaSorter there, or use the Wear settings on the phone, which offer to open its page on the watch. Its round buttons appear together with the watch app."
 next_recipes:
@@ -149,4 +149,4 @@ next_recipes:
 
 <sub class="doc-stamp">26.10.07 01:10</sub>
 
-Install the FastMediaSorter [watch app](term:watch-app), switch on [Wear Companion](term:wear-companion) on the phone, open its window, and add the [watch](term:watch) to your resources - the first half of every watch feature.
+Install the Fast Media Sorter & Organizer [watch app](term:watch-app), switch on [Wear Companion](term:wear-companion) on the phone, open its window, and add the [watch](term:watch) to your resources - the first half of every watch feature.

@@ -43,7 +43,7 @@
     <string name="settings_default_document_type_pdf">PDF</string>
     <string name="settings_default_document_type_title">নথির ধরন</string>
     <string name="settings_default_player_dialog_confirm">সেটিংস খুলুন</string>
-    <string name="settings_default_player_dialog_message">আপনাকে Android সিস্টেম সেটিংসে নেওয়া হবে, যেখানে এই ধরনের ফাইলের জন্য FastMediaSorter-কে ডিফল্ট অ্যাপ হিসেবে বেছে নিতে পারবেন।</string>
+    <string name="settings_default_player_dialog_message">আপনাকে Android সিস্টেম সেটিংসে নেওয়া হবে, যেখানে এই ধরনের ফাইলের জন্য Fast Media Sorter &amp; Organizer-কে ডিফল্ট অ্যাপ হিসেবে বেছে নিতে পারবেন।</string>
     <string name="settings_default_player_dialog_title">ডিফল্ট হিসেবে সেট করুন</string>
     <string name="settings_general_actions">কাজ</string>
     <string name="settings_general_behavior">অ্যাপের আচরণ</string>
@@ -164,7 +164,7 @@
     <string name="setting_photos_during_audio_desc">চালানোর সময় এলোমেলো ছবি (একটি অডিও তালিকা বেছে নিন - ছবি দেখুন)</string>
     <string name="setting_play_to_end_desc">স্লাইডশোর বিরতির বদলে মিডিয়া শেষ পর্যন্ত চালান</string>
     <string name="setting_prevent_sleep_desc">অ্যাপ ব্যবহারের সময় পর্দা জাগিয়ে রাখুন</string>
-    <string name="setting_primary_media_player_desc">\"দিয়ে খুলুন\"-এ FastMediaSorter দেখান এবং মিডিয়া বোতাম সামলান</string>
+    <string name="setting_primary_media_player_desc">\"দিয়ে খুলুন\"-এ Fast Media Sorter &amp; Organizer দেখান এবং মিডিয়া বোতাম সামলান</string>
     <string name="setting_resume_on_next_launch">পরের বার চালু করলে প্লেব্যাক চালিয়ে যান</string>
     <string name="setting_resume_on_next_launch_desc">অ্যাপ শুরু হলে শেষ চালানো ফাইলটি যেখানে থেমেছিলেন সেখান থেকেই স্বয়ংক্রিয়ভাবে খুলুন</string>
     <string name="setting_safe_mode_desc">ধ্বংসাত্মক কাজের (মোছা, সরানো) আগে নিশ্চিত করুন</string>
@@ -277,7 +277,7 @@
     <string name="setting_mic_recording_destination_default_recordings">ডিফল্ট: রেকর্ডিং ফোল্ডার (Android 11 ও তার আগের সংস্করণে Music)</string>
     <string name="setting_screen_recording_destination_default_movies">ডিফল্ট: Movies ফোল্ডার</string>
     <string name="drive_channel_enabled_title">Google Drive-এর মাধ্যমে ফাইল</string>
-    <string name="drive_channel_enabled_subtitle">এক্সচেঞ্জ সার্ভার ছাড়াই আপনার Google Drive-এর মাধ্যমে নিজের ডিভাইসগুলোর মধ্যে ফাইল পাঠান ও গ্রহণ করুন</string>
+    <string name="drive_channel_enabled_subtitle">এক্সচেঞ্জ সার্ভার ছাড়াই আপনার Google Drive-এর মাধ্যমে নিজের ডিভাইসগুলোর মধ্যে ফাইল পাঠান ও গ্রহণ করুন এবং সেগুলোকে আপনার সম্প্রচারের খবর দিন</string>
     <string name="drive_channel_background_title">ব্যাকগ্রাউন্ডে Google Drive-এর মাধ্যমে পরীক্ষা করুন</string>
     <string name="drive_channel_background_subtitle">প্রতি 15 মিনিটে, যাতে অ্যাপ বন্ধ থাকলেও আপনার অন্য ডিভাইস এই ফোনের শেয়ার করা ফোল্ডার খুলতে পারে</string>
     <string name="drive_channel_row_from">%1$s থেকে</string>

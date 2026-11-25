@@ -125,7 +125,8 @@ class WearExchangeSessionOpener @Inject constructor(
     private fun WearExchangeEntry.withLearnedPin(connection: WearExchangeConnection): WearExchangeEntry {
         val leaf = connection.certificateFingerprint
         val key = connection.keyFingerprint
-        val learned = pinnedCertificate != null && leaf != null && key != null &&
+        // 1.12 item EW: a chain the platform validated leaves a held pin as it is.
+        val learned = !connection.platformValidated && pinnedCertificate != null && leaf != null && key != null &&
             (leaf != pinnedCertificate || pinnedKey == null)
         return if (learned) copy(pinnedCertificate = leaf, pinnedKey = key) else this
     }

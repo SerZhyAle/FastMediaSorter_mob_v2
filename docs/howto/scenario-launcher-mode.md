@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Use the App as Your Home Screen - FastMediaSorter v2"
+title: "Use the App as Your Home Screen - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-launcher-mode.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -9,7 +9,7 @@ permalink: /docs/howto/scenario-launcher-mode.html
 
 > **Level:** Beginner &bull; **Flavor:** Standard / noLegal
 
-FastMediaSorter can replace your device's home screen with its own desktop - your folders, a clock, the weather, your apps, and a taskbar along one edge. If you have ever used a Windows desktop it will feel familiar: things stay where you put them, and a Start button opens the menu. This is called **launcher mode**.
+Fast Media Sorter & Organizer can replace your device's home screen with its own desktop - your folders, a clock, the weather, your apps, and a taskbar along one edge. If you have ever used a Windows desktop it will feel familiar: things stay where you put them, and a Start button opens the menu. This is called **launcher mode**.
 
 **Real example:** an old tablet on the kitchen wall. Instead of a grid of app icons you get the clock, today's weather, the photo folder from your NAS and a button that starts the radio - all on the screen it shows when it wakes up.
 
@@ -27,7 +27,7 @@ FastMediaSorter can replace your device's home screen with its own desktop - you
 
 1. Open **Settings → General**
 2. Turn on **Make this app the home screen**
-3. Android asks you to confirm. On Android 10 and newer it is a single question - "Allow FastMediaSorter to be your Home app?" - so allow it. On older versions the classic chooser appears the next time you press Home: pick FastMediaSorter and tap **Always**, or **Just once** to try it out first.
+3. Android asks you to confirm. On Android 10 and newer it is a single question - "Allow Fast Media Sorter & Organizer to be your Home app?" - so allow it. On older versions the classic chooser appears the next time you press Home: pick Fast Media Sorter & Organizer and tap **Always**, or **Just once** to try it out first.
 4. Press **Home**
 
 > **Just installed the app?** There is a shortcut: tick **Use as home screen** on the first welcome page. Setup is not interrupted by a system dialog - Android's confirmation comes up the first time you open **Settings → General** afterwards.
@@ -53,7 +53,7 @@ The desktop is not an empty grid on day one. It arrives holding about a dozen us
 The taskbar sits along the bottom edge. It holds the Start button, the apps you used recently, the ones you pinned, and a small tray with the clock, battery, network and SIM signal.
 
 - **Prefer it along the top?** **Settings → General → System launcher settings → Taskbar → Taskbar position** switches between **Bottom** and **Top**. The Start menu follows the bar and drops down from above when the bar is up there.
-- **The Start button** opens the menu: open FastMediaSorter, your resources, add a resource, Android settings, app settings, launcher settings, edit desktop contents, and at the end restart, power off and **Exit launcher mode**.
+- **The Start button** opens the menu: open Fast Media Sorter & Organizer, your resources, add a resource, Android settings, app settings, launcher settings, edit desktop contents, and at the end restart, power off and **Exit launcher mode**.
 - **Your apps** are grouped into sections with small headers. Tap a header to collapse a section you rarely open. A fresh desktop puts your Google apps in a **Google** section and your own installed apps - messengers, games and the rest - in an **Apps** section, so the same icon never shows up twice. Long-press any app for **Put on desktop** and **Pin to taskbar**.
 
 ---
@@ -121,7 +121,7 @@ Your desktop layout is kept either way, so switching launcher mode back on bring
 | Problem | What to try |
 |---------|------------|
 | **Make this app the home screen** is missing from Settings → General | Your build does not include launcher mode. It ships in **Standard** and **noLegal** only - check **Settings → General → About system** for the edition you have |
-| The device goes back to its own home screen after a restart | Some aftermarket car radios and built-in Android boxes force their factory home screen back on every start. That is the device's firmware overriding you, and no app can work around it - pick FastMediaSorter again after the restart, and if it still will not stick, that device does not allow it |
+| The device goes back to its own home screen after a restart | Some aftermarket car radios and built-in Android boxes force their factory home screen back on every start. That is the device's firmware overriding you, and no app can work around it - pick Fast Media Sorter & Organizer again after the restart, and if it still will not stick, that device does not allow it |
 | Android never asked which home app to use | Press **Home** once - on older Android versions the chooser appears then, not at the moment you flip the switch |
 | The desktop looks empty after turning it on | Press **Home** rather than staying inside the app - the pre-filled desktop is what Android shows as the home screen |
 | Cells move when you did not mean to move them | Turn on **Lock desktop** in **Settings → General → System launcher settings** |

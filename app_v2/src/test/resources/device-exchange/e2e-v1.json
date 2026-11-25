@@ -133,7 +133,7 @@
         "relayKey": "sA7eFuojlttaoDVERblAn7QETvPRKWv-deYyha6sFGY",
         "tunnelPin": "SHA256:BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
         "credentials": {
-          "username": "listener",
+          "user": "listener",
           "password": "broadcast-password"
         }
       },
@@ -142,7 +142,7 @@
         "from": "dev-phone",
         "fromKey": "BMHBNOi24fTvs6FVK82lwF9b1Kmd1yjW_czRpmXYba0FIgE5tdQz6-ECIg4o1ZsDxuymoQC3aCvBDvmY6UO4iZw",
         "n": "ofeHuSasvffIBhbz",
-        "ct": "oncvCPLx7Zo2-C8z8DhKEnTFQb4xYW8EG4mfo7tlypcCDXH8NkvQRNz9Qv-8rctUXUnSU71AF3IAocLNa4d67ckHKP8X7v1-2wJl03nCR6o0iPoeFvTAA0cWCVUWboLbQfjX_2klGas2urZ4IaxW72VWQEbGlZaS-C1ngA-SYT19Avmn6Qb8yo0PwpQqpxDnugC3535c9E4kxNdU8g_NJ8xuozSPhR1TQJdLUMRt2c1JH3uZmYGU7YWJgzMTN1OK0V3zvO5z1YRE4URHgsgLar0",
+        "ct": "oncvCPLx7Zo2-C8z8DhKEnTFQb4xYW8EG4mfo7tlypcCDXH8NkvQRNz9Qv-8rctUXUnSU71AF3IAocLNa4d67ckHKP8X7v1-2wJl03nCR6o0iPoeFvTAA0cWCVUWboLbQfjX_2klGas2urZ4IaxW72VWQEbGlZaS-C1ngA-SYT19Avmn6Qb8yo0PwpQqpxCr4U--rDcK_UkywpAWtQ2OeJ1prTWY0EgDRsceE8J8199ZUWqLnt-T44Se1iEcWvarPOigod9hCS1IKzbjJw",
         "keys": [
           {
             "to": "dev-tablet",

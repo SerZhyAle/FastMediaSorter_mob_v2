@@ -72,5 +72,16 @@ data class StreamSourceEntity(
     // S4160: the descriptor's `endpoints` list as BroadcastEndpointCodec writes it, LAN first, then the
     // exchange endpoints of DEVICE-EXCHANGE 7.7. Null for every row that is not a broadcast with an explicit
     // list; such a row plays its [url], as every row did before MIGRATION_61_62.
-    val broadcastEndpoints: String? = null
-)
+    val broadcastEndpoints: String? = null,
+
+    // S4607, DEVICE-EXCHANGE item BJ: the account entry (its identity, the directory source key) whose listing the
+    // channel was chosen from, and the broadcast it named there. Only that entry's directory may end the channel.
+    // Null on every row chosen anywhere else - by hand, link, QR, file or cast - and before MIGRATION_63_64.
+    val exchangeEntryId: String? = null,
+    val exchangeBroadcastId: String? = null
+) {
+    // S4675: a row held in memory can carry relay keys and tunnel pins in [broadcastEndpoints], and its address names a
+    // broadcast, so neither is printed.
+    override fun toString(): String =
+        "StreamSourceEntity(id=$id, title=$title, mediaKind=$mediaKind, sourceOrigin=$sourceOrigin)"
+}

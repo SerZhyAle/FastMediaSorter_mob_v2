@@ -72,11 +72,12 @@ Write-Host "publish-play-release.tests (S2346): transient-failure exit-code cont
 # Each line is "<label>=<True|False>"; the expectations below are compared against that map, so a
 # renamed or deleted classifier surfaces as every case failing rather than as a silent skip.
 $probe = @'
-import importlib.util, socket, ssl, sys
+import importlib.util, os, socket, ssl, sys
 import httplib2
 from google.auth.exceptions import TransportError
 from googleapiclient.errors import HttpError
 
+sys.path.insert(0, os.path.dirname(sys.argv[1]))
 spec = importlib.util.spec_from_file_location('play_release_publisher', sys.argv[1])
 mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
@@ -173,15 +174,9 @@ Assert-That 'every idempotent call asks for the library retry' `
     ($unretriedNonCommit.Count -eq 0) `
     "expected: 0 | actual: $($unretriedNonCommit.Count) bare non-commit call(s) - each is one place the run still dies on the first hiccup"
 
-$retriedCommit = @($chains | Where-Object { $_.IsCommit -and $_.IsRetried })
-Assert-That 'no commit asks for the library retry' `
-    ($retriedCommit.Count -eq 0) `
-    "expected: 0 | actual: $($retriedCommit.Count) retried commit(s) - a repeat after a lost response hits an edit Play already took and answers 4xx, i.e. a rejected release that never happened"
-
-$commitCount = @($chains | Where-Object { $_.IsCommit }).Count
-Assert-That 'both commit call sites are still present' `
-    ($commitCount -eq 2) `
-    "expected: 2 (the automatic path and the changes-held fallback, S1989) | actual: $commitCount"
+Assert-That 'the uploader uses the shared guarded commit' `
+    ($pyCode -match 'commit_edit\(' -and $pyCode -notmatch '\.commit\(') `
+    'the shared offline transaction suite counts the requests and checks both guarded modes'
 
 # --- Cases 18-19: the bundle upload leans on the library rather than on a hand-rolled loop --------
 Assert-That 'the resumable upload asks next_chunk for the retry' `
@@ -208,11 +203,14 @@ Assert-That 'the wrapper never throws on the uploader exit code' `
 # so "the package reaches the API" is observed on the real call chain rather than read off the text.
 # The fake library already holds the bundle, which takes the attach path and needs no upload.
 $packageProbe = @'
-import importlib.util, os, sys, tempfile
+import importlib.util, json, os, sys, tempfile
+from pathlib import Path
 
+sys.path.insert(0, os.path.dirname(sys.argv[1]))
 spec = importlib.util.spec_from_file_location('play_release_publisher', sys.argv[1])
 mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
+import play_publishing as play
 
 class Call:
     def __init__(self, recorder, name, kwargs, result):
@@ -230,7 +228,7 @@ class Endpoint:
 
 class Edits(Endpoint):
     def bundles(self):
-        return Endpoint(self._recorder, {'list': {'bundles': [{'versionCode': 5}]}})
+        return Endpoint(self._recorder, {'list': {'bundles': [{'versionCode': 5, 'sha256': play.file_sha256(aab)}]}})
     def tracks(self):
         return Endpoint(self._recorder, {})
 
@@ -238,35 +236,41 @@ class Service:
     def __init__(self, recorder):
         self._recorder = recorder
     def edits(self):
-        return Edits(self._recorder, {'insert': {'id': 'e1'}})
+        return Edits(self._recorder, {'insert': {'id': 'e1'}, 'commit': {'id': 'e1'}})
 
 def run(argv):
     recorder = []
-    mod.service_account.Credentials.from_service_account_file = staticmethod(lambda *a, **k: None)
-    mod.build = lambda *a, **k: Service(recorder)
-    sys.argv = ['publish-play-release.py'] + argv
-    code = 0
-    try:
-        mod.main()
-    except SystemExit as exc:
-        code = exc.code or 0
+    mod.connect_publisher = lambda package: (Service(recorder), None)
+    if '--notes-file' in argv or '--package' not in argv:
+        package, *_, operations = mod.prepare_plan(mod.parse_args(argv))
+        preflight.write_text(json.dumps({
+            'packageName': package, 'operations': operations, 'authorization': 'offline probe',
+            'acceptedArtifact': 'earlier bundle', 'manifestComparison': 'checked',
+            'newForegroundServices': {},
+        }), encoding='utf-8')
+    code = mod.main([*argv, '--preflight', str(preflight)])
     return code, recorder
 
-work = tempfile.mkdtemp()
+
+scratch = tempfile.TemporaryDirectory()
+work = scratch.name
+preflight = Path(work) / 'preflight.json'
+play.state_root = lambda: Path(work) / 'state'
+play.confirm_console = lambda *args: None
 aab = os.path.join(work, 'Probe_watchface_release.aab')
 open(aab, 'wb').close()
 notes = os.path.join(work, 'notes.txt')
 with open(notes, 'w', encoding='utf-8') as f:
     f.write('<en-US>\nFirst.\n</en-US>\n<ru-RU>\nПервый.\n</ru-RU>\n')
 
-print('defaultpackage=%s' % mod.parse_args([])['package_name'])
+print('defaultpackage=%s' % (mod.parse_args([])['package_name'] or mod.PACKAGE_NAME))
 print('declaredpackage=%s' % mod.PACKAGE_NAME)
 
-code, calls = run(['internal', 'completed', '--aab', aab, '--version-code', '5'])
+code, calls = run(['internal', 'completed', '--aab', aab, '--version-code', '5', '--version-name', 'offline-build'])
 print('defaultexit=%d' % code)
 print('defaultcalls=%s' % ','.join(sorted({str(p) for _, p, _ in calls})))
 
-code, calls = run(['internal', 'completed', '--aab', aab, '--version-code', '5',
+code, calls = run(['internal', 'completed', '--aab', aab, '--version-code', '5', '--version-name', 'offline-build',
                    '--package', 'probe.other.app', '--notes-file', notes])
 print('explicitexit=%d' % code)
 print('explicitcalls=%s' % ','.join(sorted({str(p) for _, p, _ in calls})))
@@ -274,7 +278,7 @@ update = [k for name, _, k in calls if name == 'update']
 langs = [n['language'] for n in update[0]['body']['releases'][0].get('releaseNotes', [])] if update else []
 print('explicitnotes=%s' % ','.join(langs))
 
-code, calls = run(['internal', 'completed', '--aab', aab, '--version-code', '5',
+code, calls = run(['internal', 'completed', '--aab', aab, '--version-code', '5', '--version-name', 'offline-build',
                    '--package', 'probe.other.app'])
 print('nonotesexit=%d' % code)
 print('nonotescalls=%d' % len(calls))
@@ -324,15 +328,15 @@ Assert-That 'the package literal is declared once in the uploader' `
 
 # --- Cases 28-31: the committed-bundle record and the FGS snapshot confirmation (S4499) ----------
 Assert-That 'a committed edit prints the PLAY-COMMITTED record the wrapper reads' `
-    ($packageOut -match '(?m)^PLAY-COMMITTED versionCode=5 package=com\.sza\.fastmediasorter track=internal status=completed held=0\s*$') `
+    ($packageOut -match '(?m)^PLAY-COMMITTED versionCode=5 versionName=offline-build package=com\.sza\.fastmediasorter track=internal status=completed held=0\s*$') `
     "expected: a PLAY-COMMITTED line for versionCode 5 with held=0 | actual output tail: $(($packageOut -split "`r?`n" | Select-Object -Last 8) -join ' | ')"
 
 Assert-That 'the record is printed for another package too, naming that package' `
-    ($packageOut -match '(?m)^PLAY-COMMITTED versionCode=5 package=probe\.other\.app track=internal status=completed held=0\s*$') `
+    ($packageOut -match '(?m)^PLAY-COMMITTED versionCode=5 versionName=offline-build package=probe\.other\.app track=internal status=completed held=0\s*$') `
     'the wrapper must be able to tell a face release from the phone release by the record'
 
 Assert-That 'the wrapper confirms the FGS snapshot only for a completed, not held, default-package production commit' `
-    (($ps1Code -match 'confirm-fgs-snapshot\.ps1') -and ($ps1Code -match '-not \$committed\.Held') -and ($ps1Code -match "\`$Track -eq 'production'") -and ($ps1Code -match "\`$Status -eq 'completed'") -and ($ps1Code -match 'IsNullOrWhiteSpace\(\$Package\)')) `
+    (($ps1Code -match 'confirm-fgs-snapshot\.ps1') -and ($ps1Code -match '\$commit\.Package -eq \$phonePackage') -and ($ps1Code -match '\$commit\.Track -eq ''production''') -and ($ps1Code -match '\$commit\.Status -eq ''completed''') -and ($ps1Code -match 'if \(\$commit\.Held\)')) `
     'a snapshot confirmed on any other commit makes a bundle Play does not serve the next baseline - the defect this guard removes'
 
 Assert-That 'a confirmation failure never changes the publication exit code' `

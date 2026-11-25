@@ -65,6 +65,8 @@ class SyncEnabledResourceTilesUseCaseTest {
             cellsMap[cell.orientation] = (cellsMap[cell.orientation] ?: emptyList()) + cell
         }
 
+        override suspend fun removeCellAndCloseGap(id: Long, columns: Int) = removeCell(id)
+
         override suspend fun removeCell(id: Long) = Unit
         override suspend fun moveCellToScreen(
             orientation: LauncherOrientation,

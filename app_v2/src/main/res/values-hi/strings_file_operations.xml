@@ -56,7 +56,7 @@
     <string name="export_logs_failed">लॉग निर्यात करने में विफल</string>
     <string name="export_logs_no_files">निर्यात के लिए कोई लॉग फ़ाइल उपलब्ध नहीं है</string>
     <string name="export_logs_no_share_target">लॉग संग्रह साझा करने के लिए कोई ऐप उपलब्ध नहीं है</string>
-    <string name="export_logs_subject">FastMediaSorter डीबग लॉग</string>
+    <string name="export_logs_subject">Fast Media Sorter &amp; Organizer डीबग लॉग</string>
     <string name="export_settings">सभी सेटिंग्स को फ़ाइल में निर्यात करें</string>
     <string name="export_settings_confirm_message">क्या वर्तमान सेटिंग्स के साथ एक निर्यात फ़ाइल बनानी है?</string>
     <string name="export_settings_confirm_title">निर्यात सेटिंग्स</string>
@@ -74,6 +74,7 @@
     <string name="delete_confirmation">फाइलों को नष्ट?</string>
     <string name="delete_failed">फाइलें डिलीट नहीं हो सकीं।</string>
     <string name="delete_folder_confirm">क्या आप फ़ोल्डर \"%1$s\" और उसकी सभी सामग्री को हटाना चाहते हैं? इसे पूर्ववत नहीं किया जा सकता है।</string>
+    <string name="delete_folder_trash_confirm">फ़ोल्डर \"%1$s\" और उसकी सारी सामग्री हटाएँ? यह मिटने के बजाय ट्रैश में चला जाएगा।</string>
     <string name="delete_n_files_from_network_title">नेटवर्क से %d फ़ाइलें हटाएं?</string>
     <string name="delete_n_folders_confirm">%1$d फ़ोल्डर और उनकी सभी सामग्री को हटा दें? इसे पूर्ववत नहीं किया जा सकता है।</string>
     <string name="delete_old_files">पुरानी फ़ाइलें हटाएँ</string>

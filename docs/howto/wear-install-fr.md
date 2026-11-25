@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Installer FastMedia sur votre montre - FastMediaSorter v2"
+title: "Installer FastMedia sur votre montre - Fast Media Sorter & Organizer"
 permalink: /docs/howto/wear-install-fr.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -13,14 +13,14 @@ permalink: /docs/howto/wear-install-fr.html
 
 > **Deux versions.** La version de Google Play est une petite première version : Calculatrice, Chronomètre, Mini-jeu, Paramètres et la tuile Programmes. La musique, les photos, les partages réseau et les fonctionnalités du téléphone ne sont disponibles que dans la version complète, un téléchargement direct de l'APK depuis [Téléchargements](../DOWNLOADS.md).
 
-FastMedia Wear est la moitié montre de FastMediaSorter. Une fois qu'elle est à votre poignet, vous pouvez lire de la musique et voir des photos directement depuis la montre, atteindre les dossiers partagés par votre téléphone associé, et ouvrir des partages réseau auxquels la montre se connecte toute seule. Cette page vous guide pour l'installer et l'associer.
+FastMedia Wear est la moitié montre de Fast Media Sorter & Organizer. Une fois qu'elle est à votre poignet, vous pouvez lire de la musique et voir des photos directement depuis la montre, atteindre les dossiers partagés par votre téléphone associé, et ouvrir des partages réseau auxquels la montre se connecte toute seule. Cette page vous guide pour l'installer et l'associer.
 
 ---
 
 ## Ce dont vous aurez besoin
 
 - Une montre connectée fonctionnant sous **Wear OS 3.0** ou plus récent
-- Un téléphone Android avec FastMediaSorter installé et la montre déjà associée dans les paramètres système
+- Un téléphone Android avec Fast Media Sorter & Organizer installé et la montre déjà associée dans les paramètres système
 - Une connexion Wi-Fi ou mobile sur la montre, ou sur le téléphone auquel elle est associée, pour le téléchargement
 
 ---
@@ -83,7 +83,7 @@ Utilisez cette voie lorsque votre montre n'a pas accès au Play Store. Vous avez
 
 Le côté téléphone est désactivé jusqu'à ce que vous indiquiez posséder une montre.
 
-1. Ouvrez FastMediaSorter sur le téléphone.
+1. Ouvrez Fast Media Sorter & Organizer sur le téléphone.
 2. Allez dans **Paramètres** et ouvrez l'onglet **Gestion**.
 3. Trouvez le groupe **Wear OS** et développez-le.
 4. Activez la case à cocher **Compagnon Wear**.
@@ -122,7 +122,7 @@ Le cadran est une application distincte et gratuite, il s'installe donc séparé
 2. Appuyez sur **Installer** et attendez la fin du téléchargement.
 3. Maintenez appuyé le cadran actuel, trouvez **FastMediaSorter Watch Face** dans le sélecteur et appuyez dessus.
 
-> Le cadran affiche une grande heure, la date, des vagues et des particules à la dérive, des barres de batterie et jusqu'à huit boutons ronds pour les raccourcis FastMediaSorter ou d'autres données de la montre. Les boutons apparaissent avec l'application FastMediaSorter pour la montre.
+> Le cadran affiche une grande heure, la date, des vagues et des particules à la dérive, des barres de batterie et jusqu'à huit boutons ronds pour les raccourcis Fast Media Sorter & Organizer ou d'autres données de la montre. Les boutons apparaissent avec l'application Fast Media Sorter & Organizer pour la montre.
 
 ---
 

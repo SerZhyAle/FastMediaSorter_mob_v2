@@ -10,7 +10,6 @@ import android.os.SystemClock
 import com.sza.fastmediasorter.domain.model.devicestatus.MetricValue
 import com.sza.fastmediasorter.domain.repository.BatteryRuntimeEstimator
 import dagger.hilt.android.qualifiers.ApplicationContext
-import timber.log.Timber
 import javax.inject.Inject
 
 /** Reads only public battery data; unsupported measurements remain absent. */
@@ -19,7 +18,6 @@ class BatteryDetailsCollector @Inject constructor(
     private val estimator: BatteryRuntimeEstimator
 ) {
     fun read(): BatteryDetails {
-        Timber.d("S4529: battery details read")
         val intent = runCatching {
             context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
         }.getOrNull()

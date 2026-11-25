@@ -313,7 +313,7 @@
              system recreate it is what makes its layout-land variant apply at all. -->
         <activity android:name=".ui.game.GameHelpActivity" android:exported="false" android:label="@string/game_help_title" android:configChanges="screenLayout|keyboardHidden" android:parentActivityName=".ui.game.GameActivity" />
 
-        <activity android:name=".ui.player.PlayerActivity" android:exported="true" android:supportsPictureInPicture="true" android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
+        <activity android:name=".ui.player.PlayerActivity" android:exported="true" android:supportsPictureInPicture="true" android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden" android:windowSoftInputMode="adjustResize" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
 
         <!-- S1549: no orientation|screenSize - the selected tab is restored by the framework, so recreation
              costs nothing and is what makes the thirteen tab fragments resolve their landscape variants. -->
@@ -387,6 +387,9 @@
         <!-- S2922: Tourist dashboard sub-program - real-time telemetry and navigation tiles.
              No orientation|screenSize in configChanges so rotation inflates layout-land variant. -->
         <activity android:name=".ui.tourist.TouristInfoActivity" android:exported="false" android:label="@string/tourist_info_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+        <activity android:name=".ui.notes.NotesActivity" android:exported="false" android:label="@string/notes_title" android:configChanges="keyboardHidden" android:windowSoftInputMode="adjustResize" android:parentActivityName=".ui.main.MainActivity" />
+        <!-- S4573: the Send feedback form; rotation inflates layout-land. -->
+        <activity android:name=".ui.feedback.FeedbackActivity" android:exported="false" android:label="@string/feedback_title" android:configChanges="keyboardHidden" android:windowSoftInputMode="adjustResize" android:parentActivityName=".ui.main.MainActivity" />
         <!-- S4184: the Tourist tally counter, opened from its dashboard tile; rotation inflates layout-land. -->
         <activity android:name=".ui.tourist.counter.TouristCounterActivity" android:exported="false" android:label="@string/tourist_tile_counter" android:configChanges="keyboardHidden" android:parentActivityName=".ui.tourist.TouristInfoActivity" />
 
@@ -725,6 +728,11 @@
         <!-- S4116: Accept / Decline of a cast offered by another device of the account (DEVICE-EXCHANGE 7.8) -->
         <activity android:name=".ui.exchange.ExchangeCastOfferActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />
 
+        <activity android:name=".ui.remotecontrol.ExternalControlActivity" android:exported="false" android:label="@string/external_control_name" android:theme="@style/Theme.FastMediaSorter.NoActionBar" android:parentActivityName=".ui.settings.SettingsActivity" />
+
+        <!-- S4701: Allow / Decline of a request from another device of the account (REMOTE-CONTROL rule 10) -->
+        <activity android:name=".ui.remotecontrol.RemoteCommandConsentActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />
+
         <!-- Quick Camera Capture: per-widget target configuration activity (S0369) -->
         <activity android:name=".widget.CameraQuickCaptureConfigActivity" android:exported="true">
             <intent-filter>
@@ -840,7 +848,7 @@
         <activity android:name=".ui.player.standalone.PhotoVideoStandaloneActivity" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden" android:exported="false" android:supportsPictureInPicture="true" android:taskAffinity="${applicationId}.player" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
         <activity android:name=".ui.player.standalone.AudioStandaloneActivity" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden" android:exported="false" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
         <activity android:name=".ui.player.standalone.DocumentStandaloneActivity" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden" android:exported="false" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
-        <activity android:name=".ui.player.standalone.TextStandaloneActivity" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden" android:exported="false" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
+        <activity android:name=".ui.player.standalone.TextStandaloneActivity" android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden" android:windowSoftInputMode="adjustResize" android:exported="false" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
 
         <!-- S0380: no-UI dispatcher trampoline for typeless / generic-wildcard VIEW intents. Reached via
              the .StandaloneTypelessPlayer alias; resolves the real media family and forwards explicitly

@@ -36,6 +36,8 @@ class ObserveLiveBroadcastSourcesUseCase @Inject constructor(
     private fun toSyntheticSource(item: ExchangeDeviceBroadcast): StreamSourceEntity? {
         val dto = descriptorParser.parse(item.descriptorJson)
         val primaryUrl = dto?.url?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+        // S4675: clear on purpose - this row lives in memory only. A broadcast the person keeps is saved through
+        // ImportStreamBroadcastUseCase, which seals the keys, and the repository refuses a clear one in any case.
         val endpoints = BroadcastEndpointCodec.encode(dto.endpoints)
         val mediaKind = when (item.mode.trim().uppercase()) {
             "AUDIO_ONLY" -> "AUDIO"
@@ -57,6 +59,8 @@ class ObserveLiveBroadcastSourcesUseCase @Inject constructor(
             addedAt = System.currentTimeMillis(),
             sourceDeviceId = dto.sourceId,
             broadcastEndpoints = endpoints,
+            exchangeEntryId = item.entryKey.takeIf { it.isNotEmpty() },
+            exchangeBroadcastId = item.broadcastId,
         )
     }
 

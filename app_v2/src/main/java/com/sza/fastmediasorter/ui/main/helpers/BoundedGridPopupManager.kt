@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.main.helpers
 
 import android.content.Context
+import android.graphics.Rect
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.util.TypedValue
@@ -9,10 +10,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.GridLayout
 import android.widget.PopupWindow
+import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.children
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.PopupMainDropdownGridBinding
+import timber.log.Timber
 
 /**
  * Anchored grid popup whose height never leaves the system-bar/cutout safe area: when the cells are
@@ -52,7 +56,9 @@ class BoundedGridPopupManager {
             ?.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
         val metrics = context.resources.displayMetrics
 
-        val maxWidth = metrics.widthPixels - (safe?.left ?: 0) - (safe?.right ?: 0) - POPUP_MARGIN_PX
+        // S4837: one margin per side - a popup as wide as the screen minus a single margin is pushed
+        // flush to the right edge by the window manager, which leaves the gap on one side only.
+        val maxWidth = metrics.widthPixels - (safe?.left ?: 0) - (safe?.right ?: 0) - 2 * POPUP_MARGIN_PX
         val gridPadding = grid.paddingLeft + grid.paddingRight
         if (equalColumns) {
             val widest = cells.maxOfOrNull { measureCellWidth(it) } ?: 0
@@ -83,11 +89,37 @@ class BoundedGridPopupManager {
             if (binding.root.measuredHeight > maxHeight) {
                 binding.scrollView.layoutParams = binding.scrollView.layoutParams.apply { height = maxHeight }
             }
+            if (!equalColumns) trimOverflowingCells(grid, maxWidth, columnCount, gridPadding)
+            Timber.d("S4796: wrapped=${cells.count { it is android.widget.TextView && it.lineCount > 1 }}")
         }
 
+        val popupWidth = measurePopupWidth(binding.root, popup, equalColumns, maxWidth)
+        val offset = resolveAnchorOffset(anchor, popupWidth, metrics.widthPixels, safe)
+        Timber.d("S4837: dropdown popup width=$popupWidth offset=$offset screen=${metrics.widthPixels}")
         activePopup = popup
-        popup.showAsDropDown(anchor)
+        popup.showAsDropDown(anchor, offset, 0)
         return popup
+    }
+
+    private fun measurePopupWidth(root: View, popup: PopupWindow, equalColumns: Boolean, maxWidth: Int): Int {
+        if (equalColumns) return popup.width
+        root.measure(
+            View.MeasureSpec.makeMeasureSpec(maxWidth, View.MeasureSpec.AT_MOST),
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+        )
+        val backgroundPadding = Rect()
+        popup.background?.getPadding(backgroundPadding)
+        return root.measuredWidth + backgroundPadding.left + backgroundPadding.right
+    }
+
+    private fun resolveAnchorOffset(anchor: View, popupWidth: Int, screenWidth: Int, safe: Insets?): Int {
+        val anchorLeft = IntArray(2).also { anchor.getLocationOnScreen(it) }[0]
+        val defaultLeft = if (anchor.layoutDirection == View.LAYOUT_DIRECTION_RTL) {
+            anchorLeft + anchor.width - popupWidth
+        } else {
+            anchorLeft
+        }
+        return resolveHorizontalOffset(defaultLeft, popupWidth, screenWidth, safe?.left ?: 0, safe?.right ?: 0)
     }
 
     fun dismiss() {
@@ -105,8 +137,28 @@ class BoundedGridPopupManager {
         if (cellMaxWidth <= 0) return
         cells.forEach { cell ->
             if (measureCellWidth(cell) <= cellMaxWidth) return@forEach
-            cell.layoutParams = GridLayout.LayoutParams().apply { width = cellMaxWidth }
+            pinCellWidth(cell, cellMaxWidth)
         }
+    }
+
+    /**
+     * S4709: the pre-layout cap above trusts a measure taken before the popup is attached. On a 360dp
+     * ru screen it still left the left column wider than its share, so the right column ended past the
+     * popup edge and the window cut "Запись с диктофона" mid-word with no ellipsis. The laid-out right
+     * edge is the real figure: when it passes the safe width, every cell wider than its column share is
+     * pinned to that share, which hands the cut back to the cell's own `ellipsize`.
+     */
+    private fun trimOverflowingCells(grid: GridLayout, maxWidth: Int, columnCount: Int, gridPadding: Int) {
+        val laidOut = grid.children.toList()
+        val rightmost = laidOut.maxOfOrNull { it.right } ?: return
+        val share = resolveCellMaxWidth(maxWidth, columnCount, gridPadding)
+        if (share <= 0 || resolveOverflow(rightmost, grid.paddingRight, maxWidth) == 0) return
+        Timber.d("S4709: dropdown overflow trimmed, rightmost=$rightmost max=$maxWidth share=$share")
+        laidOut.filter { it.width > share }.forEach { pinCellWidth(it, share) }
+    }
+
+    private fun pinCellWidth(cell: View, cellWidth: Int) {
+        cell.layoutParams = GridLayout.LayoutParams().apply { width = cellWidth }
     }
 
     private fun measureCellWidth(cell: View): Int {
@@ -141,8 +193,28 @@ class BoundedGridPopupManager {
             return below.coerceAtLeast(MIN_POPUP_HEIGHT_PX).coerceAtMost(safeArea)
         }
 
+        /**
+         * Offset from the popup's default left edge that keeps it inside both safe margins, moving it
+         * the least distance. A popup wider than the span keeps its left margin and loses the right one.
+         */
+        internal fun resolveHorizontalOffset(
+            defaultLeft: Int,
+            popupWidth: Int,
+            screenWidth: Int,
+            safeLeft: Int,
+            safeRight: Int,
+        ): Int {
+            val minLeft = safeLeft + POPUP_MARGIN_PX
+            val maxLeft = screenWidth - safeRight - POPUP_MARGIN_PX - popupWidth
+            return defaultLeft.coerceAtMost(maxLeft).coerceAtLeast(minLeft) - defaultLeft
+        }
+
         internal fun resolveGridWidth(widestCell: Int, columnCount: Int, horizontalPadding: Int, maxWidth: Int): Int =
             minOf(widestCell * columnCount + horizontalPadding, maxWidth)
+
+        /** How far the laid-out cells reach past the safe width, counting the grid's end padding; 0 when they fit. */
+        internal fun resolveOverflow(rightmostCellEdge: Int, gridPaddingEnd: Int, maxWidth: Int): Int =
+            (rightmostCellEdge + gridPaddingEnd - maxWidth).coerceAtLeast(0)
 
         /** The width one column may take before the popup edge, not the cell's own ellipsize, does the cutting. */
         internal fun resolveCellMaxWidth(maxWidth: Int, columnCount: Int, horizontalPadding: Int): Int =

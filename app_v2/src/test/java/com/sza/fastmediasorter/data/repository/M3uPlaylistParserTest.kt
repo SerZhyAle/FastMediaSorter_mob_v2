@@ -73,12 +73,20 @@ class M3uPlaylistParserTest {
         val text = "#EXTINF:-1 group-title=\"A, B\"\nhttp://radio.example/one\n" +
             "#EXTINF:-1,  \nhttp://tv.example:8080/x\n"
 
-        assertEquals(listOf("radio.example", "tv.example:8080"), parser.parse(text).map { it.title })
+        assertEquals(listOf("radio.example", "tv.example"), parser.parse(text).map { it.title })
     }
 
     @Test
     fun `c03 an indented tag line still marks a manifest`() {
         assertTrue(parser.parse("#EXTM3U\n   #ext-x-targetduration:10\nsegment0.ts\n").isEmpty())
+    }
+
+    @Test
+    fun `c04 a BOM header is skipped and host fallback excludes credentials and port`() {
+        val text = "\uFEFF#EXTM3U\nhttps://user:password@radio.example:8443/live\n"
+        val rows = parser.parse(text)
+        assertEquals(1, rows.size)
+        assertEquals("radio.example", rows.single().title)
     }
 
     private fun vector(name: String) = String(resource(name).readBytes(), Charsets.UTF_8)

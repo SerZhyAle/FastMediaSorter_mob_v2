@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.common.widget
 import android.content.Context
 import android.view.ContextThemeWrapper
 import android.view.View
+import android.widget.LinearLayout
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.local.preferences.CollapsibleSectionStore
@@ -55,6 +56,28 @@ class CollapsibleSectionsManagerTest {
         assertTrue(container.isVisible)
         // Restore used notify = false, so the seeded value is untouched (no spurious re-persist).
         assertTrue(store.isExpanded(KEY, false))
+    }
+
+    @Test
+    fun `collapsing a section whose body holds focus moves focus to the header`() {
+        val manager = CollapsibleSectionsManager(FakeStore())
+        val header = CollapsibleSectionHeader(context)
+        val headerRow = header.findViewById<View>(R.id.csh_headerRow).apply { isFocusableInTouchMode = true }
+        val container = LinearLayout(context)
+        val bodyField = View(context).apply {
+            isFocusable = true
+            isFocusableInTouchMode = true
+        }
+        container.addView(bodyField)
+
+        manager.register(header, container, KEY, defaultExpanded = true)
+        assertTrue(bodyField.requestFocus())
+        assertTrue(container.hasFocus())
+
+        header.setExpanded(false) // user toggle (notify = true) -> manager listener hides the body
+
+        assertTrue(headerRow.isFocused)
+        assertFalse(container.isVisible)
     }
 
     private class FakeStore : CollapsibleSectionStore {

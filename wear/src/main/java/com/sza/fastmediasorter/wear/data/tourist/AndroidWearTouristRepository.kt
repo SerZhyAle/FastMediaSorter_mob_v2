@@ -60,6 +60,8 @@ private const val CARDINAL_OFFSET_DEGREES = 22.5f
 private const val CARDINAL_SECTOR_DEGREES = 45f
 private const val CARDINAL_SECTORS_COUNT = 8
 private const val TEMPERATURE_TOKEN = "temperature"
+private const val MIN_PLAUSIBLE_TEMPERATURE_C = -60f
+private const val MAX_PLAUSIBLE_TEMPERATURE_C = 100f
 private const val MIN_SATELLITES_FOR_FIX = 4
 
 /** The last GPS altitude with what the barometer needs to judge it as an anchor. */
@@ -145,6 +147,7 @@ class AndroidWearTouristRepository @Inject constructor(
                 updateAndEmit { prev ->
                     withTrip(prev, trip, grade).copy(
                         hasLocationPermission = hasLocationPermission(),
+                        hasPreciseLocationPermission = hasFineLocationPermission(),
                         stepCount = sessionSteps.get(),
                     )
                 }
@@ -156,8 +159,10 @@ class AndroidWearTouristRepository @Inject constructor(
             ticker.cancel()
             sensorManager?.unregisterListener(sensorListener)
             environmentSensors.unregister(sensorManager, environmentListener)
-            locationManager?.removeUpdates(locationListener)
-            locationManager?.unregisterGnssStatusCallback(gnssCallback)
+            runCatching { locationManager?.removeUpdates(locationListener) }
+                .onFailure { Timber.w(it, "Location listener cleanup failed") }
+            runCatching { locationManager?.unregisterGnssStatusCallback(gnssCallback) }
+                .onFailure { Timber.w(it, "GNSS callback cleanup failed") }
             // The flow's own scope is already cancelled here, so the last write rides the process scope.
             appScope.launch { tripTracker.persist() }
         }
@@ -169,6 +174,7 @@ class AndroidWearTouristRepository @Inject constructor(
             focusedMetric = TouristMetricType.SPEED,
             stepCount = sessionSteps.get(),
             hasLocationPermission = hasLocationPermission(),
+            hasPreciseLocationPermission = hasFineLocationPermission(),
             // Heading comes from the rotation vector alone (registerSensors), so only that sensor may
             // claim a compass; accelerometer plus magnetometer would show one that never points.
             hasCompassSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR) != null,
@@ -322,10 +328,7 @@ class AndroidWearTouristRepository @Inject constructor(
         }
     }
 
-    // S3155: every call in this function sits behind the hasLocationPermission() early return on its
-    // first line and inside the SecurityException catch below. Lint follows neither a custom
-    // permission helper nor a catch around the call, so all five findings here are the same blind
-    // spot; the guard they claim is missing is the line that opens the body.
+    // Permission may be revoked after the guard; each provider must fail independently.
     @SuppressLint("MissingPermission")
     @Suppress("LongParameterList")
     private fun registerLocationAndGnss(
@@ -334,32 +337,47 @@ class AndroidWearTouristRepository @Inject constructor(
         gnssCallback: GnssStatus.Callback,
     ) {
         if (!hasLocationPermission() || locationManager == null) return
-        try {
-            if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                locationManager.requestLocationUpdates(
-                    LocationManager.GPS_PROVIDER,
-                    MIN_LOCATION_TIME_MS,
-                    MIN_LOCATION_DISTANCE_M,
-                    locationListener,
-                )
-            }
-            if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                locationManager.requestLocationUpdates(
-                    LocationManager.NETWORK_PROVIDER,
-                    MIN_LOCATION_TIME_MS,
-                    MIN_LOCATION_DISTANCE_M,
-                    locationListener,
-                )
-            }
-            val lastKnown = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-                ?: locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
-            lastKnown?.let { locationListener.onLocationChanged(it) }
-
-            locationManager.registerGnssStatusCallback(gnssCallback, Handler(Looper.getMainLooper()))
-        } catch (e: SecurityException) {
-            Timber.w(e, "Location permission not granted or revoked during registration")
+        val fineGranted = hasFineLocationPermission()
+        val providers = if (fineGranted) {
+            listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)
+        } else {
+            approximateProviders()
+        }
+        providers.forEach { provider ->
+            runCatching {
+                if (locationManager.isProviderEnabled(provider)) {
+                    locationManager.requestLocationUpdates(
+                        provider,
+                        MIN_LOCATION_TIME_MS,
+                        MIN_LOCATION_DISTANCE_M,
+                        locationListener,
+                    )
+                }
+            }.onFailure { Timber.w(it, "Location provider registration failed: %s", provider) }
+        }
+        val lastKnown = providers.firstNotNullOfOrNull { provider ->
+            runCatching { locationManager.getLastKnownLocation(provider) }
+                .onFailure { Timber.w(it, "Last location unavailable: %s", provider) }
+                .getOrNull()
+        }
+        lastKnown?.let { locationListener.onLocationChanged(it) }
+        if (fineGranted) {
+            runCatching { locationManager.registerGnssStatusCallback(gnssCallback, Handler(Looper.getMainLooper())) }
+                .onFailure { Timber.w(it, "GNSS registration failed") }
         }
     }
+
+    /**
+     * The network provider can be switched off on a watch (an AVD ships it disabled) while the fused
+     * provider still answers an approximate grant, so an approximate-only watch listens to both; the
+     * fused provider constant exists from API 31, below it only the network provider is left.
+     */
+    private fun approximateProviders(): List<String> =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            listOf(LocationManager.NETWORK_PROVIDER, LocationManager.FUSED_PROVIDER)
+        } else {
+            listOf(LocationManager.NETWORK_PROVIDER)
+        }
 
     private fun createSensorListener(
         updateAndEmit: ((WearTouristState) -> WearTouristState) -> Unit,
@@ -491,19 +509,26 @@ class AndroidWearTouristRepository @Inject constructor(
             event.sensor.stringType.contains(TEMPERATURE_TOKEN, ignoreCase = true) ||
             event.sensor.name.contains(TEMPERATURE_TOKEN, ignoreCase = true)
         if (!isTemperature) return
-        val celsius = event.values.firstOrNull() ?: return
+        // An emulated sensor reports a sentinel near -1e30 until it is configured; it is no reading.
+        // NaN and infinities fall outside the range too, so one membership test covers them.
+        val celsius = event.values.firstOrNull()
+            ?.takeIf { it in MIN_PLAUSIBLE_TEMPERATURE_C..MAX_PLAUSIBLE_TEMPERATURE_C }
+            ?: return
         updateAndEmit { it.copy(bodyTemperatureCelsius = celsius) }
     }
 
     private fun hasLocationPermission(): Boolean {
-        return ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_FINE_LOCATION,
-        ) == PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(
+        return hasFineLocationPermission() || ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.ACCESS_COARSE_LOCATION,
         ) == PackageManager.PERMISSION_GRANTED
     }
+
+    private fun hasFineLocationPermission(): Boolean =
+        ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+        ) == PackageManager.PERMISSION_GRANTED
 
     private fun hasHeartRatePermission(): Boolean {
         return ContextCompat.checkSelfPermission(

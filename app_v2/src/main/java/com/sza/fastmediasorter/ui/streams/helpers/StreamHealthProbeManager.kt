@@ -9,6 +9,7 @@ import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
+import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase
 import com.sza.fastmediasorter.ui.player.helpers.StreamDataSourceFactoryProvider
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -36,6 +37,9 @@ import timber.log.Timber
  * sequential on purpose - one short-lived decoder at a time keeps the load off a budget device while the
  * user is still looking at the list.
  *
+ * STREAM-BANK 2.8: [hasNetwork] is asked after every probe. A failed probe is written only while a transport
+ * is still up; one that fails after the transport was lost is inconclusive, is not written and ends the sweep.
+ *
  * S1474: [cancel] is part of the contract for callers outside this screen too. A format measurement opens
  * its own decoder, and research artifact 04 rules that this sweep must not be decoding at the same time on
  * a weak device - so whoever starts a measurement calls [cancel] here first. It is idempotent and safe
@@ -46,6 +50,7 @@ class StreamHealthProbeManager(
     private val context: Context,
     private val scope: CoroutineScope,
     private val onStatus: (id: String, ok: Boolean) -> Unit,
+    private val hasNetwork: () -> Boolean = { true },
 ) {
 
     private var job: Job? = null
@@ -69,6 +74,13 @@ class StreamHealthProbeManager(
                     if (!isActive) break
                     val ok = probe(source.url)
                     if (!isActive) break
+                    // STREAM-BANK 2.8: a failure after the transport was lost is inconclusive for every row, so
+                    // it is not written and the sweep ends - a stored OK must survive the device's own outage.
+                    if (!RecordStreamPlayOutcomeUseCase.isProbeResultWritable(ok, hasNetwork())) {
+                        Timber.i("Stream health probe: transport lost - sweep ended, failure not written")
+                        Timber.d("S4617: sweep ended, transport lost, failure not written")
+                        break
+                    }
                     onStatus(source.id, ok)
                 }
             } finally {

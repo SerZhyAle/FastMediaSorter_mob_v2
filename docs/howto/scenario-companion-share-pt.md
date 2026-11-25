@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Abra as Pastas do Seu PC Escaneando um Único Código - FastMediaSorter v2"
+title: "Abra as Pastas do Seu PC Escaneando um Único Código - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-companion-share-pt.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -56,7 +56,7 @@ O "companion" é um recurso integrado do **[Fast Media Sorter & Sharing for Wind
 
 ## Passo 2, Método A - Escaneie o Código (mais rápido)
 
-1. Abra o FastMediaSorter e toque no botão **Adicionar <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** na tela principal.
+1. Abra o Fast Media Sorter & Organizer e toque no botão **Adicionar <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** na tela principal.
 2. Toque em **"Importar por código de barras"** - ele fica ao lado dos quatro cards de tipo de recurso (Local, SMB, SFTP/FTP, Nuvem) e no cabeçalho do formulário SFTP.
 3. A câmera se abre com a dica *"Aponte a câmera para o código QR do companion"*. Aponte o celular para o QR no seu PC. Em um ambiente escuro, toque em **Lanterna**.
 4. Uma confirmação aparece - *"Importar acesso - Adicionar o recurso SFTP .. com N pasta(s)?"*. Toque em **Importar**.
@@ -115,7 +115,7 @@ As pastas compartilhadas se comportam como qualquer outro recurso no app. Por ex
 | Nenhuma opção "Importar por código de barras" | O dispositivo não tem câmera, ou é uma versão VR. Use o [Método B - Importar o Arquivo](#step-2-method-b---import-the-file) |
 | A câmera diz que o acesso é necessário | Conceda a permissão de câmera quando solicitado - ela é usada apenas para o escaneamento |
 | "Este arquivo não é uma configuração válida do companion" | O código ou arquivo não é do companion do Windows. Reexporte-o na aba **Compartilhar** |
-| "Criado por uma versão mais recente do companion" | Atualize o FastMediaSorter no celular, ou reexporte de uma versão compatível do companion |
+| "Criado por uma versão mais recente do companion" | Atualize o Fast Media Sorter & Organizer no celular, ou reexporte de uma versão compatível do companion |
 | Recurso adicionado, mas as pastas estão vazias | Confirme que o auxiliar do PC ainda está em execução. Na **mesma rede Wi-Fi** o app encontra o PC sozinho; se ainda falhar, o app mostra o que verificar |
 | Funciona no Wi-Fi mas não nos dados móveis | Para alcançar o PC de outra rede, ele precisa estar acessível pela internet - configure o redirecionamento de porta ou IPv6 nas configurações **Compartilhar** do companion. Sem isso, o compartilhamento funciona apenas na mesma rede Wi-Fi |
 

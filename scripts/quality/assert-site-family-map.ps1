@@ -70,7 +70,11 @@ if ($Help) {
     exit 0
 }
 
-$pages = @('index.html', 'index-ru.html', 'index-uk.html', 'nolegal.html', 'nolegal-ru.html', 'nolegal-uk.html')
+$pages = @(
+    'index.html', 'index-ru.html', 'index-uk.html', 'index-zh-hans.html', 'index-hi.html', 'index-es.html',
+    'index-fr.html', 'index-ar.html', 'index-bn.html', 'index-pt.html', 'index-ur.html', 'index-de.html', 'index-it.html',
+    'nolegal.html', 'nolegal-ru.html', 'nolegal-uk.html'
+)
 $contactEmail = 'sza@ukr.net'
 $contactGitHub = 'github.com/SerZhyAle'
 

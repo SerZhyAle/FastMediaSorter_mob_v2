@@ -9,9 +9,9 @@ ticket: S2960
 recipe_number: "10"
 canonical_url: documentation/launcher/launcher-settings-and-reset-ru.html
 why: |
-  Десятки разнообразных параметров сложно искать в едином сплошном списке. В FastMediaSorter они сгруппированы по удобным сворачиваемым блокам, а если рабочий стол перегрузился тестовыми ярлыками или неудачными экспериментами - одна кнопка вернет исходный аккуратный вид, не затронув ваши ресурсы, медиатеку и избранное.
+  Десятки разнообразных параметров сложно искать в едином сплошном списке. В Fast Media Sorter & Organizer они сгруппированы по удобным сворачиваемым блокам, а если рабочий стол перегрузился тестовыми ярлыками или неудачными экспериментами - одна кнопка вернет исходный аккуратный вид, не затронув ваши ресурсы, медиатеку и избранное.
 ingredients:
-  - "FastMediaSorter в [редакции Standard](term:standard-edition) или [noLegal](term:nolegal-edition) с открытым [рабочим столом](term:desktop) [лаунчера](term:launcher) (см. [Рабочий стол лаунчера](page:launcher.desktop-grid-and-icons))."
+  - "Fast Media Sorter & Organizer в [редакции Standard](term:standard-edition) или [noLegal](term:nolegal-edition) с открытым [рабочим столом](term:desktop) [лаунчера](term:launcher) (см. [Рабочий стол лаунчера](page:launcher.desktop-grid-and-icons))."
 steps:
   - number: 1
     id: groups

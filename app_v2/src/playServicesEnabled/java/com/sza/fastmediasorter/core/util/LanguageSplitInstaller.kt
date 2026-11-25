@@ -7,6 +7,7 @@ import com.google.android.play.core.splitinstall.SplitInstallRequest
 import com.google.android.play.core.splitinstall.SplitInstallSessionState
 import com.google.android.play.core.splitinstall.SplitInstallStateUpdatedListener
 import com.google.android.play.core.splitinstall.model.SplitInstallSessionStatus
+import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.tasks.await
@@ -107,8 +108,12 @@ class LanguageSplitInstaller @Inject constructor(
         }
         manager.registerListener(listener)
         try {
+            // Play Core reads its own SharedPreferences inside startInstall, which no app code can move off
+            // this thread. Only the non-suspending call is wrapped: the policy is thread-local and must not
+            // stay open across the suspension below.
+            val startTask = StrictModeHelper.allowDiskReads { manager.startInstall(request) }
             // Session id 0 means Play had nothing to fetch, so no state update will ever arrive.
-            if (manager.startInstall(request).await() == 0) terminal.complete(Outcome.Installed)
+            if (startTask.await() == 0) terminal.complete(Outcome.Installed)
             return terminal.await()
         } finally {
             manager.unregisterListener(listener)

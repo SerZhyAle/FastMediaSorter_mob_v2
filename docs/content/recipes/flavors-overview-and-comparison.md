@@ -1,8 +1,8 @@
 ---
 page_id: flavors.overview-and-comparison
-title: The Seven Editions of FastMediaSorter
+title: The Seven Editions of Fast Media Sorter & Organizer
 nav_title: The seven editions
-description: What each of the seven editions of FastMediaSorter is made for, where to get it, which features it has, how to see which one you have, and how to move from one edition to another without losing your settings.
+description: What each of the seven editions of Fast Media Sorter & Organizer is made for, where to get it, which features it has, how to see which one you have, and how to move from one edition to another without losing your settings.
 category: Editions, Extensions & Languages
 category_slug: flavors
 ticket: S2947
@@ -10,7 +10,7 @@ availability: all
 recipe_number: "01"
 canonical_url: documentation/flavors/overview-and-comparison.html
 why: |
-  FastMediaSorter is published in seven [editions](term:edition). They share the same look and the same way of working, but each one is made for a certain kind of device or store. A phone, an old tablet, a VR headset and a phone without Google services each get the edition that fits them best.
+  Fast Media Sorter & Organizer is published in seven [editions](term:edition). They share the same look and the same way of working, but each one is made for a certain kind of device or store. A phone, an old tablet, a VR headset and a phone without Google services each get the edition that fits them best.
 
   This page helps you pick the right edition before you install it, and tells you what to do if you later want a different one. If you already have the app and only want to know which edition it is, jump to step 3.
 ingredients:
@@ -49,10 +49,10 @@ steps:
       * **Text translation** - in Standard, noLegal, Legacy and VR. Not in Lite, Photos and FOSS.
       * **Playing music in the background** after you leave the player - in every edition except Lite and Photos.
       * **[Chromecast](term:chromecast)**, sending a video or photo to your TV - in Standard, noLegal, Lite, Photos and Legacy. Not in VR and FOSS.
-      * **The [launcher](term:launcher)** (FastMediaSorter as your home screen), the [Network Monitor](term:network-monitor) and the [watch companion](term:wear-companion) - in Standard and noLegal only.
+      * **The [launcher](term:launcher)** (Fast Media Sorter & Organizer as your home screen), the [Network Monitor](term:network-monitor) and the [watch companion](term:wear-companion) - in Standard and noLegal only.
       * **[Live Broadcast](term:live-broadcast)** of your camera or microphone to other devices - in Standard, noLegal and Legacy.
       * **Immersive VR playback** of 3D and 360-degree video - in the VR and noLegal editions.
-      * **Opening files from other apps** (FastMediaSorter as the default player) - in every edition except Lite.
+      * **Opening files from other apps** (Fast Media Sorter & Organizer as the default player) - in every edition except Lite.
 
       A feature that an edition does not have is not hidden behind a lock or a payment. It simply is not there: no menu item, no button and no setting for it.
   - number: 3
@@ -71,7 +71,7 @@ steps:
       shot_id: flavors.settings-version-line
       device_profile: phone
       screen_state: settings-general-bottom-version
-      alt: The bottom of the General tab in FastMediaSorter Settings, showing the version line with the edition name at the end of the version number
+      alt: The bottom of the General tab in Fast Media Sorter & Organizer Settings, showing the version line with the edition name at the end of the version number
       caption: "The version line at the bottom of Settings, General."
       title: "Screenshot: Version line"
       desc: Settings, General tab scrolled to the end, the version, build and support address line visible.
@@ -85,7 +85,7 @@ steps:
       * **Lite, Photos and Legacy** - the APK files from the [latest GitHub release](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/latest). The same files are also kept in a Google Drive mirror as ZIP archives, for networks that block APK downloads.
       * **VR** - the APK file from the same GitHub release, installed on the headset.
       * **FOSS** - the [F-Droid](https://f-droid.org/) catalog.
-      * **noLegal** - its own download page on the FastMediaSorter website. It is never published in a store.
+      * **noLegal** - its own download page on the Fast Media Sorter & Organizer website. It is never published in a store.
 
       When you install an APK file yourself, Android asks whether you trust the source. That is normal for every app that does not come from a store: allow it once for the browser or file manager you are installing from. The [Android help page on unknown apps](https://support.google.com/android/answer/7391672) explains this screen. If Android shows a warning about the package, [this page explains why and what to tap](../../docs/INSTALL_TRUST.html).
     callout:
@@ -142,4 +142,4 @@ next_recipes:
 
 <sub class="doc-stamp">26.10.07 01:10</sub>
 
-FastMediaSorter comes in seven [editions](term:edition). They look and work the same, but each one is made for a certain kind of device or store. This page shows what each edition is for, which features it has, where to get it and how to move between them.
+Fast Media Sorter & Organizer comes in seven [editions](term:edition). They look and work the same, but each one is made for a certain kind of device or store. This page shows what each edition is for, which features it has, where to get it and how to move between them.

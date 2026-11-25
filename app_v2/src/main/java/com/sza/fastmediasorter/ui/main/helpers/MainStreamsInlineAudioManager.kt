@@ -46,7 +46,7 @@ class MainStreamsInlineAudioManager(
         audioController = audioController,
         callbacks = StreamInlineAudioCallbacks(
             onPlayingChanged = {},
-            onError = { onInlineAudioError() },
+            onError = { _, _ -> onInlineAudioError() },
         ),
     )
 

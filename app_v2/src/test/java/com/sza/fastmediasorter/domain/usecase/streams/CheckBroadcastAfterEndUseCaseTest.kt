@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase.streams
 
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointCodec
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointDto
+import com.sza.fastmediasorter.data.broadcast.BroadcastSealDto
 import com.sza.fastmediasorter.data.broadcast.exchange.BroadcastEndpointProbe
 import com.sza.fastmediasorter.domain.player.AfterEndAnswer
 import io.mockk.every
@@ -53,17 +54,20 @@ class CheckBroadcastAfterEndUseCaseTest {
     }
 
     private companion object {
+        const val GROUP_KEY = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        const val PIN = "SHA256:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU"
         const val LAN_URL = "rtsp://192.168.1.20:8554/"
         const val BROADCAST_ID = "Zm9vYmFyYmF6cXV4MTIzNA"
         const val RELAY_URL = "https://exchange.example.org/v2/b/$BROADCAST_ID/stream"
         val ALL: String? = BroadcastEndpointCodec.encode(
             listOf(
                 BroadcastEndpointDto(url = LAN_URL, transport = "RTSP"),
-                BroadcastEndpointDto(url = RELAY_URL, transport = "RELAY"),
+                BroadcastEndpointDto(url = RELAY_URL, transport = "RELAY", seal = BroadcastSealDto(key = GROUP_KEY)),
                 BroadcastEndpointDto(
                     url = "fmsx://exchange.example.org/b/$BROADCAST_ID/rtsp",
                     transport = "TUNNEL",
                     inner = LAN_URL,
+                    seal = BroadcastSealDto(pin = PIN),
                 ),
             )
         )

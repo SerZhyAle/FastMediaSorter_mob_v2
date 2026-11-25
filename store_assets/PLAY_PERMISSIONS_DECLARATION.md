@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.30 10:58</sub>
+<sub class="doc-stamp">26.11.16 14:30</sub>
 
 # Play Console - All files access declaration (S1989)
 
@@ -171,7 +171,7 @@ none of them is in the store build (`wear/config/store-boundary-policy.json`, ve
 Source of truth for the **location permissions declaration** that Google's announcement of 2026-10-29
 asks of every app using `ACCESS_FINE_LOCATION`. Console form: the declaration form linked from the
 policy page (`goo.gle/play-permission-decl-form`). State and date: `docs/PLAY_PUBLISHING_STATE.md`,
-block `s4501:transcribed:location-declaration`. Walk-through: `PLAY_CONSOLE_CHECKLIST.md` section C7.
+block `s4501:transcribed:location-declaration`. Walk-through: `PLAY_CONSOLE_CHECKLIST.md` section C8.
 
 **Deadline and scope.** Google's preview lists the `ACCESS_FINE_LOCATION` declaration under
 2027-01-27. Its text puts the API 37 condition on the location-button rule only and says nothing either
@@ -191,34 +191,40 @@ rather than after.
   - Satellite section of the network monitor (`standard`, `noLegal`): `GnssStatusDataSource` registers a
     GNSS status callback, which the platform grants only with `ACCESS_FINE_LOCATION`, and refuses to
     start without it.
-  - Camera geotag (every flavor, opt-in, off by default): `CameraLocationProvider` keeps GPS updates
-    warm every 2 s while the camera is open, so the shutter never waits for a fix; the coordinate is
-    written into the photo's own metadata.
-- Consumers that do **not** justify precise location, so the text below does not lean on them:
-  - Map and Google Maps Live gadgets read the last known fix, and either permission serves them
-    (`PlatformDeviceLocationSource` accepts fine or coarse).
-  - The Wi-Fi section of the network monitor needs the grant only because the platform hides SSID and
-    BSSID without it; it reads no coordinate.
+  - Tourist dashboard instrument (every flavor): the position, altitude and speed readouts refresh
+    while the dashboard is open; precise access enables GPS and satellite information.
+- Consumers served by coarse location - they no longer justify the fine declaration:
+  - Camera geotag (every flavor, opt-in, off by default): the toggle asks `ACCESS_COARSE_LOCATION`
+    (S4670, the 2026-10-29 minimum-scope rule for one-time, user-initiated fixes), the capture accepts
+    a fine grant too, and the coordinate is written into the photo's own metadata.
+  - Map and Google Maps Live gadgets read the last known fix (coarse since S4504).
+  - The phone and watch Tourist dashboards accept approximate access and show a network position when
+    available. Precise GPS and satellite information remain unavailable until precise access is granted.
+  - The Wi-Fi section of the network monitor needs the fine grant only because the platform hides SSID
+    and BSSID without it; it reads no coordinate, and the declaration does not lean on it.
+- The Android location button is not an alternative here: it returns one fix per tap (session-scoped),
+  its Jetpack API is Compose-only while this app is a View-based module, and the
+  `onlyForLocationButton` flag would block the continuous consumers' ordinary permission grants.
 
-### Field 1 - why the app needs precise location (limit unknown; 418 characters)
+### Field 1 - why the app needs precise location (limit unknown; 416 characters)
 
 ```text
-Precise location is the feature of three tools, each active only while its screen is open. The speed, altitude and trip-distance gadgets read GPS fixes every 500 ms. The network monitor shows GNSS satellite status, which Android exposes only with precise location. The camera can stamp photos with GPS coordinates (optional, off by default). No background access, no foreground service, nothing is sent off the device.
+Precise location is the feature of three tools, each active only while its screen is open. The speed, altitude and trip-distance gadgets read GPS fixes every 500 ms. The network monitor shows GNSS satellite status, which Android exposes only with precise location. The Tourist dashboard shows position, altitude and speed while it is open. No background access, no foreground service, nothing is sent off the device.
 ```
 
-### Field 2 - why coarse location or the location button is not enough (limit unknown; 325 characters)
+### Field 2 - why coarse location or the location button is not enough (limit unknown; 262 characters)
 
 ```text
-Coarse location cannot supply speed, altitude, bearing or satellite status; those exist only in GPS fixes. The location button returns one fix per tap, while the gadgets and the satellite view update continuously and the camera keeps a fix warm so the shutter never waits for one. One tap per photo would break rapid capture.
+Approximate location can provide a less precise position, but cannot provide reliable GPS speed, altitude, bearing or GNSS satellite status. The location button returns one fix per tap, while the gadgets, satellite view and Tourist dashboard update continuously.
 ```
 
 If the form's own limit is shorter, trim here first and write the limit on the heading line.
 
 ### What a reviewer can challenge
 
-- The camera geotag is the weakest consumer: a single fix per shot is possible in principle. The
-  argument above is latency at the shutter, not impossibility; do not upgrade it to a claim that the
-  button cannot work.
+- The Wi-Fi section is the weakest consumer: it reads no coordinate - the grant exists only because
+  Android hides SSID and BSSID without it. The declaration argues the gadgets, the satellite status
+  and the Tourist instrument, never SSID.
 - Data safety must keep saying what `PLAY_DATA_SAFETY_LOCATION.md` says: location is processed on the
   device and not collected. A change to any consumer above moves both files together.
 - The store description and the in-app rationale must keep naming speed, altitude, satellites and photo
@@ -227,8 +233,8 @@ If the form's own limit is shorter, trim here first and write the limit on the h
 ### Evidence video
 
 The form may ask for one. Show, in order: the speed tile receiving a fix on the launcher desktop; the
-satellite section of the network monitor listing constellations; the camera with geotag switched on and
-a photo's coordinates in its details. Use the free-hand emulator or the test phone (`docs/DEVICE_FLEET.md`),
+satellite section of the network monitor listing constellations; the Tourist dashboard showing position,
+altitude and speed. Use the free-hand emulator or the test phone (`docs/DEVICE_FLEET.md`),
 never the owner's personal phone.
 
 ---

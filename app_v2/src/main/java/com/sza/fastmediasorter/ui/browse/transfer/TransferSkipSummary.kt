@@ -18,6 +18,8 @@ internal object TransferSkipSummary {
 
     private const val CONTENT_SCHEME = "content://"
 
+    private var lastAnnouncedWorkId: String? = null
+
     /** Bare file names of skipped destination paths; SAF paths are document URIs with an encoded tail. */
     fun displayNames(paths: List<String>): List<String> =
         paths.map(::displayName).filter { it.isNotBlank() }
@@ -37,6 +39,31 @@ internal object TransferSkipSummary {
 
     fun format(context: Context, skippedCount: Int, names: List<String>): String? =
         listing(skippedCount, names)?.let { context.getString(R.string.file_already_exists_skip, it) }
+
+    /** The skip line of a transfer that ran in-process; null when it skipped nothing. */
+    fun format(context: Context, result: FileOperationResult): String? =
+        format(context, skippedCount(result), displayNames(skippedPaths(result)))
+
+    /** The skip line of a finished background transfer; null when it carries no skipped file. */
+    fun format(context: Context, event: BrowseFileTransferTerminalEvent): String? = when (event) {
+        is BrowseFileTransferTerminalEvent.Success -> format(context, event.skippedCount, event.skippedNames)
+        is BrowseFileTransferTerminalEvent.PartialSuccess -> format(context, event.skippedCount, event.skippedNames)
+        else -> null
+    }
+
+    /**
+     * Toasts the skip line of [event] once per work id. A player host only ever shows "Copying to .."
+     * when it enqueues the transfer, and the coordinator replays its last terminal event to every new
+     * collector, so without the work-id guard each later player launch would repeat an old skip.
+     * Main thread only: the collectors that call it are lifecycle-bound to an activity.
+     */
+    fun announce(context: Context, event: BrowseFileTransferTerminalEvent) {
+        val text = format(context, event) ?: return
+        if (event.workId == lastAnnouncedWorkId) return
+        lastAnnouncedWorkId = event.workId
+        Timber.d("S4718: player announces a skipped transfer, workId=${event.workId}")
+        Toast.makeText(context, text, Toast.LENGTH_LONG).show()
+    }
 
     /** [base] followed by the skip line on its own line, or [base] alone when nothing was skipped. */
     fun append(context: Context, base: String, skippedCount: Int, names: List<String>): String =

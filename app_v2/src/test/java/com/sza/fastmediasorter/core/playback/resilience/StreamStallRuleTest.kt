@@ -159,6 +159,7 @@ class StreamStallRuleTest {
     @Test
     fun `a buffering leg that stopped filling stalls at the timeout`() {
         val rule = StreamStallRule()
+        rule.start(videoObservation())
         rule.onBufferingArmed(bufferingObservation(BUFFERED_AT_ARM_MS, isLoading = true), ARM_MS)
 
         val stillLoading = rule.onBufferingDeadline(
@@ -218,6 +219,89 @@ class StreamStallRuleTest {
             ),
         )
         assertEquals(StreamStallOutcome.Progressing, rule.onPoll(videoObservation(), THIRD_POLL_MS))
+    }
+
+    @Test
+    fun `a stream that never reached ready stalls as a first connection at the timeout`() {
+        val rule = StreamStallRule()
+        rule.onBufferingArmed(bufferingObservation(BUFFERED_AT_ARM_MS, isLoading = false), ARM_MS)
+
+        val outcome = rule.onBufferingDeadline(
+            bufferingObservation(BUFFERED_AT_ARM_MS, isLoading = false),
+            ARM_MS + BUFFERING_TIMEOUT_MS,
+        )
+
+        assertEquals(StreamStallOutcome.Stalled(StreamStallReason.FIRST_CONNECTION_TIMEOUT), outcome)
+    }
+
+    @Test
+    fun `a first connection is not bounded one millisecond before the timeout`() {
+        val rule = StreamStallRule()
+        rule.onBufferingArmed(bufferingObservation(BUFFERED_AT_ARM_MS, isLoading = false), ARM_MS)
+
+        val outcome = rule.onBufferingDeadline(
+            bufferingObservation(BUFFERED_AT_ARM_MS, isLoading = false),
+            ARM_MS + BUFFERING_TIMEOUT_MS - ONE_MILLISECOND,
+        )
+
+        assertEquals(StreamStallOutcome.Progressing, outcome)
+    }
+
+    @Test
+    fun `a first connection whose buffer keeps growing is not bounded`() {
+        val rule = StreamStallRule()
+        rule.onBufferingArmed(bufferingObservation(BUFFERED_AT_ARM_MS, isLoading = true), ARM_MS)
+
+        val outcome = rule.onBufferingDeadline(
+            bufferingObservation(BUFFERED_AT_ARM_MS + BUFFER_GROWTH_MS, isLoading = true),
+            ARM_MS + BUFFERING_TIMEOUT_MS,
+        )
+
+        assertEquals(StreamStallOutcome.Progressing, outcome)
+    }
+
+    @Test
+    fun `a stall after the first ready keeps the buffering timeout reason`() {
+        val rule = StreamStallRule()
+        rule.start(videoObservation())
+        rule.onBufferingArmed(bufferingObservation(BUFFERED_AT_ARM_MS, isLoading = false), ARM_MS)
+
+        val outcome = rule.onBufferingDeadline(
+            bufferingObservation(BUFFERED_AT_ARM_MS, isLoading = false),
+            ARM_MS + BUFFERING_TIMEOUT_MS,
+        )
+
+        assertEquals(StreamStallOutcome.Stalled(StreamStallReason.BUFFERING_TIMEOUT), outcome)
+    }
+
+    @Test
+    fun `reset after ready does not reopen a first connection`() {
+        val rule = StreamStallRule()
+        rule.start(videoObservation())
+        rule.reset()
+        rule.onBufferingArmed(bufferingObservation(BUFFERED_AT_ARM_MS, isLoading = false), ARM_MS)
+
+        val outcome = rule.onBufferingDeadline(
+            bufferingObservation(BUFFERED_AT_ARM_MS, isLoading = false),
+            ARM_MS + BUFFERING_TIMEOUT_MS,
+        )
+
+        assertEquals(StreamStallOutcome.Stalled(StreamStallReason.BUFFERING_TIMEOUT), outcome)
+    }
+
+    @Test
+    fun `a new playback session after ready makes the next stall a first connection again`() {
+        val rule = StreamStallRule()
+        rule.start(videoObservation())
+        rule.beginPlaybackSession()
+        rule.onBufferingArmed(bufferingObservation(BUFFERED_AT_ARM_MS, isLoading = false), ARM_MS)
+
+        val outcome = rule.onBufferingDeadline(
+            bufferingObservation(BUFFERED_AT_ARM_MS, isLoading = false),
+            ARM_MS + BUFFERING_TIMEOUT_MS,
+        )
+
+        assertEquals(StreamStallOutcome.Stalled(StreamStallReason.FIRST_CONNECTION_TIMEOUT), outcome)
     }
 
     private fun videoObservation(

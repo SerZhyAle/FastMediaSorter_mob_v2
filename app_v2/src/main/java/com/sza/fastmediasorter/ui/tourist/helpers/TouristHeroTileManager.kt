@@ -5,6 +5,7 @@ import android.view.View
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityTouristInfoBinding
+import com.sza.fastmediasorter.domain.model.sensors.AttitudeReading
 import com.sza.fastmediasorter.domain.model.tourist.TouristDashboardState
 import com.sza.fastmediasorter.domain.model.tourist.TouristTileType
 import java.util.Locale
@@ -13,9 +14,10 @@ import java.util.Locale
  * S2922/S3000: binds the prominent Hero focus card on the Tourist dashboard.
  *
  * S4145: what a tile shows comes from [TouristTileContentManager], the same source the grid reads; this
- * class only decides which of the card's pictures - coordinates, compass rose, arrow or level - is shown.
+ * class only decides which of the card's pictures - coordinates, compass rose, arrow, level or 3D box - is shown.
  * S4202: it also owns the STOPWATCH tile's controls row - visibility, the toggle's label and icon - while
  * the actions themselves stay callbacks, so no stopwatch logic lives in the activity.
+ * S4560: the GYROSCOPE tile shows the turning 3D box through [bindAttitude].
  */
 class TouristHeroTileManager(
     private val binding: ActivityTouristInfoBinding,
@@ -78,17 +80,31 @@ class TouristHeroTileManager(
         binding.layoutHeroCompass.visibility = if (isCompass) View.VISIBLE else View.GONE
         binding.ivHeroCompassRose.rotation = if (visual is HeroVisual.CompassRose) -visual.azimuthDegrees else 0f
         binding.layoutHeroVisual.visibility =
-            if (visual is HeroVisual.Arrow || visual is HeroVisual.Level) View.VISIBLE else View.GONE
+            if (visual is HeroVisual.Arrow || visual is HeroVisual.Level || visual is HeroVisual.Attitude) {
+                View.VISIBLE
+            } else {
+                View.GONE
+            }
         binding.ivHeroDirectionArrow.visibility = if (visual is HeroVisual.Arrow) View.VISIBLE else View.GONE
         binding.layoutHeroLevel.visibility = if (visual is HeroVisual.Level) View.VISIBLE else View.GONE
+        binding.viewHeroAttitude.visibility = if (visual is HeroVisual.Attitude) View.VISIBLE else View.GONE
 
         when (visual) {
             is HeroVisual.Coordinates -> bindCoordinates(visual)
             is HeroVisual.CompassRose -> Unit
             is HeroVisual.Arrow -> binding.ivHeroDirectionArrow.rotation = visual.rotationDegrees
             is HeroVisual.Level -> bindLevel(visual, context)
+            HeroVisual.Attitude -> Unit
             HeroVisual.None -> Unit
         }
+    }
+
+    /**
+     * S4560: the 3D box is fed from its own sensor-rate stream, not from [bind], so the card and grid are
+     * not rebound for every attitude sample. A null reading - the tile left focus - rests the box.
+     */
+    fun bindAttitude(reading: AttitudeReading?) {
+        binding.viewHeroAttitude.setAttitude(reading)
     }
 
     private fun bindCoordinates(visual: HeroVisual.Coordinates) {

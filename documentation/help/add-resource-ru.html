@@ -5,8 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex">
 <title>Справка - Добавить ресурс</title>
 <link rel="stylesheet" href="help.css">
+<link rel="icon" type="image/png" href="img/product-mark.png">
 </head>
 <body class="help">
 <main class="container">
@@ -14,6 +16,7 @@
 <a href="index-ru.html">Оглавление справки</a><span class="sep" aria-hidden="true">/</span><span>Добавить ресурс</span>
 </nav>
 <header class="hero">
+<img class="product-mark" src="img/product-mark.png" width="48" height="48" alt="Fast Media Sorter">
 <h1>Добавить ресурс</h1>
 </header>
 <h2>Для чего этот экран</h2>
@@ -24,11 +27,11 @@
 </figure>
 <h2>Порядок действий</h2>
 <ol class="order">
-<li>Выберите, что добавить: «Локальная папка» <a class="ref" href="#type-local">2</a> - папка на устройстве, «Сетевая папка» <a class="ref" href="#type-network">3</a> - ресурс SMB, затем «SFTP / FTP» <a class="ref" href="#type-sftp">4</a>, «Облачное хранилище» <a class="ref" href="#type-cloud">5</a>, «Трансляция» <a class="ref" href="#type-stream">6</a>, «Спаренные часы» <a class="ref" href="#type-watch">7</a> или «С моих устройств» <a class="ref" href="#type-my-devices">8</a>. Типы, выключенные в настройках или отсутствующие в вашей редакции, не показываются, а если нажать «Добавить» в списке ресурсов при открытой вкладке типа, сразу откроется форма этого типа.</li>
-<li>Папка на устройстве: нажмите «СКАНИРОВАТЬ» <a class="ref" href="#local-scan">12</a>, чтобы получить подсказки, или «Добавить вручную» <a class="ref" href="#local-add-manually">13</a>, чтобы выбрать папку самому; отметьте нужное в списке <a class="ref" href="#local-list">14</a> и нажмите «Добавить к ресурсам» <a class="ref" href="#add-to-resources">11</a>.</li>
-<li>Сетевая папка: введите адрес сервера <a class="ref" href="#smb-server">17</a> или найдите его через «Сканировать сеть» <a class="ref" href="#smb-scan-network">16</a>. Укажите имя пользователя <a class="ref" href="#smb-username">18</a> и пароль <a class="ref" href="#smb-password">19</a>, проверьте их кнопкой «Тест соединения» <a class="ref" href="#smb-test">20</a>, выберите папку через «Сканировать хост» <a class="ref" href="#smb-scan-shares">21</a> или впишите её имя <a class="ref" href="#smb-share-name">22</a> и нажмите «Добавить этот ресурс» <a class="ref" href="#smb-add">27</a>.</li>
-<li>SFTP или FTP: выберите протокол <a class="ref" href="#sftp-protocol">29</a>, введите хост <a class="ref" href="#sftp-host">30</a> и данные для входа <a class="ref" href="#sftp-auth">31</a>, проверьте кнопкой «Проверить соединение» <a class="ref" href="#sftp-test">32</a>, укажите путь на сервере <a class="ref" href="#sftp-remote-path">34</a> и нажмите «Добавить ресурс» <a class="ref" href="#sftp-add">36</a>.</li>
-<li>Облачное хранилище: нажмите на сервис <a class="ref" href="#cloud-providers">15</a>, войдите в аккаунт, затем заходите в папки кнопкой «Внутрь» <a class="ref" href="#picker-enter">45</a> и нажмите «Выбор» <a class="ref" href="#picker-select">46</a> у нужной папки.</li>
+<li>Выберите, что добавить: «Локальная папка» <a class="ref" href="#type-local">2</a> - папка на устройстве, «Сетевая папка» <a class="ref" href="#type-network">3</a> - ресурс SMB, затем «SFTP / FTP» <span class="nb"><a class="ref" href="#type-sftp">4</a>,</span> «Облачное хранилище» <span class="nb"><a class="ref" href="#type-cloud">5</a>,</span> «Трансляция» <span class="nb"><a class="ref" href="#type-stream">6</a>,</span> «Спаренные часы» <a class="ref" href="#type-watch">7</a> или «С моих устройств» <span class="nb"><a class="ref" href="#type-my-devices">8</a>.</span> Типы, выключенные в настройках или отсутствующие в вашей редакции, не показываются, а если нажать «Добавить» в списке ресурсов при открытой вкладке типа, сразу откроется форма этого типа.</li>
+<li>Папка на устройстве: нажмите «СКАНИРОВАТЬ» <span class="nb"><a class="ref" href="#local-scan">12</a>,</span> чтобы получить подсказки, или «Добавить вручную» <span class="nb"><a class="ref" href="#local-add-manually">13</a>,</span> чтобы выбрать папку самому; отметьте нужное в списке <a class="ref" href="#local-list">14</a> и нажмите «Добавить к ресурсам» <span class="nb"><a class="ref" href="#add-to-resources">11</a>.</span></li>
+<li>Сетевая папка: введите адрес сервера <a class="ref" href="#smb-server">17</a> или найдите его через «Сканировать сеть» <span class="nb"><a class="ref" href="#smb-scan-network">16</a>.</span> Укажите имя пользователя <a class="ref" href="#smb-username">18</a> и пароль <span class="nb"><a class="ref" href="#smb-password">19</a>,</span> проверьте их кнопкой «Тест соединения» <span class="nb"><a class="ref" href="#smb-test">20</a>,</span> выберите папку через «Сканировать хост» <a class="ref" href="#smb-scan-shares">21</a> или впишите её имя <a class="ref" href="#smb-share-name">22</a> и нажмите «Добавить этот ресурс» <span class="nb"><a class="ref" href="#smb-add">27</a>.</span></li>
+<li>SFTP или FTP: выберите протокол <span class="nb"><a class="ref" href="#sftp-protocol">29</a>,</span> введите хост <a class="ref" href="#sftp-host">30</a> и данные для входа <span class="nb"><a class="ref" href="#sftp-auth">31</a>,</span> проверьте кнопкой «Проверить соединение» <span class="nb"><a class="ref" href="#sftp-test">32</a>,</span> укажите путь на сервере <a class="ref" href="#sftp-remote-path">34</a> и нажмите «Добавить ресурс» <span class="nb"><a class="ref" href="#sftp-add">36</a>.</span></li>
+<li>Облачное хранилище: нажмите на сервис <span class="nb"><a class="ref" href="#cloud-providers">15</a>,</span> войдите в аккаунт, затем заходите в папки кнопкой «Внутрь» <a class="ref" href="#picker-enter">45</a> и нажмите «Выбор» <a class="ref" href="#picker-select">46</a> у нужной папки.</li>
 <li>Есть готовая конфигурация от программы-компаньона для Windows? «Импорт из файла» <a class="ref" href="#import-file">9</a> или «Импорт по штрих-коду» <a class="ref" href="#import-barcode">10</a> избавят от ввода всех данных вручную.</li>
 <li>«Назад» <a class="ref" href="#back">1</a> закрывает экран, ничего не добавляя из того, что ещё не сохранено.</li>
 </ol>
@@ -353,7 +356,7 @@
 <li><a href="index-ru.html"><b>Оглавление справки</b></a></li>
 </ul>
 <footer class="help-foot">
-<span>Fast Media Sorter, 2026-10-26</span>
+<span>Fast Media Sorter, 2026-11-24</span>
 <a href="index-ru.html">Оглавление справки</a>
 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Задать вопрос или сообщить о проблеме</a>
 </footer>

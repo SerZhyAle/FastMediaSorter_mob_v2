@@ -83,7 +83,7 @@ app_v2/build/outputs/apk/noLegal/debug/
 1. Наденьте шлем
 2. Откройте **Библиотеку приложений**
 3. Выберите **Unknown Sources** в фильтре (верхний правый угол)
-4. Найдите **FastMediaSorter (noLegal debug)** и запустите
+4. Найдите **Fast Media Sorter & Organizer (noLegal debug)** и запустите
 
 Запускайте из библиотеки Quest, а не через `adb shell am start`: запуск через ADB пропускает
 vrshell `launch_id`, нужный иммерсивной сессии для входа в focused XR, поэтому приложение

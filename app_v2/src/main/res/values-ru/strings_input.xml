@@ -275,4 +275,10 @@
     <string name="kbm_help_player_audio_track">Следующая звуковая дорожка</string>
     <string name="kbm_help_player_slideshow">Слайд-шоу (S ещё раз - быстрее) / случайное слайд-шоу</string>
     <string name="kbm_help_player_space">Пауза видео; на фото - следующий файл</string>
+    <string name="keybinding_label_playback_ab_loop">Повтор A-B</string>
+    <string name="keybinding_label_navigation_file_grid">Сетка миниатюр</string>
+    <string name="keybinding_label_navigation_file_list">Список файлов</string>
+    <string name="keybinding_label_navigation_file_number">Перейти к файлу</string>
+    <string name="keybinding_label_player_black_screen">Чёрный экран</string>
+    <string name="keybinding_label_sorting_create_text_note">Создать заметку</string>
 </resources>

@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.broadcast.BroadcastMode
 import com.sza.fastmediasorter.databinding.DialogBroadcastPrepareLinkBinding
 import com.sza.fastmediasorter.domain.model.BroadcastLinkPasswordRules
 import com.sza.fastmediasorter.domain.model.PreparedLinkChoice
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.util.showBoundTo
 import javax.inject.Inject
 
@@ -42,6 +43,7 @@ class BroadcastPrepareLinkDialogManager @Inject constructor() {
             }
             .setView(view.root)
             .showBoundTo(activity) ?: return
+        DialogHelpEntryManager.attach(dialog, "dialog_broadcast_prepare_link")
         renderLifetime(activity, view)
         view.sliderPreparedLifetime.addOnChangeListener(lifetimeListener)
         view.groupPreparedPassword.setOnCheckedChangeListener { _, _ -> renderChoice(view) }

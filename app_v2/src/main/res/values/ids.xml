@@ -34,4 +34,8 @@
     <item name="actionBrowsePageUp" type="id" />
     <item name="actionBrowsePageDown" type="id" />
     <item name="actionBrowseScrollToBottom" type="id" />
+    <!-- S4763: id of the toolbar's own overflow ("three dots") button. The framework creates that view
+         inside ActionMenuPresenter, so no layout can name it; it receives this id through
+         Widget.FastMediaSorter.Toolbar.OverflowButton, which is what actionOverflowButtonStyle points at. -->
+    <item name="toolbarOverflowButton" type="id" />
 </resources>

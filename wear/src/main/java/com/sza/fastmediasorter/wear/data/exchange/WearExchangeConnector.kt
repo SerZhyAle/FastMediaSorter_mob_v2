@@ -60,6 +60,8 @@ class WearExchangeConnection(
     val socket: Socket,
     val certificateFingerprint: String? = null,
     val keyFingerprint: String? = null,
+    /** The platform validated the chain (1.12 item EW): a pin held for this server governed nothing here. */
+    val platformValidated: Boolean = false,
 ) : Closeable {
     val input: InputStream get() = socket.getInputStream()
     val output: OutputStream get() = socket.getOutputStream()
@@ -76,13 +78,16 @@ class WearExchangeCertificateChangedException : IOException("exchange server cer
 /** Contract DEVICE-EXCHANGE amendment D, apart from the socket so it can be judged without a TLS server. */
 object WearExchangeTrustDecision {
 
-    /** [RENEWED] is accepted like [ACCEPT]; the stored entry then keeps the presented leaf as its pin. */
-    enum class Verdict { ACCEPT, RENEWED, UNTRUSTED, CHANGED }
+    /**
+     * [RENEWED] is accepted like [ACCEPT]; the stored entry then keeps the presented leaf as its pin. [PLATFORM] is
+     * accepted with a pin held and left as it is (1.12 item EW).
+     */
+    enum class Verdict { ACCEPT, RENEWED, PLATFORM, UNTRUSTED, CHANGED }
 
     /**
-     * The phone's rule (19 item AY): a pinned leaf is never judged by the platform, so its dates never refuse it,
-     * and another leaf passes only on a known key - a pin whose key was never learned cannot tell a renewal from a
-     * substitute.
+     * The phone's rule: the platform check comes first (1.12 item EW), and only a leaf it refuses meets the pin,
+     * whose dates never refuse it (19 item AY); another leaf passes only on a known key - a pin whose key was never
+     * learned cannot tell a renewal from a substitute.
      */
     fun decide(
         pinned: String?,
@@ -91,7 +96,8 @@ object WearExchangeTrustDecision {
         pinnedKey: String? = null,
         presentedKey: String? = null,
     ): Verdict = when {
-        pinned == null -> if (platformTrusted) Verdict.ACCEPT else Verdict.UNTRUSTED
+        platformTrusted -> if (pinned == null) Verdict.ACCEPT else Verdict.PLATFORM
+        pinned == null -> Verdict.UNTRUSTED
         pinned == presented -> Verdict.ACCEPT
         pinnedKey != null && pinnedKey == presentedKey -> Verdict.RENEWED
         else -> Verdict.CHANGED
@@ -137,11 +143,14 @@ class TlsWearExchangeConnector @Inject constructor() : WearExchangeConnector {
             WearExchangeTrustDecision.decide(pinned, platformTrusted, it, pinnedKey, presentedKey)
         }
         val accepted = verdict == WearExchangeTrustDecision.Verdict.ACCEPT ||
-            verdict == WearExchangeTrustDecision.Verdict.RENEWED
+            verdict == WearExchangeTrustDecision.Verdict.RENEWED ||
+            verdict == WearExchangeTrustDecision.Verdict.PLATFORM
         if (!accepted) socket.close()
         return when (verdict) {
             WearExchangeTrustDecision.Verdict.ACCEPT,
             WearExchangeTrustDecision.Verdict.RENEWED -> WearExchangeConnection(socket, presented, presentedKey)
+            WearExchangeTrustDecision.Verdict.PLATFORM ->
+                WearExchangeConnection(socket, presented, presentedKey, platformValidated = true)
             WearExchangeTrustDecision.Verdict.UNTRUSTED -> throw WearExchangeCertificateUntrustedException()
             WearExchangeTrustDecision.Verdict.CHANGED -> throw WearExchangeCertificateChangedException()
             null -> throw IOException("exchange server presented no certificate")

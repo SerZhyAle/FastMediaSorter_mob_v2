@@ -117,7 +117,7 @@
     <string name="phone_resource_loading">Завантаження з телефона..</string>
     <string name="phone_resource_retry">Повторити спробу</string>
     <string name="phone_resource_empty">Тут нема чого показати. Відкрийте іншу папку або повторіть.</string>
-    <string name="phone_resource_unavailable">FastMediaSorter не відповідає на телефоні. Відкрийте його там і тримайте телефон поруч.</string>
+    <string name="phone_resource_unavailable">Fast Media Sorter &amp; Organizer не відповідає на телефоні. Відкрийте його там і тримайте телефон поруч.</string>
     <string name="phone_resource_access_denied">Телефон не відкриває цю папку для годинника.</string>
     <string name="phone_resource_unsupported">Годинник не вміє відкривати такі файли.</string>
     <string name="phone_resource_transfer_rejected">Файл завеликий для передавання на годинник.</string>
@@ -409,9 +409,9 @@
     <string name="phone_resource_no_resource_for_type">Жоден ресурс телефона не налаштований на цей тип.</string>
     <string name="wear_folder_load_more">Показати ще</string>
     <string name="wear_file_op_outcome_needs_consent">Не підтверджено - нічого не змінилося</string>
-    <string name="wear_sync_no_phone_paired">Телефон не підключено. Створіть пару з телефоном і встановіть на нього FastMediaSorter.</string>
+    <string name="wear_sync_no_phone_paired">Телефон не підключено. Створіть пару з телефоном і встановіть на нього Fast Media Sorter &amp; Organizer.</string>
     <string name="wear_sync_request_failed">Не вдалося звернутися до телефона. Спробуйте ще раз.</string>
-    <string name="phone_resource_not_paired">До годинника не підключено телефон. Створіть пару та встановіть на нього FastMediaSorter.</string>
+    <string name="phone_resource_not_paired">До годинника не підключено телефон. Створіть пару та встановіть на нього Fast Media Sorter &amp; Organizer.</string>
     <string name="wear_streams_sort_most_used">За частотою</string>
     <!-- S2146: mirrored verbatim from :app_v2 (S1477). Declared in wear-mirrored-strings.psd1. -->
     <string name="streams_rubric_general">Різне</string>
@@ -805,7 +805,7 @@
     <string name="wear_cast_phone_busy">Телефон не відповів - перевірте, що він поруч</string>
     <string name="wear_cast_not_castable">На телевізорі можна показати лише трансляції та файли з джерел телефона</string>
     <string name="wear_stream_stalled">Трансляція припинила передавати дані. Відтворення зупинено, щоб не садити батарею.</string>
-    <string name="phone_resource_companion_disabled">На телефоні вимкнено Wear-супутник. Увімкніть його в налаштуваннях FastMediaSorter і повторіть.</string>
+    <string name="phone_resource_companion_disabled">На телефоні вимкнено Wear-супутник. Увімкніть його в налаштуваннях Fast Media Sorter &amp; Organizer і повторіть.</string>
 
     <!-- S3007: Tourist sub-program on Wear OS -->
     <string name="wear_tourist_app">Турист</string>
@@ -854,7 +854,6 @@
     <string name="wear_clipboard_no_phone">Телефон недоступний</string>
     <string name="wear_clipboard_no_answer">Телефон не відповів</string>
     <string name="wear_clipboard_refused">Телефон відмовив: %1$s</string>
-    <string name="wear_tourist_press_button_to_unlock">Натисніть кнопку годинника, щоб розблокувати</string>
     <string name="wear_tourist_metric_body_temperature">Температура тіла</string>
     <string name="wear_tourist_unit_celsius">°C</string>
     <string name="wear_onboarding_welcome_title">Ласкаво просимо</string>
@@ -985,12 +984,12 @@
     <string name="about_watch_face_caption">Для Wear OS 6 і новіших</string>
     <string name="about_watch_face_no_store">На годиннику немає Google Play</string>
     <string name="wear_companion_hint_connect">Підключіть телефон, щоб побачити Ресурси й Телефон</string>
-    <string name="wear_companion_hint_install">Установіть FastMediaSorter на телефон, щоб побачити Ресурси й Телефон</string>
-    <string name="wear_companion_offer_title">На телефоні немає FastMediaSorter</string>
+    <string name="wear_companion_hint_install">Установіть Fast Media Sorter &amp; Organizer на телефон, щоб побачити Ресурси й Телефон</string>
+    <string name="wear_companion_offer_title">На телефоні немає Fast Media Sorter &amp; Organizer</string>
     <string name="wear_companion_offer_message">Установіть його, щоб переглядати телефон і його ресурси з годинника</string>
     <string name="wear_companion_offer_install">Установити</string>
     <string name="wear_companion_offer_later">Не зараз</string>
-    <string name="wear_companion_install_row">Установити FastMediaSorter на телефон</string>
+    <string name="wear_companion_install_row">Установити Fast Media Sorter &amp; Organizer на телефон</string>
     <string name="wear_tourist_metric_pressure">Тиск</string>
     <string name="wear_tourist_metric_baro_altitude">Висота за барометром</string>
     <string name="wear_tourist_metric_elevation_gain_loss">Набір висоти</string>
@@ -1163,4 +1162,11 @@
     <string name="wear_scheduled_message_channel_name">Повідомлення за розкладом</string>
     <string name="wear_audio_fetching">Завантаження треку..</string>
     <string name="wear_stream_ended">Ця трансляція більше не в ефірі. Повторіть, коли вона знову почнеться.</string>
+    <string name="wear_tourist_lock_exit_hint">Заблоковано. Для розблокування 3 рази швидко змахніть назад</string>
+    <string name="wear_broadcast_waiting_until">Трансляція ще не почалася. Посилання діє до %1$s</string>
+    <string name="wear_broadcast_started">Трансляція почалася</string>
+    <string name="wear_broadcast_expired">Це посилання більше не діє</string>
+    <string name="wear_broadcast_play">Відтворити</string>
+    <string name="wear_tourist_no_fix_approximate">Пошук місцезнаходження..</string>
+    <string name="wear_tourist_precise_needed">Потрібна точна геолокація</string>
 </resources>

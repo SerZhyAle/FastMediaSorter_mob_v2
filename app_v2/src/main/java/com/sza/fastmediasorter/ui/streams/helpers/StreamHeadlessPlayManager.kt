@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
+import com.sza.fastmediasorter.domain.usecase.streams.ResolveBroadcastPlaybackUseCase
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellableContinuation
@@ -41,7 +42,7 @@ class StreamHeadlessPlayManager @Inject constructor(
     suspend fun play(source: StreamSourceEntity): Boolean {
         val outcome = withTimeoutOrNull(PLAY_TIMEOUT_MS) { awaitOutcome(source) }
         if (outcome == null) {
-            Timber.w("StreamHeadlessPlayManager: %s did not start within the timeout", source.url)
+            Timber.w("StreamHeadlessPlayManager: stream did not start within the timeout")
         }
         return outcome == true
     }
@@ -55,11 +56,11 @@ class StreamHeadlessPlayManager @Inject constructor(
             continuation.invokeOnCancellation { session.settle(false) }
             controller.connect(onFailed = { session.settle(false) }) { player ->
                 if (isSameStreamActive(player, source.url)) {
-                    Timber.i("StreamHeadlessPlayManager: stop already-playing %s", source.url)
+                    Timber.i("StreamHeadlessPlayManager: stop already-playing stream")
                     quiesce(player)
                     session.settle(true)
                 } else {
-                    Timber.i("StreamHeadlessPlayManager: start %s", source.url)
+                    Timber.i("StreamHeadlessPlayManager: start stream")
                     // Listener first: the answer can arrive inside playAudioWithMetadata below.
                     session.awaitStart(player)
                     // Nothing to do on player-ready - the outcome arrives through that listener.
@@ -149,7 +150,7 @@ class StreamHeadlessPlayManager @Inject constructor(
             backgroundAudioEnabled: Boolean,
             hasNetwork: Boolean,
         ): Boolean = source.mediaKind == AUDIO_MEDIA_KIND && backgroundAudioEnabled && hasNetwork &&
-            source.broadcastEndpoints == null
+            source.broadcastEndpoints == null && !ResolveBroadcastPlaybackUseCase.isExchangeUrl(source.url)
 
         private const val AUDIO_MEDIA_KIND = "AUDIO"
 

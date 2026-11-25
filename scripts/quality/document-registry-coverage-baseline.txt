@@ -34,3 +34,14 @@
 .claude/skills/** | Per-skill instruction directories, one SKILL.md each, so a new skill directory is the same decision rather than a new one; gitignored with all of .claude/ and registered in the local dev/DOCUMENT_REGISTRY.jsonl per DOC-INTERNAL-QUALITY 0.10 (S4368).
 dev/handoff | Top-level one-off handoff notes to other repositories (e.g. the canon harness request); each is consumed by its recipient and not maintained here. The streams-source-spec subtree moved to the shared contract store on 2026-09-22; docs/CROSS_PROJECT_CONTRACTS.md is its pointer here.
 .agents/** | No longer memory: S2622 deleted the 125 stale copies this tree used to hold and left a pointer to .claude/agent-memory/android-rd-specialist/ plus the ZCode entry-point skill that names it. Both files exist to be resolved by a link, not read as documents, so neither is anything a maintainer is answerable for - and the tree stays tracked, which S2618 measured to be a poor signal of maintainedness in both directions.
+
+# S4653 file rows: docs/ and dev/ are judged per file; each row below names frozen one-off notes nobody maintains.
+dev/2026-06-21_*.md | Dated competitive and feature-expansion research notes from 2026-06-21, written once to seed tickets and never kept in step with the code.
+dev/*_audit.md | One-off audit reports written by individual agents (claude, codex, gemini, gpt, development) at one date; their findings were ticketed and the reports are frozen.
+dev/AGENT_PROCESS_AUDIT_*.md | Dated agent-process audit snapshots; each is a measurement at its date, superseded by later audits, not a maintained document.
+dev/S[0-9][0-9][0-9][0-9]_*.md | Per-ticket design or ui-clarify notes written for one Sxxxx ticket; the ticket spec is the maintained home and the note is frozen.
+dev/TASK_*.md | Per-ticket task definition and design drafts written once for one ticket; frozen after the ticket closed.
+dev/SCREENSHOT_USABILITY_AUDIT_*.md | Dated screenshot usability audit reports written by the audit skill at one date; frozen output, not maintained.
+dev/TEST_COVERAGE_AUDIT_TASK.md | One-off test coverage audit task brief written once for an agent run; frozen, its findings went to tickets.
+dev/knc-standalone/owner-questionnaire.md | Owner questionnaire for ticket S4859 (separate KnC apps), filled in once by the owner and consumed by that ticket's phase 03; a per-ticket working document, not kept in step with anything afterwards.
+docs/releases/RELEASES.md | Release ledger page rendered by the canon release-ledger writer from channels.json, builds.json and history.jsonl and replaced by its next write; generated output nobody edits by hand, and the repository holds no local generator command to register it with.

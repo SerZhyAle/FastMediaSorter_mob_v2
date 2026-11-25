@@ -12,7 +12,6 @@ import com.sza.fastmediasorter.domain.repository.BatteryRuntimeEstimator
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -33,7 +32,6 @@ class GetBatteryStatusUseCase @Inject constructor(
             context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
         }.getOrNull()
         val percentOrNull = readPercent(sticky)
-        Timber.d("S4529: battery gadget estimate read")
         val charging = sticky?.let(::isCharging) ?: false
         val plugged = (sticky?.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) ?: 0) > 0
         val manager = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager

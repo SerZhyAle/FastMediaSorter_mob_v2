@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Organisateur de téléchargements (tri rapide) - FastMediaSorter v2"
+title: "Organisateur de téléchargements (tri rapide) - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-download-organizer-fr.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -11,7 +11,7 @@ permalink: /docs/howto/scenario-download-organizer-fr.html
 
 > **Niveau :** Débutant &bull; **Édition :** Toutes (Standard, Lite, Photos, Legacy, VR, noLegal)
 
-Le **tri rapide** est la fonctionnalité phare de FastMediaSorter : configurez vos dossiers une fois, puis triez des centaines de fichiers en appuyant simplement sur un chiffre. Pas de glisser-déposer. Pas de menus. Il suffit d'appuyer sur **1**, **2**, ou **3** - et le fichier part au bon endroit.
+Le **tri rapide** est la fonctionnalité phare de Fast Media Sorter & Organizer : configurez vos dossiers une fois, puis triez des centaines de fichiers en appuyant simplement sur un chiffre. Pas de glisser-déposer. Pas de menus. Il suffit d'appuyer sur **1**, **2**, ou **3** - et le fichier part au bon endroit.
 
 **Exemple concret :** vous avez 200 fichiers dans votre dossier Téléchargements - captures d'écran, documents de travail, photos de famille, memes, reçus. Avec le tri rapide, vous pouvez trier les 200 en environ 5 minutes. Sans lui - bon courage.
 
@@ -38,7 +38,7 @@ Le dossier apparaît sur l'écran principal sous forme de carte.
 
 > **Le dossier Téléchargements est l'endroit où votre navigateur, Telegram, WhatsApp et d'autres applications enregistrent les fichiers.** C'est généralement l'endroit le plus en désordre sur n'importe quel téléphone.
 
-![FastMediaSorter main screen - Downloads resource card added, Local badge visible](screenshots/screenshot-dl-step1.png)
+![Fast Media Sorter & Organizer main screen - Downloads resource card added, Local badge visible](screenshots/screenshot-dl-step1.png)
 
 ---
 
@@ -52,12 +52,12 @@ Pensez-y comme à des dossiers physiques sur votre bureau. Exemples :
 - **À garder** - choses valant la peine d'être conservées longtemps
 - **Corbeille** - fichiers à supprimer après examen
 
-**Vous pouvez créer ces dossiers directement dans FastMediaSorter :**
+**Vous pouvez créer ces dossiers directement dans Fast Media Sorter & Organizer :**
 1. Ouvrez la ressource Téléchargements
 2. Appuyez sur le bouton **menu <img src="../icons/doc/ic_more_vert.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** → **Créer un dossier**
 3. Tapez le nom du dossier → appuyez sur **OK**
 
-Ou créez les dossiers dans le gestionnaire de fichiers habituel de votre téléphone - ils apparaîtront automatiquement dans FastMediaSorter.
+Ou créez les dossiers dans le gestionnaire de fichiers habituel de votre téléphone - ils apparaîtront automatiquement dans Fast Media Sorter & Organizer.
 
 ---
 

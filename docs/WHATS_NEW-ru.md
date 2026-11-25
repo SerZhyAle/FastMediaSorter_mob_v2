@@ -1,14 +1,69 @@
 ---
 layout: doc
-title: "Что нового в FastMediaSorter v2"
+title: "Что нового в Fast Media Sorter & Organizer"
 permalink: /docs/WHATS_NEW-ru.html
 ---
 
-<sub class="doc-stamp">26.10.29 21:45</sub>
+<sub class="doc-stamp">26.11.19 23:39</sub>
 
-# Что нового в FastMediaSorter v2
+<a id="что-нового-в-fastmediasorter-v2"></a>
 
-**Текущий релиз: 2.61.1121.756** (ноябрь 2026)
+# Что нового в Fast Media Sorter & Organizer
+
+**Текущий релиз: 2.61.1250.223** (ноябрь 2026)
+
+> Изменения с версии 2.61.1121.756
+
+---
+
+## Что нового
+
+- **Программа «Заметки»** - пишите, ищите, выделяйте и удаляйте сразу несколько. <!-- af: programs-tools.notes-program, programs-tools.notes-selection-and-bulk-delete -->
+- **Синхронизация заметок** - через ваш сервер обмена; заметку можно отправить в Keep. <!-- af: programs-tools.notes-exchange-sync, programs-tools.notes-send-to-keep -->
+- **Текстовый редактор** - «Сохранить» и «Сохранить и закрыть»; размер шрифта для каждого файла. <!-- af: text-editor.save-and-save-close-buttons, text-editor.per-file-font-size-memory, text-editor.font-size-adjustment-via-swipe -->
+- **Отправить отзыв** - приложите журнал; тикеты уходят на Drive или в папку. <!-- af: programs-tools.send-feedback, network-cloud.file-a-ticket-into-the-sza-ticket-inbox, network-cloud.allow-google-drive-access-from-the-ticket-composer -->
+- **Внешнее управление** - выберите, какие ваши устройства могут присылать команды. <!-- af: network-cloud.accept-commands-from-your-other-devices -->
+- **Трансляция объявляется через Google Drive** - ваши другие устройства находят её в эфире. <!-- af: network-cloud.broadcast-announce-via-google-drive -->
+- **Стримы: «Недавние» и «Свои»** - недавно игравшие каналы и те, что вы добавили. <!-- af: streams.recently-played-streams-category, streams.own-channel-category, streams.added-station-revealed-under-own -->
+- **Стримы: поиск по рубрике** - свободный текст совпадает с названием рубрики. <!-- af: streams.free-text-search-by-rubric-label -->
+- **Стримы: яснее состояние станции** - причина сбоя, строки на паузе и неподтверждённые. <!-- af: streams.inline-radio-failure-class-surfaced-at-once, streams.paused-channel-row-state, streams.unconfirmed-channel-state-wording -->
+- **Стримы: импорт плейлиста** - понятный отказ для HLS, дубликаты пропускаются. <!-- af: streams.playlist-import-hls-refusal-and-normalized-dedupe -->
+- **Язык без перезапуска** - все экраны, включая поиск по настройкам, меняются сразу. <!-- af: settings-navigation.interface-language-changes-without-a-restart, main-screen.resource-names-and-type-badge-follow-a-live, settings-navigation.settings-search-titles-follow-the-app-language -->
+- **Выбор языка** - по алфавиту, поиск по английскому названию, клавиатура не мешает. <!-- af: settings-navigation.app-language-picker-order-and-search, settings-navigation.language-picker-keyboard-resilient-layout -->
+- **Справка из диалогов** - кнопка ? или F1; названия клавиш пишутся полностью. <!-- af: settings-navigation.in-app-help-in-dialogs, settings-navigation.in-app-help-from-dialogs, settings-navigation.keyboard-help-key-names-follow-the-shared-chord -->
+- **Указатель справки** - предметный указатель и раздел терминов. <!-- af: settings-navigation.subject-index-on-the-in-app-help-index, settings-navigation.terms-section-on-the-in-app-help-index -->
+- **Карточка первого шага** - приглашение добавить папку и легенда маркера «Быстрой сортировки». <!-- af: setup-onboarding.main-screen-first-step-card-and-quick-sort -->
+- **Турист** - вращающаяся 3D-плитка гироскопа; хватит примерного местоположения. <!-- af: programs-tools.tourist-gyroscope-3d-tile, programs-tools.tourist-approximate-location -->
+- **Геотеги в камере** - необязательное GPS-местоположение в фото. <!-- af: camera.photo-gps-geotagging-opt-in -->
+- **Предложение выключить звук** - на скорости ниже 0,5x настройки воспроизведения предлагают заглушить звук. <!-- af: video-player.low-speed-mute-offer -->
+- **Медиаклавиши** - пауза лишь приостанавливает, воспроизведение лишь запускает, стоп возвращает в начало. <!-- af: video-player.media-keys-pause-play-and-stop-in-the -->
+- **Цифровые клавиши** - кнопки назначений с клавиатуры и ТВ-пульта. <!-- af: destinations.number-key-shortcuts-for-operation-buttons-keyboard-and -->
+- **Порядок папок по языку** - папки сортируются по правилам вашего языка. <!-- af: media-browsing.locale-aware-folder-name-order -->
+- **Удаление с учётом корзины** - подтверждение говорит, когда файлы уйдут в корзину. <!-- af: file-operations.trash-aware-delete-confirmation -->
+- **Фирменный знак** - знак FastMediaSorter на всех экранах и в заставке при запуске. <!-- af: user-interface.family-mark, app-startup.branded-startup-splash -->
+- **Часы: резервный адрес трансляции** - звук переходит на него; готовые ссылки ждут старта. <!-- af: wear-os.broadcast-endpoint-failover, wear-os.waiting-for-a-prepared-broadcast-on-the-watch -->
+- **Часы: настройки** - строки-флажки и читаемые строки типов медиа. <!-- af: wear-os.wear-boolean-rows-as-checkboxes, wear-os.media-types-settings-rows -->
+
+## Что исправлено
+
+- Живой звук переподключается после закрытия потока сервером.
+- Завершённые трансляции распознаются в фоне, плеере и на часах.
+- Закончившийся трек больше не оставляет мини-панель на экране.
+- Диалог сохранения сохраняет расширение файла заметки.
+- Пропущенная передача теперь объявляется.
+- Сообщение о результате перемещения совпадает с числом файлов.
+- «Отправить..» объясняет, когда не включён ни один получатель.
+- Главный список больше не заканчивается под панелью навигации.
+- Значения и вкладки настроек при крупном шрифте больше не ломаются.
+- Строки обзора держат имена читаемыми рядом с кнопками действий.
+- Поиск без совпадений больше не похож на пустую папку.
+- На часах «Назад» в приветствии листает назад, а не выходит.
+- Яснее подсказка, когда общая папка недоступна.
+- Выход по «Назад» в аудиоплеере следует настройке.
+
+---
+
+## Предыдущий релиз: 2.61.1121.756 (ноябрь 2026)
 
 > Изменения с версии 2.61.0292.144
 
@@ -238,7 +293,7 @@ permalink: /docs/WHATS_NEW-ru.html
 
 ## Что нового
 
-- **Циферблат FastMediaSorter** - ставится из приложения на телефоне или на часах.
+- **Циферблат Fast Media Sorter & Organizer** - ставится из приложения на телефоне или на часах.
 - **Циферблат на руке** - полосы заряда, фото фона и кнопки, настроенные с телефона.
 - **Снимок экрана** - выбор папки, копия в буфер, затем отправка, правка, перевод или просмотр.
 - **Сеть** - встроенный SFTP-сервер с сопряжением по QR, папки и загрузка снимков на сетевые ресурсы.
@@ -757,7 +812,7 @@ permalink: /docs/WHATS_NEW-ru.html
 
 ## Что нового
 
-- **Режим лаунчера** - используйте FastMediaSorter как домашний экран устройства.
+- **Режим лаунчера** - используйте Fast Media Sorter & Organizer как домашний экран устройства.
 - **HEIC, HEIF и AVIF** - открывайте современные форматы фото с телефона.
 - **Архивы и образы дисков** - работайте с ними из «Открыть с помощью» и «Поделиться».
 - **Расширенный каталог краевых жестов** - больше действий в сгруппированном выборе.
@@ -812,7 +867,7 @@ permalink: /docs/WHATS_NEW-ru.html
 - **Windows-компаньон** - находите, подключайте и импортируйте общие папки и SFTP-доступ из десктопного компаньона.
 - **Ресурсы общих папок** - импорт общей папки от компаньона как доступной для записи, либо поделиться/импортировать SFTP-доступ файлом.
 - **Импорт конфига компаньона** - конфиг schema v2 остаётся совместим со старыми версиями приложения.
-- **Приёмники «Поделиться»** - Messenger, Viber и короткие видео из соцсетей теперь можно отправить прямо в FastMediaSorter.
+- **Приёмники «Поделиться»** - Messenger, Viber и короткие видео из соцсетей теперь можно отправить прямо в Fast Media Sorter & Organizer.
 - **OCR со скриншота** - вырезайте и переводите текст прямо со скриншота.
 - **Краевые жесты Screen Capture** - настраиваемые зоны свайпа по всем четырём краям экрана.
 - **Панель быстрого запуска** - кнопка закрытия, жесты камеры/видео как функции панели, поиск-фильтр в длинных списках выбора.
@@ -1477,8 +1532,8 @@ permalink: /docs/WHATS_NEW-ru.html
 
 ## Приём файлов из других приложений
 
-- **«Поделиться» в FastMediaSorter** - приложение принимает файлы через стандартный механизм «Поделиться» Android и предлагает скопировать в выбранный ресурс
+- **«Поделиться» в Fast Media Sorter & Organizer** - приложение принимает файлы через стандартный механизм «Поделиться» Android и предлагает скопировать в выбранный ресурс
 
 ---
 
-*Предыдущие версии: [История изменений](../dev/CHANGELOG.md)*
+*Предыдущие версии: [История продукта](PRODUCT_HISTORY-ru.md)*

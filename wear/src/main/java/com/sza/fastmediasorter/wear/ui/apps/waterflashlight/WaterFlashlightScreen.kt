@@ -132,24 +132,21 @@ fun WaterFlashlightScreen(
 }
 
 /**
- * Feeds one key event to the gate and leaves when the gate says so.
+ * Feeds one key event to the gate and leaves when the gate says so. Shared with the Tourist lock, the
+ * module's other touch-locked screen, so the two exits cannot drift apart.
  *
  * BACK is a single event here, never a timed press. From Android 16 on - which this app targets - the
  * dispatcher hands every back to the [BackHandler] as well, so the key half is ignored there rather
  * than counted twice; below Android 16 the consumed key never reaches the dispatcher and is counted
  * here, or no back could ever leave.
  */
-private fun WaterFlashlightExitGate.onScreenKey(event: KeyEvent, onLeave: () -> Unit) {
+internal fun WaterFlashlightExitGate.onScreenKey(event: KeyEvent, onLeave: () -> Unit) {
     val nowMs = System.currentTimeMillis()
     val leaving = when {
         event.key == Key.Back ->
             event.type == KeyEventType.KeyUp && !backReachesDispatcher && onBack(nowMs)
         event.type == KeyEventType.KeyDown -> {
-            onKeyDown(
-                keyCode = event.key.keyCode,
-                nowMs = nowMs,
-                longPress = event.nativeKeyEvent.isLongPress || event.nativeKeyEvent.repeatCount > 0,
-            )
+            onKeyDown(keyCode = event.key.keyCode, nowMs = nowMs)
             false
         }
         event.type == KeyEventType.KeyUp -> onKeyUp(event.key.keyCode, nowMs)

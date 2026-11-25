@@ -78,7 +78,7 @@
     <string name="vr_info_video">视频编解码器：</string>
     <string name="vr_install_cta_action">店内营业</string>
     <string name="vr_install_cta_dismiss">照常玩</string>
-    <string name="vr_install_cta_message">为了获得最佳体验，请在 Quest 头显上尝试 FastMediaSorter 的 VR 版本。</string>
+    <string name="vr_install_cta_message">为了获得最佳体验，请在 Quest 头显上尝试 Fast Media Sorter &amp; Organizer 的 VR 版本。</string>
     <string name="vr_install_cta_title">这是一段3D视频</string>
     <string name="vr_overlay_btn_bright_down">明亮的 -</string>
     <string name="vr_overlay_btn_bright_up">明亮+</string>

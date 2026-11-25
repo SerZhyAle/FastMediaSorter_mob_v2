@@ -7,6 +7,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Справка - Калькулятор</title>
 <link rel="stylesheet" href="../help.css">
+<link rel="icon" type="image/png" href="../img/product-mark.png">
 </head>
 <body class="help">
 <main class="container">
@@ -14,6 +15,7 @@
 <a href="index.html">Оглавление справки</a><span class="sep" aria-hidden="true">/</span><span>Калькулятор</span>
 </nav>
 <header class="hero">
+<img class="product-mark" src="../img/product-mark.png" width="48" height="48" alt="Fast Media Sorter">
 <h1>Калькулятор</h1>
 </header>
 <h2>Для чего этот экран</h2>
@@ -24,13 +26,13 @@
 </figure>
 <h2>Порядок действий</h2>
 <ol class="order">
-<li>Наберите первое число цифрами <a class="ref" href="#digits">13</a> и десятичной точкой <a class="ref" href="#decimal">14</a>. Число появится в результате <a class="ref" href="#display">3</a>. «Удалить последний символ» <a class="ref" href="#backspace">11</a> убирает последнюю цифру.</li>
-<li>Нажмите знак действия: «Сложить» <a class="ref" href="#add">16</a>, «Вычесть» <a class="ref" href="#subtract">17</a>, «Умножить» <a class="ref" href="#multiply">18</a> или «Разделить» <a class="ref" href="#divide">19</a> - и наберите второе число. Пока вы его вводите, в истории <a class="ref" href="#history">2</a> уже виден ответ, который даст «Равно».</li>
-<li>Нажмите «Равно» <a class="ref" href="#equals">20</a>, чтобы завершить пример. Он попадёт в историю <a class="ref" href="#history">2</a>, а касание результата <a class="ref" href="#display">3</a> копирует число.</li>
+<li>Наберите первое число цифрами <a class="ref" href="#digits">13</a> и десятичной точкой <span class="nb"><a class="ref" href="#decimal">14</a>.</span> Число появится в результате <span class="nb"><a class="ref" href="#display">3</a>.</span> «Удалить последний символ» <a class="ref" href="#backspace">11</a> убирает последнюю цифру.</li>
+<li>Нажмите знак действия: «Сложить» <span class="nb"><a class="ref" href="#add">16</a>,</span> «Вычесть» <span class="nb"><a class="ref" href="#subtract">17</a>,</span> «Умножить» <a class="ref" href="#multiply">18</a> или «Разделить» <a class="ref" href="#divide">19</a> - и наберите второе число. Пока вы его вводите, в истории <a class="ref" href="#history">2</a> уже виден ответ, который даст «Равно».</li>
+<li>Нажмите «Равно» <span class="nb"><a class="ref" href="#equals">20</a>,</span> чтобы завершить пример. Он попадёт в историю <span class="nb"><a class="ref" href="#history">2</a>,</span> а касание результата <a class="ref" href="#display">3</a> копирует число.</li>
 <li>«Процент» <a class="ref" href="#percent">12</a> и «Сменить знак» <a class="ref" href="#toggle-sign">15</a> работают с числом, которое вы вводите. «Очистить ввод» <a class="ref" href="#clear-entry">10</a> стирает только это число, а «Очистить» <a class="ref" href="#clear">9</a> начинает пример заново.</li>
-<li>Чтобы вести накопительный итог, покажите кнопки памяти <a class="ref" href="#memory-toggle">4</a> и пользуйтесь M+ <a class="ref" href="#memory-add">5</a>, M- <a class="ref" href="#memory-subtract">6</a>, MR <a class="ref" href="#memory-recall">7</a> и MC <a class="ref" href="#memory-clear">8</a>. Индикатор <a class="ref" href="#memory-indicator">1</a> подскажет, что хранится в памяти.</li>
-<li>Удерживайте кнопку, чтобы выполнить её второе действие: оно подписано мелким шрифтом под значком. Остальное - функции, отправка, сохранение истории и настройки - находится в меню <a class="ref" href="#menu">21</a>.</li>
-<li>Если на экране написано, что калькулятор выключен, нажмите <a class="ref" href="#off-open-settings">23</a>: откроются настройки, где его можно включить.</li>
+<li>Чтобы вести накопительный итог, покажите кнопки памяти <a class="ref" href="#memory-toggle">4</a> и пользуйтесь M+ <span class="nb"><a class="ref" href="#memory-add">5</a>,</span> M- <span class="nb"><a class="ref" href="#memory-subtract">6</a>,</span> MR <a class="ref" href="#memory-recall">7</a> и MC <span class="nb"><a class="ref" href="#memory-clear">8</a>.</span> Индикатор <a class="ref" href="#memory-indicator">1</a> подскажет, что хранится в памяти.</li>
+<li>Удерживайте кнопку, чтобы выполнить её второе действие: оно подписано мелким шрифтом под значком. Остальное - функции, отправка, сохранение истории и настройки - находится в меню <span class="nb"><a class="ref" href="#menu">21</a>.</span></li>
+<li>Если на экране написано, что калькулятор выключен, нажмите <span class="nb"><a class="ref" href="#off-open-settings">23</a>:</span> откроются настройки, где его можно включить.</li>
 </ol>
 <h2>Элементы</h2>
 <div class="elements">
@@ -210,7 +212,7 @@
 </div>
 </details>
 <details class="el" id="off-open-settings">
-<summary><span class="mk">23</span><span><span class="name">Открыть настройки</span><span class="one">Открывает настройки на вкладке, где калькулятор включается.</span></span></summary>
+<summary><span class="mk">23</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M19.14,12.94c0.04,-0.3 0.06,-0.61 0.06,-0.94c0,-0.32 -0.02,-0.64 -0.07,-0.94l2.03,-1.58c0.18,-0.14 0.23,-0.41 0.12,-0.61l-1.92,-3.32c-0.12,-0.22 -0.37,-0.29 -0.59,-0.22l-2.39,0.96c-0.5,-0.38 -1.03,-0.7 -1.62,-0.94L14.4,2.81c-0.04,-0.24 -0.24,-0.41 -0.48,-0.41h-3.84c-0.24,0 -0.43,0.17 -0.47,0.41L9.25,5.35C8.66,5.59 8.12,5.92 7.63,6.29L5.24,5.33c-0.22,-0.08 -0.47,0 -0.59,0.22L2.74,8.87C2.62,9.08 2.66,9.34 2.86,9.48l2.03,1.58C4.84,11.36 4.8,11.69 4.8,12s0.02,0.64 0.07,0.94l-2.03,1.58c-0.18,0.14 -0.23,0.41 -0.12,0.61l1.92,3.32c0.12,0.22 0.37,0.29 0.59,0.22l2.39,-0.96c0.5,0.38 1.03,0.7 1.62,0.94l0.36,2.54c0.05,0.24 0.24,0.41 0.48,0.41h3.84c0.24,0 0.44,-0.17 0.47,-0.41l0.36,-2.54c0.59,-0.24 1.13,-0.56 1.62,-0.94l2.39,0.96c0.22,0.08 0.47,0 0.59,-0.22l1.92,-3.32c0.12,-0.22 0.07,-0.47 -0.12,-0.61L19.14,12.94zM12,15.6c-1.98,0 -3.6,-1.62 -3.6,-3.6s1.62,-3.6 3.6,-3.6s3.6,1.62 3.6,3.6S13.98,15.6 12,15.6z" fill="currentColor"/></svg>Открыть настройки</span><span class="one">Открывает настройки на вкладке, где калькулятор включается.</span></span></summary>
 <div class="full">
 <p>Кнопка ведёт на вкладку «Управление» в настройках; переключатель калькулятора находится в разделе «Дополнительные программы и сценарии». Включите его и вернитесь на этот экран - клавиатура уже будет на месте. Перезапуск не нужен.</p>
 </div>
@@ -264,7 +266,7 @@
 <li><a href="index.html"><b>Оглавление справки</b></a></li>
 </ul>
 <footer class="help-foot">
-<span>Fast Media Sorter, 2026-10-26</span>
+<span>Fast Media Sorter, 2026-11-24</span>
 <a href="index.html">Оглавление справки</a>
 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Задать вопрос или сообщить о проблеме</a>
 </footer>

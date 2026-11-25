@@ -47,3 +47,11 @@ app_v2/src/test/resources/letterbox-fill/letterbox-fill-vectors.json binary
 
 # S4554: the INBOX-PACKET conformance vector is hashed byte for byte; never normalize it
 app_v2/src/test/resources/inbox-ticket-vector/** -text
+
+# EXCHANGE-MARK rule 6: the vendored artwork XML is a byte copy of the catalog's files, so a line-ending conversion
+# would break the hash. ic_exchange_guest.xml and ic_exchange_invitation.xml are the product's own drawings.
+app_v2/src/main/res/drawable/ic_exchange_mark.xml binary
+app_v2/src/main/res/drawable/ic_exchange_mark_small.xml binary
+app_v2/src/main/res/drawable/ic_exchange_mono.xml binary
+wear/src/main/res/drawable/ic_exchange_mark_small.xml binary
+wear/src/main/res/drawable/ic_exchange_mono.xml binary

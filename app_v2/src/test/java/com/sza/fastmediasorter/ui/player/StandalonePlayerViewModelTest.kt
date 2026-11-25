@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.player
 
 import android.content.Context
+import android.content.pm.ActivityInfo
 import android.net.Uri
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
@@ -10,6 +11,7 @@ import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
 import com.sza.fastmediasorter.domain.usecase.MaterializeUriToFileUseCase
 import com.sza.fastmediasorter.domain.usecase.ResolveLocalPathFromUriUseCase
 import com.sza.fastmediasorter.domain.usecase.SearchLyricsUseCase
+import com.sza.fastmediasorter.ui.player.helpers.ScreenRotationManager
 import dagger.Lazy
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -58,6 +60,17 @@ class StandalonePlayerViewModelTest {
     @After
     fun tearDown() {
         Dispatchers.resetMain()
+    }
+
+    @Test
+    fun `standalone rotation follows the sensor by default and can be locked and unlocked`() {
+        fun orientation() = ScreenRotationManager.orientationFor(false, viewModel.rotationSensorEnabled.value)
+
+        assertEquals(ActivityInfo.SCREEN_ORIENTATION_SENSOR, orientation())
+        viewModel.toggleRotationSensor()
+        assertEquals(ActivityInfo.SCREEN_ORIENTATION_LOCKED, orientation())
+        viewModel.toggleRotationSensor()
+        assertEquals(ActivityInfo.SCREEN_ORIENTATION_SENSOR, orientation())
     }
 
     @Test

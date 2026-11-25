@@ -11,9 +11,9 @@ availability_note: All editions - Google Drive backup needs Standard, noLegal, P
 recipe_number: "05"
 canonical_url: documentation/settings/backup-and-device-sync.html
 why: |
-  Setting everything up the way you like it - sources, [Favorites](term:favorites), every toggle - takes a while, and you don't want to do it twice. FastMediaSorter can pack the whole thing into a file or a Google Drive backup, move just one kind of data on its own, and keep a paired [watch](term:watch) matching the phone without you tapping the same setting twice.
+  Setting everything up the way you like it - sources, [Favorites](term:favorites), every toggle - takes a while, and you don't want to do it twice. Fast Media Sorter & Organizer can pack the whole thing into a file or a Google Drive backup, move just one kind of data on its own, and keep a paired [watch](term:watch) matching the phone without you tapping the same setting twice.
 ingredients:
-  - "FastMediaSorter, any edition, with **Settings**, the **General** group, open. See [Finding your way around Settings](page:settings.settings-overview-and-search) if this is your first visit."
+  - "Fast Media Sorter & Organizer, any edition, with **Settings**, the **General** group, open. See [Finding your way around Settings](page:settings.settings-overview-and-search) if this is your first visit."
   - "For the Google Drive backup: a Google account connected in the app."
   - "For the watch steps: a paired watch with [Wear Companion](term:wear-companion) turned on."
 steps:

@@ -55,7 +55,7 @@
     <string name="export_logs_failed">导出日志失败</string>
     <string name="export_logs_no_files">没有可供导出的日志文件</string>
     <string name="export_logs_no_share_target">没有可用于共享日志存档的应用程序</string>
-    <string name="export_logs_subject">FastMediaSorter 调试日志</string>
+    <string name="export_logs_subject">Fast Media Sorter &amp; Organizer 调试日志</string>
     <string name="export_settings">将所有设置导出到文件</string>
     <string name="export_settings_confirm_message">使用当前设置创建导出文件？</string>
     <string name="export_settings_confirm_title">导出设置</string>
@@ -73,6 +73,7 @@
     <string name="delete_confirmation">删除文件？</string>
     <string name="delete_failed">无法删除文件。</string>
     <string name="delete_folder_confirm">删除文件夹“%1$s”及其所有内容？此操作无法撤销。</string>
+    <string name="delete_folder_trash_confirm">要删除文件夹“%1$s”及其全部内容吗？它会移到回收站，不会被彻底清除。</string>
     <string name="delete_n_files_from_network_title">从网络中删除 %d 个文件？</string>
     <string name="delete_n_folders_confirm">删除 %1$d 个文件夹及其所有内容？此操作无法撤销。</string>
     <string name="delete_old_files">删除旧文件</string>

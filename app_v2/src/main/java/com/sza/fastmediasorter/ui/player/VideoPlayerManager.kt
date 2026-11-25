@@ -48,6 +48,7 @@ import com.sza.fastmediasorter.domain.stats.ViewKind
 import com.sza.fastmediasorter.domain.streams.StreamFrameIngestor
 import com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
 import com.sza.fastmediasorter.ui.player.helpers.PanelStereoSingleEyeNotifier
+import com.sza.fastmediasorter.ui.player.helpers.VideoSurfaceRotationApplier
 import com.sza.fastmediasorter.ui.player.helpers.applyConfiguredVideoEffects
 import com.sza.fastmediasorter.ui.player.helpers.brightnessProgressToAdjustment
 import com.sza.fastmediasorter.ui.player.helpers.cancelPlaybackHealthCheck
@@ -579,13 +580,9 @@ class VideoPlayerManager(
 
     @Volatile internal var pendingEffectsApply: Boolean = false
 
-    // S0995: decoded video dimensions from onVideoSizeChanged; used to refit the frame at 90/270.
-    @Volatile internal var lastVideoWidth: Int = 0
-
-    @Volatile internal var lastVideoHeight: Int = 0
-
-    // S0995: cumulative visual frame rotation (0/90/180/270) composed into the effect chain. Lives on
-    // the manager (not the per-file ExoPlayer) so the angle carries to the next video in the session.
+    // S0995: cumulative visual frame rotation (0/90/180/270), applied to the PlayerView's frame container
+    // by VideoSurfaceRotationApplier (S4682). Lives on the manager (not the per-file ExoPlayer) so the
+    // angle carries to the next video in the session.
     @Volatile internal var contentRotationDegrees: Int = 0
 
     // Debounce handler for applyConfiguredVideoEffects() - see PlayerSetupHelper.kt.
@@ -699,9 +696,6 @@ class VideoPlayerManager(
 
         override fun onVideoSizeChanged(videoSize: androidx.media3.common.VideoSize) {
             if (videoSize.width <= 0 || videoSize.height <= 0) return
-            // S0995: remember decoded dims so the rotation effect can refit the frame at 90/270.
-            lastVideoWidth = videoSize.width
-            lastVideoHeight = videoSize.height
             if (!videoSizeKnown) {
                 videoSizeKnown = true
                 Timber.d("VideoPlayerManager: onVideoSizeChanged ${videoSize.width}x${videoSize.height} - size known")
@@ -739,8 +733,11 @@ class VideoPlayerManager(
         // dying tree keeps receiving frame callbacks.
         if (currentPlayerView !== playerView) {
             currentPlayerView?.player = null
+            VideoSurfaceRotationApplier.release(currentPlayerView)
         }
         currentPlayerView = playerView
+        // S4682: a re-inflated PlayerView starts upright, so the session rotation is handed to it here.
+        VideoSurfaceRotationApplier.apply(playerView, contentRotationDegrees)
         Timber.d("VideoPlayerManager: PlayerView set")
     }
 
@@ -771,14 +768,14 @@ class VideoPlayerManager(
     fun getBrightnessPercentOffset(): Int = playbackControlsHelper.getBrightnessPercentOffset()
 
     /**
-     * S0995: set the pure-visual clockwise frame rotation and re-compose the effect chain. Idempotent
-     * on an unchanged angle. The 80ms-debounce / defer-until-videoSizeKnown / drain-before-release
-     * Media3 1.2.1 workarounds inside [applyConfiguredVideoEffects] cover the rotation effect too.
+     * S0995: set the pure-visual clockwise frame rotation. Idempotent on an unchanged angle. S4682: it
+     * turns the PlayerView's frame container instead of adding a Media3 effect, because the effect chain
+     * was never seen rotating the picture on a device.
      */
     fun setContentRotationDegrees(degrees: Int) {
         if (contentRotationDegrees == degrees) return
         contentRotationDegrees = degrees
-        applyConfiguredVideoEffects()
+        VideoSurfaceRotationApplier.apply(currentPlayerView, degrees)
     }
 
     fun getContentRotationDegrees(): Int = contentRotationDegrees

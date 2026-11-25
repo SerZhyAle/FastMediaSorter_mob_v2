@@ -18,7 +18,7 @@ import javax.inject.Inject
 /**
  * Coordinates comprehensive resource scanning operations.
  * Tests availability, write access, and file counts for all resources.
- * 
+ *
  * Responsibilities:
  * - Clear network connection pools before scanning
  * - Test resource connection/availability
@@ -42,7 +42,7 @@ class ResourceScanCoordinator @Inject constructor(
     private val remoteSourceGate: RemoteSourceAvailabilityGate,
     private val refreshResourceFileCountsUseCase: RefreshResourceFileCountsUseCase
 ) {
-    
+
     /**
      * Result of full resource scan.
      */
@@ -64,7 +64,7 @@ class ResourceScanCoordinator @Inject constructor(
                 else -> com.sza.fastmediasorter.R.string.resources_checked
             }
         }
-        
+
         /**
          * Get format arguments for string resource.
          */
@@ -76,7 +76,7 @@ class ResourceScanCoordinator @Inject constructor(
             }
         }
     }
-    
+
     /**
      * Result of a single-resource scan operation (S0160).
      */
@@ -115,12 +115,18 @@ class ResourceScanCoordinator @Inject constructor(
      * with a zero count: remote resources carry a network price, and a non-zero count is already
      * true. A genuinely empty resource is re-counted on each start, which is one cheap MediaStore
      * count query and is also what makes the tile appear once media finally exists.
+     *
+     * S4819: local folders join for the same reason - the provisioned Downloads destination is written
+     * with a zero count and only Browse ever counted it. A local count carries no network price.
      */
     @Suppress("TooGenericExceptionCaught")
     suspend fun backfillVirtualResourceCounts() {
         val staleIds = try {
             resourceRepository.get().getAllResourcesSync()
-                .filter { VirtualPathUtils.isVirtualPath(it.path) && it.fileCount == 0 }
+                .filter {
+                    it.fileCount == 0 &&
+                        (VirtualPathUtils.isVirtualPath(it.path) || it.type == ResourceType.LOCAL)
+                }
                 .map { it.id }
         } catch (e: Exception) {
             e.rethrowIfCancellation()
@@ -134,25 +140,25 @@ class ResourceScanCoordinator @Inject constructor(
     /**
      * Scan all resources: test availability, write access, and update file counts.
      * This is a comprehensive operation that updates resource metadata.
-     * 
+     *
      * @return ScanResult with scan statistics
      */
     suspend fun scanAllResources(): ScanResult {
         // Clear all network connection pools to avoid stale/blocked connections
         Timber.d("Clearing network connection pools before resource scan")
         smbOperationsUseCase.clearAllConnectionPools()
-        
+
         // S0391: never connection-test or count a disabled source's resources - they are inert.
         val resources = getResourcesUseCase().first().filter { remoteSourceGate.isEnabled(it) }
         Timber.d("Starting scan of ${resources.size} resources")
-        
+
         var unavailableCount = 0
         var writableCount = 0
         var readOnlyCount = 0
-        
+
         resources.forEachIndexed { index, resource ->
             Timber.d("Scanning resource [${index + 1}/${resources.size}]: ${resource.name} (${resource.type})")
-            
+
             try {
                 scanSingleResource(resource)?.let { isWritable ->
                     if (isWritable) writableCount++ else readOnlyCount++
@@ -162,7 +168,7 @@ class ResourceScanCoordinator @Inject constructor(
             } catch (e: Exception) {
                 Timber.w(e, "Resource check failed: ${resource.name}")
                 unavailableCount++
-                
+
                 // Update availability to false on exception
                 if (resource.isAvailable) {
                     val updatedResource = resource.copy(isAvailable = false)
@@ -170,10 +176,10 @@ class ResourceScanCoordinator @Inject constructor(
                 }
             }
         }
-        
+
         Timber.d("Resource scan completed: ${resources.size} total")
         val availableCount = resources.size - unavailableCount
-        
+
         return ScanResult(
             totalResources = resources.size,
             availableCount = availableCount,
@@ -182,7 +188,7 @@ class ResourceScanCoordinator @Inject constructor(
             readOnlyCount = readOnlyCount
         )
     }
-    
+
     /**
      * Scan single resource. Returns write status if available, null if unavailable.
      */
@@ -196,7 +202,7 @@ class ResourceScanCoordinator @Inject constructor(
         Timber.d("Testing connection for ${resource.name}...")
         val testResult = resourceRepository.get().testConnection(resource)
         Timber.d("Connection test completed for ${resource.name}")
-        
+
         return testResult.fold(
             onSuccess = { message ->
                 Timber.d("Resource available: ${resource.name}")
@@ -204,7 +210,7 @@ class ResourceScanCoordinator @Inject constructor(
             },
             onFailure = { error ->
                 Timber.w("Resource unavailable: ${resource.name} - ${error.message}")
-                
+
                 // Update availability to false
                 if (resource.isAvailable) {
                     val updatedResource = resource.copy(isAvailable = false)
@@ -214,7 +220,7 @@ class ResourceScanCoordinator @Inject constructor(
             }
         )
     }
-    
+
     /**
      * Process virtual resource: skip connection and write checks, then refresh its stored count.
      * Virtual resources are always available and never writable.
@@ -234,29 +240,29 @@ class ResourceScanCoordinator @Inject constructor(
     private suspend fun processAvailableResource(resource: MediaResource, testConnectionMessage: String): Boolean {
         var needsUpdate = false
         var updatedResource = resource
-        
+
         // Parse subfolder count from testConnection message
         val subfolderCount = parseSubfolderCount(testConnectionMessage)
         if (subfolderCount != resource.subfolderCount) {
             updatedResource = updatedResource.copy(subfolderCount = subfolderCount)
             needsUpdate = true
         }
-        
+
         // Update availability to true
         if (!resource.isAvailable) {
             updatedResource = updatedResource.copy(isAvailable = true)
             needsUpdate = true
         }
-        
+
         // Update lastSyncDate for network resources
-        val isNetworkResource = resource.type == ResourceType.SMB || 
-                                resource.type == ResourceType.SFTP || 
+        val isNetworkResource = resource.type == ResourceType.SMB ||
+                                resource.type == ResourceType.SFTP ||
                                 resource.type == ResourceType.FTP
         if (isNetworkResource) {
             updatedResource = updatedResource.copy(lastSyncDate = System.currentTimeMillis())
             needsUpdate = true
         }
-        
+
         val scanner = mediaScannerFactory.getScanner(resource.type)
         Timber.d("Checking write access for ${resource.name}...")
         val isWritable = try {
@@ -266,24 +272,24 @@ class ResourceScanCoordinator @Inject constructor(
             resource.isWritable
         }
         Timber.d("Write access check completed for ${resource.name}: $isWritable")
-        
+
         // Update resource if write permission changed
         if (isWritable != resource.isWritable) {
             updatedResource = updatedResource.copy(isWritable = isWritable)
             needsUpdate = true
         }
-        
+
         if (needsUpdate) {
             updateResourceUseCase(updatedResource)
         }
         refreshResourceFileCountsUseCase(setOf(resource.id))
         return isWritable
     }
-    
+
     /**
      * Parse subfolder count from testConnection success message.
      * Message format: "• Subfolders: 35"
-     * 
+     *
      * @return Parsed count or 0 if not found
      */
     private fun parseSubfolderCount(message: String): Int {

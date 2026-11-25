@@ -4,6 +4,7 @@ import android.content.Context
 import android.text.TextUtils
 import android.util.AttributeSet
 import android.util.TypedValue
+import android.view.Gravity
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -13,7 +14,9 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ListPopupWindow
+import android.widget.ListView
 import android.widget.TextView
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.core.content.res.use
 import androidx.core.view.updateLayoutParams
@@ -21,6 +24,8 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ViewSettingsDropdownRowBinding
+import com.sza.fastmediasorter.utils.widestUnbreakableRunPx
+import timber.log.Timber
 import kotlin.math.ceil
 
 /**
@@ -46,6 +51,7 @@ class SettingsDropdownRow @JvmOverloads constructor(
     private val binding = ViewSettingsDropdownRowBinding.inflate(LayoutInflater.from(context), this)
 
     private val textGroup: LinearLayout = binding.sdrTextGroup
+    private val iconView: ImageView = binding.sdrIcon
     private val titleView: TextView = binding.sdrTitle
     private val subtitleView: TextView = binding.sdrSubtitle
     private val helpIcon: ImageButton = binding.sdrIconHelp
@@ -97,6 +103,19 @@ class SettingsDropdownRow @JvmOverloads constructor(
      */
     fun setTitle(@StringRes resId: Int) {
         setTitle(context.getText(resId))
+    }
+
+    /**
+     * Sets the optional leading feature icon; `0` hides the slot (S4570).
+     */
+    fun setIcon(@DrawableRes resId: Int) {
+        if (resId == 0) {
+            iconView.setImageDrawable(null)
+            iconView.visibility = View.GONE
+        } else {
+            iconView.setImageResource(resId)
+            iconView.visibility = View.VISIBLE
+        }
     }
 
     /**
@@ -176,6 +195,7 @@ class SettingsDropdownRow @JvmOverloads constructor(
 
     override fun setEnabled(enabled: Boolean) {
         super.setEnabled(enabled)
+        iconView.isEnabled = enabled
         titleView.isEnabled = enabled
         subtitleView.isEnabled = enabled
         help.setEnabled(enabled)
@@ -199,9 +219,11 @@ class SettingsDropdownRow @JvmOverloads constructor(
      * edge (S0644). Hugging means the value is measured before the glyph and may take the whole row,
      * which is what left the one Streams entry long enough to wrap without a chevron (S2783).
      *
-     * A row outside a label column stacks the value under the caption when the room beside it is both
-     * too narrow for the value and under a third of the row: at a large accessibility font scale the caption
-     * alone nearly fills the row, and the value was left one glyph wide, wrapping per letter (S3863).
+     * A row outside a label column stacks the value under the caption when it does not fit beside it
+     * and the room is narrower than its widest word or under a third of the row: at a large accessibility
+     * font scale the caption alone nearly fills the row, and the value was left one glyph wide, wrapping
+     * per letter (S3863), or a column that split a word in the middle (S4788). The decision is
+     * [SettingsValueStackPolicy], shared with [SettingsSelectionRow].
      */
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         if (valueAsText && MeasureSpec.getMode(widthMeasureSpec) != MeasureSpec.UNSPECIFIED) {
@@ -214,9 +236,12 @@ class SettingsDropdownRow @JvmOverloads constructor(
                 measureLabelNaturalWidth()
             }
             val besideRoom = content - label - glyph - gap
-            val stack = labelColumnWidthPx <= 0 &&
-                besideRoom < measureValueNaturalWidth() &&
-                besideRoom < content / STACK_VALUE_ROOM_DIVISOR
+            val stack = labelColumnWidthPx <= 0 && SettingsValueStackPolicy.shouldStack(
+                content,
+                besideRoom,
+                measureValueNaturalWidth(),
+                valueTextView.widestUnbreakableRunPx(),
+            )
             setValueStacked(stack)
             val room = if (stack) content - glyph - gap else besideRoom
             val cap = room.coerceAtLeast(0)
@@ -254,9 +279,13 @@ class SettingsDropdownRow @JvmOverloads constructor(
         if (!isEnabled || entries.isEmpty() || optionsPopup != null) return
         // S2185: never narrower than the field it is anchored to, but expands past a compact
         // field (e.g. sdr_fieldMaxWidth) to fit the widest entry - see measurePopupContentWidth.
-        val adapter = ArrayAdapter(context, android.R.layout.simple_list_item_1, entries)
+        // S4837: the single-choice layout is what carries the checked state that marks the current entry.
+        val adapter = ArrayAdapter(context, android.R.layout.simple_list_item_single_choice, entries)
         val popup = ListPopupWindow(context).apply {
             anchorView = if (valueAsText) this@SettingsDropdownRow else inputLayout
+            // The row anchor spans the whole row while a value-as-text value sits at its end, so the
+            // default start alignment opened the list at the far side from the value.
+            if (valueAsText) setDropDownGravity(Gravity.END)
             isModal = true
             width = measurePopupContentWidth(context, adapter, minWidthPx = if (valueAsText) 0 else inputLayout.width)
             height = ListPopupWindow.WRAP_CONTENT
@@ -269,8 +298,15 @@ class SettingsDropdownRow @JvmOverloads constructor(
         }
         optionsPopup = popup
         popup.show()
-        // Start the D-pad walk on the current value instead of the first row.
-        if (selectedIndex in entries.indices) popup.listView?.setSelection(selectedIndex)
+        Timber.d("S4837: options list gravityEnd=$valueAsText checked=$selectedIndex")
+        if (selectedIndex in entries.indices) {
+            popup.listView?.let { list ->
+                list.choiceMode = ListView.CHOICE_MODE_SINGLE
+                list.setItemChecked(selectedIndex, true)
+                // Start the D-pad walk on the current value instead of the first row.
+                list.setSelection(selectedIndex)
+            }
+        }
     }
 
     private fun dismissOptions() {
@@ -288,6 +324,7 @@ class SettingsDropdownRow @JvmOverloads constructor(
         context.obtainStyledAttributes(attrs, R.styleable.SettingsDropdownRow, defStyleAttr, 0).use { typedArray ->
             setTitle(typedArray.getText(R.styleable.SettingsDropdownRow_sdr_title) ?: "")
             setSubtitle(typedArray.getText(R.styleable.SettingsDropdownRow_sdr_subtitle))
+            setIcon(typedArray.getResourceId(R.styleable.SettingsDropdownRow_sdr_icon, 0))
             help.setPayload(
                 typedArray.getText(R.styleable.SettingsDropdownRow_sdr_helpTitle),
                 typedArray.getText(R.styleable.SettingsDropdownRow_sdr_helpMessage),
@@ -399,6 +436,7 @@ class SettingsDropdownRow @JvmOverloads constructor(
     private fun setValueStacked(stacked: Boolean) {
         if (stacked == valueStacked) return
         valueStacked = stacked
+        Timber.d("S4788: SettingsDropdownRow value stacked=%b", stacked)
         binding.sdrTitleLine.orientation = if (stacked) VERTICAL else HORIZONTAL
         valueTextView.updateLayoutParams<LinearLayout.LayoutParams> {
             marginStart = if (stacked) 0 else resources.getDimensionPixelSize(R.dimen.settings_help_icon_margin)
@@ -419,13 +457,17 @@ class SettingsDropdownRow @JvmOverloads constructor(
     }
 
     /**
-     * Natural width of the title plus its help icon, measured unconstrained so an already applied
-     * column width is never fed back to [SettingsValueRowGroup].
+     * Natural width of the leading icon, the title and its help icon, measured unconstrained so an
+     * already applied column width is never fed back to [SettingsValueRowGroup].
      */
     override fun measureLabelNaturalWidth(): Int {
         val unbounded = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
         titleView.measure(unbounded, unbounded)
         var width = titleView.measuredWidth
+        if (iconView.visibility == View.VISIBLE) {
+            width += resources.getDimensionPixelSize(R.dimen.settings_help_icon_size) +
+                resources.getDimensionPixelSize(R.dimen.settings_help_icon_margin)
+        }
         if (helpIcon.visibility == View.VISIBLE) {
             helpIcon.measure(unbounded, unbounded)
             width += helpIcon.measuredWidth + resources.getDimensionPixelSize(R.dimen.settings_help_icon_margin)
@@ -469,11 +511,5 @@ class SettingsDropdownRow @JvmOverloads constructor(
             weight = 0f
             marginEnd = if (column) resources.getDimensionPixelSize(R.dimen.margin_medium) else 0
         }
-    }
-
-    private companion object {
-        // A third keeps the default-scale two-line value beside its caption (about 430 of 1036 px on
-        // the S21+) and stacks only the one-glyph column a 2.0 font scale produced (about 120 px).
-        const val STACK_VALUE_ROOM_DIVISOR = 3
     }
 }

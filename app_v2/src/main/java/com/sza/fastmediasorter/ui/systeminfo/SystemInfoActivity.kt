@@ -46,7 +46,6 @@ class SystemInfoActivity : AppCompatActivity() {
             val report = systemInfoWindowManager.gather(this@SystemInfoActivity)
             if (isFinishing || isDestroyed) return@launch
             systemInfoWindowManager.render(binding, report)
-            binding.systemInfoSearchView.requestFocus()
         }
     }
 

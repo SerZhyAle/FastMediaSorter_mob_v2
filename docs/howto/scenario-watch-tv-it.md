@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Guarda canali TV sul tuo smartwatch - FastMediaSorter v2"
+title: "Guarda canali TV sul tuo smartwatch - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-watch-tv-it.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -23,7 +23,7 @@ FastMedia Wear riproduce canali TV e radio in diretta direttamente al polso. L'o
 
 - Uno smartwatch con **Wear OS 2.0** o successivo con FastMedia Wear installato
 - Una rete Wi-Fi a cui l'orologio può connettersi, oppure un telefono abbinato per inoltrare la connessione
-- Facoltativo: FastMediaSorter sul tuo telefono Android, se vuoi inviare i tuoi canali all'orologio
+- Facoltativo: Fast Media Sorter & Organizer sul tuo telefono Android, se vuoi inviare i tuoi canali all'orologio
 
 ---
 
@@ -47,7 +47,7 @@ Un'installazione appena fatta non ha ancora canali, e la schermata lo segnala.
 Ci sono due modi per riempirlo, e funzionano insieme:
 
 - **Scarica il catalogo condiviso.** Tocca **Aggiorna catalogo**. L'orologio scarica in un unico archivio la raccolta di canali pubblicata - molte migliaia di canali TV e radio con i loro argomenti, lingue e paesi.
-- **Invia canali dal telefono.** Un canale che hai aggiunto tu stesso in FastMediaSorter sul telefono può essere trasferito con **Invia all'orologio** dall'elenco stream del telefono. Anche i canali che fissi sul telefono vengono portati verso l'alto nell'elenco dell'orologio, subito dietro quelli che hai fissato sull'orologio stesso, così i due o tre che guardi davvero sono raggiungibili senza scorrere. Rimuovere il fissaggio sul telefono ritira di nuovo il canale da quel gruppo, e un canale che il catalogo dell'orologio stesso non contiene viene semplicemente saltato.
+- **Invia canali dal telefono.** Un canale che hai aggiunto tu stesso in Fast Media Sorter & Organizer sul telefono può essere trasferito con **Invia all'orologio** dall'elenco stream del telefono. Anche i canali che fissi sul telefono vengono portati verso l'alto nell'elenco dell'orologio, subito dietro quelli che hai fissato sull'orologio stesso, così i due o tre che guardi davvero sono raggiungibili senza scorrere. Rimuovere il fissaggio sul telefono ritira di nuovo il canale da quel gruppo, e un canale che il catalogo dell'orologio stesso non contiene viene semplicemente saltato.
 
 I canali inviati dal telefono sopravvivono a un aggiornamento del catalogo - l'aggiornamento sostituisce la raccolta condivisa e lascia intatte le tue righe personali.
 

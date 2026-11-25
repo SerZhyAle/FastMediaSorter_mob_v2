@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "एक कोड स्कैन करके अपने पीसी के फ़ोल्डर खोलें - FastMediaSorter v2"
+title: "एक कोड स्कैन करके अपने पीसी के फ़ोल्डर खोलें - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-companion-share-hi.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -56,7 +56,7 @@ permalink: /docs/howto/scenario-companion-share-hi.html
 
 ## चरण 2, तरीका A - कोड स्कैन करें (सबसे तेज़)
 
-1. FastMediaSorter खोलें और मुख्य स्क्रीन पर **Add <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** बटन टैप करें.
+1. Fast Media Sorter & Organizer खोलें और मुख्य स्क्रीन पर **Add <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** बटन टैप करें.
 2. **"Import by barcode"** टैप करें - यह चार रिसोर्स-टाइप कार्ड (Local, SMB, SFTP/FTP, Cloud) के पास और SFTP फ़ॉर्म हेडर में मिलता है.
 3. कैमरा *"Point the camera at the companion QR code"* संकेत के साथ खुलता है. फोन को अपने पीसी पर मौजूद QR के सामने रखें. अंधेरे कमरे में, **Torch** टैप करें.
 4. एक पुष्टि दिखती है - *"Import access - Add the SFTP resource .. with N folder(s)?"*. **Import** टैप करें.
@@ -115,7 +115,7 @@ permalink: /docs/howto/scenario-companion-share-hi.html
 | "Import by barcode" एंट्री नहीं दिख रही | डिवाइस में कैमरा नहीं है, या यह VR बिल्ड है. [तरीका B - फ़ाइल इम्पोर्ट करें](#step-2-method-b---import-the-file) इस्तेमाल करें |
 | कैमरा कहता है कि एक्सेस चाहिए | पूछे जाने पर कैमरा परमिशन दें - इसे सिर्फ़ स्कैन के लिए इस्तेमाल किया जाता है |
 | "This file is not a valid companion config" | कोड या फ़ाइल Windows कम्पैनियन से नहीं है. **Share** टैब से इसे फिर से एक्सपोर्ट करें |
-| "Created by a newer companion version" | फोन पर FastMediaSorter अपडेट करें, या मिलते-जुलते कम्पैनियन वर्शन से फिर से एक्सपोर्ट करें |
+| "Created by a newer companion version" | फोन पर Fast Media Sorter & Organizer अपडेट करें, या मिलते-जुलते कम्पैनियन वर्शन से फिर से एक्सपोर्ट करें |
 | रिसोर्स जुड़ गया पर फ़ोल्डर खाली हैं | पक्का करें कि पीसी हेल्पर अभी भी चल रहा है. **एक ही Wi-Fi** पर ऐप खुद पीसी ढूंढ लेता है; अगर फिर भी नहीं होता, तो ऐप बताता है कि क्या जांचना है |
 | Wi-Fi पर काम करता है पर मोबाइल डेटा पर नहीं | किसी और नेटवर्क से पीसी तक पहुंचने के लिए, उसे इंटरनेट से पहुंच में होना चाहिए - कम्पैनियन की **Share** सेटिंग्स में पोर्ट फॉरवर्डिंग या IPv6 सेट करें. इसके बिना, शेयर सिर्फ़ एक ही Wi-Fi पर काम करता है |
 

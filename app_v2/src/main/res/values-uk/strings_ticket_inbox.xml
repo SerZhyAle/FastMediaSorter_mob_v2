@@ -25,4 +25,13 @@
     <string name="ticket_inbox_queued_notice">Тікет поставлено в чергу на надсилання</string>
     <string name="ticket_inbox_stage_failed">Тікет не вдалося зберегти: %1$s</string>
     <string name="ticket_inbox_discard">Прибрати зі списку</string>
+    <string name="ticket_inbox_destination_label">Доставити в</string>
+    <string name="ticket_inbox_destination_drive">Google Drive</string>
+    <string name="ticket_inbox_state_folder_waiting">Чекає на теку на комп\'ютері: %1$s</string>
+    <string name="ticket_inbox_state_folder_sent">У теці - чекає на комп\'ютер</string>
+    <string name="ticket_inbox_grant_drive">Дозволити доступ до Google Drive</string>
+    <string name="ticket_inbox_state_needs_access">Потрібен доступ до Google Drive - дозвольте його кнопкою вище</string>
+    <string name="ticket_inbox_drive_access_granted">Доступ надано - тікети, що чекали, вирушають</string>
+    <string name="ticket_inbox_drive_access_declined">Доступ не надано - тікети залишаться в списку, доки ви його не дозволите</string>
+    <string name="ticket_inbox_drive_access_failed">Google не зміг показати вікно доступу - спробуйте ще раз трохи згодом</string>
 </resources>

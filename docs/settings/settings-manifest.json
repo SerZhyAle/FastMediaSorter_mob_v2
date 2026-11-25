@@ -347,7 +347,7 @@
       "layout": "fragment_settings_destinations",
       "kind": "BUTTON",
       "titleEn": "Set as default",
-      "titleRu": "Задать по-умолчанию",
+      "titleRu": "Задать по умолчанию",
       "titleUk": "Задати за замовчуванням"
     },
     {
@@ -791,6 +791,16 @@
       "titleUk": "Дозволити копіювання"
     },
     {
+      "key": "rowEnableFeedback",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Send feedback",
+      "titleRu": "Отправить отзыв",
+      "titleUk": "Надіслати відгук"
+    },
+    {
       "key": "rowEnableFileDoOperations",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -829,6 +839,16 @@
       "titleEn": "Network Monitor",
       "titleRu": "Сетевой монитор",
       "titleUk": "Мережевий монітор"
+    },
+    {
+      "key": "rowEnableNotes",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Notes",
+      "titleRu": "Заметки",
+      "titleUk": "Нотатки"
     },
     {
       "key": "rowEnableSafeMode",
@@ -1201,6 +1221,16 @@
       "titleUk": "Підтримка текстових файлів (.txt, .md, .log, .json, .xml)"
     },
     {
+      "key": "feedbackFolderSpinner",
+      "sectionId": "feedback",
+      "destination": "OPERATIONS",
+      "layout": "view_feedback_folder_row",
+      "kind": "SPINNER",
+      "titleEn": "Folder on the computer",
+      "titleRu": "Папка на компьютере",
+      "titleUk": "Тека на комп'ютері"
+    },
+    {
       "key": "actvCacheSizeLimit",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -1371,6 +1401,46 @@
       "titleUk": "Вивантажити всі налаштування у файл"
     },
     {
+      "key": "btnExternalControlAllow",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "external_control_content",
+      "kind": "BUTTON",
+      "titleEn": "Allow",
+      "titleRu": "Разрешить",
+      "titleUk": "Дозволити"
+    },
+    {
+      "key": "btnExternalControlDecline",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "external_control_content",
+      "kind": "BUTTON",
+      "titleEn": "Decline",
+      "titleRu": "Отклонить",
+      "titleUk": "Відхилити"
+    },
+    {
+      "key": "btnExternalControlFullLog",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "external_control_content",
+      "kind": "BUTTON",
+      "titleEn": "Open the full log",
+      "titleRu": "Открыть весь журнал",
+      "titleUk": "Відкрити весь журнал"
+    },
+    {
+      "key": "btnExternalControlStateAction",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "external_control_content",
+      "kind": "BUTTON",
+      "titleEn": "Open exchange settings",
+      "titleRu": "Открыть настройки обмена",
+      "titleUk": "Відкрити налаштування обміну"
+    },
+    {
       "key": "btnHowToGuides",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -1439,6 +1509,16 @@
       "titleEn": "Media exchange between devices",
       "titleRu": "Обмен медиа между устройствами",
       "titleUk": "Обмін медіа між пристроями"
+    },
+    {
+      "key": "btnOpenExternalControl",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "BUTTON",
+      "titleEn": "Open External control",
+      "titleRu": "Открыть внешнее управление",
+      "titleUk": "Відкрити зовнішнє керування"
     },
     {
       "key": "btnOpenSourceLicenses",
@@ -1781,6 +1861,56 @@
       "titleUk": "Журнали налагодження й тестові інструменти"
     },
     {
+      "key": "headerExternalControlCommands",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "external_control_content",
+      "kind": "SECTION_HEADER",
+      "titleEn": "Commands this program accepts",
+      "titleRu": "Команды, которые принимает эта программа",
+      "titleUk": "Команди, які приймає ця програма"
+    },
+    {
+      "key": "headerExternalControlControllers",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "external_control_content",
+      "kind": "SECTION_HEADER",
+      "titleEn": "Who can control this device",
+      "titleRu": "Кто может управлять этим устройством",
+      "titleUk": "Хто може керувати цим пристроєм"
+    },
+    {
+      "key": "headerExternalControlLog",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "external_control_content",
+      "kind": "SECTION_HEADER",
+      "titleEn": "Recent requests",
+      "titleRu": "Последние запросы",
+      "titleUk": "Останні запити"
+    },
+    {
+      "key": "headerExternalControlThis",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "external_control_content",
+      "kind": "SECTION_HEADER",
+      "titleEn": "This device",
+      "titleRu": "Это устройство",
+      "titleUk": "Цей пристрій"
+    },
+    {
+      "key": "headerExternalControlWaiting",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "external_control_content",
+      "kind": "SECTION_HEADER",
+      "titleEn": "Waiting for your answer",
+      "titleRu": "Ждёт вашего ответа",
+      "titleUk": "Чекає на вашу відповідь"
+    },
+    {
       "key": "headerFileBrowser",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -2021,6 +2151,16 @@
       "titleUk": "Попереднє завантаження мініатюр"
     },
     {
+      "key": "rowExternalControlListening",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "external_control_content",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Listen to commands from my other devices",
+      "titleRu": "Принимать команды с моих других устройств",
+      "titleUk": "Приймати команди з моїх інших пристроїв"
+    },
+    {
       "key": "rowFileOpsInOverflowMenu",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -2129,6 +2269,16 @@
       "titleEn": "Power saving mode",
       "titleRu": "Режим энергосбережения",
       "titleUk": "Режим енергозбереження"
+    },
+    {
+      "key": "rowRemoteControlEnabled",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Listen to commands from my other devices",
+      "titleRu": "Принимать команды с моих других устройств",
+      "titleUk": "Приймати команди з моїх інших пристроїв"
     },
     {
       "key": "rowResourceGridCellSize",

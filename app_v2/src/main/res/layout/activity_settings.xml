@@ -9,10 +9,10 @@
     <LinearLayout android:id="@+id/toolbarContainer" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:background="?attr/colorPrimary" android:elevation="@dimen/dimension_zero" app:layout_constraintTop_toTopOf="parent">
 
         <!-- Title row with back button and settings text -->
-        <LinearLayout android:id="@+id/titleRow" android:layout_width="match_parent" android:layout_height="34dp" android:background="?attr/colorPrimary" android:elevation="@dimen/dimension_zero" android:orientation="horizontal" android:gravity="center_vertical">
+        <LinearLayout android:id="@+id/titleRow" android:layout_width="match_parent" android:layout_height="@dimen/settings_title_row_height" android:background="?attr/colorPrimary" android:elevation="@dimen/dimension_zero" android:orientation="horizontal" android:gravity="center_vertical">
 
-            <!-- Back button -->
-            <ImageButton android:id="@+id/backButton" android:layout_width="32dp" android:layout_height="32dp" android:src="@drawable/ic_arrow_back" android:background="?attr/colorPrimary" android:elevation="@dimen/dimension_zero" android:contentDescription="@string/back" app:tint="?attr/colorOnPrimary" />
+            <!-- UI-SIZING rule 4: match_parent height so compact mode's 24 dp row shrinks the target with the row -->
+            <ImageButton android:id="@+id/backButton" android:layout_width="@dimen/touch_target_min_height" android:layout_height="match_parent" android:src="@drawable/ic_arrow_back" android:background="?attr/colorPrimary" android:elevation="@dimen/dimension_zero" android:contentDescription="@string/back" app:tint="?attr/colorOnPrimary" />
 
             <!-- Settings title -->
             <TextView android:id="@+id/titleText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings" android:drawableStart="@drawable/ic_settings" android:drawableTint="?attr/colorOnPrimary" android:drawablePadding="@dimen/toolbar_title_icon_gap" android:textColor="?attr/colorOnPrimary" android:textSize="@dimen/activity_player_btnInfo_textSize" android:textStyle="bold" tools:ignore="SpUsage" />
@@ -40,12 +40,12 @@
                 app:icon="@drawable/ic_help_outline"
                 app:iconTint="?attr/colorOnPrimary" />
 
-            <ImageButton android:id="@+id/searchButton" android:layout_width="32dp" android:layout_height="32dp" android:background="?attr/colorPrimary" android:contentDescription="@string/settings_search_open" android:src="@drawable/ic_search" app:tint="?attr/colorOnPrimary" />
+            <ImageButton android:id="@+id/searchButton" android:layout_width="@dimen/touch_target_min_height" android:layout_height="match_parent" android:background="?attr/colorPrimary" android:contentDescription="@string/settings_search_open" android:src="@drawable/ic_search" app:tint="?attr/colorOnPrimary" />
 
         </LinearLayout>
 
         <!-- Tabs row -->
-        <com.google.android.material.tabs.TabLayout android:id="@+id/tabLayout" android:layout_width="match_parent" android:layout_height="@dimen/settings_tabs_height" android:background="@android:color/transparent" android:elevation="@dimen/dimension_zero" app:tabTextAppearance="@style/TextAppearance.FastMediaSorter.SettingsTabConnected" app:tabTextColor="@color/settings_tab_text" app:tabSelectedTextColor="?attr/colorOnSurface" app:tabIndicatorHeight="0dp" app:tabIndicatorFullWidth="false" app:tabMode="fixed" app:tabGravity="fill" app:tabMinWidth="0dp" app:tabPaddingStart="0dp" app:tabPaddingEnd="0dp">
+        <com.google.android.material.tabs.TabLayout android:id="@+id/tabLayout" android:layout_width="match_parent" android:layout_height="@dimen/settings_tabs_height" android:background="@android:color/transparent" android:elevation="@dimen/dimension_zero" android:fadingEdgeLength="@dimen/settings_tab_fade_edge" android:requiresFadingEdge="horizontal" app:tabTextAppearance="@style/TextAppearance.FastMediaSorter.SettingsTabConnected" app:tabTextColor="@color/settings_tab_text" app:tabSelectedTextColor="?attr/colorOnSurface" app:tabIndicatorHeight="0dp" app:tabIndicatorFullWidth="false" app:tabMode="fixed" app:tabGravity="fill" app:tabMinWidth="0dp" app:tabPaddingStart="0dp" app:tabPaddingEnd="0dp">
 
             <com.google.android.material.tabs.TabItem android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings_tab_general" />
 

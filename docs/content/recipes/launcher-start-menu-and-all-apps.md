@@ -14,7 +14,7 @@ why: |
 
   Both grow with you: the Start panel can be made taller as your pinned row fills up, and All apps stays fast to open and fast to search even with a hundred apps on the device.
 ingredients:
-  - "FastMediaSorter in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition), with the [launcher](term:launcher) turned on - see [Your launcher desktop](page:launcher.desktop-grid-and-icons)."
+  - "Fast Media Sorter & Organizer in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition), with the [launcher](term:launcher) turned on - see [Your launcher desktop](page:launcher.desktop-grid-and-icons)."
   - "The taskbar visible - see [Using the desktop dock and taskbar](page:launcher.taskbar-and-dock)."
 steps:
   - number: 1
@@ -38,7 +38,7 @@ steps:
     text: |
       Tap the **All apps** icon button next to Start, or swipe up on empty desktop space while the desktop sits at the top of its scroll. The list opens from a cache the launcher keeps current on its own - through every install, update and removal - so it is ready even right after a restart.
 
-      You can also assign **All apps** to an edge gesture or select it when editing the quick-launch panel. After opening FastMediaSorter, long-press its app icon to find the **All apps** shortcut and drag it to your home screen if your launcher supports shortcuts. These entries work without making FastMediaSorter your default home app.
+      You can also assign **All apps** to an edge gesture or select it when editing the quick-launch panel. After opening Fast Media Sorter & Organizer, long-press its app icon to find the **All apps** shortcut and drag it to your home screen if your launcher supports shortcuts. These entries work without making Fast Media Sorter & Organizer your default home app.
     image_bookmark:
       shot_id: launcher.all-apps-entry-point
       device_profile: phone
@@ -51,7 +51,7 @@ steps:
     id: search-sort-browse
     title: Find one app fast
     text: |
-      Type anywhere in the list to search - the **Search apps** field narrows the results as you type, matching the app's name or its package name. Tap **Sort order** to change how the list is arranged: **By name**, **By install date**, **By update date**, **By how often you open it** or **By category**, each with a **Reverse order** switch; the extra space under the letter tiles filled by a bigger preview instead of a fixed two rows.
+      Tap the **Search apps** field and type to search - it narrows the results as you type, matching the app's name or its package name. The keyboard opens only when you tap the field, and its Search key, or a drag of the list, closes it again. Tap **Sort order** to change how the list is arranged: **By name**, **By install date**, **By update date**, **By how often you open it** or **By category**, each with a **Reverse order** switch; the extra space under the letter tiles filled by a bigger preview instead of a fixed two rows.
 
       Scroll without a search term and the apps are grouped alphabetically, each letter its own small heading with a short preview of what is under it - tap a letter and its group expands.
     image_bookmark:
@@ -98,7 +98,7 @@ steps:
 
       Long press an app and choose **Set category..** to tick every group it belongs to - one app can be in several, for example Slack in Work and in Messengers. **New category..** in the same window names a new group and ticks it at once. A group with no apps is hidden from the list but stays in that window, ready to be chosen.
 
-      To change the order of the groups, long press a group tile: it is highlighted, and **Move up** and **Move down** move it one place at a time; **Done** ends the mode. The groups start in alphabetical order, and **Other** stays last.
+      To change the order of the groups, long press a group tile: it is highlighted, and **Move up** and **Move down** move it one place at a time; **Rename** in the same mode opens a window with the group's name, ready to type over; a name that another group already shows is refused. **Done** ends the mode. The groups start in alphabetical order, and **Other** stays last.
 
       Your groups, the apps in them, their order and the chosen sort order stay in place after an update and travel with the settings backup.
 outcome: |
@@ -125,6 +125,6 @@ next_recipes:
     description: The starter layout the Start menu and All apps sit alongside.
 ---
 
-<sub class="doc-stamp">26.11.11 16:33</sub>
+<sub class="doc-stamp">26.11.24 23:47</sub>
 
 Start is the short list, [All apps](term:all-apps) is the long one. This page covers sizing the Start panel, opening the full app list, searching and sorting it, an app's own shortcuts from a long press, and the four swipes that move through the list without a single tap.

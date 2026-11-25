@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.calculator.helpers
 
 import android.content.Context
+import com.sza.fastmediasorter.core.debug.StrictModeHelper
 
 /**
  * Screen-local persistence for [CalculatorSettings].
@@ -11,13 +12,20 @@ import android.content.Context
  */
 class CalculatorSettingsStore(context: Context) {
 
-    private val prefs = context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    // Both callers apply the loaded values to the first frame (keypad mode and display text size), so the
+    // file cannot be opened later; the permit covers the open here and the first read in load().
+    private val prefs = StrictModeHelper.allowDiskReads {
+        context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    }
 
-    fun load(): CalculatorSettings = CalculatorSettings(
-        groupThousands = prefs.getBoolean(KEY_GROUP_THOUSANDS, CalculatorSettings.DEFAULT.groupThousands),
-        displayTextSizeSp = prefs.getInt(KEY_TEXT_SIZE_SP, CalculatorSettings.DEFAULT.displayTextSizeSp),
-        keypadMode = CalculatorKeypadMode.fromNameOrDefault(prefs.getString(KEY_KEYPAD_MODE, null)),
-    ).coerced()
+    fun load(): CalculatorSettings = StrictModeHelper.allowDiskReads {
+        timber.log.Timber.d("S4678: calculator settings load under a disk-read permit")
+        CalculatorSettings(
+            groupThousands = prefs.getBoolean(KEY_GROUP_THOUSANDS, CalculatorSettings.DEFAULT.groupThousands),
+            displayTextSizeSp = prefs.getInt(KEY_TEXT_SIZE_SP, CalculatorSettings.DEFAULT.displayTextSizeSp),
+            keypadMode = CalculatorKeypadMode.fromNameOrDefault(prefs.getString(KEY_KEYPAD_MODE, null)),
+        ).coerced()
+    }
 
     fun save(settings: CalculatorSettings) {
         val safe = settings.coerced()

@@ -30,4 +30,8 @@
     <string name="filler_result_busy">भरना पहले से चल रहा है।</string>
     <string name="filler_settings_toggle_subtitle">स्टोरेज डिवाइस की खाली जगह को अस्थायी फ़ाइलों से भरता है, फिर उन्हें हटा देता है</string>
     <string name="filler_settings_toggle_subtitle_pending">पिछली बार की अस्थायी फ़ाइलें अभी भी स्टोरेज पर हैं। जब तक आप उन्हें इसी में से नहीं हटाते, प्रोग्राम सूची में बना रहता है।</string>
+    <string name="filler_estimate">%1$d%% पूरा, बचा समय: %2$s</string>
+    <string name="filler_estimate_calculating">%1$d%% पूरा, बचा समय: गणना हो रही है..</string>
+    <string name="filler_reserve_slider_description">सिस्टम के लिए खाली रखी गई जगह</string>
+    <string name="filler_confirm_reserve_lowered">यह सामान्य %1$s से कम है, इसलिए रन चलने के दौरान सिस्टम और दूसरे ऐप्स के पास कम जगह रहेगी।</string>
 </resources>

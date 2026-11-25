@@ -2,9 +2,15 @@ package com.sza.fastmediasorter.data.broadcast.exchange
 
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointCodec
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointDto
+import com.sza.fastmediasorter.data.broadcast.BroadcastSealDto
+import com.sza.fastmediasorter.data.broadcast.KeystoreBroadcastSecretBox
+import com.sza.fastmediasorter.testing.fakes.FakeBroadcastSecretBox
+import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 import java.security.MessageDigest
 import java.util.Base64
@@ -12,10 +18,22 @@ import kotlin.random.Random
 
 class BroadcastExchangeEndpointTest {
 
+    private val box = FakeBroadcastSecretBox()
+
+    @Before
+    fun installBox() {
+        BroadcastEndpointCodec.secretBox = box
+    }
+
+    @After
+    fun restoreBox() {
+        BroadcastEndpointCodec.secretBox = KeystoreBroadcastSecretBox
+    }
+
     @Test
     fun relayUrl_parsesServerAndBroadcastId() {
         val relay = BroadcastExchangeEndpoints.parse(
-            BroadcastEndpointDto(url = RELAY_URL, transport = "RELAY", certFingerprint = PIN)
+            BroadcastEndpointDto(url = RELAY_URL, transport = "RELAY", certFingerprint = PIN, seal = relaySeal())
         ) as BroadcastExchangeEndpoint.Relay
 
         assertEquals(ExchangeServer("exchange.example.org", 8443), relay.server)
@@ -26,7 +44,7 @@ class BroadcastExchangeEndpointTest {
     @Test
     fun tunnelUrl_parsesSchemeAndKeepsInner() {
         val tunnel = BroadcastExchangeEndpoints.parse(
-            BroadcastEndpointDto(url = TUNNEL_URL, transport = "TUNNEL", inner = INNER_RTSP)
+            BroadcastEndpointDto(url = TUNNEL_URL, transport = "TUNNEL", inner = INNER_RTSP, seal = tunnelSeal())
         ) as BroadcastExchangeEndpoint.Tunnel
 
         assertEquals(ExchangeServer("exchange.example.org", 8443), tunnel.server)
@@ -62,8 +80,8 @@ class BroadcastExchangeEndpointTest {
             listOf(
                 BroadcastEndpointDto(url = LAN_URL, transport = "HTTP"),
                 BroadcastEndpointDto(url = "p2p://x", transport = "P2P"),
-                BroadcastEndpointDto(url = RELAY_URL, transport = "RELAY"),
-                BroadcastEndpointDto(url = TUNNEL_URL, transport = "TUNNEL", inner = INNER_RTSP),
+                BroadcastEndpointDto(url = RELAY_URL, transport = "RELAY", seal = relaySeal()),
+                BroadcastEndpointDto(url = TUNNEL_URL, transport = "TUNNEL", inner = INNER_RTSP, seal = tunnelSeal()),
             )
         )
 
@@ -99,7 +117,7 @@ class BroadcastExchangeEndpointTest {
     @Test
     fun loopbackRelayUrl_keepsTheRelayPath() {
         val relay = BroadcastExchangeEndpoints.parse(
-            BroadcastEndpointDto(url = RELAY_URL, transport = "RELAY", certFingerprint = PIN)
+            BroadcastEndpointDto(url = RELAY_URL, transport = "RELAY", certFingerprint = PIN, seal = relaySeal())
         ) as BroadcastExchangeEndpoint.Relay
 
         assertEquals(
@@ -135,7 +153,81 @@ class BroadcastExchangeEndpointTest {
         assertEquals(expected, ExchangeCertificateFingerprint.of(der))
     }
 
+    @Test
+    fun unsealedAndUnknownServerEndpointsNeverPlay() {
+        val relay = BroadcastEndpointDto(url = RELAY_URL, transport = "RELAY")
+        val tunnel = BroadcastEndpointDto(url = TUNNEL_URL, transport = "TUNNEL", inner = INNER_RTSP)
+        assertNull(BroadcastExchangeEndpoints.parse(relay))
+        assertNull(BroadcastExchangeEndpoints.parse(tunnel))
+        assertNull(BroadcastExchangeEndpoints.parse(relay.copy(seal = BroadcastSealDto(v = 99, key = GROUP_KEY))))
+        assertNull(BroadcastExchangeEndpoints.parse(relay.copy(seal = BroadcastSealDto(key = "invalid"))))
+        assertNull(BroadcastExchangeEndpoints.parse(tunnel.copy(seal = BroadcastSealDto())))
+        assertTrue(BroadcastExchangeEndpoints.playOrder("not json", RELAY_URL).isEmpty())
+        assertTrue(BroadcastExchangeEndpoints.playOrder(null, RELAY_URL).isEmpty())
+    }
+
+    // S4675: a saved list keeps its keys behind the device's box; a lost key never turns a server path clear.
+
+    @Test
+    fun aSavedSealedList_playsFromItsOpenedKeysAndNamesItsServerWithoutOpeningAnything() {
+        val stored = savedBehindTheBox(listOf(lanEndpoint(), relayEndpoint(), tunnelEndpoint()))
+
+        val order = BroadcastExchangeEndpoints.playOrder(stored, LAN_URL)
+
+        assertEquals(listOf("Lan", "Relay", "Tunnel"), order.map { it.javaClass.simpleName })
+        assertEquals(GROUP_KEY, (order[1] as BroadcastExchangeEndpoint.Relay).groupKey)
+        assertEquals(PIN, (order[2] as BroadcastExchangeEndpoint.Tunnel).tunnelPin)
+        val opened = box.opens
+        assertEquals(ExchangeServer("exchange.example.org", 8443), BroadcastExchangeEndpoints.exchangeServer(stored))
+        assertEquals(opened, box.opens)
+    }
+
+    @Test
+    fun aSavedSealedListWhoseKeyIsLost_keepsItsLanEndpointAndPlaysNoServerPath() {
+        val stored = savedBehindTheBox(listOf(lanEndpoint(), relayEndpoint(), tunnelEndpoint()))
+        box.loseKey()
+
+        val order = BroadcastExchangeEndpoints.playOrder(stored, LAN_URL)
+
+        assertEquals(listOf("Lan"), order.map { it.javaClass.simpleName })
+        assertEquals(ExchangeServer("exchange.example.org", 8443), BroadcastExchangeEndpoints.exchangeServer(stored))
+    }
+
+    @Test
+    fun aRowWithNoListAndAnExchangeAddress_neverPlaysThatAddress() {
+        assertTrue(BroadcastExchangeEndpoints.playOrder(null, RELAY_URL).isEmpty())
+        assertTrue(BroadcastExchangeEndpoints.playOrder("", TUNNEL_URL).isEmpty())
+        val lan = BroadcastExchangeEndpoints.playOrder(null, LAN_URL).single() as BroadcastExchangeEndpoint.Lan
+        assertEquals(LAN_URL, lan.url)
+    }
+
+    @Test
+    fun aSealedEndpointNeverPrintsItsKeyOrPin() {
+        val relay = BroadcastExchangeEndpoints.parse(relayEndpoint()) as BroadcastExchangeEndpoint.Relay
+        val tunnel = BroadcastExchangeEndpoints.parse(tunnelEndpoint()) as BroadcastExchangeEndpoint.Tunnel
+
+        assertFalse(relay.toString().contains(GROUP_KEY))
+        assertFalse(tunnel.toString().contains(PIN))
+        assertFalse(tunnelEndpoint().toString().contains(PIN))
+    }
+
+    private fun lanEndpoint() = BroadcastEndpointDto(url = LAN_URL, transport = "HTTP")
+
+    private fun relayEndpoint() = BroadcastEndpointDto(url = RELAY_URL, transport = "RELAY", seal = relaySeal())
+
+    private fun tunnelEndpoint() =
+        BroadcastEndpointDto(url = TUNNEL_URL, transport = "TUNNEL", inner = INNER_RTSP, seal = tunnelSeal())
+
+    private fun savedBehindTheBox(endpoints: List<BroadcastEndpointDto>): String {
+        val outcome = BroadcastEndpointCodec.protect(BroadcastEndpointCodec.encode(endpoints))
+        return (outcome as BroadcastEndpointCodec.Protection.Protected).value
+    }
+
+    private fun relaySeal() = BroadcastSealDto(key = GROUP_KEY)
+
+    private fun tunnelSeal() = BroadcastSealDto(pin = PIN)
     private companion object {
+        const val GROUP_KEY = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
         const val BROADCAST_ID = "Zm9vYmFyYmF6cXV4MTIzNA"
         const val RELAY_URL = "https://exchange.example.org:8443/v2/b/$BROADCAST_ID/stream"
         const val TUNNEL_URL = "fmsx://exchange.example.org:8443/b/$BROADCAST_ID/rtsp"

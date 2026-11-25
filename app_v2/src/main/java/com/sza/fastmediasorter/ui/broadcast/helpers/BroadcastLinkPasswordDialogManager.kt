@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.domain.model.BroadcastLinkPasswordMode
 import com.sza.fastmediasorter.domain.model.BroadcastLinkPasswordRules
 import com.sza.fastmediasorter.domain.usecase.broadcast.RenewBroadcastLinkPasswordUseCase
 import com.sza.fastmediasorter.domain.usecase.broadcast.SetBroadcastLinkPasswordUseCase
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -51,6 +52,7 @@ class BroadcastLinkPasswordDialogManager @Inject constructor(
             .setOnDismissListener { view.etLinkPassword.text = null }
             .setView(view.root)
             .showBoundTo(activity) ?: return
+        DialogHelpEntryManager.attach(dialog, "dialog_broadcast_link_password")
         view.groupLinkPasswordMode.check(radioFor(mode))
         view.groupLinkPasswordMode.setOnCheckedChangeListener { _, _ -> renderMode(activity, view, isLive) }
         renderMode(activity, view, isLive)

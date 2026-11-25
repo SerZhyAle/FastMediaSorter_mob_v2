@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.repository
 
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.data.link.auth.AccountIdentityExtractor
+import com.sza.fastmediasorter.data.link.auth.KnownAuthResources
 import com.sza.fastmediasorter.data.link.cookie.EncryptedCookieStore
 import com.sza.fastmediasorter.data.link.cookie.registrableDomainOrNull
 import com.sza.fastmediasorter.domain.repository.AuthAccountDomain
@@ -76,7 +77,6 @@ class AuthSessionRepositoryImpl @Inject constructor(
         return withContext(Dispatchers.IO) {
             val identity = AccountIdentityExtractor.extract(host, cookies)
             val reusedId = identity?.let { store.findAccountIdByIdentity(host, it) }
-            Timber.d("S4549: webview save host=$host hasIdentity=${identity != null} reused=${reusedId != null}")
             val accountId = reusedId ?: java.util.UUID.randomUUID().toString()
             store.saveForAccount(host, accountId, displayName, cookies, userAgent)
             refreshFlows()
@@ -107,7 +107,6 @@ class AuthSessionRepositoryImpl @Inject constructor(
             // depending on which subdomain the link carried, so the picker and the auth offer flickered.
             // Cookies stay keyed by the exact host; every account entry keeps the host it lives under.
             val live = mergeSiteAccounts(host).map { (accountHost, entry) -> entry.toDomain(accountHost) }
-            Timber.d("S4549: listAccountsForHost host=$host accounts=${live.size}")
             val dismissed = buildList {
                 val hostDismiss = store.hasDismissedRecord(host)
                 if (hostDismiss) {
@@ -286,7 +285,14 @@ class AuthSessionRepositoryImpl @Inject constructor(
         savedAt = savedAt ?: fallbackNow,
         lastUsedAt = lastUsedAt,
         isDismissed = isDismissed,
+        hasSessionCookie = holdsSessionCookie(host),
     )
+
+    // A host that declares no session cookie names cannot be judged, so its records always pass.
+    private fun EncryptedCookieStore.AccountEntry.holdsSessionCookie(host: String): Boolean {
+        val sessionNames = KnownAuthResources.matchHost(host)?.sessionCookieNames.orEmpty()
+        return sessionNames.isEmpty() || cookieNames.any { it in sessionNames }
+    }
 
     private companion object {
         const val LEGACY_DISPLAY_NAME = "Account 1"

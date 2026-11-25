@@ -39,6 +39,7 @@ import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferRequest
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferRequestStore
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferSource
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferTerminalEvent
+import com.sza.fastmediasorter.ui.browse.transfer.TransferDoneMessage
 import com.sza.fastmediasorter.ui.browse.transfer.TransferSkipSummary
 import com.sza.fastmediasorter.ui.browse.transfer.toPayload
 import com.sza.fastmediasorter.ui.browse.transfer.transferBytePercentOrNull
@@ -651,7 +652,7 @@ class BrowseFileTransferWorker @AssistedInject constructor(
                 builder.setContentTitle(context.getString(R.string.browse_transfer_notif_title_done))
                 applyResultText(
                     builder,
-                    context.getString(doneMessageRes(event.operationType), event.processedCount),
+                    TransferDoneMessage.format(context, event.operationType, event.processedCount),
                     skipText = TransferSkipSummary.format(context, event.skippedCount, event.skippedNames),
                 )
             }
@@ -743,12 +744,6 @@ class BrowseFileTransferWorker @AssistedInject constructor(
         FileOperationType.MOVE -> context.getString(R.string.browse_transfer_notif_title_move)
         FileOperationType.DELETE -> context.getString(R.string.deleting_files)
         else -> context.getString(R.string.browse_transfer_notif_title_copy)
-    }
-
-    private fun doneMessageRes(operationType: FileOperationType): Int = when (operationType) {
-        FileOperationType.MOVE -> R.string.moved_n_files
-        FileOperationType.DELETE -> R.string.deleted_n_files
-        else -> R.string.copied_n_files
     }
 
     private fun buildProgressText(snapshot: BrowseFileTransferProgressSnapshot): String {

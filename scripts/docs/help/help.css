@@ -34,6 +34,14 @@
   }
 }
 
+/* ---------- help index: subject index and terms ---------- */
+.subjects { list-style: none; margin: 0; padding: 0; }
+.subjects li { padding: 3px 0; color: var(--text-2); }
+.subjects b { color: var(--text); font-weight: 600; margin-inline-end: 6px; }
+.terms { margin: 0; }
+.terms dt { font-weight: 600; margin-block-start: 12px; }
+.terms dd { margin: 2px 0 0; color: var(--text-2); }
+
 /* ---------- base ---------- */
 *, *::before, *::after { box-sizing: border-box; }
 html { scrollbar-width: thin; }
@@ -64,6 +72,10 @@ kbd { font-family: var(--font-mono); font-size: .8em; padding: .12em .45em; bord
 
 .hero { padding-block: .6rem 1rem; }
 .hero h1 { font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 800; }
+.help .product-mark { display: block; width: 48px; height: 48px; margin-block-end: .5rem; }
+.help .glyph { display: inline-block; width: 1.15em; height: 1.15em; vertical-align: -.2em; margin-inline-end: .35em; fill: currentColor; }
+.help .exchange-head { display: block; width: 128px; height: 128px; margin-block-end: .8rem; }
+.help .exchange-inline { display: inline-block; width: 24px; height: 24px; vertical-align: middle; margin-inline-start: .4rem; }
 .help h2 { font-size: 1.15rem; font-weight: 700; margin-block: 2rem .8rem; }
 .help h3 { font-size: 1rem; font-weight: 700; margin-block: 1.4rem .6rem; color: var(--text-2); }
 .lead { color: var(--text-2); font-size: 1.02rem; }
@@ -93,6 +105,7 @@ kbd { font-family: var(--font-mono); font-size: .8em; padding: .12em .45em; bord
   background: var(--acc-strong); color: var(--acc-ink); font-weight: 800; font-size: .78rem; }
 .order .ref { width: 1.35rem; height: 1.35rem; font-size: .7rem; vertical-align: .05em; text-decoration: none; }
 .order .ref:hover { background: var(--acc-strong); color: var(--acc-ink); text-decoration: none; }
+.order .nb { white-space: nowrap; }
 .order-note { color: var(--text-2); }
 
 /* ---------- the elements: short to see, complete to open ---------- */
@@ -151,4 +164,75 @@ details.el .full > * + * { margin-block-start: .7rem; }
     --text: #000; --text-2: #111; --muted: #333; --acc-strong: #000; --gold: #000; --shadow: none; }
   details.el > summary::after { display: none; }
   .shot { box-shadow: none; break-inside: avoid; }
+}
+
+/* ---------- local layer: physical fallbacks for a WebView before Chrome 87 ----------
+   Not part of the CONTEXT-HELP reference layer. Android 8.0-9 keeps the WebView it shipped with (Chrome 58-66)
+   until the store updates it; there logical properties (Chrome 69 and 87), clamp() and min() (79),
+   overflow-wrap: anywhere (80), flex gap (84) and color-mix() (111) are dropped, and the page loses its gutters,
+   the numbers of its order list and the place of its markers. Each block applies only where its feature is
+   missing, so a current WebView renders the reference layer alone; the [dir="rtl"] twins keep the mirror. */
+@supports not (padding-inline: 0) {
+  .subjects b { margin-right: 6px; }
+  .terms dt { margin-top: 12px; }
+  .container { margin-left: auto; margin-right: auto; padding-left: 16px; padding-right: 16px; }
+  .help { padding-top: 1.2rem; padding-bottom: 3rem; }
+  .help-crumbs { gap: 0; margin-bottom: .4rem; }
+  .help-crumbs > * { margin-right: .7rem; }
+  .hero { padding-top: .6rem; padding-bottom: 1rem; }
+  .help h2 { margin-top: 2rem; margin-bottom: .8rem; }
+  .help h3 { margin-top: 1.4rem; margin-bottom: .6rem; }
+  .lead + .lead { margin-top: .6rem; }
+  kbd { border-bottom-width: 2px; }
+  .shot { margin-top: 1.6rem; }
+  .order { grid-gap: .55rem; }
+  .order li { padding-left: 2.3rem; }
+  .order li::before { left: 0; }
+  .elements { grid-gap: .6rem; }
+  .elements h3 { margin-bottom: 0; }
+  details.el { border-left: 3px solid var(--gold); padding-left: 1.1rem; padding-right: 1.1rem; }
+  details.el:hover { border-left-color: var(--acc); }
+  details.el:target { border-left-color: var(--gold); }
+  details.el > summary { gap: 0; padding-top: .8rem; padding-bottom: .8rem; }
+  details.el > summary > * { margin-right: .8rem; }
+  details.el > summary::after { margin-left: auto; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); }
+  details.el .full { padding-top: .2rem; padding-bottom: 1rem; }
+  details.el .full > * + * { margin-top: .7rem; }
+  .facts { grid-gap: .35rem 1rem; }
+  .facts dt { padding-top: .2rem; }
+  .related { grid-gap: .6rem; }
+  .pill { margin-left: .4rem; }
+  .help-foot { gap: 0; margin-top: 2.5rem; padding-top: 1.2rem; border-top: 1px solid var(--border); }
+  .help-foot > * { margin-right: 1.2rem; }
+  @media (max-width: 520px) {
+    .facts dd { margin-bottom: .4rem; }
+  }
+
+  [dir="rtl"] .subjects b { margin-right: 0; margin-left: 6px; }
+  [dir="rtl"] .help-crumbs > * { margin-right: 0; margin-left: .7rem; }
+  [dir="rtl"] .order li { padding-left: 0; padding-right: 2.3rem; }
+  [dir="rtl"] .order li::before { left: auto; right: 0; }
+  [dir="rtl"] details.el { border-left: 1px solid var(--border); border-right: 3px solid var(--gold); }
+  [dir="rtl"] details.el:hover { border-left-color: var(--border-hover); border-right-color: var(--acc); }
+  [dir="rtl"] details.el:target { border-left-color: var(--gold); border-right-color: var(--gold); }
+  [dir="rtl"] details.el > summary > * { margin-right: 0; margin-left: .8rem; }
+  [dir="rtl"] details.el > summary::after { margin-left: 0; margin-right: auto;
+    border-right: 0; border-left: 2px solid var(--muted); }
+  [dir="rtl"] .pill { margin-left: 0; margin-right: .4rem; }
+  [dir="rtl"] .help-foot > * { margin-right: 0; margin-left: 1.2rem; }
+}
+/* the reference gutter where clamp() exists but the logical shorthands do not (Chrome 79-86) */
+@supports (width: clamp(1px, 1px, 1px)) and (not (padding-inline: 0)) {
+  .container { padding-left: var(--gutter); padding-right: var(--gutter); }
+}
+@supports not (width: clamp(1px, 1px, 1px)) {
+  .hero h1 { font-size: 1.6rem; }
+  .related { grid-template-columns: 1fr; }
+}
+@supports not (overflow-wrap: anywhere) {
+  .help { word-wrap: break-word; overflow-wrap: break-word; }
+}
+@supports not (color: color-mix(in srgb, red 50%, blue)) {
+  .pill { background: var(--bg-3); border: 1px solid var(--border); }
+  .pill.gold { border-color: var(--gold); }
 }

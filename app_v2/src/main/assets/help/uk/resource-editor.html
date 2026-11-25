@@ -7,6 +7,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Довідка - Редагувати ресурс</title>
 <link rel="stylesheet" href="../help.css">
+<link rel="icon" type="image/png" href="../img/product-mark.png">
 </head>
 <body class="help">
 <main class="container">
@@ -14,18 +15,19 @@
 <a href="index.html">Зміст довідки</a><span class="sep" aria-hidden="true">/</span><span>Редагувати ресурс</span>
 </nav>
 <header class="hero">
+<img class="product-mark" src="../img/product-mark.png" width="48" height="48" alt="Fast Media Sorter">
 <h1>Редагувати ресурс</h1>
 </header>
 <h2>Для чого цей екран</h2>
 <p class="lead">«Редагувати ресурс» змінює вже доданий ресурс: його назву й значок, адресу чи шлях, які файли він показує та як поводиться. Відкрийте його зі списку ресурсів - утриманням ресурсу або кнопкою редагування в його рядку. Цей самий екран налаштовує нову інтернет-трансляцію і зберігає копію ресурсу.</p>
 <h2>Порядок дій</h2>
 <ol class="order">
-<li>Почніть із назви <a class="ref" href="#name">6</a>. Назви мають бути унікальними: якщо ваша зайнята, застосунок скаже про це й запропонує «Використати запропоновану назву» <a class="ref" href="#use-suggested-name">7</a>.</li>
-<li>Відкрийте «Параметри підключення» <a class="ref" href="#connection">8</a>, щоб виправити шлях, адресу й порт, дані для входу або адресу трансляції. Для мережевого чи хмарного ресурсу перевірте нові значення кнопкою «Перевірити підключення» <a class="ref" href="#test-connection">9</a>; «Повторити спробу» <a class="ref" href="#retry">10</a> повторює останню дію після невдачі.</li>
-<li>Вирішіть, що ресурс показує: «Умови сканування вмісту» <a class="ref" href="#scanning">11</a> і типи файлів у «Типах медіа» <a class="ref" href="#media-types">12</a>. «Профіль ресурсу» <a class="ref" href="#profile">13</a> одним натисканням підставляє готовий набір.</li>
+<li>Почніть із назви <span class="nb"><a class="ref" href="#name">6</a>.</span> Назви мають бути унікальними: якщо ваша зайнята, застосунок скаже про це й запропонує «Використати запропоновану назву» <span class="nb"><a class="ref" href="#use-suggested-name">7</a>.</span></li>
+<li>Відкрийте «Параметри підключення» <span class="nb"><a class="ref" href="#connection">8</a>,</span> щоб виправити шлях, адресу й порт, дані для входу або адресу трансляції. Для мережевого чи хмарного ресурсу перевірте нові значення кнопкою «Перевірити підключення» <span class="nb"><a class="ref" href="#test-connection">9</a>;</span> «Повторити спробу» <a class="ref" href="#retry">10</a> повторює останню дію після невдачі.</li>
+<li>Вирішіть, що ресурс показує: «Умови сканування вмісту» <a class="ref" href="#scanning">11</a> і типи файлів у «Типах медіа» <span class="nb"><a class="ref" href="#media-types">12</a>.</span> «Профіль ресурсу» <a class="ref" href="#profile">13</a> одним натисканням підставляє готовий набір.</li>
 <li>У «Налаштуваннях призначення» <a class="ref" href="#destination">14</a> ресурс можна використати для швидкого сортування або зробити лише для читання, а в «Розширених налаштуваннях» <a class="ref" href="#advanced">15</a> - задати коментар, ПІН-код та інтервал слайдшоу.</li>
-<li>Оберіть значок <a class="ref" href="#pick-icon">3</a>, якщо хочете виокремити ресурс у списку.</li>
-<li>Натисніть «Зберегти зміни» <a class="ref" href="#save">5</a>; кнопка не працює, доки немає припустимих змін. «Зберегти як копію» <a class="ref" href="#save-as-copy">4</a> залишає оригінал і зберігає правки як новий ресурс, а «Скинути зміни» <a class="ref" href="#reset-changes">2</a> повертає збережені значення.</li>
+<li>Оберіть значок <span class="nb"><a class="ref" href="#pick-icon">3</a>,</span> якщо хочете виокремити ресурс у списку.</li>
+<li>Натисніть «Зберегти зміни» <span class="nb"><a class="ref" href="#save">5</a>;</span> кнопка не працює, доки немає припустимих змін. «Зберегти як копію» <a class="ref" href="#save-as-copy">4</a> залишає оригінал і зберігає правки як новий ресурс, а «Скинути зміни» <a class="ref" href="#reset-changes">2</a> повертає збережені значення.</li>
 <li>«Статистика» <a class="ref" href="#statistics">16</a> показує, коли ресурс створено й відкривано, а «Додати на домашній екран» <a class="ref" href="#add-to-home">17</a> ставить на нього ярлик.</li>
 </ol>
 <h2>Елементи</h2>
@@ -50,13 +52,13 @@
 </div>
 </details>
 <details class="el" id="pick-icon">
-<summary><span class="mk">3</span><span><span class="name">Вибрати іконку ресурсу</span><span class="one">Обирає картинку, що позначає ресурс у списках.</span></span></summary>
+<summary><span class="mk">3</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10,4H4c-1.1,0 -1.99,0.9 -1.99,2L2,18c0,1.1 0.9,2 2,2h16c1.1,0 2,-0.9 2,-2V8c0,-1.1 -0.9,-2 -2,-2h-8l-2,-2z" fill="currentColor"/></svg>Вибрати іконку ресурсу</span><span class="one">Обирає картинку, що позначає ресурс у списках.</span></span></summary>
 <div class="full">
 <p>Відкриває вікно «Вибір іконки»; на самій кнопці показано поточний значок ресурсу. Новий значок збережеться, коли ви натиснете «Зберегти зміни». Якщо ви змінюєте профіль і не вибирали значок уручну в цьому сеансі, значок підлаштовується під профіль сам.</p>
 </div>
 </details>
 <details class="el" id="save-as-copy">
-<summary><span class="mk">4</span><span><span class="name">Зберегти як копію</span><span class="one">Зберігає правки як новий ресурс, а оригінал залишає як є.</span></span></summary>
+<summary><span class="mk">4</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M16,1L4,1C2.9,1 2,1.9 2,3L2,17L4,17L4,3L16,3L16,1ZM19,5L8,5C6.9,5 6,5.9 6,7L6,21C6,22.1 6.9,23 8,23L19,23C20.1,23 21,22.1 21,21L21,7C21,5.9 20.1,5 19,5ZM19,21L8,21L8,7L19,7L19,21Z" fill="currentColor"/></svg>Зберегти як копію</span><span class="one">Зберігає правки як новий ресурс, а оригінал залишає як є.</span></span></summary>
 <div class="full">
 <p>Доступно під час редагування наявного ресурсу. Копія отримує вільну назву на основі вихідної, а після цього редактор лишається на оригіналі. Кнопка неактивна, доки у формі є помилки або триває перевірка чи збереження.</p>
 </div>
@@ -176,7 +178,7 @@
 <li><a href="index.html"><b>Зміст довідки</b></a></li>
 </ul>
 <footer class="help-foot">
-<span>Fast Media Sorter, 2026-10-26</span>
+<span>Fast Media Sorter, 2026-11-24</span>
 <a href="index.html">Зміст довідки</a>
 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Поставити запитання або повідомити про проблему</a>
 </footer>

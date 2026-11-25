@@ -54,6 +54,13 @@ object ExchangeMessageText {
         ExchangeMessage.REFUSED to R.string.exchange_failure_refused,
         ExchangeMessage.TOKEN_NOT_STORED to R.string.exchange_failure_token_not_stored,
         ExchangeMessage.ADMIN_DISABLED to R.string.exchange_failure_admin_disabled,
+        ExchangeMessage.BAD_CREDENTIALS_ADMIN to R.string.exchange_failure_bad_credentials_admin,
+        ExchangeMessage.ADMIN_SESSION_ENDED to R.string.exchange_failure_admin_session_ended,
+        ExchangeMessage.E2E_MISSING_PEER to R.string.exchange_failure_e2e_missing_peer,
+        ExchangeMessage.SETTINGS_NOT_FOUND to R.string.exchange_failure_not_found,
+        ExchangeMessage.SETTINGS_INVALID_PAYLOAD to R.string.exchange_failure_invalid_payload,
+        ExchangeMessage.SETTINGS_APP_ID_MISMATCH to R.string.exchange_failure_app_id_mismatch,
+        ExchangeMessage.SETTINGS_VERSION_INCOMPATIBLE to R.string.exchange_failure_version_incompatible,
     )
 
     private val ADMIN_REPLY: Map<ExchangeAdminReplyCode, Int> = mapOf(

@@ -12,9 +12,19 @@ import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.changedToDownIgnoreConsumed
+import androidx.compose.ui.input.pointer.isOutOfBounds
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.node.CompositionLocalConsumerModifierNode
+import androidx.compose.ui.node.ModifierNodeElement
+import androidx.compose.ui.node.PointerInputModifierNode
+import androidx.compose.ui.node.currentValueOf
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -23,6 +33,7 @@ import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
@@ -107,7 +118,7 @@ fun WearBackAffordance(
         contentAlignment = Alignment.CenterStart,
         modifier = modifier
             .size(WearBackAffordanceSize)
-            .nonSwallowingClickable(onClick = {
+            .rimClickable(onClick = {
                 onClick()
             })
     ) {
@@ -151,7 +162,7 @@ fun WearScreenOffAffordance(
         contentAlignment = Alignment.CenterEnd,
         modifier = modifier
             .size(WearBackAffordanceSize)
-            .nonSwallowingClickable(onClick = {
+            .rimClickable(onClick = {
                 onClick()
             })
     ) {
@@ -167,6 +178,81 @@ fun WearScreenOffAffordance(
  */
 @Composable
 fun wearScreenOffIcon(): ImageVector = ImageVector.vectorResource(R.drawable.ic_night_mode)
+
+/**
+ * S4737: the click of the two rim controls. Each control is drawn above full-width content whose
+ * own inset is narrower than the control's 40 dp target, so a row at mid-height lies partly inside the
+ * box. The node shares the pointer with that sibling and decides on the Final pass, which in Compose
+ * runs after every sibling's Main pass: a down or a move the content consumed, or a pointer that left
+ * the box, means the gesture was not the control's. The target keeps its full size (S2472) and still
+ * answers wherever nothing pressable lies under it. Nothing is consumed before the decision, so a
+ * swipe-to-dismiss or a list scroll starting over the box reaches its owner.
+ */
+private fun Modifier.rimClickable(onClick: () -> Unit): Modifier = this
+    .then(RimClickElement(onClick))
+    .semantics(mergeDescendants = true) {
+        role = Role.Button
+        onClick {
+            onClick()
+            true
+        }
+    }
+
+private class RimClickElement(private val onClick: () -> Unit) : ModifierNodeElement<RimClickNode>() {
+    override fun create(): RimClickNode = RimClickNode(onClick)
+
+    override fun update(node: RimClickNode) {
+        node.onClick = onClick
+    }
+
+    override fun equals(other: Any?): Boolean = other is RimClickElement && other.onClick === onClick
+
+    override fun hashCode(): Int = onClick.hashCode()
+}
+
+private class RimClickNode(
+    var onClick: () -> Unit
+) : Modifier.Node(), PointerInputModifierNode, CompositionLocalConsumerModifierNode {
+    private var tracking = false
+    private var taken = false
+
+    override fun sharePointerInputWithSiblings(): Boolean = true
+
+    override fun onPointerEvent(pointerEvent: PointerEvent, pass: PointerEventPass, bounds: IntSize) {
+        if (pass != PointerEventPass.Final) return
+        val changes = pointerEvent.changes
+        if (!tracking && changes.any { it.changedToDownIgnoreConsumed() }) {
+            tracking = true
+            taken = false
+        }
+        if (!tracking) return
+        val padding = extendedTouchPadding(bounds)
+        if (changes.any { it.isConsumed || it.isOutOfBounds(bounds, padding) }) {
+            taken = true
+        }
+        if (changes.all { !it.pressed }) {
+            tracking = false
+            if (!taken) {
+                changes.forEach { it.consume() }
+                onClick()
+            }
+        }
+    }
+
+    override fun onCancelPointerInput() {
+        tracking = false
+    }
+
+    private fun extendedTouchPadding(bounds: IntSize): Size {
+        val minimum = with(currentValueOf(LocalDensity)) {
+            currentValueOf(LocalViewConfiguration).minimumTouchTargetSize.toSize()
+        }
+        return Size(
+            ((minimum.width - bounds.width) / 2f).coerceAtLeast(0f),
+            ((minimum.height - bounds.height) / 2f).coerceAtLeast(0f)
+        )
+    }
+}
 
 /**
  * Detects clicks without consuming pointer down or horizontal drag events, allowing system back

@@ -42,8 +42,8 @@
         <!-- Disable preview on app launch - no icon/splash shown until app fully loads -->
         <item name="android:windowDisablePreview">true</item>
 
-        <!-- Default player controls layout = compact (matches AppSettings.useCompactElements default true).
-             Overridden by Theme.FastMediaSorter.LargePlayerControls applyStyle() when compact is OFF. -->
+        <!-- Base player controls layout = compact. AppSettings.useCompactElements defaults to false, so
+             Theme.FastMediaSorter.LargePlayerControls applyStyle() overrides it whenever compact is OFF. -->
         <item name="customPlayerControlsLayout">@layout/custom_player_controls</item>
 
         <!-- S0538: builder dialogs inherit the unified confirm/cancel pair via this seam. -->
@@ -51,6 +51,9 @@
 
         <!-- S0536: every MaterialSwitch left outside SettingsToggleRow inherits one canonical look. -->
         <item name="materialSwitchStyle">@style/Widget.FastMediaSorter.Switch</item>
+
+        <!-- S4763: gives the toolbar overflow button a resource id (see Widget.FastMediaSorter.Toolbar.OverflowButton). -->
+        <item name="actionOverflowButtonStyle">@style/Widget.FastMediaSorter.Toolbar.OverflowButton</item>
     </style>
 
     <!-- S0569: custom accent themes. Applied via theme.applyStyle() in BaseActivity from
@@ -447,6 +450,22 @@
         <item name="android:insetBottom">@dimen/dimension_zero</item>
     </style>
 
+    <!-- The tonal face of the content-sized command geometry above, for groups that are tonal today. -->
+    <style name="Widget.FastMediaSorter.Button.Command.Tonal" parent="Widget.FastMediaSorter.Button.Tonal">
+        <item name="cornerRadius">@dimen/token_spacing_4</item>
+        <item name="android:minWidth">@dimen/token_touch_target_min</item>
+        <item name="android:minHeight">@dimen/token_touch_target_min</item>
+        <item name="android:paddingStart">@dimen/token_spacing_16</item>
+        <item name="android:paddingEnd">@dimen/token_spacing_16</item>
+        <item name="android:singleLine">false</item>
+        <item name="android:ellipsize">none</item>
+        <item name="iconSize">@dimen/icon_size_button</item>
+        <item name="iconPadding">@dimen/token_spacing_8</item>
+        <item name="iconGravity">textStart</item>
+        <item name="android:insetTop">@dimen/dimension_zero</item>
+        <item name="android:insetBottom">@dimen/dimension_zero</item>
+    </style>
+
     <style name="Widget.FastMediaSorter.Button.Text" parent="Widget.Material3.Button.TextButton">
         <item name="android:letterSpacing">0</item>
         <item name="textAllCaps">false</item>
@@ -632,10 +651,21 @@
         <item name="android:minHeight">@dimen/dialog_cancel_button_min_height</item>
     </style>
 
+    <!-- S4835: Material widens the side background insets from 10dp to 24dp on screens at least 480dp
+         tall, so the same dialog card was 28dp narrower in portrait. That is enough to push the wide
+         confirm and the cancel button past the bar width, and the stacked bar puts confirm on top, so
+         portrait and landscape showed the pair in opposite orders. One side inset keeps the card width
+         orientation-independent; the top and bottom insets stay Material's. -->
+    <style name="MaterialAlertDialog.FastMediaSorter" parent="MaterialAlertDialog.Material3">
+        <item name="backgroundInsetStart">@dimen/dialog_background_inset_horizontal</item>
+        <item name="backgroundInsetEnd">@dimen/dialog_background_inset_horizontal</item>
+    </style>
+
     <!-- S0538: builder seam - every MaterialAlertDialogBuilder dialog inherits the unified pair via
          materialAlertDialogTheme on the app theme, no per-call edit. Destructive dialogs override the
          positive slot per-call (Phase 03). -->
     <style name="ThemeOverlay.FastMediaSorter.MaterialAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="alertDialogStyle">@style/MaterialAlertDialog.FastMediaSorter</item>
         <item name="buttonBarPositiveButtonStyle">@style/Widget.FastMediaSorter.Button.DialogConfirm</item>
         <item name="buttonBarNegativeButtonStyle">@style/Widget.FastMediaSorter.Button.DialogCancel</item>
         <item name="buttonBarNeutralButtonStyle">@style/Widget.FastMediaSorter.Button.DialogCancel</item>
@@ -648,6 +678,7 @@
     <style name="ThemeOverlay.FastMediaSorter.MaterialAlertDialog.Destructive" parent="ThemeOverlay.Material3.MaterialAlertDialog">
         <!-- S4051: marks the dialog destructive so Cancel, not the red confirm, holds the default focus. -->
         <item name="dialogDestructive">true</item>
+        <item name="alertDialogStyle">@style/MaterialAlertDialog.FastMediaSorter</item>
         <item name="buttonBarPositiveButtonStyle">@style/Widget.FastMediaSorter.Button.DialogDestructive</item>
         <item name="buttonBarNegativeButtonStyle">@style/Widget.FastMediaSorter.Button.DialogCancel</item>
         <item name="buttonBarNeutralButtonStyle">@style/Widget.FastMediaSorter.Button.DialogCancel</item>
@@ -664,6 +695,13 @@
     <!-- S2898: primary toolbar theme overlay providing high-contrast text color and D-pad focus outlines. -->
     <style name="Widget.FastMediaSorter.Toolbar.ActionButton" parent="Widget.AppCompat.ActionButton">
         <item name="android:background">@drawable/toolbar_action_item_focus_selector</item>
+    </style>
+
+    <!-- S4763: the overflow button is built by ActionMenuPresenter with actionOverflowButtonStyle as its
+         defStyleAttr and no layout, so a style is the only place an id can reach it. The parent keeps the
+         stock glyph, description and actionBarItemBackground; only the id is added. -->
+    <style name="Widget.FastMediaSorter.Toolbar.OverflowButton" parent="Widget.AppCompat.ActionButton.Overflow">
+        <item name="android:id">@id/toolbarOverflowButton</item>
     </style>
 
     <style name="ThemeOverlay.FastMediaSorter.Toolbar.Primary" parent="ThemeOverlay.Material3.ActionBar">

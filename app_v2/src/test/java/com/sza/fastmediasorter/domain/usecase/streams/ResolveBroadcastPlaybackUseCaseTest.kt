@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase.streams
 
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointCodec
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointDto
+import com.sza.fastmediasorter.data.broadcast.BroadcastSealDto
 import com.sza.fastmediasorter.data.broadcast.exchange.BroadcastEndpointProbe
 import com.sza.fastmediasorter.data.broadcast.exchange.BroadcastEndpointProbe.ExchangeAnswer
 import com.sza.fastmediasorter.data.broadcast.exchange.BroadcastLoopbackBridges
@@ -122,12 +123,12 @@ class ResolveBroadcastPlaybackUseCaseTest {
     }
 
     @Test
-    fun aSilentLan_fallsToAnUnpinnedRelayPlayedDirectly() = runTest {
+    fun aSilentLan_fallsToASealedRelayProxy() = runTest {
         val outcome = useCase(FakeConnector(mapOf(RELAY_HOST to TRUSTED)))(
             row(deadLan(), listOf(lan(deadLan()), relay(pin = null), tunnel()))
         )
 
-        assertEquals(Playback.Playable(RELAY_URL), outcome)
+        assertTrue((outcome as Playback.Playable).url.startsWith("http://127.0.0.1:"))
     }
 
     @Test
@@ -199,7 +200,7 @@ class ResolveBroadcastPlaybackUseCaseTest {
                 row(deadLan(), listOf(lan(deadLan()), relay(pin = null)))
             )
 
-            assertEquals("relay status $status", Playback.Playable(RELAY_URL), outcome)
+            assertTrue("relay status $status", (outcome as Playback.Playable).url.startsWith("http://127.0.0.1:"))
         }
     }
 
@@ -240,12 +241,18 @@ class ResolveBroadcastPlaybackUseCaseTest {
 
     private fun lan(url: String) = BroadcastEndpointDto(url = url, transport = "HTTP")
 
-    private fun relay(pin: String?) = BroadcastEndpointDto(url = RELAY_URL, transport = "RELAY", certFingerprint = pin)
+    private fun relay(pin: String?) = BroadcastEndpointDto(
+        url = RELAY_URL,
+        transport = "RELAY",
+        certFingerprint = pin,
+        seal = BroadcastSealDto(key = GROUP_KEY),
+    )
 
     private fun tunnel() = BroadcastEndpointDto(
         url = "fmsx://$RELAY_HOST:8443/b/$BROADCAST_ID/rtsp",
         transport = "TUNNEL",
         inner = "rtsp://192.168.1.97:8554/live",
+        seal = BroadcastSealDto(pin = PIN),
     )
 
     private fun row(url: String, endpoints: List<BroadcastEndpointDto>?) = StreamSourceEntity(
@@ -260,6 +267,7 @@ class ResolveBroadcastPlaybackUseCaseTest {
     )
 
     private companion object {
+        const val GROUP_KEY = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
         const val RELAY_HOST = "exchange.example.org"
         const val BROADCAST_ID = "Zm9vYmFyYmF6cXV4MTIzNA"
         const val RELAY_URL = "https://$RELAY_HOST:8443/v2/b/$BROADCAST_ID/stream"

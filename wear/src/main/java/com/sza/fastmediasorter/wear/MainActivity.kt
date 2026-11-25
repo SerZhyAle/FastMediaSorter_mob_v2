@@ -171,6 +171,7 @@ import com.sza.fastmediasorter.wear.ui.settings.SettingsRoutes
 import com.sza.fastmediasorter.wear.ui.settings.SettingsScreen
 import com.sza.fastmediasorter.wear.ui.settings.SlideshowSettingsScreen
 import com.sza.fastmediasorter.wear.ui.settings.TileTargetsSettingsScreen
+import com.sza.fastmediasorter.wear.ui.streams.BroadcastWaitingScreen
 import com.sza.fastmediasorter.wear.ui.streams.StreamsScreen
 import com.sza.fastmediasorter.wear.ui.testing.WearTestTags
 import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
@@ -1146,6 +1147,11 @@ private fun OpenStreamOnWatchEffect(
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
             WatchStreamOpenEvents.requestFlow.collect { channel ->
                 val target = prepareStreamPlayback(channel)
+                if (target.waitingForStart) {
+                    // S4692: nothing plays before the start, so the phone gets no "opened" confirmation either.
+                    navController.navigate(WearRoutes.broadcastWaiting(channel.url))
+                    return@collect
+                }
                 if (target.unplayable) {
                     // No "opened" confirmation: nothing plays, so the phone must not say it is playing.
                     Toast.makeText(context, unplayable, Toast.LENGTH_SHORT).show()
@@ -1596,6 +1602,13 @@ private fun NavGraphBuilder.browseRoutes(navController: NavHostController) {
 
     composable(WearRoutes.STREAMS) {
         StreamsScreen(navController = navController)
+    }
+
+    composable(
+        route = WearRoutes.BROADCAST_WAITING_PATTERN,
+        arguments = listOf(navArgument(WearRoutes.ARG_CHANNEL_URL) { type = NavType.StringType }),
+    ) {
+        BroadcastWaitingScreen(navController = navController)
     }
 }
 

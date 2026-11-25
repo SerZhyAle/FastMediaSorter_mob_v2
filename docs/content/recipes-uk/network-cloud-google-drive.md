@@ -12,7 +12,7 @@ canonical_url: documentation/network/cloud-google-drive-uk.html
 why: |
   Значна частина вашої фототеки вже зберігається в Google Drive, і зручніше переглядати її в тому самому застосунку, яким ви користуєтеся для всього іншого, а не перемикатися на окремий застосунок Drive. Увійдіть один раз - і папки Drive відкриються поруч із локальними, а той самий вхід непомітно робить більше, ніж просто відкриває папки: він резервно копіює ваші налаштування і дає змогу телефону та планшету обмінюватися файлами через ваш приватний куточок Drive.
 ingredients:
-  - "FastMediaSorter у [редакції](term:edition) Standard, noLegal, Photos, Legacy або VR - не Lite, не FOSS. Див. [Сім редакцій](page:flavors.overview-and-comparison)."
+  - "Fast Media Sorter & Organizer у [редакції](term:edition) Standard, noLegal, Photos, Legacy або VR - не Lite, не FOSS. Див. [Сім редакцій](page:flavors.overview-and-comparison)."
   - "Обліковий запис Google і встановлений браузер, здатний відкрити вікно входу (підійде будь-який звичайний браузер)."
 steps:
   - number: 1

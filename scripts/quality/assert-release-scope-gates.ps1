@@ -45,6 +45,7 @@
       - assert-suite-tracked          (S2411 every discovered suite runner is in the git index)
       - assert-dotsource-tracked       (S2616 every dot-sourced script target is in the git index)
       - assert-document-registry-coverage (S2618 every directory holding documents is registered or excused)
+      - assert-internal-doc-links (S4653 relative links and anchors inside docs/ and dev/ resolve on disk)
       - assert-temp-root-inventory     (S3030 every top-level entry of temp/ is declared or ticket-bound)
       - assert-lock-path-coverage      (S3456 every tracked path matches a lock path rule)
       - assert-wear-store-boundary     (S3178 both Wear merged manifests vs the store boundary policy)
@@ -326,6 +327,12 @@ $gates = [ordered]@{
     # repository-wide and a new documentation tree appears on the scale of months, so a per-closure
     # run would spend the same minutes that gate spent to report a single finding.
     'assert-document-registry-coverage.ps1' = @('-Quiet')
+    # S4653. DOC-INTERNAL-QUALITY rule 3 over the whole internal corpus: the per-ticket run judges only the
+    # Markdown a session changed, so a link broken by renaming a file nobody re-opened is visible only here.
+    'assert-internal-doc-links.ps1'    = @('-Quiet')
+    # S4653. DOC-EXTERNAL-QUALITY 0.11 item G: a portal translation must be rebuilt from the English original
+    # before the release that carries it; per ticket the same dimension is an advisory, because the original leads.
+    'assert-portal-pages.ps1'          = @('-Dimension', 'freshness', '-Strict', '-Quiet')
     # S3030. The top level of temp/ against the one inventory that declares it. Release scope for
     # Rule 33's four criteria, and the attribution corollary is not theoretical here: the directory
     # is shared by every concurrent session, so a per-closure run would fail whoever ran it over a
@@ -443,6 +450,7 @@ $gateInputGroups = @{
     'assert-archive-artefacts.ps1'                = @('specs-archive')
     'assert-source-gates.ps1'                     = @('phone-src', 'wear-src')
     'assert-document-registry-coverage.ps1'       = @('docs', 'scripts')
+    'assert-internal-doc-links.ps1'               = @('docs')
     'assert-suite-tracked.ps1'                    = @('scripts')
     'assert-dotsource-tracked.ps1'                = @('scripts')
     'assert-wear-store-boundary.ps1'              = @('wear-src')

@@ -109,9 +109,9 @@ $colIcon   = @{ en = 'Icon';         ru = 'Значок';           uk = 'Зна
 $colMean   = @{ en = 'Meaning';      ru = 'Значение';         uk = 'Значення' }
 $sysIcon   = @{ en = '(system icon)'; ru = '(системный значок)'; uk = '(системний значок)' }
 $intro = @{
-    en = 'These are the real interface icons from FastMediaSorter, each shown next to the exact label it displays on screen.'
-    ru = 'Это настоящие значки интерфейса FastMediaSorter, и рядом с каждым - точная подпись, которую он показывает на экране.'
-    uk = 'Це справжні значки інтерфейсу FastMediaSorter, і поряд із кожним - точний підпис, який він показує на екрані.'
+    en = 'These are the real interface icons from Fast Media Sorter & Organizer, each shown next to the exact label it displays on screen.'
+    ru = 'Это настоящие значки интерфейса Fast Media Sorter & Organizer, и рядом с каждым - точная подпись, которую он показывает на экране.'
+    uk = 'Це справжні значки інтерфейсу Fast Media Sorter & Organizer, і поряд із кожним - точний підпис, який він показує на екрані.'
 }
 
 function Get-HumanizedDrawable([string] $drawable) {

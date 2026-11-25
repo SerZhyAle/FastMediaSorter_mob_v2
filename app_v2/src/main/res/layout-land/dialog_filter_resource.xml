@@ -65,13 +65,24 @@
         </LinearLayout>
 
         <!-- Title -->
-        <TextView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/filter_and_sort_resources"
-            android:textSize="@dimen/text_size_large"
-            android:textStyle="bold"
-            android:layout_marginBottom="@dimen/margin_large" />
+            android:layout_marginBottom="@dimen/margin_large"
+            android:baselineAligned="false"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="@string/filter_and_sort_resources"
+                android:textSize="@dimen/text_size_large"
+                android:textStyle="bold" />
+
+            <include layout="@layout/view_dialog_help_button" />
+        </LinearLayout>
 
         <!-- Sort Section (S0567: raw Spinner -> SettingsDropdownRow; the row renders its own "Sort by" title). -->
         <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow

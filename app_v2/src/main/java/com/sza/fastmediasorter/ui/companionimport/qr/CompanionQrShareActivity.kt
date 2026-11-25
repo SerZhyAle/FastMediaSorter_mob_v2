@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.google.zxing.WriterException
@@ -39,7 +40,9 @@ class CompanionQrShareActivity : AppCompatActivity() {
     private lateinit var binding: ActivityCompanionQrShareBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        Timber.d("S4879: CompanionQrShareActivity onCreate with enableEdgeToEdge")
         // S1045: secure-first - protect the credential QR before any frame renders; the settings
         // collector below clears the flag only when the user has disabled the protection.
         window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)

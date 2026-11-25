@@ -1,0 +1,46 @@
+{
+  "schema": "1",
+  "packages": [
+    {
+      "id": "phone",
+      "title": "FastMediaSorter (phone)"
+    },
+    {
+      "id": "wear",
+      "title": "FastMediaSorter Wear"
+    },
+    {
+      "id": "watchface",
+      "title": "FastMediaSorter Watch Face"
+    }
+  ],
+  "channels": [
+    {
+      "key": "github",
+      "channel": "github",
+      "package": "phone",
+      "repo": "SerZhyAle/FastMediaSorter_mob_v2"
+    },
+    {
+      "key": "play",
+      "channel": "play",
+      "package": "phone",
+      "id": "com.sza.fastmediasorter",
+      "track": "production"
+    },
+    {
+      "key": "play-wear",
+      "channel": "play",
+      "package": "wear",
+      "id": "com.sza.fastmediasorter",
+      "track": "wear:production"
+    },
+    {
+      "key": "play-watchface",
+      "channel": "play",
+      "package": "watchface",
+      "id": "com.sza.fastmediasorter.watchface",
+      "track": "wear:production"
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.10.30 11:35</sub>
+<sub class="doc-stamp">26.11.24 14:14</sub>
 
 # Play Console Operator Checklist - S0135
 
@@ -7,12 +7,17 @@
 Complete this checklist in Play Console → App content / Store listing before publishing to production.
 Check each item only after the change is confirmed in the Console UI.
 
+Apply the [Play publishing procedure](../scripts/release/README.md#google-play-publishing-procedure)
+before opening a publishing edit. Verify the exact app, accepted artifact history, required
+declarations and an eligible client. Check the entire app's review and pending batch before each
+commit. The legacy FMS clients omit the mandatory guard. S4811 carries the update.
+
 ## A. Listing Texts (every locale the app declares)
 
 Source of truth is `play/listing/<locale>/`, one folder per language declared in
 `app_v2/src/main/res/xml/locales_config.xml` - thirteen of them since S2340, not the three this
-checklist used to name. Publish with `scripts/release/publish-play-listing.ps1 -Mode commit`; never
-retype the texts into the Console.
+checklist used to name. Include changed listing text in the authorized release edit. For a
+listing-only release, apply the same client eligibility and review checks.
 
 The boxes below are per locale and the publisher pushes all of them in one edit, so tick each line
 once the Console shows the set complete. Ten of the thirteen carry text only and inherit their
@@ -35,9 +40,8 @@ graphics from the default language, which is why section C is about the locales 
 
 ## C. Graphics
 
-Screenshots are not uploaded by hand any more than the texts of section A are retyped.
-`publish-play-listing.ps1 -Mode commit` pushes everything under `play/listing/<locale>/images/`
-through `edits().images()`, deleting the live set of each type first. Which screens fill the set, in
+Include changed graphics from `play/listing/<locale>/images/` in the same approved edit as the
+listing text. A listing image update replaces the set of that type. Which screens fill the set, in
 what order, and what each caption says is `play/listing/captions.json` - count nothing by hand and
 compare against that file, never against a number written here.
 
@@ -71,28 +75,18 @@ compare against that file, never against a number written here.
 
 ## C2. Wear OS form factor (S1707)
 
-Everything below the first line is scripted and re-runnable; only the first line needs the web console,
-because the Developer API cannot create a form-factor track - an attempt returns
-`404 Track not found: wear:production`.
+Confirm the Wear OS opt-in in Play Console. Verify the exact Wear track before opening a release edit.
 
 - [ ] Form factor opted in: Test and release -> Advanced settings -> Form factors -> Add form factor -> Wear OS
-- [ ] Watch bundle uploaded to the Wear track (versionCode is the phone's minus its last digit, by design):
-      `publish-play-release.ps1 -Track 'wear:production' -Aab DOWNLOADS/FastMediaSorter_wear_release.aab -VersionCode <wear code> -NotesVersionCode <phone code>`
-- [ ] Wear screenshots live: `play/listing/en-US/images/wearScreenshots/` then `publish-play-listing.ps1 -Mode commit`
+- [ ] Watch bundle versionCode confirmed on `wear:production` through the approved `/skill-release-wear` plan.
+- [ ] Wear screenshots from `play/listing/en-US/images/wearScreenshots/` included with any changed listing and checked after publication.
 - [ ] Watch artifact is on the Wear track, not a mobile one - a wear release left on a mobile track keeps
       serving users but can never be updated
-- [ ] Phone artifact and watch artifact are **not** in the same review batch. Managed publishing groups
-      everything unsent into one batch, and a rejection of either takes the whole batch with it. On
-      2026-08-25 the two travelled together; the watch verdict of 2026-08-31 held the phone release
-      that had been live since 2026-08-15, with not one claim against the phone (S2272, ADR-1).
-      Nothing enforces this mechanically - the Developer API exposes no review state at all - so this
-      line is the enforcement. Current publication state and the ordered recovery plan:
-      `docs/PLAY_PUBLISHING_STATE.md`
-- [ ] `Publishing overview -> unsent changes` read immediately before sending, and it contains nothing
-      from the watch. Measured 2026-09-01: while a rejection stands, `edits().commit()` refuses
-      automatic review (HTTP 400) and only `changesNotSentForReview=True` succeeds, so **every** API
-      edit queues into that list and rides out in the batch you send by hand. Building the two
-      artifacts separately does not keep them apart - this list does
+- [ ] App-wide review and pending changes in Publishing overview match the approved batch. An
+      independent phone release keeps the Wear group out of its batch. An authorized joint release
+      stages both tracks in one edit. [Release batches](../docs/PLAY_PUBLISHING_STATE.md#release-batches---simultaneous-publication-without-the-phone-as-hostage-s4083).
+- [ ] Every commit uses `ERROR_IF_IN_REVIEW`. Confirm the batch again before any separately authorized
+      Console send of held changes.
 
 ### C2.1 Wear store-build permission delta (S4029)
 
@@ -169,8 +163,9 @@ shared anywhere.** Every row below is unchecked, and the file above holds the ev
 ## C5. Contacts Permission declaration (S4030)
 
 Source of truth: `store_assets/PLAY_CONTACTS_DECLARATION.md`. Console path:
-`Policy and programs -> App content -> Contacts Permission`, as named in Google's April 2026 policy
-email. Like C3 and C4 this form has no Play Developer API endpoint, so the text is pasted by hand - edit
+`Policy and programs -> App content`; the form follows Google's restricted-permission policy announced
+2026-10-29 (Play Console Help answers 18100766 and 16909972). Like C3 and C4 this form has no Play
+Developer API endpoint, so the text is pasted by hand - edit
 the file first, never compose the text in the console. Enforcement starts 2027-01-27 for targetSdk 37
 and higher; the app targets 37 since S4502, so file this before the first upload of that build.
 
@@ -233,6 +228,11 @@ so file it before the first upload of that build.
 
 Local Network declaration. Source of truth: `store_assets/PLAY_LOCAL_NETWORK_DECLARATION.md`. Google lists it
 under 2027-08-25 for apps targeting 37; file it with the other two before the first upload targeting 37.
+
+Mirror convergence: the declaration files have one source of truth in this repository, and the
+FastMediaSorter_release clone (fms-release) receives them through its release sync - when walking this
+section at a release, confirm the clone's copies of `PLAY_CONTACTS_DECLARATION.md`,
+`PLAY_PERMISSIONS_DECLARATION.md` and `PLAY_LOCAL_NETWORK_DECLARATION.md` match this checkout (S4670, ADR-2).
 
 - [ ] Open the declaration form (`goo.gle/play-permission-decl-form`) and paste Field 1 and Field 2 verbatim;
       if a field limit is shorter than the text, trim the file first and write the limit on its heading
@@ -297,7 +297,8 @@ Two things not to go looking for (S2449 - both settled before the upload, neithe
   the phone bundle. Quotes and read date: `dev/PLAY_QUALITY_THRESHOLDS_2027.md` section 1.4.
 - **A fired "limited split-bundle usage" alert is recorded, not acted on.** This project declares no
   feature module and its configuration splits are already on by AGP default, so no delivery change
-  exists that would satisfy such an alert. Note whether it fired and move on: that observation is the
-  whole of S2449's residual. Detail: `dev/PLAY_QUALITY_THRESHOLDS_2027.md` section 3.1.
+  exists that would satisfy such an alert. Note whether it fired and move on. Last read 2026-11-24
+  (S2449): it did not fire for the 2026-11-12 bundles. Detail:
+  `dev/PLAY_QUALITY_THRESHOLDS_2027.md` section 3.1.
 
 ## Checklist completed by: ___________________  Date: ___________

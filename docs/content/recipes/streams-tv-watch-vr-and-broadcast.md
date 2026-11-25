@@ -11,15 +11,15 @@ availability_note: Chromecast - Standard, noLegal and Legacy; watch - Standard a
 recipe_number: "08"
 canonical_url: documentation/streams/tv-watch-vr-and-broadcast.html
 why: |
-  A football match deserves the big TV, the morning radio fits on your wrist during a run, and a nature webcam looks best all around you in a headset. A live [stream](term:stream) in FastMediaSorter can go to each of them.
+  A football match deserves the big TV, the morning radio fits on your wrist during a run, and a nature webcam looks best all around you in a headset. A live [stream](term:stream) in Fast Media Sorter & Organizer can go to each of them.
 
   It works the other way round, too: when a friend or a family member starts a [Live Broadcast](term:live-broadcast) on their phone - a baby monitor, a talk in the next room, a view of the garden - you add it to your [Streams](term:streams-screen) like any other [channel](term:channel) and open it whenever it is on air.
 ingredients:
-  - "FastMediaSorter with Streams turned on. Each step names the [editions](term:edition) it needs; see the edition list at the top of this page."
+  - "Fast Media Sorter & Organizer with Streams turned on. Each step names the [editions](term:edition) it needs; see the edition list at the top of this page."
   - "For the TV: a [Chromecast](term:chromecast) or a TV with Chromecast built in, on the same Wi-Fi as the phone."
   - "For the watch: a Wear OS [watch](term:watch) paired with the phone, with the [watch app](term:watch-app) installed, and the [Wear companion](term:wear-companion) turned on - see [installing the watch app and pairing](page:wear.installation-and-pairing)."
   - "For VR: a [VR headset](term:vr-headset) such as [Meta Quest](term:meta-quest) with the noLegal or VR edition installed."
-  - "For a Live Broadcast: the other phone and yours on the same Wi-Fi network."
+  - "For a Live Broadcast: the other phone and yours on the same Wi-Fi network, or the broadcast going through your [exchange server](../../docs/media-exchange-portal/exchange-server.html) when you are on another network."
 steps:
   - number: 1
     id: cast-live-channel
@@ -27,7 +27,7 @@ steps:
     text: |
       **Editions:** Standard, noLegal and Legacy.
 
-      Open a video channel so it plays full screen, tap the picture to show the controls and tap the Chromecast button (**Cast to..**). Pick your TV. The channel starts on the TV right away: FastMediaSorter hands the channel's address to the Chromecast, which then plays the live broadcast by itself. Nothing is downloaded first, and the phone is free again.
+      Open a video channel so it plays full screen, tap the picture to show the controls and tap the Chromecast button (**Cast to..**). Pick your TV. The channel starts on the TV right away: Fast Media Sorter & Organizer hands the channel's address to the Chromecast, which then plays the live broadcast by itself. Nothing is downloaded first, and the phone is free again.
 
       This works for the common TV formats (HLS, DASH and ordinary web video). RTSP cameras cannot be cast; the app then says **This stream can't be cast to Chromecast**. Casting files works the same way - see [Chromecast casting and live broadcast](page:player.casting-and-broadcast).
     image_bookmark:
@@ -82,7 +82,7 @@ steps:
       When someone starts a Live Broadcast on their phone, their screen shows a QR code with the broadcast's address printed under it. Add it to your Streams in whichever way is easiest:
 
       - **Scan it**: in Streams, open the [three-dots menu](term:three-dots-menu), choose **Import Broadcast (QR / File)** and then **Scan QR Code**, and point the camera at their screen.
-      - **Tap a link**: if they sent you the link, tap it - FastMediaSorter opens straight into the Streams import. On a phone without the app, the link opens a web page that offers to install it and to open the broadcast afterwards.
+      - **Tap a link**: if they sent you the link, tap it - Fast Media Sorter & Organizer opens straight into the Streams import. On a phone without the app, the link opens a web page that offers to install it and to open the broadcast afterwards.
       - **Open a file**: if they sent a broadcast file (it ends in **.fmsbcast**), tap it in any file manager, or choose **Select Descriptor File** in the same menu.
       - **Type it**: a phone without a camera can add the address printed under the QR code by hand, as described in [adding your own streams](page:streams.custom-m3u-playlists).
 
@@ -113,7 +113,7 @@ outcome: |
 tips:
   - "**Chromecast not in the list?** The phone and the TV must be on the same Wi-Fi network; guest networks often keep devices apart."
   - "**Send to watch and Open on watch are missing?** Turn on the Wear companion, and check that your edition is Standard or noLegal."
-  - "**A broadcast does not play?** You and the broadcasting phone must be on the same Wi-Fi. Some routers keep devices apart - look for an option called client or AP isolation."
+  - "**A broadcast does not play?** On the same Wi-Fi network, you and the broadcasting phone must both be on it, and some routers keep devices apart - look for an option called client or AP isolation. From another network, the broadcast plays through your [exchange server](../../docs/media-exchange-portal/exchange-server.html) once the broadcasting phone is signed in to it in **My devices**."
   - "**Open in VR is missing?** It appears only on a headset with 3D VR playback turned on and only for video channels. Headset setup is described in [setting up the headset](page:vr.headset-setup-and-openxr)."
   - "**Want a phone or a watch to go on air for your other devices?** The [media exchange portal](../../docs/media-exchange-portal/live-broadcast.html) describes the routes between devices, step by step."
 next_recipes:
@@ -134,6 +134,6 @@ next_recipes:
     description: The basics of playing a channel on the phone.
 ---
 
-<sub class="doc-stamp">26.10.15 21:43</sub>
+<sub class="doc-stamp">26.11.14 03:05</sub>
 
 Take a live [channel](term:channel) to the TV with [Chromecast](term:chromecast), to your [watch](term:watch) or into a [VR headset](term:vr-headset), and add a friend's [Live Broadcast](term:live-broadcast) to your Streams with a QR code, a link or a file.

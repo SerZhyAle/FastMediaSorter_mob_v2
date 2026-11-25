@@ -7,6 +7,7 @@ import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.net.Uri
 import android.os.Build
+import com.sza.fastmediasorter.data.broadcast.drive.DriveBroadcastAnnouncer
 import com.sza.fastmediasorter.data.broadcast.exchange.ExchangeBroadcastAnnouncer
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -28,6 +29,7 @@ import javax.inject.Singleton
 class BroadcastSourceControllerImpl @Inject constructor(
     @ApplicationContext private val context: Context,
     private val exchangeAnnouncer: ExchangeBroadcastAnnouncer,
+    private val driveAnnouncer: DriveBroadcastAnnouncer,
 ) : BroadcastSourceController {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -65,6 +67,8 @@ class BroadcastSourceControllerImpl @Inject constructor(
     init {
         // S4116: a live broadcast is announced through the outgoing exchange entry, when the user has one.
         exchangeAnnouncer.follow(state)
+        // S4608: and on the person's Google Drive while the Drive channel is on (DEVICE-EXCHANGE item BC).
+        driveAnnouncer.follow(state)
     }
 
     override val listenerCount: StateFlow<Int> = combine(

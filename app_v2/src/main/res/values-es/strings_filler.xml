@@ -30,4 +30,8 @@
     <string name="filler_result_busy">El relleno ya está en curso.</string>
     <string name="filler_settings_toggle_subtitle">Llena el espacio libre de un dispositivo de almacenamiento con archivos temporales y luego los elimina</string>
     <string name="filler_settings_toggle_subtitle_pending">Aún quedan archivos temporales de una ejecución anterior en el almacenamiento. El programa permanece en la lista hasta que los elimines desde él.</string>
+    <string name="filler_estimate">%1$d%% completado, tiempo restante: %2$s</string>
+    <string name="filler_estimate_calculating">%1$d%% completado, tiempo restante: calculando..</string>
+    <string name="filler_reserve_slider_description">Espacio reservado para el sistema</string>
+    <string name="filler_confirm_reserve_lowered">Es menos de lo habitual (%1$s), así que el sistema y otras apps tendrán menos espacio mientras dure la ejecución.</string>
 </resources>

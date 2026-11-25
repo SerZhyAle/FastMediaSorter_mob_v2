@@ -7,13 +7,24 @@
     android:orientation="vertical"
     android:padding="@dimen/padding_normal">
 
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/margin_small"
-        android:text="@string/ticket_inbox_row_title"
-        android:textAppearance="@style/TextAppearance.FastMediaSorter.Dialog.Title"
-        android:textStyle="bold" />
+        android:baselineAligned="false"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="@string/ticket_inbox_row_title"
+            android:textAppearance="@style/TextAppearance.FastMediaSorter.Dialog.Title"
+            android:textStyle="bold" />
+
+        <include layout="@layout/view_dialog_help_button" />
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"

@@ -33,6 +33,11 @@ private const val HELP_PRIORITY = 730
 // constructed before its own companion object exists, so the constant cannot live there.
 private const val STREAM_INFO_PRIORITY = 496
 
+// S4866: the swipe font-size pair as menu entries, between READER_SETTINGS(530) and READ_ALOUD(540) so the
+// three text-reading controls stay adjacent without renumbering either neighbour.
+private const val TEXT_ZOOM_IN_PRIORITY = 532
+private const val TEXT_ZOOM_OUT_PRIORITY = 534
+
 // S1451: named rather than left a bare literal because S1406 froze this one finding in the detekt
 // baseline without re-seeding the ID snapshot, so the two control files disagreed and the absorption
 // gate failed on it. Its neighbours 392/394 stay literal: their findings sit in BOTH control files
@@ -102,7 +107,7 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             R.id.menu_file_number,
             false,
             R.string.player_file_jump,
-            0
+            R.drawable.ic_go_to_page
         ),
         FRAME_FORWARD(
             FRAME_FORWARD_PRIORITY,
@@ -289,6 +294,20 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             false,
             R.string.reader_settings,
             R.drawable.ic_settings
+        ),
+        TEXT_ZOOM_IN(
+            TEXT_ZOOM_IN_PRIORITY,
+            R.id.menu_text_zoom_in,
+            false,
+            R.string.zoom_in,
+            R.drawable.ic_zoom_in
+        ),
+        TEXT_ZOOM_OUT(
+            TEXT_ZOOM_OUT_PRIORITY,
+            R.id.menu_text_zoom_out,
+            false,
+            R.string.zoom_out,
+            R.drawable.ic_zoom_out
         ),
         READ_ALOUD(540, R.id.menu_read_aloud, false, R.string.read_aloud, R.drawable.ic_read_aloud),
         PDF_SCROLL_MODE(550, R.id.menu_pdf_scroll_mode, false, R.string.pdf_scroll_mode, R.drawable.ic_view_list),
@@ -512,6 +531,8 @@ class CommandPanelLayoutPlanner(private val mediaCapabilities: MediaCapabilities
             if (isText) add(PlayerCommand.REOPEN_ENCODING)
             if (isText && file.name.endsWith(".md", ignoreCase = true)) add(PlayerCommand.TOGGLE_MARKDOWN)
             if (isText) add(PlayerCommand.READER_SETTINGS)
+            if (isText) add(PlayerCommand.TEXT_ZOOM_IN)
+            if (isText) add(PlayerCommand.TEXT_ZOOM_OUT)
             if (isText || isPdf || isEpub) add(PlayerCommand.READ_ALOUD)
             if (isPdf) add(PlayerCommand.PDF_SCROLL_MODE)
             if (isPdf) add(PlayerCommand.PDF_COLOR_MODE)

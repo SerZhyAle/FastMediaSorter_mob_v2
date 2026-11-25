@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "ہوم سنیما اور VR اسٹریمنگ - FastMediaSorter v2"
+title: "ہوم سنیما اور VR اسٹریمنگ - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-home-cinema-ur.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -21,7 +21,7 @@ permalink: /docs/howto/scenario-home-cinema-ur.html
 
 - فون / ٹیبلٹ / VR ہیڈسیٹ اپنے پی سی جیسے **گھریلو Wi-Fi نیٹ ورک** پر
 - اپنے **پی سی یا NAS** (اسٹوریج والا آپ کا راؤٹر باکس) پر ویڈیوز
-- انسٹال کردہ FastMediaSorter
+- انسٹال کردہ Fast Media Sorter & Organizer
 
 ---
 
@@ -39,7 +39,9 @@ permalink: /docs/howto/scenario-home-cinema-ur.html
 
 ---
 
-## مرحلہ 2 - FastMediaSorter میں ویڈیو فولڈر شامل کریں
+<a id="مرحلہ-2---fastmediasorter-میں-ویڈیو-فولڈر-شامل-کریں"></a>
+
+## مرحلہ 2 - Fast Media Sorter & Organizer میں ویڈیو فولڈر شامل کریں
 
 1. ایپ کھولیں → **Add** <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> پر ٹیپ کریں → **"Network folder (SMB)"**
 2. **"Scan Network"** پر ٹیپ کریں - ایپ دستیاب پی سیز کے لیے آپ کے گھریلو نیٹ ورک کو اسکین کرتی ہے
@@ -104,7 +106,7 @@ permalink: /docs/howto/scenario-home-cinema-ur.html
 
 > **یہ سیکشن VR ہیڈسیٹ (جیسے Meta Quest 2/3 یا Pico 4) رکھنے والے افراد کے لیے ہے۔** اگر آپ کے پاس ایک نہیں ہے، تو یہ مرحلہ چھوڑ دیں۔
 
-Android پر مبنی VR ہیڈسیٹس FastMediaSorter چلا سکتے ہیں۔ سائیڈ لوڈنگ کے ذریعے انسٹال کریں:
+Android پر مبنی VR ہیڈسیٹس Fast Media Sorter & Organizer چلا سکتے ہیں۔ سائیڈ لوڈنگ کے ذریعے انسٹال کریں:
 1. [Downloads صفحہ](../DOWNLOADS.md) سے APK ڈاؤن لوڈ کریں
 2. اپنے ہیڈسیٹ پر، Developer settings میں **"Install from unknown sources"** فعال کریں
 3. SideQuest یا براہ راست ADB کے ذریعے APK انسٹال کریں
@@ -115,7 +117,7 @@ Android پر مبنی VR ہیڈسیٹس FastMediaSorter چلا سکتے ہیں۔
 - ایپیسوڈز کے درمیان سوائپ کرنے کے لیے **تھمب اسٹک** استعمال کریں (اگر آپ کا ہیڈسیٹ میڈیا بٹنز میپ کرتا ہے)
 - عام 2D فلموں اور سیریز کے لیے - فوری کام کرتا ہے، کوئی اضافی سیٹ اپ نہیں
 
-> **VR سنیما تجربے کے لیے:** آپ لانچر کے طور پر ایک مخصوص VR سنیما ایپ استعمال کر سکتے ہیں، اور پھر فائل مینجمنٹ کے لیے "Open with FastMediaSorter" چن سکتے ہیں۔ FastMediaSorter فائل براؤزنگ سنبھالتا ہے؛ VR سنیما ایپ عمیق 360° ڈسپلے سنبھالتی ہے۔
+> **VR سنیما تجربے کے لیے:** آپ لانچر کے طور پر ایک مخصوص VR سنیما ایپ استعمال کر سکتے ہیں، اور پھر فائل مینجمنٹ کے لیے "Open with Fast Media Sorter & Organizer" چن سکتے ہیں۔ Fast Media Sorter & Organizer فائل براؤزنگ سنبھالتا ہے؛ VR سنیما ایپ عمیق 360° ڈسپلے سنبھالتی ہے۔
 
 ---
 

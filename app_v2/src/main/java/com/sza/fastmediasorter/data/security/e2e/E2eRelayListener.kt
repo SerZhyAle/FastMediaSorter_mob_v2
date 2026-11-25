@@ -22,8 +22,9 @@ enum class E2eRelayEnd {
 /**
  * The listener side of a sealed relay, shared by the phone and the watch: reads records from the relay body by
  * `len`, opens the key ring with [groupKey], and writes the clear media to the player. The listen body carries
- * chunk payloads without their flag byte, so a media record is opened under the header flag when it follows a key
- * ring, then under the joinable flag, then the plain one - a wrong flag fails its tag and costs one more check.
+ * chunk payloads without their flag byte, so a media record is opened by trial over the four values of 7.6 (1.11
+ * item EH): under the header flag when it follows a key ring, then the joinable flag, then the plain one, then both
+ * bits - a wrong flag fails its tag and costs one more check.
  */
 class E2eRelayListener(private val broadcastId: String, private val groupKey: ByteArray) {
 
@@ -83,8 +84,9 @@ class E2eRelayListener(private val broadcastId: String, private val groupKey: By
         const val FLAG_PLAIN = 0x00
         const val FLAG_JOINABLE = 0x01
         const val FLAG_HEADER = 0x02
-        val HEADER_FIRST = intArrayOf(FLAG_HEADER, FLAG_JOINABLE, FLAG_PLAIN)
-        val JOINABLE_FIRST = intArrayOf(FLAG_JOINABLE, FLAG_PLAIN, FLAG_HEADER)
+        const val FLAG_BOTH = FLAG_HEADER or FLAG_JOINABLE
+        val HEADER_FIRST = intArrayOf(FLAG_HEADER, FLAG_JOINABLE, FLAG_PLAIN, FLAG_BOTH)
+        val JOINABLE_FIRST = intArrayOf(FLAG_JOINABLE, FLAG_PLAIN, FLAG_HEADER, FLAG_BOTH)
     }
 }
 

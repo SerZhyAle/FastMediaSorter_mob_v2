@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Porta-Retrato Digital no Tablet - FastMediaSorter v2"
+title: "Porta-Retrato Digital no Tablet - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-photo-frame-pt.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -47,7 +47,7 @@ Escolha onde suas fotos estão:
 2. Toque em **Entrar** → complete a autenticação no navegador
 3. Selecione a pasta com suas fotos → **Concluído**
 
-![Tela principal do FastMediaSorter - cards de recurso de fotos visíveis depois de adicionar uma pasta de fotos](screenshots/screenshot-pf-step1.png)
+![Tela principal do Fast Media Sorter & Organizer - cards de recurso de fotos visíveis depois de adicionar uma pasta de fotos](screenshots/screenshot-pf-step1.png)
 
 ---
 
@@ -123,12 +123,12 @@ Configurações do Android → Tela → Tempo limite da tela → defina para **"
 Este passo é para conveniência: quer iniciar o porta-retrato instantaneamente ao pegar o tablet - sem abrir o app e navegar?
 
 1. Toque e segure na sua tela inicial → toque em **Widgets**
-2. Encontre **FastMediaSorter** na lista de widgets
+2. Encontre **Fast Media Sorter & Organizer** na lista de widgets
 3. Arraste o widget **"Atalho de Recurso"** para a sua tela inicial
 4. Quando solicitado, selecione seu recurso de fotos
 5. Toque no widget a qualquer momento → a apresentação de slides inicia instantaneamente
 
-![Tela inicial do Android com widgets de atalho de recurso do FastMediaSorter colocados](screenshots/screenshot-pf-step6.png)
+![Tela inicial do Android com widgets de atalho de recurso do Fast Media Sorter & Organizer colocados](screenshots/screenshot-pf-step6.png)
 
 ---
 

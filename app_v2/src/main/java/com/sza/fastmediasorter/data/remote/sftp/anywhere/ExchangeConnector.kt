@@ -58,6 +58,8 @@ class ExchangeConnection(
     val socket: Socket,
     val certificateFingerprint: String,
     val keyFingerprint: String? = null,
+    /** The platform validated the chain (1.12 item EW): a pin held for this server governed nothing here. */
+    val platformValidated: Boolean = false,
 ) : Closeable {
     val input: InputStream get() = socket.getInputStream()
     val output: OutputStream get() = socket.getOutputStream()
@@ -76,12 +78,17 @@ class ExchangeCertificateChangedException(val pinned: String, val presented: Str
 /** The decision of amendment D, apart from the socket so it can be judged without a TLS server. */
 object ExchangeTrustDecision {
 
-    /** [RENEWED] is accepted like [ACCEPT]; the caller that keeps the pin replaces its leaf with the presented one. */
-    enum class Verdict { ACCEPT, RENEWED, UNTRUSTED, CHANGED }
+    /**
+     * [RENEWED] is accepted like [ACCEPT]; the caller that keeps the pin replaces its leaf with the presented one.
+     * [PLATFORM] is accepted too, with a pin held and left as it is: not used, not replaced, not dropped.
+     */
+    enum class Verdict { ACCEPT, RENEWED, PLATFORM, UNTRUSTED, CHANGED }
 
     /**
-     * A pinned leaf is never judged by the platform, so its validity dates never refuse it (19 item AY). Another
-     * leaf passes only on a known key: a pin whose key was never learned cannot tell a renewal from a substitute.
+     * The platform check comes first, every time (1.12 item EW): a chain it validates is trusted whatever pin is
+     * held. Only a leaf the platform refuses meets the pin, whose validity dates never refuse it (19 item AY), and
+     * another leaf passes only on a known key: a pin whose key was never learned cannot tell a renewal from a
+     * substitute.
      */
     fun decide(
         trust: ExchangeTrust,
@@ -90,7 +97,8 @@ object ExchangeTrustDecision {
         presentedKey: String? = null,
     ): Verdict = when (trust) {
         is ExchangeTrust.Verified -> when {
-            trust.pinned == null -> if (platformTrusted) Verdict.ACCEPT else Verdict.UNTRUSTED
+            platformTrusted -> if (trust.pinned == null) Verdict.ACCEPT else Verdict.PLATFORM
+            trust.pinned == null -> Verdict.UNTRUSTED
             trust.pinned == presented -> Verdict.ACCEPT
             trust.pinnedKey != null && trust.pinnedKey == presentedKey -> Verdict.RENEWED
             else -> Verdict.CHANGED
@@ -166,11 +174,14 @@ class TlsExchangeConnector internal constructor(private val handshakeTimeoutMs: 
             verdict,
         )
         val accepted = verdict == ExchangeTrustDecision.Verdict.ACCEPT ||
-            verdict == ExchangeTrustDecision.Verdict.RENEWED
+            verdict == ExchangeTrustDecision.Verdict.RENEWED ||
+            verdict == ExchangeTrustDecision.Verdict.PLATFORM
         if (!accepted) socket.close()
         return when (verdict) {
             ExchangeTrustDecision.Verdict.ACCEPT,
             ExchangeTrustDecision.Verdict.RENEWED -> ExchangeConnection(socket, presented, presentedKey)
+            ExchangeTrustDecision.Verdict.PLATFORM ->
+                ExchangeConnection(socket, presented, presentedKey, platformValidated = true)
             ExchangeTrustDecision.Verdict.UNTRUSTED -> throw ExchangeCertificateUntrustedException(presented)
             ExchangeTrustDecision.Verdict.CHANGED -> throw ExchangeCertificateChangedException(
                 pinned = (trust as? ExchangeTrust.Verified)?.pinned.orEmpty(),

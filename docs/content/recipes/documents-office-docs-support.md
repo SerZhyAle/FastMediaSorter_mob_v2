@@ -10,11 +10,11 @@ availability: SUPPORT_DOCUMENTS
 recipe_number: "02"
 canonical_url: documentation/documents/office-docs-support.html
 why: |
-  E-books from a library or a bookshop often come as EPUB files, and letters, reports and presentations as Word, Excel or PowerPoint files. FastMediaSorter keeps them next to your photos and music: tap a book and it opens in the built-in [reader](term:reader), set up the way you like to read - large letters, a dark page at night, wide or narrow margins.
+  E-books from a library or a bookshop often come as EPUB files, and letters, reports and presentations as Word, Excel or PowerPoint files. Fast Media Sorter & Organizer keeps them next to your photos and music: tap a book and it opens in the built-in [reader](term:reader), set up the way you like to read - large letters, a dark page at night, wide or narrow margins.
 
   For Office files the app picks the best way your [edition](term:edition) offers: it either shows the document itself or passes it to an office app you already have.
 ingredients:
-  - "FastMediaSorter in an edition with the reader: Standard, noLegal, Legacy, VR or FOSS. The Lite and Photos editions do not open documents."
+  - "Fast Media Sorter & Organizer in an edition with the reader: Standard, noLegal, Legacy, VR or FOSS. The Lite and Photos editions do not open documents."
   - "An EPUB book without copy protection. Books locked by a shop's copy protection (DRM) open only in that shop's app."
   - "**Support EPUB e-books** and **Support Office documents** switched on in **Settings**, the **Media** tab, **Documents**."
   - "For Office files in Standard, Legacy and VR: an office app installed on the phone."
@@ -100,7 +100,7 @@ steps:
     text: |
       Office files show a **DOC** badge in the file browser instead of a preview. What happens when you tap one depends on your edition:
 
-      - **Standard, Legacy and VR** - Word and text-document files (`.doc`, `.docx`, `.rtf`, `.odt`) are recognized as documents. Tap one and FastMediaSorter passes it to an office app on your phone, such as Word or Google Docs. If no such app is installed, you see "No app available to open this file" - install any office app from the Play Store and try again.
+      - **Standard, Legacy and VR** - Word and text-document files (`.doc`, `.docx`, `.rtf`, `.odt`) are recognized as documents. Tap one and Fast Media Sorter & Organizer passes it to an office app on your phone, such as Word or Google Docs. If no such app is installed, you see "No app available to open this file" - install any office app from the Play Store and try again.
       - **noLegal** - available only in the sideload version (see [the noLegal edition](term:nolegal-edition)). It also recognizes Excel and PowerPoint files and their OpenDocument cousins (`.xlsx`, `.xls`, `.pptx`, `.ppt`, `.ods`, `.odp`), and it shows `.docx`, `.xlsx`, `.pptx`, `.odt`, `.ods`, `.odp` and `.rtf` files right inside the app as a read-only preview. The preview shows the text, tables and slides in a simple form - it is for reading, not for exact print layout. Older `.doc`, `.xls` and `.ppt` files open the window **This document can't be shown here**: choose **Open in another app** or **Share**.
       - **FOSS** - Office files are not recognized; open them from another file manager.
 
@@ -122,7 +122,7 @@ outcome: |
 tips:
   - "**Reading in bed?** The **OLED** theme with a larger **Font Size** is the gentlest on the eyes in the dark."
   - "**Hide the formats you do not use.** Switch off **Support EPUB e-books** or **Support Office documents** in **Settings**, the **Media** tab, **Documents**, and those files disappear from the file browser."
-  - "**Opening books from another app?** Choose FastMediaSorter in the **Open with** list; the book opens in a separate reader window. You can move from one book, PDF or Office file to the next there as long as you like."
+  - "**Opening books from another app?** Choose Fast Media Sorter & Organizer in the **Open with** list; the book opens in a separate reader window. You can move from one book, PDF or Office file to the next there as long as you like."
   - "**Need to write rather than read?** Text and Markdown files open in an editor - see [the text and Markdown editor](page:documents.text-code-editor)."
 next_recipes:
   - title: Reading PDF documents

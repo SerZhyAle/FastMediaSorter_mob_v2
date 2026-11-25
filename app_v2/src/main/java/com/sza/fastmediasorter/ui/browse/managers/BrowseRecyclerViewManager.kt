@@ -26,7 +26,7 @@ class BrowseRecyclerViewManager(
     
     interface RecyclerViewCallbacks {
         fun onDisplayModeChanged(displayMode: DisplayMode)
-        fun updateToggleButtonIcon(iconResId: Int)
+        fun updateToggleButton(iconResId: Int, descriptionResId: Int)
     }
 
     private val gridRowSpacing = GridRowSpacingItemDecoration()
@@ -96,11 +96,12 @@ class BrowseRecyclerViewManager(
         )
         Timber.d("updateDisplayMode: Updated adapter gridMode=${mode == DisplayMode.GRID}")
 
-        val iconResId = when (mode) {
-            DisplayMode.LIST -> R.drawable.ic_view_grid // Show grid icon when in list mode
-            DisplayMode.GRID -> R.drawable.ic_view_list // Show list icon when in grid mode
+        // The icon and the description both name the view a tap switches TO, never the current one.
+        val (iconResId, descriptionResId) = when (mode) {
+            DisplayMode.LIST -> R.drawable.ic_view_grid to R.string.cd_switch_to_grid_view
+            DisplayMode.GRID -> R.drawable.ic_view_list to R.string.cd_switch_to_list_view
         }
-        callbacks.updateToggleButtonIcon(iconResId)
+        callbacks.updateToggleButton(iconResId, descriptionResId)
 
         val isWide = resources.configuration.isWideLayout()
         val displayMetrics = resources.displayMetrics

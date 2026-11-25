@@ -4,9 +4,9 @@ import android.content.res.ColorStateList
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import android.widget.ImageButton
 import android.widget.LinearLayout
 import androidx.core.view.isVisible
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.textfield.TextInputLayout
 import com.sza.fastmediasorter.R
@@ -41,9 +41,9 @@ class StreamsControlsPlacementManager(
     private val belowParent: ViewGroup? = controls.parent as? ViewGroup
     private val belowIndex: Int = belowParent?.indexOfChild(controls) ?: -1
     private val portraitSearchBoxColor: Int = searchField.boxBackgroundColor
-    private val filterButton: ImageButton? = controls.findViewById(R.id.btnFilter)
-    private val sortButton: ImageButton? = controls.findViewById(R.id.btnSort)
-    private val portraitIconTint: ColorStateList? = filterButton?.imageTintList
+    private val filterButton: MaterialButton? = controls.findViewById(R.id.btnFilter)
+    private val sortButton: MaterialButton? = controls.findViewById(R.id.btnSort)
+    private val portraitIconTint: ColorStateList? = filterButton?.iconTint
 
     fun applyForOrientation(isLandscape: Boolean) {
         val targetParent: ViewGroup = if (isLandscape) headerHost else (belowParent ?: return)
@@ -99,7 +99,7 @@ class StreamsControlsPlacementManager(
         } else {
             portraitIconTint
         }
-        filterButton?.imageTintList = tint
-        sortButton?.imageTintList = tint
+        filterButton?.iconTint = tint
+        sortButton?.iconTint = tint
     }
 }

@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.streams.helpers
 import android.view.View
 import android.widget.ImageButton
 import android.widget.TextView
+import com.sza.fastmediasorter.core.playback.resilience.StreamFailureReason
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.domain.player.BroadcastStopSignal
 
@@ -15,6 +16,9 @@ data class StreamInlineAudioViews(
     val miniControl: View,
     val titleView: TextView,
     val playStopButton: ImageButton,
+    // When present, playStopButton toggles pause and resume and this one stops and hides the bar;
+    // a host without it keeps the stop-only button.
+    val dismissButton: ImageButton? = null,
 )
 
 /**
@@ -25,11 +29,16 @@ data class StreamInlineAudioCallbacks(
     val onPlaybackStateChanged: (StreamSourceEntity?, Boolean) -> Unit = { _, _ -> },
     // Fired when the inline stream fails to play (no response, dead URL). The Activity surfaces a
     // dialog offering retry / remove-from-list - without this hook the failure only stopped the
-    // background service and left the UI silent.
-    val onError: (StreamSourceEntity) -> Unit = {},
-    // S0593: fired once per play when the stream actually starts playing (ground-truth "OK" outcome).
-    // The Activity forwards it to the ViewModel, which records the green status for this source.
+    // background service and left the UI silent. The reason is the failure class the dialog names
+    // (STREAM-BANK 2.10 section 2.5); null when nothing more specific is known.
+    val onError: (StreamSourceEntity, StreamFailureReason?) -> Unit = { _, _ -> },
+    // S0593: fired once per counted play when the stream actually starts playing (ground-truth "OK"
+    // outcome). The Activity forwards it to the ViewModel, which records the green status and the play.
+    // Not fired for a catalog stream owned by the background service, which counts that play itself,
+    // nor for a resume after a pause.
     val onSuccess: (StreamSourceEntity) -> Unit = {},
+    // Fired once per play and once per resume when audio first flows, whoever counts the play.
+    val onPlaybackStarted: (StreamSourceEntity) -> Unit = {},
     // S1142: fired with this manager's own playing id and the current now-playing track line (or null)
     // so the Activity can mirror it onto the active channel's grid tile (the grid adapters have no
     // metadata pipeline of their own). The id is passed in rather than read back from the Activity's
@@ -42,4 +51,10 @@ data class StreamInlineAudioCallbacks(
     // S4444, LIVE-BROADCAST item T: a broadcast row's stream ended or answered a bad status. Retrying blindly would
     // keep reconnecting to a broadcast its owner stopped, so the host decides between ended and reconnect.
     val onBroadcastStopped: (StreamSourceEntity, BroadcastStopSignal) -> Unit = { _, _ -> },
+    // LIVE-BROADCAST item U: a broadcast row's failure that outlived the retry ladder replaces onError, so the host
+    // can read a directory removal held while it played and show the end instead of "unavailable".
+    val onBroadcastFailed: (StreamSourceEntity, StreamFailureReason?) -> Unit = { _, _ -> },
+    // Fired whenever the station enters or leaves the user-paused state. A paused station stays the active
+    // row (re-tapping it stops it), so the host needs this to show the row as paused and halt its rotation.
+    val onPausedChanged: (Boolean) -> Unit = {},
 )

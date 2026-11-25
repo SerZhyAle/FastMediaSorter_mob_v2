@@ -59,6 +59,12 @@ class StreamsDeviceBroadcastsViewModel @Inject constructor(
         syncWatch()
     }
 
+    /** S4626: the header owns the remembered state, so the section is told the value instead of flipping it. */
+    fun setExpanded(expanded: Boolean) {
+        _state.update { it.copy(expanded = expanded) }
+        syncWatch()
+    }
+
     fun onScreenStarted() {
         started = true
         syncWatch()
@@ -75,7 +81,13 @@ class StreamsDeviceBroadcastsViewModel @Inject constructor(
             _messages.trySend(reason ?: R.string.streams_device_broadcast_unsupported)
             return
         }
-        viewModelScope.launch { _messages.send(messageFor(importBroadcast(item.descriptorJson))) }
+        // Item BJ: a channel chosen here belongs to the entry that listed it, and only that entry's directory ends it.
+        val listing = ImportStreamBroadcastUseCase.ListingBinding(item.entryKey, item.broadcastId)
+            .takeIf { item.entryKey.isNotEmpty() }
+        Timber.d("S4607: listing import, bound to an entry=${listing != null}")
+        viewModelScope.launch {
+            _messages.send(messageFor(importBroadcast(item.descriptorJson, listing = listing)))
+        }
     }
 
     private fun syncWatch() {
@@ -103,6 +115,8 @@ class StreamsDeviceBroadcastsViewModel @Inject constructor(
         ImportStreamBroadcastUseCase.ImportResult.InvalidDescriptor,
         ImportStreamBroadcastUseCase.ImportResult.Expired,
         -> R.string.broadcast_import_malformed
+        ImportStreamBroadcastUseCase.ImportResult.SecretStorageUnavailable ->
+            R.string.broadcast_import_secret_storage_failed
         ImportStreamBroadcastUseCase.ImportResult.UnsupportedVersion -> {
             Timber.i("LIVE-BROADCAST: device broadcast schema above supported, format-unsupported")
             ExchangeMessageText.what(ExchangeMessage.FORMAT_UNSUPPORTED)

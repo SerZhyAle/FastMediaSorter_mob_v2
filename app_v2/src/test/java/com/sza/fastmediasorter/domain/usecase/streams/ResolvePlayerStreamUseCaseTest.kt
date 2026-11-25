@@ -47,6 +47,15 @@ class ResolvePlayerStreamUseCaseTest {
     }
 
     @Test
+    fun exchangeUrlWithoutDescriptorDoesNotPlayInClear() = runTest {
+        val relay = "https://exchange.example.org/v2/b/id/stream"
+        coEvery { getSource(relay) } returns null
+        assertEquals(Playback.Unreachable, useCase(relay))
+        coEvery { getSource(relay) } returns source.copy(url = relay, broadcastEndpoints = null)
+        assertEquals(Playback.Unreachable, useCase(relay))
+    }
+
+    @Test
     fun everySelectionResolvesTheStoredEndpointsAndRegistersThePlayedSession() = runTest {
         coEvery { getSource(STORED) } returns source
         coEvery { resolve(STORED, source.broadcastEndpoints, source.id) } returns Playback.Playable(PLAYED)

@@ -77,6 +77,31 @@ try {
     Assert-True ($record.lastInstall.byTicket -eq 'S2855') 'Record lost the ticket.'
     Assert-True ($null -ne $record.lastInstall.bySession -and $record.lastInstall.bySession -ne '') 'Record carries no session id.'
 
+    # A shared lease joins the repository's existing installation mark.
+    $previousPortfolio = $env:SZA_PORTFOLIO_ROOT
+    $portfolioRoot = Join-Path ([IO.Path]::GetTempPath()) "fms-registry-leases-$([guid]::NewGuid().ToString('N'))"
+    $env:SZA_PORTFOLIO_ROOT = $portfolioRoot
+    $leaseCli = Join-Path $repoRoot 'scripts/devtest/device-lease.ps1'
+    try {
+        $claim = & $leaseCli -Verb Claim -Id $testSerial -Reason 'registry fixture' -Json | ConvertFrom-Json
+        Assert-True ($LASTEXITCODE -eq 0 -and $claim.outcome -eq 'claimed') 'Fixture lease was not acquired.'
+        $rows = @(& $registryScript -Verb Status -Json | ConvertFrom-Json | Where-Object { $_.id -eq $testSerial })
+        Assert-True ($LASTEXITCODE -eq 0 -and $rows.Count -eq 1) 'Status did not return one merged row.'
+        Assert-True ($rows[0].lease.sessionId -eq $claim.sessionId) 'Status lost the shared lease holder.'
+        Assert-True ($rows[0].mark.versionName -eq '1.0.0-test') 'Status lost the local install mark.'
+    }
+    finally {
+        & $leaseCli -Verb Release -Id $testSerial -Json | Out-Null
+        $env:SZA_PORTFOLIO_ROOT = $previousPortfolio
+        if (Test-Path -LiteralPath $portfolioRoot -PathType Container) {
+            $resolved = (Resolve-Path -LiteralPath $portfolioRoot).Path
+            $expectedParent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd([IO.Path]::DirectorySeparatorChar)
+            if ((Split-Path -Parent $resolved) -eq $expectedParent -and (Split-Path -Leaf $resolved) -like 'fms-registry-leases-*') {
+                Remove-Item -LiteralPath $resolved -Recurse -Force
+            }
+        }
+    }
+
     # 3. A second Record moves the previous mark into history.
     $code = Invoke-Registry -Arguments @('-Verb', 'Record', '-Id', $testSerial, '-Package', 'com.sza.fastmediasorter',
         '-Module', 'app_v2', '-Flavor', 'noLegal', '-BuildType', 'release', '-VersionName', '2.0.0-test',

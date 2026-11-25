@@ -46,6 +46,7 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
+import com.sza.fastmediasorter.ui.common.input.PhysicalKeyboardDetector
 import com.sza.fastmediasorter.ui.player.contracts.PlayerActionHost
 import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
 import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
@@ -751,7 +752,9 @@ class PlayerActivity :
         if (_videoPlayerManager != null) exoPlayerControlsManager.setupExoPlayerNavigationButtons()
         // Re-render what the fresh views start without (EPUB/Office move their live WebView over).
         _pdfViewerManager?.let { it.showPdfPage(it.currentPageIndex()) }
-        _textViewerManager?.rerenderAfterRebind()
+        _textViewerManager?.rerenderAfterRebind {
+            updatePanelVisibility(viewModel.state.value.showCommandPanel)
+        }
     }
 
     override fun setupViews() {
@@ -1027,8 +1030,11 @@ class PlayerActivity :
 
     internal fun populateDestinationButtons() = destinationButtonsManager.populateDestinationButtons()
 
-    /** S0531: number operation slots when driven by non-touch input (TV remote / D-pad / hardware keyboard). */
-    internal fun shouldNumberOperationSlots(): Boolean = isNonTouchInputActive()
+    /**
+     * S0531: number operation slots only where a digit key exists - a TV remote or a physical keyboard.
+     * Touch mode and a gamepad do not count, so a phone with no keyboard shows plain folder names. S4638.
+     */
+    internal fun shouldNumberOperationSlots(): Boolean = isTvDevice() || PhysicalKeyboardDetector.isPresent()
 
     /** S0162: Called by PlayerEventHandler when RotationSensorToggled fires. followSystem=false is guaranteed by the guard in PlayerViewModel.toggleRotationSensor(). */
     internal fun onRotationSensorToggled(sensorEnabled: Boolean) {

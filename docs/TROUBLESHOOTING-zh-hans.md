@@ -9,7 +9,7 @@ permalink: /docs/TROUBLESHOOTING-zh-hans.html
 
 # 🔧 故障排查指南
 
-FastMediaSorter v2 的最新故障排查指南。当问题与所选的构建路径（Standard、Lite、Photos、Legacy 或 XR / noLegal）有关时，请使用 [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) 中的权威版本对照表。
+Fast Media Sorter & Organizer 的最新故障排查指南。当问题与所选的构建路径（Standard、Lite、Photos、Legacy 或 XR / noLegal）有关时，请使用 [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) 中的权威版本对照表。
 
 ---
 
@@ -53,7 +53,7 @@ FastMediaSorter v2 的最新故障排查指南。当问题与所选的构建路�
 ### ❌ "Google Drive 登录失败"
 
 **解决方法：**
-1. 清除应用数据：设置 → 应用 → FastMediaSorter → 清除数据
+1. 清除应用数据：设置 → 应用 → Fast Media Sorter & Organizer → 清除数据
 2. 重新安装应用
 3. 检查 Google 账号设置 → 安全性 → 第三方应用
 
@@ -63,7 +63,7 @@ FastMediaSorter v2 的最新故障排查指南。当问题与所选的构建路�
 
 **解决方法：**
 1. 检查 Microsoft 账号状态
-2. 清除应用数据：设置 → 应用 → FastMediaSorter → 清除数据
+2. 清除应用数据：设置 → 应用 → Fast Media Sorter & Organizer → 清除数据
 3. 检查 Microsoft 账号设置 → 隐私 → 应用和服务
 
 ---
@@ -72,7 +72,7 @@ FastMediaSorter v2 的最新故障排查指南。当问题与所选的构建路�
 
 **解决方法：**
 1. 检查 Dropbox 账号状态
-2. 清除应用数据：设置 → 应用 → FastMediaSorter → 清除数据
+2. 清除应用数据：设置 → 应用 → Fast Media Sorter & Organizer → 清除数据
 3. 检查 Dropbox 账号设置 → 安全性 → 已连接的应用
 
 ---
@@ -182,7 +182,7 @@ FastMediaSorter v2 的最新故障排查指南。当问题与所选的构建路�
 ### ❌ "应用启动时崩溃"
 
 **解决方法：**
-1. 清除应用缓存：设置 → 应用 → FastMediaSorter → 清除缓存
+1. 清除应用缓存：设置 → 应用 → Fast Media Sorter & Organizer → 清除缓存
 2. 若仍然发生：清除应用数据（⚠️ 会丢失设置）
 3. 最后手段：重新安装应用
 

@@ -63,7 +63,6 @@ class NetworkReachabilityGate @Inject constructor(
     fun localNetworkRefusal(resourceLabel: String, host: String): LocalNetworkPermissionDeniedException? {
         if (analyzer.hasLocalNetworkPermission() || !analyzer.isLocalNetworkHost(host)) return null
         Timber.w("NetworkReachabilityGate: local-network permission missing for $resourceLabel")
-        Timber.d("S4514: gate refused $resourceLabel before any socket attempt")
         return LocalNetworkPermissionDeniedException()
     }
 

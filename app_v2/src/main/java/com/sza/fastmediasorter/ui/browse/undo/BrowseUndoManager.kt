@@ -8,7 +8,6 @@ import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.UndoOperation
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
-import com.sza.fastmediasorter.domain.usecase.DeletePathPolicy
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -73,7 +72,7 @@ class BrowseUndoManager(
      * unaffected: UndoOperation.timestamp defaults to now.
      */
     fun saveOperation(operation: UndoOperation) {
-        if (!canUndo(operation)) {
+        if (!UndoOfferPolicy.isOffered(operation)) {
             // S4034: an offered undo that cannot act is worse than none. The previous record is dropped
             // too, so the button cannot reach past this operation and reverse an older one.
             Timber.i("saveOperation: ${operation.type} not undoable on these paths, no undo offered")
@@ -97,25 +96,6 @@ class BrowseUndoManager(
         }
         callbacks.showUndoToast(operationType)
     }
-
-    /**
-     * The file half of copy and move undo runs on java.io.File, and a delete is reversible only where it
-     * went to the local trash, so a scheme path in either half cannot be undone. The folder half and
-     * rename go through the operations layer and stay undoable on every scheme.
-     */
-    private fun canUndo(operation: UndoOperation): Boolean {
-        val copiedFiles = operation.copiedFiles.orEmpty()
-        return when (operation.type) {
-            FileOperationType.COPY -> copiedFiles.all(::isLocalFilePath)
-            FileOperationType.MOVE ->
-                copiedFiles.all(::isLocalFilePath) && operation.sourceFiles.all(::isLocalFilePath)
-            FileOperationType.DELETE -> DeletePathPolicy.canUseSoftDelete(copiedFiles + operation.sourceFiles)
-            FileOperationType.RENAME, FileOperationType.ARCHIVE -> true
-        }
-    }
-
-    private fun isLocalFilePath(path: String): Boolean =
-        !path.contains("://") && !path.startsWith("content:", ignoreCase = true)
 
     /**
      * Execute undo for last operation if not expired.
@@ -179,7 +159,7 @@ class BrowseUndoManager(
         if (directories.isNotEmpty()) {
             // Through the operations layer, never java.io.File.deleteRecursively: copied trees may live on
             // smb://, sftp://, ftp:// or cloud://. The file half below is java.io.File, which is why
-            // canUndo refuses a record whose files are on such a scheme.
+            // UndoOfferPolicy refuses a record whose files are on such a scheme.
             callbacks.deleteDirectoryTrees(directories)
         }
         callbacks.showMessage(copyUndoMessage(directories.size, removedFiles))

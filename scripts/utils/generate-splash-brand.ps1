@@ -8,6 +8,11 @@
     only writer of `ic_splash_app_brand.xml` and of every `drawable-<locale>` variant of
     it - hand-editing one of those files is caught by scripts/quality/assert-splash-brand-sync.ps1.
 
+    S4784: the mark is the product master assets/identity/master/mark.svg, coloured through the
+    generated @color/identity_mark_* resources, and the wordmark is drawn from the family typeface
+    assets/identity/font/Manrope-ExtraBold.ttf - all three inputs come from
+    scripts/identity/build-identity.ps1, so rerun that first when the family mark changes.
+
     S2593: phone-only. The watch once took an arrows-only composition here, but S2274 removed
     `windowSplashScreenAnimatedIcon` from the wear theme for Play requirement WO-V15 - the platform
     draws the launcher icon itself - so the generated watch glyph lost its last consumer and both
@@ -22,7 +27,7 @@
 .OUTPUTS
     Exit 0 - drawables generated, or already in sync under -Check.
     Exit 1 - a slogan does not fit the mask circle, or -Check found a divergence.
-    Exit 2 - could not verify: python or fontTools missing, or the wordmark data absent.
+    Exit 2 - could not verify: python or fontTools missing, or the product master, the family tokens or the wordmark font absent.
 #>
 [CmdletBinding()]
 param(
@@ -37,15 +42,19 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $resRoot = Join-Path $repoRoot "$Module/src/main/res"
 $generator = Join-Path $PSScriptRoot 'splash_brand_gen.py'
-$wordmark = Join-Path $PSScriptRoot 'splash-wordmark-path.txt'
+$font = Join-Path $repoRoot 'assets/identity/font/Manrope-ExtraBold.ttf'
+$master = Join-Path $repoRoot 'assets/identity/master/mark.svg'
+$tokens = Join-Path $repoRoot 'assets/identity/family/tokens.json'
 
 if (-not (Test-Path $resRoot)) {
     Write-Error "generate-splash-brand: resource root not found: $resRoot" -ErrorAction Continue
     exit 2
 }
-if (-not (Test-Path $wordmark)) {
-    Write-Error "generate-splash-brand: wordmark contour data not found: $wordmark" -ErrorAction Continue
-    exit 2
+foreach ($source in @($font, $master, $tokens)) {
+    if (-not (Test-Path $source)) {
+        Write-Error "generate-splash-brand: input not found: $source" -ErrorAction Continue
+        exit 2
+    }
 }
 
 # A candidate is accepted only once fontTools imports in it, so the probe RUNS each one - and that
@@ -70,7 +79,7 @@ if (-not $pythonExe) {
     exit 2
 }
 
-$genArgs = @($generator, '--res-root', $resRoot, '--wordmark', $wordmark)
+$genArgs = @($generator, '--res-root', $resRoot, '--font', $font, '--master', $master, '--tokens', $tokens)
 if ($Check) { $genArgs += '--check' }
 
 & $pythonExe @genArgs

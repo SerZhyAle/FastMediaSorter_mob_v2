@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.11.12 03:04</sub>
+<sub class="doc-stamp">26.11.24 13:35</sub>
 
 # FastMediaSorter v2: Architecture & Flow
 
@@ -103,6 +103,8 @@ A value is read together with the caption that names it, so the two must stay ad
 - **Only a visible, participating child sizes that column** (S2389). A child that is `GONE` at measure time is skipped, so a row hidden until it has something to show cannot switch the block's alignment off from behind the scenes. A sub-row that belongs to the row above it rather than to the block opts out with `app:layout_excludeFromLabelColumn="true"`, a child attribute of the group. Opt a sub-row out whenever its caption or its value is unrelated in length to its neighbours': the gesture-target rows carry a long caption and a long placeholder value beside four-character direction captions, and counting them collapses the column for the whole block the moment the first target is assigned. The attribute is explicit and never inferred - the same sub-row is indented in the launcher dialog and flush in the gesture-config dialog, so any rule read off the margin would catch one and miss the other.
 - **Rows in different containers share a column only through `app:svrg_spanDescendants="true"`** (S4486). The default group sizes its column from direct children; the spanning form collects every row below plain containers and takes each row's start offset off the column it receives, so the values still begin at one x. A group nested under a spanning one leaves the sizing to it. The broadcast screen uses it to line the mode row, which stays outside the card because the card is hidden while on air, up with the card's rows.
 - **An inline `SettingsInputRow` is compact**: no floating label unless the row has a hint, and 8dp above and below the text (`settings_inline_input_vertical_padding`), so a numeric field is not several times taller than the text-only rows beside it.
+- **A trailing element of a settings row - help icon, chevron, inline field - is never pushed out of the row** (S4711). The caption or the value shrinks and wraps first. `SettingsTitleLine` caps the caption to what its leading and help icons leave; the hugging `SettingsSelectionRow` caps its text group to what the chevron and trailing slot leave; the inline `SettingsInputRow` caps its title line to what the field leaves. Each cap is written into a `LayoutParams.width` field before `super.onMeasure`, so it never requests a second layout pass.
+- **A settings value never breaks inside a word** (S4788). When it does not fit on one line beside its caption and the room beside the caption is narrower than its widest word or under a third of the row, the value moves under the caption; the pure decision is `SettingsValueStackPolicy`, used by `SettingsSelectionRow` and `SettingsDropdownRow`. A row in a shared label column never stacks, because the group applies a column only when every value fits at full length.
 
 Reference layouts: `view_settings_selection_row.xml`, `view_settings_toggle_row.xml`, `view_settings_dropdown_row.xml`.
 
@@ -279,7 +281,7 @@ Rules:
 - Settings surfaces use the `Widget.FastMediaSorter.SettingsButton.*` variants - they inherit the family and only adjust text size/style. Do not fork a new settings button style.
 - Colors come from the theme (`?attr/color*`) and the family's shape appearance - never hardcode hex on a button (Rule 19). Use `?attr/`/`@color/`.
 - Keep `res/layout/` and `res/layout-land/` in sync (Rule 11); preserve ≥48dp touch target and D-pad/TV focus (Rule 16).
-- Compact elements (global): when "Compact elements" is on (`AppSettings.useCompactElements`, default on), unified buttons on a surface that participates in compact mode must shrink with the rest of that surface. Compact scaling is applied per-surface (layout swap such as `custom_player_controls` <-> `custom_player_controls_large`, or a `*SmallControls`/`*CompactElements` manager driven by the setting), not by a single global theme switch - a new compact-aware surface wires its own scaling. EXEMPT: the S0538 dialog action pair keeps its large fixed size even in compact mode (its whole purpose is to stay unmissable).
+- Compact elements (global): when "Compact elements" is on (`AppSettings.useCompactElements`, default off), unified buttons on a surface that participates in compact mode must shrink with the rest of that surface. Compact scaling is applied per-surface (layout swap such as `custom_player_controls` <-> `custom_player_controls_large`, or a `*SmallControls`/`*CompactElements` manager driven by the setting), not by a single global theme switch - a new compact-aware surface wires its own scaling. EXEMPT: the S0538 dialog action pair keeps its large fixed size even in compact mode (its whole purpose is to stay unmissable). A compact target never goes below the declared compact floor of `docs/ui/PHONE_SIZE_PROFILE.md` (24 by 24 dp, `UI-SIZING` rule 4).
 - Exempt by design (do not migrate to this family): player/media `ImageButton` borderless controls, reserved ExoPlayer `@id/exo_*` controls, and the intentionally dark camera/viewfinder surfaces. Exempt from **this** family, not from having a named style: since S3250 the player overlay icons carry `Widget.FastMediaSorter.Button.Icon.Overlay`, which is declared `parent=""` precisely because it dresses an `ImageButton` and must not inherit the `MaterialButton` background contract.
 - A new role that none of the five covers is added as a new `Widget.FastMediaSorter.Button.*` style here, not as an ad-hoc layout style.
 
@@ -404,6 +406,7 @@ Dedicated screen for internet audio/video/RTSP sources. Architectural boundaries
 - **Catalog import**: `ImportStreamCatalogUseCase` enforces a connect+read timeout; fails fast on dead/slow-trickle host instead of blocking indefinitely.
 - **Flavor scope**: standard/legacy/noLegal/vr - HLS, DASH VOD, RTSP, progressive HTTP/ICY (`SUPPORT_STREAMS=true`); lite/photos/foss - feature absent, no entry point (`SUPPORT_STREAMS=false`, lite hidden by S0575; foss carries no streaming stack because it ships no proprietary SDKs).
 - **Public cleartext**: `android:usesCleartextTraffic` allowed for internet radio (most streams are http://).
+- **Downstream port**: the streams subsystem has a downstream port. Its stream, playback and broadcast classes, tests, resources and help tooling are ported file by file into StreamsPlayer for Android, an independent product of the same family with no shared code. An edit to a ported class is carried there by hand: the port's drift check lists every file changed here since its port, so the ticket for the edit should say what it changes in behaviour. A behaviour change is amended in the shared contracts catalog first.
 
 ## Cast (Chromecast) Path
 
@@ -471,7 +474,7 @@ Related specs: S0404 (the founding ADR set, archived), S1103 (cell actions), S11
 
 ## Sub-Program Registry
 
-FMS ships about two dozen small programs of its own - the calculator, the stopwatch, the mini-game, the network monitor, the recorder, the lights, seven camera routes, the watch companion. `SubProgramCatalog` (`core/panel/`) is the one list of them, and every surface that offers a sub-program derives its composition from that list instead of holding one.
+FMS ships about two dozen small programs of its own - the calculator, the stopwatch, the mini-game, the network monitor, the recorder, the lights, the notes, seven camera routes, the watch companion. `SubProgramCatalog` (`core/panel/`) is the one list of them, and every surface that offers a sub-program derives its composition from that list instead of holding one.
 
 **What the registry owns, and only that.** A `SubProgramEntry` states which route key is a sub-program at all, its `order` in the one sequence every surface shows, the `surfaces` it is eligible for, the `widgetKey` it pairs with, and the `disable` that switches it off. It stores no name, no icon, no intent and no availability: the label, the icon and the launch intent come from `InternalRouteCatalog.byKey(routeKey)`, and whether the program exists in this build and is switched on comes from `ResolvePanelRouteAvailabilityUseCase`. Copying either into the entry would recreate the second copy the registry exists to remove - which is exactly what the programs menu did until S1736 phase 04 took its label and icon table away.
 
@@ -632,6 +635,13 @@ parameters, and one marker. `copy$default` spends the same plus the receiver.
   `StopwatchSettingsStore`.
 - `scripts/quality/assert-ctor-arg-slots.ps1` does the arithmetic and runs in every closure that changes a
   `.kt`. It reports headroom in whole properties - when it warns, group a domain, never buy back one slot.
+
+## Phone settings form - owner decision (S4634)
+
+- The phone settings screen is a top tab strip (General, Media, Player, Management, then flavor extension tabs) over a `ViewPager2`; About is the last group of the General tab.
+- A settings editor that belongs to a host screen stays in that screen's own dialog: calculator, stopwatch, player translation, camera OCR, launcher settings, the Drive switches of pending transfers.
+- On/off rows are Pattern A: `SettingsToggleRow` with a `MaterialSwitch` at the row's start, before the text group.
+- These are the portfolio owner's decision of 2026-11-15, recorded as exceptions to `SETTINGS-NAVIGATION` and `BOOLEAN-OPTION` (catalog registry, section 3, row "S4634"). Do not migrate the phone settings to a page rail, a page list, an About page or leading checkboxes.
 
 ## Wear Settings Persistence (S2050)
 

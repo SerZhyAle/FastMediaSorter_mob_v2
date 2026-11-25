@@ -30,4 +30,8 @@
     <string name="filler_result_busy">ভরা ইতিমধ্যে চলছে।</string>
     <string name="filler_settings_toggle_subtitle">স্টোরেজ ডিভাইসের খালি জায়গা অস্থায়ী ফাইল দিয়ে ভরে দেয়, তারপর সেগুলো মুছে ফেলে</string>
     <string name="filler_settings_toggle_subtitle_pending">আগের রান থেকে অস্থায়ী ফাইল এখনও স্টোরেজে রয়ে গেছে। আপনি এর ভেতর থেকে সেগুলো মুছে না ফেলা পর্যন্ত প্রোগ্রামটি তালিকায় থাকবে।</string>
+    <string name="filler_estimate">%1$d%% সম্পন্ন, বাকি সময়: %2$s</string>
+    <string name="filler_estimate_calculating">%1$d%% সম্পন্ন, বাকি সময় হিসাব করা হচ্ছে..</string>
+    <string name="filler_reserve_slider_description">সিস্টেমের জন্য খালি রাখা জায়গা</string>
+    <string name="filler_confirm_reserve_lowered">এটি স্বাভাবিক %1$s-এর চেয়ে কম, তাই চলার সময় সিস্টেম ও অন্যান্য অ্যাপের জায়গা কম থাকবে।</string>
 </resources>

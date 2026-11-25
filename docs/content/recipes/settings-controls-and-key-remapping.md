@@ -11,9 +11,9 @@ availability_note: All editions - remapping, D-pad and gamepad navigation, the f
 recipe_number: "06"
 canonical_url: documentation/settings/controls-and-key-remapping.html
 why: |
-  Not everyone reaches for the screen with a finger - a TV remote, a car head unit's D-pad, a gamepad or a plain keyboard all need to move around the app just as directly. FastMediaSorter lets you remap what each button does, keeps you moving fast through a large grid, and always shows you exactly where focus is, so the remote is never guesswork.
+  Not everyone reaches for the screen with a finger - a TV remote, a car head unit's D-pad, a gamepad or a plain keyboard all need to move around the app just as directly. Fast Media Sorter & Organizer lets you remap what each button does, keeps you moving fast through a large grid, and always shows you exactly where focus is, so the remote is never guesswork.
 ingredients:
-  - "FastMediaSorter, any edition, with **Settings** open. See [Finding your way around Settings](page:settings.settings-overview-and-search) if this is your first visit."
+  - "Fast Media Sorter & Organizer, any edition, with **Settings** open. See [Finding your way around Settings](page:settings.settings-overview-and-search) if this is your first visit."
   - "Hardware: a TV remote, a [D-pad](term:d-pad), a gamepad, a physical keyboard or a mouse connected to the device."
 steps:
   - number: 1

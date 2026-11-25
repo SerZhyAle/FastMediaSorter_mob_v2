@@ -99,7 +99,7 @@
     <string name="phone_resource_loading">A carregar a partir do telemóvel..</string>
     <string name="phone_resource_retry">Tentar novamente</string>
     <string name="phone_resource_empty">O seu telemóvel não tem nada para mostrar aqui. Abra outra pasta ou tente novamente.</string>
-    <string name="phone_resource_unavailable">O FastMediaSorter não está a responder no seu telemóvel. Abra-o lá e mantenha o telemóvel por perto.</string>
+    <string name="phone_resource_unavailable">O Fast Media Sorter &amp; Organizer não está a responder no seu telemóvel. Abra-o lá e mantenha o telemóvel por perto.</string>
     <string name="phone_resource_access_denied">O seu telemóvel não partilha esta pasta com o relógio.</string>
     <string name="phone_resource_unsupported">O relógio não consegue abrir este tipo de ficheiro.</string>
     <string name="phone_resource_transfer_rejected">Este ficheiro é demasiado grande para enviar ao relógio.</string>
@@ -383,9 +383,9 @@
     <string name="phone_resource_no_resource_for_type">Nenhum recurso telefônico está configurado para conter esse tipo.</string>
     <string name="wear_folder_load_more">Mostrar mais</string>
     <string name="wear_file_op_outcome_needs_consent">Não confirmado - nada mudou</string>
-    <string name="wear_sync_no_phone_paired">Nenhum telemóvel ligado. Emparelhe o seu telemóvel e instale o FastMediaSorter nele.</string>
+    <string name="wear_sync_no_phone_paired">Nenhum telemóvel ligado. Emparelhe o seu telemóvel e instale nele o Fast Media Sorter &amp; Organizer.</string>
     <string name="wear_sync_request_failed">Não foi possível contactar o telemóvel. Tente novamente.</string>
-    <string name="phone_resource_not_paired">Nenhum telemóvel ligado a este relógio. Emparelhe um e instale o FastMediaSorter nele.</string>
+    <string name="phone_resource_not_paired">Nenhum telemóvel está ligado a este relógio. Emparelhe um e instale nele o Fast Media Sorter &amp; Organizer.</string>
     <string name="wear_streams_sort_most_used">Mais usados</string>
     <string name="streams_rubric_general">Geral</string>
     <string name="streams_rubric_news">Notícias</string>
@@ -767,7 +767,7 @@
     <string name="wear_cast_phone_busy">O seu telemóvel não respondeu - verifique se está por perto</string>
     <string name="wear_cast_not_castable">Só é possível mostrar numa TV transmissões e ficheiros de uma origem do telemóvel</string>
     <string name="wear_stream_stalled">A transmissão deixou de enviar dados. A reprodução foi parada para poupar bateria.</string>
-    <string name="phone_resource_companion_disabled">O interruptor do Wear Companion está desativado no seu telemóvel. Ative-o nas definições do FastMediaSorter e tente novamente.</string>
+    <string name="phone_resource_companion_disabled">O interruptor Wear Companion está desligado no seu telemóvel. Ative-o nas definições do Fast Media Sorter &amp; Organizer e tente novamente.</string>
     <string name="wear_tourist_app">Turista</string>
     <string name="wear_tourist_metric_speed">Velocidade</string>
     <string name="wear_tourist_metric_altitude">Altitude</string>
@@ -809,7 +809,6 @@
     <string name="wear_clipboard_no_phone">Nenhum telefone ao alcance</string>
     <string name="wear_clipboard_no_answer">O telefone não respondeu</string>
     <string name="wear_clipboard_refused">O telefone recusou: %1$s</string>
-    <string name="wear_tourist_press_button_to_unlock">Pressione um botão do relógio para desbloquear</string>
     <string name="wear_tourist_metric_body_temperature">Temperatura corporal</string>
     <string name="wear_onboarding_welcome_title">Bem-vindo</string>
     <string name="wear_onboarding_welcome_body">Navegue, reproduza e organize suas mídias direto no pulso.</string>
@@ -933,12 +932,12 @@
     <string name="about_watch_face_caption">Para Wear OS 6 e superior</string>
     <string name="about_watch_face_no_store">Sem Google Play neste relógio</string>
     <string name="wear_companion_hint_connect">Conecte o telefone para ver Recursos e Telefone</string>
-    <string name="wear_companion_hint_install">Instale o FastMediaSorter no telefone para ver Recursos e Telefone</string>
-    <string name="wear_companion_offer_title">O FastMediaSorter não está no seu telefone</string>
+    <string name="wear_companion_hint_install">Instale o Fast Media Sorter &amp; Organizer no telemóvel para ver Recursos e Telemóvel</string>
+    <string name="wear_companion_offer_title">O Fast Media Sorter &amp; Organizer não está no seu telemóvel</string>
     <string name="wear_companion_offer_message">Instale-o para navegar pelo telefone e seus recursos a partir do relógio</string>
     <string name="wear_companion_offer_install">Instalar</string>
     <string name="wear_companion_offer_later">Agora não</string>
-    <string name="wear_companion_install_row">Instalar o FastMediaSorter no telefone</string>
+    <string name="wear_companion_install_row">Instalar o Fast Media Sorter &amp; Organizer no telemóvel</string>
     <string name="wear_tourist_metric_pressure">Pressão</string>
     <string name="wear_tourist_metric_baro_altitude">Altitude barométrica</string>
     <string name="wear_tourist_metric_elevation_gain_loss">Subida</string>
@@ -1102,4 +1101,11 @@
     <string name="wear_scheduled_message_channel_name">Mensagens agendadas</string>
     <string name="wear_audio_fetching">Carregando a faixa..</string>
     <string name="wear_stream_ended">Esta transmissão não está mais no ar. Tente de novo quando ela voltar.</string>
+    <string name="wear_tourist_lock_exit_hint">Bloqueado. Deslize para trás 3 vezes depressa para desbloquear</string>
+    <string name="wear_broadcast_waiting_until">A difusão ainda não começou. O link funciona até %1$s</string>
+    <string name="wear_broadcast_started">A difusão começou</string>
+    <string name="wear_broadcast_expired">Este link já não funciona</string>
+    <string name="wear_broadcast_play">Reproduzir</string>
+    <string name="wear_tourist_no_fix_approximate">A procurar localização..</string>
+    <string name="wear_tourist_precise_needed">É necessária localização precisa</string>
 </resources>

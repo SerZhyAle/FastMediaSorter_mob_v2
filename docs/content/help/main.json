@@ -99,7 +99,7 @@
         },
         "resource-list": {
           "summary": "Your resources, one row or tile each.",
-          "details": "Tap a row to open its files in the file browser. Tap its icon to start a slideshow, or press and hold the row to edit the resource. Each row also has buttons to edit, copy its settings, move it up or down, delete it or open more actions.",
+          "details": "Tap a row to open its files in the file browser. Tap its icon to start a slideshow, or press and hold the row to edit the resource. Each row also has buttons to edit, copy its settings, move it up or down, delete it or open more actions.\n\nA resource with a colored frame and an arrow (→) is a Quick Sort destination: files you sort go there. While one is listed, a line above the list says so. Until you add a folder of your own, a card above the list offers Add folder to make that first step.",
           "undo": "Deleting a resource asks first, removes it from the app and cancels scheduled operations that use it. Your files stay where they are, and you can add the resource again."
         }
       }
@@ -171,7 +171,7 @@
         },
         "resource-list": {
           "summary": "Ваши ресурсы: одна строка или плитка на каждый.",
-          "details": "Нажмите строку, чтобы открыть файлы в браузере файлов. Значок строки запускает показ, а долгое нажатие открывает редактирование ресурса. У каждой строки есть кнопки: изменить, скопировать настройки, переместить вверх или вниз, удалить и «Ещё».",
+          "details": "Нажмите строку, чтобы открыть файлы в браузере файлов. Значок строки запускает показ, а долгое нажатие открывает редактирование ресурса. У каждой строки есть кнопки: изменить, скопировать настройки, переместить вверх или вниз, удалить и «Ещё».\n\nРесурс с цветной рамкой и стрелкой (→) - это назначение быстрой сортировки: туда попадают файлы, которые вы сортируете. Пока такой ресурс есть в списке, над списком это написано. Пока вы не добавили свою папку, над списком видна карточка с кнопкой «Добавить папку» - это первый шаг.",
           "undo": "Перед удалением ресурса приложение спросит подтверждение, затем уберёт ресурс из списка и отменит операции по расписанию, которые его используют. Файлы останутся на месте, а ресурс можно добавить снова."
         }
       }
@@ -243,7 +243,7 @@
         },
         "resource-list": {
           "summary": "Ваші ресурси: один рядок або плитка на кожен.",
-          "details": "Натисніть рядок, щоб відкрити файли в браузері файлів. Значок рядка запускає показ, а довге натискання відкриває редагування ресурсу. У кожного рядка є кнопки: змінити, скопіювати налаштування, перемістити вгору чи вниз, видалити та «Ще».",
+          "details": "Натисніть рядок, щоб відкрити файли в браузері файлів. Значок рядка запускає показ, а довге натискання відкриває редагування ресурсу. У кожного рядка є кнопки: змінити, скопіювати налаштування, перемістити вгору чи вниз, видалити та «Ще».\n\nРесурс із кольоровою рамкою та стрілкою (→) - це призначення швидкого сортування: туди потрапляють файли, які ви сортуєте. Поки такий ресурс є в списку, над списком це написано. Поки ви не додали власну папку, над списком видно картку з кнопкою «Додати папку» - це перший крок.",
           "undo": "Перед видаленням ресурсу застосунок запитає підтвердження, потім прибере ресурс зі списку й скасує операції за розкладом, які його використовують. Файли залишаться на місці, а ресурс можна додати знову."
         }
       }

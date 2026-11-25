@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.companion.CompanionAccessPathDto
 import com.sza.fastmediasorter.data.companion.CompanionConfigDto
+import com.sza.fastmediasorter.data.companion.CompanionConfigException
 import com.sza.fastmediasorter.data.companion.CompanionConfigParser
 import com.sza.fastmediasorter.data.companion.CompanionConfigSerializer
 import com.sza.fastmediasorter.data.companion.CompanionResourceTokens
@@ -82,6 +83,14 @@ class ExportCompanionConfigUseCase @Inject constructor(
     // S1039: single source of the credential fetch + S0421-contract DTO build shared by the file and QR
     // paths (removes the S1029 duplicate-domain smell); throws on failure so each caller wraps to Result.
     private suspend fun buildConfigDto(resource: MediaResource, includePassword: Boolean): CompanionConfigDto {
+        // S4649, Q1=A: a resource never connected carries no pin, and the S4643 importer refuses a
+        // blank-fingerprint config whole - refuse at the share action instead of shipping a broken file.
+        if (resource.hostKeyFingerprint.isNullOrBlank()) {
+            throw CompanionConfigException(
+                CompanionConfigException.Reason.UNPINNED_HOST_KEY,
+                "SFTP resource '${resource.name}' has no pinned host key; connect once before sharing"
+            )
+        }
         val pathInfo = requireNotNull(SftpPathUtils.parseSftpPath(resource.path)) {
             "Resource path is not a valid SFTP path: ${resource.path}"
         }
@@ -106,6 +115,13 @@ class ExportCompanionConfigUseCase @Inject constructor(
             createdAt = isoTimestamp()
         )
     }
+
+    /**
+     * S4649: whether an export failure is the unpinned-server refusal, the one failure with a fix of its own.
+     * Answered here so the screen never has to know the data-layer exception type.
+     */
+    fun isUnpinnedHostKey(error: Throwable): Boolean =
+        (error as? CompanionConfigException)?.reason == CompanionConfigException.Reason.UNPINNED_HOST_KEY
 
     /** S1039: result of [exportQrPayload] - the QR payload plus whether it embeds the password. */
     data class CompanionQrExport(val payload: String, val passwordIncluded: Boolean)

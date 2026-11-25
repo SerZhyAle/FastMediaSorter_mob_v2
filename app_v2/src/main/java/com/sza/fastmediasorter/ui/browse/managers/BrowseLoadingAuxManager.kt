@@ -152,9 +152,11 @@ class BrowseLoadingAuxManager(
             append("${context.getString(R.string.error_details_resource_type)}: ${resource.type}")
         }
 
-        // S1014: on a browse-scan connectivity failure of a companion/SFTP resource, show the companion's
-        // access note (or the default access guidance) instead of a bare timeout - this is the surface the
-        // user sees when opening a shared folder that cannot be reached on any address.
+        // S1014: on a browse-scan connectivity failure of a companion/SFTP resource, show localized
+        // unreachable guidance instead of a bare timeout - this is the surface the user sees when opening
+        // a shared folder that cannot be reached on any address. S4698: the stored access note is never
+        // shown here - it is a positive reachability snapshot written at share time, so on a connect
+        // failure it states the opposite of what just happened and ignores the app locale.
         val message = companionConnectGuidance(resource, e) ?: getFriendlyBrowseErrorMessage(e)
         val exchangeResourceId = resource.exchangeResourceId
         // S4231: a resource of another own device gets the last channel offered once every live path failed.
@@ -169,9 +171,9 @@ class BrowseLoadingAuxManager(
 
     /**
      * S1014: actionable access guidance for a browse-scan connectivity failure of a companion-style
-     * (SFTP/FTP) resource - the companion's own access note when present, otherwise the default guidance.
-     * Returns null (fall back to the generic friendly error) for other resource types or non-connectivity
-     * failures.
+     * (SFTP/FTP) resource - the localized unreachable guidance, then one sentence per dead recovery
+     * channel. Returns null (fall back to the generic friendly error) for other resource types or
+     * non-connectivity failures.
      */
     private fun companionConnectGuidance(resource: MediaResource, e: Throwable): String? {
         if (resource.type == ResourceType.WEAR_WATCH) {
@@ -179,7 +181,7 @@ class BrowseLoadingAuxManager(
         }
         return BrowseFriendlyErrorResolver.peerUnreachableMessage(context, e)
             ?: companionShareMissing(resource, e)
-            ?: companionAccessNote(resource, e)
+            ?: companionUnreachableGuidance(resource, e)
     }
 
     /**
@@ -193,28 +195,29 @@ class BrowseLoadingAuxManager(
         val missing = resource.type == ResourceType.SFTP && atRoot && BrowseFriendlyErrorResolver.isServerNotFound(e)
         if (!missing) return null
         Timber.i("BrowseLoadingAuxManager: server answered, shared folder missing for resource %d", resource.id)
-        Timber.d("S4517: share-missing text for ${resource.name}")
         return context.getString(R.string.error_companion_share_missing)
     }
 
-    private fun companionAccessNote(resource: MediaResource, e: Throwable): String? {
+    /**
+     * The localized unreachable guidance for a browse-scan connectivity failure of a companion-style
+     * (SFTP/FTP) resource. S4698: the stored access note is deliberately not part of this text - it is
+     * a positive reachability snapshot written at share time, so on a connect failure it states the
+     * opposite of what just happened, and it is bilingual regardless of the app locale.
+     */
+    private fun companionUnreachableGuidance(resource: MediaResource, e: Throwable): String? {
         val isConnectivity = BrowseFriendlyErrorResolver.isConnectivityFailure(e)
         val companion = resource.type == ResourceType.SFTP || resource.type == ResourceType.FTP
-        val accessNote = resource.accessNote?.takeIf { it.isNotBlank() }
-        return when {
-            !isConnectivity -> null
-            !companion && accessNote == null -> null
-            else -> companionGuidance(resource, accessNote)
-        }
+        if (!isConnectivity || !companion) return null
+        return companionGuidance(resource)
     }
 
     /**
-     * S4513: the access note or the default guidance, then one sentence per recovery channel that cannot
+     * S4513: the default unreachable guidance, then one sentence per recovery channel that cannot
      * find the PC's new address - the generic text alone once kept an owner waiting a month for a reconnect.
      */
-    private fun companionGuidance(resource: MediaResource, accessNote: String?): String {
+    private fun companionGuidance(resource: MediaResource): String {
         val dead = getDeadCompanionRecoveryChannels(resource)
-        val lines = listOf(accessNote ?: context.getString(R.string.error_companion_unreachable)) +
+        val lines = listOf(context.getString(R.string.error_companion_unreachable)) +
             dead.map { channel ->
                 when (channel) {
                     CompanionRecoveryChannel.LOCAL_NETWORK ->
@@ -223,7 +226,6 @@ class BrowseLoadingAuxManager(
                 }
             }
         Timber.i("BrowseLoadingAuxManager: companion unreachable, dead recovery channels=%s", dead)
-        Timber.d("S4513: companion error for ${resource.name}")
         return lines.joinToString("\n\n")
     }
 

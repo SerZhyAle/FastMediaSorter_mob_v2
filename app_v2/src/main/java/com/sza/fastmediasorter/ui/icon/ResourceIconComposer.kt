@@ -4,7 +4,9 @@ import android.content.Context
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.LayerDrawable
 import androidx.annotation.DrawableRes
+import androidx.annotation.VisibleForTesting
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.DrawableCompat
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.panel.ResourceTypeIconMap
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
@@ -12,6 +14,7 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SyntheticResourceIds
 import com.sza.fastmediasorter.domain.model.isAllFilesPredefined
+import com.sza.fastmediasorter.util.NotesFolderPolicy
 
 /**
  * Composes the final [Drawable] shown in resource list/grid items.
@@ -40,11 +43,12 @@ object ResourceIconComposer {
 
         // If there is no badge, a plain drawable is sufficient - avoids LayerDrawable overhead
         if (badgeRes == null) {
-            return ContextCompat.getDrawable(context, themeDrawableRes)
+            return loadThemeDrawable(context, themeDrawableRes)
                 ?: ContextCompat.getDrawable(context, R.drawable.ic_resource_local)!!
         }
 
-        val themeDrawable = ContextCompat.getDrawable(context, themeDrawableRes) ?: return ContextCompat.getDrawable(context, badgeRes)!!
+        val themeDrawable = loadThemeDrawable(context, themeDrawableRes)
+            ?: return ContextCompat.getDrawable(context, badgeRes)!!
         val badgeDrawable = ContextCompat.getDrawable(context, badgeRes) ?: return themeDrawable
 
         // Build a two-layer drawable: theme icon (bottom) + badge (top-right corner, inset from edges)
@@ -59,6 +63,21 @@ object ResourceIconComposer {
         return composite
     }
 
+    /**
+     * Resolves [ic_folder] with an explicit source color tint so it renders safely even when
+     * invoked from an `@ApplicationContext` (e.g. launcher tiles).
+     */
+    private fun loadThemeDrawable(context: Context, @DrawableRes resId: Int): Drawable? {
+        val drawable = ContextCompat.getDrawable(context, resId) ?: return null
+        return if (resId == R.drawable.ic_folder) {
+            DrawableCompat.wrap(drawable.mutate()).also { wrapped ->
+                DrawableCompat.setTint(wrapped, ContextCompat.getColor(context, R.color.color_source_local))
+            }
+        } else {
+            drawable
+        }
+    }
+
     // ---------------------------------------------------------------------------
     // Private helpers
     // ---------------------------------------------------------------------------
@@ -69,17 +88,32 @@ object ResourceIconComposer {
      * or placeholder id resolves to a dedicated glyph instead. Any other stored id is the user's pick and
      * wins - a user who deliberately picked the placeholder for one of them cannot be told apart from the
      * seed, which is the accepted cost of needing no migration.
+     *
+     * S4823: the notes folder is created by the Notes screen and then gets a RANDOM id of the OTHER set from
+     * the main screen's icon backfill, so any OTHER-set id counts as its seed and it draws the Notes program's
+     * glyph. A user who picked an OTHER-set icon for it is overruled on the same accepted terms.
      */
     @DrawableRes
     internal fun predefinedGlyphFor(resource: MediaResource): Int? {
         val storedId = resource.iconId
-        if (storedId != null && storedId != PLACEHOLDER_ICON_ID) return null
+        val seeded = storedId == null || storedId == PLACEHOLDER_ICON_ID
         return when {
+            isNotesFolder(resource) && (seeded || storedId in otherSetIds) -> R.drawable.ic_send_note
+            !seeded -> null
             resource.path == LocalMediaScanner.VIRTUAL_PATH_RECENT -> R.drawable.ic_tile_recent
             resource.isAllFilesPredefined -> R.drawable.ic_tile_all_files
             else -> null
         }
     }
+
+    private val otherSetIds: Set<String> by lazy { ResourceIconRegistry.idsFor(ResourceIconSet.OTHER).toSet() }
+
+    private fun isNotesFolder(resource: MediaResource): Boolean =
+        resource.type == ResourceType.LOCAL && NotesFolderPolicy.isNotesDirectory(resource.path)
+
+    @VisibleForTesting
+    @DrawableRes
+    internal fun themeDrawableFor(resource: MediaResource): Int = resolveThemeDrawable(resource)
 
     @DrawableRes
     private fun resolveThemeDrawable(resource: MediaResource): Int {
@@ -95,14 +129,16 @@ object ResourceIconComposer {
         // every default below but never a user-assigned icon - the check above already returned.
         if (resource.storageVolumeId != null) return R.drawable.ic_resource_removable
 
-        // S0034 set-first-icon fallback - uses registry before falling through to pre-S0034 legacy drawables
-        val setFirstId = ResourceIconRegistry.firstIdFor(
-            ResourceIconDefaults.setForResource(resource.profile, resource.type)
-        )
-        val setFallbackRes = ResourceIconRegistry.resolveDrawable(setFirstId)
-        if (setFallbackRes != null) return setFallbackRes
+        // S0034 set-first-icon fallback for typed media profiles; unprofiled resources (OTHER)
+        // fall through to legacy source/folder glyphs instead of the ico-05-001 empty ring.
+        val defaultSet = ResourceIconDefaults.setForResource(resource.profile, resource.type)
+        if (defaultSet != ResourceIconSet.OTHER) {
+            val setFirstId = ResourceIconRegistry.firstIdFor(defaultSet)
+            val setFallbackRes = ResourceIconRegistry.resolveDrawable(setFirstId)
+            if (setFallbackRes != null) return setFallbackRes
+        }
 
-        // Pre-S0034 legacy fallback - kept for safety during migration window
+        // Pre-S0034 / unprofiled fallback
         return legacyIconFor(resource)
     }
 
@@ -113,8 +149,9 @@ object ResourceIconComposer {
         resource.path == LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO -> R.drawable.ic_virtual_video
         resource.path == LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS -> R.drawable.ic_virtual_docs
         resource.id == SyntheticResourceIds.FAVORITES -> R.drawable.ic_resource_favorites
-        // S0890: cloud refines to the provider glyph; every other type follows the shared map.
+        // S0890/S4847: local folders draw a folder glyph; cloud refines to provider; others share map.
         else -> when (resource.type) {
+            ResourceType.LOCAL -> R.drawable.ic_folder
             ResourceType.CLOUD -> CloudProviderIconMap.iconFor(resource.cloudProvider?.name)
             else -> ResourceTypeIconMap.iconFor(resource.type)
         }

@@ -14,7 +14,7 @@ why: |
 
   It also opens on an empty page, so a screenshot, a sketch or a diagram can start from nothing at all.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR or FOSS."
+  - "Fast Media Sorter & Organizer in any [edition](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR or FOSS."
   - "An image open in the [image viewer](term:image-viewer), or a folder you are allowed to write to for a blank canvas."
 steps:
   - number: 1

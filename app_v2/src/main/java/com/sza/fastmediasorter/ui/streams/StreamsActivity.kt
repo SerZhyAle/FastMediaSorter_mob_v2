@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.playback.resilience.StreamFailureReason
 import com.sza.fastmediasorter.core.streams.FaviconAtlasSlicer
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
@@ -39,9 +40,11 @@ import com.sza.fastmediasorter.domain.player.BroadcastPlaybackSession
 import com.sza.fastmediasorter.domain.streams.StreamFrameIngestor
 import com.sza.fastmediasorter.domain.usecase.exchange.ObserveLiveBroadcastSourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.PinnedStreamMove
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.ui.common.help.HelpOpenManager
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.helpers.AudioExitAction
@@ -499,6 +502,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             scope = lifecycleScope,
             // S0700: a reachability probe updates the status bullet (green/amber, never red) and is not a play.
             onStatus = { id, ok -> viewModel.recordStreamProbeOutcome(id, ok) },
+            hasNetwork = { viewModel.hasNetworkForStream },
         )
     }
 
@@ -533,6 +537,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                 miniControl = binding.streamMiniControl,
                 titleView = binding.tvMiniTitle,
                 playStopButton = binding.btnMiniPlayStop,
+                dismissButton = binding.btnMiniStop,
             ),
             audioController = AudioServiceController(this),
             callbacks = StreamInlineAudioCallbacks(
@@ -546,6 +551,10 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                     gridAdapter.setNowPlaying(id, null)
                     pinnedGridAdapter.setNowPlaying(id, null)
                 },
+                onPausedChanged = { paused ->
+                    adapter.setPlayingPaused(paused)
+                    pinnedAdapter.setPlayingPaused(paused)
+                },
                 onPlaybackStateChanged = { source, isPlaying ->
                     if (isPlaying) source?.let(::persistStreamResume) else clearStreamResume()
                 },
@@ -554,10 +563,13 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                 onBroadcastStopped = { source, signal ->
                     broadcastEnd.onStopped(this, source.url, signal, broadcastEndHost)
                 },
-                onSuccess = {
-                    viewModel.recordStreamPlaySuccess(it.id)
-                    broadcastEnd.onPlaying(this, it.url, broadcastEndHost)
+                onBroadcastFailed = { source, reason ->
+                    if (!broadcastEnd.onFailureSurfaced(this, source.url, broadcastEndHost)) {
+                        showStreamUnavailable(source, reason)
+                    }
                 },
+                onSuccess = { viewModel.recordStreamPlaySuccess(it.id) },
+                onPlaybackStarted = { broadcastEnd.onPlaying(this, it.url, broadcastEndHost) },
                 // S1142: mirror the live now-playing track onto the active channel's grid tile. The id
                 // comes from the manager itself - reading it back via inlineAudio here crashed on the
                 // init-time emit (the lateinit is not yet assigned while the constructor runs).
@@ -621,24 +633,31 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             onStreamOutcome = { id, ok -> viewModel.recordStreamProbeOutcome(id, ok) },
         )
 
+        // S4626: one shared manager remembers the three section headers (COLLAPSIBLE-GROUP section 4 rule 7).
+        val collapsibleSections = CollapsibleSectionsManager(this)
         sectionsManager = StreamsSectionsManager(
+            sections = collapsibleSections,
             pinnedSection = binding.streamsPinnedSection,
             pinnedHeader = binding.streamsPinnedHeader,
-            pinnedChevron = binding.ivPinnedChevron,
+            pinnedBody = binding.streamsPinnedBody,
             mainSection = binding.streamsMainSection,
             mainHeader = binding.streamsMainHeader,
-            mainChevron = binding.ivMainChevron,
+            mainBody = binding.streamsMainBody,
             pinnedGridMode = pinnedGridModeManager,
             mainGridMode = gridModeManager,
         )
+        collapsibleSections.register(
+            binding.streamsDevicesHeader,
+            binding.streamsDevicesBody,
+            KEY_SECTION_DEVICES,
+            defaultExpanded = false,
+            onExpandedChanged = deviceBroadcastsViewModel::setExpanded,
+        )
         deviceBroadcasts = StreamDeviceBroadcastsManager(
             section = binding.streamsDevicesSection,
-            header = binding.streamsDevicesHeader,
-            chevron = binding.ivDevicesChevron,
             status = binding.tvDevicesStatus,
             list = binding.streamsDevicesList,
             portalLink = binding.btnDevicesPortal,
-            onToggle = deviceBroadcastsViewModel::toggle,
             onChosen = deviceBroadcastsViewModel::onBroadcastChosen,
             onPortalLink = {
                 MediaExchangePortalLinks.open(this, MediaExchangePortalLinks.Page.BROADCAST_RECEIVE)
@@ -702,9 +721,15 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             viewModel.onQueryChanged(it?.toString().orEmpty())
         }
         binding.btnFilter.setOnClickListener {
+            Timber.d("S4756: filter click touchFocusable=${binding.btnFilter.isFocusableInTouchMode}")
             cancelHealthProbe()
             showFilterDialog()
         }
+        // The layout flags btnFilter touch-focusable only so the launch focus parks on it. A
+        // touch-focusable view that is not focused spends its next tap on taking focus and never
+        // clicks, so once the first layout pass has placed that focus the flag goes and every tap
+        // reaches the handler above, e.g. the first one after touching Recent or the search field.
+        binding.btnFilter.post { binding.btnFilter.isFocusableInTouchMode = false }
         binding.btnSort.setOnClickListener {
             cancelHealthProbe()
             showSortDialog()
@@ -719,6 +744,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             videoButton = binding.btnMediaKindVideo,
             audioButton = binding.btnMediaKindAudio,
             ownButton = binding.btnMediaKindOwn,
+            recentButton = binding.btnMediaKindRecent,
             onKindSelected = { kind ->
                 cancelHealthProbe()
                 viewModel.onMediaKindFilter(kind)
@@ -949,6 +975,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                 binding.rvStreams.post { scrollButtons.updateVisibility() }
             }
             binding.emptyStateView.isVisible = state.isEmpty
+            updateSectionFocusRouting()
             latestState = state
             updateFilterIndicator(state.filter)
             // S1473: renders from the shared filter state, so a change made in the filter dialog
@@ -959,7 +986,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         }
         // S1502: the status bullet travels beside the list, not inside it - a finished probe repaints
         // the affected rows only, instead of re-emitting the catalog through the filter/sort pass.
-        collectOnLifecycle(deviceBroadcastsViewModel.available) { deviceBroadcasts.setAvailable(it) }
+        collectOnLifecycle(deviceBroadcastsViewModel.available) { showDeviceBroadcastsSection(it) }
         collectOnLifecycle(deviceBroadcastsViewModel.state) { deviceBroadcasts.render(it) }
         collectOnLifecycle(deviceBroadcastsViewModel.messages) { messageRes ->
             Toast.makeText(this, messageRes, Toast.LENGTH_LONG).show()
@@ -1065,6 +1092,14 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * S2896/S2991: dynamic D-pad focus routing ensures banner buttons are reachable via D-pad up from controls
      * and content (empty list / section headers) below, and that down from banner targets content in landscape.
      */
+    // S4626: the broadcasts section is a second topic beside pinned and main, which decides whether the main header
+    // is a wrapper over a single topic.
+    private fun showDeviceBroadcastsSection(available: Boolean) {
+        deviceBroadcasts.setAvailable(available)
+        sectionsManager.setSiblingTopicVisible(available)
+        updateSectionFocusRouting()
+    }
+
     private fun updateCatalogBannerFocus(bannerVisible: Boolean) {
         val upTargetId = if (bannerVisible) R.id.btnCatalogBannerAction else R.id.toolbar
         val sortUpTargetId = if (bannerVisible) R.id.btnCatalogBannerDismiss else R.id.toolbar
@@ -1075,24 +1110,12 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         binding.btnFilter.nextFocusUpId = upTargetId
         binding.btnSort.nextFocusUpId = sortUpTargetId
 
-        binding.btnEmptyAddUrl.nextFocusUpId = if (bannerVisible) upTargetId else R.id.etSearch
-        binding.streamsPinnedHeader.nextFocusUpId = if (bannerVisible) upTargetId else R.id.btnFilter
-        binding.streamsMainHeader.nextFocusUpId = if (bannerVisible) upTargetId else R.id.streamsPinnedHeader
-
         val banner = catalogBanner
         if (bannerVisible && banner != null) {
-            val isLandscape =
-                resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
-            val downTargetId = if (binding.emptyStateView.isVisible) {
-                R.id.btnEmptyAddUrl
-            } else if (binding.streamsPinnedSection.isVisible) {
-                R.id.streamsPinnedHeader
-            } else {
-                R.id.rvStreams
-            }
+            val downTargetId = firstContentFocusId()
             val actionBtn = banner.findViewById<View>(R.id.btnCatalogBannerAction)
             val dismissBtn = banner.findViewById<View>(R.id.btnCatalogBannerDismiss)
-            if (isLandscape) {
+            if (isLandscapeNow()) {
                 actionBtn?.nextFocusUpId = R.id.etSearch
                 dismissBtn?.nextFocusUpId = R.id.btnSort
                 actionBtn?.nextFocusDownId = downTargetId
@@ -1103,6 +1126,53 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                 actionBtn?.nextFocusDownId = R.id.btnFilter
                 dismissBtn?.nextFocusDownId = R.id.btnSort
             }
+        }
+        updateSectionFocusRouting()
+    }
+
+    private fun isLandscapeNow(): Boolean =
+        resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+
+    private fun firstContentFocusId(): Int = when {
+        binding.emptyStateView.isVisible -> R.id.btnEmptyAddUrl
+        binding.streamsDevicesSection.isVisible -> R.id.streamsDevicesHeader
+        binding.streamsPinnedSection.isVisible -> R.id.streamsPinnedHeader
+        binding.streamsMainHeader.isVisible -> R.id.streamsMainHeader
+        else -> R.id.rvStreams
+    }
+
+    /**
+     * S4747: D-pad order down the screen - controls, then the first section on screen, then each section in
+     * turn. The layout's fixed `nextFocusDown` on the controls jumps straight to the main list, so the
+     * device and pinned sections were unreachable. The banner is the previous stop for the sections only in
+     * landscape, where the controls live in the toolbar above it (S2991); in portrait the controls sit between
+     * the banner and the sections, so Up from a header goes to the filter bar.
+     */
+    private fun updateSectionFocusRouting() {
+        val bannerBelowControls = catalogBanner?.isVisible == true && isLandscapeNow()
+        val aboveSectionsId = if (bannerBelowControls) R.id.btnCatalogBannerAction else R.id.btnFilter
+        val devicesVisible = binding.streamsDevicesSection.isVisible
+        val pinnedVisible = binding.streamsPinnedSection.isVisible
+
+        val controlsDownId = if (bannerBelowControls) R.id.btnCatalogBannerAction else firstContentFocusId()
+        val sortDownId = if (bannerBelowControls) R.id.btnCatalogBannerDismiss else firstContentFocusId()
+        Timber.d("S4747: focus routing controlsDown=$controlsDownId pinned=$pinnedVisible devices=$devicesVisible")
+        binding.etSearch.nextFocusDownId = controlsDownId
+        binding.btnMediaKindVideo.nextFocusDownId = controlsDownId
+        binding.btnMediaKindAudio.nextFocusDownId = controlsDownId
+        binding.btnMediaKindOwn.nextFocusDownId = controlsDownId
+        binding.btnMediaKindRecent.nextFocusDownId = controlsDownId
+        binding.btnFilter.nextFocusDownId = controlsDownId
+        binding.btnSort.nextFocusDownId = sortDownId
+
+        binding.streamsDevicesHeader.setHeaderNextFocusUpId(aboveSectionsId)
+        val pinnedUpId = if (devicesVisible) R.id.streamsDevicesHeader else aboveSectionsId
+        binding.streamsPinnedHeader.setHeaderNextFocusUpId(pinnedUpId)
+        binding.streamsMainHeader.setHeaderNextFocusUpId(if (pinnedVisible) R.id.streamsPinnedHeader else pinnedUpId)
+        binding.btnEmptyAddUrl.nextFocusUpId = when {
+            binding.streamsMainHeader.isVisible -> R.id.streamsMainHeader
+            bannerBelowControls -> R.id.btnCatalogBannerAction
+            else -> R.id.etSearch
         }
     }
 
@@ -1115,6 +1185,14 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         viewModel.refreshLiveBroadcasts()
         val visible = visibleSources()
         if (visible.isEmpty()) return
+        // STREAM-BANK 2.8: the sweep and the grid frame refresh need one active transport; with none, probing
+        // would only time out per row and write the outage over the person's verified marks.
+        if (!viewModel.hasNetworkForStream) {
+            Timber.d("S4617: refresh refused, no transport")
+            Timber.d("S4753: refresh refused, refresh-specific no-network toast")
+            Toast.makeText(this, R.string.streams_error_no_network_refresh, Toast.LENGTH_SHORT).show()
+            return
+        }
         Toast.makeText(this, R.string.streams_refresh_probing, Toast.LENGTH_SHORT).show()
         if (latestState.displayMode == DisplayMode.GRID && ::sectionsManager.isInitialized) {
             // Grid: the frame capture both renders the thumbnail and reports the VIDEO tile's status, so only
@@ -1396,7 +1474,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * S1509: removal is offered only when the device had a network - otherwise the user's own dead
      * link, not the channel, is what failed, and the dialog says so instead of proposing a deletion.
      */
-    private fun showStreamUnavailable(played: StreamSourceEntity) {
+    private fun showStreamUnavailable(played: StreamSourceEntity, reason: StreamFailureReason? = null) {
         // S4160: removal and retry act on the stored row; a retry of a broadcast resolves from the top again.
         val source = played.copy(url = broadcastEndpoints.storedUrl(played.id, played.url))
         // S1509: one connectivity sample drives both the recorded outcome and the dialog, so the row
@@ -1409,6 +1487,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             activity = this,
             channelTitle = source.title,
             offline = !hasNetwork,
+            reason = reason,
             onRetry = {
                 if (broadcastEndpoints.needsResolution(source.broadcastEndpoints)) {
                     playBroadcast(source)
@@ -1436,11 +1515,14 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     }
 
     private fun showSourceDialog(isImport: Boolean) {
+        Timber.d("S4755: add stream dialog opened isImport=$isImport")
         val dialogBinding = DialogAddStreamBinding.inflate(layoutInflater)
         dialogBinding.tilUrl.hint = getString(
             if (isImport) R.string.streams_import_url_hint else R.string.streams_add_url_hint
         )
         dialogBinding.tilTitle.isVisible = !isImport
+        // S4606: like the title, a category names one channel; an import adds a whole playlist.
+        dialogBinding.tilCategory.isVisible = !isImport
         // S1144: an import pulls in a whole playlist, so there is no single channel to attach a track
         // preference to - the rows are shown for a manual add only.
         dialogBinding.trackPreferenceContainer.isVisible = !isImport
@@ -1458,7 +1540,11 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                 if (isImport) {
                     viewModel.onImport(url)
                 } else {
-                    viewModel.onAdd(url, dialogBinding.etTitle.text?.toString())
+                    viewModel.onAdd(
+                        url,
+                        dialogBinding.etTitle.text?.toString(),
+                        dialogBinding.etCategory.text?.toString(),
+                    )
                     if (url.isNotEmpty()) writeTrackPreference(url)
                 }
             }
@@ -1472,10 +1558,11 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             cancelHealthProbe()
             scanBroadcastQr()
         }
-        DialogKeyboardDelegate.applyTo(dialog) {
+        DialogKeyboardDelegate.applyTo(dialog, onHelp = null, helpSurfaceId = "dialog_add_stream") {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()
         }
         dialog.showBoundToHost(this@StreamsActivity)
+            ?.let { DialogHelpEntryManager.installButton(it, "dialog_add_stream") }
         dialogBinding.etUrl.requestFocus()
     }
 
@@ -1495,8 +1582,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         callbacks = StreamEditDialog.Callbacks(
             readTrackPreference = viewModel::readTrackPreference,
             writeTrackPreference = viewModel::writeTrackPreference,
-            onEdit = { edited, url, title, kindOverride ->
-                viewModel.onEdit(edited, url, title, kindOverride)
+            onEdit = { edited, url, title, kindOverride, category ->
+                viewModel.onEdit(edited, url, title, kindOverride, category)
             },
         ),
     )
@@ -1580,7 +1667,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             filter.country != null ||
             filter.mediaKind != StreamsViewModel.MediaKindFilter.ALL ||
             filter.pinnedOnly
-        binding.btnFilter.setImageResource(if (active) R.drawable.ic_filter_active else R.drawable.ic_filter)
+        binding.btnFilter.setIconResource(if (active) R.drawable.ic_filter_active else R.drawable.ic_filter)
         binding.btnFilter.contentDescription =
             getString(if (active) R.string.streams_filter_active else R.string.streams_filter)
     }
@@ -1671,6 +1758,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
 
     override fun onStart() {
         super.onStart()
+        broadcastEnd.onScreenStarted(this, broadcastEndHost)
         deviceBroadcastsViewModel.onScreenStarted()
         viewModel.refreshLiveBroadcasts()
         // S1154: the atlas may have been installed from the Extensions Manager while this screen sat in
@@ -1731,6 +1819,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     }
 
     companion object {
+        private const val KEY_SECTION_DEVICES = "streams__devices"
         private const val BROADCAST_LINK_HOST = "import"
         private const val BROADCAST_LINK_PAYLOAD = "payload"
         private const val BROADCAST_LINK_SCHEME = "fmsbcast"

@@ -1,0 +1,181 @@
+{
+  "schema": "knc-architecture-decision/1",
+  "ticket": "S4859",
+  "decidedOn": "2026-11-24",
+  "inputs": {
+    "baseline": "dev/knc-standalone/fms-a-baseline.json",
+    "optionsMatrix": "dev/knc-standalone/options-matrix.json",
+    "questionnaire": "dev/knc-standalone/owner-questionnaire.md",
+    "quizRecord": "PLAN/S4859_knc-standalone-apps.md#quiz-decisions-2026-11-24"
+  },
+  "ownerAnswers": [
+    { "question": "Q-REL-01", "answer": "c", "meaning": "Android, Wear OS, Windows and Web are all in the first release scope." },
+    { "question": "Q-FST-01", "answer": "a", "meaning": "The FMS_A source snapshot of 2026-11-24 with the baseline hashes and reference cases is the reference." },
+    { "question": "Q-FST-02", "answer": "a", "meaning": "FMS_A and the FMS watch app keep their embedded games unchanged; the standalone apps start from a copy." },
+    { "question": "Q-PAR-01", "answer": "c", "meaning": "Both existing game variants (square growing board, round board) are offered on every platform." },
+    { "question": "Q-PAR-03", "answer": "owner text", "meaning": "Wear OS keeps its own board that fits the round display; seeds are compared only inside one game type." },
+    { "question": "Q-PUB-01", "answer": "owner text", "meaning": "Each platform releases independently; feature availability may differ; game code stays unified where practical." },
+    { "question": "Q-RNK-01", "answer": "owner text", "meaning": "The leaderboard opens when its server is ready, below the apps in priority; its server specification starts from the FMS Windows exchange server." },
+    { "question": "Q-RNK-02", "answer": "a", "meaning": "One leaderboard = board geometry and size rule + shadow-count rule + rules version; difficulty is not part of the key." },
+    { "question": "Q-DEV-01", "answer": "a", "meaning": "One new KnC repository holds the shared core, the content and every platform client." },
+    { "question": "Q-DEV-02", "answer": "delegated", "meaning": "Research chose CS-KMP-CORE: a Kotlin Multiplatform game core with a native interface per platform." }
+  ],
+  "deferredQuestions": [
+    { "question": "Q-REL-02", "resolution": "Superseded by Q-REL-01 c: Windows and Web are in the first release." },
+    { "question": "Q-REL-03", "resolution": "Deferred to the per-channel setup ticket; each frozen identifier is chosen once, at the first publication of that channel." },
+    { "question": "Q-FST-03", "resolution": "Superseded by Q-DEV-01 a." },
+    { "question": "Q-FST-04", "resolution": "Default: the first rulesVersion is 1 and reproduces the baseline; open for the implementation ticket." },
+    { "question": "Q-PAR-02", "resolution": "Implied by Q-PAR-01 c: the round board is a full game type, so the VOID cell kind (WD-01, WD-13) moves into the shared rules." },
+    { "question": "Q-PAR-04", "resolution": "Deferred: visual parity is per-platform rendering under CS-KMP-CORE." },
+    { "question": "Q-FUT-01", "resolution": "Deferred to the content pipeline ticket." },
+    { "question": "Q-FUT-02", "resolution": "Deferred to the content pipeline ticket; mods are data only under RS-CANONICAL-ASSETS." },
+    { "question": "Q-FUT-03", "resolution": "Deferred: a new game variant gets a new gameType id." },
+    { "question": "Q-PUB-02", "resolution": "Default CR-STALE-CLIENT; confirmed by the leaderboard ticket." },
+    { "question": "Q-PUB-03", "resolution": "Default CR-CONTENT-VERSION without remote activation; Q-PUB-01 makes a held simultaneous publish unnecessary." },
+    { "question": "Q-PUB-04", "resolution": "Default CR-STALE-CLIENT rollback by re-activating the previous rulesVersion; confirmed by the leaderboard ticket." },
+    { "question": "Q-RNK-03", "resolution": "Deferred to the leaderboard ticket." },
+    { "question": "Q-RNK-04", "resolution": "Deferred to the leaderboard ticket." },
+    { "question": "Q-OPS-01", "resolution": "Deferred to the leaderboard ticket; SR-PLAY-GAMES is not selected because Windows and Web support is unconfirmed (EV-08)." },
+    { "question": "Q-OPS-02", "resolution": "Deferred to the leaderboard ticket." },
+    { "question": "Q-OPS-03", "resolution": "Deferred to the leaderboard ticket." },
+    { "question": "Q-OPS-04", "resolution": "Superseded by Q-RNK-01: an own service based on the FMS Windows exchange server (SR-OWN-SERVICE)." },
+    { "question": "Q-DEV-03", "resolution": "Deferred to the implementation ticket." },
+    { "question": "Q-DEV-04", "resolution": "Superseded by Q-FST-02 a: FMS_A does not consume the shared module." }
+  ],
+  "decisions": [
+    {
+      "id": "AD-01",
+      "topic": "Launch platforms",
+      "choice": "Android phone/tablet/TV, standalone Wear OS, packaged Windows, and Web.",
+      "traces": { "answers": ["Q-REL-01"], "matrix": ["PL-ANDROID", "PL-WEAR", "PL-WINDOWS", "PL-WEB"] },
+      "acceptance": ["AC-PLATFORM-PATHS"]
+    },
+    {
+      "id": "AD-02",
+      "topic": "Repository layout",
+      "choice": "One new KnC repository with the modules core/ (Kotlin Multiplatform common + jvm + android + js), content/, android/, wear/, desktop/, web/ and, when the leaderboard starts, server/.",
+      "traces": { "answers": ["Q-DEV-01"], "matrix": ["RL-MONOREPO"] },
+      "acceptance": ["AC-LAYOUT"]
+    },
+    {
+      "id": "AD-03",
+      "topic": "Code sharing",
+      "choice": "CS-KMP-CORE. core/commonMain owns models, cells (VOID included), both generators, turn rules, skip/restart, scoring and the snapshot schema. Each client owns DI, rendering, input, persistence and store integration.",
+      "rejected": [
+        { "option": "CS-SHARED-RENDERER", "reason": "Needs an Android View-to-Compose migration and the Beta Compose Web target (EV-02); it is not the simplest path." },
+        { "option": "CS-GAME-ENGINE", "reason": "Rewrites the rules in another language and has no Wear OS export." },
+        { "option": "CS-NATIVE-PORTS", "reason": "Two Kotlin copies already drift (EV-10, WD-05); four copies multiply it." }
+      ],
+      "traces": { "answers": ["Q-DEV-02", "Q-FST-01"], "matrix": ["CS-KMP-CORE"], "evidence": ["EV-01", "EV-10"] },
+      "acceptance": ["AC-REFERENCE-CASES", "AC-SEED-DETERMINISM"]
+    },
+    {
+      "id": "AD-04",
+      "topic": "Source of the first version",
+      "choice": "Copy the phone game sources (phone.models, phone.generator, phone.rules, phone.scoring, phone.snapshot) and the watch variants (wear.models, wear.generator, wear.rules) from the 2026-11-24 snapshot into core/, and the phone and watch UI into android/ and wear/. FMS_A and the FMS watch app are not changed.",
+      "traces": { "answers": ["Q-FST-01", "Q-FST-02"], "matrix": ["PL-ANDROID", "PL-WEAR", "CS-KMP-CORE"] },
+      "acceptance": ["AC-REFERENCE-CASES", "AC-FMS-UNCHANGED"]
+    },
+    {
+      "id": "AD-05",
+      "topic": "Game variants",
+      "choice": "Two gameType values in core: SQUARE_GROWING (phone board 8..20 by level, shadowCount = N, L-path corridor generator) and ROUND_FIXED (watch board 12x11 round or 10x9 compact with VOID corners, shadowCount = min(5, 2 + (N-1)/3), BFS corridor generator). Both are selectable on every platform. The Wear client keeps its round geometry as the default; the 9x9 watch square stays a board configuration of SQUARE_GROWING only if it reproduces that type's size rule, otherwise it is unranked.",
+      "traces": { "answers": ["Q-PAR-01", "Q-PAR-03", "Q-RNK-02"], "matrix": ["SR-GAME-IDENTITY", "PL-WEAR"], "evidence": ["WD-01", "WD-02", "WD-03", "WD-05", "WD-06", "WD-13"] },
+      "acceptance": ["AC-VARIANTS", "AC-REFERENCE-CASES"]
+    },
+    {
+      "id": "AD-06",
+      "topic": "Random sequence",
+      "choice": "Generators keep kotlin.random.Random(seed) (XorWow, implemented in Kotlin common code) and the exact call order of the baseline. A seed must give one board per gameType + board configuration + rulesVersion on every target; it is never compared across gameTypes. If the js target diverges on RC-GEN-05, replace the source with an explicit XorWow in commonMain and bump rulesVersion.",
+      "traces": { "answers": ["Q-PAR-03"], "matrix": ["CS-KMP-CORE"], "evidence": ["EV-09", "rng-dependency"] },
+      "acceptance": ["AC-SEED-DETERMINISM"]
+    },
+    {
+      "id": "AD-07",
+      "topic": "Canonical content",
+      "choice": "RS-CANONICAL-ASSETS: content/ holds vector art as SVG source, one string table and mods as data; a generator emits Android/Wear resources and desktop/web resources. Mods never carry code. Each build embeds a contentVersion and a content manifest hash.",
+      "traces": { "answers": ["Q-PUB-01", "Q-DEV-01"], "matrix": ["RS-CANONICAL-ASSETS", "CR-CONTENT-VERSION"] },
+      "acceptance": ["AC-CONTENT-HASH"]
+    },
+    {
+      "id": "AD-08",
+      "topic": "Independent releases",
+      "choice": "Every channel publishes on its own schedule. Every build carries rulesVersion and contentVersion; a platform may lack a feature (capability flag per client) but never runs different rules under the same rulesVersion. No held simultaneous publish (CR-HELD-PUBLISH) and no remote activation in the first release.",
+      "traces": { "answers": ["Q-PUB-01"], "matrix": ["CR-CONTENT-VERSION", "CR-HELD-PUBLISH", "CR-REMOTE-ACTIVATION"] },
+      "acceptance": ["AC-VERSION-STAMP"]
+    },
+    {
+      "id": "AD-09",
+      "topic": "Incompatible versions and rollback",
+      "choice": "CR-STALE-CLIENT: offline play works on any rulesVersion; once the leaderboard exists, the server accepts ranked runs only for active rulesVersion values per gameType and tells an older client to update. Rollback = re-activate the previous rulesVersion on the server and ship the previous client build; a run keeps the rulesVersion it was played under.",
+      "traces": { "answers": ["Q-PUB-01", "Q-RNK-01"], "matrix": ["CR-STALE-CLIENT"] },
+      "acceptance": ["AC-VERSION-STAMP"]
+    },
+    {
+      "id": "AD-10",
+      "topic": "Shared leaderboard (deferred)",
+      "choice": "SR-OWN-SERVICE in server/, specified from the FMS Windows exchange server and started after the four apps. Key = gameType + boardConfiguration + rulesVersion (difficulty excluded). A run submits seed, gameType, boardConfiguration, rulesVersion, contentVersion and the move log; the server replays it with the JVM build of core and computes the score itself. A ranked run requires an unmodified rules content hash. Opening it changes the privacy page and every store data-safety form in the same release.",
+      "traces": { "answers": ["Q-RNK-01", "Q-RNK-02"], "matrix": ["SR-OWN-SERVICE", "SR-GAME-IDENTITY"], "evidence": ["EV-07", "EV-08", "EV-09"] },
+      "acceptance": ["AC-RANK-KEY", "AC-SERVER-REPLAY"]
+    }
+  ],
+  "platforms": [
+    {
+      "id": "PL-ANDROID",
+      "module": "android/",
+      "ui": "Android Views ported from the FMS_A game screen (phone.board-view, phone.activity, phone.viewmodel).",
+      "build": "Gradle Android application consuming core (android target).",
+      "distribution": "Google Play under a new applicationId, frozen at Play Console app creation.",
+      "codeProvenance": "phone.* sources of the 2026-11-24 snapshot.",
+      "assetProvenance": "content/ generator output; first version from the FMS_A game drawables and strings.",
+      "releasePolicy": "Independent Play releases (AD-08)."
+    },
+    {
+      "id": "PL-WEAR",
+      "module": "wear/",
+      "ui": "Compose for Wear OS ported from the FMS watch game screen.",
+      "build": "Gradle Wear application consuming core (android target), 64-bit.",
+      "distribution": "Google Play, standalone Wear OS app (com.google.android.wearable.standalone=true), its own track and listing with a watch screenshot (EV-05, EV-06).",
+      "codeProvenance": "wear.* sources of the 2026-11-24 snapshot.",
+      "assetProvenance": "content/ generator output.",
+      "releasePolicy": "Independent Wear track releases (AD-08)."
+    },
+    {
+      "id": "PL-WINDOWS",
+      "module": "desktop/",
+      "ui": "Compose Desktop on JVM, new interface over core.",
+      "build": "Gradle JVM desktop; jpackage EXE/MSI on a Windows host (EV-03); MSIX by makeappx or the MSIX Packaging Tool (EV-04).",
+      "distribution": "Microsoft Store (MSIX identity frozen at reservation) and winget (PackageIdentifier frozen at first submission).",
+      "codeProvenance": "core jvm target; no game logic in desktop/.",
+      "assetProvenance": "content/ generator output.",
+      "releasePolicy": "Independent Store and winget releases (AD-08)."
+    },
+    {
+      "id": "PL-WEB",
+      "module": "web/",
+      "ui": "Kotlin/JS (Stable) with an HTML canvas renderer; installable web app manifest.",
+      "build": "Gradle Kotlin/JS browser distribution consuming core (js target).",
+      "distribution": "Static hosting on an owned origin; origin and manifest id frozen at first publication.",
+      "codeProvenance": "core js target; no game logic in web/.",
+      "assetProvenance": "content/ generator output.",
+      "releasePolicy": "Deploys whenever ready (AD-08)."
+    }
+  ],
+  "acceptanceChecks": [
+    { "id": "AC-PLATFORM-PATHS", "check": "Each of the four modules builds a distributable for its channel named in platforms[]." },
+    { "id": "AC-LAYOUT", "check": "The repository contains core/, content/, android/, wear/, desktop/, web/; no game rule exists outside core/." },
+    { "id": "AC-REFERENCE-CASES", "check": "core/commonTest runs every baseline referenceCase (RC-GEN-*, RC-TURN-*, RC-RST-*, RC-MODE-01, RC-VAL-01, RC-ADV-01) on the jvm, android and js targets and passes." },
+    { "id": "AC-SEED-DETERMINISM", "check": "For each gameType, RC-GEN-05 and the per-type golden boards produce identical boards on jvm and js for the same seed, board configuration and rulesVersion." },
+    { "id": "AC-VARIANTS", "check": "Every client offers SQUARE_GROWING and ROUND_FIXED; the Wear client defaults to ROUND_FIXED; WD-01..WD-06 behaviour is reproduced inside ROUND_FIXED only." },
+    { "id": "AC-FMS-UNCHANGED", "check": "No file under app_v2/ or wear/ of the FMS repository changes because of the standalone work." },
+    { "id": "AC-CONTENT-HASH", "check": "Builds of one contentVersion report the same content manifest hash on all four platforms." },
+    { "id": "AC-VERSION-STAMP", "check": "Each build exposes rulesVersion and contentVersion, and each saved run records both." },
+    { "id": "AC-RANK-KEY", "check": "The leaderboard key is gameType + boardConfiguration + rulesVersion and ignores difficulty and platform." },
+    { "id": "AC-SERVER-REPLAY", "check": "The server recomputes the submitted score from the move log with core and rejects a mismatch or an inactive rulesVersion." }
+  ],
+  "followUps": [
+    "Standalone apps implementation: create the KnC repository, port core, the four clients and content/ (AD-01..AD-08).",
+    "Channel setup: choose and freeze each channel identifier (Q-REL-03).",
+    "Shared leaderboard: server specification from the FMS Windows exchange server and the deferred RNK/OPS/PUB answers (AD-09, AD-10)."
+  ]
+}

@@ -5,7 +5,7 @@ permalink: /docs/FAQ.html
 lang: en
 ---
 
-<sub class="doc-stamp">26.10.15 19:27</sub>
+<sub class="doc-stamp">26.11.25 01:43</sub>
 
 <div lang="en" markdown="1">
 
@@ -15,11 +15,11 @@ lang: en
 
 ## General Questions
 
-### What is FastMediaSorter?
-FastMediaSorter combines media playback and file management for local, network and cloud resources. Launcher, Streams and watch integration depend on the edition. File access requires your permissions; replacing the home screen requires your explicit choice in Android.
+### What is Fast Media Sorter & Organizer? {#what-is-fastmediasorter}
+Fast Media Sorter & Organizer combines media playback and file management for local, network and cloud resources. Launcher, Streams and watch integration depend on the edition. File access requires your permissions; replacing the home screen requires your explicit choice in Android.
 
 ### Is it free?
-Yes! FastMediaSorter v2 is completely free and open-source.
+Yes! Fast Media Sorter & Organizer is completely free and open-source.
 
 ### What Android version do I need?
 Minimum installation versions in the current source configuration are listed below. A compatible headset/runtime is additionally needed for immersive VR/XR use; **noLegal is not restricted to headsets**. A source variant does not guarantee a published APK.
@@ -36,11 +36,14 @@ Minimum installation versions in the current source configuration are listed bel
 ### Does it require internet?
 Local files do not need internet. SMB/SFTP/FTP on your LAN need a reachable network, not public internet. Cloud services and internet streams need internet; feature availability depends on the edition.
 
+### How do I change the app's language?
+Open **Settings → General** and tap **Language/Язык/Мова** (the row carries three names, so you can find it whatever language the app is in). Pick a language from the searchable list and the app switches at once - no restart. The screens you have open, Settings included, change language right where you are, and the choice is remembered. On a Google Play install the language is downloaded first; if that fails, the app keeps the language it already uses.
+
 ### Does the app have widgets?
-Yes! FastMediaSorter v2 ships a variety of home-screen widgets - find them via long-press on the home screen → Widgets → FastMediaSorter. They include resource shortcuts, slideshow launchers, and more.
+Yes! Fast Media Sorter & Organizer ships a variety of home-screen widgets - find them via long-press on the home screen → Widgets → Fast Media Sorter & Organizer. They include resource shortcuts, slideshow launchers, and more.
 
 ### Can the app replace my home screen?
-In **Standard** and **noLegal**, open **Settings → General → Primary startup window**, pick **Device home screen**, then choose FastMediaSorter as Android's Home app. **Desktop as primary window** opens the desktop without replacing your system launcher.
+In **Standard** and **noLegal**, open **Settings → General → Primary startup window**, pick **Device home screen**, then choose Fast Media Sorter & Organizer as Android's Home app. **Desktop as primary window** opens the desktop without replacing your system launcher.
 
 [Edition capability matrix (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 
@@ -134,6 +137,11 @@ If thumbnails never load at all:
 ### Connection keeps dropping / files fail to open mid-playback
 Check Wi-Fi stability, server availability, credentials and VPN routes. Test the resource speed and reduce thumbnail work on slow links. Required bandwidth depends on the file's bitrate and codec, not resolution alone; **10 Mbps is not a universal 1080p requirement**.
 
+### Can my other devices find my live broadcast if we are not on the same network?
+Yes. Turn on **Files via Google Drive** (**Settings → General → Pending device transfers**, the switch at the top of that screen) and a live broadcast you start is announced to your own devices through the hidden app folder of your Google account. Only the address goes there: it is renewed while you are on air and removed when the broadcast ends. While you are live, the broadcast screen shows a **Via Google Drive** line that says whether the announcement went out.
+
+Drive never carries the sound or the picture. Those go directly to the listener or through your exchange server, so finding the broadcast needs no shared network, but listening still needs a route to one of the two. Details: [Files and folders via Google Drive](media-exchange-portal/folders-google-drive.html). Going on air from a phone is in the Standard, noLegal and Legacy editions.
+
 ---
 
 ## Quick Sort & Destinations
@@ -149,7 +157,7 @@ Quick Sort folders are pre-configured target folders for fast file sorting. You 
 Open a file and select a destination on the command panel. Check whether the selected action is **Copy** or **Move** before confirming. Touch-zone positions vary with media type and player mode; do not assume the lower-left corner always copies.
 
 ### Can I use number keys instead of tapping?
-Yes - connect a hardware keyboard, gamepad, or TV remote and your Quick Sort buttons get numbered (0-9) automatically. Press the matching digit to copy or move the file to that destination instantly, same as tapping the button.
+Yes - connect a hardware keyboard or use a TV remote and your Quick Sort buttons get numbered (0-9) automatically. Press the matching digit to copy or move the file to that destination instantly, same as tapping the button. Without a keyboard the buttons show only their names.
 
 ### Quick Sort buttons are not showing
 Make sure you have added at least one destination folder first: Settings → Management → Quick Sort destinations, then **"Add to Quick Sort"**. Buttons only appear when at least one destination is configured.
@@ -169,6 +177,15 @@ Settings → Player → **"Always show touch zones overlay"**
 
 ### Can I disable Touch Zones?
 You can turn off the nine-zone grid and use the command panel. This does **not** disable every gesture: the three-column fallback retains navigation and media-specific controls; documents have their own swipe navigation.
+
+---
+
+## Video Playback
+
+### Why does the player offer to mute the sound when I slow a video down?
+Audio below 0.5x is hard to make out. So when you set a speed under 0.5x in **Playback settings** (the **Speed** tab, with a quick button or the slider), the player asks **Mute it?** Tap **Mute** to silence it, or **Keep audio** to leave it be.
+
+It asks once, not on every nudge of the slider: if you keep the audio, it asks again only after you have been back at 0.5x or faster. It does not ask when the sound is already off. To bring the sound back, use **Unmute** on the **Volume** tab - the previous volume returns. Speed changes made with keyboard shortcuts outside this dialog do not trigger the question.
 
 ---
 
@@ -204,7 +221,7 @@ Use the **Filter** panel in Browse: tap the filter icon in the toolbar, type any
 Large folders require listing, metadata and thumbnail work. Narrow the resource, use filters and reduce thumbnails on slow storage or networks. Sorting by date does **not** guarantee that the whole folder need not be scanned; performance depends on the source and file types.
 
 ### The app crashes or freezes
-Reopen the app and check available storage, permissions and resource connectivity. Cache clearing can help with stale thumbnails, but is not a general crash fix. For reproducible failures, report the app version/edition, Android version, affected resource and steps; redact credentials and private paths from logs.
+Reopen the app and check available storage, permissions and resource connectivity. Cache clearing can help with stale thumbnails, but is not a general crash fix. For reproducible failures, report the app version/edition, Android version, affected resource and steps; redact credentials and private paths from logs. The **Send feedback** program can attach the app's diagnostic logs to your report in one tap: [How to Send Feedback and Attach Logs](HOW_TO.html#how-to-send-feedback-and-attach-logs).
 
 ### How much storage does the thumbnail cache use?
 **Default:** 2 GB (configurable in Settings)
@@ -227,7 +244,7 @@ Main menu → **"Favorites"** tab
 ## Security & Privacy
 
 ### Can I password-protect folders?
-A resource **PIN** restricts access through the app's UI. It does **not encrypt files** or prevent another app or an authorized server user from opening them. Use device/storage encryption for protection outside FastMediaSorter.
+A resource **PIN** restricts access through the app's UI. It does **not encrypt files** or prevent another app or an authorized server user from opening them. Use device/storage encryption for protection outside Fast Media Sorter & Organizer.
 
 ### Is my data collected?
 The app does not automatically send usage statistics to the author. Optional statistics stay local unless you export or send them. Cloud sign-in, streams and weather contact the providers you choose; those services receive the requests needed for the feature. See the privacy policy for details.
@@ -244,6 +261,11 @@ Only if you turn it on. In **Settings → Management → Photography**, enable p
 
 ### Can I see how I use the app?
 Yes - it's opt-in and off by default: turn on **Statistics collection** in **Settings → General** to open a local usage dashboard: files sorted, space freed, playback time, and more, broken down by media type. Nothing is sent automatically; **Send to author** or **Export** only shares a summary if you choose to.
+
+### Can my other devices control this phone?
+Only if you turn it on, and only the way you allow. **External control** is off by default. When you switch on **Listen to commands from my other devices**, devices signed in to your own account can send commands to this phone, and each device gets only the kinds of commands you allow: a new device gets the safe ones, and everything else stays off until you choose **Ask each time** or **Always allow**.
+
+A request that needs your answer appears as a notification and on the External control screen; answer in either place. If you do not answer within 60 seconds, the command does not run. No command from another device can switch listening on or off or change what is allowed - that can only be done on this phone. Open the screen with **Settings → General → Access from anywhere → Open External control**. Step by step: [How to Use External Control from Your Other Devices](HOW_TO.html#how-to-use-external-control-from-your-other-devices).
 
 ---
 
@@ -294,7 +316,7 @@ Slideshow music needs audio support. Standard, noLegal, Legacy, VR, XR and FOSS 
 
 ## Internet Streams
 
-### Does FastMediaSorter play internet radio?
+### Does Fast Media Sorter & Organizer play internet radio? {#does-fastmediasorter-play-internet-radio}
 The **Streams** screen supports HTTP(S) radio with ICY metadata, HLS/DASH and RTSP sources, subject to source and codec compatibility. It is available in **Standard, noLegal, Legacy, VR and XR**, not **Lite, Photos or FOSS**. Unsupported services and DRM are not made playable just by pasting a URL.
 
 [Edition capability matrix (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
@@ -306,7 +328,7 @@ Tap **Streams** in the main window dropdown (visible when Streams is enabled). Y
 In the Streams screen, tap **⋮** at the end of the toolbar, choose **Add stream** and paste the station URL. Tap Save. The station appears in the list immediately.
 
 ### Can I import a playlist?
-Yes - tap **⋮ > Import from URL** and enter a remote `.m3u` address. The same menu holds **Update FastMediaSorter catalog** for the curated list (with topic and language chips), which is also available from **Settings > Extensions** or the Welcome onboarding screen.
+Yes - tap **⋮ > Import from URL** and enter a remote `.m3u` address. The same menu holds **Update Fast Media Sorter & Organizer catalog** for the curated list (with topic and language chips), which is also available from **Settings > Extensions** or the Welcome onboarding screen.
 
 ### A stream is not playing - what do I do?
 If a stream fails, a dialog appears with **Retry**, **Remove**, and **Cancel** options. Cross-protocol 301 redirects are handled automatically. If the host is dead or very slow, the catalog import times out quickly rather than hanging.
@@ -324,7 +346,7 @@ Yes, for video streams - tap **Cast** in the player and pick a Chromecast on the
 
 ## Wear OS
 
-### Does FastMediaSorter work on Wear OS smartwatches?
+### Does Fast Media Sorter & Organizer work on Wear OS smartwatches? {#does-fastmediasorter-work-on-wear-os-smartwatches}
 There is a separate **Wear OS app** (minimum API 28). Install its APK on the watch, not the phone. Phone companion support is currently in **Standard/noLegal** and requires compatible package identities/signatures. The separate **WFF v4 watch face** requires Wear OS 6 / API 36.
 
 [Edition capability matrix (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
@@ -412,6 +434,6 @@ Didn't find an answer above, or something isn't working as described? **Please r
 - 🐛 **Bug report:** [GitHub Issues](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues) - preferred for reproducible bugs; include Android version and what you were doing
 - 📖 **Full docs:** [Documentation Portal](https://serzhyale.github.io/FastMediaSorter_mob_v2/)
 
-> **Want a feature that isn't there yet?** Write - many features in the app were added because someone asked. If it makes sense for the use case, it gets built.
+> **Missing a feature?** Open an issue on [GitHub](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues) or write to sza@ukr.net.
 
 </div>

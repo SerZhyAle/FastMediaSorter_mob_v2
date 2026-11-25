@@ -110,6 +110,9 @@ $logEntry = "$timestamp | vr-release | $destName | $versionName"
 Add-Content -Path $journalPath -Value $logEntry
 Write-Host "Build logged to journal" -ForegroundColor Gray
 
+# S4679: record the build in the release ledger; the wrapper reports and never fails the build.
+& "$PSScriptRoot\..\utils\log-release-ledger-build.ps1" -Package phone -Flavor vr -Kind release -Version $versionName -Artifact "$downloadsDir\$destName"
+
 # This builder was the only one of the 24 that never mirrored (found 2026-08-23): every sibling
 # carried the delivery block this call replaced, so the Drive copy of vr-release silently stayed at
 # the April build while DOWNLOADS advanced to June. A mirror that is stale rather than absent is the

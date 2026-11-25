@@ -48,6 +48,14 @@ class StreamFailureClassTest {
     }
 
     @Test
+    fun `an untrusted certificate wins over the connection-failure code it arrives with`() {
+        assertEquals(
+            StreamFailureClass.UNTRUSTED_CERTIFICATE,
+            StreamFailureClass.classify(CODE_NET_FAILED, httpStatus = null, untrustedCertificate = true),
+        )
+    }
+
+    @Test
     fun `an absent HTTP status is never read as a healthy one`() {
         val withoutStatus = StreamFailureClass.classify(
             errorCode = CODE_BAD_HTTP_STATUS,

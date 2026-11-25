@@ -48,6 +48,9 @@ class DeviceSensorAvailabilityRepositoryImpl @Inject constructor(
         SensorCapability.MAGNETOMETER -> hasSensor(Sensor.TYPE_MAGNETIC_FIELD)
         // Gravity is the filtered vector; a raw accelerometer gives the same tilt at rest.
         SensorCapability.LEVEL -> hasSensor(Sensor.TYPE_GRAVITY) || hasSensor(Sensor.TYPE_ACCELEROMETER)
+        // S4560: the same pair AttitudeReadingSource reads, so an offered tile always gets a reading.
+        SensorCapability.ATTITUDE ->
+            hasSensor(Sensor.TYPE_GAME_ROTATION_VECTOR) || hasSensor(Sensor.TYPE_ROTATION_VECTOR)
     }
 
     /**

@@ -13,12 +13,12 @@ import javax.inject.Inject
 
 /**
  * UseCase for cleaning up orphaned temporary files (*.temp_copy) from atomic transfers.
- * 
+ *
  * Temporary files can remain if:
  * - App crashes during transfer
  * - Transfer was cancelled mid-operation
  * - Rename operation failed after copy
- * 
+ *
  * This UseCase runs on resource open to clean up any leftover temporary files.
  */
 class CleanupOrphanedTempFilesUseCase @Inject constructor(
@@ -26,10 +26,10 @@ class CleanupOrphanedTempFilesUseCase @Inject constructor(
     private val cloudFileOperationHandler: CloudFileOperationHandler,
     private val cloudPathParser: CloudPathParser
 ) {
-    
+
     /**
      * Clean up orphaned .temp_copy files in the specified directory.
-     * 
+     *
      * @param directoryPath Path to directory to clean
      * @return Result with count of deleted files or failure
      */
@@ -53,7 +53,6 @@ class CleanupOrphanedTempFilesUseCase @Inject constructor(
         // AtomicFileOperationStrategy, so no *.temp_copy is ever created there; and no strategy behind
         // SmbFileOperationHandler accepts a content URI, so listing it only produced a W-level stack trace.
         if (SafHelper.isContentUri(directoryPath)) {
-            Timber.d("S4540: temp cleanup skipped for a document-tree folder")
             Timber.d("CleanupOrphanedTempFilesUseCase: Skipping document-tree path: $directoryPath")
             return@withContext Result.success(0)
         }
@@ -68,43 +67,45 @@ class CleanupOrphanedTempFilesUseCase @Inject constructor(
                 directoryPath.startsWith("onedrive:", ignoreCase = true) -> cloudFileOperationHandler
                 else -> smbFileOperationHandler // Handles SMB, SFTP, FTP and filesystem paths
             }
-            
+
             Timber.d("CleanupOrphanedTempFilesUseCase: Using ${handler.javaClass.simpleName}")
-            
+
             // List all files in directory
             val filesResult = handler.listFiles(directoryPath)
-            
+
             if (filesResult.isFailure) {
-                Timber.w("CleanupOrphanedTempFilesUseCase: Failed to list files: ${filesResult.exceptionOrNull()?.message}")
+                Timber.w(
+                    "CleanupOrphanedTempFilesUseCase: Failed to list files: ${filesResult.exceptionOrNull()?.message}"
+                )
                 return@withContext Result.failure(
                     filesResult.exceptionOrNull() ?: Exception("Failed to list files")
                 )
             }
-            
+
             val allFiles = filesResult.getOrNull() ?: emptyList()
             Timber.d("CleanupOrphanedTempFilesUseCase: Found ${allFiles.size} total files")
-            
+
             // Filter for .temp_copy files
             val tempFiles = allFiles.filter { filePath ->
                 TempFileNamingStrategy.isTempFile(filePath)
             }
-            
+
             if (tempFiles.isEmpty()) {
                 Timber.d("CleanupOrphanedTempFilesUseCase: No orphaned temp files found")
                 return@withContext Result.success(0)
             }
-            
+
             Timber.i("CleanupOrphanedTempFilesUseCase: Found ${tempFiles.size} orphaned temp files to delete")
-            
+
             // Delete each temp file
             var deletedCount = 0
             val errors = mutableListOf<String>()
-            
+
             tempFiles.forEach { tempFilePath ->
                 Timber.d("CleanupOrphanedTempFilesUseCase: Deleting orphaned temp file: $tempFilePath")
-                
+
                 val deleteResult = handler.deleteFile(tempFilePath)
-                
+
                 if (deleteResult.isSuccess) {
                     deletedCount++
                     Timber.d("CleanupOrphanedTempFilesUseCase: Successfully deleted: $tempFilePath")
@@ -114,15 +115,20 @@ class CleanupOrphanedTempFilesUseCase @Inject constructor(
                     Timber.w("CleanupOrphanedTempFilesUseCase: $error")
                 }
             }
-            
+
             if (errors.isNotEmpty()) {
-                Timber.w("CleanupOrphanedTempFilesUseCase: Cleanup completed with errors. Deleted: $deletedCount, Failed: ${errors.size}")
+                Timber.w(
+                    "CleanupOrphanedTempFilesUseCase: Cleanup completed with errors. " +
+                        "Deleted: $deletedCount, Failed: ${errors.size}"
+                )
                 return@withContext Result.success(deletedCount)
             }
-            
-            Timber.i("CleanupOrphanedTempFilesUseCase: Cleanup completed successfully. Deleted $deletedCount orphaned temp files")
+
+            Timber.i(
+                "CleanupOrphanedTempFilesUseCase: Cleanup completed successfully. " +
+                    "Deleted $deletedCount orphaned temp files"
+            )
             Result.success(deletedCount)
-            
         } catch (e: kotlinx.coroutines.CancellationException) {
             Timber.d("CleanupOrphanedTempFilesUseCase: Cleanup cancelled")
             throw e

@@ -20,6 +20,13 @@ internal enum class StreamFailureClass {
 
     /** Nothing observed justifies another attempt - the failure belongs in front of the user. */
     NOT_RETRYABLE,
+
+    /**
+     * The TLS handshake was refused because the server's certificate is not trusted (STREAM-BANK 2.10,
+     * `06` section 2.5). Media3 reports it as a connection failure, but every attempt meets the same
+     * certificate, so it is hard rather than transient.
+     */
+    UNTRUSTED_CERTIFICATE,
     ;
 
     companion object {
@@ -63,8 +70,16 @@ internal enum class StreamFailureClass {
          * [httpStatus] is null when no status was observed - a code that is not a bad-HTTP-status
          * error, or one whose `cause` chain carried no response code. Per ADR-4 that absence is its
          * own answer and never stands in for a healthy status.
+         *
+         * [untrustedCertificate] wins over every code: the connection-failure code it arrives with
+         * would otherwise read as a transient network failure.
          */
-        fun classify(errorCode: Int, httpStatus: Int?): StreamFailureClass = when {
+        fun classify(
+            errorCode: Int,
+            httpStatus: Int?,
+            untrustedCertificate: Boolean = false,
+        ): StreamFailureClass = when {
+            untrustedCertificate -> UNTRUSTED_CERTIFICATE
             errorCode == ERROR_CODE_BEHIND_LIVE_WINDOW -> BEHIND_LIVE_WINDOW
             // Checked before the IO range that contains it: the status, not the code, decides here.
             errorCode == ERROR_CODE_IO_BAD_HTTP_STATUS -> classifyHttpStatus(httpStatus)

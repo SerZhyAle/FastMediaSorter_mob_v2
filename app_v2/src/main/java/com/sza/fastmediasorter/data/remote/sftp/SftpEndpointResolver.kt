@@ -160,6 +160,21 @@ class SftpEndpointResolver @Inject constructor(
     fun resolveCached(host: String, port: Int): HostPort =
         winnerByRequested[key(host, port)] ?: HostPort(host, port)
 
+    /**
+     * SHARE-SESSION 1.4 item A.4: the winner is state of the session it opened. The pool redials the lost
+     * endpoint on its own bounded ladder but holds no candidate list, so it reports the loss here and the next
+     * open of the resource, a Refresh included, races every stored path instead of trusting the dead winner.
+     */
+    fun forgetWinner(host: String, port: Int) {
+        val lost = HostPort(host, port)
+        Timber.d("S4644: transport lost, forgetting winner ${forLog(host)}:$port")
+        val keys = winnerByRequested.filterValues { it == lost }.keys + key(host, port)
+        keys.forEach { requestedKey ->
+            winnerByRequested.remove(requestedKey)
+            fallbackUntilMs.remove(requestedKey)
+        }
+    }
+
     override fun onNetworkChanged() = forgetEpoch()
 
     override fun onNetworkLost() = forgetEpoch()

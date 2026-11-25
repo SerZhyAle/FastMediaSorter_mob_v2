@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- S4554: the composer form shared by both orientations of dialog_ticket_composer.xml.
-     Focus order: text -> voice -> attach -> attachments -> project. -->
+     Focus order: text -> voice -> attach -> attachments -> project -> destination. S4663 added the
+     destination selector; both orientations include this one file, so no layout-land twin exists. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -21,30 +22,31 @@
             android:nextFocusDown="@+id/btnTicketVoice" />
     </com.google.android.material.textfield.TextInputLayout>
 
+    <!-- Stacked, not side by side: in a horizontal row a long localized voice label took the whole
+         width and crushed the attach button into a tall empty sliver. -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/margin_small"
-        android:orientation="horizontal">
+        android:orientation="vertical">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnTicketVoice"
             style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/margin_small"
             android:minHeight="@dimen/touch_target_min_height"
-            android:nextFocusRight="@+id/btnTicketAttach"
+            android:nextFocusUp="@+id/etTicketText"
             android:nextFocusDown="@+id/btnTicketAttach"
             android:text="@string/ticket_inbox_record_voice" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnTicketAttach"
             style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minHeight="@dimen/touch_target_min_height"
-            android:nextFocusLeft="@+id/btnTicketVoice"
+            android:nextFocusUp="@+id/btnTicketVoice"
             android:nextFocusDown="@+id/spinnerTicketProject"
             android:text="@string/ticket_inbox_attach" />
     </LinearLayout>
@@ -78,6 +80,7 @@
         android:contentDescription="@string/ticket_inbox_project_label"
         android:focusable="true"
         android:minHeight="@dimen/touch_target_min_height"
+        android:nextFocusDown="@+id/spinnerTicketDestination"
         android:nextFocusUp="@+id/btnTicketAttach" />
 
     <TextView
@@ -87,4 +90,28 @@
         android:text="@string/ticket_inbox_projects_unavailable"
         android:textAppearance="@style/TextAppearance.FastMediaSorter.HelperText"
         android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/ticketDestinationRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:labelFor="@+id/spinnerTicketDestination"
+            android:text="@string/ticket_inbox_destination_label" />
+
+        <Spinner
+            android:id="@+id/spinnerTicketDestination"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/ticket_inbox_destination_label"
+            android:focusable="true"
+            android:minHeight="@dimen/touch_target_min_height"
+            android:nextFocusDown="@+id/btnTicketRefresh"
+            android:nextFocusUp="@+id/spinnerTicketProject" />
+    </LinearLayout>
 </LinearLayout>

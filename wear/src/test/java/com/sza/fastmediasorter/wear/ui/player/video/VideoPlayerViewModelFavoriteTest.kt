@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.wear.ui.player.video
 
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
+import com.sza.fastmediasorter.wear.data.network.FakeWearNetworkChannelMonitor
 import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.domain.model.WearFavoriteRecord
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
@@ -118,6 +119,8 @@ class VideoPlayerViewModelFavoriteTest {
         fileOperations = fileOperations,
         castManager = mockk(relaxed = true),
         batteryWarningStore = mockk(relaxed = true),
+        walkBroadcastEndpoints = mockk(relaxed = true),
+        networkChannelMonitor = FakeWearNetworkChannelMonitor(),
         savedStateHandle = SavedStateHandle(mapOf("fileId" to OPENED_ID)),
         context = mockk(relaxed = true),
         applicationScope = this

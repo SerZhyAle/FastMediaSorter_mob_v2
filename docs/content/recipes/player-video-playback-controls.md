@@ -11,11 +11,11 @@ availability_note: All editions except Photos; saving frames and color controls 
 recipe_number: "01"
 canonical_url: documentation/player/video-playback-controls.html
 why: |
-  Most video players are made for one film on a Friday evening. FastMediaSorter's [video player](term:video-player) is also made for the other job: a folder with two hundred clips from the phone, a holiday, a dashcam or a security camera, where you want to look at each one for a few seconds, keep the good ones and throw the rest away.
+  Most video players are made for one film on a Friday evening. Fast Media Sorter & Organizer's [video player](term:video-player) is also made for the other job: a folder with two hundred clips from the phone, a holiday, a dashcam or a security camera, where you want to look at each one for a few seconds, keep the good ones and throw the rest away.
 
   So the player does two things at once. It plays the video with everything you expect - full screen, speed, resume - and it keeps your sorting tools one tap away: next, previous, copy, move, delete.
 ingredients:
-  - "FastMediaSorter in the Standard, noLegal, Lite, Legacy, VR or FOSS [edition](term:edition). The Photos edition does not play video."
+  - "Fast Media Sorter & Organizer in the Standard, noLegal, Lite, Legacy, VR or FOSS [edition](term:edition). The Photos edition does not play video."
   - "A [resource](term:resource) with videos, for example the [All Videos](term:all-videos) collection, a folder on the phone or a [network folder](term:network-folder)."
   - "Optional: a [TV](term:tv) box or a car head unit with a remote - everything here works with a [D-pad](term:d-pad) too."
 steps:
@@ -134,9 +134,9 @@ steps:
     id: from-other-apps
     title: Videos opened from other apps
     text: |
-      When you open a video from a messenger, a file manager or a download, Android can let FastMediaSorter play it in a separate, simpler player window (not in the Lite edition). It keeps the picture and the sound through a screen rotation, keeps your pause when you switch apps and come back, and continues where it was when the file is renamed.
+      When you open a video from a messenger, a file manager or a download, Android can let Fast Media Sorter & Organizer play it in a separate, simpler player window (not in the Lite edition). It keeps the picture and the sound through a screen rotation, keeps your pause when you switch apps and come back, and continues where it was when the file is renamed.
 
-      The same simple window opens pictures, music, documents and text from other apps. Its **Copy to** and **Move to** buttons file the item straight into one of your destinations; copying keeps the window open, moving closes it. For pictures it can also **Print**. **Open in FastMediaSorter** switches to the full app. To make FastMediaSorter the default player, see [first launch and setup](page:getting-started.welcome-and-setup).
+      The same simple window opens pictures, music, documents and text from other apps. Its **Copy to** and **Move to** buttons file the item straight into one of your destinations; copying keeps the window open, moving closes it. For pictures it can also **Print**. **Open in Fast Media Sorter & Organizer** switches to the full app. To make Fast Media Sorter & Organizer the default player, see [first launch and setup](page:getting-started.welcome-and-setup).
 outcome: |
   You can watch a whole folder of videos without reaching for tiny buttons: tap or swipe to move on, zoom into the details, save the best moments as pictures, and file each video away as you go - and the player remembers where you stopped.
 tips:

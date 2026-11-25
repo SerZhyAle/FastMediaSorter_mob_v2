@@ -12,6 +12,9 @@ data class WearStreamPlaybackTarget(
     // S4261: a handed-off broadcast no endpoint of which plays from here; nothing was selected, so a caller
     // shows why instead of navigating.
     val unplayable: Boolean = false,
+    // S4692: the broadcast of a handed-off link has not started, or its link expired; the caller opens the waiting
+    // screen. Always set together with [unplayable], so a caller that knows only that one opens no player.
+    val waitingForStart: Boolean = false,
 )
 
 /**

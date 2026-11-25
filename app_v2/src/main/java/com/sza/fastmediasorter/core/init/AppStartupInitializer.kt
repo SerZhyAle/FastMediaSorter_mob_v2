@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.core.coordinator.RemoteSourceDisableCoordinator
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.playback.RadioStreamBufferConfig
 import com.sza.fastmediasorter.core.util.CacheStatusHelper
+import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.input.DefaultsMapLoader
@@ -31,7 +32,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -281,6 +284,22 @@ class AppStartupInitializer @Inject constructor(
      */
     suspend fun renameVirtualResources() {
         runDeferredTask("rename-virtual-resources") { renameVirtualResourcesUseCase.get().invoke() }
+    }
+
+    /**
+     * S4702: a live language switch re-creates the activities but never the process, so
+     * [renameVirtualResources] would not run again until the next cold start and the folder list kept
+     * the previous language. Every writer of the interface language bumps [LocaleHelper.languageRevision],
+     * which makes it the one signal that covers all of them. `drop(1)` skips the value current at
+     * subscription: the startup pass already handles that language. `collectLatest` abandons a pass the
+     * next switch made obsolete - the use case rethrows cancellation and the following pass starts over
+     * from the stored rows.
+     */
+    suspend fun observeLanguageChanges() {
+        LocaleHelper.languageRevision.drop(1).collectLatest { revision ->
+            Timber.d("S4702: language revision $revision -> renaming virtual resources")
+            renameVirtualResources()
+        }
     }
 
     /**

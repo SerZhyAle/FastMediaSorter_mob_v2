@@ -156,7 +156,11 @@ class BackupRestoreViewModel @Inject constructor(
     fun startSignIn(activity: Activity) {
         viewModelScope.launch {
             _uiState.value = BackupRestoreUiState.Authenticating
-            val result = identityRepository.signInPrimary(activity, GoogleDriveAuthPlugin.DRIVE_SIGN_IN_SCOPES)
+            val result = identityRepository.signInPrimary(
+                activity,
+                GoogleDriveAuthPlugin.DRIVE_SIGN_IN_SCOPES,
+                preferAccountChooser = true
+            )
             when (result) {
                 is IdentitySignInResult.Success -> {
                     when (pendingAction) {

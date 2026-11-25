@@ -1,141 +1,167 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- A dialog window whose content cannot scroll is panned, not resized, by the soft keyboard, which leaves
+     the OK button underneath it; the ScrollView is what makes the window resize and the fields scroll. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:paddingStart="24dp"
-    android:paddingEnd="24dp"
-    android:paddingTop="16dp"
-    android:paddingBottom="8dp">
+    android:layout_height="wrap_content">
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/tilUrl"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/streams_add_url_hint"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etUrl"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textUri"
-            android:maxLines="1"
-            android:imeOptions="actionNext|flagNoExtractUi" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <!-- S4406: shown for a manual add on a device with a camera only; the host decides. The code is the
-         one a live broadcast shows, so another own device can be joined without typing its address. -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnScanBroadcastQr"
-        style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/token_spacing_8"
-        android:clickable="true"
-        android:focusable="true"
-        android:text="@string/broadcast_import_option_qr"
-        android:visibility="gone"
-        app:icon="@drawable/ic_qr_scan" />
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/tilTitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:hint="@string/streams_title_hint"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textCapSentences"
-            android:maxLines="1"
-            android:imeOptions="actionDone|flagNoExtractUi" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <!-- S1145: media-kind override, shown only in edit mode (hidden for add/import). -->
     <LinearLayout
-        android:id="@+id/mediaKindContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_marginTop="12dp"
-        android:visibility="gone">
+        android:paddingStart="@dimen/token_spacing_24"
+        android:paddingEnd="@dimen/token_spacing_24"
+        android:paddingTop="@dimen/token_spacing_16"
+        android:paddingBottom="@dimen/token_spacing_8">
 
-        <TextView
-            android:id="@+id/tvMediaKindLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/streams_edit_type_label"
-            android:textAppearance="?attr/textAppearanceLabelLarge" />
-
-        <com.google.android.material.button.MaterialButtonToggleGroup
-            android:id="@+id/toggleMediaKind"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilUrl"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            app:singleSelection="true"
-            app:selectionRequired="true">
+            android:hint="@string/streams_add_url_hint"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnKindAuto"
-                style="?attr/materialButtonOutlinedStyle"
-                android:layout_width="0dp"
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etUrl"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/streams_edit_type_auto" />
+                android:inputType="textUri"
+                android:maxLines="1"
+                android:imeOptions="actionNext|flagNoExtractUi" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnKindAudio"
-                style="?attr/materialButtonOutlinedStyle"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/streams_edit_type_audio" />
+        <!-- S4406: shown for a manual add on a device with a camera only; the host decides. The code is the
+             one a live broadcast shows, so another own device can be joined without typing its address. -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnScanBroadcastQr"
+            style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/token_spacing_8"
+            android:clickable="true"
+            android:focusable="true"
+            android:text="@string/broadcast_import_option_qr"
+            android:visibility="gone"
+            app:icon="@drawable/ic_qr_scan" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnKindVideo"
-                style="?attr/materialButtonOutlinedStyle"
-                android:layout_width="0dp"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/token_spacing_8"
+            android:hint="@string/streams_title_hint"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etTitle"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/streams_edit_type_video" />
-        </com.google.android.material.button.MaterialButtonToggleGroup>
+                android:inputType="textCapSentences"
+                android:maxLines="1"
+                android:imeOptions="actionNext|flagNoExtractUi" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- S4606: the user's own free-text category for the channel; shown for a manual add and an edit, hidden
+             for a playlist import like the title above. It is the last typed field, so it owns the Done action. -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilCategory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/token_spacing_8"
+            android:hint="@string/streams_category_hint"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etCategory"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textCapSentences"
+                android:maxLines="1"
+                android:imeOptions="actionDone|flagNoExtractUi" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- S1145: media-kind override, shown only in edit mode (hidden for add/import). -->
+        <LinearLayout
+            android:id="@+id/mediaKindContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="@dimen/token_spacing_12"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tvMediaKindLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/streams_edit_type_label"
+                android:textAppearance="?attr/textAppearanceLabelLarge" />
+
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/toggleMediaKind"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/token_spacing_4"
+                app:singleSelection="true"
+                app:selectionRequired="true">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnKindAuto"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/streams_edit_type_auto" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnKindAudio"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/streams_edit_type_audio" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnKindVideo"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/streams_edit_type_video" />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+        </LinearLayout>
+
+        <!-- S1144: per-channel track preference. Shown in both add and edit so a channel can be given its
+             languages up front; "Default" means follow the global stream defaults (ADR-4). -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsValueRowGroup
+            android:id="@+id/trackPreferenceContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/token_spacing_12">
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                android:id="@+id/rowChannelAudioLanguage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:sdr_inline="true"
+                app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+                app:sdr_title="@string/stream_channel_audio_language" />
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                android:id="@+id/rowChannelSubtitleLanguage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:sdr_inline="true"
+                app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+                app:sdr_title="@string/stream_channel_subtitle_language" />
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                android:id="@+id/rowChannelSubtitles"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:sdr_inline="true"
+                app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+                app:sdr_title="@string/subtitle_track" />
+        </com.sza.fastmediasorter.ui.common.widget.SettingsValueRowGroup>
     </LinearLayout>
-
-    <!-- S1144: per-channel track preference. Shown in both add and edit so a channel can be given its
-         languages up front; "Default" means follow the global stream defaults (ADR-4). -->
-    <com.sza.fastmediasorter.ui.common.widget.SettingsValueRowGroup
-        android:id="@+id/trackPreferenceContainer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp">
-
-        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-            android:id="@+id/rowChannelAudioLanguage"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:sdr_inline="true"
-            app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
-            app:sdr_title="@string/stream_channel_audio_language" />
-
-        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-            android:id="@+id/rowChannelSubtitleLanguage"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:sdr_inline="true"
-            app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
-            app:sdr_title="@string/stream_channel_subtitle_language" />
-
-        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-            android:id="@+id/rowChannelSubtitles"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:sdr_inline="true"
-            app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
-            app:sdr_title="@string/subtitle_track" />
-    </com.sza.fastmediasorter.ui.common.widget.SettingsValueRowGroup>
-</LinearLayout>
+</ScrollView>

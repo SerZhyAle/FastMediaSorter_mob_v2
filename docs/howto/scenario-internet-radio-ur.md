@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "انٹرنیٹ ریڈیو اور اسٹریمز - FastMediaSorter v2"
+title: "انٹرنیٹ ریڈیو اور اسٹریمز - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-internet-radio-ur.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -11,7 +11,7 @@ permalink: /docs/howto/scenario-internet-radio-ur.html
 
 > **سطح:** ابتدائی - **وقت:** ~10 منٹ - **فلیور:** Standard, Legacy, VR, noLegal (Streams، Lite اور Photos میں موجود نہیں ہیں)
 
-FastMediaSorter میں انٹرنیٹ آڈیو اور ویڈیو سورسز کے لیے ایک مخصوص Streams اسکرین شامل ہے۔ کوئی بھی انٹرنیٹ ریڈیو URL شامل کریں، ایک .m3u پلے لسٹ درآمد کریں، یا ایک منتخب کردہ اسٹیشن کیٹلاگ براؤز کریں - کسی الگ ریڈیو ایپ کی ضرورت نہیں۔ Android کار ہیڈ یونٹس، آڈیو پلیئرز، فونز، اور ٹیبلٹس پر بہترین کام کرتا ہے۔
+Fast Media Sorter & Organizer میں انٹرنیٹ آڈیو اور ویڈیو سورسز کے لیے ایک مخصوص Streams اسکرین شامل ہے۔ کوئی بھی انٹرنیٹ ریڈیو URL شامل کریں، ایک .m3u پلے لسٹ درآمد کریں، یا ایک منتخب کردہ اسٹیشن کیٹلاگ براؤز کریں - کسی الگ ریڈیو ایپ کی ضرورت نہیں۔ Android کار ہیڈ یونٹس، آڈیو پلیئرز، فونز، اور ٹیبلٹس پر بہترین کام کرتا ہے۔
 
 > **متبادل:** انٹرنیٹ ریڈیو یا اسٹریم چلانے کی الگ ایپ۔
 
@@ -20,7 +20,7 @@ FastMediaSorter میں انٹرنیٹ آڈیو اور ویڈیو سورسز کے
 ## آپ کو کیا درکار ہوگا
 
 - نیٹ ورک کنکشن (موبائل ڈیٹا یا Wi-Fi) والی Android ڈیوائس
-- FastMediaSorter Standard، Legacy، VR، یا noLegal (Streams اسکرین، Lite اور Photos میں موجود نہیں ہے)
+- Fast Media Sorter & Organizer Standard، Legacy، VR، یا noLegal (Streams اسکرین، Lite اور Photos میں موجود نہیں ہے)
 - ایک اسٹریم URL، .m3u پلے لسٹ فائل یا URL، یا بلٹ ان منتخب کردہ کیٹلاگ
 
 ---

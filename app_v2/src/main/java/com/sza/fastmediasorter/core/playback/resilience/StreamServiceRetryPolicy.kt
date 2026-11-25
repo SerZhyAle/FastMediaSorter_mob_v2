@@ -3,12 +3,13 @@ package com.sza.fastmediasorter.core.playback.resilience
 /**
  * One playback failure at either audio site, reduced to plain values (S1513).
  *
- * Shared by both audio ladders because they observe the identical pair: the error code and nothing
- * else - neither has ever walked the `cause` chain for a response code.
+ * [httpStatus] is the response code read off the `cause` chain, null when none was observed - always
+ * null on a `MediaController`, whose copy of the error lost its cause crossing the session (S4641).
  */
 internal data class StreamAudioFailure(
     val failureClass: StreamFailureClass,
     val errorCode: Int,
+    val httpStatus: Int? = null,
 )
 
 /** The flat code range both audio sites accept; the classifier's own IO range is private to it. */
@@ -16,21 +17,20 @@ private val AUDIO_IO_ERROR_CODES =
     StreamFailureClass.ERROR_CODE_IO_UNSPECIFIED..StreamFailureClass.ERROR_CODE_IO_READ_POSITION_OUT_OF_RANGE
 
 /**
- * Whether either audio ladder would spend a retry on this failure, moved verbatim from the two
- * `errorCode in IO_UNSPECIFIED..IO_READ_POSITION_OUT_OF_RANGE` checks.
+ * Whether either audio ladder would spend a retry on this failure.
  *
- * The bad-HTTP-status code is the trap this phase exists to avoid: it lies inside that range, so both
- * sites retry it today without ever looking at a status, while the classifier routes it to its HTTP
- * branch and - with no status observed - answers `NOT_RETRYABLE`. Reading that as "give up" would stop
- * retrying a failure both sites retry, which strategic §2 forbids, so here the code decides and the
- * class does not. `TRANSIENT_NETWORK` is narrowed for the mirror-image reason - it also covers the
- * timeout code, outside the range and never accepted here.
+ * STREAM-BANK 2.10 `06` section 2.5: an observed 4xx other than 429 and an untrusted certificate are
+ * hard. A bad-HTTP-status code whose status was NOT observed keeps the old answer and retries: on the
+ * service path the screen sees exactly that, and the service, which holds the real cause, decides and
+ * forwards the verdict (S4641). `TRANSIENT_NETWORK` is narrowed because it also covers the timeout
+ * code, outside the range and never accepted here.
  */
 internal fun StreamAudioFailure.isRetryableAtAudioSite(): Boolean = when (failureClass) {
     StreamFailureClass.TRANSIENT_NETWORK -> errorCode in AUDIO_IO_ERROR_CODES
     StreamFailureClass.RETRYABLE_HTTP_STATUS -> true
-    StreamFailureClass.NOT_RETRYABLE -> errorCode == StreamFailureClass.ERROR_CODE_IO_BAD_HTTP_STATUS
-    StreamFailureClass.BEHIND_LIVE_WINDOW -> false
+    StreamFailureClass.NOT_RETRYABLE ->
+        errorCode == StreamFailureClass.ERROR_CODE_IO_BAD_HTTP_STATUS && httpStatus == null
+    StreamFailureClass.BEHIND_LIVE_WINDOW, StreamFailureClass.UNTRUSTED_CERTIFICATE -> false
 }
 
 /**

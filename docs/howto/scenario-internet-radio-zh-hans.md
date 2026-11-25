@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "网络电台与串流 - FastMediaSorter v2"
+title: "网络电台与串流 - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-internet-radio-zh-hans.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -11,7 +11,7 @@ permalink: /docs/howto/scenario-internet-radio-zh-hans.html
 
 > **难度：** 入门 - **用时：** 约 10 分钟 - **版本：** Standard、Legacy、VR、noLegal（Lite 和 Photos 没有串流功能）
 
-FastMediaSorter 内置了专门的串流界面，用于网络音频和视频源。添加任意网络电台网址、导入 .m3u 播放列表，或浏览精选电台目录 - 无需单独安装电台应用。在 Android 车机、音频播放器、手机和平板上都能出色运行。
+Fast Media Sorter & Organizer 内置了专门的串流界面，用于网络音频和视频源。添加任意网络电台网址、导入 .m3u 播放列表，或浏览精选电台目录 - 无需单独安装电台应用。在 Android 车机、音频播放器、手机和平板上都能出色运行。
 
 > **可以替代：** 单独的网络电台或串流播放应用。
 
@@ -20,7 +20,7 @@ FastMediaSorter 内置了专门的串流界面，用于网络音频和视频源�
 ## 你需要准备什么
 
 - 具有网络连接（移动数据或 Wi-Fi）的 Android 设备
-- FastMediaSorter Standard、Legacy、VR 或 noLegal 版本（Lite 和 Photos 没有串流界面）
+- Fast Media Sorter & Organizer Standard、Legacy、VR 或 noLegal 版本（Lite 和 Photos 没有串流界面）
 - 一个串流网址、.m3u 播放列表文件或网址，或使用内置的精选目录
 
 ---

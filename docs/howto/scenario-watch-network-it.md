@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Collega lo smartwatch a NAS e condivisioni PC - FastMediaSorter v2"
+title: "Collega lo smartwatch a NAS e condivisioni PC - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-watch-network-it.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -13,7 +13,7 @@ permalink: /docs/howto/scenario-watch-network-it.html
 
 > **Solo versione completa** - questa guida non è implementata nella versione distribuita tramite Google Play. Si applica alla versione completa, un download diretto dell'APK da [Download](../DOWNLOADS.md).
 
-FastMediaSorter su Wear OS si collega direttamente all'archiviazione di rete di casa tua (NAS, cartelle condivise del PC, server FTP o SFTP) via Wi-Fi. Puoi sfogliare file remoti, trasmettere musica a cuffie Bluetooth e sincronizzare le tue cartelle preferite senza bisogno del telefono.
+Fast Media Sorter & Organizer su Wear OS si collega direttamente all'archiviazione di rete di casa tua (NAS, cartelle condivise del PC, server FTP o SFTP) via Wi-Fi. Puoi sfogliare file remoti, trasmettere musica a cuffie Bluetooth e sincronizzare le tue cartelle preferite senza bisogno del telefono.
 
 > **Nuovo alle condivisioni di rete?** Se non hai ancora configurato una cartella condivisa sul tuo PC o NAS, inizia prima con la nostra guida [Collegati a NAS / condivisione Windows (SMB)](scenario-smb-setup-it.md).
 
@@ -36,7 +36,7 @@ FastMediaSorter su Wear OS si collega direttamente all'archiviazione di rete di 
 
 ![Schermata Risorse su Wear OS](screenshots/screenshot-wear-network-step1.png)
 
-> **Scorciatoia Sincronizza dal telefono:** Se hai già aggiunto le tue condivisioni SMB o SFTP in FastMediaSorter sul telefono Android, tocca **Sincronizza dal telefono** per importare tutte le impostazioni di connessione sull'orologio con un tocco.
+> **Scorciatoia Sincronizza dal telefono:** Se hai già aggiunto le tue condivisioni SMB o SFTP in Fast Media Sorter & Organizer sul telefono Android, tocca **Sincronizza dal telefono** per importare tutte le impostazioni di connessione sull'orologio con un tocco.
 
 ---
 

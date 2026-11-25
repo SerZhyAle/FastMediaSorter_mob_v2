@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.databinding.DialogAddStreamBinding
 import com.sza.fastmediasorter.domain.model.StreamTrackLanguage
 import com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.launch
@@ -35,7 +36,7 @@ object StreamEditDialog {
     class Callbacks(
         val readTrackPreference: suspend (String) -> StreamTrackPreferenceUseCase.TrackPreference?,
         val writeTrackPreference: (String, String?, String?, Boolean?) -> Unit,
-        val onEdit: (StreamSourceEntity, String, String?, String?) -> Unit,
+        val onEdit: (StreamSourceEntity, String, String?, String?, String?) -> Unit,
     )
 
     /**
@@ -66,6 +67,9 @@ object StreamEditDialog {
         binding.tilTitle.isVisible = true
         binding.etUrl.setText(source.url)
         binding.etTitle.setText(source.title)
+        // S4606: the field is pre-filled with the stored label, so an untouched save writes it back unchanged.
+        binding.tilCategory.isVisible = true
+        binding.etCategory.setText(source.category)
         // S1145: the type override is edit-only.
         binding.mediaKindContainer.isVisible = true
         when (kindOptionOf(source)) {
@@ -90,16 +94,22 @@ object StreamEditDialog {
                     else -> null
                 }
                 val editedUrl = binding.etUrl.text?.toString().orEmpty().trim()
-                callbacks.onEdit(source, editedUrl, binding.etTitle.text?.toString(), kindOverride)
+                callbacks.onEdit(
+                    source,
+                    editedUrl,
+                    binding.etTitle.text?.toString(),
+                    kindOverride,
+                    binding.etCategory.text?.toString(),
+                )
                 // The preference is keyed by URL, so it follows whatever URL the row ends up with.
                 if (editedUrl.isNotEmpty()) writeTrackPreference(editedUrl)
             }
             .setNegativeButton(R.string.cancel, null)
             .create()
-        DialogKeyboardDelegate.applyTo(dialog) {
+        DialogKeyboardDelegate.applyTo(dialog, onHelp = null, helpSurfaceId = "dialog_add_stream") {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()
         }
-        dialog.showBoundToHost(activity)
+        dialog.showBoundToHost(activity)?.let { DialogHelpEntryManager.installButton(it, "dialog_add_stream") }
         binding.etUrl.requestFocus()
     }
 

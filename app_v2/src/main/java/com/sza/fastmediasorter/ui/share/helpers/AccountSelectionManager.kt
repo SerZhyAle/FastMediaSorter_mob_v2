@@ -16,14 +16,20 @@ class AccountSelectionManager(
     private val repository: AuthSessionRepository,
 ) {
 
+    /**
+     * A record without its host's session cookie is left out before the size branch (S4876): it cannot
+     * sign a download in, so it must neither fill the picker nor win the single-record auto-select.
+     * The settings list keeps it, so the owner can still remove it there.
+     */
     suspend fun selectAccount(
         host: String,
         activity: AppCompatActivity,
         onSelected: (AuthAccountDomain) -> Unit,
         onNoneAvailable: () -> Unit,
         onCancelled: () -> Unit,
+        onAddAccount: (() -> Unit)? = null,
     ) {
-        val accounts = repository.listAccountsForHost(host).filter { !it.isDismissed }
+        val accounts = repository.listAccountsForHost(host).filter { !it.isDismissed && it.hasSessionCookie }
         Timber.i("AccountSelectionManager: host=%s accounts=%d", host, accounts.size)
         when {
             accounts.isEmpty() -> onNoneAvailable()
@@ -32,7 +38,7 @@ class AccountSelectionManager(
                 markSelected(selected)
                 onSelected(selected)
             }
-            else -> showPicker(host, accounts, activity, onSelected, onCancelled)
+            else -> showPicker(host, accounts, activity, onSelected, onCancelled, onAddAccount)
         }
     }
 
@@ -42,6 +48,7 @@ class AccountSelectionManager(
         activity: AppCompatActivity,
         onSelected: (AuthAccountDomain) -> Unit,
         onCancelled: () -> Unit,
+        onAddAccount: (() -> Unit)?,
     ) {
         val defaultIndex = run {
             val lastUsedIndex = accounts.indexOfFirst { it.lastUsedAt != null }
@@ -53,8 +60,14 @@ class AccountSelectionManager(
             lastUsedIndex ?: 0
         }
         val lastUsedLabel = activity.getString(R.string.s0155_pick_account_last_used)
-        val labels = accounts.mapIndexed { index, account ->
+        val accountLabels = accounts.mapIndexed { index, account ->
             if (index == defaultIndex) "${account.displayName} $lastUsedLabel" else account.displayName
+        }
+        // The add row sits after every account, so its index equals accounts.size and it is never the preselection.
+        val labels = if (onAddAccount != null) {
+            accountLabels + activity.getString(R.string.s4581_pick_account_add_new)
+        } else {
+            accountLabels
         }.toTypedArray()
 
         var selectedIndex = defaultIndex
@@ -65,6 +78,12 @@ class AccountSelectionManager(
                 selectedIndex = which
             }
             .setPositiveButton(R.string.ok) { _, _ ->
+                if (onAddAccount != null && selectedIndex == accounts.size) {
+                    Timber.i("AccountSelectionManager: user chose add account host=%s", host)
+                    Timber.d("S4581: picker add row chosen host=%s", host)
+                    onAddAccount()
+                    return@setPositiveButton
+                }
                 val chosen = accounts[selectedIndex]
                 Timber.i("AccountSelectionManager: user selected host=%s accountId=%s", host, chosen.accountId)
                 activity.lifecycleScope.launch {

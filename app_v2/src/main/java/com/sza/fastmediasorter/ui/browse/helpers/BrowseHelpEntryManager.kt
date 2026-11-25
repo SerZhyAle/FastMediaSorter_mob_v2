@@ -7,7 +7,7 @@ import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 
 /**
- * The file browser's one way to open its help. F1 and the overflow "Help" item both call it, so they
+ * The file browser's one way to open its help. F1 and the header "?" button both call it, so they
  * give one answer (contract `CONTEXT-HELP` rule 3).
  */
 object BrowseHelpEntryManager {

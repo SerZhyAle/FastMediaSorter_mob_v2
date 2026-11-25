@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "একটি কোড স্ক্যান করে আপনার পিসির ফোল্ডার খুলুন - FastMediaSorter v2"
+title: "একটি কোড স্ক্যান করে আপনার পিসির ফোল্ডার খুলুন - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-companion-share-bn.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -56,7 +56,7 @@ permalink: /docs/howto/scenario-companion-share-bn.html
 
 ## ধাপ ২, পদ্ধতি A - কোড স্ক্যান করুন (সবচেয়ে দ্রুত)
 
-1. FastMediaSorter খুলুন এবং মূল স্ক্রিনে **Add <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** বাটনে ট্যাপ করুন।
+1. Fast Media Sorter & Organizer খুলুন এবং মূল স্ক্রিনে **Add <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** বাটনে ট্যাপ করুন।
 2. **"Import by barcode"** ট্যাপ করুন - এটা চারটা রিসোর্স-টাইপ কার্ডের (Local, SMB, SFTP/FTP, Cloud) পাশে এবং SFTP ফর্মের হেডারে থাকে।
 3. ক্যামেরা খুলবে এবং ইঙ্গিত দেখাবে *"Point the camera at the companion QR code"*। ফোনটা আপনার পিসির QR-এর সামনে ধরুন। অন্ধকার ঘরে, **Torch** ট্যাপ করুন।
 4. একটা নিশ্চিতকরণ দেখা যাবে - *"Import access - Add the SFTP resource .. with N folder(s)?"*। **Import** ট্যাপ করুন।
@@ -115,7 +115,7 @@ permalink: /docs/howto/scenario-companion-share-bn.html
 | "Import by barcode" এন্ট্রি নেই | ডিভাইসে ক্যামেরা নেই, অথবা এটা একটা VR বিল্ড। সেখানে [পদ্ধতি B - ফাইল ইমপোর্ট করুন](#step-2-method-b---import-the-file) ব্যবহার করুন |
 | ক্যামেরা বলে অ্যাক্সেস দরকার | জিজ্ঞাসা করা হলে ক্যামেরা পারমিশন দিন - এটা শুধু স্ক্যানের জন্য ব্যবহৃত হয় |
 | "This file is not a valid companion config" | কোড বা ফাইলটা Windows কম্প্যানিয়নের নয়। **Share** ট্যাব থেকে এটা আবার এক্সপোর্ট করুন |
-| "Created by a newer companion version" | ফোনে FastMediaSorter আপডেট করুন, বা মিলে যাওয়া একটা কম্প্যানিয়ন সংস্করণ থেকে আবার এক্সপোর্ট করুন |
+| "Created by a newer companion version" | ফোনে Fast Media Sorter & Organizer আপডেট করুন, বা মিলে যাওয়া একটা কম্প্যানিয়ন সংস্করণ থেকে আবার এক্সপোর্ট করুন |
 | রিসোর্স যোগ হয়েছে কিন্তু ফোল্ডার খালি | নিশ্চিত করুন পিসি হেল্পারটা এখনও চলছে। **একই Wi-Fi-তে** অ্যাপটা নিজে থেকেই পিসি খুঁজে পায়; এটাও ব্যর্থ হলে, অ্যাপটা কী পরীক্ষা করতে হবে তা দেখায় |
 | Wi-Fi-তে কাজ করে কিন্তু মোবাইল ডেটায় নয় | অন্য নেটওয়ার্ক থেকে পিসিতে পৌঁছাতে, এটা অবশ্যই ইন্টারনেট থেকে পৌঁছানো যেতে হবে - কম্প্যানিয়নের **Share** সেটিংসে পোর্ট ফরওয়ার্ডিং বা IPv6 সেট করুন। এটা ছাড়া, শেয়ারটা শুধু একই Wi-Fi-তে কাজ করে |
 

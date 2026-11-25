@@ -87,7 +87,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.lang.ref.WeakReference
 import javax.inject.Inject
 
@@ -621,7 +620,6 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                         settings.launcherScreenCount,
                         routedAction,
                     )
-                    Timber.d("S4526: swipe $direction -> $resolvedAction")
                     swipeActionHandler.handle(resolvedAction, payload)
                 }
             },

@@ -1,5 +1,6 @@
 {
   "help": "settings-general",
+  "mark": "inline",
   "surface": "SettingsActivity",
   "elements": [
     { "id": "language", "viewId": "rowLanguage", "labelKey": "language" },
@@ -155,7 +156,7 @@
         },
         "sftp-server": {
           "summary": "Lets other devices open folders from this one over SFTP.",
-          "details": "Add at least one shared folder, choose password or SSH key sign-in and a port from 1024 to 65535, then turn the server on. Another device connects with the address shown here, or by scanning the pairing code in FastMediaSorter. After you change its settings, turn the server off and on again to apply them."
+          "details": "Add at least one shared folder, choose password or SSH key sign-in and a port from 1024 to 65535, then turn the server on. Another device connects with the address shown here, or by scanning the pairing code in Fast Media Sorter & Organizer. After you change its settings, turn the server off and on again to apply them."
         },
         "drive-access": {
           "summary": "Lets your other devices on the same Google account connect to this phone's share.",
@@ -343,7 +344,7 @@
         },
         "sftp-server": {
           "summary": "Позволяет другим устройствам открывать папки с этого устройства по SFTP.",
-          "details": "Добавьте хотя бы одну общую папку, выберите вход по паролю или SSH-ключу и порт от 1024 до 65535, затем включите сервер. Другое устройство подключится по показанному здесь адресу или по коду сопряжения в FastMediaSorter. Изменив настройки, выключите и снова включите сервер, чтобы они вступили в силу."
+          "details": "Добавьте хотя бы одну общую папку, выберите вход по паролю или SSH-ключу и порт от 1024 до 65535, затем включите сервер. Другое устройство подключится по показанному здесь адресу или по коду сопряжения в Fast Media Sorter & Organizer. Изменив настройки, выключите и снова включите сервер, чтобы они вступили в силу."
         },
         "drive-access": {
           "summary": "Позволяет другим вашим устройствам с тем же аккаунтом Google подключаться к общим папкам этого телефона.",
@@ -531,7 +532,7 @@
         },
         "sftp-server": {
           "summary": "Дозволяє іншим пристроям відкривати папки з цього пристрою через SFTP.",
-          "details": "Додайте хоча б одну спільну папку, оберіть вхід за паролем або SSH-ключем і порт від 1024 до 65535, а тоді ввімкніть сервер. Інший пристрій підключиться за показаною тут адресою або за кодом сполучення у FastMediaSorter. Змінивши налаштування, вимкніть і знову ввімкніть сервер, щоб вони набули чинності."
+          "details": "Додайте хоча б одну спільну папку, оберіть вхід за паролем або SSH-ключем і порт від 1024 до 65535, а тоді ввімкніть сервер. Інший пристрій підключиться за показаною тут адресою або за кодом сполучення у Fast Media Sorter & Organizer. Змінивши налаштування, вимкніть і знову ввімкніть сервер, щоб вони набули чинності."
         },
         "drive-access": {
           "summary": "Дозволяє іншим вашим пристроям із тим самим акаунтом Google підключатися до спільних папок цього телефона.",

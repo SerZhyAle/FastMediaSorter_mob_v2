@@ -106,6 +106,10 @@ data class DeviceExchangeEnvelope(
         const val TYPE_ADMIN_AUTH_OK = "admin-auth-ok"
         const val TYPE_ADMIN_REQUEST = "admin-request"
         const val TYPE_ADMIN_REPLY = "admin-reply"
+
+        /** DEVICE-EXCHANGE 1.18 item GC: a sealed command for this device, and the sealed answer to it. */
+        const val TYPE_COMMAND_REQUEST = "command-request"
+        const val TYPE_COMMAND_RESULT = "command-result"
         const val KEY_GRANT_ID = "grantId"
         const val KEY_GUEST = "guest"
         const val KEY_KIND = "kind"
@@ -146,6 +150,7 @@ data class DeviceExchangeEnvelope(
             TYPE_CLIPBOARD_PUT, TYPE_CLIPBOARD_READY, TYPE_CLIPBOARD_STORED, TYPE_CLIPBOARD_INFO,
             TYPE_CLIPBOARD_STATE, TYPE_CLIPBOARD_GET, TYPE_CLIPBOARD_VALUE, TYPE_CLIPBOARD_EMPTY,
             TYPE_ADMIN_AUTH, TYPE_ADMIN_AUTH_OK, TYPE_ADMIN_REQUEST, TYPE_ADMIN_REPLY,
+            TYPE_COMMAND_REQUEST, TYPE_COMMAND_RESULT,
         )
 
         /** An envelope of [type] whose members [build] writes, in the order it writes them. */

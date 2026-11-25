@@ -191,14 +191,14 @@
         },
         "link-autodownload": {
           "summary": "Downloads a file from a link shared to the app.",
-          "details": "When you share an http(s) link to FastMediaSorter, the linked file is fetched into the resource you choose. Another option opens it in the built-in player right after a successful download; otherwise you get a short message."
+          "details": "When you share an http(s) link to Fast Media Sorter & Organizer, the linked file is fetched into the resource you choose. Another option opens it in the built-in player right after a successful download; otherwise you get a short message."
         },
         "home-widget": {
           "summary": "Lets you place an app widget on the Android home screen.",
           "details": "Choose a widget and put it on your home screen."
         },
         "default-apps": {
-          "summary": "Opens the dialog for making FastMediaSorter a default app.",
+          "summary": "Opens the dialog for making Fast Media Sorter & Organizer a default app.",
           "details": "It has a button for each file type - images, audio, video and documents - plus two switches: show the app in Open with and handle media buttons, and accept files shared from other apps. Everything applies at once."
         },
         "gesture-overlay": {
@@ -359,14 +359,14 @@
         },
         "link-autodownload": {
           "summary": "Скачивает файл по ссылке, присланной в приложение.",
-          "details": "Когда вы делитесь с FastMediaSorter ссылкой http(s), файл по ссылке загружается в выбранный ресурс. Дополнительный параметр сразу открывает его во встроенном плеере после успешной загрузки; иначе вы увидите короткое сообщение."
+          "details": "Когда вы делитесь с Fast Media Sorter & Organizer ссылкой http(s), файл по ссылке загружается в выбранный ресурс. Дополнительный параметр сразу открывает его во встроенном плеере после успешной загрузки; иначе вы увидите короткое сообщение."
         },
         "home-widget": {
           "summary": "Позволяет поместить виджет приложения на домашний экран Android.",
           "details": "Выберите виджет и разместите его на домашнем экране."
         },
         "default-apps": {
-          "summary": "Открывает окно, где FastMediaSorter можно назначить приложением по умолчанию.",
+          "summary": "Открывает окно, где Fast Media Sorter & Organizer можно назначить приложением по умолчанию.",
           "details": "В нём по кнопке на каждый тип файлов - изображения, аудио, видео и документы - и два переключателя: показывать приложение в «Открыть с помощью» и обрабатывать медиакнопки, а также принимать файлы из других приложений. Всё применяется сразу."
         },
         "gesture-overlay": {
@@ -527,14 +527,14 @@
         },
         "link-autodownload": {
           "summary": "Завантажує файл за посиланням, надісланим у застосунок.",
-          "details": "Коли ви ділитеся з FastMediaSorter посиланням http(s), файл за посиланням завантажується у вибраний ресурс. Додатковий параметр одразу відкриває його у вбудованому плеєрі після успішного завантаження; інакше ви побачите коротке повідомлення."
+          "details": "Коли ви ділитеся з Fast Media Sorter & Organizer посиланням http(s), файл за посиланням завантажується у вибраний ресурс. Додатковий параметр одразу відкриває його у вбудованому плеєрі після успішного завантаження; інакше ви побачите коротке повідомлення."
         },
         "home-widget": {
           "summary": "Дає змогу розмістити віджет застосунку на домашньому екрані Android.",
           "details": "Виберіть віджет і розмістіть його на домашньому екрані."
         },
         "default-apps": {
-          "summary": "Відкриває вікно, де FastMediaSorter можна призначити застосунком за замовчуванням.",
+          "summary": "Відкриває вікно, де Fast Media Sorter & Organizer можна призначити застосунком за замовчуванням.",
           "details": "У ньому по кнопці на кожен тип файлів - зображення, аудіо, відео й документи - і два перемикачі: показувати застосунок у «Відкрити за допомогою» та обробляти медіакнопки, а також приймати файли з інших застосунків. Усе застосовується одразу."
         },
         "gesture-overlay": {

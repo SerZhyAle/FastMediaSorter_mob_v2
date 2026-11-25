@@ -11,6 +11,8 @@ import com.sza.fastmediasorter.domain.model.sensors.SensorCapability
  *
  * S4150: a [fromWatch] tile reads the paired watch rather than this phone; it is offered by the build's
  * watch-health capability, never by local hardware, and appended last so no persisted name moves.
+ *
+ * S4560: GYROSCOPE is appended last for the same reason; its sensors are registered only while it is focused.
  */
 enum class TouristTileType(
     val requiredCapability: SensorCapability? = null,
@@ -50,6 +52,7 @@ enum class TouristTileType(
     WATCH_BODY_TEMPERATURE(fromWatch = true),
     STOPWATCH,
     COUNTER,
+    GYROSCOPE(SensorCapability.ATTITUDE),
 }
 
 /**

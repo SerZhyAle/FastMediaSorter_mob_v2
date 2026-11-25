@@ -117,4 +117,7 @@
     <string name="player_action_unavailable">This action is unavailable for this file.</string>
     <string name="player_audio_track_single">No other audio track is available.</string>
     <string name="player_frame_backward">Previous frame</string>
+    <string name="playback_control_low_speed_mute_title">Slow playback</string>
+    <string name="playback_control_low_speed_mute_message">Audio below 0.5x is hard to make out. Mute it?</string>
+    <string name="playback_control_low_speed_mute_cancel">Keep audio</string>
 </resources>

@@ -6,7 +6,6 @@ import com.sza.fastmediasorter.domain.model.launcher.InstalledApp
 import com.sza.fastmediasorter.domain.repository.AppCategoryRepository
 import com.sza.fastmediasorter.domain.repository.InstalledAppsRepository
 import kotlinx.coroutines.flow.distinctUntilChanged
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -33,7 +32,6 @@ class SeedAppCategoriesUseCase @Inject constructor(
         }
 
     private fun seedInto(catalog: AppCategoryCatalog, fresh: List<InstalledApp>): AppCategoryCatalog {
-        Timber.d("S4530: seed new packages")
         val categories = catalog.categories.toMutableList()
         val order = catalog.order.toMutableList()
         val assignments = catalog.assignments.toMutableMap()

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    S4695: the debug watch icon - the badged foreground of this source set over the main plate, and the
+    same badge on the themed-icon layer, which would otherwise be the plain silhouette.
+-->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@mipmap/ic_launcher_adaptive_back" />
+    <foreground android:drawable="@mipmap/ic_launcher_adaptive_fore" />
+    <monochrome android:drawable="@drawable/ic_launcher_badged_monochrome" />
+</adaptive-icon>

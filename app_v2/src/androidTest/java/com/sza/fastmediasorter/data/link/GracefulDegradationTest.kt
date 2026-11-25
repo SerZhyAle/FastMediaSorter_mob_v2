@@ -59,7 +59,7 @@ class GracefulDegradationTest {
                     "/clip.mp4" -> if (request.method == "HEAD") {
                         MockResponse().setHeader("Content-Type", "video/mp4")
                     } else {
-                        MockResponse().setHeader("Content-Type", "video/mp4").setBody("    ftypisom")
+                        MockResponse().setHeader("Content-Type", "video/mp4").setBody(COMPLETE_FTYP_BOX)
                     }
                     "/locked.mp4" -> MockResponse().setResponseCode(HTTP_UNAUTHORIZED)
                     else -> MockResponse().setResponseCode(HTTP_NOT_FOUND)
@@ -105,6 +105,11 @@ class GracefulDegradationTest {
     private companion object {
         const val HTTP_UNAUTHORIZED = 401
         const val HTTP_NOT_FOUND = 404
+
+        // LinkDownloadWriter rejects an ISO-BMFF body whose first box declares more bytes than the file
+        // holds as truncated, so the body must be a whole box: size 20, "ftyp", brand "isom", minor 0,
+        // one compatible brand "isom". Every character is ASCII, so the UTF-8 body is these exact bytes.
+        const val COMPLETE_FTYP_BOX = "\u0000\u0000\u0000\u0014ftypisom\u0000\u0000\u0000\u0000isom"
     }
 }
 

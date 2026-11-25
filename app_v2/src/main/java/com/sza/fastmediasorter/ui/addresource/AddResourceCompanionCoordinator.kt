@@ -54,7 +54,6 @@ internal class AddResourceCompanionCoordinator(
     private fun emitOutcome(result: Result<CompanionImportResult>) {
         result.onSuccess { r ->
             Timber.i("Companion import outcome: added=%d updated=%d", r.addedNames.size, r.updatedNames.size)
-            Timber.d("S4517: companion import outcome added=${r.addedNames.size} updated=${r.updatedNames.size}")
             bridge.emit(AddResourceEvent.ShowMessage(buildSummary(r)))
             // S1423: a companion config import restores many resources at once and is not the
             // single-resource creation act this ticket pins for, so it names no subject to pin.
@@ -82,8 +81,7 @@ internal class AddResourceCompanionCoordinator(
                 AddResourceEvent.CompanionPasswordRequired(
                     resourceName = pending.resourceName ?: host,
                     host = host,
-                    rootCount = pending.roots?.size ?: 0,
-                    hasFingerprint = !pending.hostKeyFingerprintSha256.isNullOrBlank()
+                    rootCount = pending.roots?.size ?: 0
                 )
             )
         }
@@ -117,6 +115,8 @@ internal class AddResourceCompanionCoordinator(
     private fun errorMessage(e: Throwable): String = when {
         e is CompanionConfigException && e.reason == CompanionConfigException.Reason.UNSUPPORTED_VERSION ->
             context.getString(R.string.companion_import_version_error)
+        e is CompanionConfigException && e.reason == CompanionConfigException.Reason.NO_USABLE_ACCESS_PATH ->
+            context.getString(R.string.companion_import_no_access_path_error)
         e is CompanionConfigException ->
             context.getString(R.string.companion_import_invalid_error)
         else ->

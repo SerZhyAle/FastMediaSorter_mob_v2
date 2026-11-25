@@ -1,16 +1,16 @@
 ---
 layout: doc
-title: "FastMediaSorter VR Edition"
+title: "Fast Media Sorter & Organizer VR Edition"
 permalink: /docs/VR_EDITION.html
 ---
 
 <sub class="doc-stamp">26.10.21 15:56</sub>
 
-# FastMediaSorter VR Edition
+# Fast Media Sorter & Organizer VR Edition
 
 ## What is the VR Edition?
 
-FastMediaSorter VR is a dedicated build of FastMediaSorter for VR headsets - Meta Quest 3, Quest Pro, Quest 2, and Android XR devices. It shares the exact same codebase and features as Standard, plus the OpenXR layer for stereoscopic headset rendering.
+Fast Media Sorter & Organizer VR is a dedicated build of Fast Media Sorter & Organizer for VR headsets - Meta Quest 3, Quest Pro, Quest 2, and Android XR devices. It shares the exact same codebase and features as Standard, plus the OpenXR layer for stereoscopic headset rendering.
 
 The VR edition is not a separate app - it is the same codebase built as a `vr` product flavor with an additional OpenXR rendering layer.
 

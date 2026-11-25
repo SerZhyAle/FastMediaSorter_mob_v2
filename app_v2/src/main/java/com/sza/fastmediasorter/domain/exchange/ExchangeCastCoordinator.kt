@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.domain.model.ExchangeCastResult
 import com.sza.fastmediasorter.domain.model.ExchangeCastRules
 import com.sza.fastmediasorter.domain.model.ExchangeCastTarget
 import com.sza.fastmediasorter.domain.model.ExchangeEndpointPair
+import com.sza.fastmediasorter.domain.remotecontrol.RemoteControlRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamBroadcastUseCase
 import kotlinx.coroutines.CoroutineDispatcher
@@ -48,8 +49,9 @@ import javax.inject.Singleton
 
 /**
  * Cast through the exchange (contract DEVICE-EXCHANGE 7.8, S4116 phase 07), both halves, on the outgoing entry's
- * one control stream ([SftpServerTunnelManager]). As a receiver it holds that stream while streams are on and an
- * outgoing entry exists, imports every offered broadcast as a live channel (9.5), and asks through a notification
+ * one control stream ([SftpServerTunnelManager]). As a receiver it holds that stream while streams are on, or remote
+ * commands are listened for, and an outgoing entry exists; it acts on a cast only while streams are on,
+ * imports every offered broadcast as a live channel (9.5), and asks through a notification
  * unless the user chose "play at once". As a sender it lists the receivers on the same stream, so opening the
  * list never displaces the broadcast's control stream (7.3), and sends one `cast` per chosen receiver. Receiving
  * follows the outgoing entry whatever its kind; sending only one that may produce (19 item AO).
@@ -72,6 +74,7 @@ class ExchangeCastCoordinator @Inject constructor(
     private val notifier: ExchangeCastNotifier,
     private val sealed: ExchangeSealedContentOpener,
     private val receivers: ExchangeReceiverControlStreams,
+    private val remoteControl: RemoteControlRepository,
     @ApplicationScope private val scope: CoroutineScope,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) {
@@ -79,6 +82,10 @@ class ExchangeCastCoordinator @Inject constructor(
     private val started = AtomicBoolean(false)
     private val machine = ExchangeCastReceiverMachine()
     private val machineLock = Mutex()
+
+    /** The streams may be held for remote commands alone; a cast is acted on only while Streams is on. */
+    @Volatile
+    private var castsOn = false
 
     /** The entry each offer read on a receive-only stream came on; an offer absent here came on the tunnel. */
     private val origins = ConcurrentHashMap<String, DeviceExchangeAccountEntry>()
@@ -98,14 +105,18 @@ class ExchangeCastCoordinator @Inject constructor(
         val streamsOn = settings.getSettings()
             .map { app -> app.enableStreams && capabilities.isStreamsAvailable() }
             .distinctUntilChanged()
+        // Listening for remote commands is one more reason to hold the receive-only streams, in this process only.
+        val holdStreams = combine(streamsOn, remoteControl.listening) { streams, listening -> streams || listening }
+            .distinctUntilChanged()
+        scope.launch { streamsOn.collect { castsOn = it } }
         scope.launch {
-            combine(accounts.outgoing, streamsOn) { outgoing, on -> outgoing?.identity?.takeIf { on } }
+            combine(accounts.outgoing, holdStreams) { outgoing, on -> outgoing?.identity?.takeIf { on } }
                 .distinctUntilChanged()
                 .collect(tunnel::setReceiving)
         }
         scope.launch(ioDispatcher) {
             receivers.run(
-                combine(accounts.entries, streamsOn) { entries, on ->
+                combine(accounts.entries, holdStreams) { entries, on ->
                     if (on) entries.filterNot(DeviceExchangeAccountEntry::outgoing) else emptyList()
                 }
             )
@@ -116,6 +127,7 @@ class ExchangeCastCoordinator @Inject constructor(
 
     /** [origin] is the entry of the receive-only stream [envelope] was read on; null for the tunnel. */
     private suspend fun onControl(origin: DeviceExchangeAccountEntry?, envelope: DeviceExchangeEnvelope) {
+        if (!castsOn) return
         DeviceExchangeCastCodec.offer(envelope)?.let { onOffer(it, origin) }
         DeviceExchangeCastCodec.stoppedBroadcastId(envelope)?.let { id ->
             perform(machineLock.withLock { machine.onStopped(id) }, null)

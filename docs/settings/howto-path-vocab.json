@@ -18,7 +18,7 @@
   ],
   "systemSettingsNodes": {
     "_comment": "S0945 - Android OS Settings-app nodes. A 'Settings -> ..' chain whose first segment is one of these (or starts with one at a word boundary, so trailing prose is tolerated), or any chain naming the app's own product, is a path into the Android *system* Settings app (not the in-app settings screen) and is out of scope for the manifest gate - the narrative-guide scan skips it silently.",
-    "productName": "FastMediaSorter",
+    "productName": "Fast Media Sorter & Organizer",
     "en": ["Apps", "Permissions", "Storage", "Notifications", "Display", "Security", "Accessibility", "Developer options", "About watch"],
     "ru": ["Приложения", "Разрешения", "Хранилище", "Уведомления", "Экран", "Безопасность", "Специальные возможности", "Для разработчиков", "О часах"],
     "uk": ["Застосунки", "Додатки", "Дозволи", "Сховище", "Сповіщення", "Екран", "Безпека", "Спеціальні можливості", "Для розробників", "Про годинник"]

@@ -19,10 +19,13 @@ import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.databinding.ActivityMainBinding
+import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceGridCellSize
+import com.sza.fastmediasorter.ui.common.MediaTypeColorCatalog
 import com.sza.fastmediasorter.ui.main.FilterResourceDialog
 import com.sza.fastmediasorter.ui.main.MainState
+import com.sza.fastmediasorter.ui.main.ResourceAdapter
 import timber.log.Timber
 
 /**
@@ -44,6 +47,10 @@ class MainLayoutChromeManager(
 
     private var gridSpacingDecoration: RecyclerView.ItemDecoration? = null
     private var compactElementsEnabled = false
+
+    // S4792: starts at the adapter's own default (inline); the settings collector overwrites it on the first
+    // emission, so a fresh install in overflow mode rebuilds the span once.
+    private var resourceOpsInOverflow = false
 
     /** Command ids the last plan pushed off the bar and into the "⋮" menu. */
     private var overflowedIds: Set<Int> = emptySet()
@@ -396,7 +403,7 @@ class MainLayoutChromeManager(
             }
         } else if (isWideScreen) {
             // Wide screen (tablet or rotated phone): grid with resource-driven column count
-            val columnCount = res.getInteger(R.integer.resource_grid_column_count)
+            val columnCount = inlineActionColumnCap(res.getInteger(R.integer.resource_grid_column_count))
             val current = binding.rvResources.layoutManager
             if (current !is GridLayoutManager || current.spanCount != columnCount) {
                 binding.rvResources.layoutManager = GridLayoutManager(activity, columnCount)
@@ -409,6 +416,31 @@ class MainLayoutChromeManager(
             }
         }
         refreshGridSpacing()
+    }
+
+    /**
+     * S4792: inline action buttons widen every row, so flipping "operations in the overflow menu" changes how
+     * many columns fit; the span is rebuilt only when the value actually changed, to keep the scroll position.
+     */
+    fun setResourceOpsInOverflow(inOverflow: Boolean) {
+        if (resourceOpsInOverflow == inOverflow) return
+        resourceOpsInOverflow = inOverflow
+        updateLayoutManagerForScreenSize()
+    }
+
+    /**
+     * S4792: caps the configured column count so each cell can hold the inline action strip. The window
+     * width in dp is read from the configuration, not from the RecyclerView, because this runs before the
+     * first layout pass and on a rotation the view still reports the old width.
+     */
+    private fun inlineActionColumnCap(configured: Int): Int {
+        val res = activity.resources
+        if (resourceOpsInOverflow || !res.getBoolean(R.bool.is_resource_actions_inline)) return configured
+        val windowWidthPx = res.configuration.screenWidthDp * res.displayMetrics.density
+        val fittingColumns = (windowWidthPx / res.getDimension(R.dimen.resource_row_inline_min_cell_width)).toInt()
+        val capped = fittingColumns.coerceIn(1, configured)
+        Timber.d("S4792: inline-action column cap configured=$configured fitting=$fittingColumns used=$capped")
+        return capped
     }
 
     /** Compact mode: zero vertical padding + reduced button height. Normal mode: dimen-based values. */
@@ -508,8 +540,10 @@ class MainLayoutChromeManager(
     }
 
     /**
-     * RecyclerView bottom inset so the last item clears the nav bar. Runs inside setupViews' post{},
-     * so it re-requests insets after the initial dispatch was already missed.
+     * RecyclerView bottom inset so the list ends at the top of the nav bar. The list is clipped to that
+     * padding: with a transparent bar, an unclipped list draws cards under the bar's buttons and under
+     * the debug version label, which the safe-bounds rule (Rule 17) rules out for the Main screen.
+     * Runs inside setupViews' post{}, so it re-requests insets after the initial dispatch was already missed.
      */
     fun applyEdgeToEdgeInsets() {
         // S1672: the app draws edge to edge, so the bar's own width runs under the landscape
@@ -529,11 +563,52 @@ class MainLayoutChromeManager(
 
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.rvResources) { view, insets ->
             val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
-            view.setPadding(view.paddingLeft, view.paddingTop, view.paddingRight, navBar.bottom)
-            (view as? android.view.ViewGroup)?.clipToPadding = false
+            val bottom = if (binding.tvMediaTypeLegend.isVisible) 0 else navBar.bottom
+            view.setPadding(view.paddingLeft, view.paddingTop, view.paddingRight, bottom)
+            (view as? android.view.ViewGroup)?.clipToPadding = true
+            Timber.d("S4710: rvResources clipped at nav bar, bottom inset=$bottom")
             insets
         }
         androidx.core.view.ViewCompat.requestApplyInsets(binding.rvResources)
+
+        val legendBaseBottom = binding.tvMediaTypeLegend.paddingBottom
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.tvMediaTypeLegend) { view, insets ->
+            val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
+            view.setPadding(
+                view.paddingLeft,
+                view.paddingTop,
+                view.paddingRight,
+                legendBaseBottom + navBar.bottom,
+            )
+            insets
+        }
+        androidx.core.view.ViewCompat.requestApplyInsets(binding.tvMediaTypeLegend)
+    }
+
+    /** Shows colored media-type letter meanings below the list when any visible row uses letter badges. */
+    fun updateMediaTypeLegend(resources: List<MediaResource>, isTableShowing: Boolean) {
+        val usedTypes = LinkedHashSet<MediaType>()
+        if (!isTableShowing) {
+            resources.forEach { resource ->
+                if (resource.id != FAVORITES_ENTRY_ID &&
+                    ResourceAdapter.usesLetterBadges(resource.supportedMediaTypes, resource.allFiles)
+                ) {
+                    usedTypes.addAll(resource.supportedMediaTypes)
+                }
+            }
+        }
+        val wasVisible = binding.tvMediaTypeLegend.isVisible
+        if (usedTypes.isEmpty()) {
+            binding.tvMediaTypeLegend.text = ""
+            binding.tvMediaTypeLegend.isVisible = false
+        } else {
+            binding.tvMediaTypeLegend.text = MediaTypeColorCatalog.formatColoredLegend(activity, usedTypes)
+            binding.tvMediaTypeLegend.isVisible = true
+        }
+        if (wasVisible != binding.tvMediaTypeLegend.isVisible) {
+            androidx.core.view.ViewCompat.requestApplyInsets(binding.rvResources)
+        }
+        Timber.d("S4847: main legend visible=${binding.tvMediaTypeLegend.isVisible} types=${usedTypes.size}")
     }
 
     /**
@@ -564,6 +639,7 @@ class MainLayoutChromeManager(
     private companion object {
         /** Marks the Space cells this class owns, so a re-sync can tell them from layout children. */
         const val SEPARATOR_TAG = "s1549_control_bar_separator"
+        const val FAVORITES_ENTRY_ID = -100L
     }
 }
 

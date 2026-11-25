@@ -3,7 +3,7 @@ layout: doc
 title: "FastMedia Launcher - Android Desktop & Car Tablet Home Screen"
 permalink: /docs/launcher/
 ---
-<sub class="doc-stamp">26.10.15 19:27</sub>
+<sub class="doc-stamp">26.11.13 16:00</sub>
 
 # <img src="../icons/doc/ic_launcher_mode.png" alt="" width="24" height="24" style="vertical-align:text-bottom"> FastMedia Launcher Web Portal
 
@@ -57,7 +57,7 @@ FastMedia Launcher gives you full control over your device's home screen layout:
 - **Taskbar Recents:** Hold a recent taskbar icon to open it, pin it, or remove it from the recent list.
 - **Section Reordering:** While editing the desktop, hold a section header and drag it: the whole section moves with everything inside it. With a keyboard, remote or screen reader, open the section menu and choose Move up or Move down. Portrait and landscape keep their own order.
 - **Desktop Locking:** Lock desktop editing to prevent accidental changes during daily driving or photo frame operation.
-- **Clock Display Gestures:** On the Clock widget, swipe right to hide seconds and left to show them. Swipe up for a random readable clock colour and a new time font, or down to restore the standard theme colour. The date keeps its font, shares the colour, and the choices stay after restarting the launcher.
+- **Clock Display Gestures:** On the Clock widget, swipe right to hide seconds and left to show them. Swipe up for a random readable clock colour and a new time font, or down to restore the standard theme colour. Twenty distinct time fonts take turns, colours run from soft pastels to bright tones, and a paired watch face shows the same font and colour. The date keeps its font, shares the colour, and the choices stay after restarting the launcher.
 - **Live Camera Background:** Set the desktop wallpaper to a live frame from one of the device's cameras. The entry appears in the wallpaper list only on devices that have a camera; choosing it asks for the camera permission and then lets you pick which lens to use. The stream stops the moment the desktop leaves the screen, so nothing runs in the background, and a device without a camera or with the permission refused keeps the branded wallpaper instead of a black screen.
 - **Wallpaper Control Screen:** Desktop wallpaper has a screen of its own, opened from the wallpaper row in launcher settings or straight from the desktop's Wallpaper action. Every mode is listed with a sentence saying what it does, the chosen picture or camera lens is shown as a preview, and the branded waves gain sliders for brightness, animation speed and particle density next to the colour palette. A battery block explains when the animation stops by itself and shows what it is doing right now.
 - **Stream Window Tile:** Put one internet channel on the desktop and pick it when you add the tile. A radio channel gets a small tile with its name, its icon and a play button. A video channel gets a larger tile with the picture playing inside it; tap to stop, and the tile keeps the last frame instead of going blank. Nothing starts playing until you press play.
@@ -67,7 +67,7 @@ FastMedia Launcher gives you full control over your device's home screen layout:
 
 ## 📥 Downloads & App Stores
 
-FastMediaSorter with Launcher Mode is available across major channels:
+Fast Media Sorter & Organizer with Launcher Mode is available across major channels:
 
 ### Application Packages
 - [**Google Play Store**](https://play.google.com/store/apps) - Official Google Play Store download.

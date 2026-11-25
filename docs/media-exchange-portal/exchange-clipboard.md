@@ -22,12 +22,12 @@ Copy something on one device, press one button, and paste it on another. The [ex
 - **Watch:** the watch has no clipboard of its own to read, so it sends through **Send to..** - a file, a picture or a voice recording. Getting the value saves it on the watch and opens it in the watch app's own player: text, PDF, picture, animation, audio or video.
 - **Windows:** two buttons in the main window of Share Manager and shortcuts on the desktop. CyrFlip, a small Windows program of the same developer, takes part too.
 
-FastMediaSorter on the phone and the watch, Fast Media Sorter & Sharing for Windows and CyrFlip send and receive. STREAMS Player and StreamsPlayer_mob do not take part.
+Fast Media Sorter & Organizer on the phone and the watch, Fast Media Sorter & Sharing for Windows and CyrFlip send and receive. STREAMS Player and StreamsPlayer_mob do not take part.
 
 ## The rules {#rules}
 
 - **One object at a time** - a text, a picture or one file. Several files or a folder do not go as they are: the program says so, and you put them into one archive first, copy the archive and send it.
-- **Only the last value.** A new value replaces the old one. The server keeps it in its memory only, never on its disk, so a restart of the server loses it. A value replaces the old one only when it has fully arrived: a send that breaks or is cancelled leaves the previous value as it was.
+- **Only the last value.** A new value replaces the old one. The server keeps it in its memory only, never on its disk, so a restart of the server loses it. A value replaces the old one only when it has fully arrived: a send that breaks or is canceled leaves the previous value as it was.
 - **Every account of the device.** A send goes to every account the device is signed in to, except a guest account, and the program names the accounts it did not reach. A get from several accounts takes the newest value.
 - **Only your account.** Nobody outside the account can read it: the clipboard has no sharing, no link and no guest access.
 - **No history, no clear button, no alert.** A value goes only by being replaced or when the account is deleted, and the server pushes nothing when it changes.

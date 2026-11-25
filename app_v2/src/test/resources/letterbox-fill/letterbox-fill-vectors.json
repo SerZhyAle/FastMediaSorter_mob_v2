@@ -1,5 +1,5 @@
 {
-  "contract": "LETTERBOX-BARS 0.1, LETTERBOX-HALO 0.1",
+  "contract": "LETTERBOX-BARS 0.2, LETTERBOX-HALO 0.2",
   "generator": "letterbox-fill/reference/letterbox-fill.ps1 -WriteVectors",
   "bars": {
     "constants": {
@@ -904,11 +904,11 @@
           4.95,
           18.1,
           36.5,
-          58.8501,
-          83.8501,
-          110.2999,
-          139.1999,
-          170.4999,
+          58.85,
+          83.85,
+          110.3,
+          139.2,
+          170.5,
           203.5,
           237.4
         ]
@@ -918,9 +918,9 @@
         "eased": 0.5,
         "alpha": [
           10.4,
-          47.3001,
+          47.3,
           97.0,
-          154.5999,
+          154.6,
           220.0,
           255.0,
           255.0,

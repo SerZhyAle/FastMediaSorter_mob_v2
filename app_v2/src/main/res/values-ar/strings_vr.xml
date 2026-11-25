@@ -78,7 +78,7 @@
     <string name="vr_info_video">برنامج ترميز الفيديو:</string>
     <string name="vr_install_cta_action">مفتوح في المتجر</string>
     <string name="vr_install_cta_dismiss">العب على أي حال</string>
-    <string name="vr_install_cta_message">للحصول على أفضل تجربة، جرب إصدار الواقع الافتراضي من FastMediaSorter على سماعة Quest الخاصة بك.</string>
+    <string name="vr_install_cta_message">للحصول على أفضل تجربة، جرّب إصدار الواقع الافتراضي من Fast Media Sorter &amp; Organizer على سماعة Quest الخاصة بك.</string>
     <string name="vr_install_cta_title">هذا فيديو ثلاثي الأبعاد</string>
     <string name="vr_overlay_btn_bright_down">ساطع -</string>
     <string name="vr_overlay_btn_bright_up">ساطع +</string>

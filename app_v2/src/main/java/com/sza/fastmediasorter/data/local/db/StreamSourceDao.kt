@@ -37,6 +37,10 @@ interface StreamSourceDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertIgnore(source: StreamSourceEntity): Long
 
+    /** One-shot read of every stored address, for the normalized duplicate check of a playlist import. */
+    @Query("SELECT url FROM stream_sources")
+    suspend fun allUrls(): List<String>
+
     @Upsert
     suspend fun upsert(source: StreamSourceEntity)
 
@@ -107,6 +111,31 @@ interface StreamSourceDao {
     /** S4160: the endpoint list of a broadcast row, replaced as a whole by the source's next descriptor. */
     @Query("UPDATE stream_sources SET broadcastEndpoints = :endpoints WHERE id = :id")
     suspend fun updateBroadcastEndpoints(id: String, endpoints: String?)
+
+    /**
+     * S4675: the rows whose endpoint list may still hold a clear relay key or tunnel pin - a prefilter on the member
+     * names, so the migration decodes only these. A row it wrongly lists is a no-op there.
+     */
+    @Query(
+        "SELECT id, broadcastEndpoints FROM stream_sources WHERE broadcastEndpoints LIKE '%\"key\"%' " +
+            "OR broadcastEndpoints LIKE '%\"pin\"%'"
+    )
+    suspend fun rowsWithPossibleClearEndpointSecrets(): List<StoredBroadcastEndpoints>
+
+    /**
+     * S4675: compare-and-set of one row's endpoint list - the write lands only while the column still holds
+     * exactly [expected], so a descriptor that refreshed the row in the meantime is never overwritten.
+     * Returns the number of rows changed.
+     */
+    @Query(
+        "UPDATE stream_sources SET broadcastEndpoints = :replacement " +
+            "WHERE id = :id AND broadcastEndpoints = :expected"
+    )
+    suspend fun replaceBroadcastEndpointsIf(id: String, expected: String, replacement: String): Int
+
+    /** S4607, DEVICE-EXCHANGE item BJ: the entry whose directory listed this channel, and the broadcast it named. */
+    @Query("UPDATE stream_sources SET exchangeEntryId = :entryId, exchangeBroadcastId = :broadcastId WHERE id = :id")
+    suspend fun updateExchangeBinding(id: String, entryId: String, broadcastId: String)
 
     /** S2868: title-only write; the caller decides whether the stored title may be replaced at all. */
     @Query("UPDATE stream_sources SET title = :title WHERE id = :id")
@@ -180,16 +209,20 @@ interface StreamSourceDao {
      * S1832: [identityKey] moves with [url]. Editing a manual channel's address makes it a different
      * channel as far as user-authored state is concerned, so leaving the old key behind would file
      * the new address's pin and history under the address it no longer has.
+     *
+     * S4606: [category] is the user's free-text list label; null clears it. It is written here, in the
+     * same statement as the other user fields, so an edit never leaves a half-applied row.
      */
     @Query(
         "UPDATE stream_sources SET url = :url, title = :title, mediaKind = :mediaKind, " +
-            "identityKey = :identityKey WHERE id = :id AND sourceOrigin = 'MANUAL'"
+            "category = :category, identityKey = :identityKey WHERE id = :id AND sourceOrigin = 'MANUAL'"
     )
     suspend fun updateUserFields(
         id: String,
         url: String,
         title: String,
         mediaKind: String,
+        category: String?,
         identityKey: String
     )
 

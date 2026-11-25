@@ -17,15 +17,19 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/margin_small"
+        android:baselineAligned="false"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="@string/translation_settings"
             android:textSize="@dimen/text_size_title_dialog"
             android:textStyle="bold" />
+
+        <include layout="@layout/view_dialog_help_button" />
 
     </LinearLayout>
 
@@ -79,8 +83,8 @@
 
         <ImageButton
             android:id="@+id/btnSwapLanguages"
-            android:layout_width="@dimen/button_height_small"
-            android:layout_height="@dimen/button_height_small"
+            android:layout_width="@dimen/touch_target_min_height"
+            android:layout_height="@dimen/touch_target_min_height"
             android:layout_marginStart="@dimen/margin_tiny"
             android:layout_marginEnd="@dimen/margin_tiny"
             android:background="?attr/selectableItemBackgroundBorderless"

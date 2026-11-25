@@ -80,7 +80,7 @@
     <string name="vr_info_video">Видеокодек:</string>
     <string name="vr_install_cta_action">Открыть в магазине</string>
     <string name="vr_install_cta_dismiss">Воспроизвести</string>
-    <string name="vr_install_cta_message">Для лучшего просмотра используйте VR-версию FastMediaSorter на шлеме Quest.</string>
+    <string name="vr_install_cta_message">Для лучшего просмотра используйте VR-версию Fast Media Sorter &amp; Organizer на шлеме Quest.</string>
     <string name="vr_install_cta_title">Это 3D-видео</string>
     <string name="vr_overlay_btn_bright_down">Ярк −</string>
     <string name="vr_overlay_btn_bright_up">Ярк +</string>

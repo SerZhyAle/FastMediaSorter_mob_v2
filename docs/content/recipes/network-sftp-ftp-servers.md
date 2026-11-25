@@ -15,7 +15,7 @@ why: |
 
   If you have not decided between SMB and SFTP yet, [Connecting SMB/Windows shares](page:network.smb-samba-shares) has a short comparison at the end.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition) except Lite - see [The seven editions](page:flavors.overview-and-comparison)."
+  - "Fast Media Sorter & Organizer in any [edition](term:edition) except Lite - see [The seven editions](page:flavors.overview-and-comparison)."
   - "The server's address and port, and either a user name with a password or an SSH key."
   - "For key sign-in: the private key file, and its passphrase if it has one."
   - "To share or import access to a folder: any app that can send a file, such as Telegram or email."

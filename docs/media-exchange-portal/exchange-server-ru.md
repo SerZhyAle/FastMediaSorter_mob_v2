@@ -1,11 +1,12 @@
 ---
+source_sha256: ac79505e0d8b01f484b7242a13c95b251413d78963322ebfc4f1b04041298295
 layout: doc
-title: "Сервер обмена: ваши устройства из любой сети"
+title: "Media Exchange Server: ваши устройства из любой сети"
 description: "Один аккаунт для всех устройств и доступ из любой сети без настройки роутера - кто держит сервер обмена, как он работает, что видит и что хранит, и как ладят между собой версии программ."
 category: "Обмен медиа"
 permalink: /docs/media-exchange-portal/exchange-server-ru.html
 ---
-<sub class="doc-stamp">26.10.22 01:26</sub>
+<sub class="doc-stamp">26.11.23 11:23</sub>
 
 # Сервер обмена: ваши устройства из любой сети
 
@@ -31,6 +32,8 @@ permalink: /docs/media-exchange-portal/exchange-server-ru.html
 2. **ПК или телефон публикует** свои общие папки.
 3. **Любое другое устройство видит** список всех ваших папок и подключает нужные.
 4. **Открытие папки просит у сервера закрытую связь между двумя устройствами**, и сервер соединяет два исходящих подключения, не читая передаваемые данные. По этой связи папка по-прежнему идёт зашифрованной, от устройства до устройства (по SFTP - стандартному способу, которым устройства делятся папками).
+
+[FastMediaSorter for Web](https://serzhyale.github.io/FastMediaSorter_WEB/) подключается к той же учётной записи обмена как ещё одно устройство в браузере и использует тот же протокол обмена, что и установленные программы.
 
 В одной сети Wi-Fi устройства по-прежнему подключаются друг к другу напрямую. Папка для человека вне вашего аккаунта выдаётся приглашением вида «гость» или ссылкой с паролем - см. [люди вне вашего аккаунта](exchange-accounts-ru.html#outside).
 
@@ -106,6 +109,7 @@ permalink: /docs/media-exchange-portal/exchange-server-ru.html
 - [Разверните свой сервер обмена](exchange-server-quick-start-ru.html)
 - [Установка и проверка сервера обмена](exchange-server-install-ru.html)
 - [Аккаунты, приглашения и пароли](exchange-accounts-ru.html)
+- [Войти в STREAMS Player для Windows](streamsplayer-ru.html#sign-in) или [проверить соединение](streamsplayer-ru.html#connection-troubleshooting).
 - [Буфер на сервере](exchange-clipboard-ru.html)
 - [Как удалить аккаунт](account-deletion-ru.html)
 - [Телефон как SFTP-сервер](../../documentation/network/phone-as-sftp-server-ru.html)

@@ -7,6 +7,7 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import com.sza.fastmediasorter.core.playback.resilience.StreamStallObservation
 import com.sza.fastmediasorter.core.playback.resilience.StreamStallOutcome
+import com.sza.fastmediasorter.core.playback.resilience.StreamStallReason
 import com.sza.fastmediasorter.core.playback.resilience.StreamStallRule
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import timber.log.Timber
@@ -91,7 +92,15 @@ internal fun VideoPlayerManager.checkStreamBufferingTimeout() {
         SystemClock.elapsedRealtime()
     )
     when (outcome) {
-        is StreamStallOutcome.Stalled -> recoverFromStreamStall(outcome.reason.diagnostic)
+        is StreamStallOutcome.Stalled -> if (outcome.reason == StreamStallReason.FIRST_CONNECTION_TIMEOUT) {
+            Timber.d("S4596: first connection timeout surfaces the unavailable dialog without recovery")
+            Timber.w("Stream stall - first connection timed out before ready path=%s", currentFilePath)
+            surfaceStreamStallFailure(
+                "Stream never reached ready within the first connection timeout"
+            )
+        } else {
+            recoverFromStreamStall(outcome.reason.diagnostic)
+        }
         StreamStallOutcome.Suspended -> armStreamBufferingTimeout()
         // The deadline arrived without the rule ever being armed, so there is no leg to judge and
         // nothing to re-arm against - staying silent here would look identical to a healthy stream.
@@ -123,17 +132,7 @@ internal fun VideoPlayerManager.recoverFromStreamStall(reason: String) {
             reason,
             currentFilePath
         )
-        cancelStreamStallWatchdog()
-        streamWatchdogReconnecting = false
-        playerCallback.onBuffering(false)
-        playerCallback.onStreamWaitPhase(null)
-        playerCallback.onPlaybackError(
-            PlaybackException(
-                "Stream stalled ($reason) and the watchdog recovery budget is exhausted",
-                null,
-                PlaybackException.ERROR_CODE_TIMEOUT
-            )
-        )
+        surfaceStreamStallFailure("Stream stalled ($reason) and the watchdog recovery budget is exhausted")
         return
     }
     streamWatchdogReconnecting = true
@@ -150,6 +149,27 @@ internal fun VideoPlayerManager.recoverFromStreamStall(reason: String) {
     stalledPlayer.prepare()
     // Non-live (http VOD) streams have no live edge to re-anchor to - restore where the user was.
     if (!wasLive && resumePosition > 0L) stalledPlayer.seekTo(resumePosition)
+}
+
+/**
+ * Hard-fail tail shared by budget exhaustion and the first-connection bound, so both reach the
+ * unavailable dialog through one callback sequence. It never touches the recovery window: a stream
+ * that has not reached ready since its prepare spends no watchdog recovery (STREAM-BANK 2.6).
+ *
+ * The player is stopped here because the watchdog only cancels its own timer: a connect still in flight
+ * would later fail into `onPlayerError`, whose ladder re-prepares behind the dialog and re-arms this
+ * bound on every new BUFFERING. A Retry from the dialog builds a fresh player in `playStreamVideo`.
+ */
+private fun VideoPlayerManager.surfaceStreamStallFailure(message: String) {
+    cancelStreamStallWatchdog()
+    streamWatchdogReconnecting = false
+    Timber.d("S4760: stall failure stops the player before the unavailable dialog")
+    exoPlayer?.stop()
+    playerCallback.onBuffering(false)
+    playerCallback.onStreamWaitPhase(null)
+    playerCallback.onPlaybackError(
+        PlaybackException(message, null, PlaybackException.ERROR_CODE_TIMEOUT)
+    )
 }
 
 /**

@@ -2,7 +2,7 @@
 page_id: streams.hls-dash-buffering
 title: When the Connection Is Weak - Buffering, Reconnecting and Picture Quality
 nav_title: When the connection is weak
-description: What FastMediaSorter does by itself when a stream slows down or drops - buffering, reconnecting, catching up with a live channel, lowering and raising the picture quality - and what the messages and dialogs mean when a channel really does not play.
+description: What Fast Media Sorter & Organizer does by itself when a stream slows down or drops - buffering, reconnecting, catching up with a live channel, lowering and raising the picture quality - and what the messages and dialogs mean when a channel really does not play.
 category: Internet Streams
 category_slug: streams
 ticket: S2955
@@ -12,9 +12,9 @@ canonical_url: documentation/streams/hls-dash-buffering.html
 why: |
   A train goes into a tunnel, the Wi-Fi at the cottage comes and goes, the hotel network is slow in the evening. A live [stream](term:stream) feels all of it, because it arrives piece by piece while you watch or listen.
 
-  Most of the time you do not have to do anything: FastMediaSorter keeps a small supply of the stream in reserve, reconnects quietly, and chooses a picture quality your connection can carry. This recipe explains what you see on screen while that happens, which switch makes radio more patient, and how to tell a weak connection from a channel that has really gone.
+  Most of the time you do not have to do anything: Fast Media Sorter & Organizer keeps a small supply of the stream in reserve, reconnects quietly, and chooses a picture quality your connection can carry. This recipe explains what you see on screen while that happens, which switch makes radio more patient, and how to tell a weak connection from a channel that has really gone.
 ingredients:
-  - "FastMediaSorter in the Standard, noLegal, Legacy or VR [edition](term:edition) with Streams turned on."
+  - "Fast Media Sorter & Organizer in the Standard, noLegal, Legacy or VR [edition](term:edition) with Streams turned on."
   - "A [channel](term:channel) you want to play. Everything on this page happens by itself; only step 2 has a switch."
 steps:
   - number: 1
@@ -54,7 +54,7 @@ steps:
     id: live-edge
     title: Live TV that falls behind catches up by itself
     text: |
-      A live TV channel keeps only the last few minutes of its broadcast available. If a slow moment leaves the player too far behind, that part has already disappeared from the server. Instead of calling the channel dead, FastMediaSorter jumps back to the current moment of the broadcast and carries on. You may notice a small jump in the picture; there is no dialog and the channel keeps its green mark.
+      A live TV channel keeps only the last few minutes of its broadcast available. If a slow moment leaves the player too far behind, that part has already disappeared from the server. Instead of calling the channel dead, Fast Media Sorter & Organizer jumps back to the current moment of the broadcast and carries on. You may notice a small jump in the picture; there is no dialog and the channel keeps its green mark.
 
       Short network drops and busy servers are treated the same way: the player tries again a few times, waiting a little longer each time, before it gives up. The picture follows the broadcast closely, so a live channel stays live.
   - number: 4
@@ -117,4 +117,4 @@ next_recipes:
 
 <sub class="doc-stamp">26.10.07 01:10</sub>
 
-A weak connection does not have to spoil a live [stream](term:stream): FastMediaSorter buffers, reconnects, catches up with live TV and adjusts the picture quality on its own, and tells you plainly when it is your connection and when it is the channel.
+A weak connection does not have to spoil a live [stream](term:stream): Fast Media Sorter & Organizer buffers, reconnects, catches up with live TV and adjusts the picture quality on its own, and tells you plainly when it is your connection and when it is the channel.

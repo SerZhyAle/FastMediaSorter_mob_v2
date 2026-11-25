@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.29 05:03</sub>
+<sub class="doc-stamp">26.11.25 02:51</sub>
 
 # Pointer - `FMSCFG`
 
 | | |
 | --- | --- |
 | **Id** | `FMSCFG` |
-| **Version** | 2.6, active; wire carrier `schemaVersion`, this product reads 1-2. Owner: FMS Companion |
+| **Version** | 2.7, active; wire carrier `schemaVersion`, this product reads 1-2. Owner: FMS Companion |
 | **Home** | `config-interchange/README.md` and `CONFIG_FORMAT.md` in the shared contracts catalog |
 | **Role here** | producer and consumer - the `.fmscfg` importer, and the writer of `schemaVersion` 2 files and `FMSCFG1:` QR payloads when a user shares an SFTP resource |
 
@@ -31,6 +31,9 @@
 - An empty or whitespace-only `password` means "not carried": ask the user before anything is created,
   and never create a resource that cannot log in. An export that leaves the password out writes
   `"password":""` and never omits the key (2.2 amendment, item C).
+- An absent, blank or non-`SHA256:<base64>` `hostKeyFingerprintSha256` refuses the whole file before anything is
+  written, and a document with no `lan`, `ipv6` or `portforward` path is refused whole with its own message (2.6,
+  C2 and C3); the writer refuses to export an SFTP resource that has no host-key pin (S4649).
 - The payload is a secret (rule 6): no log line, diagnostic or crash report may carry a password, a PIN
   or the payload; exported files stay in the app's private cache and are replaced on the next export.
 

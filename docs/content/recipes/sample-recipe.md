@@ -9,7 +9,7 @@ availability: SUPPORT_AUDIO
 recipe_number: "01"
 canonical_url: documentation/sample-recipe.html
 ingredients:
-  - FastMediaSorter v2 installed on your Android device (version 2.6 or later).
+  - Fast Media Sorter & Organizer installed on your Android device (version 2.6 or later).
   - "**Read Media Audio** permission granted upon first launch."
   - Local music files (MP3, FLAC, AAC, OGG, or WAV format).
   - (Optional) Local Wi-Fi network for streaming directly from <a href="network/smb-samba-shares.html" class="doc-link">SMB / SFTP servers</a>.
@@ -17,9 +17,9 @@ steps:
   - number: 1
     id: step-1
     title: Locate and Open Your Music Directory
-    text: Launch FastMediaSorter. From the home drawer or bottom navigation bar, tap **Local Storage** or choose a configured network bookmark. Navigate to your music directory.
+    text: Launch Fast Media Sorter & Organizer. From the home drawer or bottom navigation bar, tap **Local Storage** or choose a configured network bookmark. Navigate to your music directory.
     image:
-      src: assets/images/sample-step1.png
+      src: assets/images/sample-step1.svg
       alt: Folder Browser showing Music albums with metadata badges and track counts
       caption: "Figure 1: Navigating music folders with live duration badges and track counts."
   - number: 2
@@ -32,13 +32,13 @@ steps:
       * **Swipe left/right on the mini-player:** Skips to the previous or next track in the queue.
       * **Queue management:** Tap the playlist icon to drag and reorder songs or remove duplicates.
     image:
-      src: assets/images/audio-playback-deck.png
+      src: assets/images/audio-playback-deck.svg
       alt: Audio player deck showing active track playback, album art, and queue playlist controls
       caption: "Figure 2: Audio playback deck with waveform scrubber and track queue."
     callout:
       type: tip
       title: Background Playback & Headset Controls
-      text: FastMediaSorter continues playback in the background with lock screen controls and supports Bluetooth headset buttons (single tap pause, double tap next track).
+      text: Fast Media Sorter & Organizer continues playback in the background with lock screen controls and supports Bluetooth headset buttons (single tap pause, double tap next track).
   - number: 3
     id: step-3
     title: Quick Sorting & File Operations
@@ -59,7 +59,7 @@ steps:
     callout:
       type: warning
       title: Keep Your Android Screen On During Large Network Transfers
-      text: When moving files across network shares (<span class="doc-link-term" data-term="SMB">SMB</span> or <span class="doc-link-term" data-term="SFTP">SFTP</span>), keep the transfer window in the foreground or ensure FastMediaSorter is excluded from aggressive vendor battery-killer rules.
+      text: When moving files across network shares (<span class="doc-link-term" data-term="SMB">SMB</span> or <span class="doc-link-term" data-term="SFTP">SFTP</span>), keep the transfer window in the foreground or ensure Fast Media Sorter & Organizer is excluded from aggressive vendor battery-killer rules.
 snippets:
   - title: Sample Equalizer Configuration Preset
     path: docs/content/snippets/audio-equalizer-config.json
@@ -78,6 +78,6 @@ next_recipes:
     description: Stream your high-resolution FLAC library directly without filling your device storage.
 ---
 
-<sub class="doc-stamp">26.10.07 01:10</sub>
+<sub class="doc-stamp">26.11.20 00:35</sub>
 
-Whether you have thousands of lossless FLAC tracks on an SD card or albums shared across a home <span class="doc-link-term" data-term="NAS">NAS</span> server, FastMediaSorter lets you browse, queue, and sort your audio library without altering your physical folder hierarchy.
+Whether you have thousands of lossless FLAC tracks on an SD card or albums shared across a home <span class="doc-link-term" data-term="NAS">NAS</span> server, Fast Media Sorter & Organizer lets you browse, queue, and sort your audio library without altering your physical folder hierarchy.

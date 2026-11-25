@@ -15,6 +15,7 @@
                     android:id="@+id/headerSortingSlideshow"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:csh_icon="@drawable/ic_sort"
                     app:csh_showHelp="false"
                     app:csh_title="@string/settings_category_sorting_slideshow" />
 
@@ -75,6 +76,7 @@
                     android:id="@+id/headerFileOperations"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:csh_icon="@drawable/ic_rename"
                     app:csh_showHelp="false"
                     app:csh_title="@string/settings_category_file_operations" />
 
@@ -110,6 +112,7 @@
 
                             <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                                 android:id="@+id/rowConfirmDelete"
+                                app:str_icon="@drawable/ic_check"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="@dimen/margin_small"
@@ -134,6 +137,7 @@
                     android:id="@+id/headerPlayerUI"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:csh_icon="@drawable/ic_play"
                     app:csh_showHelp="false"
                     app:csh_title="@string/settings_category_player_ui" />
 
@@ -142,6 +146,7 @@
                     <!-- Hide System UI in Fullscreen -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                         android:id="@+id/rowHideSystemUiInFullscreen"
+                        app:str_icon="@drawable/ic_fullscreen"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/margin_small"
@@ -154,6 +159,7 @@
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowFollowSystemRotationPlayer"
+                            app:str_icon="@drawable/ic_screen_rotation"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="@dimen/margin_small"
@@ -164,6 +170,7 @@
 
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                         android:id="@+id/rowShowCommandPanel"
+                        app:str_icon="@drawable/ic_menu"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/margin_small"
@@ -175,6 +182,7 @@
 
                     <com.sza.fastmediasorter.ui.common.widget.SettingsInputRow
                         android:id="@+id/rowPlayerPanelAutoHide"
+                        app:sir_icon="@drawable/ic_schedule"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/margin_small"
@@ -211,6 +219,7 @@
                     <!-- Panel Stereo Single-Eye View (spec_panel-stereo-single-eye) -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                         android:id="@+id/rowPanelStereoSingleEye"
+                        app:str_icon="@drawable/ic_stereo_3d"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/margin_small"
@@ -220,6 +229,7 @@
                     <!-- S0158: Big Buttons Mode -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                         android:id="@+id/rowBigButtonsMode"
+                        app:str_icon="@drawable/ic_accessibility"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/margin_small"
@@ -232,6 +242,7 @@
                     <!-- Compact player buttons (small controls) - shrinks the player command panel -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                         android:id="@+id/rowSmallControls"
+                        app:str_icon="@drawable/ic_density_small"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/margin_small"
@@ -255,6 +266,7 @@
                     android:id="@+id/headerTouchZones"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:csh_icon="@drawable/ic_gesture"
                     app:csh_showHelp="false"
                     app:csh_title="@string/settings_category_touch_zones" />
 
@@ -432,6 +444,7 @@
                         <!-- Sub-setting: show mini now-playing bar when browsing non-audio/video files -->
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowShowNowPlayingPanel"
+                            app:str_icon="@drawable/ic_gesture_action_play_pause"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"

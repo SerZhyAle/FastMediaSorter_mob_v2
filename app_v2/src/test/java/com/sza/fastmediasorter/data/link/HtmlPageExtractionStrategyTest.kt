@@ -11,6 +11,9 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
+import okhttp3.Cookie
+import okhttp3.CookieJar
+import okhttp3.HttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
@@ -200,6 +203,90 @@ class HtmlPageExtractionStrategyTest {
         verify(exactly = 0) { structuredMediaSniffer.sniffInstagramApiResponse(any(), any()) }
     }
 
+    @Test
+    fun `instagram revoked session repeats the post fetch once without cookies`() = runTest {
+        val pageUrl = "https://www.instagram.com/p/ABC123/"
+        val pageHtml = """
+            <html><head><meta property="og:image" content="https://preview.example.com/p.jpg" /></head></html>
+        """.trimIndent()
+        val apiJson = """{"items":[{"image_versions2":{"candidates":[{"url":"https://cdninstagram.com/full.jpg"}]}}]}"""
+        val requests = mutableListOf<Request>()
+        val expected = OpenResult.Stream(
+            body = ByteArrayInputStream("img".toByteArray()),
+            contentLength = 3,
+            mime = "image/jpeg",
+            fileName = "full.jpg",
+            close = {},
+        )
+        every { structuredMediaSniffer.sniffInstagramApiResponse(apiJson, pageUrl) } returns listOf(
+            embeddedCandidate("https://cdninstagram.com/full.jpg"),
+        )
+        coEvery { direct.open("https://cdninstagram.com/full.jpg", any()) } returns expected
+
+        val strategy = HtmlPageExtractionStrategy(
+            httpClient = fakeHttpClient(
+                pageUrl = pageUrl,
+                pageHtml = pageHtml,
+                apiJson = apiJson,
+                requests = requests,
+                cookieJar = storedSessionJar,
+                loginRequired = { it.header("x-csrftoken") != null },
+            ),
+            direct = direct,
+            streamingSniffer = StreamingManifestSniffer(),
+            structuredMediaSniffer = structuredMediaSniffer,
+            settingsRepository = settingsRepository,
+        )
+
+        val out = strategy.open(pageUrl) { _, _ -> }
+
+        assertTrue(out is OpenResult.Stream)
+        val apiRequests = requests.filter { it.url.encodedPath.startsWith("/api/v1/media/") }
+        assertEquals(listOf("stored-csrf", null), apiRequests.map { it.header("x-csrftoken") })
+        verify(exactly = 1) { structuredMediaSniffer.sniffInstagramApiResponse(apiJson, pageUrl) }
+    }
+
+    @Test
+    fun `instagram post refused without cookies too is retried only once`() = runTest {
+        val pageUrl = "https://www.instagram.com/p/ABC123/"
+        val pageHtml = """
+            <html><head><meta property="og:image" content="https://preview.example.com/p.jpg" /></head></html>
+        """.trimIndent()
+        val requests = mutableListOf<Request>()
+
+        val strategy = HtmlPageExtractionStrategy(
+            httpClient = fakeHttpClient(
+                pageUrl = pageUrl,
+                pageHtml = pageHtml,
+                apiJson = "{}",
+                requests = requests,
+                cookieJar = storedSessionJar,
+                loginRequired = { true },
+            ),
+            direct = direct,
+            streamingSniffer = StreamingManifestSniffer(),
+            structuredMediaSniffer = structuredMediaSniffer,
+            settingsRepository = settingsRepository,
+        )
+
+        val out = strategy.open(pageUrl) { _, _ -> }
+
+        assertTrue(out is OpenResult.SocialPreviewOnly)
+        assertEquals(2, requests.count { it.url.encodedPath.startsWith("/api/v1/media/") })
+        assertEquals(2, requests.count { it.url.encodedPath == "/graphql/query/" })
+        verify(exactly = 0) { structuredMediaSniffer.sniffInstagramApiResponse(any(), any()) }
+        coVerify(exactly = 0) { direct.open(any(), any()) }
+    }
+
+    private val storedSessionJar = object : CookieJar {
+        override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) = Unit
+
+        override fun loadForRequest(url: HttpUrl): List<Cookie> = listOf(
+            Cookie.Builder().domain("instagram.com").name("csrftoken").value("stored-csrf").build(),
+            Cookie.Builder().domain("instagram.com").name("sessionid").value("revoked").build(),
+        )
+    }
+
     private fun embeddedCandidate(url: String): HtmlMediaCandidate = HtmlMediaCandidate(
         url = url,
         source = HtmlMediaCandidate.Source.EMBEDDED_JSON,
@@ -268,11 +355,15 @@ class HtmlPageExtractionStrategyTest {
         apiJson: String,
         requests: MutableList<Request>,
         graphqlJson: String = "{}",
+        cookieJar: CookieJar = CookieJar.NO_COOKIES,
+        loginRequired: (Request) -> Boolean = { false },
     ): OkHttpClient {
         val htmlType = "text/html".toMediaType()
         val jsonType = "application/json".toMediaType()
         val imageType = "image/jpeg".toMediaType()
+        val loginWall = """{"message":"Please wait a few minutes before you try again.","require_login":true}"""
         return OkHttpClient.Builder()
+            .cookieJar(cookieJar)
             .addInterceptor { chain ->
                 val request = chain.request()
                 requests += request
@@ -282,13 +373,17 @@ class HtmlPageExtractionStrategyTest {
 
                     request.url.host == "www.instagram.com" && request.url.encodedPath.startsWith("/api/v1/media/") -> {
                         val hasAppId = request.header("x-ig-app-id") == "936619743392459"
-                        val code = if (hasAppId) 200 else 401
-                        val body = if (code == 200) apiJson.toResponseBody(jsonType) else "{}".toResponseBody(jsonType)
-                        response(request, code, body)
+                        val code = if (hasAppId && !loginRequired(request)) 200 else 401
+                        val answer = if (code == 200) apiJson else loginWall
+                        response(request, code, answer.toResponseBody(jsonType))
                     }
 
                     request.url.host == "www.instagram.com" && request.url.encodedPath == "/graphql/query/" ->
-                        response(request, 200, graphqlJson.toResponseBody(jsonType))
+                        if (loginRequired(request)) {
+                            response(request, 401, loginWall.toResponseBody(jsonType))
+                        } else {
+                            response(request, 200, graphqlJson.toResponseBody(jsonType))
+                        }
 
                     request.method == "HEAD" && request.url.host.contains("cdninstagram.com") ->
                         response(request, 200, ByteArray(0).toResponseBody(imageType))

@@ -12,9 +12,9 @@ canonical_url: documentation/storage/batch-renaming.html
 why: |
   Camera names like `IMG_20260712_183412.jpg` tell you nothing a year later. "Anna's first bike ride.jpg" does. A good name makes a photo easy to find by search and easy to recognize in any app.
 
-  FastMediaSorter renames right where you look at your files: one photo in the player, or a whole batch in the [file browser](term:file-browser), each with its own new name. It works on the phone, on the memory card, on [network folders](term:network-folder) and in [cloud storage](term:cloud-storage).
+  Fast Media Sorter & Organizer renames right where you look at your files: one photo in the player, or a whole batch in the [file browser](term:file-browser), each with its own new name. It works on the phone, on the memory card, on [network folders](term:network-folder) and in [cloud storage](term:cloud-storage).
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR or FOSS."
+  - "Fast Media Sorter & Organizer in any [edition](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR or FOSS."
   - "A [resource](term:resource) the app can write to. On a read-only resource the Rename button does not appear."
 steps:
   - number: 1

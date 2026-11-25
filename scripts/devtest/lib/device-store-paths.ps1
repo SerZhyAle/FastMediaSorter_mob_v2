@@ -4,38 +4,14 @@
     Declares WHERE the device stores live and HOW a serial becomes a file name (S3036).
 
 .DESCRIPTION
-    Two coordination stores sit at the root of temp/ with opposite lifecycles (docs/DEV_OPS.md):
-    DEVICE.LEASES/ is ephemeral and swept by session liveness, DEVICE.REGISTRY/ is durable and never
-    swept. S3201 added a third, DEVICE.STATE/ - the per-device journal of state a test changed and must
-    put back, durable for the same reason as the registry. Every OTHER coordination directory at that root resolves its path through
-    .sza-profile.json, read by the canon-shipped harness. These two cannot: the harness reads no
-    device path at all (verified 2026-09-12 across tools/harness - a device appears there only as a
-    serial in the agent chat), and Get-SzaProfileValue throws on an unknown key by design (S2705),
-    so a project-only paths.* key would be unreadable until the canon's own defaults declared a key
-    the canon never reads. Hence a repository-local declaration, beside the scripts that own the
-    stores - the same conclusion, for the same reason, as S3030's temp-root allowlist.
-
-    Before S3036 the address was copied instead of declared: four production sites carried
-    'temp\DEVICE.*' (device-lease.ps1, device-registry.ps1, device-ready.ps1, dev-monitor-writer.ps1)
-    and three of them re-implemented the ':' -> '_' serial encoding, so "where the store is and how
-    it is addressed" was written down seven times for two directories. The consequence is not a bug
-    today but a silent one later: a foreign reader with its own copy is how a moved store keeps
-    answering "absent" instead of failing.
-
-    Consumers: the two owning CLIs (scripts/devtest/device-lease.ps1, device-registry.ps1), the
-    readiness probe (device-ready.ps1, read-only), the monitor writer (scripts/utils/dev-monitor-writer.ps1,
-    read-only) and scripts/utils/temp-root-inventory.ps1, which needs the leaf names alone so the
-    archiver's protected set follows a rename with no edit of its own.
-
-    The two contract suites of device-lease.tests and adb.tests keep their own literals on purpose:
-    a test that derives its expectation from the declaration under test cannot catch a wrong
-    declaration, and both of them seed fixtures in the REAL store, so their copies are independent
-    pins (S3036 ADR-4).
+    The installation registry and state journal are repository-local. The lease fallback path
+    is used only when the installed SZA harness has no device lease tool. The temp archiver
+    derives the protected directory names here.
 
 .EXAMPLE
     . (Join-Path $PSScriptRoot 'lib\device-store-paths.ps1')
-    $leaseDir = Get-DeviceStoreDir -RepoRoot $root -Store Lease
-    $record = Get-DeviceStoreRecordPath -RepoRoot $root -Store Registry -Serial '192.168.1.5:5555'
+    $leaseDir = Get-DeviceStoreDir -RepoRoot $root -Store LeaseFallback
+    $record = Get-DeviceStoreRecordPath -RepoRoot $root -Store Registry -Serial 'Fixture_Device'
 
 .NOTES
     Dot-sourced library. It defines functions and assigns nothing at script scope, because a
@@ -65,10 +41,10 @@ function Get-DeviceStoreDirName {
     #>
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory)][ValidateSet('Lease', 'Registry', 'State')][string]$Store
+        [Parameter(Mandatory)][ValidateSet('LeaseFallback', 'Registry', 'State')][string]$Store
     )
     switch ($Store) {
-        'Lease' { return 'DEVICE.LEASES' }
+        'LeaseFallback' { return 'DEVICE.LEASES' }
         'Registry' { return 'DEVICE.REGISTRY' }
         # S3201: the per-device journal of state a test changed and must put back. Durable like the
         # registry - an unrestored journal is exactly the record the next run needs.
@@ -90,7 +66,7 @@ function Get-DeviceStoreDir {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)][string]$RepoRoot,
-        [Parameter(Mandatory)][ValidateSet('Lease', 'Registry', 'State')][string]$Store
+        [Parameter(Mandatory)][ValidateSet('LeaseFallback', 'Registry', 'State')][string]$Store
     )
     return (Join-Path (Join-Path $RepoRoot 'temp') (Get-DeviceStoreDirName -Store $Store))
 }
@@ -124,7 +100,7 @@ function Get-DeviceStoreRecordPath {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)][string]$RepoRoot,
-        [Parameter(Mandatory)][ValidateSet('Lease', 'Registry', 'State')][string]$Store,
+        [Parameter(Mandatory)][ValidateSet('LeaseFallback', 'Registry', 'State')][string]$Store,
         [Parameter(Mandatory)][string]$Serial
     )
     $dir = Get-DeviceStoreDir -RepoRoot $RepoRoot -Store $Store

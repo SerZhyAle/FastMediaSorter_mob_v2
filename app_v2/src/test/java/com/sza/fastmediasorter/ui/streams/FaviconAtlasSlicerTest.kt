@@ -45,6 +45,10 @@ class FaviconAtlasSlicerTest {
         // index 17 -> rect (32,32,64,64), fits exactly.
         assertTrue(slicer.isInBounds(17, 64, 64))
         assertTrue(slicer.isInBounds(0, 64, 64))
+        assertFalse(slicer.isInBounds(Int.MAX_VALUE, 512, 512))
+        assertFalse(slicer.isInBounds(1_073_741_824, 512, 512))
+        assertFalse(slicer.isInBounds(0, 31, 32))
+        assertFalse(slicer.isInBounds(0, 32, -32))
     }
 
     @Test

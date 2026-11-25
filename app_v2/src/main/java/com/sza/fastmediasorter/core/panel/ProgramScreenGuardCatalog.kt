@@ -4,12 +4,14 @@ import android.app.Activity
 import com.sza.fastmediasorter.ui.broadcast.BroadcastEntryActivity
 import com.sza.fastmediasorter.ui.broadcast.BroadcastShareActivity
 import com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity
+import com.sza.fastmediasorter.ui.feedback.FeedbackActivity
 import com.sza.fastmediasorter.ui.filler.FillerActivity
 import com.sza.fastmediasorter.ui.flashlight.FrontFlashlightActivity
 import com.sza.fastmediasorter.ui.flashlight.WaterFlashlightActivity
 import com.sza.fastmediasorter.ui.game.GameActivity
 import com.sza.fastmediasorter.ui.game.GameHelpActivity
 import com.sza.fastmediasorter.ui.mirror.MirrorActivity
+import com.sza.fastmediasorter.ui.notes.NotesActivity
 import com.sza.fastmediasorter.ui.sos.SosActivity
 import com.sza.fastmediasorter.ui.systeminfo.SystemInfoActivity
 import com.sza.fastmediasorter.ui.tourist.TouristInfoActivity
@@ -45,6 +47,8 @@ object ProgramScreenGuardCatalog {
         MirrorActivity::class.java to InternalRouteCatalog.KEY_MIRROR,
         TouristInfoActivity::class.java to InternalRouteCatalog.KEY_TOURIST_INFO,
         TouristCounterActivity::class.java to InternalRouteCatalog.KEY_TOURIST_INFO,
+        NotesActivity::class.java to InternalRouteCatalog.KEY_NOTES,
+        FeedbackActivity::class.java to InternalRouteCatalog.KEY_FEEDBACK,
         GameActivity::class.java to InternalRouteCatalog.KEY_GAME,
         GameHelpActivity::class.java to InternalRouteCatalog.KEY_GAME,
         // The filler's availability already admits it while the journal lists leftovers of an interrupted

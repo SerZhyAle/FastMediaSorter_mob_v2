@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.databinding.DialogScheduledRunHistoryBinding
 import com.sza.fastmediasorter.domain.model.Quantity
 import com.sza.fastmediasorter.domain.model.ScheduledRunOutcome
 import com.sza.fastmediasorter.domain.model.ScheduledRunRecord
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.ui.scheduledops.ScheduledRunHistoryAdapter
 import com.sza.fastmediasorter.ui.scheduledops.ScheduledRunHistoryRow
 import com.sza.fastmediasorter.ui.scheduledops.ScheduledRunReasonText
@@ -48,6 +49,7 @@ class ScheduledRunHistoryDialogManager(private val host: ComponentActivity) {
                 .setView(body.root)
                 .setPositiveButton(R.string.close, null)
                 .showBoundTo(host)
+                ?.let { DialogHelpEntryManager.attach(it, "dialog_scheduled_run_history") }
         }
     }
 

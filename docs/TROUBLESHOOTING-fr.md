@@ -9,7 +9,7 @@ permalink: /docs/TROUBLESHOOTING-fr.html
 
 # 🔧 Guide de dépannage
 
-Guide de dépannage actuel pour FastMediaSorter v2. Utilisez la grille de flavors canonique dans [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) lorsque le problème dépend du chemin de build sélectionné (Standard, Lite, Photos, Legacy, ou XR / noLegal).
+Guide de dépannage actuel pour Fast Media Sorter & Organizer. Utilisez la grille de flavors canonique dans [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) lorsque le problème dépend du chemin de build sélectionné (Standard, Lite, Photos, Legacy, ou XR / noLegal).
 
 ---
 
@@ -53,7 +53,7 @@ Guide de dépannage actuel pour FastMediaSorter v2. Utilisez la grille de flavor
 ### ❌ « Échec de connexion Google Drive »
 
 **Solution :**
-1. Effacez les données de l'application : Paramètres → Applications → FastMediaSorter → Effacer les données
+1. Effacez les données de l'application : Paramètres → Applications → Fast Media Sorter & Organizer → Effacer les données
 2. Réinstallez l'application
 3. Vérifiez les paramètres du compte Google → Sécurité → Applications tierces
 
@@ -63,7 +63,7 @@ Guide de dépannage actuel pour FastMediaSorter v2. Utilisez la grille de flavor
 
 **Solution :**
 1. Vérifiez l'état du compte Microsoft
-2. Effacez les données de l'application : Paramètres → Applications → FastMediaSorter → Effacer les données
+2. Effacez les données de l'application : Paramètres → Applications → Fast Media Sorter & Organizer → Effacer les données
 3. Vérifiez les paramètres du compte Microsoft → Confidentialité → Applications et services
 
 ---
@@ -72,7 +72,7 @@ Guide de dépannage actuel pour FastMediaSorter v2. Utilisez la grille de flavor
 
 **Solution :**
 1. Vérifiez l'état du compte Dropbox
-2. Effacez les données de l'application : Paramètres → Applications → FastMediaSorter → Effacer les données
+2. Effacez les données de l'application : Paramètres → Applications → Fast Media Sorter & Organizer → Effacer les données
 3. Vérifiez les paramètres du compte Dropbox → Sécurité → Applications connectées
 
 ---
@@ -182,7 +182,7 @@ Cela utilise la fonctionnalité *Lecteur secondaire* pour confier les codecs non
 ### ❌ « L'application plante au démarrage »
 
 **Solution :**
-1. Videz le cache de l'application : Paramètres → Applications → FastMediaSorter → Vider le cache
+1. Videz le cache de l'application : Paramètres → Applications → Fast Media Sorter & Organizer → Vider le cache
 2. Si le problème persiste : effacez les données de l'application (⚠️ perte des réglages)
 3. Réinstallez l'application en dernier recours
 

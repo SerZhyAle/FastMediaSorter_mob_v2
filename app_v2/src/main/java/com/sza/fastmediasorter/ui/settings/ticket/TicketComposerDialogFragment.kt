@@ -15,12 +15,17 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogTicketComposerBinding
+import com.sza.fastmediasorter.domain.model.feedback.FeedbackFolderChoice
+import com.sza.fastmediasorter.domain.model.ticket.TicketDestination
+import com.sza.fastmediasorter.domain.model.ticket.TicketOrigin
 import com.sza.fastmediasorter.domain.model.ticket.TicketOutboxEntry
 import com.sza.fastmediasorter.domain.model.ticket.TicketOutboxState
 import com.sza.fastmediasorter.domain.model.ticket.TicketProject
 import com.sza.fastmediasorter.ui.common.dialog.DialogWindowSizer
 import com.sza.fastmediasorter.ui.common.dialog.applyDialogInsets
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.ui.settings.ticket.helpers.TicketAttachmentPickerManager
+import com.sza.fastmediasorter.ui.settings.ticket.helpers.TicketDestinationPickerManager
 import com.sza.fastmediasorter.ui.settings.ticket.helpers.TicketVoiceRecordManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
@@ -45,7 +50,9 @@ class TicketComposerDialogFragment : DialogFragment() {
     private var voice: TicketVoiceRecordManager? = null
     private var attachmentsAdapter: TicketRowAdapter? = null
     private var outboxAdapter: TicketRowAdapter? = null
+    private var destinationPicker: TicketDestinationPickerManager? = null
     private var shownProjects: List<TicketProject>? = null
+    private var shownDestinations: FeedbackFolderChoice? = null
     private var handledSends = 0
 
     private val pickFiles = registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
@@ -68,12 +75,12 @@ class TicketComposerDialogFragment : DialogFragment() {
         dialog?.let { shown ->
             DialogWindowSizer.applyTo(shown)
             shown.applyDialogInsets()
+            DialogHelpEntryManager.attach(shown, DialogHelpEntryManager.surfaceIdOf(shown, null))
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        Timber.d("S4554: ticket composer opened")
         val form = binding.composer
         val recorder = TicketVoiceRecordManager(requireContext())
         voice = recorder
@@ -86,6 +93,7 @@ class TicketComposerDialogFragment : DialogFragment() {
             viewModel.send(text, form.spinnerTicketProject.selectedItemPosition)
         }
         binding.outbox.btnTicketRefresh.setOnClickListener { viewModel.refresh() }
+        binding.outbox.btnTicketGrantDrive.setOnClickListener { viewModel.grantDriveAccess(requireActivity()) }
 
         val attachments = TicketRowAdapter { row -> viewModel.removeAttachment(row.id) }
         attachmentsAdapter = attachments
@@ -96,8 +104,14 @@ class TicketComposerDialogFragment : DialogFragment() {
         binding.outbox.listTicketOutbox.layoutManager = LinearLayoutManager(requireContext())
         binding.outbox.listTicketOutbox.adapter = outbox
 
+        destinationPicker = TicketDestinationPickerManager(
+            binding.composer.ticketDestinationRow,
+            binding.composer.spinnerTicketDestination
+        ) { id -> viewModel.chooseDestination(id) }
+
         collectOnLifecycle(viewModel.state, block = ::render)
         collectOnLifecycle(viewModel.outbox, block = ::renderOutbox)
+        collectOnLifecycle(viewModel.folders, block = ::renderDestinations)
     }
 
     override fun onDestroyView() {
@@ -107,7 +121,9 @@ class TicketComposerDialogFragment : DialogFragment() {
         binding.outbox.listTicketOutbox.adapter = null
         attachmentsAdapter = null
         outboxAdapter = null
+        destinationPicker = null
         shownProjects = null
+        shownDestinations = null
         super.onDestroyView()
         _binding = null
     }
@@ -126,8 +142,11 @@ class TicketComposerDialogFragment : DialogFragment() {
         )
         if (state.projectsLoaded && shownProjects !== state.projects) bindProjects(state.projects)
         form.tvTicketProjectsHint.isVisible = state.projectsLoaded && state.projects == null
+        destinationPicker?.render(shownDestinations ?: FeedbackFolderChoice(), state.destinationId)
         binding.outbox.progressTicket.isVisible = state.busy || !state.projectsLoaded
         binding.btnTicketSend.isEnabled = !state.busy
+        binding.outbox.btnTicketGrantDrive.isVisible = state.driveAccessNeeded
+        binding.outbox.btnTicketGrantDrive.isEnabled = !state.busy
         if (state.sentCount != handledSends) {
             handledSends = state.sentCount
             form.etTicketText.text = null
@@ -138,10 +157,19 @@ class TicketComposerDialogFragment : DialogFragment() {
                     TicketComposerNotice.Queued -> getString(R.string.ticket_inbox_queued_notice)
                     TicketComposerNotice.EmptyDraft -> getString(R.string.ticket_inbox_empty_draft)
                     is TicketComposerNotice.StageFailed -> getString(R.string.ticket_inbox_stage_failed, notice.reason)
+                    TicketComposerNotice.DriveAccessGranted -> getString(R.string.ticket_inbox_drive_access_granted)
+                    TicketComposerNotice.DriveAccessDeclined -> getString(R.string.ticket_inbox_drive_access_declined)
+                    TicketComposerNotice.DriveAccessFailed -> getString(R.string.ticket_inbox_drive_access_failed)
                 }
             )
             viewModel.consumeNotice()
         }
+    }
+
+    private fun renderDestinations(choice: FeedbackFolderChoice) {
+        shownDestinations = choice
+        Timber.d("S4663: folder choices available=%b folders=%d", choice.available, choice.folders.size)
+        destinationPicker?.render(choice, viewModel.state.value.destinationId)
     }
 
     private fun bindProjects(projects: List<TicketProject>?) {
@@ -153,11 +181,18 @@ class TicketComposerDialogFragment : DialogFragment() {
         binding.composer.spinnerTicketProject.isEnabled = !projects.isNullOrEmpty()
     }
 
-    private fun renderOutbox(entries: List<TicketOutboxEntry>) {
+    private fun renderOutbox(all: List<TicketOutboxEntry>) {
+        // S4663: a feedback form's folder-bound packet stays that form's to show; whatever this
+        // composer filed - Drive or a folder - is listed here with its state.
+        val entries = all.filter { it.destination == TicketDestination.Drive || it.origin == TicketOrigin.TICKET }
+        Timber.d("S4663: outbox rows total=%d shown=%d", all.size, entries.size)
         binding.outbox.tvTicketOutboxEmpty.isVisible = entries.isEmpty()
         outboxAdapter?.submitList(
             entries.map { entry ->
-                val title = listOfNotNull(entry.project, entry.title.ifBlank { null }).joinToString(" - ")
+                val destination = entry.inboxResourceId
+                    ?.let { id -> shownDestinations?.folders?.firstOrNull { it.resourceId == id }?.name }
+                val title = listOfNotNull(destination, entry.project, entry.title.ifBlank { null })
+                    .joinToString(" - ")
                 TicketRow(
                     id = entry.packetId,
                     title = title.ifBlank { entry.packetId },
@@ -170,9 +205,20 @@ class TicketComposerDialogFragment : DialogFragment() {
 
     private fun stateLine(entry: TicketOutboxEntry): String = when (entry.state) {
         TicketOutboxState.QUEUED -> getString(R.string.ticket_inbox_state_queued)
-        TicketOutboxState.WAITING_ON_DRIVE ->
-            getString(R.string.ticket_inbox_state_waiting, entry.failure.orEmpty())
-        TicketOutboxState.SENT -> getString(R.string.ticket_inbox_state_sent)
+        TicketOutboxState.WAITING ->
+            if (entry.needsDriveAccess) {
+                getString(R.string.ticket_inbox_state_needs_access)
+            } else if (entry.destination == TicketDestination.Drive) {
+                getString(R.string.ticket_inbox_state_waiting, entry.failure.orEmpty())
+            } else {
+                getString(R.string.ticket_inbox_state_folder_waiting, entry.failure.orEmpty())
+            }
+        TicketOutboxState.SENT ->
+            if (entry.destination == TicketDestination.Drive) {
+                getString(R.string.ticket_inbox_state_sent)
+            } else {
+                getString(R.string.ticket_inbox_state_folder_sent)
+            }
         TicketOutboxState.PROCESSED ->
             getString(R.string.ticket_inbox_state_processed, entry.tickets.joinToString(", "))
         TicketOutboxState.FAILED -> getString(R.string.ticket_inbox_state_failed, entry.failure.orEmpty())

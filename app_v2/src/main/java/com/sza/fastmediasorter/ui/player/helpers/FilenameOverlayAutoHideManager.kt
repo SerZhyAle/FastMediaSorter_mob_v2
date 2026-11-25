@@ -56,6 +56,10 @@ class FilenameOverlayAutoHideManager(
     // onDestroy, and a late caller re-arming the timer would reach them on a later looper turn.
     private var released: Boolean = false
 
+    // True while the text editor is open. Its toolbar sits flush under the command panel with no inset
+    // for the plate, so the plate stays hidden instead of covering undo/redo/find.
+    private var suppressed: Boolean = false
+
     private val hideRunnable = Runnable { animateHide() }
 
     // ────────────────────────────────────────────────────────────────────
@@ -119,7 +123,7 @@ class FilenameOverlayAutoHideManager(
      * re-arming the timer with remaining time or a fresh countdown.
      */
     fun onEnterCommandPanelMode() {
-        if (!released && overlayLogicallyVisible) {
+        if (!released && !suppressed && overlayLogicallyVisible) {
             overlayView.animate().cancel()
             overlayView.alpha = 1f
             overlayView.isVisible = true
@@ -134,6 +138,25 @@ class FilenameOverlayAutoHideManager(
             scheduleHide(delay)
         }
         // If logically hidden, keep it hidden - nothing to restore.
+    }
+
+    /**
+     * Hides the overlay while the text editor is open and restores it when the editor closes.
+     * The logical visible state is kept untouched, so closing the editor brings the plate back with a
+     * fresh countdown only if it had not already auto-hidden before the editor opened.
+     */
+    fun setSuppressed(suppress: Boolean) {
+        Timber.d("S4861: setSuppressed suppress=$suppress editor open hides the file-name plate")
+        if (released || suppressed == suppress) return
+        suppressed = suppress
+        if (suppress) {
+            mainHandler.removeCallbacks(hideRunnable)
+            overlayView.animate().cancel()
+            overlayView.isVisible = false
+        } else if (!isFullscreen()) {
+            onEnterCommandPanelMode()
+        }
+        Timber.d("FilenameOverlayAutoHideManager: setSuppressed=$suppress")
     }
 
     /**
@@ -261,6 +284,7 @@ class FilenameOverlayAutoHideManager(
 
     private fun animateShow() {
         overlayLogicallyVisible = true
+        if (suppressed) return
         overlayView.animate().cancel()
         overlayView.isVisible = true
         overlayView.animate().alpha(1f).setDuration(FADE_DURATION_MS).start()
@@ -272,7 +296,7 @@ class FilenameOverlayAutoHideManager(
     }
 
     private fun animateHide() {
-        if (released) return
+        if (released || suppressed) return
         overlayView.animate().cancel()
         overlayView.animate()
             .alpha(0f)

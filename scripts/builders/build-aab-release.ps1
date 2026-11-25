@@ -175,6 +175,9 @@ $buildInfo = "AAB+APK Release - $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') - AAB:
 Add-Content -Path $journalPath -Value $buildInfo
 Write-Host "Build logged to journal" -ForegroundColor Cyan
 
+# S4679: record the build in the release ledger; the wrapper reports and never fails the build.
+& "$PSScriptRoot\..\utils\log-release-ledger-build.ps1" -Package phone -Flavor standard -Kind release -Version $versionName -Artifact "$destAabPath"
+
 Write-Host "`nAAB + APK build complete!" -ForegroundColor Green
 Write-Host "Ready for upload to Google Play Console" -ForegroundColor Cyan
 

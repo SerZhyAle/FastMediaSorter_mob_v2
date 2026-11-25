@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "family": "fastmediasorter",
+  "familyMarkVersion": "1",
+  "canvas": 432,
+  "files": {
+    "DESIGN-RECORD.md": "dc0cde3646923e242715fffa858efbbc8fda0f5b4a363a54b2c604e320196633",
+    "badges/debug.svg": "60b9d59dc85e9359afeaf867a3e2d0ccc8e2acd5267bd4411c29686ad1568026",
+    "badges/server.svg": "9970dd120b311d90d9c4d9e37d9efe9709a430bfc7744a2b811ae23b17a4c0a8",
+    "badges/share.svg": "deb394539285a963a4c320743199159cbbe69be7539d7b1408a7a8af65481ef1",
+    "construction.txt": "b1ee726eb6dc41ab129dd639fc6438e14303a11351e4bb67f2c7f607e8b229f0",
+    "lockup/typeface.txt": "c8c212b890a229684082f4802741a66f8fe85706b6b642bbb274be7a498a6f37",
+    "masters/mark-full-dark.svg": "6b384cd2f61410d3a50c50ad5dc66ffd274c8a71717b3c8ec4dd7608d3f57398",
+    "masters/mark-full.svg": "d8e78e9779b56ae65fa73bf2c392b4a5094a92254c352a0be2101bbad4e40c3a",
+    "masters/mark-mono-full.svg": "b5601ffb015ff36412d1a673127a85b3fc1c2e7166323c2834bdbb7911f55f0b",
+    "masters/mark-mono.svg": "9e1396eeb961621c72a404d26d4e758a22860be48b3e2e3cc6ef29214e1aac0d",
+    "masters/mark-small-16.svg": "537dfc7c7a463db161855a95bcde17e63958b80b29e736546f09e25560ceec45",
+    "masters/mark-small-20.svg": "931b8c96a04bd86cac552f3b98722c5339a89a568f37c4a2718acaff54d773e6",
+    "masters/mark-small-24.svg": "eb4a7b480a1514c9c9a27794f5b4c66ebb34c1583e869aec6c3fc3be32060cda",
+    "masters/mark-small-32.svg": "347ea0aae0e42fb10c53aff22ba7649d04735affa57d13121d66a53d2b8e0793",
+    "masters/mark-small-dark.svg": "4bec1a6a0102e1ff15e8df921f341777801cdee3d7ef09c0477cf997a866b749",
+    "masters/mark-small.svg": "7d639e1b311ee7e1ee87492e27c33b4276508ab84d758077520b574c812a68f2",
+    "signifiers/android.svg": "a9c55af35fc970a3dd75fcf50534c3a5bdc61d01dbd0cbc0f7188f60f70e643a",
+    "signifiers/web.svg": "25ca44d17230d90e96140456647c013a09072747ae947b1c2fd73b8fc85a1133",
+    "signifiers/win.svg": "7fa1ac80bdb09edb40eda5f8606ce427625802c1119b21283b1455f45f1597d8",
+    "tokens.json": "a7c04daddf2a06a8eb923c86048be028a37cad59ac055f0ca68e2a4d341666d6"
+  }
+}

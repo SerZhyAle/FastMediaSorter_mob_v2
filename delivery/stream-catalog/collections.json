@@ -3956,6 +3956,22 @@
         {
           "url": "https://english-livebkali.cgtn.com/live/encgtn.m3u8",
           "order": 690
+        },
+        {
+          "url": "https://arabic-liveali.cgtn.com/hls/LSveq57bErWLinBnxosqjisZ220802LSTefTAS9zc9mpU08y3np9TH220802cd/playlist.m3u8",
+          "order": 691
+        },
+        {
+          "url": "https://francais-liveali.cgtn.com/hls/LSvev95OuFZtKLc6CeKEFYXj220802LSTeV6PO0Ut9r71Uq3k5goCA220802cd/playlist.m3u8",
+          "order": 692
+        },
+        {
+          "url": "https://russian-liveali.cgtn.com/hls/LSvexABhNipibK5KRuUkvHZ7220802LSTeze9o8tdFXMHsb1VosgoT220802cd/playlist.m3u8",
+          "order": 693
+        },
+        {
+          "url": "https://espanol-liveali.cgtn.com/hls/LSveOGBaBw41Ea7ukkVAUdKQ220802LSTexu6xAuFH8VZNBLE1ZNEa220802cd/playlist.m3u8",
+          "order": 694
         }
       ]
     },
@@ -7096,6 +7112,10 @@
         {
           "url": "http://79.120.39.202:9123/",
           "order": 128
+        },
+        {
+          "url": "https://hermitage.hostingradio.ru/hermitage128.mp3",
+          "order": 129
         }
       ]
     },
@@ -8271,6 +8291,30 @@
         {
           "url": "https://streamer.radio.co/s919e54210/listen",
           "order": 291
+        },
+        {
+          "url": "https://playerservices.streamtheworld.com/api/livestream-redirect/RADIO_PHOENIXAAC_SC",
+          "order": 292
+        },
+        {
+          "url": "https://a9.asurahosting.com/listen/fiderana/radio.mp3",
+          "order": 293
+        },
+        {
+          "url": "http://stream.zeno.fm/xdb8nazajqcvv",
+          "order": 294
+        },
+        {
+          "url": "https://qurango.net/radio/mahmoud_khalil_alhussary",
+          "order": 295
+        },
+        {
+          "url": "http://27743.live.streamtheworld.com:3690/FM947AAC_SC",
+          "order": 296
+        },
+        {
+          "url": "https://radio.nitro-server.uk/listen/frobeatsisingadio/radio.mp3",
+          "order": 297
         }
       ]
     },
@@ -20161,6 +20205,14 @@
         {
           "url": "http://ilm.stream18.radiohost.de/ilm_iloveusonlyrapradio_mp3-192?upd-meta&upd-scheme=http&_art=dD0xNzkzOTY2NzU2JmQ9MDJhZDJjNzE0MmRmZDhjNjYyYTI",
           "order": 2342
+        },
+        {
+          "url": "https://icecast.ndr.de/ndr/njoy/live/mp3/128/stream.mp3",
+          "order": 2343
+        },
+        {
+          "url": "https://streams.radiobob.de/deathmetal/mp3-192/streams.radiobob.de/",
+          "order": 2344
         }
       ]
     },
@@ -21740,6 +21792,26 @@
         {
           "url": "https://ec3.yesstreaming.net:1970/stream",
           "order": 392
+        },
+        {
+          "url": "https://ice5.somafm.com/7soul-128-mp3",
+          "order": 393
+        },
+        {
+          "url": "https://c11.radioboss.fm:8187/stream",
+          "order": 394
+        },
+        {
+          "url": "https://thenorth1033.streamguys1.com/live?uuid=utqho945o",
+          "order": 395
+        },
+        {
+          "url": "https://14943.live.streamtheworld.com/KPWRAAC.aac",
+          "order": 396
+        },
+        {
+          "url": "https://stupidpotato.com/old-time-radio-for-sleep/live",
+          "order": 397
         }
       ]
     },
@@ -22367,6 +22439,14 @@
         {
           "url": "https://fm.chunt.org/stream",
           "order": 154
+        },
+        {
+          "url": "https://blues-radio-uk-3f77be5c.radiocult.fm/stream",
+          "order": 155
+        },
+        {
+          "url": "https://vega.streamerr.co:8730/radio.mp3",
+          "order": 156
         }
       ]
     },
@@ -23022,6 +23102,14 @@
         {
           "url": "http://eu10.fastcast4u.com:8120/",
           "order": 161
+        },
+        {
+          "url": "https://streaming.nrjaudio.fm/ounu8iqn5eyc",
+          "order": 162
+        },
+        {
+          "url": "https://stream10.xdevel.com/audio15s976748-2280/stream/icecast.audio",
+          "order": 163
         }
       ]
     }

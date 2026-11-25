@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.wear.data.exchange.WearBroadcastPlaybackResolver
 import com.sza.fastmediasorter.wear.data.exchange.WearStoredBroadcast
 import com.sza.fastmediasorter.wear.domain.model.WearBroadcastPass
 import com.sza.fastmediasorter.wear.domain.model.WearBroadcastPlayback
+import com.sza.fastmediasorter.wear.domain.model.WearBroadcastStartState
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.foldWearStreamIdentity
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
@@ -19,6 +20,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -35,6 +37,7 @@ class PrepareWearStreamPlaybackUseCaseTest {
     private val usageRepository: WearStreamUsageRepository = mockk(relaxed = true)
     private val passStore: WearBroadcastPassStore = mockk(relaxed = true)
     private val resolver: WearBroadcastPlaybackResolver = mockk()
+    private val watchStart: WatchWearBroadcastStartUseCase = mockk()
 
     private val useCase = PrepareWearStreamPlaybackUseCase(
         selectedMediaManager = selectedMediaManager,
@@ -43,6 +46,7 @@ class PrepareWearStreamPlaybackUseCaseTest {
         preferencesRepository = mockk<WearPreferencesRepository>(relaxed = true),
         passStore = passStore,
         resolver = resolver,
+        watchStart = watchStart,
     )
 
     @Before
@@ -104,6 +108,45 @@ class PrepareWearStreamPlaybackUseCaseTest {
         assertNull(selectedMediaManager.selectedFile.value)
     }
 
+    // S4692, LIVE-BROADCAST item S: a pending link opens the waiting screen until its relay says it is on air.
+
+    @Test
+    fun `a pending link whose broadcast has not started waits and selects nothing`() = runBlocking {
+        coEvery { passStore.get(LAN_URL) } returns stored(pending = true)
+        every { watchStart(LAN_URL) } returns flowOf(WearBroadcastStartState.Waiting(UNTIL_MS))
+
+        val target = useCase(channel(hasBroadcast = true))
+
+        assertTrue(target.waitingForStart)
+        assertTrue(target.unplayable)
+        assertNull(selectedMediaManager.selectedFile.value)
+        coVerify(exactly = 0) { resolver.resolve(any()) }
+    }
+
+    @Test
+    fun `an expired pending link waits on the screen that says so`() = runBlocking {
+        coEvery { passStore.get(LAN_URL) } returns stored(pending = true)
+        every { watchStart(LAN_URL) } returns flowOf(WearBroadcastStartState.Expired)
+
+        val target = useCase(channel(hasBroadcast = true))
+
+        assertTrue(target.waitingForStart)
+        coVerify(exactly = 0) { resolver.resolve(any()) }
+    }
+
+    @Test
+    fun `a pending link whose broadcast started plays`() = runBlocking {
+        coEvery { passStore.get(LAN_URL) } returns stored(pending = true)
+        every { watchStart(LAN_URL) } returns flowOf(WearBroadcastStartState.Started)
+        coEvery { resolver.resolve(any()) } returns WearBroadcastPlayback.Playable(LOOPBACK_URL, "Live", false)
+
+        val target = useCase(channel(hasBroadcast = true))
+
+        assertFalse(target.waitingForStart)
+        assertFalse(target.unplayable)
+        assertEquals(LOOPBACK_URL, selectedMediaManager.selectedFile.value?.streamUri)
+    }
+
     private fun channel(hasBroadcast: Boolean?) = WearStreamChannel(
         id = "c1",
         name = "Live",
@@ -113,14 +156,18 @@ class PrepareWearStreamPlaybackUseCaseTest {
         hasBroadcast = hasBroadcast,
     )
 
-    private fun stored() = WearStoredBroadcast(
+    private fun stored(pending: Boolean = false) = WearStoredBroadcast(
         broadcastId = "b1",
-        descriptor = JsonObject().apply { addProperty("mode", "VIDEO_AUDIO") },
+        descriptor = JsonObject().apply {
+            addProperty("mode", "VIDEO_AUDIO")
+            if (pending) add("pending", JsonObject().apply { addProperty("until", "2026-11-01T18:00:00Z") })
+        },
         pass = WearBroadcastPass("own", "secret"),
     )
 
     private companion object {
         const val LAN_URL = "http://192.168.1.20:8080/live"
         const val LOOPBACK_URL = "http://127.0.0.1:41234/live"
+        const val UNTIL_MS = 1_793_556_000_000L
     }
 }

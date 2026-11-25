@@ -103,7 +103,8 @@ class HtmlPageExtractionStrategy @Inject constructor(
         // Parsed once: the sniffers, the static harvest and the login-wall check all read this tree,
         // and a page may be up to MAX_HTML_BYTES.
         val doc = Jsoup.parse(rawHtml, finalUrl)
-        val candidates = harvestCandidates(doc, rawHtml, baseUri = finalUrl)
+        val harvest = harvestCandidates(doc, rawHtml, baseUri = finalUrl)
+        val candidates = harvest.candidates
         if (candidates.isEmpty()) {
             val loginWallEnabled = settingsRepository.getSettings().first().linkDownloadLoginWallHeuristicEnabled
             if (loginWallEnabled && looksLikeSoftLoginWall(doc, finalUrl)) {
@@ -180,7 +181,7 @@ class HtmlPageExtractionStrategy @Inject constructor(
                 LinkDownloadTrace.verbose(
                     "html-strategy social-preview-only host=${LinkDownloadTrace.truncateUrl(httpUrl.toString())}",
                 )
-                return OpenResult.SocialPreviewOnly(host = host)
+                return OpenResult.SocialPreviewOnly(host = host, sessionRefused = harvest.sessionRefused)
             }
         }
 
@@ -219,7 +220,7 @@ class HtmlPageExtractionStrategy @Inject constructor(
         return timed ?: input
     }
 
-    private suspend fun harvestCandidates(doc: Document, html: String, baseUri: String): List<HtmlMediaCandidate> {
+    private suspend fun harvestCandidates(doc: Document, html: String, baseUri: String): Harvest {
         val baseHost = baseUri.toHttpUrlOrNull()?.host?.lowercase()
         val structured = structuredMediaSniffer.sniff(doc)
         // S0197: harvest embedded data-sjs JSON for Threads/IG-family hosts so the cheap path
@@ -232,11 +233,12 @@ class HtmlPageExtractionStrategy @Inject constructor(
         // S0223: Instagram /p/ posts do not contain data-sjs blocks (sniffEmbeddedJson returns
         // empty). Ask Instagram's web endpoints for the post media and produce EMBEDDED_JSON
         // candidates that bypass the SocialPreviewOnly guard.
-        val igApiCandidates = if (embedded.isEmpty() && isInstagramPhotoPost(baseUri)) {
+        val igFetched = if (embedded.isEmpty() && isInstagramPhotoPost(baseUri)) {
             instagramMediaFetcher.fetch(baseUri)
         } else {
-            emptyList()
+            null
         }
+        val igApiCandidates = igFetched?.candidates.orEmpty()
         val staticCandidates = harvestStaticCandidates(doc, html)
         // igApiCandidates first - authoritative; then embedded (Threads data-sjs); then static noise.
         val merged = (igApiCandidates + embedded + structured + staticCandidates).distinctBy { it.url }
@@ -270,7 +272,7 @@ class HtmlPageExtractionStrategy @Inject constructor(
                 "embedded=$embeddedCount, direct=$directCount, streaming=$streamingCount, image=$imageCount) " +
                 "for ${LinkDownloadTrace.truncateUrl(baseUri)}",
         )
-        return merged
+        return Harvest(merged, sessionRefused = igFetched?.sessionRefused == true)
     }
 
     private fun harvestStaticCandidates(doc: Document, html: String): List<HtmlMediaCandidate> {
@@ -412,6 +414,8 @@ class HtmlPageExtractionStrategy @Inject constructor(
         val IMAGE_EXTENSIONS = setOf("jpg", "jpeg", "png", "gif", "webp", "bmp", "avif", "jxl")
     }
 }
+
+private class Harvest(val candidates: List<HtmlMediaCandidate>, val sessionRefused: Boolean)
 
 private sealed interface HtmlFetchResult {
     data class Body(val value: String, val finalUrl: String) : HtmlFetchResult

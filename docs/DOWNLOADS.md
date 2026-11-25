@@ -1,12 +1,12 @@
 ---
 layout: doc
-title: "FastMediaSorter APK Downloads"
+title: "Fast Media Sorter & Organizer APK Downloads"
 permalink: /docs/DOWNLOADS.html
 ---
 
 <sub class="doc-stamp">26.10.15 19:27</sub>
 
-# FastMediaSorter APK Downloads
+# Fast Media Sorter & Organizer APK Downloads {#fastmediasorter-apk-downloads}
 
 Compiled APKs are published as **GitHub Release assets** - they are not committed to the repository.
 

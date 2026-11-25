@@ -22,8 +22,6 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -50,7 +48,7 @@ class ExchangeReceiverControlStreams @Inject constructor(
 
     private val mutableEvents = MutableSharedFlow<ExchangeControlEvent>(extraBufferCapacity = EVENT_BUFFER)
 
-    /** Every `cast-offer` and `cast-stop` read on one of these streams or on a lent one. */
+    /** Every `cast-offer`, `cast-stop` and `command-request` read on one of these streams or on a lent one. */
     val events: SharedFlow<ExchangeControlEvent> = mutableEvents.asSharedFlow()
 
     private val sessions = ConcurrentHashMap<String, DeviceExchangeSession>()
@@ -74,6 +72,10 @@ class ExchangeReceiverControlStreams @Inject constructor(
     fun send(identity: String, envelope: DeviceExchangeEnvelope): Boolean =
         (lent[identity] ?: sessions[identity])?.let { sendQuietly(it, envelope) } ?: false
 
+    /** Whether the stream [send] would use for [identity] was welcomed with `command` and `sealed` (item GC). */
+    fun carriesCommands(identity: String): Boolean =
+        DeviceExchangeAccountEntry.carriesCommands((lent[identity] ?: sessions[identity])?.welcome?.features)
+
     /**
      * [session] is [entry]'s control stream for now: this entry's own stream steps aside without a `bye`, because
      * the lent one already replaced it on the server, and reconnects only after [giveBack].
@@ -88,9 +90,12 @@ class ExchangeReceiverControlStreams @Inject constructor(
         if (lent.remove(entry.identity, session)) lentIds.update { it - entry.identity }
     }
 
-    /** An envelope read on a lent stream; only the cast messages travel on. */
+    /**
+     * An envelope read on a lent stream, or the connect marker of an own one; only the cast messages, `notes_changed`
+     * and that marker travel on.
+     */
     fun deliver(entry: DeviceExchangeAccountEntry, envelope: DeviceExchangeEnvelope) {
-        if (envelope.type in CAST_TYPES) mutableEvents.tryEmit(ExchangeControlEvent(entry, envelope))
+        if (envelope.type in FORWARDED_TYPES) mutableEvents.tryEmit(ExchangeControlEvent(entry, envelope))
     }
 
     private fun reconcile(
@@ -128,7 +133,7 @@ class ExchangeReceiverControlStreams @Inject constructor(
 
     private suspend fun attempt(entry: DeviceExchangeAccountEntry): Outcome {
         val session = try {
-            client.openAuthenticated(entry, KEEPALIVE_SECONDS)
+            client.openAuthenticated(entry, ExchangeKeepalivePacer.PROPOSED_SECONDS)
         } catch (e: IOException) {
             return openOutcome(e)
         }
@@ -170,11 +175,15 @@ class ExchangeReceiverControlStreams @Inject constructor(
 
     private suspend fun serveRegistered(entry: DeviceExchangeAccountEntry, session: DeviceExchangeSession): Outcome =
         coroutineScope {
-            val lastHeard = AtomicLong(nowMs())
-            val intervalMs = (session.welcome.keepaliveSeconds ?: KEEPALIVE_SECONDS).toLong() * MILLIS_PER_SECOND
-            val keepalive = launch { keepalive(session, intervalMs, lastHeard) }
+            val intervalMs = (session.welcome.keepaliveSeconds ?: ExchangeKeepalivePacer.PROPOSED_SECONDS).toLong() *
+                MILLIS_PER_SECOND
+            val pacer = ExchangeKeepalivePacer(intervalMs)
+            val keepalive = launch { keepalive(session, pacer) }
+            // DEVICE-EXCHANGE 1.13 item FM: a connected entry is a moment the notes sync runs; no envelope of the
+            // stream says so, so the welcome marker does.
+            deliver(entry, DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_WELCOME))
             val outcome = try {
-                receiveAll(entry, session, lastHeard)
+                receiveAll(entry, session, pacer)
             } finally {
                 keepalive.cancel()
                 sessions.remove(entry.identity, session)
@@ -187,13 +196,13 @@ class ExchangeReceiverControlStreams @Inject constructor(
     private fun receiveAll(
         entry: DeviceExchangeAccountEntry,
         session: DeviceExchangeSession,
-        lastHeard: AtomicLong,
+        pacer: ExchangeKeepalivePacer,
     ): Outcome {
         var outcome = Outcome.WELCOMED
         try {
             var envelope = session.receive()
             while (envelope != null) {
-                lastHeard.set(nowMs())
+                pacer.heard()
                 if (envelope.type == DeviceExchangeEnvelope.TYPE_REFUSED) {
                     val reason = envelope.string(DeviceExchangeEnvelope.KEY_REASON)
                     Timber.w("ExchangeReceiverControlStreams: stream refused (%s)", reason)
@@ -210,14 +219,10 @@ class ExchangeReceiverControlStreams @Inject constructor(
         return outcome
     }
 
-    // The server answers every keepalive, so three silent intervals mean a dead stream (7.3).
-    private suspend fun keepalive(session: DeviceExchangeSession, intervalMs: Long, lastHeard: AtomicLong) {
-        var alive = true
-        while (alive) {
-            delay(intervalMs)
-            val silentForMs = nowMs() - lastHeard.get()
-            alive = silentForMs <= intervalMs * KEEPALIVE_WINDOW && sendQuietly(session, KEEPALIVE)
-        }
+    // Paced in real time (ExchangeKeepalivePacer): the server's window of three intervals runs while the CPU
+    // sleeps (7.3).
+    private suspend fun keepalive(session: DeviceExchangeSession, pacer: ExchangeKeepalivePacer) {
+        pacer.pace { sendQuietly(session, KEEPALIVE) }
         Timber.i("ExchangeReceiverControlStreams: keepalive window missed or write failed")
         session.close()
     }
@@ -236,8 +241,6 @@ class ExchangeReceiverControlStreams @Inject constructor(
         false
     }
 
-    private fun nowMs(): Long = TimeUnit.NANOSECONDS.toMillis(System.nanoTime())
-
     // What reaches the server: an entry whose welcome merely refreshed a remembered field keeps its stream.
     private data class StreamKey(val identity: String, val deviceId: String, val pinnedCertificate: String?) {
         constructor(entry: DeviceExchangeAccountEntry) : this(entry.identity, entry.deviceId, entry.pinnedCertificate)
@@ -246,13 +249,19 @@ class ExchangeReceiverControlStreams @Inject constructor(
     private enum class Outcome { WELCOMED, RETRY, TERMINAL, LENT }
 
     private companion object {
-        const val KEEPALIVE_SECONDS = 30
-        const val KEEPALIVE_WINDOW = 3
         const val INITIAL_BACKOFF_MS = 2_000L
         const val MAX_BACKOFF_MS = 120_000L
         const val MILLIS_PER_SECOND = 1_000L
         const val EVENT_BUFFER = 16
-        val CAST_TYPES = setOf(DeviceExchangeEnvelope.TYPE_CAST_OFFER, DeviceExchangeEnvelope.TYPE_CAST_STOP)
+
+        // The welcome is the connect marker serveRegistered emits itself; the real one is read before any loop here.
+        val FORWARDED_TYPES = setOf(
+            DeviceExchangeEnvelope.TYPE_CAST_OFFER,
+            DeviceExchangeEnvelope.TYPE_CAST_STOP,
+            ExchangeNotesEnvelopes.TYPE_NOTES_CHANGED,
+            DeviceExchangeEnvelope.TYPE_WELCOME,
+            DeviceExchangeEnvelope.TYPE_COMMAND_REQUEST,
+        )
         val KEEPALIVE = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_KEEPALIVE)
         val BYE = DeviceExchangeEnvelope.of(DeviceExchangeEnvelope.TYPE_BYE)
         val PERMANENT_REFUSALS = setOf(

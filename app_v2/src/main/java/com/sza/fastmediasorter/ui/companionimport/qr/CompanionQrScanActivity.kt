@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -39,7 +40,9 @@ class CompanionQrScanActivity : AppCompatActivity() {
     ) { granted -> if (granted) startScan() else denyAndFinish() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        Timber.d("S4879: CompanionQrScanActivity onCreate with enableEdgeToEdge")
         binding = ActivityCompanionQrScanBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -94,7 +97,6 @@ class CompanionQrScanActivity : AppCompatActivity() {
         // The cancel button and system back both end here; a rotation is not the end of a scan.
         if (isFinishing && !finishedWithResult) {
             Timber.i("QR scan: closed without a code")
-            Timber.d("S4517: QR scan closed without a code")
         }
         session.unbind()
         super.onDestroy()

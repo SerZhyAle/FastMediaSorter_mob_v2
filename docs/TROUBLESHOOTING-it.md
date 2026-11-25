@@ -9,7 +9,7 @@ permalink: /docs/TROUBLESHOOTING-it.html
 
 # 🔧 Guida alla risoluzione dei problemi
 
-Guida attuale alla risoluzione dei problemi per FastMediaSorter v2. Usa la matrice canonica delle versioni in [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) quando il problema dipende dal percorso di build selezionato (Standard, Lite, Photos, Legacy o XR / noLegal).
+Guida attuale alla risoluzione dei problemi per Fast Media Sorter & Organizer. Usa la matrice canonica delle versioni in [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) quando il problema dipende dal percorso di build selezionato (Standard, Lite, Photos, Legacy o XR / noLegal).
 
 ---
 
@@ -53,7 +53,7 @@ Guida attuale alla risoluzione dei problemi per FastMediaSorter v2. Usa la matri
 ### ❌ "Accesso a Google Drive non riuscito"
 
 **Soluzione:**
-1. Cancella i dati dell'app: Impostazioni → App → FastMediaSorter → Cancella dati
+1. Cancella i dati dell'app: Impostazioni → App → Fast Media Sorter & Organizer → Cancella dati
 2. Reinstalla l'app
 3. Controlla le impostazioni dell'account Google → Sicurezza → App di terze parti
 
@@ -63,7 +63,7 @@ Guida attuale alla risoluzione dei problemi per FastMediaSorter v2. Usa la matri
 
 **Soluzione:**
 1. Controlla lo stato dell'account Microsoft
-2. Cancella i dati dell'app: Impostazioni → App → FastMediaSorter → Cancella dati
+2. Cancella i dati dell'app: Impostazioni → App → Fast Media Sorter & Organizer → Cancella dati
 3. Controlla le impostazioni dell'account Microsoft → Privacy → App e servizi
 
 ---
@@ -72,7 +72,7 @@ Guida attuale alla risoluzione dei problemi per FastMediaSorter v2. Usa la matri
 
 **Soluzione:**
 1. Controlla lo stato dell'account Dropbox
-2. Cancella i dati dell'app: Impostazioni → App → FastMediaSorter → Cancella dati
+2. Cancella i dati dell'app: Impostazioni → App → Fast Media Sorter & Organizer → Cancella dati
 3. Controlla le impostazioni dell'account Dropbox → Sicurezza → App collegate
 
 ---
@@ -182,7 +182,7 @@ Questo usa la funzione *Player secondario* per passare i codec non supportati ad
 ### ❌ "L'app si arresta in modo anomalo all'avvio"
 
 **Soluzione:**
-1. Cancella la cache dell'app: Impostazioni → App → FastMediaSorter → Cancella cache
+1. Cancella la cache dell'app: Impostazioni → App → Fast Media Sorter & Organizer → Cancella cache
 2. Se persiste: cancella i dati dell'app (⚠️ perdi le impostazioni)
 3. Reinstalla l'app come ultima risorsa
 

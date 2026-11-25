@@ -40,4 +40,12 @@
         <item quantity="many">جارٍ إعادة تسمية %1$d ملفًا من %2$s..</item>
         <item quantity="other">جارٍ إعادة تسمية %1$d ملف من %2$s..</item>
     </plurals>
+    <plurals name="delete_n_files_confirm_plural">
+        <item quantity="zero">حذف %1$d ملفات؟ لا يمكن التراجع عن هذا الإجراء.</item>
+        <item quantity="one">حذف %1$d ملف؟ لا يمكن التراجع عن هذا الإجراء.</item>
+        <item quantity="two">حذف %1$d ملفين؟ لا يمكن التراجع عن هذا الإجراء.</item>
+        <item quantity="few">حذف %1$d ملفات؟ لا يمكن التراجع عن هذا الإجراء.</item>
+        <item quantity="many">حذف %1$d ملفًا؟ لا يمكن التراجع عن هذا الإجراء.</item>
+        <item quantity="other">حذف %1$d ملف؟ لا يمكن التراجع عن هذا الإجراء.</item>
+    </plurals>
 </resources>

@@ -83,7 +83,7 @@ The app appears in **Unknown Sources** in the Quest library:
 1. Put on your headset
 2. Open **App Library**
 3. Select **Unknown Sources** from the filter dropdown (top right)
-4. Find **FastMediaSorter (noLegal debug)** and launch it
+4. Find **Fast Media Sorter & Organizer (noLegal debug)** and launch it
 
 Launch from the Quest Library, not `adb shell am start`: launching over ADB skips the vrshell
 `launch_id` the immersive session needs to enter focused XR, so the app opens but the headset

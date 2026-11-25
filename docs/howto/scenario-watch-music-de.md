@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Musik auf Ihrer Uhr hören - FastMediaSorter v2"
+title: "Musik auf Ihrer Uhr hören - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-watch-music-de.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -13,14 +13,14 @@ permalink: /docs/howto/scenario-watch-music-de.html
 
 > **Nur Vollversion** - diese Anleitung ist in der über Google Play vertriebenen Version nicht umgesetzt. Sie gilt für die Vollversion, einen direkten APK-Download von [Downloads](../DOWNLOADS.md).
 
-Mit FastMediaSorter können Sie Ihre Musiksammlung direkt von Ihrer Wear OS-Smartwatch aus durchsuchen und abspielen. Sie können Titel streamen, die von Ihrem gekoppelten Handy freigegeben wurden, oder lokale Audiodateien abspielen, die auf der Uhr gespeichert sind - mit Cover-Art, Zufallswiedergabe, Lautstärkeregelung über die drehbare Lünette, Hintergrundwiedergabe, die das Verlassen der App übersteht, und einem Bildschirm-aus-Modus, der die Musik bei dunklem Display weiterlaufen lässt.
+Mit Fast Media Sorter & Organizer können Sie Ihre Musiksammlung direkt von Ihrer Wear OS-Smartwatch aus durchsuchen und abspielen. Sie können Titel streamen, die von Ihrem gekoppelten Handy freigegeben wurden, oder lokale Audiodateien abspielen, die auf der Uhr gespeichert sind - mit Cover-Art, Zufallswiedergabe, Lautstärkeregelung über die drehbare Lünette, Hintergrundwiedergabe, die das Verlassen der App übersteht, und einem Bildschirm-aus-Modus, der die Musik bei dunklem Display weiterlaufen lässt.
 
 ---
 
 ## Was Sie benötigen
 
 - Eine Smartwatch mit **Wear OS 2.0** oder neuer, auf der FastMedia Wear installiert ist
-- Ein Android-Handy mit FastMediaSorter (falls Sie Musik von Ihrem Handy streamen)
+- Ein Android-Handy mit Fast Media Sorter & Organizer (falls Sie Musik von Ihrem Handy streamen)
 - Musikdateien (MP3, FLAC, AAC, OGG) auf Ihrem Handy oder auf den Speicher der Uhr übertragen
 - Bluetooth-Kopfhörer oder Uhr-Lautsprecher für die Audioausgabe
 
@@ -103,7 +103,7 @@ Es gibt zwei verschiedene Wege, weiter zuzuhören, und sie beantworten zwei vers
 
 | Problem | Was zu versuchen ist |
 |---------|------------|
-| Der Bereich Handy zeigt „Handy nicht verbunden“ | Stellen Sie sicher, dass Bluetooth auf beiden Geräten aktiviert ist und FastMediaSorter auf Ihrem Handy installiert ist |
+| Der Bereich Handy zeigt „Handy nicht verbunden“ | Stellen Sie sicher, dass Bluetooth auf beiden Geräten aktiviert ist und Fast Media Sorter & Organizer auf Ihrem Handy installiert ist |
 | Keine Musikdateien erscheinen unter Lokal | Kopieren Sie MP3- oder FLAC-Dateien auf den internen Speicher Ihrer Uhr, oder verwenden Sie den Bereich Handy, um von Ihrem Handy abzuspielen |
 | Audio stoppt, wenn Sie die App verlassen | Schalten Sie **Im Hintergrund weiterspielen** in den Uhreinstellungen ein und erlauben Sie Benachrichtigungen - der Wiedergabedienst braucht sie, um am Leben zu bleiben |
 | Cover-Art fehlt | Verbinden Sie sich mit Wi-Fi, um Online-Artwork abzurufen, oder stellen Sie sicher, dass Ihre Audiodateien eingebettetes ID3-Cover-Art enthalten |

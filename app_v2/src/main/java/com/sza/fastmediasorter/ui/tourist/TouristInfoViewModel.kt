@@ -4,24 +4,31 @@ import android.os.SystemClock
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.domain.model.sensors.AttitudeReading
 import com.sza.fastmediasorter.domain.model.tourist.TouristDashboardState
 import com.sza.fastmediasorter.domain.model.tourist.TouristTileType
 import com.sza.fastmediasorter.domain.model.tourist.isOffered
+import com.sza.fastmediasorter.domain.usecase.sensors.ObserveDeviceAttitudeUseCase
 import com.sza.fastmediasorter.domain.usecase.tourist.ObserveTouristCounterUseCase
 import com.sza.fastmediasorter.domain.usecase.tourist.ObserveTouristDashboardUseCase
 import com.sza.fastmediasorter.domain.usecase.tourist.ObserveWatchTouristHealthUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
@@ -35,13 +42,14 @@ import javax.inject.Inject
  * kept every sensor, the position listener and the weather loop alive for as long as the ViewModel - that
  * is, while the screen sat stopped in the back stack - and each new sensor multiplied that cost.
  */
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @HiltViewModel
 class TouristInfoViewModel @Inject constructor(
     private val observeTouristDashboardUseCase: ObserveTouristDashboardUseCase,
     private val savedStateHandle: SavedStateHandle,
     observeWatchTouristHealthUseCase: ObserveWatchTouristHealthUseCase,
     observeTouristCounterUseCase: ObserveTouristCounterUseCase,
+    observeDeviceAttitudeUseCase: ObserveDeviceAttitudeUseCase,
 ) : ViewModel() {
 
     private val focus = MutableStateFlow(
@@ -52,6 +60,7 @@ class TouristInfoViewModel @Inject constructor(
 
     /** Bumped when a grant changed: the flow reads grants and binds listeners only when subscribed. */
     private val restartToken = MutableStateFlow(0)
+    private var lastFineLocationPermission: Boolean? = null
 
     private val sensorState = MutableStateFlow(TouristDashboardState(focusedTile = focus.value))
 
@@ -73,6 +82,24 @@ class TouristInfoViewModel @Inject constructor(
         if (stopwatchRunning.value) startStopwatchTicker()
     }
 
+    /**
+     * S4560: the GYROSCOPE tile's attitude at sensor rate. Keyed on the focused tile and shared with no stop
+     * timeout, so the rotation sensor and the gyroscope are registered only while that tile is focused and
+     * the screen collects; any other focus emits null, which also rests the box.
+     */
+    val attitude: StateFlow<AttitudeReading?> = focus
+        .map { it == TouristTileType.GYROSCOPE }
+        .distinctUntilChanged()
+        .flatMapLatest { focused -> if (focused) observeDeviceAttitudeUseCase() else flowOf(null) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), null)
+
+    /** The turning speed reaches the dashboard state sampled, so the card and grid are not rebound at 50 Hz. */
+    private val turnRate: Flow<Float?> = attitude
+        .sample(TURN_RATE_SAMPLE_MS)
+        .map { it?.turnRateDegreesPerSecond }
+        .onStart { emit(null) }
+        .distinctUntilChanged()
+
     val state: StateFlow<TouristDashboardState> = restartToken
         .flatMapLatest { observeTouristDashboardUseCase(focus.value) }
         // Merged before sensorState: selectTile judges a tap against it, and a watch tile is offered only here.
@@ -82,18 +109,22 @@ class TouristInfoViewModel @Inject constructor(
         }
         .combine(stopwatchElapsed) { sensor, elapsed -> sensor.copy(stopwatchElapsedMillis = elapsed) }
         .combine(stopwatchRunning) { sensor, running -> sensor.copy(stopwatchRunning = running) }
+        .combine(turnRate) { sensor, rate -> sensor.copy(turnRateDegreesPerSecond = rate) }
         .onEach { sensorState.value = it }
         .combine(focus) { sensor, focused -> sensor.copy(focusedTile = effectiveFocus(sensor, focused)) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), sensorState.value)
 
     fun refreshPermissions() {
         val current = sensorState.value
+        val fineLocationPermission = observeTouristDashboardUseCase.hasFineLocationPermission()
+        val precisionChanged = lastFineLocationPermission?.let { it != fineLocationPermission } == true
+        lastFineLocationPermission = fineLocationPermission
         val locationChanged =
             observeTouristDashboardUseCase.hasLocationPermission() != current.hasLocationPermission
         val activityChanged =
             observeTouristDashboardUseCase.hasActivityRecognitionPermission() !=
                 current.hasActivityRecognitionPermission
-        if (locationChanged || activityChanged) {
+        if (locationChanged || activityChanged || precisionChanged) {
             restartToken.update { it + 1 }
         }
     }
@@ -186,5 +217,6 @@ class TouristInfoViewModel @Inject constructor(
         private const val KEY_STOPWATCH_MARK = "tourist_stopwatch_mark"
         private const val STOP_TIMEOUT_MS = 5_000L
         private const val STOPWATCH_TICK_MS = 500L
+        private const val TURN_RATE_SAMPLE_MS = 500L
     }
 }

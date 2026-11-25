@@ -3,12 +3,15 @@ package com.sza.fastmediasorter.data.link
 import com.sza.fastmediasorter.core.log.LinkDownloadTrace
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.CookieJar
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.Response
 import timber.log.Timber
 import java.io.IOException
+import java.net.HttpURLConnection.HTTP_UNAUTHORIZED
 
 /**
  * Asks Instagram's web endpoints for the media of one `/p/` post, because a signed-in post page
@@ -16,33 +19,53 @@ import java.io.IOException
  * second: Instagram can answer one with a login page while still serving the other.
  *
  * A trace that ends on `/accounts/login/` for both calls, with a session in the jar, means the
- * stored session itself is not accepted.
+ * stored session itself is not accepted. That pass is then repeated once without any cookie,
+ * because a revoked session is answered 401 even for a post a logged-out visitor can read.
  */
 internal class InstagramPostMediaFetcher(
     private val httpClient: OkHttpClient,
     private val sniffer: StructuredMediaSniffer,
 ) {
 
-    suspend fun fetch(pageUrl: String): List<HtmlMediaCandidate> {
-        val shortcode = extractShortcode(pageUrl) ?: return emptyList()
-        return requestJson(mediaInfoUrl(shortcode), pageUrl, LABEL_MEDIA_INFO)
-            ?.let { sniffer.sniffInstagramApiResponse(it, pageUrl) }
-            .orEmpty()
-            .ifEmpty {
-                requestJson(graphqlUrl(shortcode), pageUrl, LABEL_GRAPHQL)
-                    ?.let { sniffer.sniffInstagramGraphqlResponse(it, pageUrl) }
-                    .orEmpty()
-            }
+    // Derived, not built anew, so the retry keeps the signed-in client's pool and interceptors and
+    // differs only by the jar - it cannot send the stored session by any path.
+    private val anonymousClient: OkHttpClient by lazy {
+        httpClient.newBuilder().cookieJar(CookieJar.NO_COOKIES).build()
     }
 
-    private suspend fun requestJson(url: HttpUrl, pageUrl: String, label: String): String? = try {
+    suspend fun fetch(pageUrl: String): Fetched {
+        val shortcode = extractShortcode(pageUrl) ?: return Fetched(emptyList(), sessionRefused = false)
+        val signedIn = fetchWith(httpClient, shortcode, pageUrl)
+        return if (signedIn.candidates.isEmpty() && signedIn.sessionRefused) {
+            LinkDownloadTrace.verbose("ig-anonymous-retry session refused, repeating without cookies")
+            Fetched(fetchWith(anonymousClient, shortcode, pageUrl).candidates, sessionRefused = true)
+        } else {
+            Fetched(signedIn.candidates, signedIn.sessionRefused)
+        }
+    }
+
+    /**
+     * [sessionRefused] reports the signed-in pass even when the anonymous retry found media: the stored
+     * session is dead either way, and a preview-only result must not present it as a live sign-in.
+     */
+    class Fetched(val candidates: List<HtmlMediaCandidate>, val sessionRefused: Boolean)
+
+    private suspend fun fetchWith(client: OkHttpClient, shortcode: String, pageUrl: String): Pass {
+        val info = requestJson(client, mediaInfoUrl(shortcode), pageUrl, LABEL_MEDIA_INFO)
+        val fromInfo = info.json?.let { sniffer.sniffInstagramApiResponse(it, pageUrl) }.orEmpty()
+        if (fromInfo.isNotEmpty()) return Pass(fromInfo, info.sessionRefused)
+        val graphql = requestJson(client, graphqlUrl(shortcode), pageUrl, LABEL_GRAPHQL)
+        val fromGraphql = graphql.json?.let { sniffer.sniffInstagramGraphqlResponse(it, pageUrl) }.orEmpty()
+        return Pass(fromGraphql, info.sessionRefused || graphql.sessionRefused)
+    }
+
+    private suspend fun requestJson(client: OkHttpClient, url: HttpUrl, pageUrl: String, label: String): Answer = try {
         withContext(Dispatchers.IO) {
             // The web session is honoured only for an XHR-shaped call on the web origin:
             // a bare GET is treated as signed-out and redirected to /accounts/login/.
-            val csrfToken = httpClient.cookieJar.loadForRequest(url)
-                .firstOrNull { it.name == CSRF_COOKIE }?.value
+            val cookies = client.cookieJar.loadForRequest(url)
+            val csrfToken = cookies.firstOrNull { it.name == CSRF_COOKIE }?.value
             val hasCsrf = !csrfToken.isNullOrBlank()
-            Timber.d("S4515: instagram media request label=$label csrf=$hasCsrf")
             val request = Request.Builder()
                 .url(url)
                 .header("Accept", "*/*")
@@ -57,7 +80,7 @@ internal class InstagramPostMediaFetcher(
                 .header("x-requested-with", "XMLHttpRequest")
                 .apply { if (hasCsrf) header("x-csrftoken", csrfToken.orEmpty()) }
                 .build()
-            httpClient.newCall(request).execute().use { response ->
+            client.newCall(request).execute().use { response ->
                 val body = response.body?.string().orEmpty()
                 val isJsonAnswer = response.isSuccessful && body.trimStart().startsWith("{")
                 if (!isJsonAnswer) {
@@ -65,16 +88,23 @@ internal class InstagramPostMediaFetcher(
                         "$label refused status=${response.code}" +
                             " finalPath=${response.request.url.encodedPath}" +
                             " type=${response.header("Content-Type")}" +
-                            " csrf=$hasCsrf body=${bodyPrefix(body)}",
+                            " csrf=$hasCsrf session=${cookies.isNotEmpty()} body=${bodyPrefix(body)}",
                     )
                 }
-                body.takeIf { isJsonAnswer }
+                Answer(
+                    json = body.takeIf { isJsonAnswer },
+                    sessionRefused = cookies.isNotEmpty() && isLoginRefusal(response),
+                )
             }
         }
     } catch (io: IOException) {
         Timber.w(io, "%s fetch failed for %s", label, pageUrl)
-        null
+        Answer(json = null, sessionRefused = false)
     }
+
+    // A refused session is answered either with a plain 401 or with a redirect that lands on the login page.
+    private fun isLoginRefusal(response: Response): Boolean =
+        response.code == HTTP_UNAUTHORIZED || response.request.url.encodedPath.startsWith(LOGIN_PATH_PREFIX)
 
     private fun bodyPrefix(body: String): String =
         body.take(BODY_PREFIX_CHARS).replace(WHITESPACE, " ")
@@ -101,9 +131,15 @@ internal class InstagramPostMediaFetcher(
             id * SHORTCODE_ALPHABET.length + SHORTCODE_ALPHABET.indexOf(ch).coerceAtLeast(0)
         }
 
+    /** [sessionRefused] is true only when cookies were sent, so a call that was anonymous already is never retried. */
+    private class Answer(val json: String?, val sessionRefused: Boolean)
+
+    private class Pass(val candidates: List<HtmlMediaCandidate>, val sessionRefused: Boolean)
+
     private companion object {
         const val WEB_ORIGIN = "https://www.instagram.com"
         const val CSRF_COOKIE = "csrftoken"
+        const val LOGIN_PATH_PREFIX = "/accounts/login"
 
         // The media-info endpoint answers 401 without the web app id, even with valid session cookies.
         const val APP_ID = "936619743392459"

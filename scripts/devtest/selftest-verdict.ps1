@@ -42,7 +42,7 @@ $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 
 $verdict = [ordered]@{
-    verdict = 'UNVERIFIED'
+    verdict = 'COULD NOT VERIFY'
     tests = 0; passed = 0; failed = 0; skipped = 0
     passes = @(); failures = @(); skips = @(); problems = @()
 }
@@ -122,7 +122,7 @@ $verdict.passed = $verdict.tests - $verdict.failed - $verdict.skipped
 if ($verdict.tests -eq 0) { $verdict.problems += 'zero tests ran' }
 # A failure stays a failure even beside a problem: a crash that aborts a pass is both.
 $code = if ($verdict.failed -gt 0) { 1 } elseif ($verdict.problems.Count -gt 0) { 2 } else { 0 }
-$verdict.verdict = switch ($code) { 0 { 'PASS' } 1 { 'FAIL' } default { 'UNVERIFIED' } }
+$verdict.verdict = switch ($code) { 0 { 'PASS' } 1 { 'FAIL' } default { 'COULD NOT VERIFY' } }
 
 $jsonText = $verdict | ConvertTo-Json -Depth 6
 if ($OutFile) {

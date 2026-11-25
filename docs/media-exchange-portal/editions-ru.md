@@ -1,15 +1,16 @@
 ---
+source_sha256: cc0956d653c353792716a32143d4bd2b27f904fc77a1a83fc386db980d11ffdd
 layout: doc
 title: "Редакции: в каком приложении какой способ обмена"
-description: "В какой редакции FastMediaSorter для Android есть сетевые папки, «Мои устройства», облака, файлы через Google Drive, живая трансляция, Chromecast и компаньон для часов."
+description: "В какой редакции Fast Media Sorter & Organizer для Android есть сетевые папки, «Мои устройства», облака, файлы через Google Drive, живая трансляция, Chromecast и компаньон для часов."
 category: "Обмен медиа"
 permalink: /docs/media-exchange-portal/editions-ru.html
 ---
-<sub class="doc-stamp">26.10.20 12:24</sub>
+<sub class="doc-stamp">26.11.15 15:28</sub>
 
 # Редакции: в каком приложении какой способ обмена
 
-FastMediaSorter для Android выходит в нескольких редакциях. Не в каждой редакции есть каждый способ обмена: в редакции без возможности для неё нет даже кнопки.
+Fast Media Sorter & Organizer для Android выходит в нескольких редакциях. Не в каждой редакции есть каждый способ обмена: в редакции без возможности для неё нет даже кнопки.
 
 ## В какой редакции что есть
 
@@ -44,7 +45,7 @@ FastMediaSorter для Android выходит в нескольких редак
 
 ## Пошаговые инструкции
 
-- [Редакции FastMediaSorter](../../documentation/flavors/overview-and-comparison-ru.html)
-- [Установка FastMediaSorter на часы](../../documentation/wear/installation-and-pairing-ru.html)
+- [Редакции Fast Media Sorter & Organizer](../../documentation/flavors/overview-and-comparison-ru.html)
+- [Установка Fast Media Sorter & Organizer на часы](../../documentation/wear/installation-and-pairing-ru.html)
 
 Назад на [главную страницу портала](index-ru.html).

@@ -47,7 +47,6 @@ class LocalFolderDestinationPickerManager(
         previousResourceId: Long?,
     ): (MediaResource?) -> Unit = { selected ->
         if (selected != null && isSentinelSelection(selected)) {
-            Timber.d("S4539: local folder sentinel selected, launching folder picker")
             pendingReceiver = receiver
             pendingPreviousId = previousResourceId
             try {

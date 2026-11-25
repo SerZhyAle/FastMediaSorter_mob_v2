@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.29 05:03</sub>
+<sub class="doc-stamp">26.11.24 21:52</sub>
 
 # Pointer - `PACKAGE-VERSIONING`
 
 | | |
 | --- | --- |
 | **Id** | `PACKAGE-VERSIONING` |
-| **Version** | 0.6, draft. Owner: this product |
+| **Version** | 0.10, draft. Owner: this product |
 | **Home** | `package-versioning/README.md` in the shared contracts catalog |
 | **Role here** | owner and reference implementation (the version stamps of the phone app, the watch app and the watch face) |
 
@@ -17,6 +17,16 @@
 - Keep the checked-in constants as non-releasable sentinels: nothing writes them, and they never reach a store, a sideload page or an update feed (rule 7).
 - Release every family from one pin; an edition on a clock of its own, if one is ever declared, writes the E1
   declaration in its registry row first (0.5, section 8).
+- 0.7 and 0.8 register the DeviceInfo Android and Filler Android families in the band table (rule 3) with no change to
+  rules 1-8; the bands of this product's families above are unchanged, and the registered bands of another product
+  are read from the catalog, never copied here.
+- 0.9 (section 9, from this product's proposal of S4646): a family that shares an application id and has no band left
+  derives its code from the same instant and adds `1_000_000_000`, a ten-digit code registered with its offset; rule 2
+  admits an edition label `-<Edition>` after the stamped name, the stamped part being what rules 1, 4 and 8 compare. The
+  XR edition is such a family: `xrVersionCodeOffset = 1_000_000_000` in `app_v2/build.gradle.kts`. The families `lite`
+  and `fdroid` join the table when each first ships to a channel; `lite` ships as a GitHub release asset and its row is
+  to be proposed (carrier S4899).
+- 0.10 (section 10, S4813): registers IP Manager in the Windows desktop dotted rendering for its GitHub and WinGet releases; no rules 1-8 statements change, no bands change, and this product's derivation is unaffected.
 - Never repeat and never lower a versionCode within one application id; an out-of-scheme installed build is replaced by uninstall or a strictly greater code, recorded as a dated registry exception (rule 4).
 
 ## Where it lives here
@@ -26,4 +36,4 @@
 - `scripts/release/build-release-spectrum.ps1` - the release orchestrator that derives one instant and passes the pair to every module it builds.
 - `scripts/quality/assert-module-version-parity.ps1` - the parity gate over the checked-in sentinels (conformance rung 1).
 - `app_v2/build.gradle.kts`, `wear/build.gradle.kts` - the three version sources per module (override, stamp, sentinel).
-- `watchface/build.gradle.kts` - declared, adoption pending: its frozen `versionCode = 1` sentinel is outside the stamp until the family is wired.
+- `watchface/build.gradle.kts` - takes the watch app's stamped code (S4009), not its registered map `floor(minute / 10)`; the `1` and `1.0.0` sentinel is the fallback only, and `assert-module-version-parity.ps1` does not cover the face (carrier S4899).

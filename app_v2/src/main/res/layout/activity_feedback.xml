@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S4573: the Send feedback form - text, pictures and a voice note sent at once. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/feedbackRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.sza.fastmediasorter.ui.common.widget.StandardToolbar
+        android:id="@+id/feedbackToolbar"
+        style="@style/Widget.FastMediaSorter.Toolbar.Flat"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:title="@string/feedback_title"
+        app:navigationIcon="@drawable/ic_arrow_back"
+        app:stbTitleIcon="@drawable/ic_send_plane" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_margin="@dimen/margin_medium"
+        android:layout_weight="1"
+        android:hint="@string/feedback_text_hint">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/feedbackTextInput"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="top|start"
+            android:inputType="textMultiLine|textCapSentences"
+            android:nextFocusDown="@id/feedbackPasteButton" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <include
+        android:id="@+id/feedbackInputs"
+        layout="@layout/feedback_inputs_panel"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+</LinearLayout>

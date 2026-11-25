@@ -292,8 +292,32 @@ class ReceiveShareActivity : AppCompatActivity() {
                 onCancelled = {
                     cleanupAndFinish()
                 },
+                onAddAccount = {
+                    Timber.i("add account requested from picker: host=%s", host)
+                    startAccountLogin(url, resource?.loginUrl ?: url)
+                },
             )
         }
+    }
+
+    /**
+     * S4581: shared by the auth offer and the account picker's add row. The fragment result carries the
+     * accountId just created, so the retry downloads with it even when the host went from N to N+1 accounts.
+     */
+    private fun startAccountLogin(url: String, loginUrl: String) {
+        supportFragmentManager.setFragmentResultListener(
+            WebViewAuthDialogFragment.RESULT_KEY,
+            this@ReceiveShareActivity,
+        ) { _, bundle ->
+            supportFragmentManager.clearFragmentResultListener(WebViewAuthDialogFragment.RESULT_KEY)
+            // S0155: use the accountId the fragment just created - avoids passing
+            // null when accounts went from 0→1 (root cause of the bug in on-device test).
+            val savedAccountId = bundle.getString(WebViewAuthDialogFragment.RESULT_ACCOUNT_ID)
+            // S0170 BUG-1: mark as auth-retry so the escalation block (and the presenter's
+            // re-auth dialog) do not fire again on the post-login NoMediaFound / SocialPreviewOnly.
+            processLinkAutoDownload(url, accountId = savedAccountId, isAuthRetry = true)
+        }
+        openAuthFlow(loginUrl, "s0157_webview_auth_offer")
     }
 
     /**
@@ -367,19 +391,7 @@ class ReceiveShareActivity : AppCompatActivity() {
                 .setCancelable(false)
                 .setPositiveButton(positiveLabelRes) { _, _ ->
                     Timber.i("auth accepted: type=%s host=%s", dialogType, host)
-                    supportFragmentManager.setFragmentResultListener(
-                        WebViewAuthDialogFragment.RESULT_KEY,
-                        this@ReceiveShareActivity,
-                    ) { _, bundle ->
-                        supportFragmentManager.clearFragmentResultListener(WebViewAuthDialogFragment.RESULT_KEY)
-                        // S0155: use the accountId the fragment just created - avoids passing
-                        // null when accounts went from 0→1 (root cause of the bug in on-device test).
-                        val savedAccountId = bundle.getString(WebViewAuthDialogFragment.RESULT_ACCOUNT_ID)
-                        // S0170 BUG-1: mark as auth-retry so the escalation block (and the presenter's
-                        // re-auth dialog) do not fire again on the post-login NoMediaFound / SocialPreviewOnly.
-                        processLinkAutoDownload(url, accountId = savedAccountId, isAuthRetry = true)
-                    }
-                    openAuthFlow(loginUrl, "s0157_webview_auth_offer")
+                    startAccountLogin(url, loginUrl)
                 }
                 .setNeutralButton(R.string.auth_offer_dialog_skip) { _, _ ->
                     Timber.i("auth dismissed (no record created): type=%s host=%s", dialogType, host)
@@ -678,26 +690,7 @@ class ReceiveShareActivity : AppCompatActivity() {
             cleanupAndFinish()
             return
         }
-        val request = BrowseFileTransferRequest(
-            operationType = FileOperationType.COPY,
-            sourceResourceId = -1L,
-            sourceResourceName = getString(R.string.receive_share_source_name),
-            sourceCredentialsId = null,
-            currentBrowsePath = null,
-            destinationPath = destinationPath,
-            destinationName = destinationName,
-            overwriteFiles = false,
-            sources = files.map {
-                BrowseFileTransferSource(
-                    path = it.absolutePath,
-                    displayName = it.name,
-                    size = it.length(),
-                    isDirectory = false,
-                )
-            },
-            sourcesOwnedByOperation = true,
-            stagingDirectoryPath = tempDir.absolutePath,
-        )
+        val sourceName = getString(R.string.receive_share_source_name)
         backgroundOrderInFlight = true
         // Claimed before the enqueue, not after it: Back during the in-flight window reaches onDestroy,
         // whose best-effort cleanup would otherwise delete the sources the accepted work is about to read.
@@ -705,6 +698,29 @@ class ReceiveShareActivity : AppCompatActivity() {
         // The application scope, not lifecycleScope: the enqueue must complete even if the user leaves
         // while WorkManager is still writing the request.
         applicationScope.launch(Dispatchers.IO) {
+            // Built here and not above: the per-file length() and the lazy tempDir (created on first read)
+            // touch the file system, which is what StrictMode flagged on the main thread.
+            Timber.d("S4678: share transfer request built on the IO dispatcher")
+            val request = BrowseFileTransferRequest(
+                operationType = FileOperationType.COPY,
+                sourceResourceId = -1L,
+                sourceResourceName = sourceName,
+                sourceCredentialsId = null,
+                currentBrowsePath = null,
+                destinationPath = destinationPath,
+                destinationName = destinationName,
+                overwriteFiles = false,
+                sources = files.map {
+                    BrowseFileTransferSource(
+                        path = it.absolutePath,
+                        displayName = it.name,
+                        size = it.length(),
+                        isDirectory = false,
+                    )
+                },
+                sourcesOwnedByOperation = true,
+                stagingDirectoryPath = tempDir.absolutePath,
+            )
             val result = browseTransferCoordinator.enqueueIfIdle(request)
             withContext(Dispatchers.Main) {
                 backgroundOrderInFlight = false

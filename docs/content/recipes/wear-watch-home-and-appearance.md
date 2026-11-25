@@ -12,7 +12,7 @@ availability_note: Home screen, navigation and most of Settings - both watch ver
 recipe_number: "06"
 canonical_url: documentation/wear/watch-home-and-appearance.html
 why: |
-  A watch screen is small enough that a single [resource](term:resource) can take up half of it. FastMediaSorter's watch home screen keeps that in check: everything opens as a grid of shortcuts sorted into a handful of sections, with the things you opened last, and whatever is [playing](term:now-playing) in the background, sitting right at the top.
+  A watch screen is small enough that a single [resource](term:resource) can take up half of it. Fast Media Sorter & Organizer's watch home screen keeps that in check: everything opens as a grid of shortcuts sorted into a handful of sections, with the things you opened last, and whatever is [playing](term:now-playing) in the background, sitting right at the top.
 
   This recipe is a tour of that home screen, the settings behind how it looks, and the small pieces - the clock, the back button, the first-run walk - that show up on every screen of the watch app.
 ingredients:

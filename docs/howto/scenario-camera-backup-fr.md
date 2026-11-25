@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Sauvegarde photo programmée vers le PC - FastMediaSorter v2"
+title: "Sauvegarde photo programmée vers le PC - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-camera-backup-fr.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -21,7 +21,7 @@ Copiez automatiquement les nouvelles photos de l'appareil photo de votre télép
 
 - Le téléphone et le PC connectés au **même réseau Wi-Fi domestique** (même routeur)
 - Un dossier sur votre PC où les photos seront enregistrées (par ex. `C:\PhoneBackup`)
-- FastMediaSorter installé dans une édition avec sources réseau (**Standard**, Photos, Legacy, VR, noLegal)
+- Fast Media Sorter & Organizer installé dans une édition avec sources réseau (**Standard**, Photos, Legacy, VR, noLegal)
 
 > **Vous ne savez pas quelle édition vous avez ?** Ouvrez **Paramètres** <img src="../icons/doc/ic_settings.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> → **Informations système**. La ligne **Édition** indique l'édition (Standard / Lite / etc.).
 
@@ -43,7 +43,7 @@ Sous **Windows :**
 
 ## Étape 2 - Connecter l'application à votre dossier PC
 
-Maintenant, indiquez à FastMediaSorter où envoyer les photos.
+Maintenant, indiquez à Fast Media Sorter & Organizer où envoyer les photos.
 
 > **Qu'est-ce que le SMB ?** C'est simplement la façon dont Windows partage des dossiers sur le Wi-Fi domestique. Vous n'avez pas besoin de comprendre les détails - suivez simplement les étapes.
 
@@ -94,7 +94,7 @@ Remplissez chaque champ :
 | **Planification** | Quand exécuter | `Chaque jour à 02:00` - s'exécute pendant que vous dormez |
 | **Exécuter en Wi-Fi uniquement** | Activez ceci | Empêche la sauvegarde d'utiliser accidentellement vos données mobiles |
 
-> **Qu'est-ce que "Photos de l'appareil photo" ?** C'est un dossier virtuel spécial que FastMediaSorter crée automatiquement. Il affiche toujours toutes les photos prises par votre appareil photo - même si elles sont stockées dans différents dossiers sur votre téléphone. Préférez toujours cette option à un chemin manuel.
+> **Qu'est-ce que "Photos de l'appareil photo" ?** C'est un dossier virtuel spécial que Fast Media Sorter & Organizer crée automatiquement. Il affiche toujours toutes les photos prises par votre appareil photo - même si elles sont stockées dans différents dossiers sur votre téléphone. Préférez toujours cette option à un chemin manuel.
 
 ![Add Schedule - Source: Camera Photos, Operation: Copy, Destination: SMB](screenshots/screenshot-cb-step5.png)
 
@@ -154,7 +154,7 @@ Votre PC reçoit de nouvelles photos chaque matin. Vous n'avez jamais à y pense
 
 | Problème | Que faire |
 |---------|------------|
-| La planification ne s'exécute pas la nuit | Allez dans **Paramètres Android → Applications → FastMediaSorter → Batterie** → réglez sur **Illimité** |
+| La planification ne s'exécute pas la nuit | Allez dans **Paramètres Android → Applications → Fast Media Sorter & Organizer → Batterie** → réglez sur **Illimité** |
 | Erreur "Destination inaccessible" | Votre téléphone doit être sur le Wi-Fi au moment de la sauvegarde. Si le Wi-Fi était désactivé à 2h du matin, la sauvegarde est ignorée et réessayée automatiquement la nuit suivante |
 | Certaines photos n'ont pas été sauvegardées | Utilisez la ressource virtuelle **"Photos de l'appareil photo"** comme source - elle capture les photos de tous les dossiers de l'appareil photo sur votre téléphone |
 | Des fichiers en double apparaissent sur le PC | Assurez-vous que l'opération est réglée sur **"Copier (ignorer les existants)"**, pas "Copier (écraser)" |

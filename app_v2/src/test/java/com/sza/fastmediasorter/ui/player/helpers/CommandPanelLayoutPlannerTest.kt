@@ -271,6 +271,26 @@ class CommandPanelLayoutPlannerTest {
         ),
     )
 
+    private fun localTextState() = PlayerViewModel.PlayerState(
+        files = listOf(
+            MediaFile(
+                name = "note.txt",
+                path = "/storage/emulated/0/note.txt",
+                type = MediaType.TEXT,
+                size = 64L,
+                createdDate = 0L,
+            )
+        ),
+        currentIndex = 0,
+        resource = MediaResource(
+            id = 1L,
+            name = "Local",
+            path = "/storage/emulated/0",
+            type = ResourceType.LOCAL,
+            isWritable = true,
+        ),
+    )
+
     @Test
     fun `live video stream yields exactly the owner-approved control set`() {
         val result = planner.buildActiveCommands(
@@ -353,6 +373,52 @@ class CommandPanelLayoutPlannerTest {
         assertFalse(
             "STREAM_INFO must never appear for an ordinary file",
             result.contains(CommandPanelLayoutPlanner.PlayerCommand.STREAM_INFO),
+        )
+    }
+
+    @Test
+    fun `text file offers zoom in then zoom out right after reader settings`() {
+        val result = planner.buildActiveCommands(
+            state = localTextState(),
+            canWrite = true,
+            canRead = true,
+            isWifiConnected = false,
+            showFavorite = true,
+            showRandom = false,
+        )
+
+        val readerSettings = result.indexOf(CommandPanelLayoutPlanner.PlayerCommand.READER_SETTINGS)
+        assertTrue("A text file keeps READER_SETTINGS", readerSettings >= 0)
+        assertEquals(
+            "TEXT_ZOOM_IN directly follows READER_SETTINGS",
+            CommandPanelLayoutPlanner.PlayerCommand.TEXT_ZOOM_IN,
+            result[readerSettings + 1],
+        )
+        assertEquals(
+            "TEXT_ZOOM_OUT directly follows TEXT_ZOOM_IN",
+            CommandPanelLayoutPlanner.PlayerCommand.TEXT_ZOOM_OUT,
+            result[readerSettings + 2],
+        )
+    }
+
+    @Test
+    fun `video never offers the text zoom entries`() {
+        val result = planner.buildActiveCommands(
+            state = localVideoState(),
+            canWrite = true,
+            canRead = true,
+            isWifiConnected = true,
+            showFavorite = true,
+            showRandom = false,
+        )
+
+        assertFalse(
+            "TEXT_ZOOM_IN is text-only",
+            result.contains(CommandPanelLayoutPlanner.PlayerCommand.TEXT_ZOOM_IN),
+        )
+        assertFalse(
+            "TEXT_ZOOM_OUT is text-only",
+            result.contains(CommandPanelLayoutPlanner.PlayerCommand.TEXT_ZOOM_OUT),
         )
     }
 }

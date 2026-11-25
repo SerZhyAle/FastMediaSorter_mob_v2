@@ -108,6 +108,10 @@ function Invoke-Probe {
     return [pscustomobject]@{ exit = $code; json = $obj; stdout = $text }
 }
 
+$portfolioRoot = Join-Path ([IO.Path]::GetTempPath()) "fms-device-ready-$([guid]::NewGuid().ToString('N'))"
+$env:SZA_PORTFOLIO_ROOT = $portfolioRoot
+$leaseScript = Join-Path $repoRoot 'scripts/devtest/device-lease.ps1'
+
 try {
     Write-Host '--- form factor is reported unconditionally ---'
     # The half that needs no -Module: a reader must never have to infer the form factor from the
@@ -187,6 +191,36 @@ try {
     Assert-Equal $false $r.json.reused 'a finding about an absent device is ignored'
     Assert-Equal $PHONE $r.json.selectedDevice 'the ignored finding falls through to a fresh probe'
 
+    Write-Host '--- AVD identity follows the name across ports ---'
+    $env:FMS_AGENT_ID = 'fixture-watch-owner'
+    try {
+        & $leaseScript -Verb Claim -Id 'avd:Fixture_Watch' -Json | Out-Null
+        Assert-Equal 0 $LASTEXITCODE 'fixture owner claims the watch AVD'
+        $env:FMS_AGENT_ID = 'fixture-readiness'
+        $env:FMS_STUB_WATCH_AVD_PORT = $PHONE
+        $r = Invoke-Probe -ProbeArgs @('-ClaimFree') -Stub @{ FMS_STUB_DEVICES = "$PHONE,$WATCH" }
+        Assert-Equal $WATCH $r.json.selectedDevice 'auto-claim skips the leased name at its new port'
+        Assert-Equal 'avd:Fixture_Phone' ($r.json.leaseKeys -join ',') 'readiness returns the stable key'
+        $r = Invoke-Probe -ProbeArgs @('-DeviceId', $PHONE, '-ClaimFree') -Stub @{ FMS_STUB_DEVICES = "$PHONE,$WATCH" }
+        Assert-Equal 'device-leased' $r.json.state 'a named leased AVD refuses the claim'
+        & $leaseScript -Verb Release -Id 'avd:Fixture_Phone' -Json | Out-Null
+        $r = Invoke-Probe -ProbeArgs @('-DeviceId', $WATCH, '-ClaimFree', '-Package', 'com.sza.absent')
+        Assert-Equal 'package-not-installed' $r.json.state 'a later failure retains the reason'
+        $rows = & $leaseScript -Verb Status -Json | ConvertFrom-Json
+        Assert-Equal 0 @($rows | Where-Object { $_.mine }).Count 'a failed readiness probe releases its own claim'
+
+        $propsScript = Join-Path $repoRoot 'scripts/devtest/adb.ps1'
+        $props = & $propsScript props -Json | ConvertFrom-Json
+        Assert-Equal 0 $LASTEXITCODE 'ADB auto-selection has an unleased device to claim'
+        Assert-Equal $WATCH $props.device 'ADB auto-selection skips the leased AVD after its port moves'
+        $mine = @(& $leaseScript -Verb Status -Json | ConvertFrom-Json | Where-Object { $_.mine })
+        Assert-Equal 0 $mine.Count 'ADB releases the lease it acquired for one verb'
+    }
+    finally {
+        $env:FMS_AGENT_ID = 'fixture-watch-owner'
+        & $leaseScript -Verb Release -Id 'avd:Fixture_Watch' -Json | Out-Null
+    }
+
     Write-Host '--- the package and version checks still work ---'
     $r = Invoke-Probe -ProbeArgs @('-Package', 'com.sza.fastmediasorter.debug', '-ExpectedVersion', '9.9.9')
     Assert-Equal 'ready' $r.json.state 'package + version still reach ready'
@@ -203,6 +237,13 @@ finally {
         $script:failed = -1
     }
     Remove-Item -LiteralPath $runDir -Recurse -Force -ErrorAction SilentlyContinue
+    if (Test-Path -LiteralPath $portfolioRoot -PathType Container) {
+        $resolved = (Resolve-Path -LiteralPath $portfolioRoot).Path
+        $expectedParent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd([IO.Path]::DirectorySeparatorChar)
+        if ((Split-Path -Parent $resolved) -eq $expectedParent -and (Split-Path -Leaf $resolved) -like 'fms-device-ready-*') {
+            Remove-Item -LiteralPath $resolved -Recurse -Force
+        }
+    }
 }
 
 Write-Host ''

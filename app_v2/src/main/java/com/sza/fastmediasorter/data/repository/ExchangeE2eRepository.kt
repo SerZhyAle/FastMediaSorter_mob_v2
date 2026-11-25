@@ -44,7 +44,8 @@ class ExchangeE2eRepository @Inject constructor(
             }
         }
         val recipients = if (self == null) emptyList() else E2eRecipients.recipients(entry.deviceId, peers, trusted)
-        return ExchangeSealing(self, recipients, states, trusted)
+        val selfListed = self != null && devices.any { it.deviceId == entry.deviceId && it.e2eKem != null }
+        return ExchangeSealing(self, recipients, states, trusted, selfListed)
     }
 
     suspend fun grantSenders(entry: DeviceExchangeAccountEntry): Map<String, String> =

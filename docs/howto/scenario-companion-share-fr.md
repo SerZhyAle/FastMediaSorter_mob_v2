@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Ouvrir les dossiers de votre PC en scannant un seul code - FastMediaSorter v2"
+title: "Ouvrir les dossiers de votre PC en scannant un seul code - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-companion-share-fr.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -56,7 +56,7 @@ Le "compagnon" est une fonctionnalité intégrée de **[Fast Media Sorter & Shar
 
 ## Étape 2, méthode A - Scanner le code (le plus rapide)
 
-1. Ouvrez FastMediaSorter et appuyez sur le bouton **Ajouter <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** sur l'écran principal.
+1. Ouvrez Fast Media Sorter & Organizer et appuyez sur le bouton **Ajouter <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** sur l'écran principal.
 2. Appuyez sur **"Importer par code-barres"** - il se trouve à côté des quatre cartes de type de ressource (Local, SMB, SFTP/FTP, Cloud) et dans l'en-tête du formulaire SFTP.
 3. La caméra s'ouvre avec l'indication *"Pointez la caméra vers le code QR du compagnon"*. Placez le téléphone devant le QR sur votre PC. Dans une pièce sombre, appuyez sur **Torche**.
 4. Une confirmation apparaît - *"Importer l'accès - Ajouter la ressource SFTP .. avec N dossier(s) ?"*. Appuyez sur **Importer**.
@@ -115,7 +115,7 @@ Les dossiers partagés se comportent comme n'importe quelle autre ressource dans
 | Pas d'entrée "Importer par code-barres" | L'appareil n'a pas de caméra, ou c'est une version VR. Utilisez la [méthode B - Importer le fichier](#step-2-method-b---import-the-file) |
 | La caméra dit qu'un accès est nécessaire | Accordez l'autorisation de caméra lorsque demandé - elle n'est utilisée que pour le scan |
 | "Ce fichier n'est pas une configuration de compagnon valide" | Le code ou le fichier ne provient pas du compagnon Windows. Réexportez-le depuis l'onglet **Partage** |
-| "Créé par une version de compagnon plus récente" | Mettez à jour FastMediaSorter sur le téléphone, ou réexportez depuis une version de compagnon correspondante |
+| "Créé par une version de compagnon plus récente" | Mettez à jour Fast Media Sorter & Organizer sur le téléphone, ou réexportez depuis une version de compagnon correspondante |
 | Ressource ajoutée mais dossiers vides | Assurez-vous que l'assistant PC est toujours en cours d'exécution. Sur le **même Wi-Fi**, l'application trouve le PC toute seule ; si cela échoue encore, l'application indique quoi vérifier |
 | Fonctionne en Wi-Fi mais pas en données mobiles | Pour atteindre le PC depuis un autre réseau, il doit être joignable depuis internet - configurez la redirection de port ou l'IPv6 dans les paramètres **Partage** du compagnon. Sans cela, le partage fonctionne uniquement sur le même Wi-Fi |
 

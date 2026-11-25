@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "车载音乐播放器（Android 车机）- FastMediaSorter v2"
+title: "车载音乐播放器（Android 车机）- Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-car-music-zh-hans.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -11,7 +11,7 @@ permalink: /docs/howto/scenario-car-music-zh-hans.html
 
 > **难度：** 入门 &bull; **用时：** 约 10 分钟 &bull; **版本：** Standard、Legacy、VR、noLegal（Lite 可播放本地音频，但没有后台播放和 Streams 功能；Photos 没有音频功能）
 
-FastMediaSorter 非常适合作为 Android 车机上的音乐播放器 - 即时访问 SD 卡或 U 盘上的完整音乐收藏，并内置方向盘按键支持。
+Fast Media Sorter & Organizer 非常适合作为 Android 车机上的音乐播放器 - 即时访问 SD 卡或 U 盘上的完整音乐收藏，并内置方向盘按键支持。
 
 > **什么是 Android 车机？** 它是一台运行 Android 系统、带触摸屏的车载音响主机 - 就像您的手机，只不过安装在中控台上。本指南同样适用于安装在车里的普通手机或平板。
 
@@ -91,7 +91,7 @@ FastMediaSorter 非常适合作为 Android 车机上的音乐播放器 - 即时�
 
 按下方向盘上的**下一首**或**上一首**按键。
 
-**它们会自动生效 - 无需任何设置。** FastMediaSorter 能响应所有标准的 Android 媒体按键。
+**它们会自动生效 - 无需任何设置。** Fast Media Sorter & Organizer 能响应所有标准的 Android 媒体按键。
 
 > **按键不起作用？** 一些较旧的车机会发送非标准信号。尝试进入 Android 的**设置 → 无障碍**，查找“媒体按键接收器”选项。如果没有帮助，改用屏幕上的触控区域（屏幕左/右边缘）- 它们完全可靠。
 
@@ -107,7 +107,7 @@ FastMediaSorter 非常适合作为 Android 车机上的音乐播放器 - 即时�
 
 现在，来自所有位置的曲目会汇总在同一个列表中显示。
 
-![FastMediaSorter 主屏幕 - 显示“所有音乐”虚拟资源卡片](screenshots/screenshot-car-step6.png)
+![Fast Media Sorter & Organizer 主屏幕 - 显示“所有音乐”虚拟资源卡片](screenshots/screenshot-car-step6.png)
 
 ---
 
@@ -116,7 +116,7 @@ FastMediaSorter 非常适合作为 Android 车机上的音乐播放器 - 即时�
 非常适合上车后只需点一下按钮就能开始播放音乐的场景：
 
 1. 长按主屏幕上的空白处 → 点击**小组件**
-2. 在列表中找到 **FastMediaSorter** → 将**“资源快捷方式”**小组件拖到主屏幕
+2. 在列表中找到 **Fast Media Sorter & Organizer** → 将**“资源快捷方式”**小组件拖到主屏幕
 3. 出现提示时，选择您的音乐资源
 4. 完成 - 随时点击该小组件，音乐会立即开始播放
 

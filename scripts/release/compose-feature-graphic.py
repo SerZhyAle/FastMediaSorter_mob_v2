@@ -22,7 +22,9 @@ column and REFUSES rather than drawing a clipped string, so a headline that cann
 run instead of shipping.
 
 The layout follows the brief: app icon in the left 30%, headline and sub-headline in the centre
-40%, phone mockup in the right 30%, dark navy background.
+40%, phone mockup in the right 30%, on a flat fill of the family's dark `family.background` token
+(PRODUCT-IDENTITY rule 28, S4784) read from assets/identity/family/tokens.json, so the graphic follows
+the family mark when its tokens change instead of carrying a navy of its own.
 
 The mockup is cut out of the composed screenshot of the `browse` slot rather than read from
 temp/play-shots/, which is a gitignored scratch area whose raw shots do not survive (S2398) - a
@@ -45,7 +47,7 @@ import json
 import os
 import sys
 
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageDraw, ImageFont
 
 if '--help' in sys.argv or '-h' in sys.argv:
     print(__doc__)
@@ -55,6 +57,7 @@ REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 LISTING_ROOT = os.path.join(REPO_ROOT, 'play', 'listing')
 CAPTIONS_PATH = os.path.join(LISTING_ROOT, 'captions.json')
 ICON_PATH = os.path.join(REPO_ROOT, 'store_assets', 'icon_512.png')
+TOKENS_PATH = os.path.join(REPO_ROOT, 'assets', 'identity', 'family', 'tokens.json')
 FASTLANE_GRAPHIC = os.path.join(
     REPO_ROOT, 'fastlane', 'metadata', 'android', 'en-US', 'images', 'featureGraphic.png')
 
@@ -62,8 +65,6 @@ FASTLANE_GRAPHIC = os.path.join(
 CANVAS_W, CANVAS_H = 1024, 500
 
 # design_brief.md section 2: dark theme, #0D1B2A navy to #0A2463 deep blue.
-BG_TOP = (13, 27, 42)
-BG_BOTTOM = (10, 36, 99)
 TEXT_COLOR = (255, 255, 255)
 SUB_COLOR = (144, 202, 249)
 FRAME_COLOR = (66, 165, 245)
@@ -238,23 +239,27 @@ def rounded(img, radius):
     return out
 
 
-def draw_background(canvas):
-    """Vertical navy gradient with a soft glow behind the icon column."""
-    draw = ImageDraw.Draw(canvas)
-    for y in range(CANVAS_H):
-        ratio = y / (CANVAS_H - 1)
-        draw.line([(0, y), (CANVAS_W, y)],
-                  fill=tuple(int(a + (b - a) * ratio) for a, b in zip(BG_TOP, BG_BOTTOM)))
-    glow = Image.new('RGB', (CANVAS_W, CANVAS_H), (0, 0, 0))
-    ImageDraw.Draw(glow).ellipse(
-        [(-120, 40), (int(CANVAS_W * LEFT_FRACTION) + 120, CANVAS_H - 40)], fill=(24, 64, 132))
-    canvas.paste(Image.blend(canvas, glow, 0.35).filter(ImageFilter.GaussianBlur(60)), (0, 0))
-    return canvas
+def family_background():
+    """The dark `family.background` token as an RGB tuple."""
+    if not os.path.exists(TOKENS_PATH):
+        raise CompositionError(f"family tokens not found: {TOKENS_PATH}")
+    with open(TOKENS_PATH, encoding='utf-8') as handle:
+        value = json.load(handle)['tokens']['family.background']['dark']
+    return tuple(int(value[i:i + 2], 16) for i in (1, 3, 5))
 
 
-def compose(locale, headline, icon, mockup, bold_path, regular_path):
+def plate_icon(icon, size):
+    """The icon at `size`, rounded only when its rendition is a full-bleed square: a rendition whose
+    corners are already transparent carries its own plate shape and is pasted as drawn."""
+    rgba = icon.convert('RGBA').resize((size, size), Image.LANCZOS)
+    if rgba.getpixel((0, 0))[3] == 0:
+        return rgba
+    return rounded(rgba.convert('RGB'), radius=int(size * 0.22))
+
+
+def compose(locale, headline, icon, mockup, bold_path, regular_path, background):
     """Render one locale's 1024x500 graphic. Raises CompositionError when a text cannot fit."""
-    canvas = draw_background(Image.new('RGB', (CANVAS_W, CANVAS_H), BG_TOP))
+    canvas = Image.new('RGB', (CANVAS_W, CANVAS_H), background)
     draw = ImageDraw.Draw(canvas)
 
     left_w = int(CANVAS_W * LEFT_FRACTION)
@@ -262,8 +267,7 @@ def compose(locale, headline, icon, mockup, bold_path, regular_path):
     centre_x = left_w
 
     icon_size = 200
-    icon_scaled = rounded(icon.convert('RGB').resize((icon_size, icon_size), Image.LANCZOS),
-                          radius=int(icon_size * 0.22))
+    icon_scaled = plate_icon(icon, icon_size)
     canvas.paste(icon_scaled, ((left_w - icon_size) // 2, (CANVAS_H - icon_size) // 2), icon_scaled)
 
     text_pad = 18
@@ -340,6 +344,7 @@ def main():
     if not os.path.exists(ICON_PATH):
         raise CompositionError(f"icon not found: {ICON_PATH}")
     icon = Image.open(ICON_PATH)
+    background = family_background()
     ordinal = mockup_ordinal()
 
     written = 0
@@ -354,7 +359,7 @@ def main():
                 f"{locale}: no composed '{MOCKUP_SLOT_ID}' screenshot at ordinal {ordinal:02d} to "
                 f"cut the mockup from - run compose-play-screenshots.py first")
         mockup = extract_mockup(Image.open(source))
-        graphic = compose(locale, headline, icon, mockup, bold_path, regular_path)
+        graphic = compose(locale, headline, icon, mockup, bold_path, regular_path, background)
         out_path = os.path.join(LISTING_ROOT, locale, 'images', 'featureGraphic.png')
         graphic.save(out_path)
         written += 1

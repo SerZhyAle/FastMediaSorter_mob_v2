@@ -13,9 +13,9 @@ canonical_url: documentation/storage/background-transfers.html
 why: |
   Copying two hundred holiday videos to the computer at home can take a while. You do not want to stare at a progress window for that long - you want to keep sorting photos, answer a message, or just put the phone down.
 
-  FastMediaSorter runs copies and moves as background tasks that carry on when you leave the screen or close the app. This page shows how to keep an eye on them, and what the app does when something gets in the way.
+  Fast Media Sorter & Organizer runs copies and moves as background tasks that carry on when you leave the screen or close the app. This page shows how to keep an eye on them, and what the app does when something gets in the way.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition). Receiving files shared from other apps: Standard, Lite, Photos and Legacy. Network servers and the cloud: see [Copying, moving and deleting files](page:storage.file-copy-move-delete) for which editions have them."
+  - "Fast Media Sorter & Organizer in any [edition](term:edition). Receiving files shared from other apps: Standard, Lite, Photos and Legacy. Network servers and the cloud: see [Copying, moving and deleting files](page:storage.file-copy-move-delete) for which editions have them."
   - "Permission to show notifications, so Android can display the progress while the app is closed."
 steps:
   - number: 1
@@ -36,7 +36,7 @@ steps:
       shot_id: storage.transfer-notification
       device_profile: phone
       screen_state: notification-shade-browse-transfer
-      alt: The Android notification shade with a FastMediaSorter notification reading Copying files, 42 percent and the current file name, with a Cancel button
+      alt: The Android notification shade with a Fast Media Sorter & Organizer notification reading Copying files, 42 percent and the current file name, with a Cancel button
       caption: "A copy running in the background."
       title: "Screenshot: Transfer notification"
       desc: Notification shade pulled down during a background copy to an SMB share.
@@ -56,12 +56,12 @@ steps:
     text: |
       *Standard, Lite, Photos and Legacy editions.*
 
-      In any app - a messenger, the gallery, a browser - tap **Share** and choose FastMediaSorter. The same window as for **Copy** opens straight away: tap a [destination](term:destination) or **Select Folder**. The copying then continues in the background with the usual notification, even after the window has closed, and a final notification tells you when it is done.
+      In any app - a messenger, the gallery, a browser - tap **Share** and choose Fast Media Sorter & Organizer. The same window as for **Copy** opens straight away: tap a [destination](term:destination) or **Select Folder**. The copying then continues in the background with the usual notification, even after the window has closed, and a final notification tells you when it is done.
     image_bookmark:
       shot_id: storage.share-in-destination
       device_profile: phone
       screen_state: receive-share-destination-dialog
-      alt: The FastMediaSorter copy window opened over a messenger after sharing a photo, with destination buttons and Select Folder
+      alt: The Fast Media Sorter & Organizer copy window opened over a messenger after sharing a photo, with destination buttons and Select Folder
       caption: "Photos shared from another app, ready to be filed."
       title: "Screenshot: Receiving a shared photo"
       desc: A photo shared from the gallery app, destination dialog over it.
@@ -74,7 +74,7 @@ steps:
     id: cloud-sign-in
     title: When the cloud asks you to sign in again
     text: |
-      Cloud services end a sign-in from time to time. If that happens during a copy or move, the app shows **Authentication Required** - "Cloud authentication required. Please go to Resources and sign in to this Cloud resource." Tap **Sign In** to sign in to that provider right there, then start the transfer again. In the background the notification says "Sign in required - Open FastMediaSorter to sign in and continue".
+      Cloud services end a sign-in from time to time. If that happens during a copy or move, the app shows **Authentication Required** - "Cloud authentication required. Please go to Resources and sign in to this Cloud resource." Tap **Sign In** to sign in to that provider right there, then start the transfer again. In the background the notification says "Sign in required - Open Fast Media Sorter & Organizer to sign in and continue".
   - number: 8
     id: fallback
     title: A new file is never lost

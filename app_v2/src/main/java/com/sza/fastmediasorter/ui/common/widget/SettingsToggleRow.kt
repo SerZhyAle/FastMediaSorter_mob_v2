@@ -15,6 +15,9 @@ import android.widget.TextView
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.core.content.res.use
+import androidx.core.view.AccessibilityDelegateCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import com.google.android.material.materialswitch.MaterialSwitch
 import com.sza.fastmediasorter.R
 
@@ -88,6 +91,7 @@ class SettingsToggleRow @JvmOverloads constructor(
         titleLineSpacer = findViewById(R.id.str_titleLineSpacer)
 
         bindRowClicks()
+        bindAccessibility()
         applyAttributes(attrs, defStyleAttr)
         help.syncVisibility()
     }
@@ -251,6 +255,21 @@ class SettingsToggleRow @JvmOverloads constructor(
         switchView.setOnCheckedChangeListener { _, value ->
             checkedChangeListener?.invoke(value)
         }
+    }
+
+    // The row, not the inner control, is the focus stop, so the row must carry the control's role and state.
+    private fun bindAccessibility() {
+        ViewCompat.setAccessibilityDelegate(
+            this,
+            object : AccessibilityDelegateCompat() {
+                override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
+                    super.onInitializeAccessibilityNodeInfo(host, info)
+                    info.className = android.widget.Switch::class.java.name
+                    info.isCheckable = true
+                    info.isChecked = switchView.isChecked
+                }
+            },
+        )
     }
 
     private fun applyAttributes(attrs: AttributeSet?, defStyleAttr: Int) {

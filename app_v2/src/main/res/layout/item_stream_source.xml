@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/streamRow"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:minHeight="56dp"
@@ -177,6 +178,7 @@
         app:tint="?attr/colorControlNormal"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:focusable="true"
+        android:nextFocusLeft="@id/streamRow"
         android:contentDescription="@string/streams_pin_to_top" />
 
     <ImageButton

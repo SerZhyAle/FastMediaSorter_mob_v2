@@ -886,10 +886,10 @@ if ($failures -eq 0) {
     # S2421: the skip count rides in the green line rather than a separate one, because the summary
     # is the part that gets quoted - a run that observed three fewer behaviours must not be
     # quotable as if it had observed them all.
-    $skipNote = if ($skips -gt 0) { " $skips skipped - see the SKIP lines above." } else { '' }
-    Write-Host "test-agent-lock-queue: expected: 0 | actual: 0 failures ($passes assertions passed).$skipNote Sandbox removed." -ForegroundColor Green
+    $skipNote = if ($skips -gt 0) { ' - see the SKIP lines above.' } else { '.' }
+    Write-Host "test-agent-lock-queue: PASS (run=$passes skipped=$skips)$skipNote Sandbox removed." -ForegroundColor Green
     exit 0
 }
 
-Write-Error "test-agent-lock-queue: $failures of $($passes + $failures) assertions FAILED. Sandbox kept: $sandbox" -ErrorAction Continue
+Write-Error "test-agent-lock-queue: FAIL (run=$($passes + $failures) skipped=$skips, failed=$failures). Sandbox kept: $sandbox" -ErrorAction Continue
 exit 1

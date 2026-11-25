@@ -180,7 +180,7 @@ class DriveChannelResponder @Inject constructor(
         return pack(changed, asOf).ifEmpty { listOf(ReplyPart(ok(asOf), emptyList())) }
     }
 
-    // Splits files into replies of at most packetBytes, each with unique base names (item CN).
+    // Splits files into replies of at most packetBytes, each with base names unique regardless of case (items CN, ES).
     private suspend fun pack(nodes: List<SftpServerNode>, asOf: String): List<ReplyPart> {
         val limit = settings.packetBytes()
         if (nodes.any { it.length > limit }) throw Refusal(DriveRefusalReason.TOO_LARGE)
@@ -189,7 +189,7 @@ class DriveChannelResponder @Inject constructor(
             val current = parts.lastOrNull()
             val fits = current != null &&
                 current.sumOf { it.length } + node.length <= limit &&
-                current.none { it.name == node.name }
+                current.none { it.name.equals(node.name, ignoreCase = true) }
             if (fits) current?.add(node) else parts += mutableListOf(node)
         }
         return parts.map { group -> ReplyPart(ok(asOf), group.map(::outgoing)) }

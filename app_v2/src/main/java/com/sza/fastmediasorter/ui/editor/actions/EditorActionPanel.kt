@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.editor.actions
 
+import android.view.Menu
 import android.widget.ImageButton
 
 /**
@@ -23,6 +24,13 @@ interface EditorActionPanel {
 
     /** Notify the panel that the edit session ended; restores the clean tint. */
     fun onExitEditMode()
+
+    /**
+     * S4676: the editor owns no menu button of its own - its actions are appended to the host
+     * screen's single overflow menu. Each item dispatches through its own click listener, so the
+     * host's menu listener never has to know these ids.
+     */
+    fun addOverflowItems(menu: Menu)
 }
 
 /**

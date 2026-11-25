@@ -120,6 +120,11 @@
         Fix   = 'A documentation page links to a page that is neither on disk nor a planned page_id in docs/docs-pages-manifest.jsonl. Fix the href, or register the target page in the manifest; a link to a page not written yet is a bookmark (docs/DOCUMENTATION_LINKING_RULES.md).'
     }
 
+    'internal-doc-links' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-internal-doc-links.ps1 -Files "<your,changed,md>"'
+        Fix   = 'A relative Markdown link or #anchor in a changed docs/ or dev/ file names no file or heading on disk. Fix the target path or the anchor slug; when a baselined row now resolves or its source is gone, delete that row from scripts/quality/internal-doc-links-baseline.txt.'
+    }
+
     'docs-screenshots' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-docs-screenshots.ps1'
         Fix   = 'A documentation page references an image file that does not exist, or an <img> has empty alt text. Add the image under documentation/assets/images/ or fix its path, and write the alt text; an image not captured yet is an image bookmark (docs/DOCUMENTATION_IMAGE_BOOKMARKS.md).'
@@ -264,6 +269,11 @@
         Fix   = 'A confirm/cancel pair uses a one-off button style - switch to Widget.FastMediaSorter.Button.DialogConfirm / DialogCancel / DialogDestructive.'
     }
 
+    'uniform-glyph-sets-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-uniform-glyph-sets.ps1'
+        Fix   = 'A menu level, header set or settings group mixes members with and without a glyph - give each glyph-less member a mapped ICON-SET glyph (ICON-RENDER sibling-set rule).'
+    }
+
     'rtl-layout-attrs-gate' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-rtl-layout-attrs.ps1 -Gate'
         Fix   = 'A layout uses left/right attributes without their start/end counterpart - add the start/end form so RTL locales lay out correctly.'
@@ -356,6 +366,10 @@
     'baseline-inventory-gate' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-baseline-inventory.ps1 -Gate'
         Fix   = 'A ratchet baseline has no row in scripts/quality/baseline-inventory.jsonl, a row names a file that is gone, or a row is malformed. Add one JSON line for a new baseline: file, shape (count|set|xml), owner, write (down-only|seed-only|hand-only|raise-with-reason|guarded|wholesale), verdict (safe|exception). A writer that stores the current measurement whatever the direction is wholesale and cannot be safe (contract CHECK-BASELINE rule 4): make it down-only, or give it -Reason and a printed accept list, or record verdict exception with a carrier ticket and a reason. Criterion: docs/DEV_OPS.md, section The two baseline shapes and the inventory.'
+    }
+    'set-baseline-rise-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-set-baseline-rise.ps1 -Gate'
+        Fix   = 'A set baseline in your changed set holds an identifier that the copy at HEAD does not, and scripts/quality/set-baseline-accepted.jsonl has no row for it - the edit would accept a finding in silence (contract CHECK-BASELINE rule 3.2, item B). The failure names every identifier and the command: assert-set-baseline-rise.ps1 -Accept -File <baseline> -Reason ''<why>'' -Ticket Sxxxx, which prints what it accepts and appends one row each. Cheaper and better when the finding is yours: fix it and remove the line instead. A pruned identifier never fails. Scope (S2824): the per-ticket run is fixed-input - fatal only when the journal, the gate or that baseline file is in the set. The whole-tree run is .\a.ps1 fg.'
     }
     'bridge-scenario-coverage-gate' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-bridge-scenario-coverage.ps1 -Gate'

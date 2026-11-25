@@ -8,7 +8,10 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.util.deleteFilesConfirmText
+import com.sza.fastmediasorter.util.deleteGoesToTrash
 import com.sza.fastmediasorter.util.showBoundToHost
+import timber.log.Timber
 
 @android.annotation.SuppressLint("SetTextI18n")
 internal class BrowseDeleteDialogManager(
@@ -50,19 +53,32 @@ internal class BrowseDeleteDialogManager(
         }
 
         val dirCount = files.count { it.isDirectory }
+        val toTrash = deleteGoesToTrash(settings.useTrash, files.map { it.path })
         val message = when {
             dirCount == 1 && fileCount == 1 -> {
                 val folderName = files.first { it.isDirectory }.name
-                activity.getString(R.string.delete_folder_confirm, folderName)
+                val folderConfirm = if (toTrash) {
+                    R.string.delete_folder_trash_confirm
+                } else {
+                    R.string.delete_folder_confirm
+                }
+                activity.getString(folderConfirm, folderName)
             }
 
             dirCount > 0 && dirCount == fileCount -> {
-                activity.getString(R.string.delete_n_folders_confirm, dirCount)
+                if (toTrash) {
+                    val foldersPlural = R.plurals.delete_n_folders_trash_confirm_plural
+                    activity.resources.getQuantityString(foldersPlural, dirCount, dirCount)
+                } else {
+                    activity.getString(R.string.delete_n_folders_confirm, dirCount)
+                }
             }
 
-            else -> activity.getString(R.string.confirm_delete_message, fileCount)
+            else -> activity.resources.deleteFilesConfirmText(fileCount, toTrash)
         }
 
+        Timber.d("S4770: browse delete confirm shown, fileCount=$fileCount dirCount=$dirCount")
+        Timber.d("S4771: browse delete confirm toTrash=$toTrash")
         MaterialAlertDialogBuilder(
             activity,
             R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive

@@ -11,6 +11,11 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.OutputStream
+import java.time.Instant
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -84,36 +89,54 @@ class WearServerClipboardSlot @Inject constructor(
         private const val FALLBACK_STEM = "clipboard"
         private const val TEXT_EXTENSION = "txt"
         private val REFUSED_CHARACTERS = Regex("[\\\\/:*?\"<>|\\p{Cntrl}]")
+        private val STAMP: DateTimeFormatter =
+            DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss").withZone(ZoneOffset.UTC)
+        private val KNOWN_EXTENSIONS = mapOf(
+            "image/png" to "png",
+            "image/jpeg" to "jpg",
+            "image/gif" to "gif",
+            "image/webp" to "webp",
+            "image/heic" to "heic",
+            "image/bmp" to "bmp",
+            "image/svg+xml" to "svg",
+            "text/plain" to TEXT_EXTENSION,
+            "text/html" to "html",
+            "application/pdf" to "pdf",
+            "application/zip" to "zip",
+            "application/octet-stream" to "bin",
+        )
 
         /**
          * The name a received value is saved under (contract 22 item CB): the base name of `name` only, with
-         * characters a file system refuses replaced; a text is a `.txt` file, and a value with no name is named
-         * after `storedAt` and its MIME type. Collisions are left to the store that places it.
+         * characters a file system refuses replaced; a text, and a value with no name, is named as 1.11 item EL
+         * says - `clipboard-<yyyyMMdd-HHmmss><ext>` from `storedAt` in UTC, else [now]. Collisions are left to the
+         * store that places it.
          */
-        fun safeName(value: WearServerClipboardValue): String {
+        fun safeName(value: WearServerClipboardValue, now: Instant = Instant.now()): String {
             val given = value.name
                 ?.substringAfterLast('/')
                 ?.substringAfterLast('\\')
                 ?.replace(REFUSED_CHARACTERS, "_")
                 ?.trim()
                 ?.takeUnless { it.isEmpty() || it == "." || it == ".." }
-            return when {
-                value.kind == WearServerClipboardKind.TEXT -> "${stemOf(value)}.$TEXT_EXTENSION"
-                given != null -> given
-                else -> "${stemOf(value)}.${extensionOf(value.mimeType)}"
+            val extension = if (value.kind == WearServerClipboardKind.TEXT) {
+                TEXT_EXTENSION
+            } else {
+                KNOWN_EXTENSIONS[value.mimeType?.lowercase()]
             }
+            return given?.takeIf { value.kind != WearServerClipboardKind.TEXT }
+                ?: (stemOf(value, now) + extension?.let { ".$it" }.orEmpty())
         }
 
-        private fun stemOf(value: WearServerClipboardValue): String {
-            val stamp = value.storedAt?.filter { it.isLetterOrDigit() }.orEmpty()
-            return if (stamp.isEmpty()) FALLBACK_STEM else "$FALLBACK_STEM-$stamp"
-        }
-
-        private fun extensionOf(mimeType: String?): String = when (val subtype = mimeType?.substringAfter('/')) {
-            null, "" -> "bin"
-            "jpeg" -> "jpg"
-            "plain" -> TEXT_EXTENSION
-            else -> subtype.substringBefore('+').filter { it.isLetterOrDigit() }.ifEmpty { "bin" }
+        private fun stemOf(value: WearServerClipboardValue, now: Instant): String {
+            val stored = value.storedAt?.let {
+                try {
+                    OffsetDateTime.parse(it).toInstant()
+                } catch (_: DateTimeParseException) {
+                    null
+                }
+            }
+            return "$FALLBACK_STEM-${STAMP.format(stored ?: now)}"
         }
     }
 }

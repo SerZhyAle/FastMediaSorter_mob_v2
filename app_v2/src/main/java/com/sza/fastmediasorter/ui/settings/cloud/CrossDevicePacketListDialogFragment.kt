@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.databinding.DialogCrossDevicePacketsBinding
 import com.sza.fastmediasorter.domain.model.transfer.CrossDeviceTransferOption
 import com.sza.fastmediasorter.domain.transfer.DrivePollState
 import com.sza.fastmediasorter.ui.common.dialog.AppDialog
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.util.showBoundTo
@@ -80,6 +81,7 @@ class CrossDevicePacketListDialogFragment : DialogFragment() {
     override fun onStart() {
         super.onStart()
         viewModel.onVisible()
+        dialog?.let { DialogHelpEntryManager.attach(it, DialogHelpEntryManager.surfaceIdOf(it, null)) }
     }
 
     override fun onStop() {

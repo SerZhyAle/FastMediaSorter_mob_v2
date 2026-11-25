@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.repository
 
+import java.net.URI
 import javax.inject.Inject
 
 /**
@@ -11,8 +12,8 @@ import javax.inject.Inject
 class M3uPlaylistParser @Inject constructor() {
 
     fun parse(text: String): List<ParsedStreamEntry> {
-        val lines = text.lineSequence().map { it.trim() }
-        if (lines.any { it.startsWith(HLS_TAG_PREFIX, ignoreCase = true) }) return emptyList()
+        val lines = text.removePrefix("\uFEFF").lineSequence().map { it.trim() }
+        if (isHlsManifest(text)) return emptyList()
 
         val entries = mutableListOf<ParsedStreamEntry>()
         var pendingTitle: String? = null
@@ -31,6 +32,11 @@ class M3uPlaylistParser @Inject constructor() {
         return entries
     }
 
+    internal fun isHlsManifest(text: String): Boolean =
+        text.removePrefix("\uFEFF").lineSequence().any {
+            it.trimStart().startsWith(HLS_TAG_PREFIX, ignoreCase = true)
+        }
+
     /**
      * USER-PLAYLIST 0.11 section 8 item 2: the title starts after the first comma outside double quotes,
      * so `group-title="Rock, Pop",Name` is titled `Name`. Null when there is no such comma or it is blank.
@@ -48,9 +54,7 @@ class M3uPlaylistParser @Inject constructor() {
     }
 
     private fun hostOf(url: String): String {
-        val afterScheme = url.substringAfter("://", url)
-        val host = afterScheme.substringBefore('/').substringBefore('?').substringBefore('#')
-        return host.takeIf { it.isNotEmpty() } ?: url
+        return runCatching { URI(url).host }.getOrNull()?.takeIf { it.isNotEmpty() } ?: url
     }
 
     data class ParsedStreamEntry(val url: String, val title: String)

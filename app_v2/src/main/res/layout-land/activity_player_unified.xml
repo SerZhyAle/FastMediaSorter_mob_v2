@@ -20,49 +20,49 @@
                 <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnRotationToggleCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/rotation_toggle_sensor_on_desc" android:src="@drawable/ic_screen_rotation" android:visibility="gone" />
 
                 <!-- Text Actions -->
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnSearchTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_search" android:visibility="gone" android:contentDescription="@null" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnSearchTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_search" android:visibility="gone" android:contentDescription="@string/search" />
 
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnTranslateTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_translate" android:visibility="gone" android:contentDescription="@null" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnTranslateTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_translate" android:visibility="gone" android:contentDescription="@string/translate" />
 
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnTextSettingsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_text_settings" android:visibility="gone" android:contentDescription="@null" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnTextSettingsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_text_settings" android:visibility="gone" android:contentDescription="@string/translation_settings" />
 
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnCopyTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_copy" android:visibility="gone" android:contentDescription="@null" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnCopyTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_copy" android:visibility="gone" android:contentDescription="@string/copy" />
 
                 <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnEditTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_edit" android:visibility="gone" android:contentDescription="@string/menu_edit_file_text" />
 
                 <!-- PDF Actions -->
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnSearchPdfCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_search" android:visibility="gone" android:contentDescription="@null" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnSearchPdfCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_search" android:visibility="gone" android:contentDescription="@string/search" />
 
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnTranslatePdfCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_translate" android:visibility="gone" android:contentDescription="@null" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnTranslatePdfCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_translate" android:visibility="gone" android:contentDescription="@string/translate" />
 
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnPdfTextSettingsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_text_settings" android:visibility="gone" android:contentDescription="@null" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnPdfTextSettingsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_text_settings" android:visibility="gone" android:contentDescription="@string/translation_settings" />
 
-                <TextView android:id="@+id/btnOcrPdfCmd" android:layout_width="wrap_content" android:layout_height="@dimen/player_cmd_button_size" android:text="@string/activity_player_unified_btnOcrPdfCmd_text" android:textColor="@color/white" android:textSize="@dimen/text_size_small" android:textStyle="bold" android:gravity="center" android:visibility="gone" android:background="?attr/selectableItemBackgroundBorderless" android:paddingHorizontal="@dimen/player_ocr_padding_horizontal" />
+                <TextView android:id="@+id/btnOcrPdfCmd" android:layout_width="wrap_content" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/ocr_button_description" android:text="@string/activity_player_unified_btnOcrPdfCmd_text" android:textColor="@color/white" android:textSize="@dimen/text_size_small" android:textStyle="bold" android:gravity="center" android:visibility="gone" android:background="?attr/selectableItemBackgroundBorderless" android:paddingHorizontal="@dimen/player_ocr_padding_horizontal" />
 
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnGoogleLensPdfCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_search" android:visibility="gone" android:contentDescription="@null" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnGoogleLensPdfCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_search" android:visibility="gone" android:contentDescription="@string/search_google_lens" />
 
                 <!-- Keep parity with portrait command panel: this id is required by PlayerBindingSafeViews. -->
                 <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnPdfThumbnailsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/pdf_thumbnails" android:src="@drawable/ic_view_list" android:visibility="gone" />
 
                 <!-- EPUB Actions -->
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnSearchEpubCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_search" android:visibility="gone" android:contentDescription="@null" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnSearchEpubCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_search" android:visibility="gone" android:contentDescription="@string/search" />
 
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnTranslateEpubCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_translate" android:visibility="gone" android:contentDescription="@null" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnTranslateEpubCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_translate" android:visibility="gone" android:contentDescription="@string/translate" />
 
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnEpubTextSettingsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_text_settings" android:visibility="gone" android:contentDescription="@null" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnEpubTextSettingsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_text_settings" android:visibility="gone" android:contentDescription="@string/translation_settings" />
 
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnOcrEpubCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_ocr" android:visibility="gone" android:contentDescription="@null" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnOcrEpubCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_ocr" android:visibility="gone" android:contentDescription="@string/ocr_button_description" />
 
                 <!-- Image/Media Actions -->
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnTranslateImageCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_translate" android:visibility="gone" android:contentDescription="@null" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnTranslateImageCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_translate" android:visibility="gone" android:contentDescription="@string/translate" />
 
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnImageTextSettingsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_text_settings" android:visibility="gone" android:contentDescription="@null" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnImageTextSettingsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_text_settings" android:visibility="gone" android:contentDescription="@string/translation_settings" />
 
-                <TextView android:id="@+id/btnOcrImageCmd" android:layout_width="wrap_content" android:layout_height="@dimen/player_cmd_button_size" android:text="@string/activity_player_unified_btnOcrImageCmd_text" android:textColor="@color/selector_player_button_tint" android:textSize="@dimen/text_size_small" android:textStyle="bold" android:gravity="center" android:visibility="gone" android:background="?attr/selectableItemBackgroundBorderless" android:paddingHorizontal="@dimen/player_ocr_padding_horizontal" />
+                <TextView android:id="@+id/btnOcrImageCmd" android:layout_width="wrap_content" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/ocr_button_description" android:text="@string/activity_player_unified_btnOcrImageCmd_text" android:textColor="@color/selector_player_button_tint" android:textSize="@dimen/text_size_small" android:textStyle="bold" android:gravity="center" android:visibility="gone" android:background="?attr/selectableItemBackgroundBorderless" android:paddingHorizontal="@dimen/player_ocr_padding_horizontal" />
 
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnGoogleLensImageCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_search" android:visibility="gone" android:contentDescription="@null" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnGoogleLensImageCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_search" android:visibility="gone" android:contentDescription="@string/search_google_lens" />
 
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnLyricsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_lyrics" android:visibility="gone" android:contentDescription="@null" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnLyricsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_lyrics" android:visibility="gone" android:contentDescription="@string/lyrics" />
 
                 <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnSleepTimerCmd"
                     android:layout_width="@dimen/player_cmd_button_size"
@@ -71,16 +71,16 @@
                     android:src="@drawable/ic_sleep_timer"
                     android:visibility="gone" />
 
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnSearchYoutubeMusicCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@null" android:src="@drawable/ic_search" android:visibility="gone" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnSearchYoutubeMusicCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/search_in_youtube_music" android:src="@drawable/ic_search" android:visibility="gone" />
 
 
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnCastCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@null" android:src="@drawable/ic_cast" android:visibility="gone" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnCastCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:contentDescription="@string/cast_to_chromecast" android:src="@drawable/ic_cast" android:visibility="gone" />
 
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnRenameCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_rename" android:contentDescription="@null" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnRenameCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_rename" android:contentDescription="@string/rename" />
 
                 <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnEditCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_edit" android:visibility="gone" android:contentDescription="@string/menu_edit_adjust" />
 
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnSaveFrameCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_save_frame" android:visibility="gone" android:contentDescription="@null" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnSaveFrameCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_save_frame" android:visibility="gone" android:contentDescription="@string/menu_save_frame" />
 
                 <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnPrintCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_print" android:visibility="gone" android:contentDescription="@string/menu_print" />
 
@@ -95,32 +95,31 @@
 
                 <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnDrawOverlayCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_draw_overlay" android:visibility="gone" android:contentDescription="@string/menu_draw_overlay" />
 
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnUndoCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_undo" android:visibility="gone" android:contentDescription="@null" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnUndoCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_undo" android:visibility="gone" android:contentDescription="@string/undo" />
 
                 <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnOverflowMenu" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_more_vert" android:visibility="gone" android:contentDescription="@string/more_actions" />
 
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnDeleteCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_delete" android:contentDescription="@null" android:visibility="gone" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnDeleteCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_delete" android:contentDescription="@string/delete" android:visibility="gone" />
 
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnFavorite" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_star_outline" android:contentDescription="@null" android:visibility="gone" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnFavorite" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_star_outline" android:contentDescription="@string/favorite" android:visibility="gone" />
 
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnShareCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_share" android:visibility="gone" android:contentDescription="@null" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnShareCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_share" android:visibility="gone" android:contentDescription="@string/share" />
 
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnInfoCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_info" android:visibility="gone" android:contentDescription="@null" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnInfoCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_info" android:visibility="gone" android:contentDescription="@string/file_information" />
 
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnFullscreenCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_fullscreen" android:visibility="gone" android:contentDescription="@null" />
-
-                <!-- S0103: fixed anchor - already before nav block -->
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnSlideshowCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_slideshow" android:contentDescription="@null" android:visibility="gone" />
-
-                <!-- Navigation at end of scrollable area (same set as portrait, all part of adaptive system) -->
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnPreviousCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_skip_previous" android:contentDescription="@null" android:visibility="gone" />
-
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnRandomCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_random_nav" android:visibility="gone" android:contentDescription="@string/random_file_description" />
-
-                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnNextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_skip_next" android:contentDescription="@null" android:visibility="gone" />
+                <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnFullscreenCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_fullscreen" android:visibility="gone" android:contentDescription="@string/fullscreen_mode" />
 
             </LinearLayout>
         </HorizontalScrollView>
+
+        <!-- Right anchor, as in portrait: slideshow and navigation stay at the end of the bar, not packed after the scrolling commands. -->
+        <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnSlideshowCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_slideshow" android:contentDescription="@string/slideshow" android:visibility="gone" />
+
+        <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnPreviousCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_skip_previous" android:contentDescription="@string/previous_item" android:visibility="gone" />
+
+        <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnRandomCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_random_nav" android:visibility="gone" android:contentDescription="@string/random_file_description" />
+
+        <ImageButton style="@style/Widget.FastMediaSorter.Button.Icon.Overlay" android:id="@+id/btnNextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:src="@drawable/ic_skip_next" android:contentDescription="@string/next_item" android:visibility="gone" />
 
     </LinearLayout>
 
@@ -129,7 +128,7 @@
          are not hidden behind the Copy/Move panels in landscape mode.
          When both panels are gone (0 height), bottomPanelsContainer sits at parent bottom,
          so mediaContentArea naturally extends to the full remaining height. -->
-    <FrameLayout android:id="@+id/mediaContentArea" android:layout_width="0dp" android:layout_height="0dp" app:layout_constraintBottom_toTopOf="@id/bottomPanelsContainer" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/topCommandPanel">
+    <FrameLayout android:id="@+id/mediaContentArea" android:layout_width="0dp" android:layout_height="0dp" app:layout_constraintHeight_min="@dimen/player_media_content_area_min_height_land" app:layout_constraintBottom_toTopOf="@id/bottomPanelsContainer" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/topCommandPanel">
 
         <!-- Dynamic Background Extension layer (behind all other views) -->
         <ImageView android:id="@+id/ivDynamicBackground" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:scaleType="fitXY" android:contentDescription="@null" />

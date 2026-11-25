@@ -8,13 +8,25 @@
     android:padding="@dimen/padding_large"
     android:background="@drawable/bg_copy_dialog">
 
-    <TextView
-        android:id="@+id/tvFileCount"
+    <!-- The count line is the dialog's only header line, so the help "?" sits at its end (CONTEXT-HELP 0.2 item E). -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-        android:textAlignment="center"
-        android:paddingBottom="@dimen/margin_small" />
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingBottom="@dimen/margin_small">
+
+        <TextView
+            android:id="@+id/tvFileCount"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+            android:textAlignment="center" />
+
+        <include layout="@layout/view_dialog_help_button" />
+
+    </LinearLayout>
 
     <com.google.android.material.progressindicator.LinearProgressIndicator
         android:id="@+id/progressBar"

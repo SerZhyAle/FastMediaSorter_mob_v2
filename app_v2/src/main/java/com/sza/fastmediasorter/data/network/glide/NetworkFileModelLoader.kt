@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import com.sza.fastmediasorter.data.network.model.SmbResult
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
+import com.sza.fastmediasorter.domain.model.MediaExtensions
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -43,6 +44,7 @@ class NetworkFileModelLoader(
         // Skip PDF/EPUB (dedicated loaders) and video (dedicated decoder - avoids HEIF fallback errors)
         val extension = model.path.substringAfterLast('.', "").lowercase()
         val isVideo = extension in VIDEO_EXTENSIONS
+        Timber.d("S4868: handles ${model.path.substringAfterLast('/')} ext=$extension isVideo=$isVideo")
         if (isVideo) Timber.d("NetworkFileModelLoader.handles: REJECTED video file ${model.path.substringAfterLast('/')}")
         return (model.path.startsWith("smb://", ignoreCase = true) ||
             model.path.startsWith("sftp://", ignoreCase = true) ||
@@ -52,11 +54,10 @@ class NetworkFileModelLoader(
     }
     
     companion object {
-        private val VIDEO_EXTENSIONS = setOf(
-            "mp4", "mov", "avi", "mkv", "webm", "3gp", "flv", "wmv", "m4v", "mpg", "mpeg",
-            // DVD / transport-stream formats - MPEG2 PS/TS headers are not valid image data
-            "vob", "ts", "m2ts", "mts", "m2t", "ifo", "bup"
-        )
+        // Derived from the shared classification so a container the browser calls video is never
+        // fetched as an image here. The DVD / transport-stream extras are loader-specific: MPEG2 PS/TS
+        // headers are not valid image data, and the decoder rejects them by its blocked list.
+        private val VIDEO_EXTENSIONS = MediaExtensions.VIDEO + setOf("m2t", "ifo", "bup")
     }
 }
 

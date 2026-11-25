@@ -4,6 +4,7 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import timber.log.Timber
 
 /**
@@ -93,11 +94,15 @@ object GmsAvailabilityChecker {
     private fun evaluate(context: Context, minApkVersion: Int): Status =
         GmsAvailabilityProbe.evaluate(context, minApkVersion)
 
-    fun isWarningSeen(context: Context): Boolean =
+    // The once-per-installation decision gates the Snackbar, so the file cannot be loaded later; the
+    // path is reached only on a non-OK GMS status and once per process (BaseActivity.gmsWarningShown).
+    fun isWarningSeen(context: Context): Boolean = StrictModeHelper.allowDiskReads {
         prefs(context).getBoolean(PREFS_KEY_WARNING_SEEN, false)
+    }
 
-    fun markWarningSeen(context: Context) =
+    fun markWarningSeen(context: Context) = StrictModeHelper.allowDiskReads {
         prefs(context).edit().putBoolean(PREFS_KEY_WARNING_SEEN, true).apply()
+    }
 
     private fun prefs(context: Context) =
         context.getSharedPreferences(context.packageName + "_preferences", Context.MODE_PRIVATE)

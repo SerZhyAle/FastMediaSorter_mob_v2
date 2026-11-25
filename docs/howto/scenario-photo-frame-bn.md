@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "ট্যাবলেটে ডিজিটাল ফটো ফ্রেম - FastMediaSorter v2"
+title: "ট্যাবলেটে ডিজিটাল ফটো ফ্রেম - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-photo-frame-bn.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -47,7 +47,7 @@ permalink: /docs/howto/scenario-photo-frame-bn.html
 2. **Sign in** ট্যাপ করুন → ব্রাউজারে অথেন্টিকেশন সম্পূর্ণ করুন
 3. আপনার ছবিসহ ফোল্ডারটা বেছে নিন → **Done**
 
-![FastMediaSorter মূল স্ক্রিন - একটা ছবির ফোল্ডার যোগ করার পর ছবির রিসোর্স কার্ড দৃশ্যমান](screenshots/screenshot-pf-step1.png)
+![Fast Media Sorter & Organizer মূল স্ক্রিন - একটা ছবির ফোল্ডার যোগ করার পর ছবির রিসোর্স কার্ড দৃশ্যমান](screenshots/screenshot-pf-step1.png)
 
 ---
 
@@ -123,12 +123,12 @@ Android Settings → Display → Screen timeout → **"Never"** (বা সর�
 এই ধাপটা সুবিধার জন্য: ট্যাবলেটটা তুললেই তাৎক্ষণিকভাবে ফটো ফ্রেমটা চালু করতে চান - অ্যাপ না খুলে বা নেভিগেট না করে?
 
 1. আপনার হোম স্ক্রিনে **দীর্ঘক্ষণ চাপুন** → **Widgets** ট্যাপ করুন
-2. উইজেট তালিকায় **FastMediaSorter** খুঁজুন
+2. উইজেট তালিকায় **Fast Media Sorter & Organizer** খুঁজুন
 3. **"Resource Shortcut"** উইজেটটা আপনার হোম স্ক্রিনে টেনে আনুন
 4. জিজ্ঞাসা করা হলে, আপনার ছবির রিসোর্স বেছে নিন
 5. যেকোনো সময় উইজেটে ট্যাপ করুন → স্লাইডশো তাৎক্ষণিকভাবে শুরু হয়
 
-![FastMediaSorter রিসোর্স শর্টকাট উইজেট রাখা Android হোম স্ক্রিন](screenshots/screenshot-pf-step6.png)
+![Fast Media Sorter & Organizer রিসোর্স শর্টকাট উইজেট রাখা Android হোম স্ক্রিন](screenshots/screenshot-pf-step6.png)
 
 ---
 

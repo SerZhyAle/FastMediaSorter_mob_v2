@@ -405,7 +405,10 @@ class StreamGridAdapter(
             binding.tvPinBadge.isVisible = pinned
         }
 
-        /** S0701: same tri-state play-status mapping as [StreamSourceAdapter.bindPlayStatus]. */
+        /**
+         * S0701: same tri-state play-status mapping as [StreamSourceAdapter.bindPlayStatus]; S4754: and the same
+         * split of the amber ring into "no outcome" and "not confirmed", so the two surfaces never disagree.
+         */
         private fun bindPlayStatus(outcome: String?) {
             val (iconRes, colorRes, descRes) = when (outcome) {
                 RecordStreamPlayOutcomeUseCase.OUTCOME_OK ->
@@ -418,6 +421,14 @@ class StreamGridAdapter(
                     )
                 RecordStreamPlayOutcomeUseCase.OUTCOME_ENDED ->
                     Triple(R.drawable.ic_stop, R.color.stream_status_unknown, R.string.stream_status_ended)
+                RecordStreamPlayOutcomeUseCase.OUTCOME_UNKNOWN -> {
+                    Timber.d("S4754: grid tile bound as not confirmed")
+                    Triple(
+                        R.drawable.ic_stream_status_unknown,
+                        R.color.stream_status_unknown,
+                        R.string.stream_status_unconfirmed
+                    )
+                }
                 else ->
                     Triple(
                         R.drawable.ic_stream_status_unknown,

@@ -1,11 +1,13 @@
 ---
 layout: doc
-title: "🚀 Quick Start Guide - FastMediaSorter v2"
+title: "🚀 Quick Start Guide - Fast Media Sorter & Organizer"
 permalink: /docs/QUICK_START.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
 
-# 🚀 Quick Start Guide - FastMediaSorter v2
+<a id="-quick-start-guide---fastmediasorter-v2"></a>
+
+# 🚀 Quick Start Guide - Fast Media Sorter & Organizer
 
 *Get started in 5 minutes! Simple guide for beginners.*
 
@@ -13,7 +15,7 @@ permalink: /docs/QUICK_START.html
 
 ## Choose Your Flavor 📱
 
-FastMediaSorter v2 ships **five flavors for everyday phones and tablets** - Standard, Lite, Photos, Legacy, FOSS - plus **three headset and sideload builds**, VR, XR and noLegal. Eight in total; the exact capability grid is generated from the build in [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md). Pick the one that fits your needs:
+Fast Media Sorter & Organizer ships **five flavors for everyday phones and tablets** - Standard, Lite, Photos, Legacy, FOSS - plus **three headset and sideload builds**, VR, XR and noLegal. Eight in total; the exact capability grid is generated from the build in [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md). Pick the one that fits your needs:
 
 | Flavor | Best For | Key Features |
 |--------|----------|--------------|
@@ -202,7 +204,7 @@ Tap **"+"** → **Cloud Storage**
 
 ### Link Auto-Download
 
-- In any browser or messenger, share an `http(s)` link to FastMediaSorter via the Android Share sheet
+- In any browser or messenger, share an `http(s)` link to Fast Media Sorter & Organizer via the Android Share sheet
 - The app downloads the media file and saves it to your selected resource automatically
 
 ### Internet Streams (Radio & IPTV)
@@ -210,13 +212,13 @@ Tap **"+"** → **Cloud Storage**
 - Open **Streams** from the main window dropdown (or **Settings > Media > Streams** when it first appears).
 - Tap **⋮** at the end of the toolbar: **Add stream** for a radio URL (http/https mp3/aac, HLS .m3u8, RTSP), or **Import from URL** for a `.m3u` playlist.
 - The **Video**, **Audio** and **Own** buttons beside the search field split the list: Video and Audio show catalog and imported channels of that type, Own shows every channel you added by URL. Tap the lit button again to show all channels.
-- Download the curated FastMediaSorter station catalog from the **Extensions** screen for a searchable, filterable library with topic and language chips.
+- Download the curated Fast Media Sorter & Organizer station catalog from the **Extensions** screen for a searchable, filterable library with topic and language chips.
 - Radio plays inline via the sticky bottom bar - the station list stays visible. Video/RTSP streams open in the fullscreen player; Back returns to the list.
 - **Available in Standard, Legacy, noLegal and VR. The Streams screen is absent from Lite and Photos - no protocol works there, because there is no entry point.**
 
 ### Home Screen Widgets
 
-FastMediaSorter v2 ships a variety of home-screen widgets. Long-press your home screen → Widgets → FastMediaSorter to browse them. Highlights include:
+Fast Media Sorter & Organizer ships a variety of home-screen widgets. Long-press your home screen → Widgets → Fast Media Sorter & Organizer to browse them. Highlights include:
 
 - **Resource Shortcut** - tap to instantly open any of your resources
 - **Continue Reading** - launches the app straight into slideshow mode

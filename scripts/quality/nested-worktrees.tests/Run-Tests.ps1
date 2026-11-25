@@ -145,7 +145,9 @@ Test-Case 'skip notice names the count when something was skipped' {
 }
 
 Write-Host ''
-Write-Host ("nested-worktrees: expected: 0 failures | actual: {0} failure(s) across {1} case(s)" -f $failed, ($passed + $failed))
-
-if ($failed -gt 0) { exit 1 }
+if ($failed -gt 0) {
+    Write-Host ("nested-worktrees.tests: FAIL (run={0} skipped=0, failed={1})" -f ($passed + $failed), $failed)
+    exit 1
+}
+Write-Host ("nested-worktrees.tests: PASS (run={0} skipped=0)" -f $passed)
 exit 0

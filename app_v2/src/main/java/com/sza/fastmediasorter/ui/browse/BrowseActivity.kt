@@ -299,7 +299,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 }
                 override fun onFolderPicked(uri: Uri?) {
                     if (::initializer.isInitialized) {
-                        initializer.folderPickerHandler.onFolderPicked(uri)
+                        initializer.onFolderPicked(uri)
                     }
                 }
             }
@@ -644,7 +644,6 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         if (requestCode == PermissionHelper.REQUEST_CODE_LOCAL_NETWORK) {
             val granted = PermissionHelper.onLocalNetworkPermissionResult(this, grantResults)
             if (granted) {
-                Timber.d("S4514: local-network grant arrived, reloading the folder")
                 viewModel.reloadFiles()
             }
         }

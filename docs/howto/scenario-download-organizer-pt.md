@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Organizador de Downloads (Classificação Rápida) - FastMediaSorter v2"
+title: "Organizador de Downloads (Classificação Rápida) - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-download-organizer-pt.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -11,7 +11,7 @@ permalink: /docs/howto/scenario-download-organizer-pt.html
 
 > **Nível:** Iniciante &bull; **Edição:** Qualquer (Standard, Lite, Photos, Legacy, VR, noLegal)
 
-A **Classificação Rápida** é o recurso estrela do FastMediaSorter: configure suas pastas uma vez e depois organize centenas de arquivos apenas tocando em um número. Sem arrastar e soltar. Sem menus. Basta tocar em **1**, **2** ou **3** - e o arquivo vai para o lugar certo.
+A **Classificação Rápida** é o recurso estrela do Fast Media Sorter & Organizer: configure suas pastas uma vez e depois organize centenas de arquivos apenas tocando em um número. Sem arrastar e soltar. Sem menus. Basta tocar em **1**, **2** ou **3** - e o arquivo vai para o lugar certo.
 
 **Exemplo real:** você tem 200 arquivos na sua pasta Downloads - capturas de tela, documentos de trabalho, fotos de família, memes, recibos. Com a Classificação Rápida você pode organizar os 200 em cerca de 5 minutos. Sem ela - boa sorte.
 
@@ -38,7 +38,7 @@ A pasta aparece na tela principal como um card.
 
 > **A pasta Downloads é onde seu navegador, Telegram, WhatsApp e outros apps salvam arquivos.** Esse costuma ser o lugar mais bagunçado de qualquer celular.
 
-![Tela principal do FastMediaSorter - card do recurso Downloads adicionado, selo Local visível](screenshots/screenshot-dl-step1.png)
+![Tela principal do Fast Media Sorter & Organizer - card do recurso Downloads adicionado, selo Local visível](screenshots/screenshot-dl-step1.png)
 
 ---
 
@@ -52,12 +52,12 @@ Pense nisso como pastas físicas na sua mesa. Exemplos:
 - **Manter** - coisas que valem a pena guardar a longo prazo
 - **Lixo** - arquivos para excluir depois de revisar
 
-**Você pode criar essas pastas diretamente dentro do FastMediaSorter:**
+**Você pode criar essas pastas diretamente dentro do Fast Media Sorter & Organizer:**
 1. Abra o recurso Downloads
 2. Toque no botão **menu <img src="../icons/doc/ic_more_vert.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** → **Criar pasta**
 3. Digite o nome da pasta → toque em **OK**
 
-Ou crie as pastas no gerenciador de arquivos comum do seu celular - elas aparecerão automaticamente no FastMediaSorter.
+Ou crie as pastas no gerenciador de arquivos comum do seu celular - elas aparecerão automaticamente no Fast Media Sorter & Organizer.
 
 ---
 

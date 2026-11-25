@@ -4,15 +4,15 @@
     Render the footer tools grid of the six product pages from scripts/site/family-footer.json.
 
 .DESCRIPTION
-    Contract SITE-FAMILY-MAP makes every product page list every sibling tool. The grid used to be
-    hand-copied into six pages, and the 2026-09-22 map change reached two of them late and with two
-    different Russian captions for the same tool (S3454). The pages are copied verbatim by Jekyll (no
-    front matter), so the one copy lives here and is rendered into the pages at authoring time.
+    Contract SITE-FAMILY-MAP makes every product page list every sibling tool. The grid was hand-copied into
+    each landing page, and a map change reached some of them late and with different captions for the same
+    tool (S3454). The pages are copied verbatim by Jekyll (no front matter), so the one copy lives here and is
+    rendered into the pages at authoring time.
 
     The rendered block sits between `<!-- family-footer:begin .. -->` and `<!-- family-footer:end -->`
     inside `<div class="tools-grid">`. A page that has the grid but no markers yet gets them on the
-    first write run. The page locale comes from the file name: `-ru.html` -> ru, `-uk.html` -> uk,
-    anything else -> en. Line endings and indentation of each page are preserved.
+    first write run. The page locale is the file name's suffix after `index` or `nolegal` (`index-hi.html` -> hi);
+    a name with no suffix is en. Line endings and indentation of each page are preserved.
 
 .PARAMETER Root
     Tree to render. Defaults to the repository root; the contract suite passes a fixture tree.
@@ -55,7 +55,13 @@ if ($Help) {
     exit 0
 }
 
-$pages = @('index.html', 'index-ru.html', 'index-uk.html', 'nolegal.html', 'nolegal-ru.html', 'nolegal-uk.html')
+$pages = @(
+    'index.html', 'index-ru.html', 'index-uk.html', 'index-zh-hans.html', 'index-hi.html', 'index-es.html',
+    'index-fr.html', 'index-ar.html', 'index-bn.html', 'index-pt.html', 'index-ur.html', 'index-de.html', 'index-it.html',
+    'nolegal.html', 'nolegal-ru.html', 'nolegal-uk.html'
+)
+# Every caption carries each of these; a page whose locale is missing here would render an empty caption.
+$captionLocales = 'en', 'ru', 'uk', 'zh-hans', 'hi', 'es', 'fr', 'ar', 'bn', 'pt', 'ur', 'de', 'it'
 $beginMarker = '<!-- family-footer:begin - rendered from scripts/site/family-footer.json by scripts/site/render-family-footer.ps1; edit the source, not this block -->'
 $endMarker = '<!-- family-footer:end -->'
 
@@ -78,7 +84,7 @@ try {
 $tools = @($source.tools)
 if ($tools.Count -eq 0) { Stop-CannotRender 'source lists no tools' }
 foreach ($tool in $tools) {
-    foreach ($loc in 'en', 'ru', 'uk') {
+    foreach ($loc in $captionLocales) {
         if (-not $tool.url -or -not $tool.name -or -not $tool.caption.$loc) {
             Stop-CannotRender "source entry '$($tool.name)' lacks url, name or the $loc caption"
         }
@@ -88,8 +94,8 @@ foreach ($tool in $tools) {
 Write-Host "subject: root=$Root pages=$($pages.Count) tools=$($tools.Count) mode=$(if ($Check) { 'check' } else { 'write' })"
 
 function Get-PageLocale([string]$page) {
-    if ($page -like '*-ru.html') { return 'ru' }
-    if ($page -like '*-uk.html') { return 'uk' }
+    $suffix = [IO.Path]::GetFileNameWithoutExtension($page) -replace '^(index|nolegal)-?', ''
+    if ($suffix) { return $suffix }
     return 'en'
 }
 

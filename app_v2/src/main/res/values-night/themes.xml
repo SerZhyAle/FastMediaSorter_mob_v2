@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.FastMediaSorter.App" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Primary colors - same blue_500 as light theme; colorOnPrimary=white for contrast on #1976D2 -->
+        <!-- Night blue_500 is the light #64B5F6; white on it is ~2:1 (toolbar, unselected settings tabs), so the foreground is black -->
         <item name="colorPrimary">@color/blue_500</item>
         <item name="colorPrimaryVariant">@color/blue_700</item>
-        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorOnPrimary">@color/black</item>
 
         <!-- Secondary colors - Lighter teal accent -->
         <item name="colorSecondary">@color/teal_700</item>
@@ -51,6 +51,8 @@
              stock M3 alert dialog in dark mode, losing the DialogConfirm/DialogCancel pair entirely. -->
         <item name="materialAlertDialogTheme">@style/ThemeOverlay.FastMediaSorter.MaterialAlertDialog</item>
         <item name="materialSwitchStyle">@style/Widget.FastMediaSorter.Switch</item>
+        <!-- S4763: same seam as the day theme; a values-night style replaces the day one whole. -->
+        <item name="actionOverflowButtonStyle">@style/Widget.FastMediaSorter.Toolbar.OverflowButton</item>
     </style>
 
     <!-- Pre-35 transparent bars. enableEdgeToEdge() sets these at runtime, but release R8 strips

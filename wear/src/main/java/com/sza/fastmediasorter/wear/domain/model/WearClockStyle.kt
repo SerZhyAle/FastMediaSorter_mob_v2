@@ -48,15 +48,31 @@ data class WearClockStyle(
 }
 
 /**
- * The phone gadget's five typefaces, all drawn bold there. [wireName] is the phone's stored name and
- * the whole wire contract; [ordinal] is the index the face encoder packs, so the order is frozen.
+ * The phone gadget's typefaces, declared once in `scripts/fonts/build-clock-fonts.py` (S4562). [wireName] is
+ * the phone's stored name and the whole wire contract; [ordinal] is the index the face encoder packs, so the
+ * order is frozen and a new typeface is appended. A name this watch does not know reads as [DEFAULT].
  */
 enum class WearClockTypeface(val wireName: String) {
     DEFAULT("default"),
     CONDENSED("condensed"),
     SERIF("serif"),
     MONOSPACE("monospace"),
-    CASUAL("casual");
+    CASUAL("casual"),
+    BEBAS("bebas"),
+    AUDIOWIDE("audiowide"),
+    LOBSTER("lobster"),
+    PACIFICO("pacifico"),
+    ABRIL("abril"),
+    RIGHTEOUS("righteous"),
+    PIXEL("pixel"),
+    SHARETECH("sharetech"),
+    STENCIL("stencil"),
+    MONOTON("monoton"),
+    BUNGEE("bungee"),
+    TERMINAL("terminal"),
+    BLACKLETTER("blackletter"),
+    BANGERS("bangers"),
+    RUBIKMONO("rubikmono");
 
     companion object {
         fun fromWireName(name: String?): WearClockTypeface =

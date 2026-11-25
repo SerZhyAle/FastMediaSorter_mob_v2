@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Instala FastMedia en tu Reloj - FastMediaSorter v2"
+title: "Instala FastMedia en tu Reloj - Fast Media Sorter & Organizer"
 permalink: /docs/howto/wear-install-es.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -13,14 +13,14 @@ permalink: /docs/howto/wear-install-es.html
 
 > **Dos versiones.** La versión de Google Play es un pequeño primer lanzamiento: Calculadora, Cronómetro, Mini-juego, Configuración y el tile de Programas. Música, fotos, recursos de red y funciones del teléfono están solo en la versión completa, una descarga directa de APK desde [Descargas](../DOWNLOADS.md).
 
-FastMedia Wear es la mitad para el reloj de FastMediaSorter. Una vez que está en tu muñeca puedes reproducir música y ver fotos directamente desde el reloj, acceder a carpetas compartidas por tu teléfono emparejado, y abrir recursos de red a los que el reloj se conecta por su cuenta. Esta página lo instala y lo empareja.
+FastMedia Wear es la mitad para el reloj de Fast Media Sorter & Organizer. Una vez que está en tu muñeca puedes reproducir música y ver fotos directamente desde el reloj, acceder a carpetas compartidas por tu teléfono emparejado, y abrir recursos de red a los que el reloj se conecta por su cuenta. Esta página lo instala y lo empareja.
 
 ---
 
 ## Lo Que Necesitarás
 
 - Un smartwatch con **Wear OS 3.0** o más nuevo
-- Un teléfono Android con FastMediaSorter instalado y el reloj ya emparejado con él en la configuración del sistema
+- Un teléfono Android con Fast Media Sorter & Organizer instalado y el reloj ya emparejado con él en la configuración del sistema
 - Una conexión Wi-Fi o de datos móviles en el reloj, o en el teléfono con el que está emparejado, para la descarga
 
 ---
@@ -85,7 +85,7 @@ funciona solo por internet.
 
 El lado del teléfono está apagado hasta que indiques que tienes un reloj.
 
-1. Abre FastMediaSorter en el teléfono.
+1. Abre Fast Media Sorter & Organizer en el teléfono.
 2. Ve a **Configuración** y abre la pestaña **Gestión**.
 3. Busca el grupo **Wear OS** y expándelo.
 4. Activa la casilla **Companion de Wear**.
@@ -124,7 +124,7 @@ La esfera es una app independiente y gratuita, así que se instala por separado.
 2. Toca **Instalar** y espera a que termine la descarga.
 3. Mantén pulsada la esfera actual, busca **FastMediaSorter Watch Face** en el selector y tócala.
 
-> La esfera muestra una hora grande, la fecha, olas y partículas a la deriva, barras de batería y hasta ocho botones redondos para atajos de FastMediaSorter u otros datos del reloj. Los botones aparecen junto con la app de FastMediaSorter para el reloj.
+> La esfera muestra una hora grande, la fecha, olas y partículas a la deriva, barras de batería y hasta ocho botones redondos para atajos de Fast Media Sorter & Organizer u otros datos del reloj. Los botones aparecen junto con la app de Fast Media Sorter & Organizer para el reloj.
 
 ---
 

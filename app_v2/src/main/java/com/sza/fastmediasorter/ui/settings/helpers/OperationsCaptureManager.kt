@@ -54,13 +54,16 @@ class OperationsCaptureManager(
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
             viewModel.updateSettings { it.copy(cameraCaptureCopyToClipboard = isChecked) }
         }
-        // S0766: geotag is opt-in and persists only after ACCESS_FINE_LOCATION is granted (mic pattern):
+        // S0766: geotag is opt-in and persists only after a location grant (mic pattern):
         // enabling without the grant requests it; the fragment's launcher persists the flag on grant and
         // reverts the row on denial, so coordinates are never collected without explicit consent.
+        // S4670: the request is coarse, not fine - a one-time, user-initiated fix must use the minimum
+        // scope (Play restricted-permission policy 2026-10-29), and the capture path accepts either
+        // grant; a fine granted earlier implies coarse, so the check stays correct for those users.
         binding.rowCameraGeotag.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
             if (isChecked && ContextCompat.checkSelfPermission(
-                    binding.root.context, Manifest.permission.ACCESS_FINE_LOCATION
+                    binding.root.context, Manifest.permission.ACCESS_COARSE_LOCATION
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
                 explainThenRequestLocation()
@@ -163,10 +166,10 @@ class OperationsCaptureManager(
         binding.rowCameraGeotag.setCheckedSilently(false)
         Snackbar.make(
             binding.root,
-            binding.root.context.permissionRationale(Manifest.permission.ACCESS_FINE_LOCATION),
+            binding.root.context.permissionRationale(Manifest.permission.ACCESS_COARSE_LOCATION),
             Snackbar.LENGTH_LONG,
         ).setAction(R.string.grant_permission) {
-            locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            locationPermissionLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
         }.show()
     }
 

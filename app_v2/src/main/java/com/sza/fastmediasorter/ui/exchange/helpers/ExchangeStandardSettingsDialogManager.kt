@@ -10,13 +10,14 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogExchangeStandardSettingsBinding
 import com.sza.fastmediasorter.domain.exchange.StandardSettingsSerializer
 import com.sza.fastmediasorter.domain.model.DeviceExchangeAccountEntry
+import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import com.sza.fastmediasorter.domain.model.ExchangeSettingsGetResult
 import com.sza.fastmediasorter.domain.model.ExchangeSettingsSaveResult
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.ui.exchange.MyDevicesViewModel
 import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * Manages the dialog for selecting standard settings groups and performing Save as STANDARD and Read STANDARD.
@@ -31,7 +32,6 @@ class ExchangeStandardSettingsDialogManager(
     private var binding: DialogExchangeStandardSettingsBinding? = null
 
     fun show(entry: DeviceExchangeAccountEntry) {
-        Timber.d("S4536: standard settings dialog opened")
         dismiss()
         val view = DialogExchangeStandardSettingsBinding.inflate(LayoutInflater.from(activity))
         binding = view
@@ -43,6 +43,7 @@ class ExchangeStandardSettingsDialogManager(
             .setNeutralButton(R.string.exchange_standard_settings_read_btn, null)
             .setNegativeButton(R.string.cancel, null)
             .showBoundTo(activity) ?: return
+        DialogHelpEntryManager.attach(built, "dialog_exchange_standard_settings")
 
         dialog = built
 
@@ -79,7 +80,6 @@ class ExchangeStandardSettingsDialogManager(
         val groups = getSelectedGroups(view)
         setBusy(view, dialog, true)
         scope.launch {
-            Timber.d("S4536: save standard groups=$groups")
             val result = viewModel.saveStandardSettings(entry, groups)
             setBusy(view, dialog, false)
             when (result) {
@@ -93,7 +93,7 @@ class ExchangeStandardSettingsDialogManager(
                 }
                 is ExchangeSettingsSaveResult.Refused -> {
                     view.textStandardSettingsStatus.isVisible = true
-                    view.textStandardSettingsStatus.text = result.message ?: result.reason
+                    view.textStandardSettingsStatus.text = refusalText(result.reason)
                 }
                 is ExchangeSettingsSaveResult.Error -> {
                     view.textStandardSettingsStatus.isVisible = true
@@ -111,7 +111,6 @@ class ExchangeStandardSettingsDialogManager(
         val groups = getSelectedGroups(view)
         setBusy(view, dialog, true)
         scope.launch {
-            Timber.d("S4536: read standard groups=$groups")
             val result = viewModel.readStandardSettings(entry, groups)
             setBusy(view, dialog, false)
             when (result) {
@@ -125,7 +124,7 @@ class ExchangeStandardSettingsDialogManager(
                 }
                 is ExchangeSettingsGetResult.Refused -> {
                     view.textStandardSettingsStatus.isVisible = true
-                    view.textStandardSettingsStatus.text = result.message ?: result.reason
+                    view.textStandardSettingsStatus.text = refusalText(result.reason)
                 }
                 is ExchangeSettingsGetResult.Error -> {
                     view.textStandardSettingsStatus.isVisible = true
@@ -134,6 +133,10 @@ class ExchangeStandardSettingsDialogManager(
             }
         }
     }
+
+    // Item EO: the server's `message` is diagnostic English and never shown; the row of item EP is.
+    private fun refusalText(reason: String): String =
+        ExchangeMessageText.twoParts(activity, ExchangeMessage.ofSettings(reason))
 
     fun dismiss() {
         dialog?.dismiss()

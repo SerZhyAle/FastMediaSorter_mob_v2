@@ -10,11 +10,11 @@ availability: all
 recipe_number: "03"
 canonical_url: documentation/getting-started/main-screen-overview.html
 why: |
-  The [resource list](term:resource-list) is where every session with FastMediaSorter starts and usually ends. It is the one screen that has to make sense at a glance whether you have three resources or thirty - a folder on the phone, a shared drive at home, a handful of streams - so knowing what each part of it does saves you a few taps every single time you open the app.
+  The [resource list](term:resource-list) is where every session with Fast Media Sorter & Organizer starts and usually ends. It is the one screen that has to make sense at a glance whether you have three resources or thirty - a folder on the phone, a shared drive at home, a handful of streams - so knowing what each part of it does saves you a few taps every single time you open the app.
 
   Nothing here changes your files. This page is a map of the screen, not a set of actions to perform.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR or FOSS. A couple of pieces described here - the streams panel and the paired-watch filter - only exist on editions that ship streams or a Wear OS companion."
+  - "Fast Media Sorter & Organizer in any [edition](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR or FOSS. A couple of pieces described here - the streams panel and the paired-watch filter - only exist on editions that ship streams or a Wear OS companion."
   - "At least one [resource](term:resource) added, so the list and the panels have something to show. See [Setting up local and removable storage](page:storage.storage-sources-setup) if you have not added one yet."
 steps:
   - number: 1
@@ -28,7 +28,7 @@ steps:
       shot_id: getting-started.main-screen-resource-list
       device_profile: phone
       screen_state: main-screen-resource-list
-      alt: The FastMediaSorter resource list with the resource list showing several folders and network shares as tiles
+      alt: The Fast Media Sorter & Organizer resource list with the resource list showing several folders and network shares as tiles
       caption: "The resource list, in grid view."
       title: "Screenshot: Resource list"
       desc: Resource list, grid view, All Files pinned first followed by a few user-added resources.

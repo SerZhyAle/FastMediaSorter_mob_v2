@@ -32,6 +32,7 @@
              value-text form, as in fragment_settings_general.xml. -->
         <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
             android:id="@+id/rowDefaultSort"
+            app:sdr_icon="@drawable/ic_sort"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_tiny"
@@ -41,6 +42,7 @@
 
         <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
             android:id="@+id/rowDefaultMediaFilter"
+            app:sdr_icon="@drawable/ic_filter"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_tiny"
@@ -51,6 +53,7 @@
         <!-- S0835: catalog-refresh stands alone (the clear button moved to the Streams row). -->
         <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
             android:id="@+id/rowCatalogRefresh"
+            app:sdr_icon="@drawable/ic_refresh"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_tiny"
@@ -62,6 +65,7 @@
              overrides these for itself only (ADR-4). -->
         <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
             android:id="@+id/rowDefaultAudioLanguage"
+            app:sdr_icon="@drawable/ic_audio"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_tiny"
@@ -71,6 +75,7 @@
 
         <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
             android:id="@+id/rowDefaultSubtitleLanguage"
+            app:sdr_icon="@drawable/ic_closed_caption"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_tiny"
@@ -81,6 +86,7 @@
         <!-- S1148: opt-in resilient radio buffering (bigger start cushion + silent reconnects). -->
         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
             android:id="@+id/rowSmartBuffering"
+            app:str_icon="@drawable/ic_cloud_download"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:focusable="true"
@@ -91,6 +97,7 @@
         <!-- S1143: an audio channel opens in the full-screen visualizer player instead of the inline row. -->
         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
             android:id="@+id/rowVisualizeAsMusic"
+            app:str_icon="@drawable/ic_graphic_eq"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:focusable="true"
@@ -101,6 +108,7 @@
         <!-- S4116: a cast from another device of the user starts playing without the Accept question. -->
         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
             android:id="@+id/rowCastPlayAtOnce"
+            app:str_icon="@drawable/ic_cast"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:focusable="true"
@@ -111,6 +119,7 @@
         <!-- S4247, LIVE-BROADCAST item S: a broadcast waited for since its link was opened plays without the Play question. -->
         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
             android:id="@+id/rowPendingPlayAtOnce"
+            app:str_icon="@drawable/ic_play"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:focusable="true"

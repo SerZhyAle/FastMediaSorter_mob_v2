@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "منظم التنزيلات (الفرز السريع) - FastMediaSorter v2"
+title: "منظم التنزيلات (الفرز السريع) - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-download-organizer-ar.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -11,7 +11,7 @@ permalink: /docs/howto/scenario-download-organizer-ar.html
 
 > **المستوى:** مبتدئ &bull; **الإصدار:** أي إصدار (Standard وLite وPhotos وLegacy وVR وnoLegal)
 
-**الفرز السريع** هو الميزة الأبرز في FastMediaSorter: أعدّ مجلداتك مرة واحدة، ثم افرز مئات الملفات بمجرد الضغط على رقم. بلا سحب وإفلات. بلا قوائم. فقط اضغط **1**، أو **2**، أو **3** - وينتقل الملف إلى المكان الصحيح.
+**الفرز السريع** هو الميزة الأبرز في Fast Media Sorter & Organizer: أعدّ مجلداتك مرة واحدة، ثم افرز مئات الملفات بمجرد الضغط على رقم. بلا سحب وإفلات. بلا قوائم. فقط اضغط **1**، أو **2**، أو **3** - وينتقل الملف إلى المكان الصحيح.
 
 **مثال واقعي:** لديك 200 ملف في مجلد التنزيلات - لقطات شاشة، مستندات عمل، صور عائلية، ميمز، إيصالات. باستخدام الفرز السريع يمكنك فرز الـ 200 ملف في حوالي 5 دقائق. بدونه - حظًا موفقًا.
 
@@ -38,7 +38,7 @@ permalink: /docs/howto/scenario-download-organizer-ar.html
 
 > **مجلد التنزيلات هو المكان الذي يحفظ فيه متصفحك، وTelegram، وWhatsApp، وتطبيقات أخرى ملفاتها.** عادةً ما يكون هذا أكثر الأماكن فوضى في أي هاتف.
 
-![الشاشة الرئيسية لـ FastMediaSorter - بطاقة مورد التنزيلات مضافة، شارة محلي مرئية](screenshots/screenshot-dl-step1.png)
+![الشاشة الرئيسية لـ Fast Media Sorter & Organizer - بطاقة مورد التنزيلات مضافة، شارة محلي مرئية](screenshots/screenshot-dl-step1.png)
 
 ---
 
@@ -52,12 +52,12 @@ permalink: /docs/howto/scenario-download-organizer-ar.html
 - **احتفظ** - أشياء تستحق الحفظ على المدى الطويل
 - **مهملات** - ملفات للحذف بعد المراجعة
 
-**يمكنك إنشاء هذه المجلدات مباشرة داخل FastMediaSorter:**
+**يمكنك إنشاء هذه المجلدات مباشرة داخل Fast Media Sorter & Organizer:**
 1. افتح مورد التنزيلات
 2. اضغط زر **القائمة <img src="../icons/doc/ic_more_vert.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** ← **إنشاء مجلد**
 3. اكتب اسم المجلد ← اضغط **موافق**
 
-أو أنشئ المجلدات في مدير الملفات العادي لهاتفك - ستظهر تلقائيًا في FastMediaSorter.
+أو أنشئ المجلدات في مدير الملفات العادي لهاتفك - ستظهر تلقائيًا في Fast Media Sorter & Organizer.
 
 ---
 

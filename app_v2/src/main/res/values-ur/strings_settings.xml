@@ -43,7 +43,7 @@
     <string name="settings_default_document_type_pdf">PDF</string>
     <string name="settings_default_document_type_title">دستاویز کی قسم</string>
     <string name="settings_default_player_dialog_confirm">ترتیبات کھولیں</string>
-    <string name="settings_default_player_dialog_message">آپ کو Android کی سسٹم ترتیبات میں لے جایا جائے گا، جہاں آپ اس قسم کی فائل کے لیے FastMediaSorter کو طے شدہ ایپ منتخب کر سکتے ہیں۔</string>
+    <string name="settings_default_player_dialog_message">آپ کو Android سسٹم کی ترتیبات پر لے جایا جائے گا جہاں آپ Fast Media Sorter &amp; Organizer کو اس فائل کی قسم کے لیے ڈیفالٹ ایپ منتخب کر سکتے ہیں۔</string>
     <string name="settings_default_player_dialog_title">طے شدہ بنائیں</string>
     <string name="settings_general_actions">کارروائیاں</string>
     <string name="settings_general_behavior">ایپ کا رویہ</string>
@@ -150,7 +150,7 @@
     <string name="setting_enable_pip">تصویر در تصویر فعال کریں</string>
     <string name="setting_enable_pip_desc">پلیئر میں PiP بٹن دکھائیں اور ہوم دبانے پر خودکار طور پر PiP میں جائیں (Android 12+)</string>
     <string name="setting_enable_translation_desc">OCR کے ذریعے متن کا ترجمہ فعال کریں</string>
-    <string name="setting_file_ops_in_overflow_menu_desc">Copy/Move/Rename/Delete کو ہر قطار کے ⋮ مینو میں سمیٹیں</string>
+    <string name="setting_file_ops_in_overflow_menu_desc">کاپی/منتقل/نام تبدیل/حذف کو ہر قطار کے ⋮ مینو میں سمیٹیں</string>
     <string name="setting_follow_system_rotation_summary">فعال ہونے پر پلیئر کے سوا ایپ کی تمام ونڈوز نظام کی خودکار گردش کی ترتیب کی پیروی کرتی ہیں۔ بند ہونے پر وہ نظام کی ترتیب سے قطع نظر آلے کے سینسر کی پیروی کرتی ہیں۔</string>
     <string name="setting_follow_system_rotation_title">نظام کی خودکار گردش کے ساتھ اسکرین گھمائیں (پلیئر کے سوا)</string>
     <string name="setting_follow_system_rotation_player_title">نظام کی خودکار گردش کے ساتھ پلیئر کی اسکرین گھمائیں</string>
@@ -164,7 +164,7 @@
     <string name="setting_photos_during_audio_desc">چلانے کے دوران بے ترتیب تصاویر (آڈیو کی فہرست چنیں - تصاویر دیکھیں)</string>
     <string name="setting_play_to_end_desc">سلائیڈ شو کے وقفے کے بجائے میڈیا کو آخر تک چلائیں</string>
     <string name="setting_prevent_sleep_desc">ایپ کے استعمال کے دوران اسکرین روشن رکھیں</string>
-    <string name="setting_primary_media_player_desc">\"اس سے کھولیں\" میں FastMediaSorter دکھائیں اور میڈیا بٹن سنبھالیں</string>
+    <string name="setting_primary_media_player_desc">\"کے ساتھ کھولیں\" میں Fast Media Sorter &amp; Organizer دکھائیں اور میڈیا بٹنز سنبھالیں</string>
     <string name="setting_resume_on_next_launch">اگلی بار چلانے پر پلے بیک جاری رکھیں</string>
     <string name="setting_resume_on_next_launch_desc">ایپ شروع ہونے پر آخری چلائی گئی فائل وہیں سے خودکار طور پر کھولیں جہاں آپ نے چھوڑا تھا</string>
     <string name="setting_safe_mode_desc">تباہ کن کارروائیوں (حذف، منتقلی) سے پہلے تصدیق کریں</string>
@@ -277,7 +277,7 @@
     <string name="setting_mic_recording_destination_default_recordings">ڈیفالٹ: ریکارڈنگز فولڈر (Android 11 اور اس سے پرانے ورژن پر Music)</string>
     <string name="setting_screen_recording_destination_default_movies">ڈیفالٹ: Movies فولڈر</string>
     <string name="drive_channel_enabled_title">Google Drive کے ذریعے فائلیں</string>
-    <string name="drive_channel_enabled_subtitle">اپنے Google Drive کے ذریعے اپنے ہی آلات کے درمیان فائلیں بھیجیں اور وصول کریں، تبادلہ سرور کے بغیر</string>
+    <string name="drive_channel_enabled_subtitle">اپنے Google Drive کے ذریعے اپنے ہی آلات کے درمیان فائلیں بھیجیں اور وصول کریں اور انہیں اپنی نشریات کا اعلان کریں، تبادلہ سرور کے بغیر</string>
     <string name="drive_channel_background_title">پس منظر میں Google Drive کے ذریعے چیک کریں</string>
     <string name="drive_channel_background_subtitle">ہر 15 منٹ پر، تاکہ آپ کے دوسرے آلات ایپ بند ہونے پر بھی اس فون کے شیئر کیے گئے فولڈرز کھول سکیں</string>
     <string name="drive_channel_row_from">%1$s کی طرف سے</string>

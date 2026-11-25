@@ -13,7 +13,7 @@ canonical_url: documentation/network/cloud-google-drive.html
 why: |
   Half your photo library already lives in Google Drive, and you would rather browse it from the same app you use for everything else instead of switching to a separate Drive app. Sign in once, and Drive folders open next to your local ones - and the same sign-in quietly does more than open folders: it backs up your settings and lets your phone and your tablet swap files through your own private corner of Drive.
 ingredients:
-  - "FastMediaSorter in the Standard, noLegal, Photos, Legacy or VR [edition](term:edition) - not Lite, not FOSS. See [The seven editions](page:flavors.overview-and-comparison)."
+  - "Fast Media Sorter & Organizer in the Standard, noLegal, Photos, Legacy or VR [edition](term:edition) - not Lite, not FOSS. See [The seven editions](page:flavors.overview-and-comparison)."
   - "A Google account, and a browser installed that can handle the sign-in window (any everyday browser does)."
 steps:
   - number: 1

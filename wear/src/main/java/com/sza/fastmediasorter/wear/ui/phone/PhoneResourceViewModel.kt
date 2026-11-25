@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.phone
 
 import android.content.Context
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Base64
 import androidx.annotation.StringRes
@@ -10,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiverCatalogRepository
+import com.sza.fastmediasorter.wear.data.thumbnail.BoundedBitmapDecoder
 import com.sza.fastmediasorter.wear.data.wear.PhoneResourceClient
 import com.sza.fastmediasorter.wear.data.wear.PhoneResourceOutcome
 import com.sza.fastmediasorter.wear.domain.browse.BrowseCategoryCatalog
@@ -41,6 +41,7 @@ import com.sza.fastmediasorter.wear.ui.common.BrowseCategoryPresentation
 import com.sza.fastmediasorter.wear.ui.common.ScreenTitle
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.util.MediaCacheEvictor
+import com.sza.fastmediasorter.wear.util.WearThumbnailBudget
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -110,10 +111,12 @@ sealed interface PhoneFileOpenOutcome {
  * coming instead of settling on a type icon.
  */
 internal fun WearPhoneResourceItem.toWearThumbnail(): WearThumbnail {
-    val encoded = thumbnailBase64 ?: return WearThumbnail.Unavailable
+    val encoded = thumbnailBase64
+        ?.takeIf { it.length <= WearThumbnailBudget.MAX_PHONE_THUMBNAIL_BASE64_CHARS }
+        ?: return WearThumbnail.Unavailable
     val bitmap = runCatching { Base64.decode(encoded, Base64.NO_WRAP) }
         .getOrNull()
-        ?.let { BitmapFactory.decodeByteArray(it, 0, it.size) }
+        ?.let(BoundedBitmapDecoder::decode)
     return bitmap?.let { WearThumbnail.Ready(it) } ?: WearThumbnail.Unavailable
 }
 

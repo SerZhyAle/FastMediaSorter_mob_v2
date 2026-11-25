@@ -11,9 +11,9 @@ availability_note: Standard, noLegal, Photos, Legacy and VR - not Lite, not FOSS
 recipe_number: "06"
 canonical_url: documentation/network/cloud-dropbox-onedrive.html
 why: |
-  Work files live in OneDrive, personal photos are backed up to Dropbox, and you would rather browse both from inside FastMediaSorter than juggle two more apps. Sign in to either one, or both, and their folders sit in the resource list next to everything else.
+  Work files live in OneDrive, personal photos are backed up to Dropbox, and you would rather browse both from inside Fast Media Sorter & Organizer than juggle two more apps. Sign in to either one, or both, and their folders sit in the resource list next to everything else.
 ingredients:
-  - "FastMediaSorter in the Standard, noLegal, Photos, Legacy or VR [edition](term:edition) - not Lite, not FOSS. See [The seven editions](page:flavors.overview-and-comparison)."
+  - "Fast Media Sorter & Organizer in the Standard, noLegal, Photos, Legacy or VR [edition](term:edition) - not Lite, not FOSS. See [The seven editions](page:flavors.overview-and-comparison)."
   - "A [Dropbox](term:dropbox) account, a Microsoft account for [OneDrive](term:onedrive), or both."
 steps:
   - number: 1

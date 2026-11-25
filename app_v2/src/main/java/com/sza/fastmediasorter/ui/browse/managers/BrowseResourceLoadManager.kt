@@ -47,6 +47,9 @@ import kotlin.coroutines.CoroutineContext
  *
  * Extracted from BrowseViewModel (Wave 1 decomposition - IV.1).
  */
+// The ViewModel keeps ownership of state, jobs and cross-manager hooks; each one arrives as its own
+// callback so this manager never reaches back into the ViewModel.
+@Suppress("LongParameterList")
 class BrowseResourceLoadManager(
     private val context: Context,
     private val updateResourceUseCase: UpdateResourceUseCase,
@@ -85,6 +88,9 @@ class BrowseResourceLoadManager(
     private val onFilesLoadedSaveAndEnrich: suspend (MediaResource, List<MediaFile>) -> Unit,
     private val onHandleLoadingError: (MediaResource, Throwable) -> Unit,
     private val schedulePlayerWarmup: suspend (List<MediaFile>) -> Unit,
+    // Every published list passes the session filter read at publish time, so a filter restored
+    // before, during or after the load is honoured without a second scan (S4699).
+    private val filterForDisplay: (List<MediaFile>) -> List<MediaFile>,
     private val updateResourceMetadata: suspend (MediaResource, Int, Int) -> Unit,
     private val startFileObserver: () -> Unit,
     private val sortFiles: (List<MediaFile>, SortMode, Boolean) -> List<MediaFile>
@@ -201,7 +207,8 @@ class BrowseResourceLoadManager(
                     sortMode = effectiveSortMode,
                     displayMode = effectiveDisplayMode,
                     isCloudResource = isCloudResource,
-                    filter = restoredFilter,
+                    // A saved filter restored before this point must survive the resource defaults.
+                    filter = it.filter ?: restoredFilter,
                     isSubfolderMode = initialSubfolderMode,
                     currentPath = null,
                     pathStack = emptyList()
@@ -220,7 +227,7 @@ class BrowseResourceLoadManager(
                         } else dbCache
                         audioMetadataLoader.warmMemoryCacheForResource(resource.id)
                         MediaFilesCacheManager.setCachedList(resource.id, filtered)
-                        updateState { it.copy(mediaFiles = filtered, totalFileCount = filtered.size) }
+                        updateState { it.copy(mediaFiles = filterForDisplay(filtered), totalFileCount = filtered.size) }
                         schedulePlayerWarmup(filtered)
                         setLoading(false)
                         updateResourceMetadata(resource, filtered.size, -1)
@@ -274,7 +281,8 @@ class BrowseResourceLoadManager(
                             filteredFiles
                         }
                         audioMetadataLoader.warmMemoryCacheForResource(resource.id)
-                        updateState { it.copy(mediaFiles = reconciledFiles, totalFileCount = reconciledFiles.size) }
+                        val visibleFiles = filterForDisplay(reconciledFiles)
+                        updateState { it.copy(mediaFiles = visibleFiles, totalFileCount = reconciledFiles.size) }
                         schedulePlayerWarmup(reconciledFiles)
                         setLoading(false)
                         updateResourceMetadata(resource, reconciledFiles.size, -1)
@@ -397,7 +405,6 @@ class BrowseResourceLoadManager(
      * finds nothing, which ends the chain.
      */
     private fun launchTempCleanup(resource: MediaResource) {
-        Timber.d("S4516: temp cleanup detached from scan - '${resource.name}'")
         tempCleanupJob?.cancel()
         tempCleanupJob = scope.launch(ioDispatcher + exceptionHandler) {
             val removed = try {
@@ -552,7 +559,7 @@ class BrowseResourceLoadManager(
             ) {
                 this@BrowseResourceLoadManager.updateState {
                     it.copy(
-                        mediaFiles = mediaFiles,
+                        mediaFiles = filterForDisplay(mediaFiles),
                         loadingProgress = loadingProgress,
                         totalFileCount = totalFileCount,
                         isScanCancellable = isScanCancellable

@@ -13,7 +13,7 @@ why: |
 
   Усе на цій сторінці змінює лише розкладку. Жоден застосунок, папка чи файл ніколи не видаляється через перевпорядкування робочого стола.
 ingredients:
-  - "FastMediaSorter у [редакції Standard](term:standard-edition) або [редакції noLegal](term:nolegal-edition), з відкритим робочим столом [лаунчера](term:launcher) - див. [Ваш робочий стіл лаунчера](page:launcher.desktop-grid-and-icons)."
+  - "Fast Media Sorter & Organizer у [редакції Standard](term:standard-edition) або [редакції noLegal](term:nolegal-edition), з відкритим робочим столом [лаунчера](term:launcher) - див. [Ваш робочий стіл лаунчера](page:launcher.desktop-grid-and-icons)."
   - "Кілька клітинок на [робочому столі](term:desktop), щоб їх переміщувати."
 steps:
   - number: 1

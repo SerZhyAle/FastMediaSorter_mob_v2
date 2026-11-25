@@ -262,4 +262,10 @@
     <string name="kbm_help_player_audio_track">下一音轨</string>
     <string name="kbm_help_player_slideshow">幻灯片放映（再按 S：加速）/ 随机幻灯片放映</string>
     <string name="kbm_help_player_space">视频播放 / 暂停；照片则下一个文件</string>
+    <string name="keybinding_label_playback_ab_loop">A-B 循环</string>
+    <string name="keybinding_label_navigation_file_grid">缩略图网格</string>
+    <string name="keybinding_label_navigation_file_list">文件列表</string>
+    <string name="keybinding_label_navigation_file_number">跳转到文件</string>
+    <string name="keybinding_label_player_black_screen">黑屏</string>
+    <string name="keybinding_label_sorting_create_text_note">创建文本笔记</string>
 </resources>

@@ -4,6 +4,10 @@
         <item quantity="one">%1$d file</item>
         <item quantity="other">%1$d files</item>
     </plurals>
+    <plurals name="folder_item_count_plural">
+        <item quantity="one">%1$d item</item>
+        <item quantity="other">%1$d items</item>
+    </plurals>
     <plurals name="copying_n_files_from_folder_plural">
         <item quantity="one">Copying %1$d file from %2$s..</item>
         <item quantity="other">Copying %1$d files from %2$s..</item>
@@ -19,5 +23,25 @@
     <plurals name="renaming_n_files_from_folder_plural">
         <item quantity="one">Renaming %1$d file from %2$s..</item>
         <item quantity="other">Renaming %1$d files from %2$s..</item>
+    </plurals>
+    <plurals name="moved_n_files_plural">
+        <item quantity="one">Moved %1$d file.</item>
+        <item quantity="other">Moved %1$d files.</item>
+    </plurals>
+    <plurals name="msg_move_success_count_plural">
+        <item quantity="one">Moved %1$d file to %2$s.</item>
+        <item quantity="other">Moved %1$d files to %2$s.</item>
+    </plurals>
+    <plurals name="delete_n_files_confirm_plural">
+        <item quantity="one">Delete %1$d file? This action cannot be undone.</item>
+        <item quantity="other">Delete %1$d files? This action cannot be undone.</item>
+    </plurals>
+    <plurals name="delete_n_files_trash_confirm_plural">
+        <item quantity="one">Delete %1$d file? It moves to the trash instead of being erased.</item>
+        <item quantity="other">Delete %1$d files? They move to the trash instead of being erased.</item>
+    </plurals>
+    <plurals name="delete_n_folders_trash_confirm_plural">
+        <item quantity="one">Delete %1$d folder and all its contents? It moves to the trash instead of being erased.</item>
+        <item quantity="other">Delete %1$d folders and all their contents? They move to the trash instead of being erased.</item>
     </plurals>
 </resources>

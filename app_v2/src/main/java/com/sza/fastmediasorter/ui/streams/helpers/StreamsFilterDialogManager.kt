@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.streams.helpers
 
+import android.view.View
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.core.os.ConfigurationCompat
@@ -9,6 +10,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogStreamsFilterBinding
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamCollectionsUseCase
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog
 import com.sza.fastmediasorter.ui.streams.StreamsViewModel
@@ -72,6 +74,7 @@ class StreamsFilterDialogManager(
         binding.rowCollection.isVisible = state.collections.isNotEmpty()
         // A catalog without topics would open an empty picker, so the row is hidden rather than dead.
         binding.rowTopic.isVisible = state.facets.topics.isNotEmpty()
+        renderFacetAvailability(binding, state.facets)
         binding.toggleMediaKind.check(mediaKindButtonId(binding, mediaKind))
         binding.checkPinnedOnly.isChecked = pinnedOnly
 
@@ -147,6 +150,26 @@ class StreamsFilterDialogManager(
         }.show()
     }
 
+    /**
+     * Category, language and country share a two-column row, so hiding one would leave its neighbour at half
+     * width; a facet with nothing to pick dims and disables its row instead, because the picker closes itself
+     * when it has no options and the tap would read as dead.
+     */
+    private fun renderFacetAvailability(
+        binding: DialogStreamsFilterBinding,
+        facets: StreamsViewModel.StreamsFacets,
+    ) {
+        timber.log.Timber.d("S4758: streams filter facet rows follow their option lists")
+        setRowAvailable(binding.rowCategory, facets.categories.isNotEmpty())
+        setRowAvailable(binding.rowLanguage, facets.languages.isNotEmpty())
+        setRowAvailable(binding.rowCountry, facets.countries.isNotEmpty())
+    }
+
+    private fun setRowAvailable(row: View, available: Boolean) {
+        row.isEnabled = available
+        row.alpha = if (available) 1f else DISABLED_ROW_ALPHA
+    }
+
     private fun openPicker(
         @StringRes titleRes: Int,
         options: List<SearchableOptionPickerDialog.Option>,
@@ -176,9 +199,10 @@ class StreamsFilterDialogManager(
         // Override the neutral click after show() so "Clear filters" resets in place without dismissing.
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener { onClear() }
+            DialogHelpEntryManager.installButton(dialog, "dialog_streams_filter")
         }
         // Escape dismisses; Enter confirms via OK (row/toggle changes already apply the filter live).
-        DialogKeyboardDelegate.applyTo(dialog) {
+        DialogKeyboardDelegate.applyTo(dialog, onHelp = null, helpSurfaceId = "dialog_streams_filter") {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.performClick()
         }
         return dialog
@@ -191,6 +215,7 @@ class StreamsFilterDialogManager(
         StreamsViewModel.MediaKindFilter.AUDIO -> binding.btnMediaAudio.id
         StreamsViewModel.MediaKindFilter.VIDEO -> binding.btnMediaVideo.id
         StreamsViewModel.MediaKindFilter.OWN -> binding.btnMediaOwn.id
+        StreamsViewModel.MediaKindFilter.RECENT -> binding.btnMediaRecent.id
         StreamsViewModel.MediaKindFilter.ALL -> binding.btnMediaAll.id
     }
 
@@ -201,6 +226,7 @@ class StreamsFilterDialogManager(
         binding.btnMediaAudio.id -> StreamsViewModel.MediaKindFilter.AUDIO
         binding.btnMediaVideo.id -> StreamsViewModel.MediaKindFilter.VIDEO
         binding.btnMediaOwn.id -> StreamsViewModel.MediaKindFilter.OWN
+        binding.btnMediaRecent.id -> StreamsViewModel.MediaKindFilter.RECENT
         else -> StreamsViewModel.MediaKindFilter.ALL
     }
 
@@ -250,6 +276,8 @@ class StreamsFilterDialogManager(
         }
 
     private companion object {
+        const val DISABLED_ROW_ALPHA = 0.38f
+
         const val KEY_COLLECTION = "streams_filter_collection_pick"
         const val KEY_CATEGORY = "streams_filter_category_pick"
         const val KEY_TOPIC = "streams_filter_topic_pick"

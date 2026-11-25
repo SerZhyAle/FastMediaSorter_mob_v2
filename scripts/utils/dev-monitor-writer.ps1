@@ -91,84 +91,50 @@ $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 
 . (Join-Path $PSScriptRoot 'dev-monitor-snapshot.ps1')
 . (Join-Path $PSScriptRoot 'dev-monitor-html.ps1')
-# S2855: the devices block below judges device-lease liveness through the shared rule. Defining
-# the function takes no lock and posts nothing - the writer's own invariants are untouched.
-. (Join-Path $PSScriptRoot 'agent-lock.ps1')
-# The two device store paths come from their owner's declaration (S3036), so this dot-source points
-# from scripts/utils into scripts/devtest/lib - the reverse of the devtest -> utils/agent-lock.ps1
-# edge every devtest script uses. This writer is a borrower of those stores, not their owner, and a
-# borrower with its own copy of the path is how a moved store keeps answering 'absent' rather than
-# failing. At script scope rather than inside the reader: -Loop re-enters it every few seconds.
-. (Join-Path $PSScriptRoot '..\devtest\lib\device-store-paths.ps1')
+. (Join-Path $PSScriptRoot '../devtest/lib/device-store-paths.ps1')
+. (Join-Path $PSScriptRoot '../devtest/lib/device-lease-client.ps1')
 
 function Get-DeviceParkRows {
-    <#
-        S2855. The devices block the page renders. The snapshot collector is a canon-harness
-        forwarder and cannot learn about device state here (strategic ADR-4), so the writer -
-        which already annotates the snapshot with its own writer block - reads the two device
-        stores itself: the durable registry and the ephemeral device leases, merged by serial.
-        Strictly read-only: a missing store contributes no rows and is never created, matching
-        the writer's nothing-outside--OutDir invariant.
-    #>
     param([Parameter(Mandatory)][string]$RepoRoot)
 
     $registryDir = Get-DeviceStoreDir -RepoRoot $RepoRoot -Store Registry
-    $leaseDir = Get-DeviceStoreDir -RepoRoot $RepoRoot -Store Lease
     $rows = [ordered]@{}
+    if (Test-Path -LiteralPath $registryDir) {
+        foreach ($file in (Get-ChildItem -LiteralPath $registryDir -Filter '*.json' -File -ErrorAction SilentlyContinue)) {
+            try { $record = Get-Content -LiteralPath $file.FullName -Raw -ErrorAction Stop | ConvertFrom-Json }
+            catch { continue }
+            $serial = [string]$record.id
+            if (-not $serial) { continue }
 
-    foreach ($store in @(@{ Dir = $registryDir; Kind = 'registry' }, @{ Dir = $leaseDir; Kind = 'lease' })) {
-        if (-not (Test-Path -LiteralPath $store.Dir)) { continue }
-        foreach ($file in (Get-ChildItem -LiteralPath $store.Dir -Filter '*.json' -ErrorAction SilentlyContinue)) {
-            try { $payload = Get-Content -LiteralPath $file.FullName -Raw -ErrorAction Stop | ConvertFrom-Json } catch { continue }
-            $sid = [string]$payload.id
-            if (-not $sid) { continue }
-            if (-not $rows.Contains($sid)) {
-                $rows[$sid] = [pscustomobject]@{
-                    id = $sid; model = ''; role = ''; mark = $null; lease = $null; updatedAt = $null
-                }
-            }
-            if ($store.Kind -eq 'registry') {
-                $row = $rows[$sid]
-                $row.model = [string]$payload.model
-                $row.role = [string]$payload.role
-                $row.updatedAt = $payload.updatedAt
-                $mark = $payload.lastInstall
-                if ($null -ne $mark) {
-                    $row.mark = [pscustomobject]@{
-                        package     = [string]$mark.package
-                        flavor      = [string]$mark.flavor
-                        buildType   = [string]$mark.buildType
+            $mark = $record.lastInstall
+            $rows[$serial] = [pscustomobject]@{
+                id = $serial
+                model = [string]$record.model
+                role = [string]$record.role
+                updatedAt = $record.updatedAt
+                lease = $null
+                mark = if ($null -ne $mark) {
+                    [pscustomobject]@{
+                        package = [string]$mark.package
+                        flavor = [string]$mark.flavor
+                        buildType = [string]$mark.buildType
                         versionName = [string]$mark.versionName
                         installedAt = $mark.installedAt
-                        recordedBy  = [string]$mark.recordedBy
-                    }
-                }
-            }
-            else {
-                # The shim maps the lease's field names onto the shared liveness rule exactly as
-                # device-lease.ps1 does - no third liveness implementation.
-                $shim = [pscustomobject]@{
-                    sessionId      = $payload.sessionId
-                    transcriptPath = $payload.transcriptPath
-                    lastSeenAt     = $payload.lastSeenAt
-                    enqueuedAt     = $payload.claimedAt
-                }
-                $liveness = 'undetermined'
-                try { $liveness = [string](Get-AgentTicketLiveness -Ticket $shim) } catch { $liveness = 'undetermined' }
-                if ($liveness -ne 'foreign-stale' -and $liveness -ne 'undetermined') {
-                    $ageMinutes = $null
-                    if ($payload.claimedAt) {
-                        $claimed = [DateTimeOffset]::FromUnixTimeMilliseconds([int64]$payload.claimedAt).LocalDateTime
-                        $ageMinutes = [math]::Round(((Get-Date) - $claimed).TotalMinutes, 1)
-                    }
-                    $rows[$sid].lease = [pscustomobject]@{
-                        sessionId  = [string]$payload.sessionId
-                        ageMinutes = $ageMinutes
-                        liveness   = $liveness
+                        recordedBy = [string]$mark.recordedBy
                     }
                 }
             }
         }
+    }
+    # The monitor never resolves ADB targets. AVD leases retain their name even while offline.
+    foreach ($lease in (Get-FmsDeviceLeaseRows)) {
+        $key = [string]$lease.id
+        if (-not $rows.Contains($key)) {
+            $rows[$key] = [pscustomobject]@{
+                id = $key; model = ''; role = ''; mark = $null; lease = $null; updatedAt = $null
+            }
+        }
+        $rows[$key].lease = $lease
     }
     return @($rows.Values | Sort-Object id)
 }

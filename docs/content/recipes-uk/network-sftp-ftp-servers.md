@@ -14,7 +14,7 @@ why: |
 
   Якщо ви ще не визначилися між SMB і SFTP, у [Підключенні спільних ресурсів SMB/Windows](page:network.smb-samba-shares) наприкінці є коротке порівняння.
 ingredients:
-  - "FastMediaSorter у будь-якій [редакції](term:edition), крім Lite - див. [Сім редакцій](page:flavors.overview-and-comparison)."
+  - "Fast Media Sorter & Organizer у будь-якій [редакції](term:edition), крім Lite - див. [Сім редакцій](page:flavors.overview-and-comparison)."
   - "Адреса й порт сервера, а також або ім'я користувача з паролем, або SSH-ключ."
   - "Для входу за ключем: файл приватного ключа і його парольна фраза, якщо вона є."
   - "Для спільного доступу чи імпорту доступу до папки: будь-який застосунок, що вміє надсилати файл, наприклад Telegram чи пошта."

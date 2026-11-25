@@ -91,7 +91,7 @@ class WearFaviconAtlasSlicer(
             val file = atlasFileProvider()
             cachedAtlas = withContext(Dispatchers.IO) {
                 if (file != null && file.isFile) {
-                    BitmapFactory.decodeFile(file.path)
+                    decodeSheet(file)
                 } else {
                     null
                 }
@@ -100,8 +100,33 @@ class WearFaviconAtlasSlicer(
         cachedAtlas
     }
 
+    /**
+     * The grid is addressed in whole [TILE] pixels, so the sheet is decoded at the scale that makes it
+     * [SHEET_WIDTH_PX] wide rather than at the scale of a display cell. A sheet already that wide is
+     * read at full size; only a denser re-render of the same grid is sampled, and its tiles still land
+     * on the same rects.
+     */
+    private fun decodeSheet(file: File): Bitmap? {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.path, bounds)
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+        val options = BitmapFactory.Options().apply { inSampleSize = sampleSizeFor(bounds.outWidth) }
+        return BitmapFactory.decodeFile(file.path, options)
+    }
+
+    /** The largest power of two that leaves the sheet at least [SHEET_WIDTH_PX] wide. */
+    private fun sampleSizeFor(sheetWidth: Int): Int {
+        var sample = 1
+        while (sheetWidth / (sample * SAMPLE_STEP) >= SHEET_WIDTH_PX) {
+            sample *= SAMPLE_STEP
+        }
+        return sample
+    }
+
     companion object {
         const val TILE = 32
         const val COLS = 16
+        private const val SHEET_WIDTH_PX = COLS * TILE
+        private const val SAMPLE_STEP = 2
     }
 }

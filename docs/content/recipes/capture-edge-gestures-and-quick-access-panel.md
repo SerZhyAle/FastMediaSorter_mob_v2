@@ -13,9 +13,9 @@ canonical_url: documentation/capture/edge-gestures-and-quick-access-panel.html
 why: |
   One short swipe from the side of the screen, over any app, can take a screenshot, snap a photo, start recording, launch another app, or open a grid of your own shortcuts. All of it is set up from the same screen, so getting comfortable with it once pays off for every other capture recipe on this site.
 
-  The [quick-access panel](term:quick-access-panel) it can open is worth knowing on its own: a pop-up grid of tiles for apps, Android settings and FastMediaSorter's own features, reachable by gesture or by its own Quick Settings [tile](term:tile) - the one part of this page that works in every edition.
+  The [quick-access panel](term:quick-access-panel) it can open is worth knowing on its own: a pop-up grid of tiles for apps, Android settings and Fast Media Sorter & Organizer's own features, reachable by gesture or by its own Quick Settings [tile](term:tile) - the one part of this page that works in every edition.
 ingredients:
-  - "FastMediaSorter installed. The quick-access panel and its Quick Settings tile are part of every [edition](term:edition); the [edge gesture](term:edge-gesture) that opens it, and the screenshot, camera and recording actions behind it, need the Standard or noLegal edition."
+  - "Fast Media Sorter & Organizer installed. The quick-access panel and its Quick Settings tile are part of every [edition](term:edition); the [edge gesture](term:edge-gesture) that opens it, and the screenshot, camera and recording actions behind it, need the Standard or noLegal edition."
   - "The **Display over other apps** [permission](term:permission) for the gesture strip itself."
   - "For the screenshot, camera and recording actions: the same permissions used elsewhere in the app - camera, microphone, and Android's own capture consent where it applies."
 steps:
@@ -71,9 +71,9 @@ steps:
       text: "Screen recording, video and voice-note gestures get their own walkthrough in [Recording the screen, video and sound](page:capture.screen-recording-and-audio)."
   - number: 5
     id: open-app-or-come-forward
-    title: Bring FastMediaSorter forward without capturing anything
+    title: Bring Fast Media Sorter & Organizer forward without capturing anything
     text: |
-      Set a direction to **Launch a chosen app** and pick any installed app - that swipe opens it, or brings it to the front if it is already running, with no screenshot and no consent prompt along the way. Leave no app chosen and the gesture opens FastMediaSorter itself instead.
+      Set a direction to **Launch a chosen app** and pick any installed app - that swipe opens it, or brings it to the front if it is already running, with no screenshot and no consent prompt along the way. Leave no app chosen and the gesture opens Fast Media Sorter & Organizer itself instead.
   - number: 6
     id: open-the-panel
     title: Open the quick-access panel
@@ -96,7 +96,7 @@ steps:
     id: fill-the-panel
     title: Fill the panel with your own tiles
     text: |
-      Open the panel's **Edit** screen - or **Edit quick-access panel** in the edge-gesture window - and tap any tile, filled or empty, to add, **Move**, **Replace** or **Remove** it. A tile can point to an **Android app**, an **Android OS settings** screen (Wi-Fi, Bluetooth, Display, Sound, Battery and more, whichever exist on your phone), a **FastMediaSorter feature** (the calculator, the mini-game, [Camera OCR](term:camera-ocr) translation, Streams, Favorites and others), or a **FastMediaSorter [resource](term:resource)**. The panel ships already filled in with the app's own features first and Android settings after, leaving the remaining slots open for whatever you add; **Reset panel** puts that starting layout back at any time.
+      Open the panel's **Edit** screen - or **Edit quick-access panel** in the edge-gesture window - and tap any tile, filled or empty, to add, **Move**, **Replace** or **Remove** it. A tile can point to an **Android app**, an **Android OS settings** screen (Wi-Fi, Bluetooth, Display, Sound, Battery and more, whichever exist on your phone), a **Fast Media Sorter & Organizer feature** (the calculator, the mini-game, [Camera OCR](term:camera-ocr) translation, Streams, Favorites and others), or a **Fast Media Sorter & Organizer [resource](term:resource)**. The panel ships already filled in with the app's own features first and Android settings after, leaving the remaining slots open for whatever you add; **Reset panel** puts that starting layout back at any time.
     image_bookmark:
       shot_id: capture.quick-access-panel-edit
       device_profile: phone
@@ -115,7 +115,7 @@ outcome: |
 tips:
   - "**Long lists are easy to pick from.** The pickers of the quick-access panel - an app, a feature, a system shortcut or a resource - have a search box for long lists, show an icon at the start of each row and let you choose one item the same way everywhere."
   - "**A swipe fired the wrong action?** The live legend from step 3 shows exactly what each direction is set to before you commit - touch and hold instead of swiping through."
-  - "**One permission covers the whole strip.** Turning off **Display over other apps** for FastMediaSorter switches every band off at once; turning it back on does not re-enable them by itself - **Gesture overlay** does, and comes back on its own after a restart if it was on and the permission still holds."
+  - "**One permission covers the whole strip.** Turning off **Display over other apps** for Fast Media Sorter & Organizer switches every band off at once; turning it back on does not re-enable them by itself - **Gesture overlay** does, and comes back on its own after a restart if it was on and the permission still holds."
   - "**Taking a photo without a camera screen?** The photo gesture actions, and everything else the in-app camera can do, are in [Taking quick photos and video snaps](page:capture.quick-photo-capture)."
 next_recipes:
   - title: Taking screenshots and what happens next

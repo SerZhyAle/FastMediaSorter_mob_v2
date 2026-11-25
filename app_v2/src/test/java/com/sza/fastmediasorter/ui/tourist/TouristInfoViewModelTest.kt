@@ -5,10 +5,12 @@ import com.sza.fastmediasorter.domain.model.tourist.TouristCounterState
 import com.sza.fastmediasorter.domain.model.tourist.TouristDashboardState
 import com.sza.fastmediasorter.domain.model.tourist.TouristTileType
 import com.sza.fastmediasorter.domain.model.tourist.WatchHealthStats
+import com.sza.fastmediasorter.domain.usecase.sensors.ObserveDeviceAttitudeUseCase
 import com.sza.fastmediasorter.domain.usecase.tourist.ObserveTouristCounterUseCase
 import com.sza.fastmediasorter.domain.usecase.tourist.ObserveTouristDashboardUseCase
 import com.sza.fastmediasorter.domain.usecase.tourist.ObserveWatchTouristHealthUseCase
 import com.sza.fastmediasorter.testing.MainDispatcherRule
+import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -45,7 +47,13 @@ class TouristInfoViewModelTest {
     }
 
     private fun newViewModel() =
-        TouristInfoViewModel(observeTouristDashboardUseCase, SavedStateHandle(), observeWatchHealth, observeCounter)
+        TouristInfoViewModel(
+            observeTouristDashboardUseCase,
+            SavedStateHandle(),
+            observeWatchHealth,
+            observeCounter,
+            mockk<ObserveDeviceAttitudeUseCase>(relaxed = true),
+        )
 
     @Test
     fun `selectTile WATCH_HEART_RATE ignored when the build does not offer watch health`() = runTest {
@@ -117,6 +125,23 @@ class TouristInfoViewModelTest {
         viewModel.selectTile(TouristTileType.STOPWATCH)
 
         assertEquals(TouristTileType.STOPWATCH, viewModel.state.value.focusedTile)
+    }
+
+    @Test
+    fun `changing location precision restarts dashboard even when location remains granted`() = runTest {
+        flow.value = TouristDashboardState(hasLocationPermission = true, hasActivityRecognitionPermission = false)
+        var fineGranted = false
+        every { observeTouristDashboardUseCase.hasLocationPermission() } returns true
+        every { observeTouristDashboardUseCase.hasFineLocationPermission() } answers { fineGranted }
+        val viewModel = newViewModel()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect {} }
+        viewModel.refreshPermissions()
+        clearMocks(observeTouristDashboardUseCase, answers = false, recordedCalls = true)
+
+        fineGranted = true
+        viewModel.refreshPermissions()
+
+        verify(exactly = 1) { observeTouristDashboardUseCase(any()) }
     }
 
     @Test

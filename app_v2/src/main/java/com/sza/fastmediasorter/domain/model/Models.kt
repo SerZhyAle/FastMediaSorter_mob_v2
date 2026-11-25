@@ -271,7 +271,9 @@ data class MediaResource(
     val hostKeyFingerprint: String? = null, // S0046: SHA256 fingerprint of expected SFTP host key; null = permissive (no pinning)
     val needsSignIn: Boolean = false, // S0200: Drive resource requires fresh primary sign-in (set by S0200AuthStateWipe; cleared on sign-in)
     val altAccessPaths: List<HostPort> = emptyList(), // S1006: reachable-endpoint fallback candidates (companion LAN + WAN); empty = single-path
-    val accessNote: String? = null, // S1014: companion connectivity guidance shown on connection failure; null = none
+    // S1014: imported companion reachability snapshot, stored at share time; null = none.
+    // S4698: never shown as failure text (the note states the opposite of the failure and ignores the locale).
+    val accessNote: String? = null,
     val isHidden: Boolean = false, // S1009: resource hidden from visible surfaces (FK-only)
     val storageVolumeId: String? = null, // S1378: StorageVolumeInfo.id this resource lives on; null = unbound
     // Contract DEVICE-EXCHANGE 9.2: the store a resource was attached from (an entry identity or "drive") and the

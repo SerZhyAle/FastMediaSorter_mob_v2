@@ -23,4 +23,5 @@
     <string name="s0157_dismissed_label">未授权（您已拒绝）</string>
     <string name="s0157_last_used_never">尚未使用</string>
     <string name="s0157_last_used_fmt">上次使用 %1$s</string>
+    <string name="s4581_pick_account_add_new">+ 添加账号</string>
 </resources>

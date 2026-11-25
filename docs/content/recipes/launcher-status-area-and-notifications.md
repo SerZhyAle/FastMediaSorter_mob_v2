@@ -12,7 +12,7 @@ canonical_url: documentation/launcher/status-area-and-notifications.html
 why: |
   The clock, the signal bars and the battery number are small, but they are the things you check without thinking. This page is about making them yours: choosing whether they live in the [taskbar](term:taskbar) or in Android's own status bar, picking exactly which ones show, and seeing at a glance when another app has something waiting for you - without opening it by accident.
 ingredients:
-  - "FastMediaSorter in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition), with the [launcher](term:launcher) turned on - see [Your launcher desktop](page:launcher.desktop-grid-and-icons)."
+  - "Fast Media Sorter & Organizer in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition), with the [launcher](term:launcher) turned on - see [Your launcher desktop](page:launcher.desktop-grid-and-icons)."
   - "The taskbar visible - see [Using the desktop dock and taskbar](page:launcher.taskbar-and-dock)."
 steps:
   - number: 1

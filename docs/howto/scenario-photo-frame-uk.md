@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Цифрова фоторамка на планшеті - FastMediaSorter v2"
+title: "Цифрова фоторамка на планшеті - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-photo-frame-uk.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -45,7 +45,7 @@ permalink: /docs/howto/scenario-photo-frame-uk.html
 2. Натисніть **Увійти** → пройдіть авторизацію у браузері
 3. Оберіть папку з фото → **Готово**
 
-![FastMediaSorter resource list - photo resource cards visible after adding a photo folder](screenshots/screenshot-pf-step1.png)
+![Fast Media Sorter & Organizer resource list - photo resource cards visible after adding a photo folder](screenshots/screenshot-pf-step1.png)
 
 ---
 
@@ -115,11 +115,11 @@ permalink: /docs/howto/scenario-photo-frame-uk.html
 Це для зручності: хочете запускати фоторамку миттєво при вмиканні планшета - без відкриття застосунку і навігації?
 
 1. Довге натискання на робочому столі → **Віджети**
-2. Знайдіть **FastMediaSorter** → перетягніть **"Ярлик ресурсу"**
+2. Знайдіть **Fast Media Sorter & Organizer** → перетягніть **"Ярлик ресурсу"**
 3. Оберіть фоторесурс
 4. Натисніть віджет - слайд-шоу запуститься миттєво
 
-![Android home screen with FastMediaSorter resource shortcut widgets placed](screenshots/screenshot-pf-step6.png)
+![Android home screen with Fast Media Sorter & Organizer resource shortcut widgets placed](screenshots/screenshot-pf-step6.png)
 
 ---
 

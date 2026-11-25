@@ -67,18 +67,22 @@ fun TouristScreen(
         },
     )
 
+    // Asking for both permissions while only the approximate one is held raises the system "change to
+    // precise?" dialog on every entry. Either grant is accepted, so the entry prompt is for no grant at all.
+    // The telemetry flag is not read here: it is false until the first telemetry frame, so it would not
+    // tell a missing grant from a frame that has not arrived.
+    val hasAnyLocationGrant = permissionsState.revokedPermissions.size < permissionsState.permissions.size
+
     LaunchedEffect(Unit) {
-        if (!telemetry.hasLocationPermission && !permissionsState.allPermissionsGranted) {
+        if (!hasAnyLocationGrant) {
             permissionsState.launchMultiplePermissionRequest()
         }
     }
 
     // The telemetry source binds its location listeners when it is subscribed, so a permission granted
     // afterwards only takes effect once the source is re-subscribed.
-    LaunchedEffect(permissionsState.allPermissionsGranted) {
-        if (permissionsState.allPermissionsGranted) {
-            viewModel.refreshPermissionState()
-        }
+    LaunchedEffect(permissionsState.permissions.map { it.status }) {
+        viewModel.refreshPermissionState()
     }
 
     // A watch without the sensor drops the metric entirely rather than showing a dash or a zero.

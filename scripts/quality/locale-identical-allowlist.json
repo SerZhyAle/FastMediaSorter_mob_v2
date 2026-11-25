@@ -2638,5 +2638,84 @@
   "widget_network_monitor_indicator_radio_status",
   "widget_network_monitor_indicator_satellite_count",
   "widget_stream_launch_label",
-  "widget_tourist_label"
+  "widget_tourist_label",
+  "ticket_inbox_destination_drive",
+  {
+    "key": "external_control_program_fms_android",
+    "locales": [
+      "ru",
+      "uk"
+    ]
+  },
+  {
+    "key": "external_control_program_fms_windows",
+    "locales": [
+      "ru",
+      "uk"
+    ]
+  },
+  {
+    "key": "external_control_program_fms_web",
+    "locales": [
+      "ru",
+      "uk"
+    ]
+  },
+  {
+    "key": "external_control_program_streamsplayer_android",
+    "locales": [
+      "ru",
+      "uk"
+    ]
+  },
+  {
+    "key": "external_control_program_streamsplayer_windows",
+    "locales": [
+      "ru",
+      "uk"
+    ]
+  },
+  {
+    "key": "external_control_program_cyrflip_windows",
+    "locales": [
+      "ru",
+      "uk"
+    ]
+  },
+  {
+    "key": "external_control_online",
+    "locales": [
+      "de"
+    ]
+  },
+  {
+    "key": "streams_pause",
+    "locales": [
+      "de"
+    ]
+  },
+  {
+    "key": "tooltip_tourist_title",
+    "locales": [
+      "de"
+    ]
+  },
+  {
+    "key": "tourist_tile_gyroscope",
+    "locales": [
+      "fr"
+    ]
+  },
+  {
+    "key": "notes_title",
+    "locales": [
+      "fr"
+    ]
+  },
+  {
+    "key": "tooltip_notes_title",
+    "locales": [
+      "fr"
+    ]
+  }
 ]

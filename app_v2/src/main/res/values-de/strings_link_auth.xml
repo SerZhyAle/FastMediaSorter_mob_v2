@@ -23,4 +23,5 @@
     <string name="s0157_dismissed_label">Nicht autorisiert (Sie haben abgelehnt)</string>
     <string name="s0157_last_used_never">noch nicht verwendet</string>
     <string name="s0157_last_used_fmt">zuletzt verwendet %1$s</string>
+    <string name="s4581_pick_account_add_new">+ Konto hinzufügen</string>
 </resources>

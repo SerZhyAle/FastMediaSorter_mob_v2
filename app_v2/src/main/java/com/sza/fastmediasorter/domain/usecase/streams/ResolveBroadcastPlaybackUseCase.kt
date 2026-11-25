@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase.streams
 
+import android.net.Uri
 import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.data.broadcast.auth.BroadcastCredentialPair
 import com.sza.fastmediasorter.data.broadcast.exchange.BroadcastEndpointProbe
@@ -56,7 +57,9 @@ class ResolveBroadcastPlaybackUseCase @Inject constructor(
      * whose stored broadcast pair the played address answers a protected broadcast's challenge with (item M).
      */
     suspend operator fun invoke(url: String, endpoints: String?, streamId: String? = null): Playback {
-        if (endpoints == null) return Playback.Playable(url)
+        if (endpoints == null) {
+            return if (BroadcastExchangeEndpoints.isExchangeUrl(url)) Playback.Unreachable else Playback.Playable(url)
+        }
         val pair = streamId?.let { passwords.get(it) }
             ?.let { stored -> stored.password?.let { BroadcastCredentialPair(stored.user, it) } }
         val waitUntil = streamId?.let { pendingStore.untilMs(it) }
@@ -69,6 +72,15 @@ class ResolveBroadcastPlaybackUseCase @Inject constructor(
             }
         }
         return if (streamId == null || waitUntil == null) playback else settle(streamId, waitUntil, now, playback)
+    }
+
+    /**
+     * S4609: closes the loopback bridge a resolved address plays through; an address that is not one of this
+     * device's loopback bridges is left alone.
+     */
+    fun closeBridgeOf(playedUrl: String) {
+        val uri = Uri.parse(playedUrl)
+        if (uri.host == BroadcastExchangeEndpoints.LOOPBACK_HOST && uri.port > 0) bridges.closePort(uri.port)
     }
 
     // S4247: the relay of a broadcast that has not started still passes the TLS probe, so its start is asked of
@@ -88,6 +100,7 @@ class ResolveBroadcastPlaybackUseCase @Inject constructor(
     }
 
     private fun resolve(url: String, endpoints: String, pair: BroadcastCredentialPair?): Playback {
+        Timber.d("S4675: resolving a saved broadcast through its opened endpoints")
         var refusedBy: String? = null
         for (endpoint in BroadcastExchangeEndpoints.playOrder(endpoints, url)) {
             // The relay checks the pair on its own address, whichever proxy the player reaches it through.
@@ -160,5 +173,8 @@ class ResolveBroadcastPlaybackUseCase @Inject constructor(
         /** The exchange server a stored endpoint list plays through, as `host[:port]`; null for a LAN-only list. */
         fun exchangeServerLabel(endpoints: String?): String? =
             endpoints?.let(BroadcastExchangeEndpoints::exchangeServer)?.label
+
+        /** An exchange address cannot be played directly, even on an old row with no endpoint list. */
+        fun isExchangeUrl(url: String): Boolean = BroadcastExchangeEndpoints.isExchangeUrl(url)
     }
 }

@@ -47,13 +47,6 @@
             Advertising = $false
         }
         @{
-            Host        = 'gitlab.com'
-            Purpose     = 'IzzyOnDroid repository badge image'
-            Receives    = 'IP address, browser user agent, referring page address'
-            Groups      = 'README pages under docs/'
-            Advertising = $false
-        }
-        @{
             Host        = 'raw.githubusercontent.com'
             Purpose     = 'GitHub Store download badge image'
             Receives    = 'IP address, browser user agent, referring page address'

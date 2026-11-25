@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.data.local.LocalMediaScanner.Companion.VIRTUAL_PA
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
+import timber.log.Timber
 
 /**
  * S2369: what a local resource can still deliver on a build that never declares all-files access.
@@ -32,21 +33,31 @@ object LimitedStorageReach {
      * True when [resource] is read through that narrowed provider AND undertakes to show at least one
      * type it cannot deliver. Both halves matter: a picture folder loses nothing to the narrowing, so
      * warning about it would be the same kind of lie pointing the other way.
+     *
+     * S4717: the notes folder is never limited. The Notes sub-program reads it through the file API, which
+     * returns every note this install wrote without all-files access, so a tile saying "documents cannot be
+     * read" would contradict the Notes screen that lists them.
      */
-    fun isReachLimited(context: Context, resource: MediaResource): Boolean =
+    fun isReachLimited(context: Context, resource: MediaResource): Boolean {
         // The resource-shape half is field reads; the platform half reaches AppOps through
         // `Environment.isExternalStorageManager`. Every resource row asks this while it binds, so the
-        // cheap half decides first and a resource nothing could narrow never reaches the platform.
-        isNarrowable(resource.type, resource.path, promisedTypes(resource)) &&
-            !StoragePermissionRule.isAllFilesAccessHeld(context)
+        // cheap halves decide first and a resource nothing could narrow never reaches the platform.
+        val narrowable = isNarrowable(resource.type, resource.path, promisedTypes(resource))
+        val notesFolder = narrowable && NotesFolderPolicy.isNotesDirectory(resource.path)
+        if (notesFolder) {
+            Timber.d("S4717: notes folder exempt from the reach limit")
+        }
+        return narrowable && !notesFolder && !StoragePermissionRule.isAllFilesAccessHeld(context)
+    }
 
     /** The rule itself, with every input supplied, so a test pins it without a device or a manifest. */
     fun isReachLimited(
         type: ResourceType,
         path: String,
         promisedTypes: Set<MediaType>,
-        allFilesAccessMissing: Boolean
-    ): Boolean = isNarrowable(type, path, promisedTypes) && allFilesAccessMissing
+        allFilesAccessMissing: Boolean,
+        notesFolder: Boolean = false
+    ): Boolean = isNarrowable(type, path, promisedTypes) && !notesFolder && allFilesAccessMissing
 
     /**
      * Whether the narrowing could bite this resource at all, judged from the resource alone. Split out

@@ -43,13 +43,21 @@ import com.sza.fastmediasorter.core.logging.LoggingHelper
 import com.sza.fastmediasorter.core.notification.NotificationIcons
 import com.sza.fastmediasorter.core.playback.NowPlayingMetadata
 import com.sza.fastmediasorter.core.playback.RadioStreamBufferConfig
+import com.sza.fastmediasorter.core.playback.StreamFailureSignal
+import com.sza.fastmediasorter.core.playback.StreamPlaybackFailureReader
 import com.sza.fastmediasorter.core.playback.WearCompanionPackages
-import com.sza.fastmediasorter.core.playback.resilience.StreamAudioFailure
-import com.sza.fastmediasorter.core.playback.resilience.StreamFailureClass
+import com.sza.fastmediasorter.core.playback.resilience.StreamEndedOutcome
+import com.sza.fastmediasorter.core.playback.resilience.StreamEndedRule
+import com.sza.fastmediasorter.core.playback.resilience.StreamFailureReason
 import com.sza.fastmediasorter.core.playback.resilience.StreamServiceRetryDecision
 import com.sza.fastmediasorter.core.playback.resilience.StreamServiceRetryPolicy
+import com.sza.fastmediasorter.core.playback.resilience.toReason
 import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
+import com.sza.fastmediasorter.domain.player.BroadcastEndDecision
+import com.sza.fastmediasorter.domain.player.BroadcastPlaybackPairs
+import com.sza.fastmediasorter.domain.player.BroadcastPlaybackSessions
+import com.sza.fastmediasorter.domain.player.BroadcastStopSignal
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.stats.StatsEvent
@@ -58,7 +66,10 @@ import com.sza.fastmediasorter.domain.stats.ViewKind
 import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.player.helpers.AudioDiagnosticClassifier
+import com.sza.fastmediasorter.ui.player.helpers.AudioServiceBroadcastEndManager
+import com.sza.fastmediasorter.ui.player.helpers.AudioServiceBroadcastFailoverManager
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
+import com.sza.fastmediasorter.ui.player.helpers.BroadcastStoppedNotifier
 import com.sza.fastmediasorter.ui.player.helpers.NetworkAwareMediaSourceFactory
 import com.sza.fastmediasorter.ui.player.helpers.PositionSaveLoop
 import com.sza.fastmediasorter.ui.player.helpers.createPlaybackRenderersFactory
@@ -117,6 +128,17 @@ class AudioPlaybackService : MediaSessionService() {
     @Inject
     lateinit var settingsRepository: SettingsRepository
 
+    // S4609: a broadcast the Streams screen left here resolves again from the top on a lost link or a new network.
+    @Inject
+    lateinit var broadcastFailover: AudioServiceBroadcastFailoverManager
+
+    @Inject
+    lateinit var broadcastStoppedNotifier: BroadcastStoppedNotifier
+
+    // LIVE-BROADCAST items T and U for a broadcast left here: its stop after play gets one after-end reconnect.
+    @Inject
+    lateinit var broadcastEnd: AudioServiceBroadcastEndManager
+
     @Volatile
     private var suppressWearMediaTakeover: Boolean = false
 
@@ -151,6 +173,10 @@ class AudioPlaybackService : MediaSessionService() {
     // lastPlayedAt, so it is already true for any station played before, and answers a different
     // question - whether reconnecting is allowed, not whether this session was counted.
     private var streamPlayCountedUrl: String? = null
+
+    // Stamped on every STATE_READY, never read at STATE_ENDED: a progressive source learns a duration
+    // when its body ends, so at the end a live stream closed by its server looks like a finite file.
+    private var liveWhilePlaying = false
 
     private val streamRetryRunnable = Runnable { retryCurrentStream() }
 
@@ -420,23 +446,14 @@ class AudioPlaybackService : MediaSessionService() {
             override fun onPlaybackStateChanged(playbackState: Int) {
                 Timber.d("AudioPlaybackService: playbackState=$playbackState")
                 when (playbackState) {
-                    Player.STATE_ENDED -> {
-                        // Don't stopSelf immediately - give Activity time to load next track.
-                        // If no new track starts within AUTO_STOP_DELAY_MS, stop the service.
-                        Timber.d("AudioPlaybackService: playback ended, scheduling auto-stop in ${AUTO_STOP_DELAY_MS}ms")
-                        // S0473: one audio track listened to the end. Listen time is accrued separately
-                        // via the listen clock (StatsEvent.PlaybackTime), so this only bumps the count and
-                        // must not also report a duration or the player time would be double-counted.
-                        statsSink.record(StatsEvent.View(ViewKind.AUDIO))
-                        // S0172: stop save loop and persist final position before track ends
-                        stopPositionSaving()
-                        saveCurrentPosition()
-                        AudioNowPlayingSnapshotStore.clear(this@AudioPlaybackService)
-                        autoStopHandler.removeCallbacks(autoStopRunnable)
-                        autoStopHandler.postDelayed(autoStopRunnable, AUTO_STOP_DELAY_MS)
+                    Player.STATE_ENDED -> if (
+                        !judgeBroadcastStop(BroadcastStopSignal.StreamEnded) && !reconnectEndedLiveStream()
+                    ) {
+                        settleEndedTrack()
                     }
                     Player.STATE_READY -> {
                         // New track loaded - cancel auto-stop, start position save loop
+                        liveWhilePlaying = isLiveOrDurationUnknown()
                         consecutiveSkipCount = 0
                         startListenClock()
                         autoStopHandler.removeCallbacks(autoStopRunnable)
@@ -444,6 +461,7 @@ class AudioPlaybackService : MediaSessionService() {
                         startPositionSaving()
                         publishWidgetSnapshot()
                         recordCurrentStreamSuccess()
+                        watchLeftBroadcast()
                     }
                     Player.STATE_BUFFERING -> {
                         // New track loading - cancel auto-stop; save loop starts on STATE_READY
@@ -485,49 +503,30 @@ class AudioPlaybackService : MediaSessionService() {
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 // S1142: a new station may legitimately repeat a previous track string - forget the last.
                 lastIcyTitle = null
-                resetStreamRecovery(mediaItem)
+                val itemUrl = mediaItem?.localConfiguration?.uri?.toString()
+                // S4609: an address swapped in for the same broadcast continues its outage, so its ladder stays.
+                if (broadcastFailover.consumeSwap(itemUrl)) {
+                    autoStopHandler.removeCallbacks(streamRetryRunnable)
+                } else {
+                    resetStreamRecovery(mediaItem)
+                }
+                if (broadcastFailover.isBroadcast(itemUrl)) {
+                    broadcastFailover.startNetworkWatch(::onDefaultNetworkChanged)
+                } else {
+                    broadcastFailover.stopNetworkWatch()
+                }
                 publishWidgetSnapshot()
             }
 
             override fun onPlayerError(error: PlaybackException) {
                 autoStopHandler.removeCallbacks(autoStopRunnable)
-                val p = player
-                // Asked only when a player is alive: the policy spends an attempt when it answers
-                // with a retry, and there would be nothing left to reconnect.
-                val retryDecision = if (p == null) {
-                    StreamServiceRetryDecision.Ignore
-                } else {
-                    streamRetryPolicy.onFailure(error.toStreamFailure(), SystemClock.elapsedRealtime())
+                val failedUrl = currentStreamUrl()
+                if (BroadcastPlaybackPairs.isPasswordRefusal(error) && broadcastFailover.isLeftToService(failedUrl)) {
+                    Timber.w("AudioPlaybackService: broadcast refused its password with no screen to ask from")
+                    endFailedPlayback(notify = true)
+                } else if (broadcastEnd.badStatusSignal(error)?.let(::judgeBroadcastStop) != true) {
+                    handlePlaybackError(error, failedUrl)
                 }
-                if (retryDecision is StreamServiceRetryDecision.RetryAfter) {
-                    scheduleStreamRetry(retryDecision.delayMs)
-                    return
-                }
-                if (p != null && error.isSkippable() && p.hasNextMediaItem()
-                    && consecutiveSkipCount < p.mediaItemCount
-                ) {
-                    // Per-file parsing/decoding error in a playlist: skip the bad track and continue.
-                    consecutiveSkipCount++
-                    Timber.w(error, "AudioPlaybackService: skippable source error - advancing to next track")
-                    showSkipMessage(currentItemDisplayName(p))
-                    p.seekToNextMediaItem()
-                    p.prepare()
-                    return
-                }
-                // Fatal error, single file, or the whole queue failed in a row. A cache eviction
-                // (FILE_NOT_FOUND, 2xxx) lands here on purpose so a genuine session failure is not masked.
-                if (p != null && error.isSkippable() && p.mediaItemCount > 1
-                    && consecutiveSkipCount >= p.mediaItemCount
-                ) {
-                    Toast.makeText(
-                        this@AudioPlaybackService,
-                        getString(R.string.s0413_audio_queue_unplayable),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-                Timber.e(error, "AudioPlaybackService: fatal playback error - stopping service")
-                AudioNowPlayingSnapshotStore.clear(this@AudioPlaybackService)
-                stopSelf()
             }
         })
 
@@ -553,6 +552,8 @@ class AudioPlaybackService : MediaSessionService() {
             // raises no listener event, so the pending reconnect would bring the sound back after Stop.
             override fun stop() {
                 cancelPendingStreamRetry()
+                broadcastFailover.cancelResolution()
+                broadcastEnd.cancel()
                 super.stop()
             }
 
@@ -701,6 +702,9 @@ class AudioPlaybackService : MediaSessionService() {
         (getSystemService(AUDIO_SERVICE) as? AudioManager)
             ?.unregisterAudioDeviceCallback(audioDeviceCallback)
         p?.removeAnalyticsListener(audioDiagListener)
+        broadcastFailover.closeBridgeOf(currentStreamUrl())
+        broadcastFailover.release()
+        broadcastEnd.release()
         mediaSession?.run {
             player.release()
             release()
@@ -772,17 +776,222 @@ class AudioPlaybackService : MediaSessionService() {
     // session and keep the stop behavior. See S0413 research/01.
     private fun PlaybackException.isSkippable(): Boolean = errorCode in 3000..4999
 
+    private fun handlePlaybackError(error: PlaybackException, failedUrl: String?) {
+        val p = player
+        // STREAM-BANK 2.10 section 2.5: this process owns the player, so the status and the certificate
+        // verdict are read here; the controller's copy of the error has lost both.
+        val failure = StreamPlaybackFailureReader.read(error)
+        // Asked only when a player is alive: the policy spends an attempt when it answers
+        // with a retry, and there would be nothing left to reconnect.
+        val retryDecision = if (p == null) {
+            StreamServiceRetryDecision.Ignore
+        } else {
+            streamRetryPolicy.onFailure(failure, SystemClock.elapsedRealtime())
+        }
+        if (retryDecision is StreamServiceRetryDecision.RetryAfter) {
+            scheduleStreamRetry(retryDecision.delayMs)
+            return
+        }
+        val skippableInQueue = p != null && error.isSkippable()
+        val canAdvance = p?.let { it.hasNextMediaItem() && consecutiveSkipCount < it.mediaItemCount } == true
+        if (p != null && skippableInQueue && canAdvance) {
+            // Per-file parsing/decoding error in a playlist: skip the bad track and continue.
+            consecutiveSkipCount++
+            Timber.w(error, "AudioPlaybackService: skippable source error - advancing to next track")
+            showSkipMessage(currentItemDisplayName(p))
+            p.seekToNextMediaItem()
+            p.prepare()
+            return
+        }
+        // Fatal error, single file, or the whole queue failed in a row. A cache eviction
+        // (FILE_NOT_FOUND, 2xxx) lands here on purpose so a genuine session failure is not masked.
+        val wholeQueueFailed = p != null && p.mediaItemCount > 1 && consecutiveSkipCount >= p.mediaItemCount
+        if (skippableInQueue && wholeQueueFailed) {
+            Toast.makeText(
+                this@AudioPlaybackService,
+                getString(R.string.s0413_audio_queue_unplayable),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+        val reason = failure.toReason()
+        if (reason == StreamFailureReason.UNTRUSTED_CERTIFICATE) {
+            // Classified and shown to the user as its own dialog: an expected outcome, not a defect, so no stack.
+            Timber.w(
+                "AudioPlaybackService: stream certificate not trusted - stopping service (%s)",
+                error.errorCodeName,
+            )
+        } else {
+            Timber.e(error, "AudioPlaybackService: fatal playback error - stopping service")
+        }
+        forwardStreamFailure(reason, failedUrl)
+        endFailedPlayback(notify = broadcastFailover.isLeftToService(failedUrl))
+    }
+
+    private fun currentStreamUrl(): String? = player?.currentMediaItem?.localConfiguration?.uri?.toString()
+
     /**
-     * This site has never read a response code out of the `cause` chain, so no HTTP status is ever
-     * observed here. The policy answers the bad-HTTP-status code from the code alone, which is what
-     * the flat IO range did before the move (S1513).
+     * STREAM-BANK 2.10 section 2.5: the screen surfaces a failure the service ended on at once, in the
+     * service's words, instead of waiting for its tolerance timer. Sent before the queue is cleared so the
+     * controller can still match the url to its station.
      */
-    private fun PlaybackException.toStreamFailure(): StreamAudioFailure =
-        StreamAudioFailure(StreamFailureClass.classify(errorCode, httpStatus = null), errorCode)
+    private fun forwardStreamFailure(reason: StreamFailureReason, failedUrl: String?) {
+        val url = failedUrl ?: return
+        mediaSession?.broadcastCustomCommand(StreamFailureSignal.command, StreamFailureSignal.args(reason, url))
+    }
+
+    /**
+     * S4609: every fatal end of the session. `stopSelf` does not destroy a service while a controller is still
+     * bound, so the queue is emptied first - an empty timeline is what takes the media notification and the
+     * transport down. [notify] leaves the one notification that sends a broadcast left here to the Streams screen.
+     * [ended] - decided, or read from a removal the directory made while it played (LIVE-BROADCAST item U) - words
+     * that notification as an end and leaves the record the Streams screen shows its ended dialog from.
+     */
+    private fun endFailedPlayback(notify: Boolean = false, ended: Boolean = false) {
+        val endedUrl = currentStreamUrl()
+        val channelTitle = broadcastFailover.channelTitleOf(endedUrl)
+        val asEnded = channelTitle != null && (ended || (notify && broadcastEnd.removedAtFailure()))
+        if (asEnded) broadcastEnd.recordEnded(endedUrl)
+        broadcastEnd.cancel()
+        Timber.d("S4609: service session ended, queue cleared, notify=$notify broadcast=${channelTitle != null}")
+        cancelPendingStreamRetry()
+        broadcastFailover.cancelResolution()
+        broadcastFailover.closeBridgeOf(endedUrl)
+        player?.let {
+            it.playWhenReady = false
+            it.stop()
+            it.clearMediaItems()
+        }
+        AudioNowPlayingSnapshotStore.clear(this)
+        if ((notify || asEnded) && channelTitle != null) broadcastStoppedNotifier.show(channelTitle, ended = asEnded)
+        stopSelf()
+    }
+
+    /** A broadcast left here delivers again: its directory entry is watched, a removal held while it plays. */
+    private fun watchLeftBroadcast() {
+        val playedUrl = currentStreamUrl() ?: return
+        if (!broadcastFailover.isLeftToService(playedUrl)) return
+        broadcastEnd.watch(serviceScope, playedUrl) {
+            if (currentStreamUrl() == playedUrl) endFailedPlayback(notify = true, ended = true)
+        }
+    }
+
+    /**
+     * LIVE-BROADCAST item T: a broadcast left here that stopped after it played gets the one after-end reconnect
+     * instead of the ladder. False for anything else, which keeps today's handling.
+     */
+    private fun judgeBroadcastStop(signal: BroadcastStopSignal): Boolean {
+        val playedUrl = currentStreamUrl()
+            ?.takeIf { it == streamPlayCountedUrl && broadcastFailover.isLeftToService(it) }
+            ?: return false
+        cancelPendingStreamRetry()
+        return broadcastEnd.judge(serviceScope, playedUrl, signal) { applyBroadcastEnd(playedUrl, it) }
+    }
+
+    private fun applyBroadcastEnd(playedUrl: String, decision: BroadcastEndDecision) {
+        Timber.i("AudioPlaybackService: broadcast stop decided - %s", decision)
+        val p = player
+        // Paused, stopped or switched while the question ran: the answer is about something no longer playing.
+        if (p == null || !p.playWhenReady || currentStreamUrl() != playedUrl) return
+        when (decision) {
+            BroadcastEndDecision.Ended -> endFailedPlayback(notify = true, ended = true)
+            is BroadcastEndDecision.Reconnect ->
+                applyBroadcastOutcome(playedUrl, AudioServiceBroadcastFailoverManager.Outcome.Playable(decision.url))
+            BroadcastEndDecision.LostConnection -> {
+                val retry = streamRetryPolicy.onFailure(StreamEndedRule.CONNECTION_LOST, SystemClock.elapsedRealtime())
+                if (retry is StreamServiceRetryDecision.RetryAfter) {
+                    scheduleStreamRetry(retry.delayMs)
+                } else {
+                    endFailedPlayback(notify = true)
+                }
+            }
+        }
+    }
+
+    /** S4609: a different default network makes the LAN address of a broadcast left here a guess; ask again. */
+    private fun onDefaultNetworkChanged() {
+        val playedUrl = currentStreamUrl()
+        Timber.d("S4609: default network changed, left=${broadcastFailover.isLeftToService(playedUrl)}")
+        if (player?.playWhenReady == true && broadcastFailover.isLeftToService(playedUrl) && playedUrl != null) {
+            Timber.i("AudioPlaybackService: default network changed - resolving the broadcast again")
+            broadcastFailover.reresolve(serviceScope, playedUrl) { applyBroadcastOutcome(playedUrl, it) }
+        }
+    }
+
+    private fun applyBroadcastOutcome(resolvedFor: String, outcome: AudioServiceBroadcastFailoverManager.Outcome) {
+        Timber.d("S4609: broadcast resolved again in the service - $outcome")
+        val p = player
+        // Paused, stopped or switched while the resolution ran: the answer is about something no longer playing.
+        if (p == null || !p.playWhenReady || currentStreamUrl() != resolvedFor) return
+        when (outcome) {
+            is AudioServiceBroadcastFailoverManager.Outcome.Refused -> endFailedPlayback(notify = true)
+            is AudioServiceBroadcastFailoverManager.Outcome.Playable -> {
+                if (outcome.url != resolvedFor) {
+                    p.currentMediaItem?.buildUpon()?.setUri(outcome.url)?.build()?.let(p::setMediaItem)
+                } else if (p.playbackState == Player.STATE_ENDED) {
+                    // Media3 ignores prepare() outside STATE_IDLE, and an ended player would resume at its end.
+                    p.stop()
+                    p.seekToDefaultPosition()
+                }
+                p.prepare()
+                p.playWhenReady = true
+            }
+        }
+    }
 
     private fun scheduleStreamRetry(delayMs: Long) {
         autoStopHandler.removeCallbacks(streamRetryRunnable)
         autoStopHandler.postDelayed(streamRetryRunnable, delayMs)
+    }
+
+    private fun isLiveOrDurationUnknown(): Boolean {
+        val p = player ?: return false
+        return p.isCurrentMediaItemLive || p.duration == C.TIME_UNSET
+    }
+
+    /**
+     * A live stream whose server closed the response cleanly ends here with no player error, so the
+     * retry ladder never runs. The rule separates it from a track that finished; on a reconnect it is
+     * fed to the ladder as a lost connection. False leaves the end-of-track path to the caller: a
+     * rejected ladder (a stream outside the catalog past its connect window) must still stop the service.
+     */
+    private fun reconnectEndedLiveStream(): Boolean {
+        val streamUrl = player?.currentMediaItem?.localConfiguration?.uri?.toString()
+        val outcome = if (streamUrl == null) {
+            StreamEndedOutcome.SETTLE
+        } else {
+            StreamEndedRule.decide(
+                isBroadcast = BroadcastPlaybackSessions.forUrl(streamUrl) != null,
+                hasPlayed = streamPlayCountedUrl == streamUrl,
+                wasLiveOrDurationUnknown = liveWhilePlaying,
+            )
+        }
+        Timber.d("S4598: service stream ended outcome=$outcome liveWhilePlaying=$liveWhilePlaying")
+        val decision = if (outcome == StreamEndedOutcome.RECONNECT) {
+            streamRetryPolicy.onFailure(StreamEndedRule.CONNECTION_LOST, SystemClock.elapsedRealtime())
+        } else {
+            StreamServiceRetryDecision.Ignore
+        }
+        if (decision is StreamServiceRetryDecision.RetryAfter) {
+            Timber.d("AudioPlaybackService: live stream closed by server, reconnecting in ${decision.delayMs}ms")
+            scheduleStreamRetry(decision.delayMs)
+        }
+        return decision is StreamServiceRetryDecision.RetryAfter
+    }
+
+    private fun settleEndedTrack() {
+        // Don't stopSelf immediately - give Activity time to load next track.
+        // If no new track starts within AUTO_STOP_DELAY_MS, stop the service.
+        Timber.d("AudioPlaybackService: playback ended, scheduling auto-stop in ${AUTO_STOP_DELAY_MS}ms")
+        // S0473: one audio track listened to the end. Listen time is accrued separately
+        // via the listen clock (StatsEvent.PlaybackTime), so this only bumps the count and
+        // must not also report a duration or the player time would be double-counted.
+        statsSink.record(StatsEvent.View(ViewKind.AUDIO))
+        // S0172: stop save loop and persist final position before track ends
+        stopPositionSaving()
+        saveCurrentPosition()
+        AudioNowPlayingSnapshotStore.clear(this)
+        autoStopHandler.removeCallbacks(autoStopRunnable)
+        autoStopHandler.postDelayed(autoStopRunnable, AUTO_STOP_DELAY_MS)
     }
 
     // Unconditional: Handler.hasCallbacks is API 29, and with no outage in flight the reconnect
@@ -803,10 +1012,19 @@ class AudioPlaybackService : MediaSessionService() {
             }
             streamRetryPolicy.onRetryDue(SystemClock.elapsedRealtime()) is StreamServiceRetryDecision.GiveUp -> {
                 Timber.w("AudioPlaybackService: stream unreachable - stopping service instead of retrying")
-                AudioNowPlayingSnapshotStore.clear(this)
-                stopSelf()
+                forwardStreamFailure(StreamFailureReason.UNREACHABLE, currentStreamUrl())
+                endFailedPlayback(notify = broadcastFailover.isLeftToService(currentStreamUrl()))
+            }
+            broadcastFailover.isLeftToService(currentStreamUrl()) -> {
+                val playedUrl = currentStreamUrl().orEmpty()
+                broadcastFailover.reresolve(serviceScope, playedUrl) { applyBroadcastOutcome(playedUrl, it) }
             }
             else -> {
+                // Media3 ignores prepare() outside STATE_IDLE, and an ended player would resume at its end.
+                if (currentPlayer.playbackState == Player.STATE_ENDED) {
+                    currentPlayer.stop()
+                    currentPlayer.seekToDefaultPosition()
+                }
                 currentPlayer.prepare()
                 currentPlayer.playWhenReady = true
             }
@@ -815,6 +1033,7 @@ class AudioPlaybackService : MediaSessionService() {
 
     private fun resetStreamRecovery(mediaItem: MediaItem?) {
         autoStopHandler.removeCallbacks(streamRetryRunnable)
+        liveWhilePlaying = false
         val streamUrl = mediaItem?.localConfiguration?.uri?.toString()
         streamRetryPolicy.onStreamChanged(SystemClock.elapsedRealtime(), streamUrl)
         streamPlayCountedUrl = null
@@ -870,6 +1089,9 @@ class AudioPlaybackService : MediaSessionService() {
         // the last-played stamp still refresh on every READY, as they did before.
         val firstReady = streamPlayCountedUrl != streamUrl
         streamPlayCountedUrl = streamUrl
+        // S4609: a broadcast plays a resolved address the catalog does not hold, yet its row is a catalog stream;
+        // without the window its first lost link after the connect window took the fatal path.
+        if (broadcastFailover.isBroadcast(streamUrl)) streamRetryPolicy.onCatalogStreamPlaying()
         serviceScope.launch {
             val source = streamSourceRepository.getByUrl(streamUrl) ?: return@launch
             // S1291: only a catalog stream earns the reconnect window. Setting this for every media

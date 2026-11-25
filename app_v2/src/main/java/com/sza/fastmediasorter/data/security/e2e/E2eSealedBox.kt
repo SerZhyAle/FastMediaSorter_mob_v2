@@ -42,7 +42,13 @@ object E2eSealedBox {
 
     fun grantContext(grantId: String): String = "grant:$grantId"
 
+    fun noteContext(noteId: String): String = "note:$noteId"
+
     fun broadcastContext(broadcastId: String): String = "broadcast:$broadcastId"
+
+    fun commandContext(requestId: String): String = "command:$requestId"
+
+    fun commandResultContext(requestId: String): String = "command-result:$requestId"
 
     const val CLIPBOARD_CONTEXT = "clipboard"
 

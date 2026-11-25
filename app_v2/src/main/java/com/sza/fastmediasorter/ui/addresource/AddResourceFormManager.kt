@@ -1,9 +1,11 @@
 package com.sza.fastmediasorter.ui.addresource
 
 import android.widget.Toast
+import androidx.core.view.WindowCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.checkbox.MaterialCheckBox
+import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
@@ -66,6 +68,13 @@ internal class AddResourceFormManager(
         androidx.core.view.ViewCompat.requestApplyInsets(binding.root)
     }
 
+    fun configureToolbarContrast() {
+        val primary = MaterialColors.getColor(binding.toolbarContainer, androidx.appcompat.R.attr.colorPrimary)
+        val onPrimary = MaterialColors.getColor(binding.toolbar, com.google.android.material.R.attr.colorOnPrimary)
+        binding.toolbar.menu.findItem(R.id.action_help)?.icon?.mutate()?.setTint(onPrimary)
+        WindowCompat.getInsetsController(activity.window, binding.root).isAppearanceLightStatusBars =
+            MaterialColors.isColorLight(primary)
+    }
     fun updateResourceTypeGridColumns() {
         binding.layoutResourceTypes.columnCount =
             if (activity.resources.configuration.isWideLayout()) 2 else 1

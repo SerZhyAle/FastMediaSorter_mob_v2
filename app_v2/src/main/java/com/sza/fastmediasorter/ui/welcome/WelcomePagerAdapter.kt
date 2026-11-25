@@ -17,7 +17,6 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.theme.ColorThemePrefs
 import com.sza.fastmediasorter.core.util.AnimationPolicy
-import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.data.model.DeviceProfileType
 import com.sza.fastmediasorter.databinding.PageWelcomeBinding
 import com.sza.fastmediasorter.databinding.PageWelcomeDefaultPlayerBinding
@@ -249,7 +248,7 @@ class WelcomePagerAdapter(
             // S1190: language wiring. The control only reports the tap - the Activity owns the picker,
             // because choosing a language recreates it and an adapter cannot survive that.
             if (page.showLanguagePicker) {
-                val currentLanguage = LocaleHelper.getLanguage(context)
+                val currentLanguage = UiLanguagePickerItems.selectionCode(context)
                 binding.btnWelcomeLanguage.visibility = View.VISIBLE
                 binding.btnWelcomeLanguage.text = UiLanguagePickerItems.label(context, currentLanguage)
                 binding.btnWelcomeLanguage.setOnClickListener { page.onLanguagePickerRequested?.invoke() }

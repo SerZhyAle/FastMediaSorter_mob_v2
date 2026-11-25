@@ -4,6 +4,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.playback.resilience.StreamFailureReason
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 
 /**
@@ -30,14 +31,14 @@ object StreamUnavailableDialog {
         onRetry: () -> Unit,
         onRemove: () -> Unit,
         onDismiss: () -> Unit,
+        reason: StreamFailureReason? = null,
     ): AlertDialog? {
         // The dialog outlives the failure that asked for it, so a host already tearing down must not
         // attach a window.
         if (activity.isFinishing || activity.isDestroyed) return null
         val titleRes =
             if (offline) R.string.streams_unavailable_offline_title else R.string.streams_unavailable_title
-        val messageRes =
-            if (offline) R.string.streams_unavailable_offline_message else R.string.streams_unavailable_message
+        val messageRes = if (offline) R.string.streams_unavailable_offline_message else messageFor(reason)
         val builder = MaterialAlertDialogBuilder(activity)
             .setTitle(titleRes)
             .setMessage(activity.getString(messageRes, channelTitle))
@@ -74,6 +75,14 @@ object StreamUnavailableDialog {
             .setOnCancelListener { onDismiss() }
         if (removable) builder.setNeutralButton(R.string.streams_remove) { _, _ -> onRemove() }
         return present(builder.create())
+    }
+
+    // STREAM-BANK 2.10 section 2.5: the message names the failure class in user words; a host that did not
+    // answer, and a failure with no class, keep the "not responding" wording.
+    private fun messageFor(reason: StreamFailureReason?): Int = when (reason) {
+        StreamFailureReason.REFUSED -> R.string.streams_unavailable_refused_message
+        StreamFailureReason.UNTRUSTED_CERTIFICATE -> R.string.streams_unavailable_certificate_message
+        StreamFailureReason.UNREACHABLE, null -> R.string.streams_unavailable_message
     }
 
     private fun present(dialog: AlertDialog): AlertDialog {

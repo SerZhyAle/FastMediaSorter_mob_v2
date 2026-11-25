@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.11.11 12:54</sub>
+<sub class="doc-stamp">26.11.24 21:52</sub>
 
 # Pointer - `ICON-SET`
 
 | | |
 | --- | --- |
 | **Id** | `ICON-SET` |
-| **Version** | 0.39, draft. Owner: this product |
+| **Version** | 0.46, draft. Owner: this product |
 | **Home** | `iconography/README.md` section 2 in the shared contracts catalog |
 | **Role here** | owner and reference implementation - phone, launcher, watch, documentation and the website |
 
@@ -29,6 +29,17 @@
 - A retry control draws `action.retry` (0.33, S4255, section 18) and reads "Повторить попытку" /
   "Повторити спробу" in ru/uk; the bare "Повторить" / "Повторити" stays the name of `action.redo`.
 - The help action draws `app.help` and reads its normative name in every shipped locale (0.34).
+- Six meanings enter as `proposed` records with this product's own drawings, for its sibling-set migration under
+  `ICON-RENDER` section 25 (0.40, section 26, S4570): `view.compact`, `app.animations`, `app.units`,
+  `media.visualizer`, `view.full-resolution` and `view.halo`. Each turns `active` on the first shipped report
+  (rule 6), and no existing record's picture, name or `distinct` set changes.
+- Open (S4804): 0.42 enters twelve `proposed` meanings for the settings destinations of the Share Manager, the Exchange
+  Server window and the remote administration window (Windows surfaces), 0.43 replaces the cog drawings of
+  `system.service` and `feature.remote-admin`, and 0.44 (breaking) redraws `app.logo` from the FastMediaSorter family
+  mark of `PRODUCT-IDENTITY` 0.2 section 3.3; the exporter run and the `app.logo` carrier are owed by this product.
+- The 0.45 catalog amendment redraws `action.rename`. Every phone rename site draws `ic_rename` except the Browse
+  action bar (a baselined `ic_edit`), and the watch's Rename file action draws `ic_edit`; carrier S4898.
+- The feedback form's control that attaches the app's diagnostic logs draws `content.diagnostic-logs` (0.46, section 34, S4888): `ic_diagnostic_logs`, the outlined sheet of item B, never the filled sheet of `content.document`.
 - The documentation and the site show the meaning's glyph beside its name - never an emoji, never a
   picture chosen to decorate the page.
 - The glyphs, looks, `palette.json`, `CATALOG.md` and `gallery.html` are regenerated from this
@@ -37,7 +48,9 @@
 
 ## Where it lives here
 
-- Export (rung 1): `scripts/docs/export-icon-contract.ps1`, byte-identical on a rerun.
+- Export (rung 1): `scripts/docs/export-icon-contract.ps1`, byte-identical on a rerun; its `-Check` mode (0.39)
+  compares every generated file with what a run would write, names each that is stale, missing or extraneous, and
+  writes nothing.
 - Product declaration against the vocabulary: `docs/icons/icon-contract-map.json`.
 - Rungs 2, 3 and 5: `scripts/quality/assert-icon-contract.ps1` - unmapped glyphs, labels against
   glyphs, name substitutions, docs pictures - with its baseline `scripts/quality/icon-contract-baseline.txt`.

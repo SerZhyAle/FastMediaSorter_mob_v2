@@ -262,4 +262,10 @@
     <string name="kbm_help_player_audio_track">अगला ऑडियो ट्रैक</string>
     <string name="kbm_help_player_slideshow">स्लाइडशो (S फिर से: तेज़) / रैंडम स्लाइडशो</string>
     <string name="kbm_help_player_space">वीडियो चलाएँ / रोकें; फ़ोटो पर अगली फ़ाइल</string>
+    <string name="keybinding_label_playback_ab_loop">A-B लूप</string>
+    <string name="keybinding_label_navigation_file_grid">थंबनेल ग्रिड</string>
+    <string name="keybinding_label_navigation_file_list">फ़ाइल सूची</string>
+    <string name="keybinding_label_navigation_file_number">फ़ाइल पर जाएँ</string>
+    <string name="keybinding_label_player_black_screen">काली स्क्रीन</string>
+    <string name="keybinding_label_sorting_create_text_note">टेक्स्ट नोट बनाएँ</string>
 </resources>

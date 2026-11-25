@@ -105,7 +105,7 @@ Wenn eine Funktion mit „✗" markiert ist, wählen Sie den **Standard**- oder 
 
 ## Szenario-Gruppen
 
-Diese Abschnitte sind bewusst vielfältiger gestaltet als die Kernreferenz-Blöcke weiter unten. Jedes Szenario verbindet einen schnellen Weg mit Kontext, Kompromissen und den Situationen, in denen FastMediaSorter besonders stark ist.
+Diese Abschnitte sind bewusst vielfältiger gestaltet als die Kernreferenz-Blöcke weiter unten. Jedes Szenario verbindet einen schnellen Weg mit Kontext, Kompromissen und den Situationen, in denen Fast Media Sorter & Organizer besonders stark ist.
 
 > **⭐ Empfehlung: Holen Sie die Ordner Ihres PCs mit einem Scan aufs Handy.** Starten Sie den kostenlosen Begleiter [Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) auf Ihrem PC, wählen Sie die Ordner mit Ihren Videos, Musik, Dokumenten oder Fotos aus, und er zeigt einen Code auf dem Bildschirm an. Tippen Sie auf dem Handy auf **Hinzufügen**, wählen Sie **Per Barcode importieren**, richten Sie die Kamera auf den Code - die PC-Ordner werden sofort verbunden, ohne Adresse, Port oder Passwort einzutippen. Vollständige Anleitung: [PC-Ordner durch Scannen eines Codes öffnen](howto/scenario-companion-share-de.md) &bull; Kurzrezept: [Eine Windows-Companion-Freigabe importieren](#how-to-import-a-windows-companion-share).
 
@@ -201,7 +201,7 @@ Diese Abschnitte sind bewusst vielfältiger gestaltet als die Kernreferenz-Blöc
 1. Öffnen Sie das Dropdown-Menü des Hauptfensters und tippen Sie auf **Streams**, oder gehen Sie zu **Einstellungen > Medien > Streams** und aktivieren Sie den Schalter, falls er aus ist.
 2. Tippen Sie am Ende der Symbolleiste auf **⋮**, wählen Sie **Stream hinzufügen** und fügen Sie eine beliebige Sender-URL ein (http:// oder https://, .m3u8, rtsp://).
 3. Tippen Sie auf die Senderzeile - der Ton startet in der angehefteten Mini-Steuerung am unteren Rand. Die Liste bleibt scrollbar.
-4. Für einen größeren Katalog tippen Sie auf **Importieren** und geben eine entfernte `.m3u`-URL ein, oder laden Sie den kuratierten FastMediaSorter-Katalog vom Bildschirm **Erweiterungen** herunter.
+4. Für einen größeren Katalog tippen Sie auf **Importieren** und geben eine entfernte `.m3u`-URL ein, oder laden Sie den kuratierten Fast Media Sorter & Organizer-Katalog vom Bildschirm **Erweiterungen** herunter.
 
 **Szenario-Ablauf**
 
@@ -236,7 +236,7 @@ Diese Abschnitte sind bewusst vielfältiger gestaltet als die Kernreferenz-Blöc
 
 1. Erstellen oder wählen Sie einen lokalen Ordner für die Reise.
 2. Kopieren Sie die benötigten Medien, PDFs, EPUBs oder Notizen hinein, bevor Sie das WLAN verlassen.
-3. Öffnen Sie diesen Ordner einmal in FastMediaSorter, damit Miniaturansichten und letzte Positionen bereit sind.
+3. Öffnen Sie diesen Ordner einmal in Fast Media Sorter & Organizer, damit Miniaturansichten und letzte Positionen bereit sind.
 4. Verwenden Sie den Ordner während der Reise offline.
 
 **Szenario-Ablauf**
@@ -320,7 +320,7 @@ Diese Abschnitte sind bewusst vielfältiger gestaltet als die Kernreferenz-Blöc
 
 **Szenario-Ablauf**
 
-- Nutzen Sie dies, wenn FastMediaSorter der beste Browser für entfernten Speicher ist, eine andere App aber der bessere Editor oder Viewer für einen bestimmten Dateityp ist.
+- Nutzen Sie dies, wenn Fast Media Sorter & Organizer der beste Browser für entfernten Speicher ist, eine andere App aber der bessere Editor oder Viewer für einen bestimmten Dateityp ist.
 - Typische Übergabefälle sind Office-Dokumente, aufwendige PDFs, codec-lastige Videos und Nischen-Medienformate.
 - Die heruntergeladene Kopie bleibt in Downloads erhalten, sodass Sie sie später erneut öffnen können, selbst wenn die entfernte Quelle offline geht.
 
@@ -454,7 +454,7 @@ Diese Abschnitte sind bewusst vielfältiger gestaltet als die Kernreferenz-Blöc
 2. Geben Sie die entfernte .m3u-Adresse ein. Tippen Sie auf **Importieren**.
 3. Alle Sender aus der Datei erscheinen in der Liste.
 
-**Den kuratierten FastMediaSorter-Katalog herunterladen:**
+**Den kuratierten Fast Media Sorter & Organizer-Katalog herunterladen:**
 
 1. Öffnen Sie **Einstellungen > Erweiterungen** (oder die Streams-Zeile im Willkommens-Onboarding).
 2. Tippen Sie neben dem Streams-Katalog-Eintrag auf **Herunterladen**.
@@ -1137,7 +1137,7 @@ Text aus Bildern, PDFs und Textdateien automatisch übersetzen: **Tesseract** li
 **Schnellstart**
 
 1. Gehen Sie zu Ihrem Android-Startbildschirm, halten Sie lange gedrückt und wählen Sie **Widgets**.
-2. Ziehen Sie ein FastMediaSorter-Widget (wie 1×1 Schnellsprachrekorder oder Kamera-OCR) auf Ihren Bildschirm.
+2. Ziehen Sie ein Fast Media Sorter & Organizer-Widget (wie 1×1 Schnellsprachrekorder oder Kamera-OCR) auf Ihren Bildschirm.
 3. Konfigurieren Sie den Zielordner und die Aufnahmeeinstellungen, und tippen Sie dann auf **Speichern**.
 4. Verwenden Sie das Widget, um Aufgaben mit einem Fingertipp direkt von Ihrem Startbildschirm aus auszuführen.
 
@@ -1160,12 +1160,12 @@ Text aus Bildern, PDFs und Textdateien automatisch übersetzen: **Tesseract** li
 
 ## Die App als Startbildschirm verwenden {#how-to-use-the-app-as-your-home-screen}
 
-FastMediaSorter kann den Startbildschirm Ihres Geräts übernehmen und stattdessen seinen eigenen Desktop anzeigen - Ihre Ordner, eine Uhr, das Wetter, Ihre Apps und eine Taskleiste an einem Rand. Wenn Sie schon einmal einen Windows-Desktop verwendet haben, wird es Ihnen vertraut vorkommen: Dinge bleiben dort, wo Sie sie hinlegen, und eine Start-Schaltfläche öffnet das Menü. Das nennt sich Launcher-Modus und ist nur in den Builds **Standard** und **noLegal** enthalten.
+Fast Media Sorter & Organizer kann den Startbildschirm Ihres Geräts übernehmen und stattdessen seinen eigenen Desktop anzeigen - Ihre Ordner, eine Uhr, das Wetter, Ihre Apps und eine Taskleiste an einem Rand. Wenn Sie schon einmal einen Windows-Desktop verwendet haben, wird es Ihnen vertraut vorkommen: Dinge bleiben dort, wo Sie sie hinlegen, und eine Start-Schaltfläche öffnet das Menü. Das nennt sich Launcher-Modus und ist nur in den Builds **Standard** und **noLegal** enthalten.
 
 **Aktivieren:**
 
 1. Öffnen Sie **Einstellungen → Allgemein** und schalten Sie **Diese App als Startbildschirm festlegen** ein.
-2. Android bittet Sie um Bestätigung. Ab Android 10 ist es eine einzige Frage - „FastMediaSorter als Startbildschirm-App zulassen?" - bestätigen Sie sie einfach. Bei älteren Versionen erscheint die klassische Auswahl beim nächsten Drücken der Home-Taste: Wählen Sie FastMediaSorter und tippen Sie auf **Immer**, oder auf **Nur diesmal**, wenn Sie es erst einmal ausprobieren möchten.
+2. Android bittet Sie um Bestätigung. Ab Android 10 ist es eine einzige Frage - „Fast Media Sorter & Organizer als Startbildschirm-App zulassen?" - bestätigen Sie sie einfach. Bei älteren Versionen erscheint die klassische Auswahl beim nächsten Drücken der Home-Taste: Wählen Sie Fast Media Sorter & Organizer und tippen Sie auf **Immer**, oder auf **Nur diesmal**, wenn Sie es erst einmal ausprobieren möchten.
 3. Drücken Sie Home. Der Desktop erscheint, bereits mit etwa einem Dutzend nützlicher Dinge gefüllt - eine Uhr, das Wetter, Ihre Ordner, ein Suchfeld -, sodass der erste Tag kein leeres Raster ist.
 
 Bei einer brandneuen Installation gibt es eine Abkürzung: Aktivieren Sie **Als Startbildschirm verwenden** auf der ersten Willkommensseite. Das unterbricht die Einrichtung nicht mit einem Systemdialog - Androids Bestätigung erscheint erst, wenn Sie danach zum ersten Mal **Einstellungen → Allgemein** öffnen.
@@ -1184,7 +1184,7 @@ Bei einer brandneuen Installation gibt es eine Abkürzung: Aktivieren Sie **Als 
 
 - Die Taskleiste liegt am unteren Rand und enthält die Start-Schaltfläche, die zuletzt verwendeten Apps, die angehefteten Apps und einen kleinen Infobereich mit Uhr, Akku, Netzwerk- und SIM-Signal.
 - Möchten Sie sie lieber oben haben? **Einstellungen → Allgemein → Systemlauncher-Einstellungen → Taskleiste → Taskleisten-Position** wechselt zwischen **Unten** und **Oben**. Das Start-Menü folgt der Leiste und klappt von oben herunter, wenn die Leiste dort oben liegt.
-- Die Start-Schaltfläche öffnet das Menü: FastMediaSorter öffnen, Ihre Ressourcen, eine Ressource hinzufügen, Android-Einstellungen, App-Einstellungen, Launcher-Einstellungen, Desktop-Inhalte bearbeiten und am Ende Neustart, Ausschalten und **Launcher-Modus verlassen**. Neustart und Ausschalten funktionieren nur, wenn Ihr Gerät das einer gewöhnlichen App erlaubt - auf den meisten Handys tun sie schlicht nichts.
+- Die Start-Schaltfläche öffnet das Menü: Fast Media Sorter & Organizer öffnen, Ihre Ressourcen, eine Ressource hinzufügen, Android-Einstellungen, App-Einstellungen, Launcher-Einstellungen, Desktop-Inhalte bearbeiten und am Ende Neustart, Ausschalten und **Launcher-Modus verlassen**. Neustart und Ausschalten funktionieren nur, wenn Ihr Gerät das einer gewöhnlichen App erlaubt - auf den meisten Handys tun sie schlicht nichts.
 
 **Ihre Apps:** Das App-Raster gruppiert Apps in Abschnitte, jeder mit einer kleinen Überschrift. Tippen Sie auf eine Überschrift, um einen selten geöffneten Abschnitt einzuklappen; eingeklappte Überschriften rücken nebeneinander, sodass der Desktop kürzer wird, statt Lücken zu hinterlassen. Ein frischer Desktop teilt die vorbelegten Apps in zwei Teile: einen **Google**-Abschnitt für die bereits installierten Google-Apps und einen **Apps**-Abschnitt für Ihre eigenen - Messenger, Spiele und was immer sonst auf dem Gerät ist. Keine App landet in beiden. Halten Sie eine beliebige App in der Liste lange gedrückt für **Auf Desktop legen** und **An Taskleiste anheften**.
 
@@ -1208,13 +1208,13 @@ Bei einer brandneuen Installation gibt es eine Abkürzung: Aktivieren Sie **Als 
 
 Ihr Desktop-Layout bleibt in jedem Fall erhalten, sodass das erneute Einschalten des Modus es genau so zurückbringt, wie Sie es verlassen haben.
 
-**Eine ehrliche Warnung.** Ein paar Geräte weigern sich, die Wahl zu speichern. Manche billigen Nachrüst-Autoradios und andere fest verbaute Android-Boxen erzwingen bei jedem Start ihren werkseitigen Startbildschirm zurück, egal was Sie gewählt haben. Das ist die eigene Firmware des Geräts, die sich über Sie hinwegsetzt, kein Fehler der App, und keine App kann das umgehen. Wenn sich Ihres so verhält, wählen Sie FastMediaSorter nach einem Neustart erneut als Startbildschirm-App - und wenn es immer noch nicht bleibt, lässt dieses Gerät es schlicht nicht zu.
+**Eine ehrliche Warnung.** Ein paar Geräte weigern sich, die Wahl zu speichern. Manche billigen Nachrüst-Autoradios und andere fest verbaute Android-Boxen erzwingen bei jedem Start ihren werkseitigen Startbildschirm zurück, egal was Sie gewählt haben. Das ist die eigene Firmware des Geräts, die sich über Sie hinwegsetzt, kein Fehler der App, und keine App kann das umgehen. Wenn sich Ihres so verhält, wählen Sie Fast Media Sorter & Organizer nach einem Neustart erneut als Startbildschirm-App - und wenn es immer noch nicht bleibt, lässt dieses Gerät es schlicht nicht zu.
 
 ---
 
 ## FMS auf einer Android-TV-Box nutzen {#how-to-use-fms-on-android-tv-box}
 
-FastMediaSorter läuft auf jeder Android-TV-Box oder Set-Top-Box (Xiaomi Mi Box, Nvidia Shield, Amazon Fire TV, generische Android-Boxen). Kein Touchscreen erforderlich - die App ist vollständig über die TV-Fernbedienung oder eine Bluetooth-Tastatur bedienbar.
+Fast Media Sorter & Organizer läuft auf jeder Android-TV-Box oder Set-Top-Box (Xiaomi Mi Box, Nvidia Shield, Amazon Fire TV, generische Android-Boxen). Kein Touchscreen erforderlich - die App ist vollständig über die TV-Fernbedienung oder eine Bluetooth-Tastatur bedienbar.
 
 **Was Sie benötigen:**
 
@@ -1420,11 +1420,11 @@ Neue Aufnahmen verwenden das Muster `prefix_yyMMdd_HHmmss`. Die festen Präfixe 
 
 ## Von einer anderen App geteilte Dateien empfangen {#how-to-receive-files-shared-from-another-app}
 
-Das Freigabeblatt jeder App kann Dateien an FastMediaSorter senden, die sie dann dorthin kopiert, wo Sie möchten.
+Das Freigabeblatt jeder App kann Dateien an Fast Media Sorter & Organizer senden, die sie dann dorthin kopiert, wo Sie möchten.
 
 **Schritte:**
 
-1. Teilen Sie in der anderen App die Datei oder Dateien und wählen Sie **FastMediaSorter**.
+1. Teilen Sie in der anderen App die Datei oder Dateien und wählen Sie **Fast Media Sorter & Organizer**.
 2. Wählen Sie den Zielordner auf dem Empfangsbildschirm.
 3. Starten Sie den Kopiervorgang.
 

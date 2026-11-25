@@ -17,14 +17,26 @@
         android:paddingEnd="@dimen/padding_large"
         android:gravity="center_vertical">
         
-        <TextView
-            android:id="@+id/tvDialogTitle"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/renaming_files"
-            android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
-            android:textAlignment="viewStart"
-            android:paddingBottom="@dimen/padding_normal" />
+            android:baselineAligned="false"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingBottom="@dimen/padding_normal">
+
+            <TextView
+                android:id="@+id/tvDialogTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/renaming_files"
+                android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+                android:textAlignment="viewStart" />
+
+            <include layout="@layout/view_dialog_help_button" />
+
+        </LinearLayout>
 
         <TextView
             android:id="@+id/tvFileCount"

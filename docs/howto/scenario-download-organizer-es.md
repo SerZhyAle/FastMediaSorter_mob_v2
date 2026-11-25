@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Organizador de Descargas (Clasificación Rápida) - FastMediaSorter v2"
+title: "Organizador de Descargas (Clasificación Rápida) - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-download-organizer-es.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -11,7 +11,7 @@ permalink: /docs/howto/scenario-download-organizer-es.html
 
 > **Nivel:** Principiante &bull; **Edición:** Cualquiera (Standard, Lite, Photos, Legacy, VR, noLegal)
 
-**Clasificación Rápida** es la función estrella de FastMediaSorter: configura tus carpetas una vez, luego clasifica cientos de archivos con solo tocar un número. Sin arrastrar y soltar. Sin menús. Solo toca **1**, **2** o **3** - y el archivo se va al lugar correcto.
+**Clasificación Rápida** es la función estrella de Fast Media Sorter & Organizer: configura tus carpetas una vez, luego clasifica cientos de archivos con solo tocar un número. Sin arrastrar y soltar. Sin menús. Solo toca **1**, **2** o **3** - y el archivo se va al lugar correcto.
 
 **Ejemplo real:** tienes 200 archivos en tu carpeta de Descargas - capturas de pantalla, documentos de trabajo, fotos familiares, memes, recibos. Con Clasificación Rápida puedes clasificar los 200 en unos 5 minutos. Sin ella - buena suerte.
 
@@ -38,7 +38,7 @@ La carpeta aparece en la pantalla principal como una tarjeta.
 
 > **La carpeta de Descargas es donde tu navegador, Telegram, WhatsApp y otras apps guardan archivos.** Suele ser el lugar más desordenado de cualquier teléfono.
 
-![Pantalla principal de FastMediaSorter - tarjeta de recurso Descargas agregada, distintivo Local visible](screenshots/screenshot-dl-step1.png)
+![Pantalla principal de Fast Media Sorter & Organizer - tarjeta de recurso Descargas agregada, distintivo Local visible](screenshots/screenshot-dl-step1.png)
 
 ---
 
@@ -52,12 +52,12 @@ Piénsalo como carpetas físicas en tu escritorio. Ejemplos:
 - **Guardar** - cosas que vale la pena conservar a largo plazo
 - **Papelera** - archivos para eliminar después de revisarlos
 
-**Puedes crear estas carpetas directamente dentro de FastMediaSorter:**
+**Puedes crear estas carpetas directamente dentro de Fast Media Sorter & Organizer:**
 1. Abre el recurso Descargas
 2. Toca el botón de **menú <img src="../icons/doc/ic_more_vert.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** → **Crear carpeta**
 3. Escribe el nombre de la carpeta → toca **Aceptar**
 
-O crea las carpetas en el administrador de archivos normal de tu teléfono - aparecerán automáticamente en FastMediaSorter.
+O crea las carpetas en el administrador de archivos normal de tu teléfono - aparecerán automáticamente en Fast Media Sorter & Organizer.
 
 ---
 

@@ -5,8 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex">
 <title>Help - Welcome wizard</title>
 <link rel="stylesheet" href="help.css">
+<link rel="icon" type="image/png" href="img/product-mark.png">
 </head>
 <body class="help">
 <main class="container">
@@ -14,6 +16,7 @@
 <a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>Welcome wizard</span>
 </nav>
 <header class="hero">
+<img class="product-mark" src="img/product-mark.png" width="48" height="48" alt="Fast Media Sorter">
 <h1>Welcome wizard</h1>
 </header>
 <h2>What this is for</h2>
@@ -24,19 +27,19 @@
 </figure>
 <h2>In this order</h2>
 <ol class="order">
-<li>On the first page, choose your language <a class="ref" href="#language">6</a> and theme <a class="ref" href="#theme">7</a>. Everything you pick in the wizard can be changed later in Settings, so there is no wrong choice here.</li>
+<li>On the first page, choose your language <a class="ref" href="#language">6</a> and theme <span class="nb"><a class="ref" href="#theme">7</a>.</span> Everything you pick in the wizard can be changed later in Settings, so there is no wrong choice here.</li>
 <li>Press Next <a class="ref" href="#next">3</a> to reach the device profile page and tap the tile <a class="ref" href="#profiles">8</a> that matches your device. It tunes the defaults for you; tapping the selected tile again moves you on.</li>
 <li>Switch on the network sources you plan to use (10, 11, 12). The page is left out when the edition has none of them.</li>
 <li>On the capabilities page, turn on what you need (15 to 23) - audio, video, documents, text recognition, translation, streams, gestures. Optional parts download right there.</li>
 <li>On the permissions page, press Grant All <a class="ref" href="#grant-all">25</a> to go through the requests one by one. A permission you skip stays off, and you can come back to it later.</li>
-<li>If your edition offers it, make FastMediaSorter the default app for audio, video, images and documents (28 to 31).</li>
+<li>If your edition offers it, make Fast Media Sorter &amp; Organizer the default app for audio, video, images and documents (28 to 31).</li>
 <li>Press Finish <a class="ref" href="#finish">4</a> to close the wizard. Previous <a class="ref" href="#previous">1</a> steps back, Enable all <a class="ref" href="#enable-all">2</a> on the first page does the whole setup in one go, and Help <a class="ref" href="#help">5</a> opens this page.</li>
 </ol>
 <h2>The elements</h2>
 <div class="elements">
 <h3>Navigation</h3>
 <details class="el" id="previous">
-<summary><span class="mk">1</span><span><span class="name">Previous</span><span class="one">Goes back one page.</span></span></summary>
+<summary><span class="mk">1</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" fill="currentColor"/></svg>Previous</span><span class="one">Goes back one page.</span></span></summary>
 <div class="full">
 <p>It is hidden on the first page, where there is nothing to go back to.</p>
 </div>
@@ -51,7 +54,7 @@
 </div>
 </details>
 <details class="el" id="next">
-<summary><span class="mk">3</span><span><span class="name">Next</span><span class="one">Moves to the next page.</span></span></summary>
+<summary><span class="mk">3</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" fill="currentColor"/></svg>Next</span><span class="one">Moves to the next page.</span></span></summary>
 <div class="full">
 <p>On the last page it is replaced by Finish.</p>
 </div>
@@ -63,7 +66,7 @@
 </div>
 </details>
 <details class="el" id="help">
-<summary><span class="mk">5</span><span><span class="name">Help</span><span class="one">Opens help for this screen.</span></span></summary>
+<summary><span class="mk">5</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M11,18h2v-2h-2v2zM12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2zM12,20c-4.41,0 -8,-3.59 -8,-8s3.59,-8 8,-8 8,3.59 8,8 -3.59,8 -8,8zM12,6c-2.21,0 -4,1.79 -4,4h2c0,-1.1 0.9,-2 2,-2s2,0.9 2,2c0,2 -3,1.75 -3,5h2c0,-2.25 3,-2.5 3,-5 0,-2.21 -1.79,-4 -4,-4z" fill="currentColor"/></svg>Help</span><span class="one">Opens help for this screen.</span></span></summary>
 <div class="full">
 <p>You get the usual order of the wizard and what each control does.</p>
 </div>
@@ -117,7 +120,7 @@
 </div>
 </details>
 <details class="el" id="companion-site">
-<summary><span class="mk">13</span><span><span class="name">Get the Windows app</span><span class="one">Opens the page for the Windows companion app.</span></span></summary>
+<summary><span class="mk">13</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M19,19H5V5h7V3H5c-1.11,0 -2,0.9 -2,2v14c0,1.1 0.89,2 2,2h14c1.1,0 2,-0.9 2,-2v-7h-2v7zM14,3v2h3.59l-9.83,9.83 1.41,1.41L19,6.41V10h2V3h-7z" fill="currentColor"/></svg>Get the Windows app</span><span class="one">Opens the page for the Windows companion app.</span></span></summary>
 <div class="full">
 <p>If your media sits on a Windows PC, the companion shares those folders to this device in a couple of clicks, with no server setup.</p>
 </div>
@@ -203,34 +206,34 @@
 </div>
 </details>
 <details class="el" id="permission-list">
-<summary><span class="mk">27</span><span><span class="name">&quot;A few&quot; permissions</span><span class="one">Lists every permission this edition can ask for.</span></span></summary>
+<summary><span class="mk">27</span><span><span class="name">A few permissions</span><span class="one">Lists every permission this edition can ask for.</span></span></summary>
 <div class="full">
 <p>Each row says what the permission is for and has its own button to grant it or open the matching settings. Opting out means leaving a permission off; nothing is hidden from you.</p>
 </div>
 </details>
 <h3>Default Player</h3>
 <details class="el" id="default-audio">
-<summary><span class="mk">28</span><span><span class="name">Audio</span><span class="one">Makes FastMediaSorter the app that plays your audio files.</span></span></summary>
+<summary><span class="mk">28</span><span><span class="name">Audio</span><span class="one">Makes Fast Media Sorter &amp; Organizer the app that plays your audio files.</span></span></summary>
 <div class="full">
-<p>Android shows its own dialog: pick FastMediaSorter and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there.</p>
+<p>Android shows its own dialog: pick Fast Media Sorter &amp; Organizer and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there.</p>
 </div>
 </details>
 <details class="el" id="default-video">
-<summary><span class="mk">29</span><span><span class="name">Video</span><span class="one">Makes FastMediaSorter the app that plays your videos.</span></span></summary>
+<summary><span class="mk">29</span><span><span class="name">Video</span><span class="one">Makes Fast Media Sorter &amp; Organizer the app that plays your videos.</span></span></summary>
 <div class="full">
-<p>Android shows its own dialog: pick FastMediaSorter and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there.</p>
+<p>Android shows its own dialog: pick Fast Media Sorter &amp; Organizer and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there.</p>
 </div>
 </details>
 <details class="el" id="default-images">
-<summary><span class="mk">30</span><span><span class="name">Images</span><span class="one">Makes FastMediaSorter the app that opens your images.</span></span></summary>
+<summary><span class="mk">30</span><span><span class="name">Images</span><span class="one">Makes Fast Media Sorter &amp; Organizer the app that opens your images.</span></span></summary>
 <div class="full">
-<p>Android shows its own dialog: pick FastMediaSorter and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there.</p>
+<p>Android shows its own dialog: pick Fast Media Sorter &amp; Organizer and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there.</p>
 </div>
 </details>
 <details class="el" id="default-docs">
-<summary><span class="mk">31</span><span><span class="name">Documents</span><span class="one">Makes FastMediaSorter the app that opens your documents.</span></span></summary>
+<summary><span class="mk">31</span><span><span class="name">Documents</span><span class="one">Makes Fast Media Sorter &amp; Organizer the app that opens your documents.</span></span></summary>
 <div class="full">
-<p>Android shows its own dialog: pick FastMediaSorter and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there.</p>
+<p>Android shows its own dialog: pick Fast Media Sorter &amp; Organizer and tap Always. This is not permanent - Android keeps the choice in its own settings, and you can change it back there.</p>
 </div>
 </details>
 </div>
@@ -241,10 +244,11 @@
 <li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/welcome-and-setup.html"><b>First Launch and Setup Wizard</b><span class="pill gold">Guide</span></a></li>
 <li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/permissions-guide.html"><b>Understanding App Permissions</b><span class="pill gold">Guide</span></a></li>
 <li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/getting-started/main-screen-overview.html"><b>Navigating the Main Screen</b><span class="pill gold">Guide</span></a></li>
+<li><a href="https://serzhyale.github.io/FastMediaSorter_WEB/"><b>FastMediaSorter for Web - the browser version for macOS, Linux, ChromeOS, iOS and iPadOS</b><span class="pill gold">Link</span></a></li>
 <li><a href="index.html"><b>Help index</b></a></li>
 </ul>
 <footer class="help-foot">
-<span>Fast Media Sorter, 2026-10-26</span>
+<span>Fast Media Sorter, 2026-11-24</span>
 <a href="index.html">Help index</a>
 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
 </footer>

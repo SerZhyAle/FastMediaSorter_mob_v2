@@ -62,4 +62,44 @@ class BoundedGridPopupManagerTest {
     fun `no columns - the share is the whole width rather than a division by zero`() {
         assertEquals(1000 - 32, BoundedGridPopupManager.resolveCellMaxWidth(1000, 0, 32))
     }
+
+    @Test
+    fun `cells reach past the safe width - the overflow is the excess including the end padding`() {
+        assertEquals(754 - 704, BoundedGridPopupManager.resolveOverflow(746, 8, 704))
+    }
+
+    @Test
+    fun `cells end exactly at the safe width - no overflow`() {
+        assertEquals(0, BoundedGridPopupManager.resolveOverflow(696, 8, 704))
+    }
+
+    @Test
+    fun `cells well inside the safe width - overflow never goes negative`() {
+        assertEquals(0, BoundedGridPopupManager.resolveOverflow(300, 8, 704))
+    }
+
+    @Test
+    fun `popup fits at the anchor - no offset`() {
+        assertEquals(0, BoundedGridPopupManager.resolveHorizontalOffset(100, 400, 720, 0, 0))
+    }
+
+    @Test
+    fun `popup overflows the right margin - moves left by the excess`() {
+        assertEquals(-76, BoundedGridPopupManager.resolveHorizontalOffset(380, 400, 720, 0, 0))
+    }
+
+    @Test
+    fun `popup starts inside the left margin - moves right to the margin`() {
+        assertEquals(12, BoundedGridPopupManager.resolveHorizontalOffset(4, 400, 720, 0, 0))
+    }
+
+    @Test
+    fun `popup wider than the safe span - the left margin wins`() {
+        assertEquals(16 - 40, BoundedGridPopupManager.resolveHorizontalOffset(40, 720, 720, 0, 0))
+    }
+
+    @Test
+    fun `side bar inset - the right margin is counted from the bar`() {
+        assertEquals(-68, BoundedGridPopupManager.resolveHorizontalOffset(300, 400, 720, 0, 72))
+    }
 }

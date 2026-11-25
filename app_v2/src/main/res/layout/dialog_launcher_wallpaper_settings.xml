@@ -27,6 +27,8 @@
             android:textSize="@dimen/text_size_title_dialog"
             android:textStyle="bold" />
 
+        <include layout="@layout/view_dialog_help_button" />
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnClose"
             style="@style/Widget.FastMediaSorter.Button.DialogConfirm"
@@ -58,6 +60,7 @@
 
             <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
                 android:id="@+id/rowScreenCount"
+                app:sdr_icon="@drawable/ic_display"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/margin_tiny"
@@ -68,6 +71,7 @@
 
             <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                 android:id="@+id/rowShowScreenNumber"
+                app:str_icon="@drawable/ic_go_to_page"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/margin_normal"
@@ -268,6 +272,7 @@
 
                 <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
                     android:id="@+id/rowWallpaperPalette"
+                    app:sdr_icon="@drawable/ic_color_palette"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_tiny"

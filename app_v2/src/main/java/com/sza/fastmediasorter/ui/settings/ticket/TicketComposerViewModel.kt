@@ -1,20 +1,30 @@
 package com.sza.fastmediasorter.ui.settings.ticket
 
+import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.domain.identity.IdentitySignInResult
+import com.sza.fastmediasorter.domain.model.feedback.FeedbackFolderChoice
+import com.sza.fastmediasorter.domain.model.ticket.TicketDestination
+import com.sza.fastmediasorter.domain.model.ticket.TicketOrigin
 import com.sza.fastmediasorter.domain.model.ticket.TicketOutboxEntry
 import com.sza.fastmediasorter.domain.model.ticket.TicketProject
 import com.sza.fastmediasorter.domain.ticket.TicketAttachmentSource
 import com.sza.fastmediasorter.domain.ticket.TicketDraft
+import com.sza.fastmediasorter.domain.usecase.feedback.ObserveFeedbackFoldersUseCase
 import com.sza.fastmediasorter.domain.usecase.ticket.FileTicketUseCase
 import com.sza.fastmediasorter.domain.usecase.ticket.GetTicketProjectsUseCase
+import com.sza.fastmediasorter.domain.usecase.ticket.GrantTicketDriveAccessUseCase
 import com.sza.fastmediasorter.domain.usecase.ticket.ObserveTicketOutboxUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /** S4554: a one-shot message of the composer. */
@@ -22,6 +32,11 @@ sealed interface TicketComposerNotice {
     data object Queued : TicketComposerNotice
     data object EmptyDraft : TicketComposerNotice
     data class StageFailed(val reason: String) : TicketComposerNotice
+
+    /** S4765: the Drive consent screen ended with a grant, without one, or could not be shown. */
+    data object DriveAccessGranted : TicketComposerNotice
+    data object DriveAccessDeclined : TicketComposerNotice
+    data object DriveAccessFailed : TicketComposerNotice
 }
 
 /** S4554: what the composer shows; [projects] null means `projects.json` is not available. */
@@ -31,14 +46,20 @@ data class TicketComposerUiState(
     val projectsLoaded: Boolean = false,
     val busy: Boolean = false,
     val notice: TicketComposerNotice? = null,
-    val sentCount: Int = 0
+    val sentCount: Int = 0,
+    /** S4663: the chosen destination's resource; null is Google Drive, the default on every open. */
+    val destinationId: Long? = null,
+    /** S4765: a Drive packet waits only for the consent no worker can ask for. */
+    val driveAccessNeeded: Boolean = false
 )
 
 @HiltViewModel
 class TicketComposerViewModel @Inject constructor(
     private val fileTicket: FileTicketUseCase,
     private val getProjects: GetTicketProjectsUseCase,
-    private val observeOutbox: ObserveTicketOutboxUseCase
+    private val observeOutbox: ObserveTicketOutboxUseCase,
+    private val grantAccess: GrantTicketDriveAccessUseCase,
+    observeFolders: ObserveFeedbackFoldersUseCase
 ) : ViewModel() {
 
     private val mutableState = MutableStateFlow(TicketComposerUiState())
@@ -46,12 +67,28 @@ class TicketComposerViewModel @Inject constructor(
 
     val outbox: StateFlow<List<TicketOutboxEntry>> = observeOutbox()
 
+    /** S4663: the writable network folders offered next to Drive; the feedback-saved id inside stays that form's. */
+    val folders: StateFlow<FeedbackFolderChoice> = observeFolders().stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS),
+        FeedbackFolderChoice(),
+    )
+
     init {
+        viewModelScope.launch { loadProjects() }
         viewModelScope.launch {
-            val projects = getProjects()
-            mutableState.update { it.copy(projects = projects, projectsLoaded = true) }
+            outbox.collect { rows ->
+                val needed = rows.any(TicketOutboxEntry::needsDriveAccess)
+                Timber.d("S4765: driveAccessNeeded=%b rows=%d", needed, rows.size)
+                mutableState.update { it.copy(driveAccessNeeded = needed) }
+            }
         }
         refresh()
+    }
+
+    private suspend fun loadProjects() {
+        val projects = getProjects()
+        mutableState.update { it.copy(projects = projects, projectsLoaded = true) }
     }
 
     fun addAttachments(sources: List<TicketAttachmentSource>) {
@@ -73,9 +110,17 @@ class TicketComposerViewModel @Inject constructor(
             return
         }
         val project = current.projects?.getOrNull(projectIndex - 1)?.key
+        Timber.d("S4663: send destination=%s project=%s", current.destinationId ?: "drive", project ?: "none")
         mutableState.update { it.copy(busy = true) }
         viewModelScope.launch {
-            val staged = fileTicket(TicketDraft(text, project, current.attachments))
+            val draft = TicketDraft(
+                text = text,
+                project = project,
+                attachments = current.attachments,
+                destination = current.destinationId?.let(TicketDestination::Folder) ?: TicketDestination.Drive,
+                origin = TicketOrigin.TICKET
+            )
+            val staged = fileTicket(draft)
             mutableState.update { state ->
                 staged.fold(
                     onSuccess = {
@@ -95,6 +140,31 @@ class TicketComposerViewModel @Inject constructor(
         }
     }
 
+    fun chooseDestination(resourceId: Long?) {
+        mutableState.update { it.copy(destinationId = resourceId) }
+    }
+
+    /** S4765: shows the Drive consent screen; a grant reloads the project list and asks for a delivery pass. */
+    fun grantDriveAccess(activity: Activity) {
+        if (mutableState.value.busy) return
+        Timber.d("S4765: grantDriveAccess tapped")
+        mutableState.update { it.copy(busy = true) }
+        viewModelScope.launch {
+            val result = grantAccess(activity)
+            Timber.d("S4765: consent result=%s", result::class.simpleName)
+            if (result is IdentitySignInResult.Success) {
+                loadProjects()
+                refresh()
+            }
+            val notice = when (result) {
+                is IdentitySignInResult.Success -> TicketComposerNotice.DriveAccessGranted
+                IdentitySignInResult.Cancelled -> TicketComposerNotice.DriveAccessDeclined
+                is IdentitySignInResult.Failed -> TicketComposerNotice.DriveAccessFailed
+            }
+            mutableState.update { it.copy(busy = false, notice = notice) }
+        }
+    }
+
     fun refresh() {
         viewModelScope.launch { observeOutbox.refresh() }
     }
@@ -105,5 +175,9 @@ class TicketComposerViewModel @Inject constructor(
 
     fun consumeNotice() {
         mutableState.update { it.copy(notice = null) }
+    }
+
+    private companion object {
+        const val STOP_TIMEOUT_MS = 5_000L
     }
 }

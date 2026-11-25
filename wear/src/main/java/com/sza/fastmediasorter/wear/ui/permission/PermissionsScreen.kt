@@ -34,6 +34,9 @@ import timber.log.Timber
 /**
  * Screen that requests runtime permissions for media access.
  * Required for Android 13+ (API 33+) to access audio, video, and images.
+ *
+ * Drawn after the first-run walk has been recorded done and outside the navigation graph, so no earlier
+ * step exists to return to: Back deliberately leaves the app, as it does on any root destination.
  */
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable

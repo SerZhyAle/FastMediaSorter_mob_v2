@@ -5,8 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex">
 <title>Help - Streams</title>
 <link rel="stylesheet" href="help.css">
+<link rel="icon" type="image/png" href="img/product-mark.png">
 </head>
 <body class="help">
 <main class="container">
@@ -14,6 +16,7 @@
 <a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>Streams</span>
 </nav>
 <header class="hero">
+<img class="product-mark" src="img/product-mark.png" width="48" height="48" alt="Fast Media Sorter">
 <h1>Streams</h1>
 </header>
 <h2>What this is for</h2>
@@ -26,11 +29,11 @@
 <ol class="order">
 <li>Open Streams from the programs in the resource list. While the list is empty, Add stream <a class="ref" href="#empty-import">15</a> takes the address of one station or channel, and Import list <a class="ref" href="#scroll-top">16</a> brings in a ready list.</li>
 <li>To fill the list with the built-in catalog, press Import catalog <a class="ref" href="#menu-add">23</a> in the toolbar. The banner <a class="ref" href="#catalog-banner">2</a> may offer the same update when you open the screen.</li>
-<li>Find a channel: type a few letters into Search <a class="ref" href="#search">3</a>, tap the video, audio or own-streams button (4, 5, 6), or open Filter <a class="ref" href="#filter">7</a> for category, topic, language and country. Collections <a class="ref" href="#devices-header">9</a> are hand-picked sets, shown when the catalog has them.</li>
+<li>Find a channel: type a few letters into Search <span class="nb"><a class="ref" href="#search">3</a>,</span> tap the video, audio or own-streams button (4, 5, 6), or open Filter <a class="ref" href="#filter">7</a> for category, topic, language and country. Collections <a class="ref" href="#devices-header">9</a> are hand-picked sets, shown when the catalog has them.</li>
 <li>Sort <a class="ref" href="#sort">8</a> sets the order, and the view button <a class="ref" href="#import-catalog">22</a> switches between rows and tiles.</li>
 <li>Tap a channel in the list <a class="ref" href="#empty-add">14</a> to play it. Radio plays right here, with Stop <a class="ref" href="#view-toggle">21</a> at the bottom; video opens in the full-screen player.</li>
-<li>Press and hold a channel to pin it. Pinned channels collect under Pinned <a class="ref" href="#main-header">12</a> above Channels <a class="ref" href="#channel-list">13</a>; tap a header to fold its section.</li>
-<li>Broadcasts of your other devices wait under <a class="ref" href="#devices-portal">10</a>. Refresh channel status <a class="ref" href="#menu-clear">27</a> checks which channels answer, and Help <a class="ref" href="#add-url">29</a> opens this page.</li>
+<li>Press and hold a channel to pin it. Pinned channels collect under Pinned <a class="ref" href="#main-header">12</a> above Channels <span class="nb"><a class="ref" href="#channel-list">13</a>;</span> tap a header to fold its section.</li>
+<li>Broadcasts of your other devices wait under <span class="nb"><a class="ref" href="#devices-portal">10</a>.</span> Refresh channel status <a class="ref" href="#menu-clear">27</a> checks which channels answer, and Help <a class="ref" href="#add-url">29</a> opens this page.</li>
 </ol>
 <h2>The elements</h2>
 <div class="elements">
@@ -44,7 +47,7 @@
 <details class="el" id="catalog-banner">
 <summary><span class="mk">2</span><span><span class="name">Update the channel list?</span><span class="one">Offers to refresh the channel list from the built-in catalog.</span></span></summary>
 <div class="full">
-<p>The banner appears at the top only when Updating the channel list is set to Suggest when I open in the Streams section of Settings, and the last update was more than six hours ago or never happened. Update downloads the catalog; the close button dismisses the banner and changes nothing. It does not fade by itself, so you can answer when you are ready. Nothing is downloaded until you press Update.</p>
+<p>The banner appears at the top only when Updating the channel list is set to Suggest when I open in the Streams section of Settings, and the channel list published on the server is newer than the one on this device, or the device has none at all. Update downloads the catalog; the close button hides the banner until a newer list is published. It does not fade by itself, so you can answer when you are ready. Nothing is downloaded until you press Update.</p>
 </div>
 </details>
 <details class="el" id="search">
@@ -54,19 +57,19 @@
 </div>
 </details>
 <details class="el" id="media-video">
-<summary><span class="mk">4</span><span><span class="name">Show video streams only</span><span class="one">Shows only video channels, as tiles with picture previews.</span></span></summary>
+<summary><span class="mk">4</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17,10.5V7c0,-0.55 -0.45,-1 -1,-1H4c-0.55,0 -1,0.45 -1,1v10c0,0.55 0.45,1 1,1h12c0.55,0 1,-0.45 1,-1v-3.5l4,4v-11l-4,4z" fill="currentColor"/></svg>Show video streams only</span><span class="one">Shows only video channels, as tiles with picture previews.</span></span></summary>
 <div class="full">
 <p>Tap it to see the video channels that came from the catalog or an imported list; tap it again to bring everything back. Choosing it switches the list to tiles so that previews can show, and your earlier view returns when you leave this filter. Streams you added by hand are not counted here - they are under the own-streams button.</p>
 </div>
 </details>
 <details class="el" id="media-audio">
-<summary><span class="mk">5</span><span><span class="name">Show audio streams only</span><span class="one">Shows only radio and other audio channels.</span></span></summary>
+<summary><span class="mk">5</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12,3v9.28c-0.47,-0.17 -0.97,-0.28 -1.5,-0.28C8.01,12 6,14.01 6,16.5S8.01,21 10.5,21c2.31,0 4.2,-1.75 4.45,-4H15V6h4V3h-7z" fill="currentColor"/></svg>Show audio streams only</span><span class="one">Shows only radio and other audio channels.</span></span></summary>
 <div class="full">
 <p>Tap it to see the audio channels that came from the catalog or an imported list; tap it again to show everything. Streams you added by hand are under the own-streams button.</p>
 </div>
 </details>
 <details class="el" id="media-own">
-<summary><span class="mk">6</span><span><span class="name">Show manually added streams only</span><span class="one">Shows only the streams you added by hand.</span></span></summary>
+<summary><span class="mk">6</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3,17.25V21h3.75L17.81,9.94l-3.75,-3.75L3,17.25zM20.71,7.04c0.39,-0.39 0.39,-1.02 0,-1.41l-2.34,-2.34c-0.39,-0.39 -1.02,-0.39 -1.41,0l-1.83,1.83 3.75,3.75 1.83,-1.83z" fill="currentColor"/></svg>Show manually added streams only</span><span class="one">Shows only the streams you added by hand.</span></span></summary>
 <div class="full">
 <p>Handy when the catalog holds thousands of channels and you want your own few. Channels that came with an imported playlist do not count as your own. Tap it again to clear.</p>
 </div>
@@ -78,7 +81,7 @@
 </div>
 </details>
 <details class="el" id="sort">
-<summary><span class="mk">8</span><span><span class="name">Sort</span><span class="one">Chooses the order of the channels.</span></span></summary>
+<summary><span class="mk">8</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3,18h6v-2H3v2zM3,6v2h18V6H3zM3,13h12v-2H3v2z" fill="currentColor"/></svg>Sort</span><span class="one">Chooses the order of the channels.</span></span></summary>
 <div class="full">
 <p>Pick By name, By topic, By language, By country or Recently added; the order is remembered. Pinned channels keep their own order in their own section, so Sort changes the Channels section. With a collection selected, a sort replaces the curator's order but keeps you inside the collection.</p>
 </div>
@@ -292,7 +295,7 @@
 <li><a href="index.html"><b>Help index</b></a></li>
 </ul>
 <footer class="help-foot">
-<span>Fast Media Sorter, 2026-10-26</span>
+<span>Fast Media Sorter, 2026-11-24</span>
 <a href="index.html">Help index</a>
 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
 </footer>

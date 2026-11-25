@@ -4,6 +4,7 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.core.share.ShareableContent
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
@@ -58,6 +59,7 @@ class PlayerCommandPanelCallbackImpl(
 
     override fun onSendToClicked() {
         val content = buildShareableContent() ?: return
+        Timber.d("S4569: top-bar send-to payload carries text=%s", content.text != null)
         val settings = activity.currentSettings ?: return
         // S0681: the pinned «Select resource..» row reuses the player's existing copy dialog, which
         // already excludes the current resource and honours the goToNextAfterCopy setting.
@@ -75,6 +77,12 @@ class PlayerCommandPanelCallbackImpl(
             menu, order, content, settings, activity,
             onPickResource = { activity.dialogAndUiStateManager.showCopyDialog() },
         )
+    }
+
+    override fun isTextEditorOpen(): Boolean = activity._textViewerManager?.isEditorOpen() == true
+
+    override fun onEditorOverflowItemsRequested(menu: android.view.Menu) {
+        activity._textViewerManager?.addEditorOverflowItems(menu)
     }
 
     // Builds the unified-menu payload for the current file. Local file: a FileProvider Uri is ready
@@ -104,6 +112,8 @@ class PlayerCommandPanelCallbackImpl(
             uris = listOfNotNull(localUri),
             mime = mimeTypeForFile(file.name, file.type),
             mediaType = file.type,
+            // A note also carries its text so Keep-text works here as it does in the editor's menu.
+            text = if (file.type == MediaType.TEXT) activity._textViewerManager?.shareableText() else null,
             displayName = file.name,
             mediaFile = file,
             sourcePath = if (isRemote) file.path else null,
@@ -306,6 +316,16 @@ class PlayerCommandPanelCallbackImpl(
         activity.dialogHelper.showReaderSettingsDialog()
     }
 
+    override fun onTextZoomInClicked() {
+        Timber.d("S4866: overflow Zoom in tapped")
+        activity.textViewerManager.zoomTextIn()
+    }
+
+    override fun onTextZoomOutClicked() {
+        Timber.d("S4866: overflow Zoom out tapped")
+        activity.textViewerManager.zoomTextOut()
+    }
+
     override fun onReadAloudClicked() {
         val currentFile = viewModel.state.value.currentFile ?: return
         when (currentFile.type) {
@@ -395,7 +415,11 @@ class PlayerCommandPanelCallbackImpl(
     private fun buildShareUri(path: String): Uri? {
         if (path.contains("://") || path.startsWith("cloud:/")) return null // remote path - materialized on dispatch
         return try {
-            FileProvider.getUriForFile(activity, "${activity.packageName}.fileprovider", File(path))
+            // getUriForFile parses the provider's path XML and canonicalises the file, and the menu
+            // builders that call this must populate the menu before they return, so it cannot move off-main.
+            StrictModeHelper.allowDiskReads {
+                FileProvider.getUriForFile(activity, "${activity.packageName}.fileprovider", File(path))
+            }
         } catch (e: Exception) {
             Timber.w("SendTo: FileProvider URI failed for %s: %s", path, e.message)
             null

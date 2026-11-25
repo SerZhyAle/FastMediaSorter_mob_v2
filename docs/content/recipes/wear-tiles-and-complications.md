@@ -2,7 +2,7 @@
 page_id: wear.tiles-and-complications
 title: One Swipe from the Watch Face - Tiles and Complications
 nav_title: Tiles and complications
-description: How to add the FastMediaSorter tiles to the watch's tile carousel, point a Resource or Stream tile at the place you want, and put the Last Resource, Favorites and Now Playing complications on your watch face.
+description: How to add the Fast Media Sorter & Organizer tiles to the watch's tile carousel, point a Resource or Stream tile at the place you want, and put the Last Resource, Favorites and Now Playing complications on your watch face.
 category: Wear OS Watch
 category_slug: wear
 ticket: S2964
@@ -14,7 +14,7 @@ canonical_url: documentation/wear/tiles-and-complications.html
 why: |
   Opening an app on a watch means pressing the button, scrolling the apps list, tapping the icon and then finding your place inside. For the one server you listen to every evening, or the radio station you start every morning, that is too long.
 
-  [Tiles](term:tile) and [complications](term:complication) cut it to one gesture. A tile is a whole card you reach by swiping sideways from the watch face; a complication is a small spot on the watch face itself. FastMediaSorter offers five tiles and three complications, and each one opens the watch app exactly where you need it.
+  [Tiles](term:tile) and [complications](term:complication) cut it to one gesture. A tile is a whole card you reach by swiping sideways from the watch face; a complication is a small spot on the watch face itself. Fast Media Sorter & Organizer offers five tiles and three complications, and each one opens the watch app exactly where you need it.
 ingredients:
   - "The [watch app](term:watch-app) installed - see [installing and pairing the watch](page:wear.installation-and-pairing)."
   - "For every tile except Programs, and for the complications: the full version of the watch app. *Sideload version only* - see the [noLegal edition](term:nolegal-edition)."
@@ -27,17 +27,17 @@ steps:
     text: |
       1. On the watch face, swipe left to the tiles.
       2. Swipe to the end of the tiles and tap **+** (**Add tile**), or touch and hold any tile to edit the carousel.
-      3. Pick one of the FastMediaSorter tiles: **Programs**, **Sections**, **Resource Tile**, **Stream Tile** or **Favorites Tile**.
+      3. Pick one of the Fast Media Sorter & Organizer tiles: **Programs**, **Sections**, **Resource Tile**, **Stream Tile** or **Favorites Tile**.
 
       The exact wording of the carousel editor comes from your watch maker; Google describes the standard steps in the [Wear OS Help Center](https://support.google.com/wearos). You can also add and arrange tiles from the watch maker's app on the phone.
     image_bookmark:
       shot_id: wear.tile-picker-carousel
       device_profile: watch
       screen_state: wear-system-add-tile-list
-      alt: The Wear OS Add tile list with the FastMediaSorter tiles Programs, Sections, Resource Tile, Stream Tile and Favorites Tile
-      caption: "The FastMediaSorter tiles in the Add tile list."
+      alt: The Wear OS Add tile list with the Fast Media Sorter & Organizer tiles Programs, Sections, Resource Tile, Stream Tile and Favorites Tile
+      caption: "The Fast Media Sorter & Organizer tiles in the Add tile list."
       title: "Screenshot: Adding a tile"
-      desc: Round watch, system Add tile list scrolled to the FastMediaSorter entries.
+      desc: Round watch, system Add tile list scrolled to the Fast Media Sorter & Organizer entries.
   - number: 2
     id: grid-tiles
     title: Programs and Sections - ready-made shortcut grids
@@ -84,7 +84,7 @@ steps:
     id: complications
     title: Put a complication on the watch face
     text: |
-      *Sideload version only.* Touch and hold the watch face, tap **Customize** (or the pencil), move to the complication slots and tap the one to fill. Choose FastMediaSorter and one of its three complications:
+      *Sideload version only.* Touch and hold the watch face, tap **Customize** (or the pencil), move to the complication slots and tap the one to fill. Choose FastMedia Wear and one of its three complications:
 
       - **Last Resource** - "Shortcut to open the most recently used media resource". Shows its name; a tap opens it.
       - **Favorites** - "Shows favorites count and opens favorites list".
@@ -92,12 +92,12 @@ steps:
 
       Which slots exist and how the editor looks depends on your watch face; the [Wear OS Help Center](https://support.google.com/wearos) describes the usual steps. The word "complication" appears only in that editor, never in the app itself.
 
-      On the separate [FastMediaSorter Watch Face](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface), a free watch face for Wear OS 6 and newer, the up to eight round buttons are complication slots too: set each one in the face editor on the watch, or from the phone's Wear settings, and choose FastMediaSorter shortcuts or other watch data. The buttons appear together with the FastMediaSorter watch app.
+      On the separate [FastMediaSorter Watch Face](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter.watchface), a free watch face for Wear OS 6 and newer, the up to eight round buttons are complication slots too: set each one in the face editor on the watch, or from the phone's Wear settings, and choose Fast Media Sorter & Organizer shortcuts or other watch data. The buttons appear together with the FastMediaSorter watch app.
     image_bookmark:
       shot_id: wear.complication-now-playing
       device_profile: watch
       screen_state: wear-watch-face-now-playing-complication
-      alt: A watch face with the FastMediaSorter Now Playing complication showing the current track name
+      alt: A watch face with the Fast Media Sorter & Organizer Now Playing complication showing the current track name
       caption: "The Now Playing complication on the watch face."
       title: "Screenshot: Now Playing complication"
       desc: Round watch face with one complication slot filled by Now Playing, a track title visible.
@@ -128,4 +128,4 @@ next_recipes:
 
 <sub class="doc-stamp">26.10.07 01:10</sub>
 
-Add the FastMediaSorter [tiles](term:tile) to the watch's tile carousel, point a Resource or Stream tile at the place you want, and put the Last Resource, Favorites and Now Playing [complications](term:complication) on your watch face.
+Add the Fast Media Sorter & Organizer [tiles](term:tile) to the watch's tile carousel, point a Resource or Stream tile at the place you want, and put the Last Resource, Favorites and Now Playing [complications](term:complication) on your watch face.

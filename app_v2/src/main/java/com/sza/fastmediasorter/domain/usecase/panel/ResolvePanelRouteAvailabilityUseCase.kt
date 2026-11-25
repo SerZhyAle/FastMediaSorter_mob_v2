@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
+import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
 import com.sza.fastmediasorter.domain.filler.FillerPendingCleanup
@@ -12,8 +13,13 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.networkmonitor.NetworkMonitorContract
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -33,6 +39,8 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
     private val launcherModeContract: LauncherModeContract,
     private val screenVideoRecordingControllers: Set<@JvmSuppressWildcards ScreenVideoRecordingController>,
     private val fillerPendingCleanup: FillerPendingCleanup,
+    // Defaulted so the tests that build this resolver by hand keep their real-IO behaviour.
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
 
     /**
@@ -54,17 +62,27 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
         val isLaunchable: Boolean get() = availableInBuild && enabledAtRuntime
     }
 
-    suspend operator fun invoke(routeKey: String): Availability = withContext(Dispatchers.IO) {
+    suspend operator fun invoke(routeKey: String): Availability = withContext(ioDispatcher) {
         resolve(routeKey, settingsRepository.getSettings().first())
     }
 
     /** Availability for every catalog route in one settings read (used by the picker and the seed). */
-    suspend fun all(): Map<String, Availability> = withContext(Dispatchers.IO) {
-        val settings = settingsRepository.getSettings().first()
-        InternalRouteCatalog.all().associate { route ->
-            route.key to resolve(route.key, settings)
-        }
+    suspend fun all(): Map<String, Availability> = withContext(ioDispatcher) {
+        allFor(settingsRepository.getSettings().first())
     }
+
+    /**
+     * S4828: [all] re-evaluated on every settings emission, so a surface left open while a program is
+     * switched off follows the toggle instead of the state it was drawn with.
+     */
+    fun observeAll(): Flow<Map<String, Availability>> =
+        settingsRepository.getSettings()
+            .map { allFor(it) }
+            .distinctUntilChanged()
+            .flowOn(ioDispatcher)
+
+    private fun allFor(settings: AppSettings): Map<String, Availability> =
+        InternalRouteCatalog.all().associate { route -> route.key to resolve(route.key, settings) }
 
     // S0912: every route's availability lives in this one chain, so a future route cannot silently
     // drift into "insufficient": either it declares its own availableInBuild/enabledAtRuntime pair
@@ -111,8 +129,17 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
                 Availability(availableInBuild = true, enabledAtRuntime = settings.enableSystemInfo)
             // S2922: Tourist dashboard sub-program - universal across flavors.
             InternalRouteCatalog.KEY_TOURIST_INFO ->
-                Availability(availableInBuild = true, enabledAtRuntime = settings.enableTourist).also {
-                }
+                Availability(availableInBuild = true, enabledAtRuntime = settings.enableTourist)
+            // S4568: notes open in the text editor, which ships only where documents do.
+            InternalRouteCatalog.KEY_NOTES ->
+                Availability(
+                    availableInBuild = mediaCapabilities.supportsDocuments,
+                    enabledAtRuntime = settings.enableNotes,
+                )
+            // S4573: the form, Send to.. and the outbox exist in every build; only the computer folder
+            // needs the exchange layer, and the form hides that selector on its own.
+            InternalRouteCatalog.KEY_FEEDBACK ->
+                Availability(availableInBuild = true, enabledAtRuntime = settings.enableFeedback)
             // S1883: unlike system information, the companion needs the watch bridge, so it declares the
             // same capability-and-switch pair the quick voice route uses rather than a hardcoded true.
             // S2881: the two listen calls are that bridge in action, so they answer with the same pair -

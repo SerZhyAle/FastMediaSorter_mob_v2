@@ -5,7 +5,7 @@ description: "Open the photos, videos and music of one of your devices on your o
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/
 ---
-<sub class="doc-stamp">26.10.22 00:25</sub>
+<sub class="doc-stamp">26.11.23 11:22</sub>
 
 # Your files on all your devices {#media-exchange-between-your-devices}
 
@@ -37,12 +37,13 @@ Two more sections cover what needs no setup of your own:
 
 ## Which program does what {#which-program-does-what}
 
-- **Android phone or tablet** - FastMediaSorter opens the folders of your other devices and your clouds, shares its own folders, sends files between your devices via Google Drive, goes live with its camera, microphone, screen or a ready file, plays broadcasts and sends them to your other devices and to a Chromecast.
+- **Android phone or tablet** - Fast Media Sorter & Organizer opens the folders of your other devices and your clouds, shares its own folders, sends files between your devices via Google Drive, goes live with its camera, microphone, screen or a ready file, plays broadcasts and sends them to your other devices and to a Chromecast.
 - **Wear OS watch** - FastMedia Wear joins your account through the phone, then works on its own Wi-Fi or mobile data: it opens your folders, plays broadcasts, goes live with its microphone for up to four listeners, takes a broadcast another of your devices sends to it, and sends its own files with Send to.. More: [the watch on your account](watch-exchange.html).
-- **Android TV** - FastMediaSorter opens your folders and clouds and plays broadcasts and internet streams.
-- **VR headset** - FastMediaSorter, VR edition, opens your folders and clouds and plays broadcasts and internet streams inside the headset.
+- **Android TV** - Fast Media Sorter & Organizer opens your folders and clouds and plays broadcasts and internet streams.
+- **VR headset** - Fast Media Sorter & Organizer, VR edition, opens your folders and clouds and plays broadcasts and internet streams inside the headset.
 - **Windows PC** - [Fast Media Sorter & Sharing for Windows](windows-servers.html) has [three optional parts](windows-servers.html#three-parts): a viewer and sorter for photos and videos; folder sharing, which shares the folders you pick with your phones and pairs a phone by QR code or by a configuration file; and the exchange server, the meeting point of your devices on one account. Start [viewer first](windows-servers.html#viewer-first), or [server first](windows-servers.html#server-first) for a PC that only serves, with nobody signed in.
-- **Windows PC** - [STREAMS Player](https://serzhyale.github.io/StreamsPlayer/) plays live broadcasts from a phone or a watch.
+- **Windows PC** - [STREAMS Player](https://serzhyale.github.io/StreamsPlayer/) plays live broadcasts from a phone or a watch. [Media exchange guide for STREAMS Player](streamsplayer.html).
+- **Browser** - [FastMediaSorter for Web](https://serzhyale.github.io/FastMediaSorter_WEB/) joins the same exchange account as another device in your browser and uses the same exchange protocol as the native programs.
 
 ## Step-by-step guides by scenario {#step-by-step-guides-by-scenario}
 
@@ -70,8 +71,9 @@ Two more sections cover what needs no setup of your own:
 
 ## The family of programs {#the-family-of-programs}
 
-- [FastMediaSorter for Android](../../index.html) - phone, tablet, TV, watch and VR headset.
+- [Fast Media Sorter & Organizer for Android](../../index.html) - phone, tablet, TV, watch and VR headset.
 - [Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) - on the PC: a viewer and sorter, folder sharing and the exchange server, each an optional part; [what each part is](windows-servers.html#three-parts).
+- [FastMediaSorter for Web](https://serzhyale.github.io/FastMediaSorter_WEB/) - in a browser, as another device of your account.
 - [STREAMS Player](https://serzhyale.github.io/StreamsPlayer/) - live streams and broadcasts on Windows.
 
 The detailed guides of the Android app are in its [documentation](../../documentation/index.html).

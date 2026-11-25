@@ -30,7 +30,7 @@ Before connecting, you need:
    - Username (if required)
    - Password (if required)
 
-## Setup Steps in FastMediaSorter
+## Setup Steps in Fast Media Sorter & Organizer {#setup-steps-in-fastmediasorter}
 
 ### Step 1: Open Network Storage Tab
 

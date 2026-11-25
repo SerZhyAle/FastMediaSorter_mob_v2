@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Usar o App como Sua Tela Inicial - FastMediaSorter v2"
+title: "Usar o App como Sua Tela Inicial - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-launcher-mode-pt.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -11,7 +11,7 @@ permalink: /docs/howto/scenario-launcher-mode-pt.html
 
 > **Nível:** Iniciante &bull; **Edição:** Standard / noLegal
 
-O FastMediaSorter pode substituir a tela inicial do seu dispositivo pela sua própria área de trabalho - suas pastas, um relógio, a previsão do tempo, seus apps e uma barra de tarefas ao longo de uma das bordas. Se você já usou uma área de trabalho do Windows, isso vai parecer familiar: as coisas ficam onde você as coloca, e um botão Iniciar abre o menu. Isso se chama **modo launcher**.
+O Fast Media Sorter & Organizer pode substituir a tela inicial do seu dispositivo pela sua própria área de trabalho - suas pastas, um relógio, a previsão do tempo, seus apps e uma barra de tarefas ao longo de uma das bordas. Se você já usou uma área de trabalho do Windows, isso vai parecer familiar: as coisas ficam onde você as coloca, e um botão Iniciar abre o menu. Isso se chama **modo launcher**.
 
 **Exemplo real:** um tablet antigo na parede da cozinha. Em vez de uma grade de ícones de apps, você tem o relógio, a previsão do tempo de hoje, a pasta de fotos do seu NAS e um botão que liga o rádio - tudo na tela que aparece quando ele acorda.
 
@@ -29,7 +29,7 @@ O FastMediaSorter pode substituir a tela inicial do seu dispositivo pela sua pr�
 
 1. Abra **Configurações → Geral**
 2. Ative **Tornar este app a tela inicial**
-3. O Android pede para você confirmar. No Android 10 e mais recente é uma única pergunta - "Permitir que o FastMediaSorter seja seu app Início?" - então permita. Em versões mais antigas, o seletor clássico aparece na próxima vez que você pressionar Início: escolha o FastMediaSorter e toque em **Sempre**, ou **Só desta vez** para experimentar primeiro.
+3. O Android pede para você confirmar. No Android 10 e mais recente é uma única pergunta - "Permitir que o Fast Media Sorter & Organizer seja seu app Início?" - então permita. Em versões mais antigas, o seletor clássico aparece na próxima vez que você pressionar Início: escolha o Fast Media Sorter & Organizer e toque em **Sempre**, ou **Só desta vez** para experimentar primeiro.
 4. Pressione **Início**
 
 > **Acabou de instalar o app?** Há um atalho: marque **Usar como tela inicial** na primeira página de boas-vindas. A configuração não é interrompida por uma caixa de diálogo do sistema - a confirmação do Android aparece na primeira vez que você abrir **Configurações → Geral** depois disso.
@@ -55,7 +55,7 @@ A área de trabalho não é uma grade vazia no primeiro dia. Ela chega com cerca
 A barra de tarefas fica ao longo da borda inferior. Ela contém o botão Iniciar, os apps que você usou recentemente, os que você fixou, e uma pequena bandeja com o relógio, a bateria, a rede e o sinal do SIM.
 
 - **Prefere ela na parte de cima?** **Configurações → Geral → Configurações do sistema de launcher → Barra de tarefas → Posição da barra de tarefas** alterna entre **Inferior** e **Superior**. O menu Iniciar acompanha a barra e desce de cima quando a barra está lá em cima.
-- **O botão Iniciar** abre o menu: abrir o FastMediaSorter, seus recursos, adicionar um recurso, configurações do Android, configurações do app, configurações do launcher, editar o conteúdo da área de trabalho, e no final reiniciar, desligar e **Sair do modo launcher**.
+- **O botão Iniciar** abre o menu: abrir o Fast Media Sorter & Organizer, seus recursos, adicionar um recurso, configurações do Android, configurações do app, configurações do launcher, editar o conteúdo da área de trabalho, e no final reiniciar, desligar e **Sair do modo launcher**.
 - **Seus apps** são agrupados em seções com pequenos cabeçalhos. Toque em um cabeçalho para recolher uma seção que você raramente abre. Uma área de trabalho nova coloca seus apps do Google em uma seção **Google** e seus próprios apps instalados - mensageiros, jogos e o resto - em uma seção **Apps**, para que o mesmo ícone nunca apareça duas vezes. Toque e segure em qualquer app para **Colocar na área de trabalho** e **Fixar na barra de tarefas**.
 
 ---
@@ -123,7 +123,7 @@ O layout da sua área de trabalho é mantido de qualquer forma, então ativar o 
 | Problema | O que tentar |
 |---------|------------|
 | **Tornar este app a tela inicial** está faltando em Configurações → Geral | Sua versão não inclui o modo launcher. Ele vem apenas no **Standard** e no **noLegal** - verifique **Configurações → Geral → Sobre o sistema** para saber qual edição você tem |
-| O dispositivo volta para sua própria tela inicial depois de reiniciar | Alguns rádios automotivos de reposição e boxes Android embutidos forçam sua tela inicial de fábrica de volta a cada início. Isso é o firmware do dispositivo te sobrepondo, e nenhum app pode contornar isso - escolha o FastMediaSorter novamente depois de reiniciar, e se ainda assim não mantiver a escolha, esse dispositivo não permite isso |
+| O dispositivo volta para sua própria tela inicial depois de reiniciar | Alguns rádios automotivos de reposição e boxes Android embutidos forçam sua tela inicial de fábrica de volta a cada início. Isso é o firmware do dispositivo te sobrepondo, e nenhum app pode contornar isso - escolha o Fast Media Sorter & Organizer novamente depois de reiniciar, e se ainda assim não mantiver a escolha, esse dispositivo não permite isso |
 | O Android nunca perguntou qual app de tela inicial usar | Pressione **Início** uma vez - em versões mais antigas do Android o seletor aparece nesse momento, não na hora em que você ativa a opção |
 | A área de trabalho parece vazia depois de ativá-la | Pressione **Início** em vez de ficar dentro do app - a área de trabalho pré-preenchida é o que o Android mostra como tela inicial |
 | As células se movem quando você não quis movê-las | Ative **Bloquear área de trabalho** em **Configurações → Geral → Configurações do sistema de launcher** |

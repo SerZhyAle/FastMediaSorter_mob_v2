@@ -24,12 +24,24 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <LinearLayout
+            <com.sza.fastmediasorter.ui.common.widget.SettingsTitleLine
                 android:id="@+id/sdr_titleCluster"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
+
+                <!-- Optional leading feature icon (S4570). Decorative; inside the cluster so it stays
+                     with the caption in the stacked, inline and value text forms alike. -->
+                <ImageView
+                    android:id="@+id/sdr_icon"
+                    android:layout_width="@dimen/settings_help_icon_size"
+                    android:layout_height="@dimen/settings_help_icon_size"
+                    android:layout_marginEnd="@dimen/settings_help_icon_margin"
+                    android:contentDescription="@null"
+                    android:importantForAccessibility="no"
+                    app:tint="?attr/colorOnSurfaceVariant"
+                    android:visibility="gone" />
 
                 <TextView
                     android:id="@+id/sdr_title"
@@ -50,7 +62,7 @@
                     app:tint="@color/text_color_secondary"
                     android:visibility="gone" />
 
-            </LinearLayout>
+            </com.sza.fastmediasorter.ui.common.widget.SettingsTitleLine>
 
             <!-- Value text mode: the chosen entry sits at the end of the title line, matching the
                  SettingsSelectionRow rows (Language, Device profile) it shares a section with. -->

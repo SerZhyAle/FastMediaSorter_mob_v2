@@ -216,6 +216,68 @@ Assert-That 'the runner invocation shape (-Gate -Quiet) still runs the gate' ($r
 Assert-That 'no parameter-binding error on the runner shape' `
     ($result.Text -notmatch 'parameter cannot be found') $result.Text
 
+# --- S4653: docs/ and dev/ are judged per file -------------------------------------------------
+$fixture = New-Fixture -Records @((New-Record -Id 'guides' -Paths @('docs/GUIDE.md'))) `
+    -Documents @('docs/GUIDE.md', 'docs/STRAY.md')
+$result = Invoke-Gate $fixture
+Assert-That 'S4653 an unrecorded file in a covered docs/ directory fails' ($result.Code -eq 1) "exit $($result.Code)"
+Assert-That 'S4653 the unrecorded file is named' ($result.Text -match 'docs/STRAY\.md') $result.Text
+
+$fixture = New-Fixture -Records @((New-Record -Id 'guides' -Paths @('docs/GUIDE.md'))) `
+    -BaselineRows @('docs/STRAY.md | a frozen one-off note nobody maintains any longer') `
+    -Documents @('docs/GUIDE.md', 'docs/STRAY.md')
+$result = Invoke-Gate $fixture
+Assert-That 'S4653 a file ignore row accounts for the file' ($result.Code -eq 0) $result.Text
+
+$fixture = New-Fixture -Records @((New-Record -Id 'guides' -Paths @('docs/GUIDE.md'))) `
+    -BaselineRows @('dev/TASK_*.md | frozen task definitions written once for one ticket') `
+    -Documents @('docs/GUIDE.md', 'dev/TASK_one.md', 'dev/TASK_two.md')
+$result = Invoke-Gate $fixture
+Assert-That 'S4653 a file-glob ignore row accounts for every match' ($result.Code -eq 0) $result.Text
+
+$fixture = New-Fixture -Records @((New-Record -Id 'guides' -Paths @('docs/GUIDE.md'))) `
+    -BaselineRows @('dev/GONE.md | a frozen one-off note nobody maintains any longer') `
+    -Documents @('docs/GUIDE.md')
+$result = Invoke-Gate $fixture
+Assert-That 'S4653 a file row naming no file fails as stale' `
+    (($result.Code -eq 1) -and ($result.Text -match 'dev/GONE\.md')) $result.Text
+
+$fixture = New-Fixture -Records @((New-Record -Id 'guides' -Paths @('docs/GUIDE.md'))) -Documents @('docs/GUIDE.md')
+if (-not (Test-Path -LiteralPath (Join-Path $fixture 'dev'))) { [void](New-Item -ItemType Directory -Path (Join-Path $fixture 'dev')) }
+(New-Record -Id 'local' -Paths @('dev/LOCAL_*.md')) | ConvertTo-Json -Compress -Depth 6 |
+    Set-Content -LiteralPath (Join-Path $fixture 'dev/DOCUMENT_REGISTRY.jsonl') -Encoding utf8
+$result = Invoke-Gate $fixture
+Assert-That 'S4653 a local registry glob matching no file fails' `
+    (($result.Code -eq 1) -and ($result.Text -match "local registry record 'local'")) $result.Text
+
+Set-Content -LiteralPath (Join-Path $fixture 'dev/LOCAL_notes.md') -Value '# fixture document' -Encoding utf8
+$result = Invoke-Gate $fixture
+Assert-That 'S4653 a local registry glob names its files' ($result.Code -eq 0) $result.Text
+
+$fixture = New-Fixture -Records @((New-Record -Id 'guides' -Paths @('docs/GUIDE.md'))) -Documents @('docs/GUIDE.md')
+$result = Invoke-Gate $fixture
+Assert-That 'S4653 an absent local registry is no finding' ($result.Code -eq 0) $result.Text
+
+# --- S4653: a generated record names its generator and its check ------------------------------
+function New-RenderFixture([hashtable] $Fields) {
+    $record = New-Record -Id 'render' -Paths @('docs/GUIDE.md')
+    $record['generated'] = $true
+    foreach ($key in $Fields.Keys) { $record[$key] = $Fields[$key] }
+    $fixture = New-Fixture -Records @($record) -Documents @('docs/GUIDE.md', 'scripts/gen.ps1')
+    return $fixture
+}
+$result = Invoke-Gate (New-RenderFixture @{})
+Assert-That 'S4653 generator: a generated record without generator and check fails' `
+    (($result.Code -eq 1) -and ($result.Text -match "no 'generator' field")) $result.Text
+$result = Invoke-Gate (New-RenderFixture @{ generator = 'pwsh -File scripts/gen.ps1'; check = 'pwsh -File scripts/gen.ps1 -Check' })
+Assert-That 'S4653 generator: existing generator and check pass' ($result.Code -eq 0) $result.Text
+$result = Invoke-Gate (New-RenderFixture @{ generator = 'pwsh -File scripts/missing.ps1'; check = 'none' })
+Assert-That 'S4653 generator: a missing generator script fails' `
+    (($result.Code -eq 1) -and ($result.Text -match 'does not exist')) $result.Text
+$result = Invoke-Gate (New-RenderFixture @{ generator = 'pwsh -File scripts/gen.ps1'; check = 'none' })
+Assert-That 'S4653 generator: check none passes as an advisory' `
+    (($result.Code -eq 0) -and ($result.Text -match 'advisory')) $result.Text
+
 Remove-Item -LiteralPath $sandboxRoot -Recurse -Force -ErrorAction SilentlyContinue
 
 Write-Host ''

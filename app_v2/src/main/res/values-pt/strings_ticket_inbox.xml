@@ -27,4 +27,12 @@
     <string name="ticket_inbox_queued_notice">Ticket na fila para envio</string>
     <string name="ticket_inbox_stage_failed">Não foi possível salvar o ticket: %1$s</string>
     <string name="ticket_inbox_discard">Remover da lista</string>
+    <string name="ticket_inbox_destination_label">Entregar em</string>
+    <string name="ticket_inbox_state_folder_waiting">Aguardando a pasta no computador: %1$s</string>
+    <string name="ticket_inbox_state_folder_sent">Na pasta - aguardando o computador</string>
+    <string name="ticket_inbox_grant_drive">Permitir acesso ao Google Drive</string>
+    <string name="ticket_inbox_state_needs_access">Precisa de acesso ao Google Drive - permita com o botão acima</string>
+    <string name="ticket_inbox_drive_access_granted">Acesso concedido - os tickets em espera saem agora</string>
+    <string name="ticket_inbox_drive_access_declined">O acesso não foi concedido - os tickets ficam na lista até você permitir</string>
+    <string name="ticket_inbox_drive_access_failed">O Google não conseguiu mostrar a tela de acesso - tente novamente em instantes</string>
 </resources>

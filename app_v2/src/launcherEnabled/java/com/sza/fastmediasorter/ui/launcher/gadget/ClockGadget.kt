@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.launcher.gadget
 
 import android.content.Context
+import android.content.res.Resources
 import android.graphics.Typeface
 import android.view.GestureDetector
 import android.view.KeyEvent
@@ -10,6 +11,8 @@ import android.view.View
 import android.view.ViewConfiguration
 import android.widget.FrameLayout
 import android.widget.TextClock
+import androidx.annotation.FontRes
+import androidx.core.content.res.ResourcesCompat
 import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.GadgetLauncherClockBinding
@@ -20,6 +23,7 @@ import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 import kotlin.math.abs
 
@@ -174,6 +178,7 @@ private class ClockGadgetView(
             ClockSwipeDirection.RIGHT -> stateStore.setSecondsVisible(false)
             ClockSwipeDirection.LEFT -> stateStore.setSecondsVisible(true)
             ClockSwipeDirection.UP -> {
+                Timber.d("S4562: clock up-swipe rolls a new dial font and colour")
                 stateStore.setDialColor(
                     ClockDialRandomizer.nextDialColor(randomizeSurfaceColor())
                 )
@@ -209,7 +214,7 @@ private class ClockGadgetView(
         )
         binding.gadgetClockTime.typeface = ClockDialTypeface
             .fromPersistedName(state.dialTypefaceName)
-            .resolveTypeface()
+            .resolveTypeface(context)
     }
 
     /**
@@ -297,19 +302,47 @@ internal object ClockSwipeDirectionResolver {
 
 // S3366: internal rather than private - ClockDialRandomizer offers the same typeface choices and the
 // dim clock's up-swipe must rotate through exactly the widget's set.
+/**
+ * S4562: the set and its order are declared once in `scripts/fonts/build-clock-fonts.py` and mirrored by the
+ * watch's `WearClockTypeface`, whose ordinal the watch face decodes - append, never reorder. Each entry draws
+ * the same bundled file the watch face draws, not a system family, because system families differ by device
+ * maker and the face could not repeat them. A name this build does not know reads as [DEFAULT].
+ */
 internal enum class ClockDialTypeface(
     val persistedName: String,
-    private val familyName: String?,
+    @param:FontRes private val fontRes: Int?,
 ) {
     DEFAULT(ClockGadgetStateStore.DEFAULT_DIAL_TYPEFACE, null),
-    CONDENSED("condensed", "sans-serif-condensed"),
-    SERIF("serif", "serif"),
-    MONOSPACE("monospace", "monospace"),
-    CASUAL("casual", "casual"),
+    CONDENSED("condensed", R.font.fms_dial_condensed),
+    SERIF("serif", R.font.fms_dial_serif),
+    MONOSPACE("monospace", R.font.fms_dial_monospace),
+    CASUAL("casual", R.font.fms_dial_casual),
+    BEBAS("bebas", R.font.fms_dial_bebas),
+    AUDIOWIDE("audiowide", R.font.fms_dial_audiowide),
+    LOBSTER("lobster", R.font.fms_dial_lobster),
+    PACIFICO("pacifico", R.font.fms_dial_pacifico),
+    ABRIL("abril", R.font.fms_dial_abril),
+    RIGHTEOUS("righteous", R.font.fms_dial_righteous),
+    PIXEL("pixel", R.font.fms_dial_pixel),
+    SHARETECH("sharetech", R.font.fms_dial_sharetech),
+    STENCIL("stencil", R.font.fms_dial_stencil),
+    MONOTON("monoton", R.font.fms_dial_monoton),
+    BUNGEE("bungee", R.font.fms_dial_bungee),
+    TERMINAL("terminal", R.font.fms_dial_terminal),
+    BLACKLETTER("blackletter", R.font.fms_dial_blackletter),
+    BANGERS("bangers", R.font.fms_dial_bangers),
+    RUBIKMONO("rubikmono", R.font.fms_dial_rubikmono),
     ;
 
-    fun resolveTypeface(): Typeface = familyName?.let { Typeface.create(it, Typeface.BOLD) }
-        ?: Typeface.DEFAULT_BOLD
+    /** A font file that fails to load falls back to the default dial rather than leaving the time blank. */
+    fun resolveTypeface(context: Context): Typeface = fontRes?.let { res ->
+        try {
+            ResourcesCompat.getFont(context, res)
+        } catch (error: Resources.NotFoundException) {
+            Timber.w(error, "Clock dial font %s failed to load", persistedName)
+            null
+        }
+    } ?: Typeface.DEFAULT_BOLD
 
     companion object {
         fun fromPersistedName(name: String): ClockDialTypeface =

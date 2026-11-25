@@ -212,7 +212,8 @@ class DimClockOverlayView @JvmOverloads constructor(
         binding.dimClockTime.setTextColor(dialColor)
         binding.dimClockDate.setTextColor(dialColor)
 
-        binding.dimClockTime.typeface = resolveTypeface(style.dialTypeface)
+        // S4562: the bundled time font holds digits and AM/PM only, so the date keeps the system family.
+        binding.dimClockTime.typeface = style.timeTypeface ?: resolveTypeface(style.dialTypeface)
         binding.dimClockDate.typeface = resolveTypeface(style.dialTypeface)
     }
 

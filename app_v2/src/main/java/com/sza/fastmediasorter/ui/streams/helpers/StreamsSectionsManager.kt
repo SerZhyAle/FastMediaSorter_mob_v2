@@ -1,13 +1,15 @@
 package com.sza.fastmediasorter.ui.streams.helpers
 
 import android.view.View
-import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.core.view.isVisible
 import androidx.media3.common.util.UnstableApi
-import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.domain.model.DisplayMode
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
+import com.sza.fastmediasorter.ui.common.widget.MaxHeightLinearLayout
+import timber.log.Timber
 
 /**
  * S1141: coordinates the streams screen's two stacked sections - pinned (top) and main/unpinned
@@ -20,29 +22,46 @@ import com.sza.fastmediasorter.domain.model.DisplayMode
  * S1502: it no longer splits the catalog. Filtering, ordering AND the pinned/unpinned split all
  * happen once in the ViewModel, off the main thread; both halves arrive here already separated.
  *
- * Collapse redistributes vertical space by weight: a collapsed section drops to `wrap_content`
- * (header only) with weight 0, and the other section takes the remaining space. Collapsing one
- * section always expands the other, so at least one section's content is always visible. State is
- * in-memory only (MVP does not persist collapse across sessions).
+ * S4626: both headers are [CollapsibleSectionHeader]s registered with the shared
+ * [CollapsibleSectionsManager], so the marker, the whole-header activation and the remembered state are the
+ * widget's. Opening or closing one section never moves the other (COLLAPSIBLE-GROUP section 2 rule 3);
+ * an open section takes what a closed one leaves.
+ *
+ * S4751: with both sections open the pinned one is as tall as its rows, up to [PINNED_MAX_HEIGHT_FRACTION] of
+ * the height it is offered, and the main section takes the rest - a fixed share left an empty block under a
+ * single pinned row. With the main section closed the pinned one fills the screen, so a long pinned list still
+ * uses the space the closed header leaves.
+ *
+ * A closed section drops to `wrap_content` (header only) with weight 0. The main header is a wrapper over
+ * a single topic while neither the pinned section nor a sibling section is shown, so it is hidden and the
+ * main body stays open then; the remembered state is kept and applies again once a second topic appears.
  */
 @UnstableApi
 class StreamsSectionsManager(
-    private val pinnedSection: View,
-    private val pinnedHeader: View,
-    private val pinnedChevron: ImageView,
+    sections: CollapsibleSectionsManager,
+    private val pinnedSection: MaxHeightLinearLayout,
+    pinnedHeader: CollapsibleSectionHeader,
+    pinnedBody: View,
     private val mainSection: View,
-    private val mainHeader: View,
-    private val mainChevron: ImageView,
+    private val mainHeader: CollapsibleSectionHeader,
+    private val mainBody: View,
     private val pinnedGridMode: StreamGridModeManager,
     private val mainGridMode: StreamGridModeManager,
 ) {
 
-    private var pinnedCollapsed = false
-    private var mainCollapsed = false
+    private var pinnedExpanded = true
+    private var mainExpanded = true
+    private var siblingTopicVisible = false
 
     init {
-        pinnedHeader.setOnClickListener { toggle(isPinned = true) }
-        mainHeader.setOnClickListener { toggle(isPinned = false) }
+        sections.register(pinnedHeader, pinnedBody, KEY_PINNED, defaultExpanded = true) { expanded ->
+            pinnedExpanded = expanded
+            applySectionSizing()
+        }
+        sections.register(mainHeader, mainBody, KEY_MAIN, defaultExpanded = true) { expanded ->
+            mainExpanded = expanded
+            applySectionSizing()
+        }
     }
 
     /** Apply a list/grid mode change to both sections from the already-split halves. */
@@ -59,6 +78,13 @@ class StreamsSectionsManager(
         mainGridMode.submitCurrentList(unpinned)
     }
 
+    /** Tells the manager whether a section outside its own two (the device broadcasts) is on screen. */
+    fun setSiblingTopicVisible(visible: Boolean) {
+        if (siblingTopicVisible == visible) return
+        siblingTopicVisible = visible
+        applyTopicLayout()
+    }
+
     fun onConfigurationChanged() {
         pinnedGridMode.onConfigurationChanged()
         mainGridMode.onConfigurationChanged()
@@ -69,74 +95,67 @@ class StreamsSectionsManager(
         mainGridMode.stop()
     }
 
-    /**
-     * Show/hide the pinned section and re-assert section sizing. When nothing is pinned there is no
-     * top section to receive space, so any collapse state is reset to keep the main list expanded.
-     */
     private fun updatePinnedVisibility(hasPinned: Boolean) {
         pinnedSection.isVisible = hasPinned
-        if (!hasPinned) {
-            pinnedCollapsed = false
-            mainCollapsed = false
-        }
-        applySectionSizing()
+        applyTopicLayout()
     }
 
-    // Collapsing a section always expands the other, so the two are never both collapsed. The main
-    // section can only collapse while the pinned section is visible to take the freed space.
-    private fun toggle(isPinned: Boolean) {
-        if (isPinned) {
-            if (pinnedCollapsed) {
-                pinnedCollapsed = false
-            } else {
-                pinnedCollapsed = true
-                mainCollapsed = false
-            }
-        } else {
-            when {
-                mainCollapsed -> mainCollapsed = false
-                pinnedSection.isVisible -> {
-                    mainCollapsed = true
-                    pinnedCollapsed = false
-                }
-                else -> return
-            }
-        }
+    private fun hasSeveralTopics(): Boolean = pinnedSection.isVisible || siblingTopicVisible
+
+    // COLLAPSIBLE-GROUP section 2 rule 2: no collapsible wrapper over a single coherent set of controls.
+    private fun applyTopicLayout() {
+        val severalTopics = hasSeveralTopics()
+        mainHeader.isVisible = severalTopics
+        mainBody.isVisible = !severalTopics || mainExpanded
         applySectionSizing()
     }
 
     private fun applySectionSizing() {
-        setSectionCollapsed(pinnedSection, pinnedCollapsed, WEIGHT_FILL)
-        val mainWeight = if (pinnedCollapsed) WEIGHT_FILL else WEIGHT_MAIN
-        setSectionCollapsed(mainSection, mainCollapsed, mainWeight)
-        updateChevron(pinnedChevron, pinnedCollapsed)
-        updateChevron(mainChevron, mainCollapsed)
+        Timber.d("S4626: streams sizing pinned=$pinnedExpanded main=$mainExpanded sibling=$siblingTopicVisible")
+        val mainOpen = !hasSeveralTopics() || mainExpanded
+        // The pinned body keeps weight 1 inside its section, so under a cap it shrinks to its rows and in a
+        // fill section it stretches over the whole section.
+        when {
+            !pinnedExpanded -> setPinnedShape(fill = false, capFraction = NO_CAP)
+            mainOpen -> setPinnedShape(fill = false, capFraction = PINNED_MAX_HEIGHT_FRACTION)
+            else -> setPinnedShape(fill = true, capFraction = NO_CAP)
+        }
+        setSectionOpen(mainSection, mainOpen)
     }
 
-    private fun setSectionCollapsed(section: View, collapsed: Boolean, expandedWeight: Float) {
+    private fun setPinnedShape(fill: Boolean, capFraction: Float) {
+        Timber.d("S4751: pinned section shape fill=$fill capFraction=$capFraction")
+        pinnedSection.maxHeightFraction = capFraction
+        val lp = pinnedSection.layoutParams as? LinearLayout.LayoutParams ?: return
+        lp.height = if (fill) 0 else LinearLayout.LayoutParams.WRAP_CONTENT
+        lp.weight = if (fill) WEIGHT_FILL else WEIGHT_NONE
+        pinnedSection.layoutParams = lp
+    }
+
+    private fun setSectionOpen(section: View, open: Boolean) {
         val lp = section.layoutParams as? LinearLayout.LayoutParams ?: return
-        if (collapsed) {
+        if (open) {
+            lp.height = 0
+            lp.weight = WEIGHT_FILL
+        } else {
             lp.height = LinearLayout.LayoutParams.WRAP_CONTENT
             lp.weight = WEIGHT_NONE
-        } else {
-            lp.height = 0
-            lp.weight = expandedWeight
         }
         section.layoutParams = lp
     }
 
-    private fun updateChevron(chevron: ImageView, collapsed: Boolean) {
-        chevron.setImageResource(if (collapsed) R.drawable.ic_expand_more else R.drawable.ic_expand_less)
-        chevron.contentDescription = chevron.context.getString(
-            if (collapsed) R.string.streams_section_expand else R.string.streams_section_collapse
-        )
-    }
-
     private companion object {
-        // Default expanded split: pinned gets 1 share, main gets 2 (main larger). A sole-expanded
-        // section uses WEIGHT_FILL; a collapsed section uses WEIGHT_NONE (wrap to its header).
+        const val KEY_PINNED = "streams__pinned"
+        const val KEY_MAIN = "streams__main"
+
+        // An open section that fills the remaining height uses WEIGHT_FILL; a closed or wrapped section uses
+        // WEIGHT_NONE (its own content height).
         const val WEIGHT_FILL = 1f
-        const val WEIGHT_MAIN = 2f
         const val WEIGHT_NONE = 0f
+
+        // The pinned section never takes more than this share of the height it is offered, which is the third
+        // the former 1:2 weight split gave it; the main section keeps the rest.
+        const val PINNED_MAX_HEIGHT_FRACTION = 1f / 3f
+        const val NO_CAP = 0f
     }
 }

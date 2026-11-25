@@ -135,8 +135,41 @@
     {%- if doc_en %}
     <link rel="alternate" hreflang="x-default" href="{{ doc_en.url | absolute_url }}">
     {%- endif %}
+    {%- assign doc_og_title = page.title | default: 'Documentation' | append: ' - Fast Media Sorter' | strip_html | escape -%}
+    {%- assign doc_og_desc = page.description | default: site.description | strip_html | escape -%}
+    {%- assign doc_og_image = '/assets/og/og-image.png' | absolute_url -%}
+    {%- case doc_lang -%}
+      {%- when 'ru' -%}{%- assign doc_og_locale = 'ru_RU' -%}
+      {%- when 'uk' -%}{%- assign doc_og_locale = 'uk_UA' -%}
+      {%- when 'de' -%}{%- assign doc_og_locale = 'de_DE' -%}
+      {%- when 'es' -%}{%- assign doc_og_locale = 'es_ES' -%}
+      {%- when 'fr' -%}{%- assign doc_og_locale = 'fr_FR' -%}
+      {%- when 'it' -%}{%- assign doc_og_locale = 'it_IT' -%}
+      {%- when 'pt' -%}{%- assign doc_og_locale = 'pt_BR' -%}
+      {%- when 'ar' -%}{%- assign doc_og_locale = 'ar_AR' -%}
+      {%- when 'bn' -%}{%- assign doc_og_locale = 'bn_BD' -%}
+      {%- when 'hi' -%}{%- assign doc_og_locale = 'hi_IN' -%}
+      {%- when 'ur' -%}{%- assign doc_og_locale = 'ur_PK' -%}
+      {%- when 'zh-Hans' -%}{%- assign doc_og_locale = 'zh_CN' -%}
+      {%- else -%}{%- assign doc_og_locale = 'en_US' -%}
+    {%- endcase %}
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="{{ page.url | absolute_url }}">
+    <meta property="og:title" content="{{ doc_og_title }}">
+    <meta property="og:description" content="{{ doc_og_desc }}">
+    <meta property="og:image" content="{{ doc_og_image }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Fast Media Sorter">
+    <meta property="og:locale" content="{{ doc_og_locale }}">
+    <meta property="og:site_name" content="Fast Media Sorter &amp; Organizer">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ doc_og_title }}">
+    <meta name="twitter:description" content="{{ doc_og_desc }}">
+    <meta name="twitter:image" content="{{ doc_og_image }}">
 
     <link rel="icon" type="image/x-icon" href="{{ '/favicon.ico' | relative_url }}">
+    <link rel="icon" type="image/svg+xml" href="{{ '/favicon.svg' | relative_url }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ '/favicon-32x32.png' | relative_url }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ '/favicon-16x16.png' | relative_url }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ '/apple-touch-icon.png' | relative_url }}">
@@ -211,7 +244,7 @@
                     </div>
                 </div>
 
-                <a href="{{ '/index' | append: doc_suffix | append: '.html' | relative_url }}" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="{{ '/apple-touch-icon.png' | relative_url }}" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <a href="{{ '/index' | append: doc_suffix | append: '.html' | relative_url }}" title="Fast Media Sorter &amp; Organizer Home" class="doc-header-home"><img src="{{ '/apple-touch-icon.png' | relative_url }}" alt="Fast Media Sorter &amp; Organizer Icon" class="doc-app-icon"></a>
                 <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Theme</span></button>
             </nav>
         </div>

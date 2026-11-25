@@ -13,6 +13,8 @@ import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.datasource.SftpDataSourceFactory
 import com.sza.fastmediasorter.data.network.datasource.TsPacketFormat
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
@@ -60,12 +62,15 @@ internal suspend fun VideoPlayerManager.playSftpVideo(
     activeResourceKey = resourceKey
     ConnectionThrottleManager.activateVideoPlayerMode(resourceKey)
 
+    // The password getter decrypts through the AndroidKeyStore, which is disk I/O; this runs on Main.
+    val password = withContext(Dispatchers.IO) { credentials.password }
+    Timber.d("S4869: SFTP playback password decrypted off main")
     val dataSourceFactory = SftpDataSourceFactory(
         sftpClient,
         effectiveHost,
         effectivePort,
         credentials.username,
-        credentials.password,
+        password,
         context
     )
     val isAudio = path.substringAfterLast('.', "").lowercase() in MediaTypeUtils.AUDIO_EXTENSIONS

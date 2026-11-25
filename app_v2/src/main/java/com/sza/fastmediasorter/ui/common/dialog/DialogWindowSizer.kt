@@ -18,17 +18,26 @@ object DialogWindowSizer {
      * Resolves the dialog window width in pixels for the current screen width, clamped to the
      * shared min/max bounds so a phone in landscape does not stretch a dialog edge to edge and a
      * narrow screen does not shrink it below a usable minimum.
+     *
+     * [wide] raises the ceiling to `@dimen/dialog_wide_max_width` for a dialog whose content is a
+     * grid of chips that wraps badly inside the shared phone ceiling (S4846). It never lowers the
+     * shared ceiling, so a tablet that already allows more keeps it.
      */
-    fun resolveWidthPx(resources: Resources): Int {
+    fun resolveWidthPx(resources: Resources, wide: Boolean = false): Int {
         val minWidth = resources.getDimensionPixelSize(R.dimen.dialog_min_width)
-        val maxWidth = resources.getDimensionPixelSize(R.dimen.dialog_max_width)
+        val sharedMaxWidth = resources.getDimensionPixelSize(R.dimen.dialog_max_width)
+        val maxWidth = if (wide) {
+            maxOf(sharedMaxWidth, resources.getDimensionPixelSize(R.dimen.dialog_wide_max_width))
+        } else {
+            sharedMaxWidth
+        }
         val screenWidth = resources.displayMetrics.widthPixels
         return screenWidth.coerceIn(minWidth, maxWidth)
     }
 
     /** Applies the shared width; callers may supply a height already bounded by system insets. */
-    fun applyTo(dialog: Dialog, height: Int = ViewGroup.LayoutParams.WRAP_CONTENT) {
+    fun applyTo(dialog: Dialog, height: Int = ViewGroup.LayoutParams.WRAP_CONTENT, wide: Boolean = false) {
         val window = dialog.window ?: return
-        window.setLayout(resolveWidthPx(dialog.context.resources), height)
+        window.setLayout(resolveWidthPx(dialog.context.resources, wide), height)
     }
 }

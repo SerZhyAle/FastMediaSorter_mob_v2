@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.databinding.DialogExchangeAdminInvitationBinding
 import com.sza.fastmediasorter.domain.model.ExchangeAdminCreatedInvitation
 import com.sza.fastmediasorter.domain.model.ExchangeAdminKinds
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringCodec
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.ui.companionimport.qr.QrCodeEncoder
 import com.sza.fastmediasorter.ui.exchange.ExchangeServerAdminViewModel
 import com.sza.fastmediasorter.util.applicationScope
@@ -47,6 +48,7 @@ class ExchangeAdminInvitationManager(
             .setPositiveButton(R.string.exchange_admin_create_invitation, null)
             .setNegativeButton(R.string.cancel, null)
             .showBoundTo(activity) ?: return
+        DialogHelpEntryManager.attach(dialog, "dialog_exchange_admin_account")
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
             val expected = binding.etExchangeAdminLogin.text?.toString()?.trim().orEmpty().takeIf { it.isNotEmpty() }
             if (expected != null && !ExchangeConnectionStringCodec.isLogin(expected)) {
@@ -82,6 +84,7 @@ class ExchangeAdminInvitationManager(
             .setView(binding.root)
             .setPositiveButton(R.string.close, null)
             .showBoundTo(activity)
+            ?.let { DialogHelpEntryManager.attach(it, "dialog_exchange_admin_invitation") }
         activity.lifecycleScope.launch {
             val sizePx = activity.resources.getDimensionPixelSize(R.dimen.sftp_server_qr_size)
             val bitmap = withContext(Dispatchers.Default) { QrCodeEncoder.encode(created.connectionString, sizePx) }

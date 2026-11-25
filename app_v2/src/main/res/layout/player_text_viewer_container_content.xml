@@ -23,10 +23,14 @@
         android:contentDescription="@string/close"
         android:elevation="@dimen/elevation_player_overlay" />
 
+    <!-- The file-name plate (tvFileNameOverlay) is drawn over this panel at its top-left corner; the
+         margin keeps the text below it, and stays fixed so the content does not jump when the plate
+         auto-hides. The editor needs no such margin: the plate is suppressed while it is open. -->
     <ScrollView
         android:id="@+id/textScrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginTop="@dimen/player_text_file_name_plate_inset"
         android:padding="@dimen/player_text_viewer_padding"
         android:clipToPadding="false">
 
@@ -103,6 +107,7 @@
         android:id="@+id/textEditContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginTop="0dp"
         android:orientation="vertical"
         android:visibility="gone">
 
@@ -162,15 +167,15 @@
                 android:src="@drawable/ic_find_replace"
                 app:tint="@color/selector_player_button_tint" />
 
-            <View
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
-
+            <!-- Weighted and ellipsized so the extra Save button never pushes Cancel off a narrow screen. -->
             <TextView
                 android:id="@+id/tvEditorCursorPos"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="end"
+                android:maxLines="1"
+                android:ellipsize="end"
                 android:textColor="@color/player_overlay_text_secondary"
                 android:textSize="11sp"
                 android:paddingHorizontal="8dp" />
@@ -188,7 +193,6 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:focusable="true"
                 android:clickable="true"
-                android:visibility="gone"
                 android:contentDescription="@string/text_editor_action_save"
                 android:src="@drawable/ic_save"
                 app:tint="@color/selector_player_button_tint" />

@@ -17,11 +17,11 @@ lang: de
 
 ## Allgemeine Fragen
 
-### Was ist FastMediaSorter?
-FastMediaSorter verbindet Medienwiedergabe mit lokaler, Netzwerk- und Cloud-Dateiverwaltung. Launcher, Streams und Uhrenanbindung hängen von der Edition ab. Dateizugriff benötigt Berechtigungen; den Android-Startbildschirm ersetzen Sie nur durch Ihre ausdrückliche Auswahl.
+### Was ist Fast Media Sorter & Organizer? {#was-ist-fastmediasorter}
+Fast Media Sorter & Organizer verbindet Medienwiedergabe mit lokaler, Netzwerk- und Cloud-Dateiverwaltung. Launcher, Streams und Uhrenanbindung hängen von der Edition ab. Dateizugriff benötigt Berechtigungen; den Android-Startbildschirm ersetzen Sie nur durch Ihre ausdrückliche Auswahl.
 
 ### Ist sie kostenlos?
-Ja! FastMediaSorter v2 ist vollständig kostenlos und quelloffen.
+Ja! Fast Media Sorter & Organizer ist vollständig kostenlos und quelloffen.
 
 ### Welche Android-Version brauche ich?
 Die Mindestversionen der aktuellen Quellkonfiguration stehen unten. Immersives VR/XR benötigt zusätzlich ein kompatibles Headset/Runtime; **noLegal ist nicht auf Headsets beschränkt**. Eine Quellvariante garantiert kein veröffentlichtes APK.
@@ -39,10 +39,10 @@ Die Mindestversionen der aktuellen Quellkonfiguration stehen unten. Immersives V
 Lokale Dateien brauchen kein Internet. SMB/SFTP/FTP im LAN benötigen eine erreichbare Netzwerkverbindung, kein öffentliches Internet. Cloud und Internetstreams benötigen Internet; die Funktionen hängen von der Edition ab.
 
 ### Hat die App Widgets?
-Ja! FastMediaSorter v2 bringt eine Vielzahl von Startbildschirm-Widgets mit - finde sie über langes Drücken auf dem Startbildschirm → Widgets → FastMediaSorter. Dazu gehören Ressourcen-Verknüpfungen, Diashow-Starter und mehr.
+Ja! Fast Media Sorter & Organizer bringt eine Vielzahl von Startbildschirm-Widgets mit - finde sie über langes Drücken auf dem Startbildschirm → Widgets → Fast Media Sorter & Organizer. Dazu gehören Ressourcen-Verknüpfungen, Diashow-Starter und mehr.
 
 ### Kann die App meinen Startbildschirm ersetzen?
-In **Standard/noLegal**: **Einstellungen → Allgemein → Startfenster → Startbildschirm des Geräts**, dann FastMediaSorter als Android-Home-App wählen. Der **Desktop als Hauptfenster** ersetzt den System-Launcher nicht.
+In **Standard/noLegal**: **Einstellungen → Allgemein → Startfenster → Startbildschirm des Geräts**, dann Fast Media Sorter & Organizer als Android-Home-App wählen. Der **Desktop als Hauptfenster** ersetzt den System-Launcher nicht.
 
 [Funktionsmatrix (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
 
@@ -293,7 +293,7 @@ Standard, noLegal, Legacy, VR, XR und FOSS unterstützen Audio mit dauerhafter H
 
 ## Internet-Streams
 
-### Spielt FastMediaSorter Internetradio ab?
+### Spielt Fast Media Sorter & Organizer Internetradio ab? {#spielt-fastmediasorter-internetradio-ab}
 **Streams** unterstützt HTTP(S)-Radio/ICY, HLS/DASH und RTSP je nach Quelle/Codec. Verfügbar in **Standard, noLegal, Legacy, VR, XR**, nicht **Lite, Photos, FOSS**. Eine URL umgeht keine fehlende Unterstützung oder DRM.
 
 [Funktionsmatrix (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)
@@ -305,7 +305,7 @@ Tippe auf **Streams** im Dropdown des Hauptfensters (sichtbar, wenn Streams akti
 Tippe im Streams-Bildschirm auf **⋮** am Ende der Symbolleiste, wähle **Stream hinzufügen** und füge die Sender-URL ein. Tippe auf Speichern. Der Sender erscheint sofort in der Liste.
 
 ### Kann ich eine Playlist importieren?
-Ja - tippe auf **⋮ > Von URL importieren** und gib eine entfernte `.m3u`-Adresse ein. Dasselbe Menü enthält **FastMediaSorter-Katalog aktualisieren** für die kuratierte Liste (mit Themen- und Sprach-Chips), die auch über **Einstellungen > Extensions** oder den Willkommens-Onboarding-Bildschirm verfügbar ist.
+Ja - tippe auf **⋮ > Von URL importieren** und gib eine entfernte `.m3u`-Adresse ein. Dasselbe Menü enthält **Fast Media Sorter & Organizer-Katalog aktualisieren** für die kuratierte Liste (mit Themen- und Sprach-Chips), die auch über **Einstellungen > Extensions** oder den Willkommens-Onboarding-Bildschirm verfügbar ist.
 
 ### Ein Stream spielt nicht - was tue ich?
 Falls ein Stream fehlschlägt, erscheint ein Dialog mit den Optionen **Erneut versuchen**, **Entfernen** und **Abbrechen**. Protokollübergreifende 301-Weiterleitungen werden automatisch behandelt. Ist der Host tot oder sehr langsam, läuft der Katalog-Import schnell in ein Timeout, statt zu hängen.
@@ -323,7 +323,7 @@ Ja, für Video-Streams - tippe im Player auf **Cast** und wähle ein Chromecast-
 
 ## Wear OS
 
-### Funktioniert FastMediaSorter auf Wear OS Smartwatches?
+### Funktioniert Fast Media Sorter & Organizer auf Wear OS Smartwatches? {#funktioniert-fastmediasorter-auf-wear-os-smartwatches}
 Die separate **Wear-OS-App** benötigt mindestens API 28; APK auf der Uhr installieren. Telefonanbindung: **Standard/noLegal** mit kompatiblen Paket-IDs/Signaturen. Das separate **WFF-v4-Zifferblatt** braucht Wear OS 6 / API 36.
 
 [Funktionsmatrix (EN)](https://github.com/SerZhyAle/FastMediaSorter_mob_v2/blob/main/docs/FLAVOR_MATRIX.md)

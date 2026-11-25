@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.databinding.ActivityWaterFlashlightBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.Quantity
 import com.sza.fastmediasorter.domain.unit.UnitSystemProvider
+import com.sza.fastmediasorter.ui.flashlight.helpers.WaterFlashlightExitGate
 import com.sza.fastmediasorter.ui.flashlight.helpers.WaterFlashlightLockdownManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
@@ -44,6 +45,8 @@ class WaterFlashlightActivity : BaseActivity<ActivityWaterFlashlightBinding>() {
     // Re-posted at each minute boundary rather than on a fixed tick, so the displayed minute changes
     // when it actually changes and the screen is not woken 60 times for one visible update.
     private val clockTick = Runnable { showTimeAndScheduleNext() }
+
+    private val exitGate = WaterFlashlightExitGate()
 
     override fun getViewBinding(): ActivityWaterFlashlightBinding =
         ActivityWaterFlashlightBinding.inflate(layoutInflater)
@@ -109,14 +112,17 @@ class WaterFlashlightActivity : BaseActivity<ActivityWaterFlashlightBinding>() {
      * shared TV key router before a screen would see them, so a later hook would change the volume
      * instead of leaving. `KEYCODE_BACK` is absent on purpose - under gesture navigation it arrives
      * from a swipe across the glass and cannot be told apart from the touch this screen ignores
-     * (ADR-2). The down event is swallowed too, so the exit press does not also move the volume.
+     * (ADR-2). Every event of an exit key is swallowed, so the exit press does not also move the volume.
+     *
+     * What counts as leaving is [WaterFlashlightExitGate]: a hold or three presses, never one release.
      *
      * S2778: lock-task mode is deliberately absent because its confirmation dialog captures these
      * keys before the activity receives them. The wet-touch guard still consumes every touch.
      */
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (event.keyCode !in EXIT_KEYS) return super.dispatchKeyEvent(event)
-        if (event.action == KeyEvent.ACTION_UP) {
+        val leaves = exitGate.shouldLeave(event.action, event.repeatCount, event.downTime, event.eventTime)
+        if (leaves && !isFinishing) {
             Timber.d("water flashlight left by hardware key %d", event.keyCode)
             finish()
         }

@@ -2,7 +2,7 @@
 page_id: storage.destination-targets-setup
 title: Sorting Files into Destinations with Quick Sort
 nav_title: Quick Sort destinations
-description: How to turn folders into numbered, colored destinations, and then copy or move the photo or video you are looking at into one of them with a single tap or a number key - the heart of sorting with FastMediaSorter.
+description: How to turn folders into numbered, colored destinations, and then copy or move the photo or video you are looking at into one of them with a single tap or a number key - the heart of sorting with Fast Media Sorter & Organizer.
 category: Sources, Destinations & File Operations
 category_slug: storage
 ticket: S2949
@@ -14,7 +14,7 @@ why: |
 
   [Quick Sort](term:quick-sort) turns this into a rhythm: look at a photo, tap the button of the folder it belongs to, and the next photo is already on the screen. Each folder you sort into is a [destination](term:destination) - a resource with its own number and color.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition). Network destinations need any edition except Lite; cloud destinations any edition except Lite and FOSS."
+  - "Fast Media Sorter & Organizer in any [edition](term:edition). Network destinations need any edition except Lite; cloud destinations any edition except Lite and FOSS."
   - "The folders you want to sort into, added as [resources](term:resource) the app can write to - see [Adding folders from this device](page:storage.storage-sources-setup). Read-only resources cannot be destinations."
 steps:
   - number: 1
@@ -88,7 +88,7 @@ steps:
     id: keyboard
     title: Sort with number keys on a keyboard or TV remote
     text: |
-      With a keyboard, a TV remote or a game pad, each visible button gets a small number badge. Keys **1** to **9** and **0** (for the tenth) fire the buttons in order - first all **Copy to..** buttons, then the **Move to..** buttons. Fold the Copy row away, and the numbers go to the Move buttons. The key badges show the keys you actually assigned, if you changed them in the keyboard settings (see [Keyboard, D-pad and Android TV control](page:general.keyboard-dpad-tv-navigation)).
+      With a keyboard or a TV remote, each visible button gets a small number badge; without a keyboard the buttons show only their names. Keys **1** to **9** and **0** (for the tenth) fire the buttons in order - first all **Copy to..** buttons, then the **Move to..** buttons. Fold the Copy row away, and the numbers go to the Move buttons. The key badges show the keys you actually assigned, if you changed them in the keyboard settings (see [Keyboard, D-pad and Android TV control](page:general.keyboard-dpad-tv-navigation)).
   - number: 8
     id: overwrite-undo
     title: Same names, and changing your mind
@@ -120,6 +120,6 @@ next_recipes:
     description: Let the app fill your destinations by itself.
 ---
 
-<sub class="doc-stamp">26.10.07 01:10</sub>
+<sub class="doc-stamp">26.11.15 03:00</sub>
 
 Turn your folders into numbered, colored destinations, then copy or move the photo or video you are looking at into one of them with a single tap or a number key.

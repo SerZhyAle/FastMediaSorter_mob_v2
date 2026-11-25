@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.domain.model.UndoOperation
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.browse.BrowseEvent
+import com.sza.fastmediasorter.ui.browse.transfer.TransferDoneMessage
 import com.sza.fastmediasorter.ui.common.copy.UiMessageFamily
 import com.sza.fastmediasorter.ui.common.copy.UiMessageProjector
 import com.sza.fastmediasorter.ui.common.copy.UiMessageSpec
@@ -194,7 +195,7 @@ class BrowseErrorDisplayManager(
             }
             FileOperationType.MOVE -> {
                 val destination = operation.destinationFolder?.substringAfterLast('/') ?: "destination"
-                activity.getString(R.string.msg_move_success_count, count, destination)
+                TransferDoneMessage.movedTo(activity, count, destination)
             }
             FileOperationType.RENAME -> {
                 activity.getString(R.string.renamed_n_files, count)

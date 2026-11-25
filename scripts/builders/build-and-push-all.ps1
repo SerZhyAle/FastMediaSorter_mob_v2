@@ -191,7 +191,10 @@ foreach ($variant in $builtVariants) {
     # Log to journal
     $logEntry = "$timestamp | $flavor-$buildType-batch | $newName"
     Add-Content -Path $journalPath -Value $logEntry
-    
+
+    # S4679: record the build in the release ledger; the wrapper reports and never fails the build.
+    & "$PSScriptRoot\..\utils\log-release-ledger-build.ps1" -Package phone -Flavor $flavor -Kind $buildType -Version $($stamp.VersionName) -Artifact $destPath
+
     & "$PSScriptRoot\..\utils\publish-artifact.ps1" -Path $destPath -Name $newName
 }
 
@@ -228,6 +231,9 @@ if (Test-Path $wearApkRoot) {
 
         $logEntry = "$timestamp | wear-$wearFlavor-$buildType-batch | $wearBaseName.apk"
         Add-Content -Path $journalPath -Value $logEntry
+
+        # S4679: record the build in the release ledger; the wrapper reports and never fails the build.
+        & "$PSScriptRoot\..\utils\log-release-ledger-build.ps1" -Package wear -Flavor $wearFlavor -Kind $buildType -Version $($stamp.VersionName) -Artifact $wearDest
 
         & "$PSScriptRoot\..\utils\publish-artifact.ps1" -Path $wearDest -Name "$wearBaseName.apk"
     }

@@ -8,13 +8,13 @@
   "fastLineSeconds": 5.0,
   "minRuns": 5,
   "windowDays": 30,
-  "measured": "2026-10-29",
+  "measured": "2026-11-15",
   "source": "temp/metrics/gate-executions.jsonl, executed runs (PASS/FAIL), median of elapsedMs; runner post-change -> gates, runner assert-fast-gates -> scripts",
   "gates": {
     "a11y-semantics-gate": {
       "tier": "fast",
-      "medianSec": 1.2,
-      "runs": 490
+      "medianSec": 1.18,
+      "runs": 418
     },
     "acceptance-probe-gate": {
       "tier": "release",
@@ -23,894 +23,874 @@
     },
     "activity-locale-wrapper-gate": {
       "tier": "fast",
-      "medianSec": 0.38,
-      "runs": 765
+      "medianSec": 0.37,
+      "runs": 556
     },
     "all-features-gate": {
       "tier": "fast",
-      "medianSec": 2.82,
-      "runs": 73
+      "medianSec": 3.5,
+      "runs": 39
     },
     "always-loaded-budget-gate": {
       "tier": "fast",
-      "medianSec": 1.01,
-      "runs": 10
+      "medianSec": 0.8,
+      "runs": 31
     },
     "android-xr-manifest-gate": {
-      "tier": "release",
-      "medianSec": 0.41,
-      "runs": 1
+      "tier": "fast",
+      "medianSec": 0.5,
+      "runs": 9
     },
     "androidtest-compile-gate": {
       "tier": "release",
-      "medianSec": 7.98,
-      "runs": 28
+      "medianSec": 127.53,
+      "runs": 6
     },
     "baseline-inventory-gate": {
       "tier": "fast",
-      "medianSec": 0.44,
-      "runs": 70
+      "medianSec": 2.75,
+      "runs": 57
     },
     "bridge-scenario-coverage-gate": {
       "tier": "fast",
-      "medianSec": 0.4,
-      "runs": 14
+      "medianSec": 0.31,
+      "runs": 11
     },
     "catalog-sync": {
       "tier": "release",
-      "medianSec": 14.41,
-      "runs": 600
+      "medianSec": 15.81,
+      "runs": 170
     },
     "check-subject-gate": {
       "tier": "fast",
-      "medianSec": 0.4,
-      "runs": 127
+      "medianSec": 2.56,
+      "runs": 87
     },
     "ci-cost-map": {
       "tier": "fast",
-      "medianSec": 1.02,
-      "runs": 717
+      "medianSec": 0.95,
+      "runs": 537
     },
     "code-domain-writers-gate": {
       "tier": "fast",
       "medianSec": 0.0,
-      "runs": 133
+      "runs": 173
     },
     "codex-transcript-hygiene-gate": {
-      "tier": "fast",
-      "medianSec": 0.23,
-      "runs": 651
+      "tier": "release",
+      "medianSec": 27.79,
+      "runs": 48
     },
     "credential-encryption-gate": {
       "tier": "fast",
-      "medianSec": 0.98,
-      "runs": 891
+      "medianSec": 1.03,
+      "runs": 608
     },
     "ctor-arg-slots-gate": {
       "tier": "fast",
       "medianSec": 0.29,
-      "runs": 890
-    },
-    "detekt-baseline-absorption": {
-      "tier": "release",
-      "medianSec": 2.48,
-      "runs": 2
-    },
-    "detekt-baseline-split-sync": {
-      "tier": "release",
-      "medianSec": 2.4,
-      "runs": 2
+      "runs": 602
     },
     "detekt-format": {
       "tier": "fast",
-      "medianSec": 2.97,
-      "runs": 1007
+      "medianSec": 2.72,
+      "runs": 674
+    },
+    "detekt-gate": {
+      "tier": "release",
+      "medianSec": 22.28,
+      "runs": 28
     },
     "detekt-preflight": {
       "tier": "fast",
-      "medianSec": 3.19,
-      "runs": 301
+      "medianSec": 0.34,
+      "runs": 101
     },
     "dev-log": {
       "tier": "fast",
-      "medianSec": 1.05,
-      "runs": 969
+      "medianSec": 1.1,
+      "runs": 477
     },
     "diagnostics-redaction-gate": {
       "tier": "fast",
-      "medianSec": 0.98,
-      "runs": 891
+      "medianSec": 1.01,
+      "runs": 608
     },
     "dialog-cancel-style-gate": {
       "tier": "fast",
-      "medianSec": 0.83,
-      "runs": 66
+      "medianSec": 0.91,
+      "runs": 50
     },
     "doc-house-style": {
       "tier": "fast",
-      "medianSec": 0.41,
-      "runs": 353
+      "medianSec": 0.39,
+      "runs": 220
     },
     "doc-pin-drift": {
       "tier": "fast",
-      "medianSec": 1.02,
-      "runs": 715
+      "medianSec": 0.95,
+      "runs": 536
     },
     "doc-pins-sync": {
       "tier": "fast",
-      "medianSec": 0.66,
-      "runs": 717
+      "medianSec": 0.64,
+      "runs": 537
     },
     "doc-script-references": {
       "tier": "fast",
-      "medianSec": 2.7,
-      "runs": 549
+      "medianSec": 2.63,
+      "runs": 362
     },
     "doc-stamp": {
       "tier": "fast",
-      "medianSec": 0.37,
-      "runs": 590
+      "medianSec": 0.36,
+      "runs": 477
     },
     "docs-crosslinks": {
       "tier": "release",
-      "medianSec": 5.59,
-      "runs": 130
+      "medianSec": 6.06,
+      "runs": 63
     },
     "docs-external-content": {
       "tier": "release",
-      "medianSec": 16.01,
-      "runs": 130
+      "medianSec": 17.55,
+      "runs": 63
     },
     "docs-hub-shell": {
-      "tier": "fast",
-      "medianSec": 0.85,
-      "runs": 10
+      "tier": "release",
+      "medianSec": 0.82,
+      "runs": 4
     },
     "docs-portal-ui-ux": {
       "tier": "release",
-      "medianSec": 9.82,
-      "runs": 130
+      "medianSec": 13.2,
+      "runs": 63
     },
     "docs-screenshots": {
       "tier": "fast",
-      "medianSec": 2.31,
-      "runs": 130
+      "medianSec": 2.12,
+      "runs": 111
     },
     "docs-search": {
       "tier": "fast",
       "medianSec": 0.78,
-      "runs": 130
+      "runs": 111
     },
     "docs-termbase": {
       "tier": "fast",
-      "medianSec": 2.27,
-      "runs": 68
+      "medianSec": 2.08,
+      "runs": 70
     },
     "document-registry": {
       "tier": "fast",
       "medianSec": 0.0,
-      "runs": 232
+      "runs": 121
     },
     "dotsource-tracked": {
       "tier": "fast",
-      "medianSec": 0.49,
-      "runs": 261
+      "medianSec": 0.5,
+      "runs": 184
     },
     "fgs-notification-gate": {
       "tier": "fast",
-      "medianSec": 0.37,
-      "runs": 941
+      "medianSec": 0.36,
+      "runs": 653
     },
     "fileop-journal-pairing-gate": {
       "tier": "fast",
-      "medianSec": 0.46,
-      "runs": 34
+      "medianSec": 0.49,
+      "runs": 9
     },
     "flavor-matrix-doc-gate": {
       "tier": "fast",
-      "medianSec": 1.88,
-      "runs": 85
+      "medianSec": 2.08,
+      "runs": 60
     },
     "focus-highlight-gate": {
       "tier": "fast",
-      "medianSec": 0.89,
-      "runs": 243
+      "medianSec": 0.9,
+      "runs": 244
     },
     "focus-parity-gate": {
       "tier": "fast",
       "medianSec": 0.45,
-      "runs": 153
+      "runs": 159
     },
     "gate-placement-gate": {
       "tier": "fast",
-      "medianSec": 4.73,
-      "runs": 210
+      "medianSec": 1.88,
+      "runs": 130
     },
     "gson-persistence-contract-gate": {
       "tier": "release",
-      "medianSec": 5.74,
-      "runs": 898
+      "medianSec": 6.51,
+      "runs": 263
     },
     "help-map-gate": {
       "tier": "fast",
-      "medianSec": 2.46,
-      "runs": 371
+      "medianSec": 2.38,
+      "runs": 881
     },
     "howto-settings-paths-gate": {
       "tier": "fast",
-      "medianSec": 0.84,
-      "runs": 28
+      "medianSec": 0.85,
+      "runs": 29
     },
     "icon-contract-gate": {
       "tier": "release",
-      "medianSec": 9.95,
-      "runs": 337
+      "medianSec": 10.57,
+      "runs": 114
     },
     "icon-style-gate": {
       "tier": "fast",
-      "medianSec": 0.84,
-      "runs": 160
+      "medianSec": 0.76,
+      "runs": 144
     },
     "launcher-reset-coverage-gate": {
       "tier": "fast",
       "medianSec": 0.35,
-      "runs": 1318
+      "runs": 886
     },
     "layout-variant-id-parity-gate": {
       "tier": "fast",
-      "medianSec": 0.44,
-      "runs": 153
+      "medianSec": 0.43,
+      "runs": 159
     },
     "listener-symmetry-gate": {
       "tier": "fast",
       "medianSec": 1.04,
-      "runs": 891
+      "runs": 607
     },
     "log-redaction-gate": {
       "tier": "fast",
-      "medianSec": 0.99,
-      "runs": 891
+      "medianSec": 1.02,
+      "runs": 608
     },
     "manifest-risk-gate": {
       "tier": "fast",
-      "medianSec": 0.5,
-      "runs": 69
-    },
-    "memory-budget-gate": {
-      "tier": "release",
-      "medianSec": 3.07,
-      "runs": 4
+      "medianSec": 0.64,
+      "runs": 46
     },
     "migration-schema-conformance-gate": {
       "tier": "fast",
-      "medianSec": 0.57,
-      "runs": 25
+      "medianSec": 0.64,
+      "runs": 13
     },
     "migration-test-pairing-gate": {
       "tier": "fast",
-      "medianSec": 0.38,
-      "runs": 25
+      "medianSec": 0.43,
+      "runs": 13
     },
     "mutation-producer-registration-gate": {
       "tier": "fast",
-      "medianSec": 4.3,
-      "runs": 493
+      "medianSec": 4.39,
+      "runs": 331
     },
     "neuroslop-gate": {
       "tier": "release",
-      "medianSec": 5.89,
-      "runs": 941
+      "medianSec": 8.93,
+      "runs": 284
     },
     "new-lexeme-count": {
-      "tier": "fast",
-      "medianSec": 2.79,
-      "runs": 14
+      "tier": "release",
+      "medianSec": 14.81,
+      "runs": 25
     },
     "no-secrets-gate": {
       "tier": "fast",
-      "medianSec": 0.51,
-      "runs": 1320
+      "medianSec": 0.5,
+      "runs": 892
     },
     "no-test-retry-gate": {
       "tier": "fast",
-      "medianSec": 1.15,
-      "runs": 526
+      "medianSec": 1.2,
+      "runs": 335
     },
     "orientation-implied-feature-gate": {
       "tier": "fast",
-      "medianSec": 0.5,
-      "runs": 45
+      "medianSec": 0.54,
+      "runs": 34
     },
     "orientation-layout-pairing-gate": {
       "tier": "fast",
-      "medianSec": 0.57,
-      "runs": 133
+      "medianSec": 0.56,
+      "runs": 106
     },
     "oss-notices-gate": {
       "tier": "fast",
-      "medianSec": 1.51,
-      "runs": 35
+      "medianSec": 1.66,
+      "runs": 26
     },
     "portal-pages": {
       "tier": "fast",
-      "medianSec": 3.09,
-      "runs": 26
+      "medianSec": 2.79,
+      "runs": 33
     },
     "quantity-format-seam-gate": {
       "tier": "release",
-      "medianSec": 8.84,
-      "runs": 926
+      "medianSec": 9.87,
+      "runs": 280
     },
     "released-addresses": {
       "tier": "fast",
-      "medianSec": 2.64,
-      "runs": 140
+      "medianSec": 2.52,
+      "runs": 251
     },
     "resource-link-gate": {
       "tier": "release",
-      "medianSec": 5.16,
-      "runs": 272
+      "medianSec": 7.38,
+      "runs": 104
     },
     "rtl-layout-attrs-gate": {
       "tier": "fast",
-      "medianSec": 0.71,
-      "runs": 153
+      "medianSec": 0.73,
+      "runs": 159
     },
     "rule-digest-sync-gate": {
       "tier": "fast",
-      "medianSec": 0.48,
-      "runs": 12
+      "medianSec": 0.5,
+      "runs": 30
     },
     "script-cheatsheet-sync-gate": {
-      "tier": "fast",
-      "medianSec": 4.74,
-      "runs": 253
+      "tier": "release",
+      "medianSec": 6.89,
+      "runs": 178
     },
     "script-file-size": {
       "tier": "fast",
       "medianSec": 0.28,
-      "runs": 261
+      "runs": 184
     },
     "script-suite-regression": {
       "tier": "release",
-      "medianSec": 22.49,
-      "runs": 270
+      "medianSec": 71.66,
+      "runs": 119
     },
     "settings-doc-sync-gate": {
       "tier": "fast",
-      "medianSec": 0.0,
-      "runs": 55
+      "medianSec": 2.82,
+      "runs": 53
     },
     "showcase-inventory": {
       "tier": "fast",
-      "medianSec": 0.88,
-      "runs": 68
+      "medianSec": 1.0,
+      "runs": 47
     },
     "site-addresses": {
       "tier": "release",
-      "medianSec": 10.9,
-      "runs": 131
+      "medianSec": 11.47,
+      "runs": 75
     },
     "site-facts": {
       "tier": "release",
-      "medianSec": 9.01,
-      "runs": 105
+      "medianSec": 10.18,
+      "runs": 60
     },
     "site-origins": {
       "tier": "fast",
-      "medianSec": 2.28,
-      "runs": 301
+      "medianSec": 2.2,
+      "runs": 244
     },
     "string-format-gate": {
       "tier": "release",
-      "medianSec": 6.94,
-      "runs": 209
+      "medianSec": 7.35,
+      "runs": 74
     },
     "strings-audit": {
       "tier": "release",
-      "medianSec": 11.66,
-      "runs": 210
+      "medianSec": 14.36,
+      "runs": 74
     },
     "suite-tracked": {
       "tier": "fast",
-      "medianSec": 1.09,
-      "runs": 153
+      "medianSec": 1.14,
+      "runs": 107
     },
     "ticket-log-audit": {
-      "tier": "fast",
-      "medianSec": 0.0,
-      "runs": 886
+      "tier": "release",
+      "medianSec": 7.1,
+      "runs": 606
     },
     "ui-sweep-catalog-gate": {
       "tier": "fast",
-      "medianSec": 0.37,
+      "medianSec": 2.85,
       "runs": 36
     },
     "wear-canonical-key-parity-gate": {
       "tier": "fast",
-      "medianSec": 0.36,
-      "runs": 253
+      "medianSec": 2.55,
+      "runs": 122
     },
     "wear-mirrored-strings-gate": {
       "tier": "fast",
-      "medianSec": 0.48,
-      "runs": 155
+      "medianSec": 0.49,
+      "runs": 123
     },
     "wear-settings-parity-gate": {
       "tier": "fast",
-      "medianSec": 0.35,
-      "runs": 260
+      "medianSec": 2.6,
+      "runs": 128
     },
     "wear-walk-contract-gate": {
       "tier": "fast",
-      "medianSec": 0.37,
-      "runs": 78
-    },
-    "wear-wire-nullability-gate": {
-      "tier": "release",
-      "medianSec": 9.78,
-      "runs": 6
+      "medianSec": 2.67,
+      "runs": 35
     },
     "wear-wire-vocabulary-parity-gate": {
       "tier": "fast",
-      "medianSec": 0.64,
-      "runs": 32
+      "medianSec": 0.58,
+      "runs": 16
     }
   },
   "scripts": {
     "(batch)": {
       "tier": "release",
-      "medianSec": 78.02,
-      "runs": 141
+      "medianSec": 67.93,
+      "runs": 103
     },
     "assert-acceptance-preconditions.ps1": {
       "tier": "fast",
-      "medianSec": 1.62,
-      "runs": 142
+      "medianSec": 1.57,
+      "runs": 104
     },
     "assert-activity-locale-wrapper.ps1": {
       "tier": "fast",
-      "medianSec": 3.5,
-      "runs": 142
+      "medianSec": 3.45,
+      "runs": 104
     },
     "assert-always-loaded-budget.ps1": {
       "tier": "fast",
-      "medianSec": 1.15,
-      "runs": 141
+      "medianSec": 1.17,
+      "runs": 103
     },
     "assert-backup-rules-consistent.ps1": {
       "tier": "fast",
-      "medianSec": 0.76,
-      "runs": 141
+      "medianSec": 0.66,
+      "runs": 103
     },
     "assert-bridge-scenario-coverage.ps1": {
       "tier": "fast",
-      "medianSec": 0.71,
-      "runs": 142
+      "medianSec": 0.69,
+      "runs": 104
     },
     "assert-ci-cost-map.ps1": {
       "tier": "fast",
-      "medianSec": 0.74,
-      "runs": 142
+      "medianSec": 0.72,
+      "runs": 104
     },
     "assert-code-domain-writers.ps1": {
       "tier": "fast",
-      "medianSec": 2.9,
-      "runs": 141
+      "medianSec": 2.87,
+      "runs": 103
     },
     "assert-contract-pointers.ps1": {
       "tier": "fast",
-      "medianSec": 0.8,
-      "runs": 141
+      "medianSec": 0.84,
+      "runs": 103
     },
     "assert-credential-encryption.ps1": {
       "tier": "fast",
-      "medianSec": 2.31,
-      "runs": 142
+      "medianSec": 1.89,
+      "runs": 104
     },
     "assert-ctor-arg-slots.ps1": {
       "tier": "release",
-      "medianSec": 10.1,
-      "runs": 141
+      "medianSec": 10.42,
+      "runs": 75
     },
     "assert-detekt-baseline-absorption.ps1": {
       "tier": "release",
-      "medianSec": 3.81,
-      "runs": 141
+      "medianSec": 3.87,
+      "runs": 75
     },
     "assert-detekt.ps1": {
       "tier": "release",
-      "medianSec": 47.88,
-      "runs": 9
+      "medianSec": 68.36,
+      "runs": 5
     },
     "assert-device-ready-module.ps1": {
       "tier": "fast",
-      "medianSec": 0.98,
-      "runs": 142
+      "medianSec": 0.93,
+      "runs": 104
     },
     "assert-diagnostics-redaction.ps1": {
       "tier": "fast",
-      "medianSec": 1.35,
-      "runs": 142
+      "medianSec": 1.41,
+      "runs": 104
     },
     "assert-doc-pin-drift.ps1": {
       "tier": "fast",
-      "medianSec": 1.87,
-      "runs": 142
+      "medianSec": 1.88,
+      "runs": 104
     },
     "assert-enum-persistence-contract.ps1": {
       "tier": "release",
-      "medianSec": 48.5,
-      "runs": 141
+      "medianSec": 53.23,
+      "runs": 75
     },
     "assert-exit-contract.ps1": {
       "tier": "release",
-      "medianSec": 18.39,
-      "runs": 142
+      "medianSec": 32.14,
+      "runs": 76
     },
     "assert-fdsec-vectors-provenance.ps1": {
       "tier": "fast",
-      "medianSec": 0.6,
-      "runs": 141
+      "medianSec": 0.62,
+      "runs": 103
     },
     "assert-file-line-ceiling.ps1": {
       "tier": "fast",
-      "medianSec": 1.88,
-      "runs": 141
+      "medianSec": 2.04,
+      "runs": 103
     },
     "assert-flavor-binding-coverage.ps1": {
-      "tier": "fast",
-      "medianSec": 4.96,
-      "runs": 142
-    },
-    "assert-flavor-count-prose.ps1": {
       "tier": "release",
-      "medianSec": 34.02,
-      "runs": 53
+      "medianSec": 5.02,
+      "runs": 104
     },
     "assert-flavor-matrix-docs.ps1": {
       "tier": "fast",
-      "medianSec": 3.07,
-      "runs": 141
-    },
-    "assert-gate-count-prose.ps1": {
-      "tier": "fast",
-      "medianSec": 1.08,
-      "runs": 53
+      "medianSec": 3.0,
+      "runs": 103
     },
     "assert-gate-hints-sync.ps1": {
       "tier": "fast",
-      "medianSec": 0.69,
-      "runs": 141
+      "medianSec": 0.74,
+      "runs": 103
     },
     "assert-gate-placement.ps1": {
       "tier": "fast",
-      "medianSec": 2.57,
-      "runs": 141
+      "medianSec": 2.64,
+      "runs": 103
     },
     "assert-gson-persistence-contract.ps1": {
       "tier": "release",
-      "medianSec": 8.78,
-      "runs": 141
+      "medianSec": 8.76,
+      "runs": 75
     },
     "assert-help-map.ps1": {
       "tier": "fast",
-      "medianSec": 4.19,
-      "runs": 69
+      "medianSec": 3.99,
+      "runs": 103
     },
     "assert-hook-inventory.ps1": {
       "tier": "fast",
-      "medianSec": 0.75,
-      "runs": 141
+      "medianSec": 0.79,
+      "runs": 103
     },
     "assert-invoked-tracked.ps1": {
       "tier": "release",
-      "medianSec": 48.34,
-      "runs": 142
+      "medianSec": 52.81,
+      "runs": 76
     },
     "assert-launcher-contrast.ps1": {
       "tier": "fast",
-      "medianSec": 0.79,
-      "runs": 142
+      "medianSec": 0.78,
+      "runs": 104
     },
     "assert-launcher-reset-coverage.ps1": {
       "tier": "fast",
-      "medianSec": 0.68,
-      "runs": 141
+      "medianSec": 0.63,
+      "runs": 103
     },
     "assert-layout-variant-id-parity.ps1": {
       "tier": "fast",
-      "medianSec": 0.97,
-      "runs": 141
+      "medianSec": 0.87,
+      "runs": 103
     },
     "assert-lint-baseline-absorption.ps1": {
       "tier": "fast",
-      "medianSec": 2.0,
-      "runs": 141
+      "medianSec": 2.03,
+      "runs": 103
     },
     "assert-listener-symmetry.ps1": {
       "tier": "fast",
-      "medianSec": 2.35,
-      "runs": 142
+      "medianSec": 1.96,
+      "runs": 104
     },
     "assert-log-redaction.ps1": {
       "tier": "fast",
-      "medianSec": 1.74,
-      "runs": 142
+      "medianSec": 1.84,
+      "runs": 104
     },
     "assert-maestro-oracle.ps1": {
       "tier": "fast",
-      "medianSec": 0.79,
-      "runs": 142
+      "medianSec": 0.77,
+      "runs": 104
     },
     "assert-memory-budget.ps1": {
       "tier": "release",
-      "medianSec": 6.15,
-      "runs": 141
+      "medianSec": 6.12,
+      "runs": 75
     },
     "assert-migration-schema-conformance.ps1": {
       "tier": "fast",
-      "medianSec": 1.34,
-      "runs": 142
+      "medianSec": 1.37,
+      "runs": 104
     },
     "assert-migration-test-pairing.ps1": {
       "tier": "fast",
-      "medianSec": 1.13,
-      "runs": 142
+      "medianSec": 0.97,
+      "runs": 104
     },
     "assert-module-version-parity.ps1": {
       "tier": "fast",
-      "medianSec": 0.63,
-      "runs": 142
+      "medianSec": 0.67,
+      "runs": 104
     },
     "assert-no-line-budget.ps1": {
       "tier": "fast",
-      "medianSec": 2.32,
-      "runs": 141
+      "medianSec": 2.24,
+      "runs": 103
     },
     "assert-no-ticket-logs.ps1": {
       "tier": "release",
-      "medianSec": 15.56,
-      "runs": 142
+      "medianSec": 16.57,
+      "runs": 76
     },
     "assert-notification-small-icon.ps1": {
       "tier": "release",
-      "medianSec": 14.66,
-      "runs": 141
+      "medianSec": 15.81,
+      "runs": 75
     },
     "assert-orientation-implied-feature.ps1": {
       "tier": "fast",
-      "medianSec": 0.85,
-      "runs": 142
+      "medianSec": 0.82,
+      "runs": 104
     },
     "assert-orientation-layout-pairing.ps1": {
       "tier": "fast",
       "medianSec": 0.9,
-      "runs": 142
+      "runs": 104
     },
     "assert-orphaned-merged-resources.ps1": {
       "tier": "release",
-      "medianSec": 11.4,
-      "runs": 141
+      "medianSec": 12.13,
+      "runs": 75
     },
     "assert-packaging-excludes-parity.ps1": {
       "tier": "fast",
-      "medianSec": 0.64,
-      "runs": 142
+      "medianSec": 0.67,
+      "runs": 104
     },
     "assert-qualified-gradle-tasks.ps1": {
       "tier": "release",
-      "medianSec": 11.15,
-      "runs": 142
+      "medianSec": 11.52,
+      "runs": 76
     },
     "assert-qualifier-shadowing.ps1": {
       "tier": "fast",
-      "medianSec": 0.96,
-      "runs": 141
+      "medianSec": 0.98,
+      "runs": 103
     },
     "assert-quantity-format-seam.ps1": {
       "tier": "release",
-      "medianSec": 12.81,
-      "runs": 142
+      "medianSec": 12.35,
+      "runs": 76
     },
     "assert-resource-icon-parity.ps1": {
       "tier": "fast",
-      "medianSec": 1.2,
-      "runs": 142
+      "medianSec": 1.25,
+      "runs": 104
     },
     "assert-retired-dependency-names.ps1": {
       "tier": "release",
-      "medianSec": 13.97,
-      "runs": 141
+      "medianSec": 14.52,
+      "runs": 75
     },
     "assert-rule-digest-sync.ps1": {
       "tier": "fast",
-      "medianSec": 0.71,
-      "runs": 141
+      "medianSec": 0.67,
+      "runs": 103
     },
     "assert-script-described.ps1": {
       "tier": "release",
-      "medianSec": 5.44,
-      "runs": 141
+      "medianSec": 5.92,
+      "runs": 75
     },
     "assert-script-parses.ps1": {
       "tier": "fast",
-      "medianSec": 1.82,
-      "runs": 142
+      "medianSec": 1.98,
+      "runs": 104
     },
     "assert-script-references.ps1": {
       "tier": "release",
-      "medianSec": 44.73,
-      "runs": 141
-    },
-    "assert-sdk-pin-claims.ps1": {
-      "tier": "release",
-      "medianSec": 22.53,
-      "runs": 53
+      "medianSec": 48.55,
+      "runs": 75
     },
     "assert-sensitive-settings-annotated.ps1": {
       "tier": "fast",
-      "medianSec": 0.6,
-      "runs": 141
+      "medianSec": 0.64,
+      "runs": 103
     },
     "assert-shared-test-flavor-scope.ps1": {
       "tier": "release",
-      "medianSec": 5.32,
-      "runs": 141
+      "medianSec": 5.78,
+      "runs": 75
     },
     "assert-source-gates.ps1": {
-      "tier": "release",
-      "medianSec": 23.76,
-      "runs": 142
+      "tier": "fast",
+      "medianSec": 4.13,
+      "runs": 76
     },
     "assert-spec-catalog-valid.ps1": {
       "tier": "release",
-      "medianSec": 5.61,
-      "runs": 142
+      "medianSec": 5.9,
+      "runs": 76
     },
     "assert-stream-asset-revisions.ps1": {
       "tier": "fast",
-      "medianSec": 0.68,
-      "runs": 141
+      "medianSec": 0.67,
+      "runs": 103
     },
     "assert-tactical-step-form.ps1": {
       "tier": "fast",
-      "medianSec": 1.47,
-      "runs": 141
+      "medianSec": 1.44,
+      "runs": 103
     },
     "assert-ticket-acceptance-probes.ps1": {
       "tier": "release",
-      "medianSec": 10.14,
-      "runs": 142
+      "medianSec": 10.43,
+      "runs": 76
     },
     "assert-ui-sweep-catalog.ps1": {
       "tier": "release",
-      "medianSec": 6.79,
-      "runs": 142
+      "medianSec": 6.98,
+      "runs": 76
     },
     "assert-wear-canonical-key-parity.ps1": {
       "tier": "fast",
-      "medianSec": 1.58,
-      "runs": 142
+      "medianSec": 0.94,
+      "runs": 104
     },
     "assert-wear-record-merge-parity.ps1": {
       "tier": "fast",
-      "medianSec": 0.63,
-      "runs": 142
+      "medianSec": 0.59,
+      "runs": 104
     },
     "assert-wear-route-literals.ps1": {
       "tier": "release",
-      "medianSec": 5.07,
-      "runs": 142
+      "medianSec": 5.09,
+      "runs": 76
     },
     "assert-wear-settings-parity.ps1": {
       "tier": "fast",
-      "medianSec": 2.77,
-      "runs": 142
+      "medianSec": 2.8,
+      "runs": 104
     },
     "assert-wear-walk-contract.ps1": {
       "tier": "fast",
-      "medianSec": 3.53,
-      "runs": 142
+      "medianSec": 3.66,
+      "runs": 104
     },
     "assert-wear-wire-nullability.ps1": {
       "tier": "release",
-      "medianSec": 0.75,
-      "runs": 142
+      "medianSec": 0.74,
+      "runs": 76
     },
     "assert-wear-wire-vocabulary-parity.ps1": {
       "tier": "fast",
-      "medianSec": 1.28,
-      "runs": 142
+      "medianSec": 1.14,
+      "runs": 104
     },
-    "assert-docs-hub-shell.ps1": {
+    "assert-showcase-inventory.ps1": {
       "tier": "fast",
-      "medianSec": 0.85,
+      "medianSec": 1.0,
       "runs": 0
     },
     "assert-no-test-retry.ps1": {
       "tier": "fast",
-      "medianSec": 1.15,
+      "medianSec": 1.2,
       "runs": 0
     },
-    "assert-docs-portal-ui-ux.ps1": {
+    "assert-uniform-glyph-sets.ps1": {
       "tier": "release",
-      "medianSec": 9.82,
+      "medianSec": null,
       "runs": 0
     },
-    "assert-icon-contract.ps1": {
-      "tier": "release",
-      "medianSec": 9.95,
-      "runs": 0
-    },
-    "assert-dialog-cancel-style.ps1": {
+    "assert-android-xr-manifest.ps1": {
       "tier": "fast",
-      "medianSec": 0.83,
-      "runs": 0
-    },
-    "assert-oss-notices.ps1": {
-      "tier": "fast",
-      "medianSec": 1.51,
-      "runs": 0
-    },
-    "assert-site-addresses.ps1": {
-      "tier": "release",
-      "medianSec": 10.9,
-      "runs": 0
-    },
-    "assert-string-format.ps1": {
-      "tier": "release",
-      "medianSec": 6.94,
-      "runs": 0
-    },
-    "assert-site-facts.ps1": {
-      "tier": "release",
-      "medianSec": 9.01,
+      "medianSec": 0.5,
       "runs": 0
     },
     "assert-icon-style.ps1": {
       "tier": "fast",
-      "medianSec": 0.84,
+      "medianSec": 0.76,
       "runs": 0
     },
-    "assert-docs-termbase.ps1": {
+    "assert-fgs-notifications.ps1": {
       "tier": "fast",
-      "medianSec": 2.27,
+      "medianSec": 0.36,
+      "runs": 0
+    },
+    "assert-dialog-cancel-style.ps1": {
+      "tier": "fast",
+      "medianSec": 0.91,
+      "runs": 0
+    },
+    "assert-manifest-risk-diff.ps1": {
+      "tier": "fast",
+      "medianSec": 0.64,
+      "runs": 0
+    },
+    "assert-rtl-layout-attrs.ps1": {
+      "tier": "fast",
+      "medianSec": 0.73,
+      "runs": 0
+    },
+    "assert-a11y-semantics.ps1": {
+      "tier": "fast",
+      "medianSec": 1.18,
+      "runs": 0
+    },
+    "assert-doc-house-style.ps1": {
+      "tier": "fast",
+      "medianSec": 0.39,
+      "runs": 0
+    },
+    "assert-docs-external-content.ps1": {
+      "tier": "release",
+      "medianSec": 17.55,
+      "runs": 0
+    },
+    "assert-howto-settings-paths.ps1": {
+      "tier": "fast",
+      "medianSec": 0.85,
+      "runs": 0
+    },
+    "assert-site-facts.ps1": {
+      "tier": "release",
+      "medianSec": 10.18,
+      "runs": 0
+    },
+    "assert-internal-doc-links.ps1": {
+      "tier": "release",
+      "medianSec": null,
       "runs": 0
     },
     "generate-toolchain-pins.ps1": {
       "tier": "fast",
-      "medianSec": 0.66,
+      "medianSec": 0.64,
       "runs": 0
     },
-    "assert-showcase-inventory.ps1": {
-      "tier": "fast",
-      "medianSec": 0.88,
-      "runs": 0
-    },
-    "split-detekt-baseline.ps1": {
+    "assert-docs-hub-shell.ps1": {
       "tier": "release",
-      "medianSec": 2.4,
+      "medianSec": 0.82,
       "runs": 0
     },
-    "assert-docs-screenshots.ps1": {
+    "assert-fileop-journal-pairing.ps1": {
       "tier": "fast",
-      "medianSec": 2.31,
+      "medianSec": 0.49,
       "runs": 0
     },
-    "assert-neuroslop.ps1": {
-      "tier": "release",
-      "medianSec": 5.89,
+    "assert-oss-notices.ps1": {
+      "tier": "fast",
+      "medianSec": 1.66,
       "runs": 0
     },
     "assert-allfeatures-sync.ps1": {
       "tier": "fast",
-      "medianSec": 2.82,
-      "runs": 0
-    },
-    "assert-mutation-producer-registration.ps1": {
-      "tier": "fast",
-      "medianSec": 4.3,
+      "medianSec": 3.5,
       "runs": 0
     },
     "assert-focus-parity.ps1": {
@@ -918,19 +898,69 @@
       "medianSec": 0.45,
       "runs": 0
     },
-    "assert-a11y-semantics.ps1": {
+    "check_strings_localized.ps1": {
+      "tier": "release",
+      "medianSec": 14.36,
+      "runs": 0
+    },
+    "assert-docs-portal-ui-ux.ps1": {
+      "tier": "release",
+      "medianSec": 13.2,
+      "runs": 0
+    },
+    "assert-mutation-producer-registration.ps1": {
       "tier": "fast",
-      "medianSec": 1.2,
+      "medianSec": 4.39,
+      "runs": 0
+    },
+    "assert-released-addresses.ps1": {
+      "tier": "fast",
+      "medianSec": 2.52,
+      "runs": 0
+    },
+    "assert-string-format.ps1": {
+      "tier": "release",
+      "medianSec": 7.35,
+      "runs": 0
+    },
+    "assert-docs-termbase.ps1": {
+      "tier": "fast",
+      "medianSec": 2.08,
+      "runs": 0
+    },
+    "assert-focus-highlight.ps1": {
+      "tier": "fast",
+      "medianSec": 0.9,
+      "runs": 0
+    },
+    "assert-site-origins.ps1": {
+      "tier": "fast",
+      "medianSec": 2.2,
+      "runs": 0
+    },
+    "assert-no-secrets.ps1": {
+      "tier": "fast",
+      "medianSec": 0.5,
       "runs": 0
     },
     "assert-docs-crosslinks.ps1": {
       "tier": "release",
-      "medianSec": 5.59,
+      "medianSec": 6.06,
       "runs": 0
     },
-    "assert-fgs-notifications.ps1": {
+    "assert-site-addresses.ps1": {
+      "tier": "release",
+      "medianSec": 11.47,
+      "runs": 0
+    },
+    "assert-docs-screenshots.ps1": {
       "tier": "fast",
-      "medianSec": 0.37,
+      "medianSec": 2.12,
+      "runs": 0
+    },
+    "split-detekt-baseline.ps1": {
+      "tier": "release",
+      "medianSec": null,
       "runs": 0
     },
     "assert-docs-search.ps1": {
@@ -938,69 +968,19 @@
       "medianSec": 0.78,
       "runs": 0
     },
-    "assert-fileop-journal-pairing.ps1": {
-      "tier": "fast",
-      "medianSec": 0.46,
-      "runs": 0
-    },
-    "assert-focus-highlight.ps1": {
-      "tier": "fast",
-      "medianSec": 0.89,
-      "runs": 0
-    },
-    "assert-site-origins.ps1": {
-      "tier": "fast",
-      "medianSec": 2.28,
-      "runs": 0
-    },
-    "assert-rtl-layout-attrs.ps1": {
-      "tier": "fast",
-      "medianSec": 0.71,
-      "runs": 0
-    },
-    "assert-docs-external-content.ps1": {
-      "tier": "release",
-      "medianSec": 16.01,
-      "runs": 0
-    },
-    "assert-released-addresses.ps1": {
-      "tier": "fast",
-      "medianSec": 2.64,
-      "runs": 0
-    },
-    "assert-manifest-risk-diff.ps1": {
-      "tier": "fast",
-      "medianSec": 0.5,
-      "runs": 0
-    },
-    "check_strings_localized.ps1": {
-      "tier": "release",
-      "medianSec": 11.66,
-      "runs": 0
-    },
     "assert-portal-pages.ps1": {
       "tier": "fast",
-      "medianSec": 3.09,
+      "medianSec": 2.79,
       "runs": 0
     },
-    "assert-no-secrets.ps1": {
-      "tier": "fast",
-      "medianSec": 0.51,
-      "runs": 0
-    },
-    "assert-doc-house-style.ps1": {
-      "tier": "fast",
-      "medianSec": 0.41,
-      "runs": 0
-    },
-    "assert-howto-settings-paths.ps1": {
-      "tier": "fast",
-      "medianSec": 0.84,
-      "runs": 0
-    },
-    "assert-android-xr-manifest.ps1": {
+    "assert-icon-contract.ps1": {
       "tier": "release",
-      "medianSec": 0.41,
+      "medianSec": 10.57,
+      "runs": 0
+    },
+    "assert-neuroslop.ps1": {
+      "tier": "release",
+      "medianSec": 8.93,
       "runs": 0
     }
   },

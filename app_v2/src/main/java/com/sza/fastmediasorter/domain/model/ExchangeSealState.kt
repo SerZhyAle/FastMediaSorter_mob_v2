@@ -10,6 +10,9 @@ enum class ExchangeSealIssue(val message: ExchangeMessage) {
 
     /** A grant's box came from another key than its first one (27 item DJ). */
     KEY_CHANGED(ExchangeMessage.KEY_CHANGED),
+
+    /** This device holds a key and is listed with it; the producer has none (1.12 item FB). */
+    E2E_MISSING_PEER(ExchangeMessage.E2E_MISSING_PEER),
 }
 
 /** How another device of an account entry stands for sealed content (DEVICE-EXCHANGE 27 items DG and DR). */

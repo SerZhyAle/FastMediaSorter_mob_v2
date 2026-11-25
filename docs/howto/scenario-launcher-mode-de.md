@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Die App als Startbildschirm verwenden - FastMediaSorter v2"
+title: "Die App als Startbildschirm verwenden - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-launcher-mode-de.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -11,7 +11,7 @@ permalink: /docs/howto/scenario-launcher-mode-de.html
 
 > **Niveau:** Anfänger &bull; **Edition:** Standard / noLegal
 
-FastMediaSorter kann den Startbildschirm Ihres Geräts durch einen eigenen Desktop ersetzen - Ihre Ordner, eine Uhr, das Wetter, Ihre Apps und eine Taskleiste an einem Rand. Wenn Sie schon einmal einen Windows-Desktop verwendet haben, wird es sich vertraut anfühlen: Dinge bleiben, wo Sie sie hingelegt haben, und eine Start-Schaltfläche öffnet das Menü. Dies wird **Launcher-Modus** genannt.
+Fast Media Sorter & Organizer kann den Startbildschirm Ihres Geräts durch einen eigenen Desktop ersetzen - Ihre Ordner, eine Uhr, das Wetter, Ihre Apps und eine Taskleiste an einem Rand. Wenn Sie schon einmal einen Windows-Desktop verwendet haben, wird es sich vertraut anfühlen: Dinge bleiben, wo Sie sie hingelegt haben, und eine Start-Schaltfläche öffnet das Menü. Dies wird **Launcher-Modus** genannt.
 
 **Reales Beispiel:** ein altes Tablet an der Küchenwand. Statt eines Rasters aus App-Symbolen erhalten Sie die Uhr, das heutige Wetter, den Fotoordner von Ihrem NAS und eine Schaltfläche, die das Radio startet - alles auf dem Bildschirm, den es beim Aufwachen anzeigt.
 
@@ -29,7 +29,7 @@ FastMediaSorter kann den Startbildschirm Ihres Geräts durch einen eigenen Deskt
 
 1. Öffnen Sie **Einstellungen → Allgemein**
 2. Schalten Sie **Diese App zum Startbildschirm machen** ein
-3. Android bittet Sie um Bestätigung. Unter Android 10 und neuer ist es eine einzige Frage - „FastMediaSorter als Ihre Home-App zulassen?“ - also lassen Sie es zu. Bei älteren Versionen erscheint der klassische Auswahldialog beim nächsten Drücken von Home: Wählen Sie FastMediaSorter und tippen Sie auf **Immer**, oder **Nur diesmal**, um es zunächst auszuprobieren.
+3. Android bittet Sie um Bestätigung. Unter Android 10 und neuer ist es eine einzige Frage - „Fast Media Sorter & Organizer als Ihre Home-App zulassen?“ - also lassen Sie es zu. Bei älteren Versionen erscheint der klassische Auswahldialog beim nächsten Drücken von Home: Wählen Sie Fast Media Sorter & Organizer und tippen Sie auf **Immer**, oder **Nur diesmal**, um es zunächst auszuprobieren.
 4. Drücken Sie **Home**
 
 > **Die App gerade erst installiert?** Es gibt eine Abkürzung: Aktivieren Sie **Als Startbildschirm verwenden** auf der ersten Willkommensseite. Die Einrichtung wird dabei nicht durch einen Systemdialog unterbrochen - die Bestätigung von Android erscheint erst, wenn Sie danach zum ersten Mal **Einstellungen → Allgemein** öffnen.
@@ -55,7 +55,7 @@ Der Desktop ist am ersten Tag kein leeres Raster. Er kommt mit rund einem Dutzen
 Die Taskleiste sitzt am unteren Rand. Sie enthält die Start-Schaltfläche, die zuletzt verwendeten Apps, die von Ihnen angehefteten und ein kleines Tray mit Uhr, Akku, Netzwerk und SIM-Signal.
 
 - **Lieber am oberen Rand?** **Einstellungen → Allgemein → Systemlauncher-Einstellungen → Taskleiste → Taskleistenposition** wechselt zwischen **Unten** und **Oben**. Das Startmenü folgt der Leiste und klappt von oben herab, wenn die Leiste dort oben ist.
-- **Die Start-Schaltfläche** öffnet das Menü: FastMediaSorter öffnen, Ihre Ressourcen, eine Ressource hinzufügen, Android-Einstellungen, App-Einstellungen, Launcher-Einstellungen, Desktop-Inhalte bearbeiten, und am Ende Neustart, Ausschalten und **Launcher-Modus verlassen**.
+- **Die Start-Schaltfläche** öffnet das Menü: Fast Media Sorter & Organizer öffnen, Ihre Ressourcen, eine Ressource hinzufügen, Android-Einstellungen, App-Einstellungen, Launcher-Einstellungen, Desktop-Inhalte bearbeiten, und am Ende Neustart, Ausschalten und **Launcher-Modus verlassen**.
 - **Ihre Apps** sind in Abschnitten mit kleinen Überschriften gruppiert. Tippen Sie auf eine Überschrift, um einen selten genutzten Abschnitt einzuklappen. Ein frischer Desktop platziert Ihre Google-Apps in einem Abschnitt **Google** und Ihre eigenen installierten Apps - Messenger, Spiele und der Rest - in einem Abschnitt **Apps**, sodass dasselbe Symbol nie doppelt erscheint. Langes Drücken auf eine App zeigt **Auf den Desktop legen** und **An die Taskleiste anheften**.
 
 ---
@@ -123,7 +123,7 @@ Ihr Desktop-Layout bleibt in beiden Fällen erhalten, sodass das erneute Einscha
 | Problem | Was zu versuchen ist |
 |---------|------------|
 | **Diese App zum Startbildschirm machen** fehlt in Einstellungen → Allgemein | Ihre Version enthält den Launcher-Modus nicht. Er ist nur in **Standard** und **noLegal** enthalten - prüfen Sie **Einstellungen → Allgemein → Über das System** für die Edition, die Sie haben |
-| Das Gerät kehrt nach einem Neustart zu seinem eigenen Startbildschirm zurück | Manche Autoradios anderer Hersteller und eingebaute Android-Boxen erzwingen bei jedem Start ihren werksseitigen Startbildschirm zurück. Das ist die Firmware des Geräts, die Sie überschreibt, und keine App kann das umgehen - wählen Sie FastMediaSorter nach dem Neustart erneut aus, und wenn es weiterhin nicht hält, erlaubt dieses Gerät es nicht |
+| Das Gerät kehrt nach einem Neustart zu seinem eigenen Startbildschirm zurück | Manche Autoradios anderer Hersteller und eingebaute Android-Boxen erzwingen bei jedem Start ihren werksseitigen Startbildschirm zurück. Das ist die Firmware des Geräts, die Sie überschreibt, und keine App kann das umgehen - wählen Sie Fast Media Sorter & Organizer nach dem Neustart erneut aus, und wenn es weiterhin nicht hält, erlaubt dieses Gerät es nicht |
 | Android hat nie gefragt, welche Home-App verwendet werden soll | Drücken Sie einmal **Home** - bei älteren Android-Versionen erscheint der Auswahldialog dann, nicht in dem Moment, in dem Sie den Schalter umlegen |
 | Der Desktop sieht nach dem Einschalten leer aus | Drücken Sie **Home**, statt in der App zu bleiben - der vorbefüllte Desktop ist das, was Android als Startbildschirm anzeigt |
 | Zellen bewegen sich, obwohl Sie das nicht wollten | Schalten Sie **Desktop sperren** in **Einstellungen → Allgemein → Systemlauncher-Einstellungen** ein |

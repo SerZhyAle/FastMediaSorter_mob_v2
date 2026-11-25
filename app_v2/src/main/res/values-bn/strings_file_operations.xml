@@ -56,7 +56,7 @@
     <string name="export_logs_failed">লগ রপ্তানি করতে ব্যর্থ হয়েছে</string>
     <string name="export_logs_no_files">রপ্তানির জন্য কোনো লগ ফাইল উপলব্ধ নেই</string>
     <string name="export_logs_no_share_target">লগ আর্কাইভ শেয়ার করার জন্য কোনো অ্যাপ উপলব্ধ নেই।</string>
-    <string name="export_logs_subject">ফাস্টমিডিয়াসোর্টার ডিবাগ লগ</string>
+    <string name="export_logs_subject">Fast Media Sorter &amp; Organizer ডিবাগ লগ</string>
     <string name="export_settings">সমস্ত সেটিংস ফাইলে রপ্তানি করুন</string>
     <string name="export_settings_confirm_message">বর্তমান সেটিংস দিয়ে একটি এক্সপোর্ট ফাইল তৈরি করবেন?</string>
     <string name="export_settings_confirm_title">রপ্তানি সেটিংস</string>
@@ -74,6 +74,7 @@
     <string name="delete_confirmation">ফাইলগুলো মুছে ফেলবেন?</string>
     <string name="delete_failed">ফাইলগুলো মুছে ফেলা যায়নি।</string>
     <string name="delete_folder_confirm">\"%1$s\" ফোল্ডার এবং এর ভেতরের সবকিছু মুছে ফেলতে চান? এটি আর পূর্বাবস্থায় ফেরানো যাবে না।</string>
+    <string name="delete_folder_trash_confirm">ফোল্ডার \"%1$s\" ও এর সব কনটেন্ট মুছবেন? মুছে ফেলার বদলে এটি ট্র্যাশে যাবে।</string>
     <string name="delete_n_files_from_network_title">নেটওয়ার্ক থেকে %d টি ফাইল মুছে ফেলবেন?</string>
     <string name="delete_n_folders_confirm">%1$d ফোল্ডারগুলো এবং এর ভেতরের সবকিছু মুছে ফেলবেন? এটি আর পূর্বাবস্থায় ফেরানো যাবে না।</string>
     <string name="delete_old_files">পুরানো ফাইলগুলি মুছে ফেলুন</string>

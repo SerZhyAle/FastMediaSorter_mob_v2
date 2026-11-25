@@ -12,7 +12,7 @@ canonical_url: documentation/launcher/desktop-gestures-and-shortcuts.html
 why: |
   A swipe from the edge of the screen can take a screenshot, open the camera or launch your favorite app - from inside any app, not only from the desktop. Add the desktop's own swipes and taps on top of that, and most things you reach for often are one gesture away, with nothing extra to unlock or tap through first.
 ingredients:
-  - "FastMediaSorter in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition), with **Gesture overlay** turned on in **Settings**, the **Destinations** tab. Turning it on asks for the **Display over other apps** permission, since [edge gestures](term:edge-gesture) work over any app."
+  - "Fast Media Sorter & Organizer in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition), with **Gesture overlay** turned on in **Settings**, the **Destinations** tab. Turning it on asks for the **Display over other apps** permission, since [edge gestures](term:edge-gesture) work over any app."
   - "The [launcher](term:launcher) [desktop](term:desktop) open for its own swipes and taps - see [Your launcher desktop](page:launcher.desktop-grid-and-icons)."
 steps:
   - number: 1
@@ -45,7 +45,7 @@ steps:
     id: launch-target
     title: Point a gesture at an app or a web address
     text: |
-      Choose **Launch a chosen app** and pick from the installed apps - each of the twelve gesture slots keeps its own choice. The row under the action names the app and clears it in one tap; with nothing chosen, or once the chosen app is gone, the gesture opens FastMediaSorter instead. Choosing **Open a web address** works the same way: a **Web address** row appears under the action, always ready to re-read, correct or clear, so a mistyped address is one tap away from fixed rather than a re-entry from scratch.
+      Choose **Launch a chosen app** and pick from the installed apps - each of the twelve gesture slots keeps its own choice. The row under the action names the app and clears it in one tap; with nothing chosen, or once the chosen app is gone, the gesture opens Fast Media Sorter & Organizer instead. Choosing **Open a web address** works the same way: a **Web address** row appears under the action, always ready to re-read, correct or clear, so a mistyped address is one tap away from fixed rather than a re-entry from scratch.
     image_bookmark:
       shot_id: gestures.gesture-target-row
       device_profile: phone
@@ -73,7 +73,7 @@ steps:
     id: clock-gestures
     title: Swipe the clock to change how it looks
     text: |
-      The **Clock** [gadget](term:gadget) answers its own swipes: hide or bring back the seconds, or swipe for a random dial color and time typeface, or swipe back to the theme color. The date keeps its own typeface while sharing whichever dial color you land on, and the choice survives a launcher restart.
+      The **Clock** [gadget](term:gadget) answers its own swipes: hide or bring back the seconds, or swipe for a random dial color and time typeface, or swipe back to the theme color. Twenty distinct time typefaces take turns, colors run from soft pastels to bright tones, and a paired watch face shows the same typeface and color. The date keeps its own typeface while sharing whichever dial color you land on, and the choice survives a launcher restart.
   - number: 8
     id: double-tap-lock
     title: Double-tap to lock the screen
@@ -111,6 +111,6 @@ next_recipes:
     description: The Start button, recent and pinned apps and the status tray.
 ---
 
-<sub class="doc-stamp">26.11.10 13:31</sub>
+<sub class="doc-stamp">26.11.13 16:00</sub>
 
 An [edge gesture](term:edge-gesture) works from inside any app, and the [launcher](term:launcher) [desktop](term:desktop) adds its own swipes and taps on top. This page covers setting up both, plus the small gestures on the Clock gadget and the double tap that locks the screen.

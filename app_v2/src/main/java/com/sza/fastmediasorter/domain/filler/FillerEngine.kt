@@ -28,6 +28,9 @@ interface FillerTargetResolver {
 /** Space left untouched so the system and other apps keep working while the volume is full. */
 const val FILLER_RESERVE_BYTES = 1L shl 30
 
+/** The engine refuses any smaller reserve before a session starts, so no caller can reach below it. */
+const val FILLER_MIN_RESERVE_BYTES = 10L shl 20
+
 /** Null free space means measurement failed and must never be treated as a full volume. */
 interface FillerStorage {
     suspend fun validate(target: FillerTarget): Boolean
@@ -72,7 +75,7 @@ class FillerEngine @Inject constructor(
         try {
             return if (journal.pendingSessions().isNotEmpty()) {
                 FillerResult.PendingCleanup
-            } else if (reserveBytes <= 0 || !storage.validate(target)) {
+            } else if (reserveBytes < FILLER_MIN_RESERVE_BYTES || !storage.validate(target)) {
                 FillerResult.InvalidTarget
             } else {
                 val available = storage.availableBytes(target)
@@ -165,7 +168,9 @@ class FillerEngine @Inject constructor(
 
     private companion object {
         val operationLock = Mutex()
-        const val BUFFER_BYTES = 1024 * 1024
+
+        // Each chunk costs an open and a close of the output stream, a cross-process call for a card folder.
+        const val BUFFER_BYTES = 8 * 1024 * 1024
         const val FILE_BYTES = 100L * 1024 * 1024
     }
 }

@@ -109,8 +109,8 @@ class LauncherStreamActionManager(
                         streamEdit.streamTrackPreference.writeSubtitle(url, subtitleIso, subtitlesEnabled)
                     }
                 },
-                onEdit = { edited, url, title, kindOverride ->
-                    activity.lifecycleScope.launch { persistEdit(edited, url, title, kindOverride) }
+                onEdit = { edited, url, title, kindOverride, category ->
+                    activity.lifecycleScope.launch { persistEdit(edited, url, title, kindOverride, category) }
                 },
             ),
         )
@@ -126,8 +126,9 @@ class LauncherStreamActionManager(
         url: String,
         title: String?,
         kindOverride: String?,
+        category: String?,
     ) {
-        val message = when (streamEdit.updateStreamSource(source, url, title, kindOverride)) {
+        val message = when (streamEdit.updateStreamSource(source, url, title, kindOverride, category)) {
             UpdateStreamSourceUseCase.UpdateResult.InvalidUrl -> R.string.streams_error_invalid_url
             UpdateStreamSourceUseCase.UpdateResult.Duplicate -> R.string.streams_error_duplicate_url
             UpdateStreamSourceUseCase.UpdateResult.Success,

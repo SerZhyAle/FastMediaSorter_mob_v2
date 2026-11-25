@@ -1,12 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Pirate skull badge overlay for noLegal launcher icon.
-     Positioned bottom-right of the 108dp adaptive-icon foreground canvas.
+     Positioned in the upper leading badge box of the 108dp adaptive-icon foreground canvas.
      Semi-transparent dark backdrop improves visibility over any icon background. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    <!-- S4784: the skull drawn at 62..108 units, scaled into the family badge box (upper leading,
+         31.5..41.5 units) because the lower trailing box belongs to the product signifier. -->
+    <group
+        android:scaleX="0.2174"
+        android:scaleY="0.2174"
+        android:translateX="18.02"
+        android:translateY="18.02">
 
     <!-- Dark circular backdrop - ensures skull is readable over any icon background -->
     <path
@@ -51,4 +58,5 @@
                           M91,95 L91,107 L93,107 L93,95 Z
                           M98,95 L98,107 L100,107 L100,95 Z" />
 
+    </group>
 </vector>

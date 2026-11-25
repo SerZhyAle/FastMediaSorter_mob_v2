@@ -78,7 +78,7 @@
     <string name="vr_info_video">वीडियो कोडेक:</string>
     <string name="vr_install_cta_action">स्टोर में खोलें</string>
     <string name="vr_install_cta_dismiss">फिर भी खेलें</string>
-    <string name="vr_install_cta_message">सर्वोत्तम अनुभव के लिए, अपने क्वेस्ट हेडसेट पर फास्टमीडियासॉर्टर के वीआर संस्करण को आजमाएं।</string>
+    <string name="vr_install_cta_message">सबसे अच्छे अनुभव के लिए अपने Quest हेडसेट पर Fast Media Sorter &amp; Organizer का VR संस्करण आज़माएँ।</string>
     <string name="vr_install_cta_title">यह एक 3डी वीडियो है</string>
     <string name="vr_overlay_btn_bright_down">चमकदार -</string>
     <string name="vr_overlay_btn_bright_up">उज्ज्वल +</string>

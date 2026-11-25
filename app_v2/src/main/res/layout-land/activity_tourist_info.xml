@@ -285,6 +285,14 @@
                             android:visibility="gone"
                             app:tint="?attr/colorOnSurface" />
 
+                        <!-- S4560: the GYROSCOPE tile's phone-shaped box, turned by the device attitude. -->
+                        <com.sza.fastmediasorter.ui.tourist.view.AttitudeBoxView
+                            android:id="@+id/viewHeroAttitude"
+                            android:layout_width="@dimen/tourist_compass_rose_size"
+                            android:layout_height="@dimen/tourist_compass_rose_size"
+                            android:layout_gravity="center"
+                            android:visibility="gone" />
+
                         <FrameLayout
                             android:id="@+id/layoutHeroLevel"
                             android:layout_width="@dimen/tourist_level_ring_size"

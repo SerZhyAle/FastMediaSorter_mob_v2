@@ -13,8 +13,10 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityWearResourceSelectionBinding
 import com.sza.fastmediasorter.ui.common.input.UiSurface
+import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @AndroidEntryPoint
 class WearResourceSelectionActivity : BaseActivity<ActivityWearResourceSelectionBinding>() {
@@ -22,9 +24,11 @@ class WearResourceSelectionActivity : BaseActivity<ActivityWearResourceSelection
     private val viewModel: WearResourceSelectionViewModel by viewModels()
 
     private val adapter = WearResourceSelectionAdapter(
-        onCategoryToggle = { category -> viewModel.toggleCategoryExpanded(category) },
+        onCategoryToggle = ::toggleCategory,
         onSelectionChanged = { resource, selected -> viewModel.setSelected(resource.id, selected) }
     )
+
+    private val sectionStore by lazy { CollapsibleSectionsManager(this) }
 
     /** S0289: multimodal surface marker - the picker is reached from the settings host. */
     @Suppress("unused")
@@ -43,7 +47,19 @@ class WearResourceSelectionActivity : BaseActivity<ActivityWearResourceSelection
         binding.toolbar.setUpNavigation(this)
         binding.rvResources.adapter = adapter
         binding.btnSelectAll.setOnClickListener { viewModel.selectAll() }
+        viewModel.restoreExpandedCategories(
+            ResourceCategory.entries.filter { sectionStore.isExpanded(sectionKey(it), true) }.toSet(),
+        )
     }
+
+    // COLLAPSIBLE-GROUP section 4 rule 7: the user's expansion choice outlives the screen.
+    private fun toggleCategory(category: ResourceCategory) {
+        Timber.d("S4626: wear resource category toggled category=$category")
+        viewModel.toggleCategoryExpanded(category)
+        sectionStore.setExpanded(sectionKey(category), category in viewModel.uiState.value.expandedCategories)
+    }
+
+    private fun sectionKey(category: ResourceCategory) = "wear_resources__${category.name.lowercase()}"
 
     override fun observeData() {
         lifecycleScope.launch {
@@ -69,18 +85,24 @@ class WearResourceSelectionActivity : BaseActivity<ActivityWearResourceSelection
             ResourceCategory.EXTERNAL to R.string.wear_resource_group_external
         )
 
+        val grouped = state.resources.groupBy { it.getResourceCategory() }
+        // COLLAPSIBLE-GROUP section 2 rule 2: one populated category is shown directly, with no wrapper header.
+        val showHeaders = grouped.size > 1
+
         for ((category, titleRes) in categories) {
-            val groupResources = state.resources.filter { it.getResourceCategory() == category }
+            val groupResources = grouped[category].orEmpty()
             if (groupResources.isNotEmpty()) {
-                val isExpanded = category in state.expandedCategories
-                result.add(
-                    WearResourceAdapterItem.Header(
-                        category = category,
-                        titleRes = titleRes,
-                        isExpanded = isExpanded,
-                        count = groupResources.size
+                val isExpanded = !showHeaders || category in state.expandedCategories
+                if (showHeaders) {
+                    result.add(
+                        WearResourceAdapterItem.Header(
+                            category = category,
+                            titleRes = titleRes,
+                            isExpanded = isExpanded,
+                            count = groupResources.size
+                        )
                     )
-                )
+                }
                 if (isExpanded) {
                     groupResources.forEach { resource ->
                         result.add(WearResourceAdapterItem.ResourceRow(resource))

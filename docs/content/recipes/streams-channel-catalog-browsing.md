@@ -10,11 +10,11 @@ availability: SUPPORT_STREAMS
 recipe_number: "01"
 canonical_url: documentation/streams/channel-catalog-browsing.html
 why: |
-  A hand-typed list of radio stations is fine when you have three of them. FastMediaSorter's built-in [catalog](term:catalog) can hand you thousands of [channels](term:channel) at once - curated stations, community radio, public webcams - and a list that size is only useful if you can bring in what you want, tell it apart from what you do not, and find your way back to the same view every time you open [Streams](term:streams-screen).
+  A hand-typed list of radio stations is fine when you have three of them. Fast Media Sorter & Organizer's built-in [catalog](term:catalog) can hand you thousands of [channels](term:channel) at once - curated stations, community radio, public webcams - and a list that size is only useful if you can bring in what you want, tell it apart from what you do not, and find your way back to the same view every time you open [Streams](term:streams-screen).
 
   This page covers the catalog end to end: getting it onto the device, keeping it fresh, and browsing what is in it with filters, collections and sorting. It stops short of what each channel actually looks like on screen and how you pin your favorites - those are their own pages, linked below.
 ingredients:
-  - "FastMediaSorter in the Standard, noLegal, Legacy or VR [edition](term:edition), with [Streams](term:streams-screen) turned on. Streams and its catalog do not exist in the Lite, Photos or FOSS editions."
+  - "Fast Media Sorter & Organizer in the Standard, noLegal, Legacy or VR [edition](term:edition), with [Streams](term:streams-screen) turned on. Streams and its catalog do not exist in the Lite, Photos or FOSS editions."
   - "An internet connection to bring the catalog in the first place. Once channels are on the device, browsing, filtering and sorting all work from what is already there."
   - "A few channels in the list already - your own, or from the catalog - so there is something to filter, sort and manage. See step 1 if the list is still empty."
 steps:
@@ -24,7 +24,7 @@ steps:
     text: |
       Turn Streams on in **Settings**, the **Media** tab, the **Streams** toggle. A [device profile](term:device-profile) can do this for you too: switching Streams on during the first-launch wizard starts the catalog download by itself, showing **Downloading..** under the row while it works. Turning the row back off mid-download cancels it, and opening a device that already has a catalog stored does not download anything extra.
 
-      Once Streams is on, **Update catalog** sits directly in the toolbar - no overflow menu to hunt through. Tap it and FastMediaSorter reports what changed, something like "Catalog: +48 new, 12 updated, 3 removed". If a catalog source turns out to be dead or painfully slow, the import now fails fast with a clear message instead of leaving the spinner turning.
+      Once Streams is on, **Update catalog** sits directly in the toolbar - no overflow menu to hunt through. Tap it and Fast Media Sorter & Organizer reports what changed, something like "Catalog: +48 new, 12 updated, 3 removed". If a catalog source turns out to be dead or painfully slow, the import now fails fast with a clear message instead of leaving the spinner turning.
 
       When a newer channel list is published, a banner offers **Update the channel list?** with an **Update** button. It clears itself once you act on it, and if you close it, it stays away until a newer list is published. Decide how eager that banner should be in **Settings**, the **Streams** section, **Updating the channel list**: **Only when I ask**, **Suggest when I open**, or **Automatically on Wi-Fi**.
     image_bookmark:
@@ -39,7 +39,7 @@ steps:
     id: whats-in-the-catalog
     title: What is actually in the catalog
     text: |
-      The catalog is more than one curated list. Alongside FastMediaSorter's own picks, it folds in private community radio and public webcams from open, keyless directories - laut.fm, the Xiph Icecast directory, WebRadioDB, Radio Paradise, iptv-org's weather and nature cams, AKC live cams, and Transport for London traffic cameras, the last marked as short clips rather than live streams.
+      The catalog is more than one curated list. Alongside Fast Media Sorter & Organizer's own picks, it folds in private community radio and public webcams from open, keyless directories - laut.fm, the Xiph Icecast directory, WebRadioDB, Radio Paradise, iptv-org's weather and nature cams, AKC live cams, and Transport for London traffic cameras, the last marked as short clips rather than live streams.
 
       Every name has been cleaned up at the source. Entries that used to show as "(null)", a bare dash, raw HTML codes instead of accented letters, or hundreds of stations all called "Online Radio" now arrive readable, with a nameless station listed by its own address instead. Nothing was dropped to get there - the only rows that left were exact duplicates, the same station filed once under http and once under https. A title of the form "Name (Name)" also collapses to plain "Name"; a parenthetical that actually says something different, such as a region or a quality, stays as it is.
 
@@ -63,7 +63,7 @@ steps:
     id: narrow-with-filters
     title: Narrow it down with filters
     text: |
-      Tap **Filter** to open rows for **Category**, **Language**, **Country** and **Topic** - Topic only shows up when the catalog actually carries topics. Language and Country open a type-to-filter searchable picker with flags: the language picker pins English, Russian and Ukrainian to the top, and a country's flag-and-code chip sits before its language chip in the list. The Language list holds only real languages, one entry each however the catalog spells them - regional variants and typos fold into one. The Country list holds only real countries, by full name with a flag, in alphabetical order, with the countries of your interface language first. A filter you saved earlier whose value no longer exists goes back to **All**.
+      Tap **Filter** to open rows for **Category**, **Language**, **Country** and **Topic** - Topic only shows up when the catalog actually carries topics. Language and Country open a type-to-filter searchable picker with flags: the language picker pins English, Russian and Ukrainian to the top, and a country's flag-and-code chip sits before its language chip in the list. The Language list holds only real languages, one entry each however the catalog spells them - regional variants and typos fold into one. The Country list holds only real countries, by full name with a flag, in alphabetical order, with the countries of your interface language first. A saved **Language** or **Country** that the catalog no longer carries goes back to **All** on its own. A saved **Category** or **Topic** whose value no longer exists keeps that value, and the list stays empty until you choose **All** for it.
 
       Two small icons beside the search box split the list by media kind in one tap - **Audio**, **Video**, or **Own** for channels you added yourself - and agree with whatever the Filter dialog already has selected. The filter button carries a **Filter active** mark when something is on; **Clear filters** in the dialog drops it all at once.
     image_bookmark:
@@ -98,22 +98,22 @@ steps:
     id: check-channel-health
     title: See which channels are alive before you tap one
     text: |
-      Refreshing the list does more than fetch new rows: FastMediaSorter checks every visible channel for reachability while it works, showing **Checking streams..** and marking each one green or red as the answer comes in - a channel that fails shows **No signal**. Touching the screen stops the probe where it is, and video tiles get a fresh thumbnail out of the same pass.
+      Refreshing the list does more than fetch new rows: Fast Media Sorter & Organizer checks every visible channel for reachability while it works, showing **Checking streams..** and marking each channel that answers green as the answer comes in. A channel that does not answer gets an amber unknown mark instead, never red - red comes only from a playback you started that failed. Touching the screen stops the probe where it is, and video tiles get a fresh thumbnail out of the same pass.
 
       The marks are informational, not permanent - clear them any time with **Settings**, the **Streams** section, **Clear play marks**; the channels themselves stay exactly where they were.
     image_bookmark:
       shot_id: streams.refresh-health-marks
       device_profile: phone
       screen_state: streams-refresh-health-probe
-      alt: The Streams list mid-refresh with the Checking streams message showing and channel rows marked green or red for reachability
-      caption: "Checking streams.. - green for reachable, red for No signal."
+      alt: The Streams list mid-refresh with the Checking streams message showing and channel rows marked green for reachable or amber for unknown
+      caption: "Checking streams.. - green for a channel that answers, amber for one that does not."
       title: "Screenshot: Streams refresh health probe"
-      desc: Streams list during a refresh health probe, some rows marked green, one marked red as No signal.
+      desc: Streams list during a refresh health probe, some rows marked green, others showing the amber unknown mark.
   - number: 8
     id: card-overflow-menu
     title: The three-dot menu on every card
     text: |
-      Every card, in grid or list, carries a three-dot **More actions** button of its own: **Edit** for a channel you added by hand, **Send link**, and **Remove**. Where FastMediaSorter's launcher is set up, **Add to home screen** is there too - no long-press or hidden gesture needed for any of it.
+      Every card, in grid or list, carries a three-dot **More actions** button of its own: **Edit** for a channel you added by hand, **Send link**, and **Remove**. Where Fast Media Sorter & Organizer's launcher is set up, **Add to home screen** is there too - no long-press or hidden gesture needed for any of it.
     image_bookmark:
       shot_id: streams.card-overflow-menu
       device_profile: phone
@@ -139,7 +139,7 @@ steps:
     id: clear-all-downloaded
     title: Starting fresh - clear every downloaded channel
     text: |
-      Tap **Clear all downloaded** to remove, in one confirmed action, everything that came from the catalog or an imported playlist. Channels you typed in by hand are never touched. FastMediaSorter counts what it removed when it is done, so you know the clean-up actually happened.
+      Tap **Clear all downloaded** to remove, in one confirmed action, everything that came from the catalog or an imported playlist. Channels you typed in by hand are never touched. Fast Media Sorter & Organizer counts what it removed when it is done, so you know the clean-up actually happened.
     image_bookmark:
       shot_id: streams.clear-downloaded-confirm
       device_profile: phone
@@ -207,6 +207,6 @@ next_recipes:
     description: What happens once you actually tap a channel and playback starts.
 ---
 
-<sub class="doc-stamp">26.10.26 18:01</sub>
+<sub class="doc-stamp">26.11.14 02:38</sub>
 
 The [catalog](term:catalog) is how [Streams](term:streams-screen) goes from empty to thousands of [channels](term:channel) worth browsing: download it, keep it fresh, then find your way around with filters, curated collections, sorting and a list that remembers exactly where you left it.

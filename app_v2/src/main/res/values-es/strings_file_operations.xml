@@ -56,7 +56,7 @@
     <string name="export_logs_failed">Error al exportar los registros</string>
     <string name="export_logs_no_files">No hay archivos de registro disponibles para exportar.</string>
     <string name="export_logs_no_share_target">No hay ninguna aplicación disponible para compartir el archivo de registro.</string>
-    <string name="export_logs_subject">Registros de depuración de FastMediaSorter</string>
+    <string name="export_logs_subject">Registros de depuración de Fast Media Sorter &amp; Organizer</string>
     <string name="export_settings">Exportar todos los ajustes a un archivo.</string>
     <string name="export_settings_confirm_message">¿Crear un archivo de exportación con la configuración actual?</string>
     <string name="export_settings_confirm_title">Exportar configuración</string>
@@ -74,6 +74,7 @@
     <string name="delete_confirmation">¿Eliminar archivos?</string>
     <string name="delete_failed">No se pudieron eliminar los archivos.</string>
     <string name="delete_folder_confirm">¿Eliminar la carpeta \"%1$s\" y todo su contenido? Esta acción es irreversible.</string>
+    <string name="delete_folder_trash_confirm">¿Eliminar la carpeta \"%1$s\" y todo su contenido? Se mueve a la papelera en lugar de borrarse.</string>
     <string name="delete_n_files_from_network_title">¿Eliminar %d archivos de la red?</string>
     <string name="delete_n_folders_confirm">¿Eliminar las carpetas %1$d y todo su contenido? Esta acción es irreversible.</string>
     <string name="delete_old_files">Eliminar archivos antiguos</string>

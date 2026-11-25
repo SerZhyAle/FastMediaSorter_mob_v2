@@ -35,7 +35,6 @@ object LogExportHelper {
         data class Error(val message: String) : ExportResult()
     }
 
-    private const val ZIP_FILE_NAME = "fastmediasorter_logs.zip"
     private const val AUTHORITY_SUFFIX = ".fileprovider"
     private const val MIB = 1024L * 1024L
     private const val ARCHIVE_FILE_CEILING_BYTES = 16 * MIB
@@ -83,11 +82,11 @@ object LogExportHelper {
                 .distinctBy { file -> file.absolutePath }
             if (logFiles.isEmpty()) return@allowDiskIO null
 
-            val cacheZip = File(context.cacheDir, ZIP_FILE_NAME)
-            if (cacheZip.exists()) cacheZip.delete()
+            deleteStaleArchives(context.cacheDir)
+            val cacheZip = File(context.cacheDir, DiagnosticArchive.fileName())
 
             ZipOutputStream(FileOutputStream(cacheZip)).use { zos: ZipOutputStream ->
-                writeEntries(zos, logFiles, context.cacheDir)
+                writeEntries(zos, logFiles, context)
             }
             cacheZip
         } catch (e: Exception) {
@@ -105,7 +104,7 @@ object LogExportHelper {
             if (logFiles.isEmpty()) return@withContext ExportResult.NoLogs
 
             context.contentResolver.openOutputStream(destUri)?.use { out ->
-                ZipOutputStream(BufferedOutputStream(out)).use { zos -> writeEntries(zos, logFiles, context.cacheDir) }
+                ZipOutputStream(BufferedOutputStream(out)).use { zos -> writeEntries(zos, logFiles, context) }
             } ?: return@withContext ExportResult.Error(context.getString(R.string.save_logs_failed))
 
             ExportResult.SaveSuccess
@@ -117,10 +116,23 @@ object LogExportHelper {
         }
     }
 
-    private fun writeEntries(zos: ZipOutputStream, files: List<File>, scratchDir: File) {
+    /**
+     * A file name never repeats across exports, so the previous archive (and the fixed-name one older builds
+     * wrote) would otherwise stay in the cache forever.
+     */
+    private fun deleteStaleArchives(cacheDir: File) {
+        File(cacheDir, DiagnosticArchive.LEGACY_FILE_NAME).delete()
+        cacheDir.listFiles { file -> DiagnosticArchive.isArchiveName(file.name) }?.forEach { it.delete() }
+    }
+
+    /** The environment summary leads the archive so a reader finds the build facts before any log line. */
+    private fun writeEntries(zos: ZipOutputStream, files: List<File>, context: Context) {
+        zos.putNextEntry(ZipEntry(DiagnosticArchive.ENVIRONMENT_ENTRY))
+        zos.write(DiagnosticArchive.environmentSummary(context).toByteArray(Charsets.UTF_8))
+        zos.closeEntry()
         files.filter { it.exists() }.forEach { file ->
             zos.putNextEntry(ZipEntry(file.name))
-            writeRedacted(file, zos, scratchDir)
+            writeRedacted(file, zos, context.cacheDir)
             zos.closeEntry()
         }
     }

@@ -1,18 +1,18 @@
-<sub class="doc-stamp">26.10.07 04:59</sub>
+<sub class="doc-stamp">26.11.20 20:17</sub>
 
 # Pointer - `RULE-DELIVERY`
 
 | | |
 | --- | --- |
 | **Id** | `RULE-DELIVERY` |
-| **Version** | 0.12, draft. Owner: the canon (sza-unified-rules) |
+| **Version** | 0.13, draft. Owner: the canon (sza-unified-rules) |
 | **Home** | `rule-adoption/README.md` section 5 in the shared contracts catalog |
 | **Role here** | adopter - receives the rule set through the `sza` plugin |
 
 ## What this repository must do to stay conformant
 
 - Judge staleness from the core digest, never from a commit id.
-- Reconcile the changed rule documents when the digest differs; re-adopt fully once the gap is an error.
+- Reconcile the changed rule documents when the digest differs; a differing digest is a warning at any age and the age is only reported - the 180-day error rung of 0.12 is withdrawn (0.13, item D).
 - Never hand-edit the version pair recorded in the stamp.
 
 ## Where it lives here

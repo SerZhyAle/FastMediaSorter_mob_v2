@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.browse
 
 import android.content.Context
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.di.UnitSystemEntryPoint
 import com.sza.fastmediasorter.core.util.formatFileSize
 import com.sza.fastmediasorter.core.util.formatMediaDuration
@@ -71,10 +72,11 @@ object AdapterFileInfoFormatter {
     fun buildFileInfo(context: Context, file: MediaFile): String {
         if (file.isDirectory) {
             val count = file.childCount ?: 0
-            return when {
-                count == 0 -> "Empty folder"
-                count == 1 -> "1 item"
-                else -> "$count items"
+            Timber.d("S4769: folder row info count=$count")
+            return if (count == 0) {
+                context.getString(R.string.empty_folder)
+            } else {
+                context.resources.getQuantityString(R.plurals.folder_item_count_plural, count, count)
             }
         }
 

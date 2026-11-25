@@ -10,11 +10,11 @@ availability: all
 recipe_number: "01"
 canonical_url: documentation/storage/storage-sources-setup.html
 why: |
-  Your photos from the last holiday sit in the camera folder, the music you copied years ago lives on the memory card, and a USB stick from a friend is plugged into the phone. FastMediaSorter shows none of them until you tell it where to look. Every place you add becomes a [resource](term:resource) - one row or tile on the [resource list](term:resource-list) that opens straight into that folder.
+  Your photos from the last holiday sit in the camera folder, the music you copied years ago lives on the memory card, and a USB stick from a friend is plugged into the phone. Fast Media Sorter & Organizer shows none of them until you tell it where to look. Every place you add becomes a [resource](term:resource) - one row or tile on the [resource list](term:resource-list) that opens straight into that folder.
 
   Adding a [local folder](term:local-folder) takes a minute and changes nothing in your files. Removing the resource later removes only the app's entry; the folder and everything in it stay where they are.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR or FOSS. Adding a folder from the device works in all of them."
+  - "Fast Media Sorter & Organizer in any [edition](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR or FOSS. Adding a folder from the device works in all of them."
   - "The permission to read your media. The app asks for it on first launch; see [Understanding app permissions](page:getting-started.permissions-guide) if you said no."
   - "For a memory card or a USB drive: the card inserted or the drive connected (a USB drive usually needs a small USB-C or OTG adapter)."
 steps:
@@ -98,7 +98,7 @@ steps:
     text: |
       Since Android 11 an app sees every kind of file in a folder only if it holds the special "access to all files" permission, or if you picked the folder yourself in Android's folder window. Some editions never ask for "access to all files", and in the others you may have said no, so a folder added by its path shows only photos, video and audio. The app tells you so instead of pretending the folder is complete:
 
-      - The file count on the resource reads, for example, "124 - IVAG": the colored letters name the kinds of files the number covers - I images, V video, A audio, G GIF. The All Documents collection shows "Documents cannot be read" instead of a zero.
+      - The file count on the resource reads, for example, "124 - IVAG": the colored letters name the kinds of files the number covers - I images, V video, A audio, G GIF. The All Documents collection shows "Add a folder to see documents" instead of a zero.
       - The first time you open such a folder, a note at the top explains how to see the documents too.
       - The filter does not offer document types that the folder cannot return.
   - number: 6
@@ -146,6 +146,6 @@ next_recipes:
     description: Look through a resource as tiles or as a list.
 ---
 
-<sub class="doc-stamp">26.10.18 01:23</sub>
+<sub class="doc-stamp">26.11.24 12:08</sub>
 
 Add a folder from the phone, a memory card or a USB drive as a resource, meet the ready-made collections the app creates for you, and let a folder show every kind of file with Reconnect resource.

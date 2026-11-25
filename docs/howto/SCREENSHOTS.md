@@ -10,7 +10,7 @@ All screenshots go to: `docs/howto/screenshots/`
 
 | File name | Scenario | Step | What must be visible on screen | Source |
 |-----------|----------|------|-------------------------------|--------|
-| `screenshot-smb-step1.png` | SMB Setup | 1 | FastMediaSorter main screen; **Add** button in the top toolbar must be clearly visible | 📸 Phone/tablet |
+| `screenshot-smb-step1.png` | SMB Setup | 1 | Fast Media Sorter & Organizer main screen; **Add** button in the top toolbar must be clearly visible | 📸 Phone/tablet |
 | `screenshot-smb-step2.png` | SMB Setup | 2 | "Add Resource" type selection screen with options list (Local, SMB, SFTP, Cloud..) | 📸 Phone/tablet |
 | `screenshot-smb-step3.png` | SMB Setup | 3 | SMB form with **IP address entered manually** in the Server field (e.g. `192.168.1.100`) and Share name filled (e.g. `Photos`); no scan used | 📸 Phone/tablet |
 | `screenshot-smb-step4.png` | SMB Setup | 4 | Green **"Connection successful"** toast or banner after Test Connection | 📸 Phone/tablet (needs real SMB) |
@@ -28,7 +28,7 @@ All screenshots go to: `docs/howto/screenshots/`
 | `screenshot-pf-step4.png` | Photo Frame | 4 | A photo displayed **full-screen** with no UI chrome; or slideshow visibly running (▶ in toolbar) | 📸 Phone/tablet |
 | `screenshot-pf-step5.png` | Photo Frame | 5 | **Settings → General → System** tab; **"Prevent Sleep"** toggle is **ON** | ♻️ Rename `Screenshot_20260415_012128.png` |
 
-| `screenshot-pf-step6.png` | Photo Frame | 6 | Android **widget picker** showing FastMediaSorter widgets listed; or a "Resource Shortcut" widget placed on home screen | 📸 Phone/tablet |
+| `screenshot-pf-step6.png` | Photo Frame | 6 | Android **widget picker** showing Fast Media Sorter & Organizer widgets listed; or a "Resource Shortcut" widget placed on home screen | 📸 Phone/tablet |
 | `screenshot-cb-step2.png` | Camera Backup | 2 | SMB add-resource form filled in with a backup folder path, e.g. `\\192.168.1.100\PhoneBackup` | 📸 Phone/tablet |
 | `screenshot-cb-step3.png` | Camera Backup | 3 | **Settings → Management** tab with the **Schedule** section visible (label "Schedule" must be readable) | 📸 Phone/tablet |
 

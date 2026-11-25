@@ -12,6 +12,7 @@ class ExchangeMessageTest {
         val expected = mapOf(
             ExchangeMessage.BAD_CREDENTIALS to "credentials",
             ExchangeMessage.BAD_CREDENTIALS_ONE_TIME_CODE to "credentials",
+            ExchangeMessage.BAD_CREDENTIALS_ADMIN to null,
             ExchangeMessage.DEVICE_REVOKED to "device-removed",
             ExchangeMessage.SIGNED_OUT to "credentials",
             ExchangeMessage.VERSION_UNSUPPORTED to "operator",
@@ -44,9 +45,15 @@ class ExchangeMessageTest {
             ExchangeMessage.KEY_CHANGED to null,
             ExchangeMessage.SERVER_NO_E2E to "operator",
             ExchangeMessage.SEALED_FAILED to null,
+            ExchangeMessage.E2E_MISSING_PEER to null,
             ExchangeMessage.FORMAT_UNSUPPORTED to null,
             ExchangeMessage.REFUSED to "operator",
             ExchangeMessage.ADMIN_DISABLED to null,
+            ExchangeMessage.ADMIN_SESSION_ENDED to null,
+            ExchangeMessage.SETTINGS_NOT_FOUND to null,
+            ExchangeMessage.SETTINGS_INVALID_PAYLOAD to null,
+            ExchangeMessage.SETTINGS_APP_ID_MISMATCH to "operator",
+            ExchangeMessage.SETTINGS_VERSION_INCOMPATIBLE to "operator",
             ExchangeMessage.TOKEN_NOT_STORED to null,
         )
         assertEquals(ExchangeMessage.entries.toSet(), expected.keys)

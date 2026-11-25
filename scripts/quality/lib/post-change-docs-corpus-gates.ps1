@@ -9,7 +9,8 @@
     reaches readers with no Android release in between, and only the author of the change knows
     which word, link, image or generated page they meant.
 
-      - docs-termbase         (S2974) forbidden synonyms in a changed page or termbase record
+      - docs-termbase         (S2974) forbidden synonyms in a changed page, help source or termbase
+                              record, and the per-locale definition files
       - docs-crosslinks       (S2945) page and root landing links against the published site (S3705)
       - docs-screenshots      (S2977) every referenced image exists and carries alt text
       - docs-search           (S2970) search index shape, sample queries, responsive stylesheet
@@ -21,6 +22,7 @@
       - docs-hub-shell        (S4114) the hand-kept portal hubs carry a current shared shell
       - released-addresses    (S4256) every page a release carried keeps its address and its anchors, or is retired
       - portal-pages          (S4256) the media exchange portal's section owners, three-language set and rendered schemes
+      - internal-doc-links    (S4653) relative links and anchors inside the changed docs/ and dev/ Markdown resolve on disk
 
     site-origins reads the whole published set - every page, stylesheet and script, 39 MB - and took
     1.9 s when added, so its trigger is any published page, stylesheet, script or template, never a
@@ -39,7 +41,7 @@
     Sourced, never executed directly, so it declares no exit codes of its own.
 #>
 
-$runsDocsTermbase = Test-AnyChangedFile '^(docs/termbase\.jsonl|docs/content/recipes/.*\.md|documentation/.*\.md)$'
+$runsDocsTermbase = Test-AnyChangedFile '^(docs/termbase\.jsonl|docs/content/recipes/.*\.md|docs/content/help/[^/]+\.json|scripts/docs/lib/termbase-definitions-[^/]+\.json|documentation/.*\.md)$'
 $runsDocsCorpus = Test-AnyChangedFile '^(documentation/|docs/content/|docs/docs-pages-manifest\.jsonl$|index[^/]*\.html$)'
 
 $runsSiteAddresses = Test-AnyChangedFile '^(404\.html$|docs/site-redirects\.jsonl$|docs/docs-pages-manifest\.jsonl$|docs/coverage-manifest\.jsonl$|documentation/|docs/content/|scripts/docs/(generate-site-redirects|retire-docs-page)\.ps1$|scripts/docs/lib/(site|held)-addresses\.ps1$|scripts/quality/assert-site-addresses(\.ps1$|\.tests/)|docs/site-held-addresses\.jsonl$|docs/site-address-groups\.json$|_data/languages\.yml$|app_v2/src/main/java/com/sza/fastmediasorter/ui/(common/support/SupportIntentFactory|common/input/InputHelpLinkResolver|settings/helpers/GeneralSettingsLinkButtonsSetupHelper|broadcast/helpers/BroadcastShareLinkFactory)\.kt$|wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearPortalLinks\.kt$|README\.md$|docs/README[^/]*\.md$|play/listing/|fastlane/metadata/|store_assets/post\.md$|meta/listing/README\.md$)'
@@ -67,6 +69,8 @@ $runsReleasedAddresses = Test-AnyChangedFile '^(docs/site-released-addresses\.js
 $argvReleasedAddresses = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-released-addresses.ps1"), '-Quiet')
 $runsPortalPages = Test-AnyChangedFile '^(docs/media-exchange-portal/|scripts/docs/(portal-sections\.json|render-usage-schemes\.ps1|usage-schemes/)|scripts/quality/assert-portal-pages(\.ps1$|\.tests/))'
 $argvPortalPages = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-portal-pages.ps1"))
+$internalDocLinkFiles = @($changedFiles | ForEach-Object { "$_".Replace('\', '/') } | Where-Object { $_ -match '^(docs|dev)/.*\.md$' })
+$argvInternalDocLinks = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-internal-doc-links.ps1"), '-Quiet', '-Files', ($internalDocLinkFiles -join ','))
 
 # Started together so the children overlap; each Invoke-Gate below joins its own.
 if ($runsSiteAddresses) { Start-PooledGate @argvSiteAddresses }
@@ -90,7 +94,7 @@ if ($runsDocsTermbase) {
     Invoke-Gate "docs-termbase" { Invoke-GateChild @argvDocsTermbase }
 }
 else {
-    Skip-Step "docs-termbase" "not applicable - no changed termbase, recipe or documentation/*.md page"
+    Skip-Step "docs-termbase" "not applicable - no changed termbase, definition file, help source, recipe or documentation/*.md page"
 }
 
 # S4097: fatal - SITE-STRUCTURE 0.1 rules 8, 13 and 15; the subject is a handful of small files, so it runs on its own trigger.
@@ -147,6 +151,14 @@ if ($runsPortalPages) {
 }
 else {
     Skip-Step "portal-pages" "not applicable - no changed portal page, picture, label file, section manifest or scheme renderer"
+}
+
+# S4653: fatal - DOC-INTERNAL-QUALITY rule 3; the author of a changed document answers for its own links.
+if ($internalDocLinkFiles.Count -gt 0) {
+    Invoke-Gate "internal-doc-links" { Invoke-GateChild @argvInternalDocLinks }
+}
+else {
+    Skip-Step "internal-doc-links" "not applicable - no changed Markdown file under docs/ or dev/"
 }
 
 # Each label is written out, never looped over: assert-gate-hints-sync.ps1 pairs a hint with a

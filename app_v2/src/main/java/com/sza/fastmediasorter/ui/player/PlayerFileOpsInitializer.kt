@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.domain.input.InputTrigger
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.ui.browse.transfer.TransferSkipSummary
 import com.sza.fastmediasorter.ui.keybinding.helpers.KeybindingRowLabelFormatter
 import com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperation
 import com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperationEvent
@@ -47,6 +48,16 @@ internal class PlayerFileOpsInitializer(
         activity.lifecycleScope.launch {
             activity.repeatOnLifecycle(Lifecycle.State.CREATED) {
                 activity.playerFileOperationQueue.events.collect { handleQueueEvent(it) }
+            }
+        }
+
+        // STARTED, not CREATED: a skip toast is only worth showing on a visible player, and the
+        // coordinator's replay delivers a transfer that finished meanwhile when the player returns.
+        activity.lifecycleScope.launch {
+            activity.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                activity.browseTransferCoordinator.terminalEvents.collect { event ->
+                    TransferSkipSummary.announce(activity, event)
+                }
             }
         }
 
@@ -122,14 +133,26 @@ internal class PlayerFileOpsInitializer(
             activity.viewModel.state.value.resource
     }
 
+    private fun afterEditorCommit(closeEditor: Boolean, transfer: () -> Unit) {
+        val textViewer = activity._textViewerManager
+        if (textViewer == null) {
+            transfer()
+        } else {
+            textViewer.commitEditorBeforeTransfer(closeEditor, transfer)
+        }
+    }
+
     private fun buildDestinationButtonsCallback() = object : DestinationButtonsManager.DestinationButtonsCallback {
         override fun onCopyClicked(destination: com.sza.fastmediasorter.domain.model.MediaResource) =
-            activity.fileOperationsHandler.performCopy(destination)
+            afterEditorCommit(closeEditor = false) { activity.fileOperationsHandler.performCopy(destination) }
         override fun onMoveClicked(destination: com.sza.fastmediasorter.domain.model.MediaResource) =
-            activity.fileOperationsHandler.performMove(destination)
+            afterEditorCommit(closeEditor = true) { activity.fileOperationsHandler.performMove(destination) }
         override fun onCustomPathPickerRequested(operationType: com.sza.fastmediasorter.domain.model.FileOperationType) {
-            val credId = activity.viewModel.state.value.resource?.credentialsId
-            activity.playerFolderPickerHandler.requestFolderPick(operationType, credId)
+            val isMove = operationType == com.sza.fastmediasorter.domain.model.FileOperationType.MOVE
+            afterEditorCommit(closeEditor = isMove) {
+                val credId = activity.viewModel.state.value.resource?.credentialsId
+                activity.playerFolderPickerHandler.requestFolderPick(operationType, credId)
+            }
         }
         override fun getCurrentResourceId(): Long = activity.intent.getLongExtra("resourceId", -1)
         override fun getCurrentFilePath(): String? = activity.viewModel.state.value.currentFile?.path

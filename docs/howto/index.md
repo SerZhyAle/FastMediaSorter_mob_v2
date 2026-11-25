@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Step-by-Step Guides - FastMediaSorter v2"
+title: "Step-by-Step Guides - Fast Media Sorter & Organizer"
 permalink: /docs/howto/
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -9,7 +9,7 @@ permalink: /docs/howto/
 
 Practical walkthroughs for real-world use cases. No prior experience needed - every step is explained from scratch.
 
-> **Looking for the full manual?** The [FastMediaSorter documentation portal](../../documentation/index.html) is now the main reference: every feature, a glossary, an A-Z index and search across all pages. The scenarios below stay as quick task walkthroughs.
+> **Looking for the full manual?** The [Fast Media Sorter & Organizer documentation portal](../../documentation/index.html) is now the main reference: every feature, a glossary, an A-Z index and search across all pages. The scenarios below stay as quick task walkthroughs.
 
 ---
 

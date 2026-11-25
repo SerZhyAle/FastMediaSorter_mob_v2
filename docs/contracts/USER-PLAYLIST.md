@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.02 21:39</sub>
+<sub class="doc-stamp">26.11.25 02:51</sub>
 
 # Pointer - `USER-PLAYLIST`
 
 | | |
 | --- | --- |
 | **Id** | `USER-PLAYLIST` |
-| **Version** | 0.12, draft. Owner: StreamsPlayer |
+| **Version** | 0.14, draft. Owner: StreamsPlayer |
 | **Home** | `user-playlist/README.md` in the shared contracts catalog |
 | **Role here** | consumer (imports user-curated streams and playlists) |
 
@@ -18,10 +18,10 @@
 - Bound the input: an oversized playlist is refused whole and imports nothing (section 8 item 1).
 - A network import refuses, before reading the body, a response carrying `icy-*` headers or a
   non-playlist `audio/*` / `video/*` content type (section 8 item 3).
-- Refuse the JSON carrier whole (section 6 item A): a `.json` URL or a body opening with `{` / `[` imports nothing and shows its own message (`ImportResult.UnsupportedFormat`).
+- Refuse the JSON carrier whole (section 6 item A): a `.json` URL or a body opening with `{` / `[` imports nothing and shows its own message (`ImportResult.UnsupportedFormat`). That is the one refusal of 0.13 item 2, which the contract names `JsonCarrierUnread`: it is decided from the name before the body is read as a playlist, imports 0 entries and writes nothing.
 - Preserve local user customizations during import - never delete existing channels.
 - Classify imported stream URLs into audio / video using `StreamMediaKindClassifier`.
-- Deduplicate on insert by normalized stream URL (`addAllIgnoringDuplicates`).
+- Deduplicate on insert by normalized stream URL (`addAllIgnoringDuplicates`). The key is the exact, case-sensitive match of 0.13 item 1: `StreamUrlNormalizer` folds only scheme and host case, the default port and a trailing slash, never `http` against `https`, so `duplicate` counts exact matches and this product reports no `folded` count.
 
 ## Where it lives here
 

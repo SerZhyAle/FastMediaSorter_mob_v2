@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Порядок в загрузках (Quick Sort) - FastMediaSorter v2"
+title: "Порядок в загрузках (Quick Sort) - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-download-organizer-ru.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -9,7 +9,7 @@ permalink: /docs/howto/scenario-download-organizer-ru.html
 
 > **Уровень:** Начинающий &bull; **Версия:** Любая (Standard, Lite, Photos, Legacy, VR, noLegal)
 
-**Quick Sort** - главная «фишка» FastMediaSorter: настройте папки назначения один раз, а затем сортируйте сотни файлов, просто нажимая номер. Никакого перетаскивания. Никаких меню. Просто нажали **1**, **2** или **3** - файл ушёл в нужное место.
+**Quick Sort** - главная «фишка» Fast Media Sorter & Organizer: настройте папки назначения один раз, а затем сортируйте сотни файлов, просто нажимая номер. Никакого перетаскивания. Никаких меню. Просто нажали **1**, **2** или **3** - файл ушёл в нужное место.
 
 **Реальный пример:** у вас 200 файлов в папке Загрузки - скриншоты, рабочие документы, семейные фото, мемы, чеки. С Quick Sort всё это можно разобрать за ~5 минут. Без него - удачи.
 
@@ -36,7 +36,7 @@ permalink: /docs/howto/scenario-download-organizer-ru.html
 
 > **Папка Загрузки - это то место, куда браузер, Telegram, WhatsApp и другие приложения сохраняют файлы.** Обычно это самое захламлённое место на любом телефоне.
 
-![FastMediaSorter resource list - Downloads resource card added, Local badge visible](screenshots/screenshot-dl-step1.png)
+![Fast Media Sorter & Organizer resource list - Downloads resource card added, Local badge visible](screenshots/screenshot-dl-step1.png)
 
 ---
 
@@ -50,12 +50,12 @@ permalink: /docs/howto/scenario-download-organizer-ru.html
 - **Сохранить** - всё, что хочется оставить надолго
 - **Корзина** - файлы на удаление после просмотра
 
-**Папки можно создать прямо в FastMediaSorter:**
+**Папки можно создать прямо в Fast Media Sorter & Organizer:**
 1. Откройте ресурс Загрузки
 2. Нажмите кнопку **меню <img src="../icons/doc/ic_more_vert.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** → **Создать папку**
 3. Введите название → нажмите **ОК**
 
-Или создайте папки в обычном файловом менеджере телефона - они появятся в FastMediaSorter автоматически.
+Или создайте папки в обычном файловом менеджере телефона - они появятся в Fast Media Sorter & Organizer автоматически.
 
 ---
 

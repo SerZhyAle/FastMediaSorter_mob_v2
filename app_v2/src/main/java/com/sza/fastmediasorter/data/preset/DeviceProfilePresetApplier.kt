@@ -63,6 +63,8 @@ class DeviceProfilePresetApplier @Inject constructor(
             "enableCalculator" -> settings.withPrograms { copy(enableCalculator = raw.toBool()) }
             "enableStopwatch" -> settings.withPrograms { copy(enableStopwatch = raw.toBool()) }
             "enableTourist" -> settings.withPrograms { copy(enableTourist = raw.toBool()) }
+            "enableNotes" -> settings.withPrograms { copy(enableNotes = raw.toBool()) }
+            "enableFeedback" -> settings.withPrograms { copy(enableFeedback = raw.toBool()) }
             "flashlightShortcutNotificationEnabled" ->
                 settings.withPrograms { copy(flashlightShortcutNotificationEnabled = raw.toBool()) }
             "suppressWearMediaTakeover" -> settings.withPrograms { copy(suppressWearMediaTakeover = raw.toBool()) }

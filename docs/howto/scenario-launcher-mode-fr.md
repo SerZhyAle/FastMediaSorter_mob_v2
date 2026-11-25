@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Utiliser l'application comme écran d'accueil - FastMediaSorter v2"
+title: "Utiliser l'application comme écran d'accueil - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-launcher-mode-fr.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -11,7 +11,7 @@ permalink: /docs/howto/scenario-launcher-mode-fr.html
 
 > **Niveau :** Débutant &bull; **Édition :** Standard / noLegal
 
-FastMediaSorter peut remplacer l'écran d'accueil de votre appareil par son propre bureau - vos dossiers, une horloge, la météo, vos applications, et une barre des tâches le long d'un bord. Si vous avez déjà utilisé un bureau Windows, cela vous semblera familier : les choses restent là où vous les mettez, et un bouton Démarrer ouvre le menu. C'est ce qu'on appelle le **mode launcher**.
+Fast Media Sorter & Organizer peut remplacer l'écran d'accueil de votre appareil par son propre bureau - vos dossiers, une horloge, la météo, vos applications, et une barre des tâches le long d'un bord. Si vous avez déjà utilisé un bureau Windows, cela vous semblera familier : les choses restent là où vous les mettez, et un bouton Démarrer ouvre le menu. C'est ce qu'on appelle le **mode launcher**.
 
 **Exemple concret :** une ancienne tablette accrochée au mur de la cuisine. Au lieu d'une grille d'icônes d'applications, vous obtenez l'horloge, la météo du jour, le dossier photo de votre NAS et un bouton qui démarre la radio - tout cela sur l'écran qu'elle affiche à son réveil.
 
@@ -29,7 +29,7 @@ FastMediaSorter peut remplacer l'écran d'accueil de votre appareil par son prop
 
 1. Ouvrez **Paramètres → Général**
 2. Activez **Faire de cette application l'écran d'accueil**
-3. Android vous demande de confirmer. Sur Android 10 et plus récent, c'est une seule question - "Autoriser FastMediaSorter à être votre application d'accueil ?" - donc autorisez-la. Sur les versions plus anciennes, le sélecteur classique apparaît la prochaine fois que vous appuyez sur Accueil : choisissez FastMediaSorter et appuyez sur **Toujours**, ou **Une seule fois** pour l'essayer d'abord.
+3. Android vous demande de confirmer. Sur Android 10 et plus récent, c'est une seule question - "Autoriser Fast Media Sorter & Organizer à être votre application d'accueil ?" - donc autorisez-la. Sur les versions plus anciennes, le sélecteur classique apparaît la prochaine fois que vous appuyez sur Accueil : choisissez Fast Media Sorter & Organizer et appuyez sur **Toujours**, ou **Une seule fois** pour l'essayer d'abord.
 4. Appuyez sur **Accueil**
 
 > **Vous venez d'installer l'application ?** Il existe un raccourci : cochez **Utiliser comme écran d'accueil** sur la première page de bienvenue. La configuration n'est pas interrompue par une boîte de dialogue système - la confirmation d'Android apparaît la première fois que vous ouvrez **Paramètres → Général** par la suite.
@@ -55,7 +55,7 @@ Le bureau n'est pas une grille vide au premier jour. Il arrive avec une douzaine
 La barre des tâches se trouve le long du bord inférieur. Elle contient le bouton Démarrer, les applications récemment utilisées, celles que vous avez épinglées, et une petite zone avec l'horloge, la batterie, le réseau et le signal SIM.
 
 - **Vous la préférez en haut ?** **Paramètres → Général → Paramètres du launcher système → Barre des tâches → Position de la barre des tâches** bascule entre **Bas** et **Haut**. Le menu Démarrer suit la barre et se déploie depuis le haut quand la barre est en haut.
-- **Le bouton Démarrer** ouvre le menu : ouvrir FastMediaSorter, vos ressources, ajouter une ressource, les paramètres Android, les paramètres de l'application, les paramètres du launcher, modifier le contenu du bureau, et à la fin redémarrer, éteindre et **Quitter le mode launcher**.
+- **Le bouton Démarrer** ouvre le menu : ouvrir Fast Media Sorter & Organizer, vos ressources, ajouter une ressource, les paramètres Android, les paramètres de l'application, les paramètres du launcher, modifier le contenu du bureau, et à la fin redémarrer, éteindre et **Quitter le mode launcher**.
 - **Vos applications** sont regroupées en sections avec de petits en-têtes. Appuyez sur un en-tête pour réduire une section que vous ouvrez rarement. Un bureau tout neuf place vos applications Google dans une section **Google** et vos propres applications installées - messageries, jeux et le reste - dans une section **Applications**, afin que la même icône n'apparaisse jamais deux fois. Appuyez longuement sur n'importe quelle application pour **Mettre sur le bureau** et **Épingler à la barre des tâches**.
 
 ---
@@ -123,7 +123,7 @@ La disposition de votre bureau est conservée dans tous les cas, donc réactiver
 | Problème | Que faire |
 |---------|------------|
 | **Faire de cette application l'écran d'accueil** est absent de Paramètres → Général | Votre version n'inclut pas le mode launcher. Il n'est disponible que dans **Standard** et **noLegal** - vérifiez **Paramètres → Général → À propos du système** pour connaître votre édition |
-| L'appareil revient à son propre écran d'accueil après un redémarrage | Certains autoradios non constructeur et boîtiers Android intégrés réimposent leur écran d'accueil d'usine à chaque démarrage. C'est le firmware de l'appareil qui vous contourne, et aucune application ne peut y remédier - resélectionnez FastMediaSorter après le redémarrage, et si cela ne tient toujours pas, cet appareil ne le permet pas |
+| L'appareil revient à son propre écran d'accueil après un redémarrage | Certains autoradios non constructeur et boîtiers Android intégrés réimposent leur écran d'accueil d'usine à chaque démarrage. C'est le firmware de l'appareil qui vous contourne, et aucune application ne peut y remédier - resélectionnez Fast Media Sorter & Organizer après le redémarrage, et si cela ne tient toujours pas, cet appareil ne le permet pas |
 | Android n'a jamais demandé quelle application d'accueil utiliser | Appuyez une fois sur **Accueil** - sur les anciennes versions d'Android, le sélecteur apparaît à ce moment-là, pas au moment où vous activez le paramètre |
 | Le bureau paraît vide après l'avoir activé | Appuyez sur **Accueil** plutôt que de rester dans l'application - le bureau pré-rempli est ce qu'Android affiche comme écran d'accueil |
 | Les cellules bougent alors que vous ne le vouliez pas | Activez **Verrouiller le bureau** dans **Paramètres → Général → Paramètres du launcher système** |

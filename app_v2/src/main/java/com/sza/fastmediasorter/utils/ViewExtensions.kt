@@ -1,20 +1,26 @@
 package com.sza.fastmediasorter.utils
 
+import android.app.Activity
 import android.content.res.Resources
+import android.graphics.Color
 import android.graphics.Rect
 import android.text.TextPaint
 import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.annotation.DimenRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
+import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
 import java.text.BreakIterator
+import kotlin.math.ceil
 
 /**
  * Extension functions for View interactions
@@ -144,6 +150,24 @@ fun View.applySystemBarInsetPadding(
 }
 
 /**
+ * Sets the status and navigation bar icon shade for a screen that does NOT draw behind the bars (S4703).
+ *
+ * Without edge-to-edge the bars' transparent theme color shows the window background through them, and
+ * the platform default icon shade is light - invisible on the white day-theme background. The shade
+ * follows `android:colorBackground`: the themes set it to the same value as the window background, which
+ * itself may be a drawable with no single luminance. Edge-to-edge screens must not call this: their bars
+ * sit over app content and `enableEdgeToEdge()` already picks the shade.
+ */
+fun Activity.matchSystemBarIconsToBackground() {
+    val background = MaterialColors.getColor(this, android.R.attr.colorBackground, Color.WHITE)
+    val darkIcons = MaterialColors.isColorLight(background)
+    WindowCompat.getInsetsController(window, window.decorView).apply {
+        isAppearanceLightStatusBars = darkIcons
+        isAppearanceLightNavigationBars = darkIcons
+    }
+}
+
+/**
  * Keeps a top-anchored overlay clear of the status bar and the display cutout by growing its top margin.
  *
  * For a button that floats over an edge-to-edge media surface: the margin written in the layout counts
@@ -255,6 +279,32 @@ private fun TextPaint.widestUnbreakableRun(text: CharSequence): Float {
         end = breaker.next()
     }
     return widest
+}
+
+/**
+ * The narrowest width the text can wrap into without a word being split, padding included (S4788).
+ *
+ * Read off the paint and the current text, never by measuring the view, so a width cap a layout already
+ * put on the view does not feed back into a decision that is derived from this value.
+ */
+fun TextView.widestUnbreakableRunPx(): Int =
+    ceil(paint.widestUnbreakableRun(text)).toInt() + compoundPaddingLeft + compoundPaddingRight
+
+/**
+ * A size floor that must not grow with the system font scale (S4788).
+ *
+ * `getDimension` of an `sp` dimen is multiplied by the font scale, so at 2.0 a "tiny" floor is twice as
+ * large and a fixed-width control would stop shrinking above the width its word needs. An `sp` value is
+ * read as the same number of `dp`; any other unit has no font scale to ignore and is returned as it is.
+ */
+fun Resources.dimenIgnoringFontScale(@DimenRes id: Int): Float {
+    val value = TypedValue()
+    getValue(id, value, true)
+    if (value.type != TypedValue.TYPE_DIMENSION || value.complexUnit != TypedValue.COMPLEX_UNIT_SP) {
+        return getDimension(id)
+    }
+    val number = TypedValue.complexToFloat(value.data)
+    return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, number, displayMetrics)
 }
 
 /**

@@ -1,26 +1,19 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
-import android.content.Context
-import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
-import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.FileFilter
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.SortMode
-import com.sza.fastmediasorter.domain.usecase.GetMediaFilesUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
-import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
-import com.sza.fastmediasorter.ui.browse.BrowseEvent
 import com.sza.fastmediasorter.ui.browse.BrowseState
 import com.sza.fastmediasorter.ui.browse.filelist.BrowseFileListManager
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -37,20 +30,19 @@ import kotlin.random.Random
  *
  * Extracted from BrowseViewModel (Wave 1 decomposition - IV.1).
  */
+// The ViewModel owns state, loading and the scan; each is handed in as its own callback so this
+// manager never reaches back into the ViewModel.
+@Suppress("LongParameterList")
 class BrowseSortFilterManager(
-    private val context: Context,
     private val updateResourceUseCase: UpdateResourceUseCase,
     private val getResourcesUseCase: GetResourcesUseCase,
-    private val getMediaFilesUseCase: GetMediaFilesUseCase,
     private val scope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher,
     private val stateFlow: StateFlow<BrowseState>,
     private val updateState: ((BrowseState) -> BrowseState) -> Unit,
-    private val sendEvent: (BrowseEvent) -> Unit,
     private val setLoading: (Boolean) -> Unit,
+    private val isLoading: () -> Boolean,
     private val loadMediaFiles: () -> Unit,
-    private val getFriendlyErrorMessage: (Throwable) -> String,
-    private val getSettings: suspend () -> AppSettings,
     private val fileListManager: BrowseFileListManager,
     private val resourceId: Long,
     private val paginationThreshold: Int = DEFAULT_PAGINATION_THRESHOLD
@@ -200,14 +192,13 @@ class BrowseSortFilterManager(
     }
 
     /**
-     * Reload and re-filter the file list using the current filter state.
+     * Re-filter the file list using the current filter state.
      * Called on filter changes and on filter state restoration from DataStore.
      *
-     * Fast path: if the in-memory cache is already populated (e.g. after a cache hit
-     * during resource load) the filter is applied directly to those files without
-     * triggering a new network/disk scan. This prevents a race condition where
-     * restoreFilterState() fires after a cache hit and wipes the displayed list by
-     * kicking off an SMB scan that may return 0 files due to transient connection issues.
+     * Never scans on its own: the resource load is the single authoritative scan and publishes
+     * every batch through [filterForDisplay], so a filter that lands while it runs is applied to
+     * its partial and final results. A private scan here doubled the network work on every open
+     * with a restored filter and reported the same failure twice (S4699).
      */
     fun applyFilter() {
         val resource = stateFlow.value.resource ?: return
@@ -215,49 +206,27 @@ class BrowseSortFilterManager(
 
         Timber.d("BrowseSortFilterManager.applyFilter: filter=$filter")
 
-        // Fast path - files are already in memory (e.g. cache hit); no scan needed.
+        // The cache holds the unfiltered list, so clearing a filter restores every file.
         val cachedFiles = MediaFilesCacheManager.getCachedList(resource.id)
-        if (cachedFiles != null) {
-            val filteredFiles = if (filter != null) {
-                applyFilterToList(cachedFiles, filter).also {
-                    Timber.d("BrowseSortFilterManager.applyFilter (cache fast-path): ${cachedFiles.size} → ${it.size} files")
-                }
-            } else cachedFiles
-            updateState { it.copy(mediaFiles = filteredFiles) }
-            return
+        Timber.d("S4699: applyFilter cache=${cachedFiles?.size} loading=${isLoading()} filter=$filter")
+        when {
+            cachedFiles != null -> {
+                val filteredFiles = filterForDisplay(cachedFiles)
+                Timber.d("BrowseSortFilterManager.applyFilter: cache ${cachedFiles.size} -> ${filteredFiles.size}")
+                updateState { it.copy(mediaFiles = filteredFiles) }
+            }
+            isLoading() ->
+                Timber.d("BrowseSortFilterManager.applyFilter: load in flight - its results carry the filter")
+            // No list in memory and nothing loading (e.g. the last scan failed): reload through the
+            // authoritative path so a failure is reported once, by its classified error handler.
+            else -> loadMediaFiles()
         }
+    }
 
-        // Slow path - cache is empty, trigger a full scan.
-        scope.launch(ioDispatcher) {
-            setLoading(true)
-
-            val settings = getSettings()
-            val sizeFilter = SizeFilter(
-                imageSizeMin = settings.imageSizeMin,
-                imageSizeMax = settings.imageSizeMax,
-                videoSizeMin = settings.videoSizeMin,
-                videoSizeMax = settings.videoSizeMax,
-                audioSizeMin = settings.audioSizeMin,
-                audioSizeMax = settings.audioSizeMax
-            )
-
-            getMediaFilesUseCase(resource, stateFlow.value.sortMode, sizeFilter)
-                .catch { e ->
-                    Timber.e(e, "BrowseSortFilterManager.applyFilter: loading failure")
-                    sendEvent(BrowseEvent.ShowError(
-                        message = getFriendlyErrorMessage(e)
-                    ))
-                }
-                .collect { files ->
-                    val filteredFiles = if (filter != null) {
-                        applyFilterToList(files, filter).also {
-                            Timber.d("BrowseSortFilterManager.applyFilter: ${files.size} → ${it.size} files")
-                        }
-                    } else files
-                    updateState { it.copy(mediaFiles = filteredFiles) }
-                    setLoading(false)
-                }
-        }
+    /** Apply the current session filter to [files]; the unfiltered input is returned when none is set. */
+    fun filterForDisplay(files: List<MediaFile>): List<MediaFile> {
+        val filter = stateFlow.value.filter ?: return files
+        return applyFilterToList(files, filter)
     }
 
     /**

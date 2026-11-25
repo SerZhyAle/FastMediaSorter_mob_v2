@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Assista Canais de TV no Seu Smartwatch - FastMediaSorter v2"
+title: "Assista Canais de TV no Seu Smartwatch - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-watch-tv-pt.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -23,7 +23,7 @@ O FastMedia Wear reproduz canais de TV e rádio ao vivo direto no seu pulso. O r
 
 - Um smartwatch rodando **Wear OS 2.0** ou mais recente com o FastMedia Wear instalado
 - Uma rede Wi-Fi que o relógio possa acessar, ou um celular pareado para retransmitir a conexão
-- Opcional: FastMediaSorter no seu celular Android, se você quiser enviar seus próprios canais para o relógio
+- Opcional: Fast Media Sorter & Organizer no seu celular Android, se você quiser enviar seus próprios canais para o relógio
 
 ---
 
@@ -47,7 +47,7 @@ Uma instalação nova ainda não tem canais, e a tela avisa isso.
 Há duas formas de preenchê-la, e elas funcionam juntas:
 
 - **Baixe o catálogo compartilhado.** Toque em **Atualizar catálogo**. O relógio busca o banco de canais publicado em um único arquivo - muitos milhares de canais de TV e rádio com seus tópicos, idiomas e países.
-- **Envie canais do seu celular.** Um canal que você mesmo adicionou no FastMediaSorter no celular pode ser enviado com **Enviar para o relógio** a partir da lista de streams do celular. Canais que você fixa no celular também são elevados em direção ao topo da lista do relógio, logo atrás dos que você fixou no próprio relógio, então os dois ou três que você realmente assiste ficam acessíveis sem rolar. Desfixar no celular retira o canal desse grupo novamente, e um canal que o próprio catálogo do relógio não contém é simplesmente ignorado.
+- **Envie canais do seu celular.** Um canal que você mesmo adicionou no Fast Media Sorter & Organizer no celular pode ser enviado com **Enviar para o relógio** a partir da lista de streams do celular. Canais que você fixa no celular também são elevados em direção ao topo da lista do relógio, logo atrás dos que você fixou no próprio relógio, então os dois ou três que você realmente assiste ficam acessíveis sem rolar. Desfixar no celular retira o canal desse grupo novamente, e um canal que o próprio catálogo do relógio não contém é simplesmente ignorado.
 
 Canais enviados do celular sobrevivem a uma atualização de catálogo - a atualização substitui o banco compartilhado e deixa suas próprias linhas intactas.
 

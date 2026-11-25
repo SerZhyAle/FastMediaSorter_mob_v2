@@ -124,6 +124,26 @@ class SftpRootProofRegistryTest {
     }
 
     @Test
+    fun `an operation under an unproven local root is offered its PIN until a verdict is noted`() = runTest {
+        val row = entity("sftp://$HOST:$PORT/Music", resourceId = null, account = null).copy(accessPin = "4711")
+        val registry = registry(listOf(row))
+        val plain = info()
+        val candidate = registry.unprovenLocal(plain, "/Music/a.flac.temp_copy")!!
+
+        assertEquals(SftpRootProof("Music", "4711"), candidate)
+        assertNull(registry.unprovenLocal(plain, "/MusicBox/a.flac"))
+        assertNull(registry.unprovenLocal(plain, null))
+
+        registry.noteLocalVerdict(plain, candidate, accepted = false)
+        assertNull(registry.unprovenLocal(plain, "/Music/a.flac"))
+        assertEquals(candidate, registry.unprovenLocal(plain.copy(username = "other"), "/Music/a.flac"))
+
+        registry.noteLocalVerdict(plain, candidate, accepted = true)
+        assertNull(registry.unprovenLocal(plain, "/Music/a.flac"))
+        assertEquals(candidate, registry.withProof(plain, "/Music/a.flac").rootProof)
+    }
+
+    @Test
     fun `exchange PINs are not candidates for the ordinary local PIN recovery`() = runTest {
         val registry = registry(listOf(entity("sftp://$HOST:$PORT/Music").copy(accessPin = "4711")))
         assertNull(registry.localCandidate(info(), "/Music"))

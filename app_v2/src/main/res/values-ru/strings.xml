@@ -70,7 +70,6 @@
 
     <!-- Move Dialog -->
     <string name="moving_files">Перемещаем..</string>
-    <string name="moved_n_files">Переместили %1$d файлов.</string>
     <string name="moved_n_of_m_files">Переместили %1$d из %2$d файлов.</string>
     <string name="move_failed">Не получилось переместить файлы.</string>
 
@@ -308,7 +307,6 @@
     <string name="confirm_delete_safe_mode">Подтверждать удаление</string>
     <string name="confirm_move_safe_mode">Подтверждать перемещение</string>
     <string name="confirm_delete_title">Удалить файлы?</string>
-    <string name="confirm_delete_message">Удалить %1$d файл(ов)? Это действие нельзя отменить.</string>
     <string name="confirm_move_title">Переместить файлы?</string>
     <string name="confirm_move_message">Переместить %1$d файл(ов) в %2$s?</string>
 
@@ -410,7 +408,7 @@
     <string name="theme_sepia">Сепия</string>
 
     <string name="battery_optimization_hint_title">Предупреждение об оптимизации батареи</string>
-    <string name="battery_optimization_hint_message">Оптимизация батареи может препятствовать воспроизведению аудио в фоне. Отключите оптимизацию батареи для FastMediaSorter в системных настройках для надёжного фонового аудио.</string>
+    <string name="battery_optimization_hint_message">Оптимизация батареи может препятствовать воспроизведению аудио в фоне. Отключите оптимизацию батареи для Fast Media Sorter &amp; Organizer в системных настройках для надёжного фонового аудио.</string>
     <string name="show_pdf_thumbnails">Миниатюры для больших PDF (долго)</string>
     <string name="enable_translation">Включить перевод</string>
     <string name="font_size_auto">Автоматический</string>
@@ -526,9 +524,8 @@
 
     <!-- Language Change -->
     <string name="restart_app_title">Перезапустить приложение</string>
-    <string name="restart_app_message">Для применения нового языка (%1$s) необходимо перезапустить приложение. Продолжить?</string>
     <string name="restart_app_cache_message">Для применения нового размера кэша (%1$d МБ) необходимо перезапустить приложение. Продолжить?</string>
-    <string name="restart_app_compact_elements_message">Для применения нового размера элементов плеера необходимо перезапустить приложение. Продолжить?</string>
+    <string name="restart_app_compact_elements_message">Для применения нового размера элементов интерфейса необходимо перезапустить приложение. Продолжить?</string>
     <string name="restart">Перезапустить</string>
 
     <!-- Welcome Screen -->
@@ -888,7 +885,6 @@
     <string name="error_copy_failed">Не получилось скопировать файл.</string>
     <string name="error_file_exists_copy">Файл \"%1$s\" уже есть в \"%2$s\".\n\nЕсли хотите заменить его, включите \"Перезапись при копировании\" в Настройки -&gt; Копирование и перемещение.</string>
     <string name="msg_move_success">Переместили в %1$s.</string>
-    <string name="msg_move_success_count">Переместили %1$d файлов в %2$s.</string>
     <string name="error_move_failed">Не получилось переместить файл.</string>
     <string name="error_queued_operation_move">Не получилось переместить \"%1$s\". Попробуйте ещё раз.</string>
     <string name="error_queued_operation_delete">Не получилось удалить \"%1$s\". Попробуйте ещё раз.</string>
@@ -1208,13 +1204,6 @@
     <string name="fragment_settings_video_tilVideoSizeMax_hint">Макс (КБ)</string>
     <string name="fragment_settings_video_tilVideoSizeMin_hint">Мин (КБ)</string>
     <string name="item_folder_tvFolderName_text">Имя папки</string>
-    <string name="item_resource_to_add_btnTypeAudio_text">A</string>
-    <string name="item_resource_to_add_btnTypeGif_text">G</string>
-    <string name="item_resource_to_add_btnTypeImage_text">I</string>
-    <string name="item_resource_to_add_btnTypePdf_text">P</string>
-    <string name="item_resource_to_add_btnTypeOffice_text">D</string>
-    <string name="item_resource_to_add_btnTypeText_text">T</string>
-    <string name="item_resource_to_add_btnTypeVideo_text">V</string>
     <string name="item_resource_tvAvailabilityIndicator_text">N/A</string>
     <string name="item_resource_tvWritableIndicator_text">🔒</string>
     <string name="reset_general_section">Сбросить раздел Общие</string>
@@ -1371,7 +1360,7 @@
     <string name="cd_playback_speed">Скорость воспроизведения</string>
     <string name="subtitle_track">Субтитры</string>
     <string name="volume_50_percent">50%</string>
-    <string name="volume_max">MAX</string>
+    <string name="volume_max">МАКС</string>
     <string name="success_count">Готово: %d</string>
     <string name="table_of_contents">Содержание</string>
     <string name="technical_details">Технические подробности</string>
@@ -1462,7 +1451,7 @@
 
     <!-- Standalone Player File Operations -->
     <string name="confirm_delete_standalone">Удалить «%1$s»?</string>
-    <string name="open_in_fms">Открыть в FastMediaSorter</string>
+    <string name="open_in_fms">Открыть в Fast Media Sorter &amp; Organizer</string>
     <string name="cd_add_to_favorites">Добавить в избранное</string>
     <string name="cd_remove_from_favorites">Убрать из избранного</string>
 
@@ -1906,13 +1895,13 @@
     <string name="browse_transfer_notif_title_permission_required">Нужно разрешение</string>
     <string name="browse_transfer_notif_text_preparing">Подготовка..</string>
     <string name="browse_transfer_notif_text_progress">%1$d%% - %2$s</string>
-    <string name="browse_transfer_notif_text_failed">Откройте FastMediaSorter для подробностей</string>
-    <string name="browse_transfer_notif_text_auth_required">Откройте FastMediaSorter, чтобы войти и продолжить</string>
-    <string name="browse_transfer_notif_text_permission_required">Откройте FastMediaSorter, чтобы выдать разрешение и повторить</string>
+    <string name="browse_transfer_notif_text_failed">Откройте Fast Media Sorter &amp; Organizer для подробностей</string>
+    <string name="browse_transfer_notif_text_auth_required">Откройте Fast Media Sorter &amp; Organizer, чтобы войти и продолжить</string>
+    <string name="browse_transfer_notif_text_permission_required">Откройте Fast Media Sorter &amp; Organizer, чтобы выдать разрешение и повторить</string>
     <string name="browse_transfer_notif_action_cancel">Отмена</string>
     <string name="midi_playback_failed">Не удалось воспроизвести этот MIDI-файл. Попробуйте другую копию или перейдите к следующему треку.</string>
     <string name="tooltip_calculator_title">Калькулятор</string>
-    <string name="tooltip_calculator_message">Добавляет обычный калькулятор в основное меню и включает виджет калькулятора. Калькулятор остаётся внутри FastMediaSorter.</string>
+    <string name="tooltip_calculator_message">Добавляет обычный калькулятор в основное меню и включает виджет калькулятора. Калькулятор остаётся внутри Fast Media Sorter &amp; Organizer.</string>
 
     <!-- Device Profile Onboarding (S0327) -->
     <string name="profile_picker_title">Выберите профиль устройства</string>
@@ -2023,7 +2012,7 @@
     <string name="cache_size_installed_toast">Установлен кэш: %1$d МБ</string>
     <string name="welcome_enable_all">Включить всё</string>
     <string name="welcome_enable_all_content_description">Включить всё и завершить настройку</string>
-    <string name="default_player_choose_in_settings">В системных настройках выберите FastMediaSorter приложением по умолчанию для этого типа.</string>
+    <string name="default_player_choose_in_settings">В системных настройках выберите Fast Media Sorter &amp; Organizer приложением по умолчанию для этого типа.</string>
     <string name="s0413_audio_track_skipped">Пропущен файл «%1$s» - его не удалось воспроизвести.</string>
     <string name="s0413_audio_queue_unplayable">Не удалось воспроизвести ни один файл.</string>
     <string name="settings_remote_sources_title">Удалённые ресурсы (SMB/(S)FTP/Облако)</string>
@@ -2041,8 +2030,8 @@
     <string name="settings_remote_source_cloud_help_message">Доступ к файлам в облачных хранилищах - Google Drive, OneDrive и Dropbox. Подключите аккаунт, чтобы открывать свои папки прямо в приложении.</string>
     <string name="settings_remote_source_disable_confirm_title">Скрыть эти папки?</string>
     <string name="settings_remote_source_disable_confirm_message">Папки этого источника будут скрыты, а не удалены. Сохранённые ресурсы останутся и появятся снова, когда вы включите источник.</string>
-    <string name="screenshot_accessibility_service_description">Позволяет FastMediaSorter делать скриншоты краевым жестом и сохранять их без диалога на каждый снимок. Это касается только скриншотов - видеозапись экрана отдельная и в начале каждой записи запрашивает разрешение Android.</string>
-    <string name="screenshot_accessibility_permission_rationale">Чтобы делать скриншоты краевым жестом, включите службу спецвозможностей FastMediaSorter:\n\n1. Нажмите «Открыть настройки» и включите FastMediaSorter в списке спецвозможностей.\n2. Если показано Controlled by restricted setting или App was denied access: откройте это приложение в «О приложении», нажмите меню (3 точки), выберите Allow restricted settings, подтвердите и вернитесь, чтобы включить.\n\nНе удаётся включить? Нажмите «Старый способ» - версия, которая запрашивает разрешение на каждый снимок.</string>
+    <string name="screenshot_accessibility_service_description">Позволяет Fast Media Sorter &amp; Organizer делать скриншоты краевым жестом и сохранять их без диалога на каждый снимок. Это касается только скриншотов - видеозапись экрана отдельная и в начале каждой записи запрашивает разрешение Android.</string>
+    <string name="screenshot_accessibility_permission_rationale">Чтобы делать скриншоты краевым жестом, включите службу спецвозможностей Fast Media Sorter &amp; Organizer:\n\n1. Нажмите «Открыть настройки» и включите Fast Media Sorter &amp; Organizer в списке спецвозможностей.\n2. Если показано Controlled by restricted setting или App was denied access: откройте это приложение в «О приложении», нажмите меню (3 точки), выберите Allow restricted settings, подтвердите и вернитесь, чтобы включить.\n\nНе удаётся включить? Нажмите «Старый способ» - версия, которая запрашивает разрешение на каждый снимок.</string>
     <string name="screen_capture_rate_limited">Слишком частый снимок, попробуйте ещё раз</string>
     <string name="screenshot_gesture_permission_dialog_title">Включение жестов экрана</string>
     <string name="screenshot_gesture_open_settings">Открыть настройки</string>
@@ -2158,7 +2147,7 @@
     <string name="statistics_privacy_note">Эти данные хранятся на вашем устройстве. Сводку автору вы отправляете сами, из своего почтового приложения.</string>
     <string name="statistics_send_to_author">Отправить автору</string>
     <string name="statistics_export">Экспорт</string>
-    <string name="statistics_email_subject">Статистика FastMediaSorter</string>
+    <string name="statistics_email_subject">Статистика Fast Media Sorter &amp; Organizer</string>
     <string name="statistics_no_email_app">Нет приложения для отправки - установите почтовый клиент или приложение для обмена и повторите.</string>
     <string name="statistics_report_all_time">Итоги за всё время</string>
     <string name="statistics_report_section_summary">Сводка</string>
@@ -2169,7 +2158,7 @@
     <string name="statistics_report_tech_android">Android</string>
     <string name="statistics_report_unknown">неизвестно</string>
     <string name="error_dialog_report_to_author">Отправить отчёт о сбое автору</string>
-    <string name="crash_report_email_subject">Отчёт о сбое FastMediaSorter</string>
+    <string name="crash_report_email_subject">Отчёт о сбое Fast Media Sorter &amp; Organizer</string>
     <string name="crash_report_email_body_intro">Опишите, что вы делали, когда возникла проблема. Технические данные и журнал приложения приложены ниже.</string>
     <string name="crash_prompt_title">Отправить отчёт о сбое?</string>
     <string name="crash_prompt_message">В прошлый раз приложение неожиданно закрылось. Отправить автору отчёт о сбое с журналом приложения?</string>
@@ -2220,7 +2209,7 @@
     <string name="streams_pin_to_top">Закрепить вверху</string>
     <string name="streams_remove">Удалить</string>
     <string name="streams_add_url_hint">URL трансляции (http, https, rtsp)</string>
-    <string name="streams_import_url_hint">URL плейлиста (.m3u)</string>
+    <string name="streams_import_url_hint">URL плейлиста (.m3u, .m3u8)</string>
     <string name="streams_title_hint">Название (необязательно)</string>
     <string name="streams_error_invalid_url">Введите корректный адрес http, https или rtsp.</string>
     <string name="streams_error_network">Не удалось загрузить список. Проверьте соединение и повторите.</string>
@@ -2282,7 +2271,7 @@
     <string name="app_launch_panel_action_move">Переместить</string>
     <string name="app_launch_panel_action_replace">Заменить</string>
     <string name="app_launch_panel_action_remove">Удалить</string>
-    <string name="app_launch_panel_own_app_label">FastMediaSorter</string>
+    <string name="app_launch_panel_own_app_label">Fast Media Sorter &amp; Organizer</string>
     <string name="app_picker_title">Выберите программу</string>
     <string name="app_launch_panel_title">Быстрый запуск</string>
     <string name="app_launch_panel_edit_action">Изменить</string>
@@ -2317,8 +2306,8 @@
     <string name="app_launch_panel_add_chooser_title">Добавить на панель</string>
     <string name="app_launch_panel_path_external_app">Приложение</string>
     <string name="app_launch_panel_path_os_part">Настройки ОС Андроид</string>
-    <string name="app_launch_panel_path_app_feature">Функция FastMediaSorter</string>
-    <string name="app_launch_panel_path_app_resource">Ресурс FastMediaSorter</string>
+    <string name="app_launch_panel_path_app_feature">Функция Fast Media Sorter &amp; Organizer</string>
+    <string name="app_launch_panel_path_app_resource">Ресурс Fast Media Sorter &amp; Organizer</string>
     <string name="app_launch_panel_picker_feature_title">Выбор функции</string>
     <string name="app_launch_panel_picker_os_title">Выбор настройки ОС Андроид</string>
     <string name="app_launch_panel_picker_resource_title">Выбор ресурса</string>
@@ -2361,7 +2350,7 @@
     <string name="stream_wait_reconnecting">Восстановление соединения..</string>
     <string name="streams_filter_pinned_only">Только закреплённые</string>
     <string name="streams_refresh_probing">Проверка трансляций..</string>
-    <string name="streams_error_no_network">Нет сети. Подключитесь к Wi-Fi или мобильной сети, чтобы воспроизводить трансляции.</string>
+    <string name="streams_error_no_network">Нет сети. Подключитесь, чтобы воспроизвести трансляцию.</string>
     <string name="tile_screenshot_label">Снимок экрана</string>
     <string name="camera_lens_front">Фронт</string>
     <string name="camera_lens_ultrawide">Ультраширик</string>
@@ -2407,7 +2396,7 @@
     <string name="screen_recording_card_title">Идёт запись экрана</string>
     <string name="screen_recording_stop">Остановить запись</string>
     <string name="screen_recording_disclosure_title">Видеозапись экрана</string>
-    <string name="screen_recording_disclosure_message">FastMediaSorter будет записывать всё, что отображается на экране, включая другие приложения, в видеофайл со звуком микрофона, пока вы не остановите запись. Запись продолжается в фоне. В начале каждой записи Android просит выбрать это приложение или весь экран, и этот шаг нельзя пропустить.</string>
+    <string name="screen_recording_disclosure_message">Fast Media Sorter &amp; Organizer будет записывать всё, что отображается на экране, включая другие приложения, в видеофайл со звуком микрофона, пока вы не остановите запись. Запись продолжается в фоне. В начале каждой записи Android просит выбрать это приложение или весь экран, и этот шаг нельзя пропустить.</string>
     <string name="screen_recording_disclosure_start">Начать запись</string>
     <string name="screen_recording_saved">Запись экрана сохранена: %1$s</string>
     <string name="screen_recording_error">Не удалось сохранить запись экрана.</string>
@@ -2419,8 +2408,8 @@
     <string name="streams_remove_from_favorites">Из избранного</string>
     <string name="streams_country_flag">Флаг страны</string>
     <string name="perm_group_location">Местоположение</string>
-    <string name="perm_title_location">Геометка при съёмке</string>
-    <string name="perm_desc_location">Геометки для съёмки</string>
+    <string name="perm_title_location">Точное местоположение</string>
+    <string name="perm_desc_location">Местоположение и высота для панели туриста</string>
     <string name="screenshot_gesture_action_launch_camera">Запустить камеру</string>
     <string name="screenshot_gesture_action_start_video_recording">Начать видеозапись</string>
     <string name="screenshot_gesture_action_start_audio_recording">Начать аудиозапись</string>
@@ -2467,7 +2456,6 @@
     <string name="sftp_share_export_action">Поделиться</string>
     <string name="companion_import_title">Импорт доступа</string>
     <string name="companion_import_confirm_message">Добавить SFTP-ресурс «%1$s» на %2$s (папок: %3$d)?</string>
-    <string name="companion_import_no_fingerprint_warning">Сервер не верифицирован - подключайтесь, только если доверяете отправителю.</string>
     <string name="companion_import_password_label">Пароль для этого сервера</string>
     <string name="companion_import_action">Импортировать</string>
     <string name="companion_import_password_required">Введите пароль для этого сервера.</string>
@@ -2491,7 +2479,7 @@
     <string name="edge_gesture_general_group_title">Общие настройки жестов</string>
     <string name="edge_gesture_schema_content_description">Карта краевых жестов: коснитесь направления зоны, чтобы назначить действие</string>
     <string name="companion_qr_share_title">Отсканируйте, чтобы добавить ресурс</string>
-    <string name="companion_qr_share_hint">В FastMediaSorter: Добавить ресурс -&gt; Сканировать QR</string>
+    <string name="companion_qr_share_hint">В Fast Media Sorter &amp; Organizer: Добавить ресурс -&gt; Сканировать QR</string>
     <string name="companion_qr_share_no_password_note">Пароль не включён - получатель введёт его при импорте.</string>
     <string name="companion_qr_share_encode_failed">Не удалось создать QR-код.</string>
     <string name="sftp_share_show_qr_action">Показать QR</string>
@@ -2511,7 +2499,7 @@
     <string name="gesture_action_explain_send_to_recipients">Делает снимок экрана и отправляет его выбранным получателям.</string>
     <string name="gesture_action_explain_share">Делает снимок экрана и открывает системное меню «Поделиться».</string>
     <string name="gesture_action_explain_crop_and_share">Делает снимок экрана, позволяет обрезать его и делится результатом.</string>
-    <string name="gesture_action_explain_open_app">Открывает программу, выбранную для этого жеста. Если программа не выбрана, открывает FastMediaSorter.</string>
+    <string name="gesture_action_explain_open_app">Открывает программу, выбранную для этого жеста. Если программа не выбрана, открывает Fast Media Sorter &amp; Organizer.</string>
     <string name="gesture_action_explain_open_panel">Открывает панель быстрого доступа.</string>
     <string name="gesture_action_explain_launch_camera">Открывает встроенную камеру.</string>
     <string name="gesture_action_explain_take_photo">Снимает фото встроенной камерой и сохраняет его.</string>
@@ -2590,7 +2578,7 @@
     <string name="launcher_home_mode_play">воспроизведение</string>
     <string name="launcher_home_cell_with_mode">%1$s, %2$s</string>
     <string name="launcher_taskbar_start">Пуск</string>
-    <string name="launcher_menu_open_app">Открыть FastMediaSorter</string>
+    <string name="launcher_menu_open_app">Открыть Fast Media Sorter &amp; Organizer</string>
     <string name="launcher_menu_resources">Мои ресурсы</string>
     <string name="launcher_menu_all_apps">Все приложения</string>
     <string name="launcher_menu_android_settings">Настройки Android</string>
@@ -2681,8 +2669,6 @@
     <string name="settings_streams_smart_buffering_summary">Больше запаса при старте и тихое переподключение при слабой связи</string>
     <string name="streams_section_pinned">Закреплённые</string>
     <string name="streams_section_main">Каналы</string>
-    <string name="streams_section_expand">Развернуть раздел</string>
-    <string name="streams_section_collapse">Свернуть раздел</string>
     <string name="ext_channel_preview_atlas_title">Атлас превью каналов</string>
     <string name="ext_channel_preview_atlas_desc">Показывает превью видеоканалов в режиме сетки до первого просмотра.</string>
     <string name="streams_atlas_prompt_message">Скачать превью каналов, чтобы видеоканалы показывали картинку до запуска?</string>
@@ -2822,7 +2808,7 @@
     <string name="launcher_tray_sim_signal_none">SIM %1$d, нет сети</string>
     <string name="launcher_now_playing_other_apps">Музыка других приложений</string>
     <string name="launcher_now_playing_access_title">Показывать музыку других приложений</string>
-    <string name="launcher_now_playing_access_message">FastMediaSorter будет читать медиасессию приложения, которое сейчас играет, - название трека, исполнителя и состояние воспроизведения, - чтобы гаджет мог показывать их и управлять воспроизведением. Android называет это разрешение доступом к уведомлениям, но приложение не читает уведомления, только медиасессию. Разрешение выдаётся на экране настроек Android, там же его можно отозвать.</string>
+    <string name="launcher_now_playing_access_message">Fast Media Sorter &amp; Organizer будет читать медиасессию приложения, которое сейчас играет, - название трека, исполнителя и состояние воспроизведения, - чтобы гаджет мог показывать их и управлять воспроизведением. Android называет это разрешение доступом к уведомлениям, но приложение не читает уведомления, только медиасессию. Разрешение выдаётся на экране настроек Android, там же его можно отозвать.</string>
     <string name="perm_title_notification_listener">Доступ к уведомлениям</string>
     <string name="perm_desc_notification_listener">Позволяет гаджету «Сейчас играет» на рабочем столе лаунчера показывать то, что играет в других приложениях, и управлять воспроизведением. Приложение читает только медиасессии, но не содержимое уведомлений. Необязательное - выдаётся на экране настроек Android.</string>
     <string name="perm_title_write_external_storage">Сохранение в память устройства</string>
@@ -2846,7 +2832,7 @@
     <string name="perm_rationale_record_audio">Микрофон нужен для голосовых заметок, для звука в записи экрана и для живого звука при вещании. Без него запись и звуковое вещание не начнутся.</string>
     <string name="perm_addendum_record_audio_screen_recording">Звук в записи экрана берётся с микрофона.</string>
     <string name="perm_addendum_post_notifications_screen_recording">В уведомлении о записи находится кнопка остановки.</string>
-    <string name="perm_rationale_location">Местоположение используется только для записи координат в снимки и видео, снятые в приложении. Никуда ничего не отправляется.</string>
+    <string name="perm_rationale_location">Точное местоположение нужно, чтобы показать местоположение и высоту на панели туриста. Никуда ничего не отправляется.</string>
     <string name="perm_addendum_post_notifications_scheduled_ops">Разрешить уведомления для отложенных операций</string>
     <string name="perm_rationale_battery_optimization">Android может приостановить приложение в фоне, и тогда отложенная операция запустится с опозданием или вовсе не запустится. Исключение приложения из энергосбережения сохраняет расписание.</string>
     <string name="launcher_gadget_compass">Компас</string>
@@ -3316,7 +3302,7 @@
     <string name="wear_log_report_channel_name">Логи часов</string>
     <string name="wear_log_report_notification_title">Получены логи часов</string>
     <string name="wear_log_report_notification_text">Нажмите, чтобы отправить их разработчику</string>
-    <string name="wear_log_report_email_subject">Логи часов FastMediaSorter</string>
+    <string name="wear_log_report_email_subject">Логи часов Fast Media Sorter &amp; Organizer</string>
     <string name="wear_log_report_email_body">В архиве логи и часов, и телефона.</string>
     <string name="settings_unused_credentials_title">Неиспользуемые учётные данные</string>
     <string name="settings_unused_credentials_button">Неиспользуемые учётные данные - %1$d</string>
@@ -3452,9 +3438,9 @@
     <string name="wear_background_sent">Изображение на часах.</string>
     <string name="wear_background_failed">Не получилось отправить изображение - выберите другое или отправьте ещё раз.</string>
     <string name="wear_background_watch_unreachable">Часы недоступны - поднесите их ближе и отправьте ещё раз.</string>
-    <string name="perm_title_location_extended">Геометка, гаджеты и монитор сети</string>
-    <string name="perm_desc_location_extended">Геометки для съёмки, гаджеты рабочего стола и монитор сети</string>
-    <string name="perm_rationale_location_extended">Местоположение нужно, чтобы записать координаты в снятые фото и видео, нарисовать гаджеты компаса, скорости, высоты и карты на рабочем столе и заполнить разделы GNSS и Wi-Fi в мониторе сети. Всё это остаётся на устройстве, кроме гаджетов карты: чтобы нарисовать карту, они запрашивают картинку вашей местности у онлайн-сервиса карт и спрашивают у Android название места. Больше никуда ничего не уходит, и своих серверов у нас нет.</string>
+    <string name="perm_title_location_extended">Точное местоположение</string>
+    <string name="perm_desc_location_extended">Гаджеты рабочего стола, разделы монитора сети и панель туриста</string>
+    <string name="perm_rationale_location_extended">Точное местоположение нужно, чтобы нарисовать гаджеты компаса, скорости и высоты на рабочем столе, заполнить разделы GNSS и Wi-Fi в мониторе сети и показать местоположение и высоту на панели туриста. Никуда ничего не отправляется, и своих серверов у нас нет.</string>
     <string name="wear_received_upload_notif_channel">Файлы с часов</string>
     <string name="wear_received_upload_notif_progress">Сохраняю %1$s в %2$s</string>
     <string name="wear_received_upload_notif_success">%1$s сохранён в %2$s</string>
@@ -3566,7 +3552,7 @@
     <string name="welcome_enable_all_explainer_step_permissions_title">Разрешите доступ</string>
     <string name="welcome_enable_all_explainer_step_permissions_body">Android покажет свой запрос. Нажмите «Разрешить». Некоторые виды доступа вместо запроса открывают отдельную страницу настроек - включите там переключатель и нажмите «Назад».</string>
     <string name="welcome_enable_all_explainer_step_default_app_title">Выберите приложение для ваших файлов</string>
-    <string name="welcome_enable_all_explainer_step_default_app_body">Откроется один из ваших файлов, чтобы Android спросил, каким приложением его открывать. Так и задумано. Выберите FastMediaSorter, нажмите «Всегда», затем нажмите «Назад», чтобы вернуться сюда.</string>
+    <string name="welcome_enable_all_explainer_step_default_app_body">Откроется один из ваших файлов, чтобы Android спросил, каким приложением его открывать. Так и задумано. Выберите Fast Media Sorter &amp; Organizer, нажмите «Всегда», затем нажмите «Назад», чтобы вернуться сюда.</string>
     <string name="welcome_enable_all_explainer_step_back_title">«Назад» возвращает сюда</string>
     <string name="welcome_enable_all_explainer_step_back_body">Из каждого чужого экрана выходите кнопкой «Назад». Ничего не потеряется - настройка продолжится с того же места.</string>
     <string name="welcome_enable_all_explainer_continue">Понятно, начинаем</string>
@@ -3624,7 +3610,7 @@
     <string name="exif_orientation_rotate_270">Повёрнуто на 270° по часовой стрелке</string>
     <string name="exif_orientation_unknown">Неизвестно (%1$d)</string>
     <string name="storage_reach_limited_browse">В этой папке доступны только фото, видео и звук. Чтобы увидеть документы, добавьте папку заново и выберите её в системном окне.</string>
-    <string name="reach_limited_nothing_readable">Документы не читаются</string>
+    <string name="reach_limited_nothing_readable">Добавьте папку, чтобы видеть документы</string>
     <string name="storage_reach_limited_virtual">Документы и другие файлы на этом устройстве приложению не видны. Чтобы открыть их, добавьте нужную папку через системное окно выбора.</string>
     <string name="storage_reach_limited_browse_reconnect">В этой папке доступны только фото, видео и звук. Чтобы увидеть документы, откройте меню с тремя точками в строке папки в списке ресурсов и выберите «Переподключить ресурс».</string>
     <string name="wear_settings_group_media_types">Типы медиа</string>
@@ -3727,13 +3713,13 @@
     <string name="water_flashlight_title">Водный фонарь</string>
     <string name="water_flashlight_locked_hint">Заблокировано. Используйте кнопки</string>
     <string name="water_flashlight_settings_toggle_title">Водный фонарь</string>
-    <string name="water_flashlight_settings_toggle_subtitle">Вспышка и экран на полную яркость, экран заблокирован</string>
+    <string name="water_flashlight_settings_toggle_subtitle">Вспышка и экран на полной яркости, блокировка касаний</string>
     <string name="water_flashlight_help_title">Водный фонарь</string>
-    <string name="water_flashlight_help_message">Зажигает вспышку камеры и экран одновременно и запирает экран: видно только время и напоминание, а закрывает программу лишь аппаратная кнопка. Сделано для мокрых рук, когда сенсор нажимает сам себя. Выход системным жестом тоже гасит свет. Программа не заменяет режим защиты от воды, встроенный в часы или телефон - к нему у приложений доступа нет.</string>
+    <string name="water_flashlight_help_message">Водный фонарь включает вспышку камеры и экран и блокирует касания. Блокировка касаний предотвращает случайные нажатия, но не защищает устройство от воды. Чтобы выключить свет, удерживайте кнопку громкости 1,5 секунды или нажмите кнопки громкости три раза за 2 секунды. Системный жест тоже может закрыть экран.</string>
     <string name="widget_water_flashlight_label">Водный фонарь</string>
-    <string name="widget_water_flashlight_description">Зажигает вспышку и экран и запирает экран - закрывает только кнопка</string>
+    <string name="widget_water_flashlight_description">Вспышка и экран с блокировкой касаний; для выхода удерживайте кнопку громкости или нажмите её три раза</string>
     <string name="tooltip_stopwatch_title">Секундомер</string>
-    <string name="tooltip_stopwatch_message">Добавляет секундомер в основное меню. Считает один замер или несколько подряд, до четырёх участников сразу, и оставляет результат внутри FastMediaSorter.</string>
+    <string name="tooltip_stopwatch_message">Добавляет секундомер в основное меню. Считает один замер или несколько подряд, до четырёх участников сразу, и оставляет результат внутри Fast Media Sorter &amp; Organizer.</string>
     <string name="stopwatch_volume_label">Громкость музыки</string>
     <string name="stopwatch_settings_title">Настройки секундомера</string>
     <string name="stopwatch_settings_participants">Участники</string>
@@ -3777,9 +3763,9 @@
     <string name="broadcast_import_menu_label">Импорт трансляции (QR / файл)</string>
     <string name="broadcast_import_dialog_title">Импорт трансляции</string>
     <string name="broadcast_import_option_qr">Сканировать QR-код</string>
-    <string name="broadcast_import_malformed">Неверный формат описания трансляции</string>
+    <string name="broadcast_import_malformed">Неверный формат дескриптора трансляции</string>
     <string name="broadcast_import_success">Канал трансляции добавлен</string>
-    <string name="broadcast_import_option_file">Выбрать файл описания</string>
+    <string name="broadcast_import_option_file">Выбрать файл дескриптора</string>
     <string name="launcher_settings_unit_system_title">Система единиц</string>
     <string name="unit_system_metric">Метрическая (°C, 24 ч, км)</string>
     <string name="unit_system_imperial">Американская (°F, 12 ч, мили)</string>
@@ -3789,7 +3775,7 @@
     <string name="wear_listen_caption_idle">Слышать то, что слышит микрофон часов. Часы попросят подтвердить.</string>
     <string name="wear_listen_caption_waiting">Ждём подтверждения на часах..</string>
     <string name="wear_listen_caption_listening">Слушаем часы.</string>
-    <string name="wear_listen_refusal_not_asked">Часы не смогли спросить: включите на них уведомления для FastMediaSorter.</string>
+    <string name="wear_listen_refusal_not_asked">Часы не смогли спросить: включите на них уведомления для Fast Media Sorter &amp; Organizer.</string>
     <string name="wear_listen_refusal_declined">Запрос отклонён на часах.</string>
     <string name="wear_listen_refusal_expired">На часах никто не ответил вовремя.</string>
     <string name="wear_listen_refusal_capture_failed">Часы не смогли открыть микрофон.</string>
@@ -4019,7 +4005,7 @@
     <string name="wear_system_info_channel_name">Системная информация часов</string>
     <string name="wear_system_info_notification_title">Отчёт с часов получен</string>
     <string name="wear_system_info_notification_text">Нажмите, чтобы открыть или отправить отчёт</string>
-    <string name="wear_system_info_share_subject">FastMediaSorter: системная информация часов</string>
+    <string name="wear_system_info_share_subject">Fast Media Sorter &amp; Organizer: системная информация часов</string>
     <string name="wear_clipboard_channel_name">Буфер обмена часов</string>
     <string name="wear_clipboard_notification_title">Текст с часов</string>
     <string name="wear_clipboard_notification_text">Он теперь в буфере обмена этого телефона</string>
@@ -4161,8 +4147,8 @@
     <string name="settings_sftp_server_apply_hint">Выключите и снова включите сервер, чтобы применить изменение</string>
     <string name="settings_sftp_server_show_qr">Показать код для подключения</string>
     <string name="settings_sftp_server_hide_qr">Скрыть код для подключения</string>
-    <string name="settings_sftp_server_qr_description">Код для подключения: отсканируйте его в FastMediaSorter на другом устройстве</string>
-    <string name="add_resource_sftp_pairing_invalid">Это не полный код подключения FastMediaSorter - покажите его на телефоне-сервере ещё раз и отсканируйте</string>
+    <string name="settings_sftp_server_qr_description">Код для подключения: отсканируйте его в Fast Media Sorter &amp; Organizer на другом устройстве</string>
+    <string name="add_resource_sftp_pairing_invalid">Это не полный код подключения Fast Media Sorter &amp; Organizer - покажите его на телефоне-сервере ещё раз и отсканируйте</string>
     <string name="add_resource_sftp_pairing_filled">Данные подключения заполнены из кода - проверьте их и сохраните</string>
     <string name="add_resource_sftp_pairing_name">Сервер устройства %1$s</string>
     <string name="filedo_password_remember_leak">Тот, у кого этот телефон разблокирован, сможет без ввода открыть каждый файл .fd-sec, к которому подходит этот пароль.</string>
@@ -4273,8 +4259,8 @@
     <string name="wear_watchface_hint">Для ваших часов есть циферблат FastMediaSorter.</string>
     <string name="wear_watchface_hint_action">Поставить</string>
     <string name="wear_install_offer_title">Подключены часы</string>
-    <string name="wear_install_offer_message">К телефону подключены часы %1$s. Установите на них FastMediaSorter, чтобы открывать свои медиа прямо с запястья, и поставьте циферблат FastMediaSorter.</string>
-    <string name="wear_install_offer_message_face_only">FastMediaSorter уже стоит на часах %1$s. Поставить ещё и циферблат FastMediaSorter?</string>
+    <string name="wear_install_offer_message">К телефону подключены часы %1$s. Установите на них Fast Media Sorter &amp; Organizer, чтобы открывать свои медиа прямо с запястья, и поставьте циферблат FastMediaSorter.</string>
+    <string name="wear_install_offer_message_face_only">Fast Media Sorter &amp; Organizer уже стоит на часах %1$s. Поставить ещё и циферблат FastMediaSorter?</string>
     <string name="wear_install_offer_app">Установить на часы</string>
     <string name="wear_install_offer_face">Циферблат</string>
     <string name="wear_install_offer_app_no_watch">Часы не подключены - открываем страницу приложения здесь.</string>
@@ -4291,7 +4277,7 @@
     <string name="wear_stream_pins_push_no_watch">Часы недоступны</string>
     <string name="wear_stream_pins_push_failed">Список не дошёл до часов. Повторите попытку.</string>
     <string name="wear_stream_pins_picker_title">Закрепить канал для часов</string>
-    <string name="welcome_default_player_hint_side">Нажмите одну из кнопок - появится системный диалог. Выберите FastMediaSorter и нажмите <b>Всегда</b>.</string>
+    <string name="welcome_default_player_hint_side">Нажмите одну из кнопок - появится системный диалог. Выберите Fast Media Sorter &amp; Organizer и нажмите <b>Всегда</b>.</string>
     <string name="host_key_repin_warning_format">Ничего не загружено - для вашей безопасности. Обновляйте отпечаток, только если доверяете этой сети. Отпечаток будет обновлён у %1$d ресурса(ов) с этим адресом.</string>
     <string name="host_key_repin_confirm">Обновить отпечаток</string>
     <string name="host_key_repin_done">Отпечаток обновлён</string>
@@ -4619,4 +4605,108 @@
     <string name="launcher_app_category_accessibility">Специальные возможности</string>
     <string name="exchange_devices_menu_standard_settings">Эталонные настройки</string>
     <string name="program_guard_disabled_toast">Программа «%1$s» выключена. Включите её в настройках.</string>
+    <string name="screen_recording_notification_saving_title">Сохранение записи экрана</string>
+    <string name="screen_recording_notification_saving_text">Запись остановлена. Видео копируется в папку..</string>
+    <string name="quick_recorder_notification_saving">Сохранение записи..</string>
+    <string name="tourist_tile_gyroscope">Гироскоп</string>
+    <string name="tourist_unit_degrees_per_second">°/с</string>
+    <string name="tourist_detail_gyroscope">Скорость поворота. Поверните телефон - фигура повернётся вместе с ним</string>
+    <string name="tourist_detail_gyroscope_idle">Нажмите, чтобы увидеть поворот телефона в 3D</string>
+    <string name="launcher_app_category_rename_title">Переименовать категорию</string>
+    <string name="launcher_app_category_name_taken">Категория с таким названием уже есть.</string>
+    <string name="notes_title">Заметки</string>
+    <string name="notes_new">Новая заметка</string>
+    <string name="notes_search_hint">Поиск в заметках</string>
+    <string name="notes_empty">Заметок пока нет. Нажмите «Новая заметка», чтобы написать первую.</string>
+    <string name="notes_delete">Удалить</string>
+    <string name="notes_delete_title">Удалить заметку?</string>
+    <string name="notes_delete_confirm">Заметка «%1$s» будет удалена с устройства.</string>
+    <string name="notes_row_more">Ещё: действия с заметкой</string>
+    <string name="notes_error_folder">Папка заметок недоступна.</string>
+    <string name="notes_error_delete">Не удалось удалить заметку.</string>
+    <string name="setting_enable_notes_desc">Все заметки одним списком с поиском; новая заметка - одним нажатием</string>
+    <string name="feedback_title">Отправить отзыв</string>
+    <string name="setting_enable_feedback_desc">Текст, картинка и голосовая заметка в одной форме - через «Отправить в..» и на ваш компьютер</string>
+    <string name="feedback_text_hint">Что случилось? Что бы вы изменили?</string>
+    <string name="feedback_paste_image">Вставить картинку из буфера обмена</string>
+    <string name="feedback_pick_image">Выбрать изображение или скриншот</string>
+    <string name="feedback_take_photo">Сделать снимок на камеру</string>
+    <string name="feedback_record_voice">Записать голосовую заметку через микрофон</string>
+    <string name="feedback_stop_voice">Остановить запись</string>
+    <string name="feedback_recording">Идёт запись..</string>
+    <string name="feedback_attachments_label">Прикреплённые картинки и голосовые заметки</string>
+    <string name="feedback_remove_attachment">Убрать %1$s</string>
+    <string name="feedback_send">Отправить</string>
+    <string name="feedback_no_image_in_clipboard">В буфере обмена нет картинки</string>
+    <string name="feedback_voice_failed">Голосовую заметку не удалось записать</string>
+    <string name="feedback_empty">Напишите пару слов или прикрепите картинку или голосовую заметку</string>
+    <string name="feedback_folder_label">Папка на компьютере</string>
+    <string name="feedback_folder_none">Нет - только «Отправить в..»</string>
+    <string name="feedback_folder_via_exchange">%1$s (сервер обмена)</string>
+    <string name="feedback_state_queued">В очереди - уйдёт в папку, как только появится сеть</string>
+    <string name="feedback_state_waiting">Ждёт папку на компьютере: %1$s</string>
+    <string name="feedback_state_sent">В папке - ждёт компьютер</string>
+    <string name="feedback_state_processed">Стал заданием: %1$s</string>
+    <string name="feedback_state_failed">Компьютер отклонил: %1$s</string>
+    <string name="feedback_queued">Также поставлено в очередь для папки на компьютере</string>
+    <string name="feedback_stage_failed">Отзыв не удалось сохранить: %1$s</string>
+    <string name="notes_sync_now">Синхронизировать сейчас</string>
+    <string name="notes_sync_status_syncing">Синхронизация..</string>
+    <string name="notes_sync_status_synced">Синхронизировано с %1$s</string>
+    <string name="notes_sync_status_failed">Не удалось синхронизировать заметки. Они остаются на этом устройстве.</string>
+    <string name="notes_sync_too_large">Слишком большая для синхронизации</string>
+    <string name="notes_sync_conflict">Эту заметку одновременно изменили на другом устройстве. Сохранены обе версии.</string>
+    <string name="notes_sync_limit_reached">Этот сервер больше не принимает заметки для этого аккаунта. Удалите часть заметок или обратитесь к тому, кто управляет сервером.</string>
+    <string name="streams_error_playlist_hls_manifest">Этот адрес - манифест HLS, а не плейлист трансляций.</string>
+    <string name="streams_category_hint">Категория (необязательно)</string>
+    <string name="s4609_broadcast_stopped_text">Воспроизведение остановлено. Откройте «Трансляции», чтобы узнать причину.</string>
+    <string name="streams_filter_media_recent">Недавние</string>
+    <string name="streams_media_filter_recent">Показывать только недавние трансляции</string>
+    <string name="streams_pause">Пауза</string>
+    <string name="streams_resume">Продолжить</string>
+    <string name="streams_paused">На паузе</string>
+    <string name="streams_unavailable_refused_message">«%1$s» - сервер отказал в подключении. Удалить из вашего списка?</string>
+    <string name="streams_unavailable_certificate_message">«%1$s» использует сертификат, которому это устройство не доверяет. Удалить из вашего списка?</string>
+    <string name="companion_import_no_access_path_error">В этом файле нет адреса для прямого подключения. Попросите отправителя поделиться ещё раз с локальным или проброшенным адресом.</string>
+    <string name="companion_share_unpinned_error">Подключитесь к этому серверу хотя бы раз перед тем, как делиться доступом - приложению нужен его проверенный ключ.</string>
+    <string name="perm_rationale_access_coarse_location">Приблизительное местоположение нужно, чтобы записать координаты в снятые в приложении фото и видео. Никуда ничего не отправляется.</string>
+    <string name="perm_rationale_access_coarse_location_extended">Приблизительное местоположение нужно, чтобы записать координаты в снятые в приложении фото и видео и разместить гаджеты карты на рабочем столе: чтобы нарисовать карту, они запрашивают картинку вашей местности у онлайн-сервиса карт и спрашивают у Android название места. Больше никуда ничего не отправляется, и своих серверов у нас нет.</string>
+    <string name="perm_desc_access_coarse_location_extended">Приблизительные координаты для снятых в приложении фото и гаджетов карты на рабочем столе</string>
+    <string name="broadcast_import_secret_storage_failed">Не удалось безопасно сохранить ключ трансляции на этом устройстве</string>
+    <string name="language_picker_no_results">Языки не найдены</string>
+    <string name="tooltip_notes_title">Заметки</string>
+    <string name="tooltip_notes_message">Добавляет «Заметки» в основное меню. Все заметки лежат одним списком с поиском, хранятся на этом устройстве, а новая заметка - одним нажатием.</string>
+    <string name="tooltip_tourist_title">Турист</string>
+    <string name="tooltip_tourist_message">Добавляет в основное меню панель навигации: скорость, высота, компас, координаты, шаги, пройденный путь, восход и закат. Показывает ваше положение на карте и отправляет координаты.</string>
+    <string name="tooltip_network_monitor_title">Сетевой монитор</string>
+    <string name="tooltip_network_monitor_message">Добавляет в основное меню программу диагностики. Показывает состояние Wi-Fi, мобильной сети, Bluetooth, спутников и интернета, уровень сигнала и параметры сети, а также ведёт историю.</string>
+    <string name="tooltip_system_info_title">Сведения о системе</string>
+    <string name="tooltip_system_info_message">Добавляет в панель и меню программ экран со сведениями о системе: оборудование, система, батарея, экран и сеть. Полный отчёт можно скопировать или сохранить в «Загрузки».</string>
+    <string name="streams_error_no_network_refresh">Нет сети. Подключитесь, чтобы обновить состояние каналов.</string>
+    <string name="stream_status_unconfirmed">Не подтверждено онлайн</string>
+    <string name="stream_info_outcome_unconfirmed">Не подтверждено</string>
+    <string name="feedback_attach_logs">Прикрепить диагностические журналы приложения</string>
+    <string name="feedback_no_logs">Журналов для прикрепления пока нет</string>
+    <string name="feedback_logs_failed">Не удалось собрать архив журналов</string>
+    <string name="local_folder_guidance">Сканирование находит папки с медиафайлами. Или выберите папку вручную, затем добавьте выбранные папки.</string>
+    <string name="folder_selection_virtual_all_added">Все уже добавлены</string>
+    <string name="browse_empty_search_no_match">Нет файлов, подходящих под «%1$s»</string>
+    <string name="browse_empty_search_no_match_hint">Проверьте написание или очистите поиск.</string>
+    <string name="language_auto_detect">Автоопределение</string>
+    <string name="cd_switch_to_grid_view">Переключить на сетку</string>
+    <string name="cd_switch_to_list_view">Переключить на список</string>
+    <string name="notes_row_select">Выбрать</string>
+    <string name="notes_select_all">Выбрать все</string>
+    <string name="notes_selected_count">Выбрано: %1$d</string>
+    <string name="notes_delete_selected">Удалить выбранные</string>
+    <string name="notes_delete_selected_title">Удалить заметки?</string>
+    <string name="notes_delete_selected_confirm">Выбранные заметки (%1$d) будут удалены с устройства.</string>
+    <string name="notes_selection_cancel">Отменить выбор</string>
+    <string name="notes_error_delete_selected">Не удалось удалить часть выбранных заметок.</string>
+    <string name="s4874_broadcast_ended_text">Трансляция закончилась.</string>
+    <string name="main_destination_legend">Цветная рамка и → отмечают назначение быстрой сортировки: туда попадают файлы, которые вы сортируете.</string>
+    <string name="main_first_step_hint_text">Добавьте папку, чтобы начать: выберите папку устройства, сетевую папку или облачную папку с вашими файлами.</string>
+    <string name="main_first_step_hint_action">Добавить папку</string>
+    <string name="share_to_none_enabled">Для этого типа данных не включена ни одна цель «Отправить в..». Включите её: Настройки - %1$s - %2$s</string>
+    <string name="streams_added_shown_in_own">Станция добавлена в «Свои»</string>
 </resources>

@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Internet Radio & Streams - FastMediaSorter v2"
+title: "Internet Radio & Streams - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-internet-radio.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -9,7 +9,7 @@ permalink: /docs/howto/scenario-internet-radio.html
 
 > **Level:** Beginner - **Time:** ~10 minutes - **Flavor:** Standard, Legacy, VR, noLegal (Streams are absent in Lite and Photos)
 
-FastMediaSorter includes a dedicated Streams screen for internet audio and video sources. Add any internet radio URL, import an .m3u playlist, or browse a curated station catalog - no separate radio app needed. Works great on Android car head units, audio players, phones, and tablets.
+Fast Media Sorter & Organizer includes a dedicated Streams screen for internet audio and video sources. Add any internet radio URL, import an .m3u playlist, or browse a curated station catalog - no separate radio app needed. Works great on Android car head units, audio players, phones, and tablets.
 
 > **Replaces:** a separate internet radio or stream player app.
 
@@ -18,7 +18,7 @@ FastMediaSorter includes a dedicated Streams screen for internet audio and video
 ## What You Will Need
 
 - Android device with a network connection (mobile data or Wi-Fi)
-- FastMediaSorter Standard, Legacy, VR, or noLegal (the Streams screen is absent in Lite and Photos)
+- Fast Media Sorter & Organizer Standard, Legacy, VR, or noLegal (the Streams screen is absent in Lite and Photos)
 - A stream URL, .m3u playlist file or URL, or the built-in curated catalog
 
 ---

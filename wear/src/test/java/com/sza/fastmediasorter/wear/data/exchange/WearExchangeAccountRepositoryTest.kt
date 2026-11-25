@@ -4,9 +4,16 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.yield
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
@@ -14,6 +21,8 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.IOException
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CountDownLatch
 
 /** S4158: the watch's entry lifecycle - items AA, AB and AD as the watch applies them, and the outgoing mark. */
 class WearExchangeAccountRepositoryTest {
@@ -21,7 +30,8 @@ class WearExchangeAccountRepositoryTest {
     private val store = MemoryStore()
     private val client = mockk<WearExchangeAccountClient>()
     private val profile = WearExchangeDeviceProfile("Galaxy Watch", "2.6.0")
-    private val repository = WearExchangeAccountRepository(client, store, profile, FakeWearExchangeE2eStore())
+    private val e2e = FakeWearExchangeE2eStore()
+    private val repository = WearExchangeAccountRepository(client, store, profile, e2e)
 
     @Test
     fun `the first entry is enrolled with a fresh id, stored with its token and made outgoing`() = runBlocking {
@@ -162,6 +172,55 @@ class WearExchangeAccountRepositoryTest {
     }
 
     @Test
+    fun `a removal cancelled after the revoke still forgets the token the key and the entry`() = runBlocking {
+        val entry = WearExchangeEntry(HOST, PORT, LOGIN, HELD_ID, null, outgoing = true)
+        store.put(entry)
+        store.saveToken(entry.identity, TOKEN)
+        e2e.keyFor(HELD_ID)
+        store.yieldOnWrite = true
+        lateinit var caller: Job
+        every { client.revokeOwnDevice(any(), any(), any()) } answers { caller.cancel() }
+
+        caller = launch { repository.remove(entry) }
+        caller.join()
+
+        assertNull(store.token(entry.identity))
+        assertNull(e2e.existing(HELD_ID))
+        assertTrue(store.all().isEmpty())
+    }
+
+    @Test
+    fun `a hand-over arriving during a removal waits until the removal is done`() = runBlocking {
+        val entry = WearExchangeEntry(HOST, PORT, LOGIN, HELD_ID, null, outgoing = true)
+        store.put(entry)
+        store.saveToken(entry.identity, TOKEN)
+        val revokeStarted = CountDownLatch(1)
+        val releaseRevoke = CountDownLatch(1)
+        val order = CopyOnWriteArrayList<String>()
+        every { client.revokeOwnDevice(any(), any(), any()) } answers {
+            revokeStarted.countDown()
+            releaseRevoke.await()
+            order += "revoked"
+            Unit
+        }
+        every { client.enroll(any(), CODE, profile, any()) } answers {
+            order += "enrolling"
+            WearExchangeEnrollResult.Enrolled(TOKEN)
+        }
+
+        val removal = async { repository.remove(entry) }
+        withContext(Dispatchers.IO) { revokeStarted.await() }
+        val handOver = async { repository.enroll(join()) }
+        delay(SETTLE_MS)
+        releaseRevoke.countDown()
+        removal.await()
+        handOver.await()
+
+        assertEquals(listOf("revoked", "enrolling"), order)
+        assertEquals(1, store.all().size)
+    }
+
+    @Test
     fun `setting the outgoing entry clears the others`() = runBlocking {
         val first = WearExchangeEntry(HOST, PORT, LOGIN, HELD_ID, null, outgoing = true)
         val second = WearExchangeEntry("other.example.net", PORT, LOGIN, "BBBB", null)
@@ -180,6 +239,9 @@ class WearExchangeAccountRepositoryTest {
         private val tokens = mutableMapOf<String, String>()
         var acceptTokens = true
 
+        /** Makes a delete a cancellation point, as the encrypted store's disk writes are. */
+        var yieldOnWrite = false
+
         override val entries: Flow<List<WearExchangeEntry>> = held
 
         override suspend fun all(): List<WearExchangeEntry> = held.value
@@ -191,6 +253,7 @@ class WearExchangeAccountRepositoryTest {
         }
 
         override suspend fun remove(identity: String) {
+            if (yieldOnWrite) yield()
             write(held.value.filterNot { it.identity == identity })
         }
 
@@ -210,11 +273,13 @@ class WearExchangeAccountRepositoryTest {
         }
 
         override suspend fun forgetToken(identity: String) {
+            if (yieldOnWrite) yield()
             tokens.remove(identity)
         }
     }
 
     private companion object {
+        const val SETTLE_MS = 200L
         const val HOST = "exchange.example.net"
         const val PORT = 44_022
         const val LOGIN = "owner"

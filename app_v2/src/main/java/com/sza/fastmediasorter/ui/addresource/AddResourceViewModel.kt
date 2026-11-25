@@ -23,6 +23,7 @@ import com.sza.fastmediasorter.domain.usecase.GetStorageVolumesUseCase
 import com.sza.fastmediasorter.domain.usecase.MediaScannerFactory
 import com.sza.fastmediasorter.domain.usecase.NetworkHost
 import com.sza.fastmediasorter.domain.usecase.NetworkSpeedTestUseCase
+import com.sza.fastmediasorter.domain.usecase.ResolveScanFilterUseCase
 import com.sza.fastmediasorter.domain.usecase.ScanLocalFoldersUseCase
 import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -53,7 +54,12 @@ data class AddResourceState(
 
 sealed class AddResourceEvent {
     data class ShowError(val message: String) : AddResourceEvent()
-    data class ShowMessage(val message: String) : AddResourceEvent()
+
+    /**
+     * [awaitDismissBeforeClose]: the add result screen closes right after this message, so the
+     * confirmation must stay on screen until it leaves - the screen waits for it before finishing.
+     */
+    data class ShowMessage(val message: String, val awaitDismissBeforeClose: Boolean = false) : AddResourceEvent()
     data class ShowTestResult(
         val message: String,
         val isSuccess: Boolean,
@@ -96,8 +102,7 @@ sealed class AddResourceEvent {
     data class CompanionPasswordRequired(
         val resourceName: String,
         val host: String,
-        val rootCount: Int,
-        val hasFingerprint: Boolean
+        val rootCount: Int
     ) : AddResourceEvent()
 }
 
@@ -121,6 +126,7 @@ sealed class AddResourceEvent {
 class AddResourceViewModel @Inject constructor(
     @param:ApplicationContext private val context: android.content.Context,
     scanLocalFoldersUseCase: ScanLocalFoldersUseCase,
+    resolveScanFilterUseCase: ResolveScanFilterUseCase,
     private val addResourceUseCase: AddResourceUseCase,
     mediaScannerFactory: MediaScannerFactory,
     smbOperationsUseCase: SmbOperationsUseCase,
@@ -150,6 +156,7 @@ class AddResourceViewModel @Inject constructor(
     private val virtualCoordinator = AddResourceVirtualCoordinator(
         context,
         scanLocalFoldersUseCase,
+        resolveScanFilterUseCase,
         addResourceUseCase,
         mediaScannerFactory,
         resourceRepository,
@@ -526,16 +533,19 @@ class AddResourceViewModel @Inject constructor(
                     count
                 )
 
+                val namedAddedMsg = addResult.addedNames.takeIf { it.isNotEmpty() }
+                    ?.joinToString(prefix = "$addedMsg: ") ?: addedMsg
+
                 val message = if (addResult.destinationsFull) {
                     context.getString(
                         R.string.addresource_quick_sort_full_message,
-                        addedMsg,
+                        namedAddedMsg,
                         addResult.skippedDestinations
                     )
                 } else {
-                    addedMsg
+                    namedAddedMsg
                 }
-                sendEvent(AddResourceEvent.ShowMessage(message))
+                sendEvent(AddResourceEvent.ShowMessage(message, awaitDismissBeforeClose = true))
                 sendEvent(AddResourceEvent.ResourcesAdded(addResult.createdResourceIds))
             }.onFailure { e ->
                 Timber.e(e, "Error adding resources")

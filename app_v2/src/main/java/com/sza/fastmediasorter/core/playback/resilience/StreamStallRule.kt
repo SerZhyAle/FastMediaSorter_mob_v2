@@ -31,6 +31,7 @@ internal enum class StreamStallReason(val diagnostic: String) {
     RENDERED_FRAMES_FROZEN("rendered frames frozen"),
     POSITION_FROZEN("position frozen"),
     BUFFERING_TIMEOUT("buffering timeout"),
+    FIRST_CONNECTION_TIMEOUT("first connection timeout"),
 }
 
 /**
@@ -84,6 +85,7 @@ internal class StreamStallRule(
     private var blindSinceMs = NOT_STAMPED
     private var bufferingArmedAtMs = NOT_STAMPED
     private var bufferedAtArmMs = 0L
+    private var hasReachedReady = false
 
     /** Seed the baselines a first poll will be compared against, when playback reaches ready. */
     fun start(observation: StreamStallObservation) {
@@ -91,9 +93,25 @@ internal class StreamStallRule(
         lastRenderedFrames = observation.renderedFrames
         emptyPolls = 0
         blindSinceMs = NOT_STAMPED
+        hasReachedReady = true
     }
 
-    /** Forget everything, including the buffering deadline, when the watchdog is cancelled. */
+    /**
+     * Open a new first connection: the next buffering stall is bounded as one until [start] runs.
+     *
+     * Only a freshly prepared playback session calls this. The watchdog's own re-anchor and the
+     * error ladder's re-prepares stay inside the session that already reached ready.
+     */
+    fun beginPlaybackSession() {
+        hasReachedReady = false
+    }
+
+    /**
+     * Forget everything, including the buffering deadline, when the watchdog is cancelled.
+     *
+     * [hasReachedReady] survives on purpose: the watchdog cancels itself on its own `stop()`, and
+     * that must not turn a stream that played into a first connection again.
+     */
     fun reset() {
         lastPositionMs = 0L
         lastRenderedFrames = null
@@ -138,6 +156,9 @@ internal class StreamStallRule(
      * loading keeps the leg alive. The elapsed-time check is not the scheduler's job done twice: it
      * is what keeps the deadline on the caller's monotonic clock, and it is unreachable in
      * production because the caller only asks after its own delay has fired.
+     *
+     * A stream that never reached ready since its prepare answers [StreamStallReason.FIRST_CONNECTION_TIMEOUT]
+     * (STREAM-BANK 2.6 section 6.1), so the caller can surface the failure without spending recovery.
      */
     fun onBufferingDeadline(observation: StreamStallObservation, nowMs: Long): StreamStallOutcome {
         val armedAtMs = bufferingArmedAtMs
@@ -148,6 +169,8 @@ internal class StreamStallRule(
         val deadlineReached = nowMs - armedAtMs >= bufferingTimeoutMs
         return if (stillFilling || !deadlineReached) {
             StreamStallOutcome.Progressing
+        } else if (!hasReachedReady) {
+            StreamStallOutcome.Stalled(StreamStallReason.FIRST_CONNECTION_TIMEOUT)
         } else {
             StreamStallOutcome.Stalled(StreamStallReason.BUFFERING_TIMEOUT)
         }

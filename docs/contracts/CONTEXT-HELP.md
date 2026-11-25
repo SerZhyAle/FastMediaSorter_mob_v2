@@ -1,11 +1,11 @@
-<sub class="doc-stamp">26.10.29 05:03</sub>
+<sub class="doc-stamp">26.11.25 02:51</sub>
 
 # Pointer - `CONTEXT-HELP`
 
 | | |
 | --- | --- |
 | **Id** | `CONTEXT-HELP` |
-| **Version** | 0.3, draft. Owner: shared |
+| **Version** | 0.7, draft. Owner: shared |
 | **Home** | `in-app-help/README.md` in the shared contracts catalog |
 | **Role here** | consumer - the phone app `app_v2`, adoption `partial` (first slice: Main, the four Settings tabs, Welcome); and the watch app `wear`, which meets rule 4 with a reasoned `none` row per route |
 
@@ -17,6 +17,20 @@
 - A help page follows the anatomy of rule 8, ships inside the package, opens offline in the in-app viewer with JavaScript off and makes no request (rule 12); the same generated files are published on the portal.
 - A page exists in every shipped UI locale and falls back to English (rule 13); EN/RU/UK are written with the change, the other ten locales fan out at the release boundary (repo Rule 30).
 - Screenshots are generated from the build with demo content and markers from the UI tree (rule 14); a help id never changes once shipped (rule 15).
+- A Wear OS app screen is a surface, not a watch face (0.4, section 9 items L and M): it carries no help button and
+  asks for no key by default, and its map row is `inherit` from the companion phone surface when the phone and watch
+  apps share an application id and that surface's help page names each watch screen, or `none` with a reason for a
+  trivial surface (rule 4). The phone and the watch of this product share `com.sza.fastmediasorter`, so `inherit` is
+  open to the watch rows. The 60 rows (one per `composable(` route of the watch app) were re-read on 2026-11-24 (S4890) and all stay `none`: `inherit` needs the
+  companion page to name each watch screen, and the `wear-companion` page names the companion panel only.
+- Since 0.5 (section 10 item P) a product whose help is organised per page may open the anchor of the map's `pages` row
+  for the page the person is on, from the help button and from F1 alike, never the anchor of the button's own entry; it
+  is an option and none of the rules above changes with it.
+- Since 0.6 (section 11 items Q and R): the page title carries the product's `help.head` picture, the favicon is the
+  product's, and an element entry that names a control with an `ICON-SET` meaning shows that glyph beside the name.
+  Not held yet on the phone: the picture sits above the title with a non-empty `alt`, the favicon is the `help.head`
+  PNG, and the glyph table skips the custom `str_icon` / `csh_icon` / `sdr_icon` attributes; dated exceptions in the
+  catalog registry, carrier S4897.
 
 ## Decisions taken here (the contract delegates them to the product)
 

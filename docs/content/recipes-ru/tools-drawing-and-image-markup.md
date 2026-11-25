@@ -13,7 +13,7 @@ why: |
 
   Кроме того, редактор можно запустить на чистом белом листе, чтобы нарисовать быструю схему, набросок или рукописную заметку с нуля.
 ingredients:
-  - "FastMediaSorter в любой [редакции](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR или FOSS."
+  - "Fast Media Sorter & Organizer в любой [редакции](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR или FOSS."
   - "Изображение, открытое в [просмотрщике изображений](term:image-viewer), либо папка с правами на запись для создания нового чистого холста."
 steps:
   - number: 1

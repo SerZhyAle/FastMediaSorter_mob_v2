@@ -29,7 +29,10 @@ class TextFilePager(
 
     private var raf: RandomAccessFile? = null
     private val rafLock = Any() // Shared lock for read/close synchronization
-    val fileSize: Long = file.length()
+
+    @Volatile
+    var fileSize: Long = file.length()
+        private set
 
     // Lazily built index of byte offsets for each page start
     private val pageStartOffsets = mutableListOf<Long>()
@@ -50,6 +53,22 @@ class TextFilePager(
         synchronized(rafLock) {
             raf = RandomAccessFile(file, "r")
             Timber.d("TextFilePager: opened ${file.name}, size=${fileSize}, charset=$charset, chunkSize=$chunkSize")
+        }
+    }
+
+    internal fun replaceCachedContents(bytes: ByteArray) {
+        synchronized(rafLock) {
+            if (raf == null) return
+            try {
+                file.writeBytes(bytes)
+            } finally {
+                fileSize = file.length()
+                pageStartOffsets.clear()
+                pageStartOffsets.add(0L)
+                pageLineCounts.clear()
+                fullyIndexed = false
+                activePage = 0
+            }
         }
     }
 

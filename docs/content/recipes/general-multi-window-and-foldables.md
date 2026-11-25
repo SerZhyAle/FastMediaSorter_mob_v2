@@ -2,7 +2,7 @@
 page_id: general.multi-window-and-foldables
 title: Split-Screen, Freeform Windows and Foldables - The App on Any Screen Size
 nav_title: Split-screen and foldables
-description: Using FastMediaSorter next to another app in split-screen or in a freeform window, how it lays itself out on a tablet or an unfolded phone, opening a folder or a file in a new window, watching in a small floating window, and what stays put when you turn the device.
+description: Using Fast Media Sorter & Organizer next to another app in split-screen or in a freeform window, how it lays itself out on a tablet or an unfolded phone, opening a folder or a file in a new window, watching in a small floating window, and what stays put when you turn the device.
 category: "General, Keyboard & TV"
 category_slug: general
 ticket: S2963
@@ -13,9 +13,9 @@ canonical_url: documentation/general/multi-window-and-foldables.html
 why: |
   Sometimes one app at a time is not enough. You sort photos while a chat is open next to them, you check a video while writing notes, or you unfold your phone and want the extra room to be used rather than wasted.
 
-  FastMediaSorter lets you do all of that: it shares the screen with another app, it spreads out on a wide screen, it can open a folder in a second window, and it keeps its layout in order when the device turns.
+  Fast Media Sorter & Organizer lets you do all of that: it shares the screen with another app, it spreads out on a wide screen, it can open a folder in a second window, and it keeps its layout in order when the device turns.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition)."
+  - "Fast Media Sorter & Organizer in any [edition](term:edition)."
   - "For split-screen or a freeform window: a phone, tablet or Chromebook whose Android supports it - most phones since Android 7 do."
   - "Optional: a tablet, a foldable phone, a Chromebook or a [VR headset](term:vr-headset) for the new-window feature."
 steps:
@@ -23,22 +23,22 @@ steps:
     id: split-screen
     title: Put the app next to another one
     text: |
-      Open the recent-apps screen, tap the FastMediaSorter icon above its card and choose split-screen (on some phones the item is called **Split screen** or **Open in split screen view**), then pick the second app. FastMediaSorter resizes itself to its half and keeps working; drag the divider and it follows. On a tablet, a Chromebook or in desktop mode you can also drag it into a freeform window of any size.
+      Open the recent-apps screen, tap the Fast Media Sorter & Organizer icon above its card and choose split-screen (on some phones the item is called **Split screen** or **Open in split screen view**), then pick the second app. Fast Media Sorter & Organizer resizes itself to its half and keeps working; drag the divider and it follows. On a tablet, a Chromebook or in desktop mode you can also drag it into a freeform window of any size.
 
       Nothing restarts when the window changes size: the video keeps playing and the folder you were in stays open. How to start split-screen on your particular phone is explained in Google's [split-screen help](https://support.google.com/android/answer/9075928).
     image_bookmark:
       shot_id: general.split-screen-with-another-app
       device_profile: phone
       screen_state: split-screen-browse-top-other-app-bottom
-      alt: A phone in split-screen with the FastMediaSorter file browser in the top half and another app in the bottom half
-      caption: "FastMediaSorter sharing the screen with another app."
+      alt: A phone in split-screen with the Fast Media Sorter & Organizer file browser in the top half and another app in the bottom half
+      caption: "Fast Media Sorter & Organizer sharing the screen with another app."
       title: "Screenshot: Split-screen"
-      desc: Phone in split-screen mode, FastMediaSorter's file browser in the upper half, another app in the lower half, the divider in the middle.
+      desc: Phone in split-screen mode, Fast Media Sorter & Organizer's file browser in the upper half, another app in the lower half, the divider in the middle.
   - number: 2
     id: wide-layout
     title: Let a wide screen give you more room
     text: |
-      When the window is wide - a tablet, an unfolded foldable, a large phone, or any phone turned sideways - FastMediaSorter switches to its roomy layout: the [resource list](term:resource-list), the [file browser](term:file-browser) and **[Settings](term:settings)** spread out, and the collapsed groups of Settings stand in two columns. The switch depends on the width the app actually gets, not only on how the device is held, so a big phone held upright gets the roomy layout too, and a narrow split-screen half gets the compact one.
+      When the window is wide - a tablet, an unfolded foldable, a large phone, or any phone turned sideways - Fast Media Sorter & Organizer switches to its roomy layout: the [resource list](term:resource-list), the [file browser](term:file-browser) and **[Settings](term:settings)** spread out, and the collapsed groups of Settings stand in two columns. The switch depends on the width the app actually gets, not only on how the device is held, so a big phone held upright gets the roomy layout too, and a narrow split-screen half gets the compact one.
 
       In the resource list, the buttons of the top bar, the [programs panel](term:programs-panel), the [streams panel](term:streams-panel) and the [resource type tabs](term:resource-type-tabs) line up along one left edge, in one column of finger-sized buttons.
     image_bookmark:
@@ -81,7 +81,7 @@ steps:
 
       - Dialogs and item grids keep their order for the D-pad and their compact size in landscape.
       - **Compact elements** and **Sync interval (min)** in the General settings are there in both orientations - each of them used to be missing in one.
-      - In the **Management** tab, the two toggles that ask before deleting and before moving, and the two that make FastMediaSorter the phone's media handler and let it accept shared files, each stand as two full-width rows in portrait instead of two squeezed columns.
+      - In the **Management** tab, the two toggles that ask before deleting and before moving, and the two that make Fast Media Sorter & Organizer the phone's media handler and let it accept shared files, each stand as two full-width rows in portrait instead of two squeezed columns.
       - The title of the player settings dialog no longer breaks into two lines in portrait, and its buttons sit in the usual place at the bottom.
       - The edge bands of the [screenshot](term:screenshot) [edge gestures](term:edge-gesture) stay flush with the edges of the screen after a turn.
       - Saving an account after signing in through the browser is safe even if the screen turns while the account is being stored.
@@ -96,7 +96,7 @@ steps:
       title: "Screenshot: Settings rows in portrait"
       desc: Settings, Management tab, Destinations group in portrait, the confirm-delete and confirm-move toggles each on its own full-width row.
 outcome: |
-  FastMediaSorter shares the screen when you need two apps, spreads out when the screen is wide, opens a second window on a tablet or a Chromebook, floats a video over other apps, and keeps its layout in order whichever way you hold the device.
+  Fast Media Sorter & Organizer shares the screen when you need two apps, spreads out when the screen is wide, opens a second window on a tablet or a Chromebook, floats a video over other apps, and keeps its layout in order whichever way you hold the device.
 tips:
   - "**Use a mouse and a keyboard on a big screen** - see [Keyboard, D-pad and TV control](page:general.keyboard-dpad-tv-navigation)."
   - "**Want everything smaller to fit more on screen?** Switch on **Compact elements** in **General interface settings**."
@@ -120,4 +120,4 @@ next_recipes:
 
 <sub class="doc-stamp">26.10.07 01:10</sub>
 
-FastMediaSorter fits the screen it gets: half of a phone in split-screen, a whole tablet, an unfolded foldable or a floating window. This page shows how to use each of them.
+Fast Media Sorter & Organizer fits the screen it gets: half of a phone in split-screen, a whole tablet, an unfolded foldable or a floating window. This page shows how to use each of them.

@@ -1,12 +1,14 @@
 ---
 layout: doc
-title: "Завантаження APK FastMediaSorter"
+title: "Завантаження APK Fast Media Sorter & Organizer"
 permalink: /docs/DOWNLOADS-uk.html
 ---
 
 <sub class="doc-stamp">26.10.15 19:27</sub>
 
-# Завантаження APK FastMediaSorter
+<a id="завантаження-apk-fastmediasorter"></a>
+
+# Завантаження APK Fast Media Sorter & Organizer
 
 Скомпільовані APK публікуються як **ассети GitHub Release** - у репозиторій вони не комітяться.
 

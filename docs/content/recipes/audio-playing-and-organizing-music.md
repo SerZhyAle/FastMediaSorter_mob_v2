@@ -10,11 +10,11 @@ availability: SUPPORT_AUDIO
 recipe_number: "04"
 canonical_url: documentation/audio/playing-and-organizing-music.html
 why: |
-  Your music does not live in one neat library. Some albums are on the phone, some on a memory card, some on the computer in the next room. FastMediaSorter plays music straight from the folders where it already is - no importing, no library to build - and lets you sort a messy download folder while you listen.
+  Your music does not live in one neat library. Some albums are on the phone, some on a memory card, some on the computer in the next room. Fast Media Sorter & Organizer plays music straight from the folders where it already is - no importing, no library to build - and lets you sort a messy download folder while you listen.
 
   The same [audio player](term:audio-player) finds missing album covers, shows song lyrics, and fills the screen with a calm animation when a track has no picture.
 ingredients:
-  - "FastMediaSorter in the Standard, noLegal, Lite, Legacy, VR or FOSS [edition](term:edition). The Photos edition does not play audio."
+  - "Fast Media Sorter & Organizer in the Standard, noLegal, Lite, Legacy, VR or FOSS [edition](term:edition). The Photos edition does not play audio."
   - "Music files in any common format: MP3, FLAC, AAC, M4A, OGG, Opus, WMA, WAV, ALAC and more. MIDI files (MID, MIDI) play too."
   - "A [resource](term:resource) that holds your music - for example the ready-made [All Music](term:all-music) collection, a folder on this device, or a [network folder](term:network-folder)."
   - "For covers and lyrics from the internet: an internet connection."
@@ -31,7 +31,7 @@ steps:
       When the track ends, the player moves on to the next audio file of the same folder. Swipe left or right, or use the next and previous buttons, to skip.
     image:
       src: assets/images/audio/audio-player-cover-art.png
-      alt: The FastMediaSorter audio player on a large screen showing an album cover, the track name, the progress bar and the playback buttons
+      alt: The Fast Media Sorter & Organizer audio player on a large screen showing an album cover, the track name, the progress bar and the playback buttons
       caption: "The audio player with an album cover and the spinning vinyl record in the corner."
   - number: 2
     id: covers

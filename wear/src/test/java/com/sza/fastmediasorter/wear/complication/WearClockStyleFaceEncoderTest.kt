@@ -13,8 +13,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The watch face decodes the same layout declaratively (`code % 2`, `(code % 10) / 2`, `code / 10`),
- * so these tests pin the layout itself, not only this encoder's round trip.
+ * The watch face decodes the same layout declaratively (`code % 2`, `(code % 64) / 2`, `(code % 256) / 64`,
+ * `(code % 1024) / 256`, `code / 1024` - S4562), so these tests pin the layout itself, not only this encoder's
+ * round trip.
  */
 class WearClockStyleFaceEncoderTest {
 
@@ -27,13 +28,13 @@ class WearClockStyleFaceEncoderTest {
                 val report = PhoneBatteryReport(percent, charging, base.sentAt)
                 val band = WearClockStyleFaceEncoder.phoneBatteryBand(report, base.sentAt)
                 assertEquals(percent + if (charging) 101 else 0, band)
-                for (styleDigits in 0..159) {
+                for (styleDigits in 0..1023) {
                     val code = styleDigits + WearClockStyleFaceEncoder.PHONE_BAND_WEIGHT * band
-                    val decodedBand = code.coerceIn(0, 102159) / 400
+                    val decodedBand = code.coerceIn(0, 262143) / 1024
                     assertTrue(code in WearClockStyleFaceEncoder.CODE_MIN..WearClockStyleFaceEncoder.CODE_MAX)
                     assertEquals(percent, decodedBand % 101)
                     assertEquals(charging, decodedBand in 101..201)
-                    assertEquals(styleDigits, code - decodedBand * 400)
+                    assertEquals(styleDigits, code - decodedBand * 1024)
                 }
             }
         }
@@ -76,8 +77,8 @@ class WearClockStyleFaceEncoderTest {
 
                     assertTrue(code in WearClockStyleFaceEncoder.CODE_MIN..WearClockStyleFaceEncoder.CODE_MAX)
                     assertEquals(if (seconds) 1 else 0, code % 2)
-                    assertEquals(typeface.ordinal, (code % 10) / 2)
-                    assertEquals(palette.ordinal, code / 10)
+                    assertEquals(typeface.ordinal, (code % 64) / 2)
+                    assertEquals(palette.ordinal, code / 64)
                 }
             }
         }
@@ -91,9 +92,23 @@ class WearClockStyleFaceEncoderTest {
         assertEquals(4, WearClockStyleFaceEncoder.code(base.copy(typeface = WearClockTypeface.SERIF)))
         assertEquals(6, WearClockStyleFaceEncoder.code(base.copy(typeface = WearClockTypeface.MONOSPACE)))
         assertEquals(8, WearClockStyleFaceEncoder.code(base.copy(typeface = WearClockTypeface.CASUAL)))
-        assertEquals(10, WearClockStyleFaceEncoder.code(base.copy(palette = WearAnimationPalette.GREEN)))
-        assertEquals(20, WearClockStyleFaceEncoder.code(base.copy(palette = WearAnimationPalette.PINK)))
-        assertEquals(30, WearClockStyleFaceEncoder.code(base.copy(palette = WearAnimationPalette.BLUE)))
+        assertEquals(38, WearClockStyleFaceEncoder.code(base.copy(typeface = WearClockTypeface.RUBIKMONO)))
+        assertEquals(64, WearClockStyleFaceEncoder.code(base.copy(palette = WearAnimationPalette.GREEN)))
+        assertEquals(128, WearClockStyleFaceEncoder.code(base.copy(palette = WearAnimationPalette.PINK)))
+        assertEquals(192, WearClockStyleFaceEncoder.code(base.copy(palette = WearAnimationPalette.BLUE)))
+    }
+
+    @Test
+    fun `the typeface set fits its slots and every saved name reads back`() {
+        assertTrue(WearClockTypeface.entries.size <= WearClockStyleFaceEncoder.TYPEFACE_SLOTS)
+        WearClockTypeface.entries.forEach { assertEquals(it, WearClockTypeface.fromWireName(it.wireName)) }
+        assertEquals(WearClockTypeface.DEFAULT, WearClockTypeface.fromWireName("future-font"))
+    }
+
+    @Test
+    fun `the largest code stays exact as a float`() {
+        assertEquals(WearClockStyleFaceEncoder.CODE_MAX, WearClockStyleFaceEncoder.CODE_MAX.toFloat().toInt())
+        assertTrue(WearClockStyleFaceEncoder.CODE_MAX < 1 shl 24)
     }
 
     @Test
@@ -107,11 +122,11 @@ class WearClockStyleFaceEncoderTest {
             val code = WearClockStyleFaceEncoder.code(style, backdrop)
 
             assertTrue(code in WearClockStyleFaceEncoder.CODE_MIN..WearClockStyleFaceEncoder.CODE_MAX)
-            assertEquals(backdrop.ordinal, code / 40)
-            assertEquals(WearClockStyleFaceEncoder.code(style), code % 40)
+            assertEquals(backdrop.ordinal, code / 256)
+            assertEquals(WearClockStyleFaceEncoder.code(style), code % 256)
         }
-        assertEquals(80, WearClockStyleFaceEncoder.code(base, WearFaceBackdrop.NONE))
-        assertEquals(120, WearClockStyleFaceEncoder.code(base, WearFaceBackdrop.PHOTO))
+        assertEquals(512, WearClockStyleFaceEncoder.code(base, WearFaceBackdrop.NONE))
+        assertEquals(768, WearClockStyleFaceEncoder.code(base, WearFaceBackdrop.PHOTO))
     }
 
     @Test

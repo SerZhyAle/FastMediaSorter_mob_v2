@@ -78,7 +78,7 @@
     <string name="vr_info_video">ভিডিও কোডেক:</string>
     <string name="vr_install_cta_action">দোকানে খোলা</string>
     <string name="vr_install_cta_dismiss">যাইহোক খেলুন</string>
-    <string name="vr_install_cta_message">সর্বোত্তম অভিজ্ঞতার জন্য, আপনার কোয়েস্ট হেডসেটে ফাস্টমিডিয়াসর্টারের ভিআর সংস্করণটি ব্যবহার করে দেখুন।</string>
+    <string name="vr_install_cta_message">সেরা অভিজ্ঞতার জন্য আপনার Quest হেডসেটে Fast Media Sorter &amp; Organizer-এর VR সংস্করণ ব্যবহার করে দেখুন।</string>
     <string name="vr_install_cta_title">এটি একটি 3D ভিডিও</string>
     <string name="vr_overlay_btn_bright_down">উজ্জ্বল -</string>
     <string name="vr_overlay_btn_bright_up">উজ্জ্বল +</string>

@@ -1,0 +1,13 @@
+Lockup typeface of the FastMediaSorter family
+
+Manrope, weight ExtraBold (800), version 4.505 (the Google Fonts release of the variable font, instanced at 800).
+Licence: SIL Open Font License 1.1 (https://openfontlicense.org), (c) The Manrope Project Authors
+(https://github.com/sharanda/manrope). The font may be bundled and embedded; the licence text travels with every
+package that carries the font file itself.
+
+Use: the lockup is drawn by each product's generator as outlines (the glyphs converted to paths in the lockup SVG), so
+the output needs no installed font and is deterministic; the font file is never shipped, only its outlines, and the
+product's THIRD-PARTY-NOTICES line names the font and this licence. It is the heading face of PAGE-STYLE section 5,
+used for the product's name on every product site. The name stays Latin in every language and is not translated; the
+ampersand of the name is drawn. No monogram. Clear space around a lockup: the height of one arrow head; the smallest
+mark in a lockup is 24 px.

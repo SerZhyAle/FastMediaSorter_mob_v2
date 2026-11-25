@@ -103,7 +103,7 @@ class StandalonePlayerViewModel @Inject constructor(
 
     // S0390: screen-rotation sensor toggle. The VM holds no Activity ref, so the host observes this
     // and applies it through ScreenRotationManager (mirrors the in-app ROTATION_TOGGLE command).
-    private val _rotationSensorEnabled = MutableStateFlow(false)
+    private val _rotationSensorEnabled = MutableStateFlow(true)
     val rotationSensorEnabled: StateFlow<Boolean> = _rotationSensorEnabled.asStateFlow()
 
     fun toggleRotationSensor() {

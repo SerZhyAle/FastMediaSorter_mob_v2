@@ -37,9 +37,7 @@ object BrowseSwipeActionCatalog {
         BrowseSwipeAction.FAVORITE -> R.drawable.ic_star_outline
         BrowseSwipeAction.COPY -> R.drawable.ic_copy
         BrowseSwipeAction.MOVE -> R.drawable.ic_move
-        // Extract has no icon of its own - its menu entry is text-only. ic_move is the nearest
-        // existing drawable: extraction, like a move, lands the archive's contents elsewhere.
-        BrowseSwipeAction.EXTRACT_ARCHIVE -> R.drawable.ic_move
+        BrowseSwipeAction.EXTRACT_ARCHIVE -> R.drawable.ic_unarchive
         BrowseSwipeAction.RENAME -> R.drawable.ic_rename
         BrowseSwipeAction.DELETE -> R.drawable.ic_delete
     }

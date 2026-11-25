@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "হোম সিনেমা ও ভিআর স্ট্রিমিং - FastMediaSorter v2"
+title: "হোম সিনেমা ও ভিআর স্ট্রিমিং - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-home-cinema-bn.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -21,7 +21,7 @@ permalink: /docs/howto/scenario-home-cinema-bn.html
 
 - আপনার পিসির মতোই একই **বাড়ির Wi-Fi নেটওয়ার্কে** ফোন / ট্যাবলেট / ভিআর হেডসেট
 - আপনার **পিসি বা NAS**-এ ভিডিও (আপনার স্টোরেজসহ রাউটার বক্স)
-- FastMediaSorter ইনস্টল করা
+- Fast Media Sorter & Organizer ইনস্টল করা
 
 ---
 
@@ -39,7 +39,9 @@ permalink: /docs/howto/scenario-home-cinema-bn.html
 
 ---
 
-## ধাপ ২ - FastMediaSorter-এ ভিডিও ফোল্ডার যোগ করুন
+<a id="ধাপ-২---fastmediasorter-এ-ভিডিও-ফোল্ডার-যোগ-করুন"></a>
+
+## ধাপ ২ - Fast Media Sorter & Organizer-এ ভিডিও ফোল্ডার যোগ করুন
 
 1. অ্যাপ খুলুন → **Add <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> ট্যাপ করুন** → **"Network folder (SMB)"**
 2. **"Scan Network"** ট্যাপ করুন - অ্যাপটা উপলব্ধ পিসির জন্য আপনার বাড়ির নেটওয়ার্ক স্ক্যান করে
@@ -104,7 +106,7 @@ permalink: /docs/howto/scenario-home-cinema-bn.html
 
 > **এই সেকশনটা যাদের ভিআর হেডসেট আছে তাদের জন্য (যেমন Meta Quest 2/3 বা Pico 4)।** যদি আপনার কাছে একটা না থাকে, এই ধাপটা বাদ দিন।
 
-অ্যান্ড্রয়েড-ভিত্তিক ভিআর হেডসেট FastMediaSorter চালাতে পারে। সাইডলোডিং করে ইনস্টল করুন:
+অ্যান্ড্রয়েড-ভিত্তিক ভিআর হেডসেট Fast Media Sorter & Organizer চালাতে পারে। সাইডলোডিং করে ইনস্টল করুন:
 1. [Downloads পাতা](../DOWNLOADS.md) থেকে APK ডাউনলোড করুন
 2. আপনার হেডসেটে, Developer সেটিংসে **"Install from unknown sources"** চালু করুন
 3. SideQuest ব্যবহার করে বা সরাসরি ADB-এর মাধ্যমে APK ইনস্টল করুন
@@ -115,7 +117,7 @@ permalink: /docs/howto/scenario-home-cinema-bn.html
 - এপিসোডের মধ্যে সোয়াইপ করতে **থাম্বস্টিক** ব্যবহার করুন (আপনার হেডসেট যদি মিডিয়া বাটন ম্যাপ করে)
 - সাধারণ 2D সিনেমা এবং সিরিজের জন্য - অতিরিক্ত কোনো সেটআপ ছাড়াই সাথে সাথে কাজ করে
 
-> **ভিআর সিনেমা অভিজ্ঞতার জন্য:** আপনি একটা নির্দিষ্ট ভিআর সিনেমা অ্যাপকে লঞ্চার হিসেবে ব্যবহার করতে পারেন, তারপর ফাইল ম্যানেজমেন্টের জন্য "Open with FastMediaSorter" বেছে নিতে পারেন। FastMediaSorter ফাইল ব্রাউজিং সামলায়; ভিআর সিনেমা অ্যাপটা ইমারসিভ 360° ডিসপ্লে সামলায়।
+> **ভিআর সিনেমা অভিজ্ঞতার জন্য:** আপনি একটা নির্দিষ্ট ভিআর সিনেমা অ্যাপকে লঞ্চার হিসেবে ব্যবহার করতে পারেন, তারপর ফাইল ম্যানেজমেন্টের জন্য "Open with Fast Media Sorter & Organizer" বেছে নিতে পারেন। Fast Media Sorter & Organizer ফাইল ব্রাউজিং সামলায়; ভিআর সিনেমা অ্যাপটা ইমারসিভ 360° ডিসপ্লে সামলায়।
 
 ---
 

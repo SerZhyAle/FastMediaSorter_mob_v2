@@ -34,6 +34,7 @@
         <!-- Search audio covers online -->
         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
             android:id="@+id/rowSearchAudioCoversOnline"
+            app:str_icon="@drawable/ic_search"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -54,6 +55,7 @@
 
         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
             android:id="@+id/rowSearchCoversOnlyWifi"
+            app:str_icon="@drawable/ic_wifi"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -65,6 +67,7 @@
 
         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
             android:id="@+id/rowSaveAudioMetadataLocally"
+            app:str_icon="@drawable/ic_save"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -98,6 +101,7 @@
     <!-- Enable photos during audio playback - help payload folded into the row -->
     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
         android:id="@+id/rowEnablePhotosDuringAudio"
+        app:str_icon="@drawable/ic_image"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart"
@@ -121,7 +125,7 @@
     <!-- Audio empty state animation mode -->
     <LinearLayout android:id="@+id/layoutAudioEmptyState" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart" android:layout_marginBottom="@dimen/settings_margin_standard" android:orientation="vertical">
 
-        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow android:id="@+id/rowAudioEmptyStateMode" android:layout_width="match_parent" android:layout_height="wrap_content" app:ssr_title="@string/audio_empty_state_label" />
+        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow android:id="@+id/rowAudioEmptyStateMode" app:ssr_icon="@drawable/ic_graphic_eq" android:layout_width="match_parent" android:layout_height="wrap_content" app:ssr_title="@string/audio_empty_state_label" />
     </LinearLayout>
 
     <com.google.android.material.button.MaterialButton android:id="@+id/btnSetDefaultAudioPlayer" style="@style/Widget.FastMediaSorter.SettingsButton.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="start" android:layout_marginTop="@dimen/settings_margin_standard" android:text="@string/settings_set_default_audio_player" android:textAllCaps="false" />

@@ -9,7 +9,7 @@ availability: all
 recipe_number: "03"
 canonical_url: documentation/sample-program-recipe.html
 ingredients:
-  - FastMediaSorter v2 installed.
+  - Fast Media Sorter & Organizer installed.
   - Storage permissions granted to scan media libraries.
 steps:
   - number: 1

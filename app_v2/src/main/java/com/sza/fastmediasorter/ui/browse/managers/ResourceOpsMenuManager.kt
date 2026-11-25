@@ -25,7 +25,6 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.allowsWriteOperations
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.browse.BrowseViewModel
-import com.sza.fastmediasorter.ui.browse.helpers.BrowseHelpEntryManager
 import com.sza.fastmediasorter.ui.duplicates.DuplicatesActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.util.DrawingTargetPolicy
@@ -33,6 +32,7 @@ import com.sza.fastmediasorter.util.TextNoteTargetPolicy
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import com.sza.fastmediasorter.util.showBoundToHost
 import dagger.hilt.android.qualifiers.ActivityContext
+import timber.log.Timber
 import javax.inject.Inject
 
 class ResourceOpsMenuManager @Inject constructor(
@@ -62,8 +62,13 @@ class ResourceOpsMenuManager @Inject constructor(
         callbacks: BrowseButtonSetupHelper.ButtonCallbacks? = null,
         onSortClicked: (() -> Unit)? = null
     ) {
-        val popup = PopupMenu(context, anchor)
+        // END gravity: a start-aligned menu wider than the room right of the anchor is clamped flush
+        // against the screen edge; end-aligned, the "?" button's width stays as the margin.
+        val popup = PopupMenu(context, anchor, Gravity.END)
         popup.inflate(R.menu.menu_resource_ops)
+        val resource = viewModel.state.value.resource
+        val hasSelection = viewModel.state.value.selectedFiles.isNotEmpty()
+        Timber.d("S4838: browse overflow menu opened hasSelection=$hasSelection")
 
         // S0374: a top-bar command appears in this menu iff the overflow manager pushed it off
         // the bar. Push model - the manager is the single owner of "is this command visible".
@@ -72,7 +77,10 @@ class ResourceOpsMenuManager @Inject constructor(
         popup.menu.findItem(R.id.action_overflow_refresh)?.isVisible = isOverflowed(R.id.btnRefresh)
         popup.menu.findItem(R.id.action_overflow_toggle_view)?.isVisible = isOverflowed(R.id.btnToggleView)
         popup.menu.findItem(R.id.action_overflow_select_all)?.isVisible = isOverflowed(R.id.btnSelectAll)
-        popup.menu.findItem(R.id.action_overflow_deselect_all)?.isVisible = isOverflowed(R.id.btnDeselectAll)
+        popup.menu.findItem(R.id.action_overflow_deselect_all)?.apply {
+            isVisible = isOverflowed(R.id.btnDeselectAll)
+            isEnabled = hasSelection
+        }
         popup.menu.findItem(R.id.action_overflow_play)?.isVisible = isOverflowed(R.id.btnPlay)
         popup.menu.findItem(R.id.action_overflow_play_random)?.isVisible = isOverflowed(R.id.btnPlayRandom)
         popup.menu.findItem(R.id.action_overflow_mic)?.isVisible = isOverflowed(R.id.btnMicRecord)
@@ -80,7 +88,6 @@ class ResourceOpsMenuManager @Inject constructor(
         // Hide "Create folder" if the resource doesn't support subfolder navigation, does not accept
         // writes, or is a virtual resource (e.g. "All Video", "Recent") with no real path to write to.
         // S2594: writability from the shared policy resolver, which folder creation is covered by.
-        val resource = viewModel.state.value.resource
         val canCreateFolder = resource != null
                 && resource.showSubfoldersAsItems
                 && resource.allowsWriteOperations()
@@ -100,7 +107,6 @@ class ResourceOpsMenuManager @Inject constructor(
 
         // Archive item: hidden for non-local sources (matches toolbar btnArchive predicate),
         // grayed out when no files are selected so users see the action but learn it needs a selection.
-        val hasSelection = viewModel.state.value.selectedFiles.isNotEmpty()
         val isLocalResource = resource?.type == ResourceType.LOCAL
         popup.menu.findItem(R.id.action_archive)?.apply {
             isVisible = isLocalResource && onArchive != null
@@ -194,10 +200,6 @@ class ResourceOpsMenuManager @Inject constructor(
                 // S0806: reach the main app settings window without going back to the home window.
                 R.id.action_open_app_settings -> {
                     context.startActivity(Intent(context, SettingsActivity::class.java))
-                    true
-                }
-                R.id.action_help -> {
-                    (context as? androidx.fragment.app.FragmentActivity)?.let(BrowseHelpEntryManager::open)
                     true
                 }
                 // S0374: overflowed top-bar commands route to the same actions as their buttons.

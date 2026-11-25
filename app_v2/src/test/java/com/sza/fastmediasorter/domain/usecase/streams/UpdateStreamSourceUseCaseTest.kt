@@ -8,6 +8,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -57,9 +58,22 @@ class UpdateStreamSourceUseCaseTest {
     )
 
     @Test
+    fun categoryEdit_isStoredAndCanBeCleared() = runTest {
+        dao.upsert(row("1", "https://host/live").copy(category = "Old", pinned = true))
+        assertEquals(
+            UpdateStreamSourceUseCase.UpdateResult.Success,
+            useCase(dao.getById("1")!!, "https://host/live", "New", "VIDEO", " News "),
+        )
+        assertEquals("News", dao.getById("1")!!.category)
+        assertEquals(true, dao.getById("1")!!.pinned)
+        useCase(dao.getById("1")!!, "https://host/live", "New", "VIDEO", " ")
+        assertNull(dao.getById("1")!!.category)
+    }
+
+    @Test
     fun explicitOverride_isHonored_overClassifier() = runTest {
         dao.upsert(row("1", "http://host/live.m3u8")) // classifier would derive VIDEO
-        val result = useCase(dao.getById("1")!!, "http://host/live.m3u8", null, "AUDIO")
+        val result = useCase(dao.getById("1")!!, "http://host/live.m3u8", null, "AUDIO", null)
         assertEquals(UpdateStreamSourceUseCase.UpdateResult.Success, result)
         assertEquals("AUDIO", dao.getById("1")!!.mediaKind)
     }
@@ -69,12 +83,12 @@ class UpdateStreamSourceUseCaseTest {
         dao.upsert(row("1", "http://host/a.mp3"))
         assertEquals(
             UpdateStreamSourceUseCase.UpdateResult.Success,
-            useCase(dao.getById("1")!!, "http://host/v.m3u8", null, null),
+            useCase(dao.getById("1")!!, "http://host/v.m3u8", null, null, null),
         )
         assertEquals("VIDEO", dao.getById("1")!!.mediaKind)
         assertEquals(
             UpdateStreamSourceUseCase.UpdateResult.Success,
-            useCase(dao.getById("1")!!, "rtsp://host/live", null, null),
+            useCase(dao.getById("1")!!, "rtsp://host/live", null, null, null),
         )
         assertEquals("RTSP", dao.getById("1")!!.mediaKind)
     }
@@ -83,7 +97,7 @@ class UpdateStreamSourceUseCaseTest {
     fun duplicateUrl_isRejected_andRowUnchanged() = runTest {
         dao.upsert(row("1", "http://host/a"))
         dao.upsert(row("2", "http://host/b"))
-        val result = useCase(dao.getById("1")!!, "http://host/b", null, null)
+        val result = useCase(dao.getById("1")!!, "http://host/b", null, null, null)
         assertEquals(UpdateStreamSourceUseCase.UpdateResult.Duplicate, result)
         assertEquals("http://host/a", dao.getById("1")!!.url)
     }
@@ -91,7 +105,7 @@ class UpdateStreamSourceUseCaseTest {
     @Test
     fun sameUrl_titleOnlyEdit_isAllowed() = runTest {
         dao.upsert(row("1", "http://host/a", title = "Old"))
-        val result = useCase(dao.getById("1")!!, "http://host/a", "New", null)
+        val result = useCase(dao.getById("1")!!, "http://host/a", "New", null, null)
         assertEquals(UpdateStreamSourceUseCase.UpdateResult.Success, result)
         assertEquals("New", dao.getById("1")!!.title)
     }
@@ -100,7 +114,7 @@ class UpdateStreamSourceUseCaseTest {
     fun catalogRow_isNotEditable() = runTest {
         val catalog = row("1", "http://host/a", origin = "CATALOG")
         dao.upsert(catalog)
-        val result = useCase(catalog, "http://host/z", "X", null)
+        val result = useCase(catalog, "http://host/z", "X", null, null)
         assertEquals(UpdateStreamSourceUseCase.UpdateResult.NotEditable, result)
         assertEquals("http://host/a", dao.getById("1")!!.url)
     }
@@ -108,7 +122,7 @@ class UpdateStreamSourceUseCaseTest {
     @Test
     fun unsupportedScheme_isInvalidUrl() = runTest {
         dao.upsert(row("1", "http://host/a"))
-        val result = useCase(dao.getById("1")!!, "file:///sdcard/x", null, null)
+        val result = useCase(dao.getById("1")!!, "file:///sdcard/x", null, null, null)
         assertEquals(UpdateStreamSourceUseCase.UpdateResult.InvalidUrl, result)
         assertEquals("http://host/a", dao.getById("1")!!.url)
     }

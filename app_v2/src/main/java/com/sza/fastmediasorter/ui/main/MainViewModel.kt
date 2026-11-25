@@ -458,7 +458,7 @@ class MainViewModel @Inject constructor(
                 onSuccess = { file -> sendEvent(MainEvent.ShareCompanionConfigFile(file.absolutePath)) },
                 onFailure = { e ->
                     Timber.e(e, "SFTP config export failed")
-                    sendEvent(MainEvent.ShowResourceMessage(R.string.sftp_share_export_failed))
+                    sendEvent(MainEvent.ShowResourceMessage(shareExportErrorRes(e)))
                 }
             )
         }
@@ -476,10 +476,17 @@ class MainViewModel @Inject constructor(
                 },
                 onFailure = { e ->
                     Timber.e(e, "SFTP QR export failed")
-                    sendEvent(MainEvent.ShowResourceMessage(R.string.sftp_share_export_failed))
+                    sendEvent(MainEvent.ShowResourceMessage(shareExportErrorRes(e)))
                 }
             )
         }
+    }
+
+    // S4649: the unpinned-server refusal is actionable, so it names its own fix; every other export
+    // failure keeps the generic share message.
+    private fun shareExportErrorRes(e: Throwable): Int = when {
+        exportCompanionConfigUseCase.isUnpinnedHostKey(e) -> R.string.companion_share_unpinned_error
+        else -> R.string.sftp_share_export_failed
     }
 
     fun startPlayer() {

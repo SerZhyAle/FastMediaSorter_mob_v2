@@ -143,6 +143,30 @@ function Test-Refuses {
     return $null
 }
 
+function Write-DeclarationFixture {
+    param($Check, [string] $State = 'filed', [bool] $Declared = $true,
+        [bool] $WithDocument = $true, [bool] $WithMarker = $true,
+        [bool] $WithState = $true, [bool] $WithStatus = $true, [string] $Trailer = '')
+    Write-Fixture -ContactsDeclared $false
+    $manifestPath = Join-Path $root 'app_v2/src/main/AndroidManifest.xml'
+    $posturePath = Join-Path $root 'docs/SECURITY_POSTURE.md'
+    if ($Declared) {
+        $node = "<uses-permission android:name=`"android.permission.$($Check.Permission)`" />"
+        $manifest = (Get-Content -LiteralPath $manifestPath -Raw).Replace('</manifest>', "$node`n</manifest>")
+        Set-Content -LiteralPath $manifestPath -Value $manifest -Encoding UTF8
+        Add-Content -LiteralPath $posturePath -Value "| ``android.permission.$($Check.Permission)`` | main | all | test | ``-`` | no |" -Encoding UTF8
+    }
+    if ($WithDocument) { Set-Content -LiteralPath (Join-Path $root $Check.File) -Value '# Declaration' -Encoding UTF8 }
+    $statusPath = Join-Path $root 'docs/PLAY_PUBLISHING_STATE.md'
+    if (-not $WithStatus) { Remove-Item -LiteralPath $statusPath; return }
+    $lines = @('', '### Declaration', '')
+    if ($WithMarker) { $lines += $Check.Marker }
+    if ($WithState) { $lines += "**State:** $State" }
+    $lines += '**Date:** 2026-10-02'
+    if ($Trailer) { $lines += $Trailer }
+    Add-Content -LiteralPath $statusPath -Value ($lines -join "`n") -Encoding UTF8
+}
+
 try {
     Assert-Case 'C1 a complete fixture in state "not filed" passes and shows the state' {
         Write-Fixture
@@ -230,6 +254,41 @@ try {
     Assert-Case 'C17 a State line after the next HTML comment is not read as the contacts state' {
         Write-Fixture -State 'filed' -Trailer "<!-- another:block -->`n**State:** bogus"
         Test-Passes -Expect 'state=filed'
+    }
+
+    $checks = @(
+        @{ Name = 'location-declaration'; Permission = 'ACCESS_FINE_LOCATION'; Marker = '<!-- s4501:transcribed:location-declaration -->'; File = 'store_assets/PLAY_PERMISSIONS_DECLARATION.md' }
+        @{ Name = 'local-network-declaration'; Permission = 'ACCESS_LOCAL_NETWORK'; Marker = '<!-- s4502:transcribed:local-network-declaration -->'; File = 'store_assets/PLAY_LOCAL_NETWORK_DECLARATION.md' }
+    )
+    foreach ($check in $checks) {
+        foreach ($state in @('not filed', 'filed', 'approved', 'extension requested')) {
+            Assert-Case "$($check.Name) allows $state" {
+                Write-DeclarationFixture -Check $check -State $state
+                Test-Passes -Expect "$($check.Name): state=$state date=2026-10-02"
+            }
+        }
+        foreach ($scenario in @('document', 'status', 'marker', 'state', 'unknown', 'rejected', 'boundary')) {
+            Assert-Case "$($check.Name) refuses $scenario" {
+                switch ($scenario) {
+                    'document' { Write-DeclarationFixture -Check $check -WithDocument $false }
+                    'status' { Write-DeclarationFixture -Check $check -WithStatus $false }
+                    'marker' { Write-DeclarationFixture -Check $check -WithMarker $false }
+                    'state' { Write-DeclarationFixture -Check $check -WithState $false }
+                    'unknown' { Write-DeclarationFixture -Check $check -State 'pending' }
+                    'rejected' { Write-DeclarationFixture -Check $check -State 'rejected' }
+                    'boundary' { Write-DeclarationFixture -Check $check -WithState $false -Trailer "### Next block`n**State:** approved" }
+                }
+                $run = Invoke-Gate
+                if ($run.Code -ne 1 -or $run.Text -notmatch [regex]::Escape("$($check.Name):")) {
+                    return "expected named refusal, got exit $($run.Code): $($run.Text.Trim())"
+                }
+                return $null
+            }
+        }
+        Assert-Case "$($check.Name) is optional without its permission" {
+            Write-DeclarationFixture -Check $check -Declared $false -WithDocument $false -WithStatus $false
+            Test-Passes -Expect "$($check.Name): not required (permission not declared)"
+        }
     }
 }
 finally {

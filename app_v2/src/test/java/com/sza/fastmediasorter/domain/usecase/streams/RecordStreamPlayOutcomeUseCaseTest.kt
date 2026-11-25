@@ -115,6 +115,14 @@ class RecordStreamPlayOutcomeUseCaseTest {
         assertFalse(RecordStreamPlayOutcomeUseCase.isChannelAttributableFailure(hasNetwork = false))
     }
 
+    @Test
+    fun `a probe result is written unless it is a failure with no network`() {
+        assertTrue(RecordStreamPlayOutcomeUseCase.isProbeResultWritable(reachable = true, hasNetwork = true))
+        assertTrue(RecordStreamPlayOutcomeUseCase.isProbeResultWritable(reachable = true, hasNetwork = false))
+        assertTrue(RecordStreamPlayOutcomeUseCase.isProbeResultWritable(reachable = false, hasNetwork = true))
+        assertFalse(RecordStreamPlayOutcomeUseCase.isProbeResultWritable(reachable = false, hasNetwork = false))
+    }
+
     private class RecordingStatsSink : StatsSink {
         private val events = mutableListOf<StatsEvent>()
         override fun record(event: StatsEvent) { events += event }

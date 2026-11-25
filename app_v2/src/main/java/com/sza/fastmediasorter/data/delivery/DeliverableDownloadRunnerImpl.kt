@@ -45,7 +45,10 @@ class DeliverableDownloadRunnerImpl @Inject constructor(
         if (!force && repository.isInstalledBlocking(set)) return
         if (force) forced.add(set)
 
-        val data = workDataOf(DeliverableDownloadWorker.KEY_DELIVERABLE_SET to set.name)
+        val data = workDataOf(
+            DeliverableDownloadWorker.KEY_DELIVERABLE_SET to set.name,
+            DeliverableDownloadWorker.KEY_FORCE to force
+        )
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
@@ -60,6 +63,11 @@ class DeliverableDownloadRunnerImpl @Inject constructor(
             ExistingWorkPolicy.KEEP,
             request
         )
+    }
+
+    override fun cancel(set: DeliverableSet) {
+        forced.remove(set)
+        workManager.cancelUniqueWork(uniqueWorkName(set))
     }
 
     override fun progressOf(set: DeliverableSet): Flow<DownloadProgress> {

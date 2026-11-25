@@ -30,4 +30,8 @@
     <string name="filler_result_busy">O preenchimento já está em andamento.</string>
     <string name="filler_settings_toggle_subtitle">Preenche o espaço livre de um dispositivo de armazenamento com arquivos temporários e depois os exclui</string>
     <string name="filler_settings_toggle_subtitle_pending">Ainda há arquivos temporários de uma execução anterior no armazenamento. O programa permanece na lista até que você os exclua nele.</string>
+    <string name="filler_estimate">%1$d%% concluído, tempo restante: %2$s</string>
+    <string name="filler_estimate_calculating">%1$d%% concluído, tempo restante: calculando..</string>
+    <string name="filler_reserve_slider_description">Espaço mantido livre para o sistema</string>
+    <string name="filler_confirm_reserve_lowered">Isso é menos que o habitual (%1$s), então o sistema e outros aplicativos têm menos espaço enquanto a execução durar.</string>
 </resources>

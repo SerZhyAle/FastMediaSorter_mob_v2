@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Домашній кінотеатр та VR-стримінг - FastMediaSorter v2"
+title: "Домашній кінотеатр та VR-стримінг - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-home-cinema-uk.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -19,7 +19,7 @@ permalink: /docs/howto/scenario-home-cinema-uk.html
 
 - Телефон / планшет / VR-шолом в **одній домашній Wi-Fi мережі** з ПК
 - Відео на **ПК або NAS** (роутер зі сховищем)
-- Встановлений FastMediaSorter
+- Встановлений Fast Media Sorter & Organizer
 
 ---
 
@@ -37,7 +37,9 @@ permalink: /docs/howto/scenario-home-cinema-uk.html
 
 ---
 
-## Крок 2 - Додайте папку з відео у FastMediaSorter
+<a id="крок-2---додайте-папку-з-відео-у-fastmediasorter"></a>
+
+## Крок 2 - Додайте папку з відео у Fast Media Sorter & Organizer
 
 1. Відкрийте застосунок → **Додати <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** → **"Мережева папка (SMB)"**
 2. Натисніть **"Сканувати мережу"** - застосунок сканує домашню мережу в пошуках ПК
@@ -102,7 +104,7 @@ permalink: /docs/howto/scenario-home-cinema-uk.html
 
 > **Цей крок для власників VR-шоломів (Meta Quest 2/3, Pico 4).** Якщо VR-шолома немає - пропустіть.
 
-Android-VR-шоломи можуть запускати FastMediaSorter. Встановлення через sideloading:
+Android-VR-шоломи можуть запускати Fast Media Sorter & Organizer. Встановлення через sideloading:
 1. Завантажте APK зі [сторінки завантажень](../DOWNLOADS.md)
 2. На шоломі увімкніть **"Встановлення з невідомих джерел"** у налаштуваннях розробника
 3. Встановіть APK через SideQuest або напряму через ADB
@@ -113,7 +115,7 @@ Android-VR-шоломи можуть запускати FastMediaSorter. Вст�
 - Використовуйте **стик** для перегортання епізодів
 - Звичайні 2D-фільми та серіали - працюють одразу, без зайвих налаштувань
 
-> **Для повноцінного VR-кіно:** використовуйте спеціальний VR-плеєр як лаунчер, а FastMediaSorter - для навігації файлами. Або відкрийте файл через FastMediaSorter → «Відкрити в зовнішньому застосунку» для запуску у VR-плеєрі.
+> **Для повноцінного VR-кіно:** використовуйте спеціальний VR-плеєр як лаунчер, а Fast Media Sorter & Organizer - для навігації файлами. Або відкрийте файл через Fast Media Sorter & Organizer → «Відкрити в зовнішньому застосунку» для запуску у VR-плеєрі.
 
 ---
 

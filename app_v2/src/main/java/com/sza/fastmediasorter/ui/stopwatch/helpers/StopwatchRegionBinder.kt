@@ -7,6 +7,8 @@ import com.sza.fastmediasorter.databinding.ActivityStopwatchBinding
 import com.sza.fastmediasorter.databinding.ViewStopwatchRegionBinding
 import com.sza.fastmediasorter.domain.model.stopwatch.StopwatchParticipant
 import com.sza.fastmediasorter.domain.model.stopwatch.StopwatchScreenState
+import com.sza.fastmediasorter.ui.common.widget.ButtonWidthReserver
+import timber.log.Timber
 
 /**
  * Draws [StopwatchScreenState] onto the four region slots and keeps the focus order honest.
@@ -33,10 +35,21 @@ class StopwatchRegionBinder(
 
     /** Wires the listeners once; [bind] afterwards only carries values, never new listeners. */
     fun attachListeners() {
+        Timber.d("S4624: stopwatch region caption widths reserved")
         regions.forEachIndexed { participantId, region ->
             region.root.setOnClickListener { onStartOrLap(participantId) }
             region.btnStopwatchRegionPrimary.setOnClickListener { onStartOrLap(participantId) }
             region.btnStopwatchRegionSecondary.setOnClickListener { onStopOrReset(participantId) }
+            ButtonWidthReserver.reserveForStrings(
+                region.btnStopwatchRegionPrimary,
+                R.string.stopwatch_action_start,
+                R.string.stopwatch_action_lap,
+            )
+            ButtonWidthReserver.reserveForStrings(
+                region.btnStopwatchRegionSecondary,
+                R.string.stopwatch_action_reset,
+                R.string.stopwatch_action_stop,
+            )
         }
     }
 

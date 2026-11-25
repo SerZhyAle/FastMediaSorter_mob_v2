@@ -231,18 +231,23 @@ class PlayerImageTranslationManager(
     }
 
     /**
-     * Both translate buttons sit on the player's fixed dark overlay: idle takes the overlay's content
-     * colour, a running translation the theme's error role (ICON-RENDER rule 2).
+     * A running translation takes the theme's error role on both buttons (ICON-RENDER rule 2). Idle, the
+     * command button returns to the tint selector of the top panel, which stays dark in both themes; the
+     * overlay content colour is black at night and hid the icon there. The deprecated floating button
+     * keeps the overlay content colour because its background is not the top panel.
      */
     private fun tintTranslateButtons(active: Boolean) {
         val button = activity.safeViews.btnTranslateImage
-        val color = if (active) {
-            MaterialColors.getColor(button, androidx.appcompat.R.attr.colorError)
+        val commandButton = activity.activityBinding.btnTranslateImageCmd
+        if (active) {
+            val tint = ColorStateList.valueOf(MaterialColors.getColor(button, androidx.appcompat.R.attr.colorError))
+            button.imageTintList = tint
+            commandButton.imageTintList = tint
         } else {
-            ContextCompat.getColor(button.context, R.color.player_overlay_on_primary)
+            button.imageTintList =
+                ColorStateList.valueOf(ContextCompat.getColor(button.context, R.color.player_overlay_on_primary))
+            commandButton.imageTintList =
+                ContextCompat.getColorStateList(commandButton.context, R.color.selector_player_button_tint)
         }
-        val tint = ColorStateList.valueOf(color)
-        button.imageTintList = tint
-        activity.activityBinding.btnTranslateImageCmd.imageTintList = tint
     }
 }

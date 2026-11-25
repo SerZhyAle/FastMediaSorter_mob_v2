@@ -410,3 +410,8 @@ if ($missing.Count -gt 0) {
 }
 
 Write-Host "OK - release $tag has both expected assets: $($actualAssetNames -join ', ')" -ForegroundColor Green
+
+# S4679: record the channel step in the release ledger - a published GitHub release is visible
+# immediately, so its state is live; the wrapper reports and never fails the release.
+$ledgerVersion = $tag -replace '^v', ''
+& (Join-Path $PSScriptRoot '..\utils\log-release-ledger-publish.ps1') -Key 'github' -Version $ledgerVersion -State 'live' -Ref $tag -Url "https://github.com/$Owner/$Repo/releases/tag/$tag"

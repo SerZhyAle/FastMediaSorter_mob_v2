@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "الاتصال بـ NAS / مشاركة Windows (SMB) - FastMediaSorter v2"
+title: "الاتصال بـ NAS / مشاركة Windows (SMB) - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-smb-setup-ar.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -13,7 +13,7 @@ permalink: /docs/howto/scenario-smb-setup-ar.html
 
 يتيح لك SMB (يُسمى أيضًا مشاركة ملفات Windows أو CIFS) تصفح الملفات على جهاز الكمبيوتر المنزلي، أو الكمبيوتر المحمول، أو جهاز NAS تمامًا كما لو كانت على هاتفك - دون كابلات، دون USB، فقط Wi-Fi.
 
-> **شرح بلغة بسيطة:** تخيّل أن جهاز الكمبيوتر لديك يمتلك لوحة إعلانات عامة على شبكة Wi-Fi المنزلية. يمكن لأي جهاز في المنزل القراءة من تلك اللوحة. يتصل FastMediaSorter بتلك "اللوحة" (مجلدك المشترك) ويتيح لك تصفح ملفاتك كما لو كانت مخزّنة مباشرة على هاتفك. لا يُنسخ أو يُنزَّل شيء مسبقًا - تُفتح الملفات عند الطلب.
+> **شرح بلغة بسيطة:** تخيّل أن جهاز الكمبيوتر لديك يمتلك لوحة إعلانات عامة على شبكة Wi-Fi المنزلية. يمكن لأي جهاز في المنزل القراءة من تلك اللوحة. يتصل Fast Media Sorter & Organizer بتلك "اللوحة" (مجلدك المشترك) ويتيح لك تصفح ملفاتك كما لو كانت مخزّنة مباشرة على هاتفك. لا يُنسخ أو يُنزَّل شيء مسبقًا - تُفتح الملفات عند الطلب.
 
 ---
 
@@ -67,12 +67,14 @@ permalink: /docs/howto/scenario-smb-setup-ar.html
 
 ---
 
-## الخطوة 3 - افتح FastMediaSorter واضغط "+"
+<a id="الخطوة-3---افتح-fastmediasorter-واضغط-"></a>
+
+## الخطوة 3 - افتح Fast Media Sorter & Organizer واضغط "+"
 
 1. افتح التطبيق
 2. في **الشاشة الرئيسية**، اضغط زر **"إضافة" <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** في شريط الأدوات العلوي
 
-![الشاشة الرئيسية لـ FastMediaSorter - زر الإضافة مميّز في شريط الأدوات العلوي، تبويب SMB ظاهر](screenshots/screenshot-smb-step3.png)
+![الشاشة الرئيسية لـ Fast Media Sorter & Organizer - زر الإضافة مميّز في شريط الأدوات العلوي، تبويب SMB ظاهر](screenshots/screenshot-smb-step3.png)
 
 ---
 
@@ -147,7 +149,7 @@ permalink: /docs/howto/scenario-smb-setup-ar.html
 
 اضغط عليه لتصفح محتوياته - تظهر الصور ومقاطع الفيديو والملفات الأخرى كصور مصغّرة مثل أي مجلد محلي.
 
-![الشاشة الرئيسية لـ FastMediaSorter - بطاقة مورد SMB الجديد "Common" (smb://192.168.1.100/Common) مع شارة مجلد الشبكة SMB مميّزة](screenshots/screenshot-smb-step8.png)
+![الشاشة الرئيسية لـ Fast Media Sorter & Organizer - بطاقة مورد SMB الجديد "Common" (smb://192.168.1.100/Common) مع شارة مجلد الشبكة SMB مميّزة](screenshots/screenshot-smb-step8.png)
 
 ---
 

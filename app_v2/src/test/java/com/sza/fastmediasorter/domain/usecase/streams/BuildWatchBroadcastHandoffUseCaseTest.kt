@@ -4,19 +4,26 @@ import com.google.gson.Gson
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorDto
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointCodec
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointDto
+import com.sza.fastmediasorter.data.broadcast.BroadcastSealDto
+import com.sza.fastmediasorter.data.broadcast.KeystoreBroadcastSecretBox
 import com.sza.fastmediasorter.data.broadcast.auth.BroadcastCredentialPair
 import com.sza.fastmediasorter.data.broadcast.auth.BroadcastCredentialRegistry
 import com.sza.fastmediasorter.data.broadcast.exchange.ExchangeBroadcastAnnouncer
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.domain.repository.BroadcastPasswordStore
+import com.sza.fastmediasorter.domain.repository.BroadcastPendingStore
+import com.sza.fastmediasorter.testing.fakes.FakeBroadcastSecretBox
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 
 /** S4261: which form a broadcast travels to the watch in, and what the descriptor form carries. */
@@ -25,10 +32,24 @@ class BuildWatchBroadcastHandoffUseCaseTest {
     private val passwordStore: BroadcastPasswordStore = mockk()
     private val announcer: ExchangeBroadcastAnnouncer = mockk()
     private val registry: BroadcastCredentialRegistry = mockk()
-    private val useCase = BuildWatchBroadcastHandoffUseCase(passwordStore, announcer, registry, Gson())
+    private val pendingStore: BroadcastPendingStore = mockk()
+    private val useCase = BuildWatchBroadcastHandoffUseCase(passwordStore, announcer, registry, pendingStore, Gson())
 
     private val lan = BroadcastEndpointDto(url = "http://192.168.1.20:8080/live", transport = "HTTP")
     private val relay = BroadcastEndpointDto(url = "https://relay.example/v2/b/b42/stream", transport = "RELAY")
+    private val sealedRelay = relay.copy(seal = BroadcastSealDto(key = GROUP_KEY))
+    private val box = FakeBroadcastSecretBox()
+
+    @Before
+    fun installBox() {
+        BroadcastEndpointCodec.secretBox = box
+        coEvery { pendingStore.untilMs(any()) } returns null
+    }
+
+    @After
+    fun restoreBox() {
+        BroadcastEndpointCodec.secretBox = KeystoreBroadcastSecretBox
+    }
 
     @Test
     fun `a manual row is plain`() = runBlocking {
@@ -100,6 +121,67 @@ class BuildWatchBroadcastHandoffUseCaseTest {
         assertNull(result.descriptor.get("credentials"))
     }
 
+    // S4692, LIVE-BROADCAST item S: a row waiting for its start carries `pending.until` to the watch.
+
+    @Test
+    fun `a waiting relay row hands the watch its pending until`() = runBlocking {
+        coEvery { passwordStore.get("s1") } returns null
+        coEvery { pendingStore.untilMs("s1") } returns UNTIL_MS
+
+        val result = useCase.forStoredChannel(row(listOf(relay)))
+
+        result as BuildWatchBroadcastHandoffUseCase.Result.Handoff
+        assertEquals(UNTIL, result.descriptor.getAsJsonObject("pending").get("until").asString)
+    }
+
+    @Test
+    fun `a relay row that is not waiting hands no pending member`() = runBlocking {
+        coEvery { passwordStore.get("s1") } returns null
+
+        val result = useCase.forStoredChannel(row(listOf(relay)))
+
+        result as BuildWatchBroadcastHandoffUseCase.Result.Handoff
+        assertNull(result.descriptor.get("pending"))
+    }
+
+    // S4675: a saved row keeps its relay key behind the device's box and still hands it to the watch.
+
+    @Test
+    fun `a sealed relay row saved behind the box hands the opened key to the watch`() = runBlocking {
+        coEvery { passwordStore.get("s1") } returns null
+        val stored = savedBehindTheBox(listOf(lan, sealedRelay))
+        assertFalse(stored.contains(GROUP_KEY))
+
+        val result = useCase.forStoredChannel(rowStored(stored))
+
+        result as BuildWatchBroadcastHandoffUseCase.Result.Handoff
+        val seal = result.descriptor.getAsJsonArray("endpoints")[1].asJsonObject.getAsJsonObject("seal")
+        assertEquals(GROUP_KEY, seal.get("key").asString)
+        assertNull(seal.get("box"))
+    }
+
+    @Test
+    fun `a row whose key was lost hands the watch a seal with no key and never a clear relay`() = runBlocking {
+        coEvery { passwordStore.get("s1") } returns null
+        val stored = savedBehindTheBox(listOf(lan, sealedRelay))
+        box.loseKey()
+
+        val result = useCase.forStoredChannel(rowStored(stored))
+
+        result as BuildWatchBroadcastHandoffUseCase.Result.Handoff
+        val seal = result.descriptor.getAsJsonArray("endpoints")[1].asJsonObject.getAsJsonObject("seal")
+        assertEquals(BroadcastSealDto.VERSION, seal.get("v").asInt)
+        assertNull(seal.get("key"))
+        assertNull(seal.get("box"))
+    }
+
+    private fun savedBehindTheBox(endpoints: List<BroadcastEndpointDto>): String {
+        val outcome = BroadcastEndpointCodec.protect(BroadcastEndpointCodec.encode(endpoints))
+        return (outcome as BroadcastEndpointCodec.Protection.Protected).value
+    }
+
+    private fun rowStored(stored: String?) = row(null).copy(broadcastEndpoints = stored)
+
     private fun row(endpoints: List<BroadcastEndpointDto>?) = StreamSourceEntity(
         id = "s1",
         url = lan.url,
@@ -110,4 +192,10 @@ class BuildWatchBroadcastHandoffUseCaseTest {
         addedAt = 0L,
         broadcastEndpoints = BroadcastEndpointCodec.encode(endpoints),
     )
+
+    private companion object {
+        const val GROUP_KEY = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        const val UNTIL = "2026-11-01T18:00:00Z"
+        const val UNTIL_MS = 1_793_556_000_000L
+    }
 }

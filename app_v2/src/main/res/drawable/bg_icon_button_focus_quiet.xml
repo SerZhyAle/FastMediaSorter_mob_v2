@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  S4752: borderless icon-button background that paints nothing while the button is focused and not
+  pressed. A button parked as the touch-mode focus holder (focusableInTouchMode + requestFocus) keeps
+  state_focused after every tap, and a plain borderless ripple draws its highlight circle for that
+  state in any mode - a grey disc that never clears. The D-pad ring is not lost: FocusDecorationController
+  outlines the focused view as its foreground outside touch mode. Pressed feedback is unchanged.
+
+  The fallback is a nested <ripple>, not android:drawable="?attr/selectableItemBackgroundBorderless":
+  the framework inflates a selector without a theme, and a theme attribute in an item's drawable
+  attribute cannot be resolved then (InflateException on the first ImageButton that uses this
+  background). A nested ripple defers its colour attribute to applyTheme, as the platform's own
+  borderless ripple does.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:drawable="@android:color/transparent"
+        android:state_focused="true"
+        android:state_pressed="false" />
+
+    <item>
+        <ripple android:color="?attr/colorControlHighlight" />
+    </item>
+
+</selector>

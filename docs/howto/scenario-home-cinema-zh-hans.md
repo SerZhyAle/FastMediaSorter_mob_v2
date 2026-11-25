@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "家庭影院与 VR 串流 - FastMediaSorter v2"
+title: "家庭影院与 VR 串流 - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-home-cinema-zh-hans.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -21,7 +21,7 @@ permalink: /docs/howto/scenario-home-cinema-zh-hans.html
 
 - 手机 / 平板 / VR 头显与电脑连接到同一个**家庭 Wi-Fi 网络**
 - **电脑或 NAS**（带存储的路由器盒子）上的视频
-- 已安装 FastMediaSorter
+- 已安装 Fast Media Sorter & Organizer
 
 ---
 
@@ -39,7 +39,9 @@ permalink: /docs/howto/scenario-home-cinema-zh-hans.html
 
 ---
 
-## 第 2 步 - 在 FastMediaSorter 中添加视频文件夹
+<a id="第-2-步---在-fastmediasorter-中添加视频文件夹"></a>
+
+## 第 2 步 - 在 Fast Media Sorter & Organizer 中添加视频文件夹
 
 1. 打开应用 → 点击**添加 <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** → **“网络文件夹 (SMB)”**
 2. 点击**“扫描网络”** - 应用会扫描家庭网络中可用的电脑
@@ -104,7 +106,7 @@ permalink: /docs/howto/scenario-home-cinema-zh-hans.html
 
 > **本节适用于拥有 VR 头显（如 Meta Quest 2/3 或 Pico 4）的用户。** 如果您没有 VR 头显，请跳过此步骤。
 
-基于 Android 的 VR 头显可以运行 FastMediaSorter。通过侧载安装：
+基于 Android 的 VR 头显可以运行 Fast Media Sorter & Organizer。通过侧载安装：
 1. 从[下载页面](../DOWNLOADS.md)下载 APK
 2. 在头显的开发者设置中启用**“允许安装未知来源应用”**
 3. 使用 SideQuest 或直接通过 ADB 安装 APK
@@ -115,7 +117,7 @@ permalink: /docs/howto/scenario-home-cinema-zh-hans.html
 - 使用**摇杆**在剧集之间滑动切换（如果您的头显映射了媒体按键）
 - 对于普通的 2D 电影和剧集 - 无需额外设置即可直接使用
 
-> **获得 VR 影院体验：** 您可以使用专门的 VR 影院应用作为启动器，然后选择“用 FastMediaSorter 打开”来管理文件。FastMediaSorter 负责文件浏览，VR 影院应用负责沉浸式 360° 显示。
+> **获得 VR 影院体验：** 您可以使用专门的 VR 影院应用作为启动器，然后选择“用 Fast Media Sorter & Organizer 打开”来管理文件。Fast Media Sorter & Organizer 负责文件浏览，VR 影院应用负责沉浸式 360° 显示。
 
 ---
 

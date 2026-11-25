@@ -437,6 +437,7 @@ layout: null
     </script>
 
     <link rel="icon" type="image/x-icon" href="../favicon.ico">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
     <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
 
@@ -512,7 +513,7 @@ layout: null
                     </div>
                 </div>
 
-                <a href="../index.html" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <a href="../index.html" title="Fast Media Sorter &amp; Organizer Home" class="doc-header-home"><img src="../apple-touch-icon.png" alt="Fast Media Sorter &amp; Organizer icon" class="doc-app-icon"></a>
                 <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
             </nav>
         </div>

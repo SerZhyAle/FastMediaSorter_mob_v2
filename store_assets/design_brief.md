@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.09.06 16:35</sub>
+<sub class="doc-stamp">26.11.21 13:31</sub>
 
 # Design Brief: Google Play Store Assets - Fast Media Sorter
 
@@ -90,9 +90,8 @@ must still satisfy:**
 
 The screenshot pipeline owns its paths and is documented once, in `play/listing/README.md`: raw shots
 are captured to `temp/play-shots/<locale>/<slot>.png`, `scripts/release/compose-play-screenshots.py`
-composes them into `play/listing/<locale>/images/phoneScreenshots/<NN>.png` in registry order, and
-`scripts/release/publish-play-listing.ps1 -Mode commit` uploads them. No screenshot is stored under
-`store_assets/`.
+composes them into `play/listing/<locale>/images/phoneScreenshots/<NN>.png` in registry order. Include
+the changed graphics in the authorized listing edit under the [Play publishing procedure](../scripts/release/README.md#google-play-publishing-procedure).
 
 The single images this brief specifies:
 

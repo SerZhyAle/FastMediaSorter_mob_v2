@@ -109,7 +109,7 @@ class SensorsDiagnosticsCollector @Inject constructor(
             val registered = sm?.registerListener(
                 listener,
                 sensor,
-                SensorManager.SENSOR_DELAY_FASTEST,
+                SensorManager.SENSOR_DELAY_GAME,
                 Handler(thread.looper),
             ) == true
             if (registered) {

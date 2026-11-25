@@ -2,7 +2,7 @@
 page_id: launcher.desktop-grid-and-icons
 title: Your Launcher Desktop - the Starter Layout, Shortcuts and Gadgets
 nav_title: Your launcher desktop
-description: How to turn the FastMediaSorter desktop on, what a fresh desktop already holds, and how to put apps, folders, channels, gadgets and settings on it with one long press.
+description: How to turn the Fast Media Sorter & Organizer desktop on, what a fresh desktop already holds, and how to put apps, folders, channels, gadgets and settings on it with one long press.
 category: "Launcher: Desktop"
 category_slug: launcher
 ticket: S2958
@@ -10,11 +10,11 @@ availability: SUPPORT_LAUNCHER
 recipe_number: "01"
 canonical_url: documentation/launcher/desktop-grid-and-icons.html
 why: |
-  An old tablet on the kitchen wall, a car head unit, or simply a phone you want to feel calmer: instead of pages of app icons you want the clock, the weather, your photo folders and the radio, all on the first screen. The FastMediaSorter desktop is made for this. It can be your device's home screen, or a start window inside the app that leaves your usual home screen alone.
+  An old tablet on the kitchen wall, a car head unit, or simply a phone you want to feel calmer: instead of pages of app icons you want the clock, the weather, your photo folders and the radio, all on the first screen. The Fast Media Sorter & Organizer desktop is made for this. It can be your device's home screen, or a start window inside the app that leaves your usual home screen alone.
 
   You do not start from an empty grid. A fresh desktop arrives already filled with useful things, grouped under headings, and every square can be changed with a long press.
 ingredients:
-  - "FastMediaSorter in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition). The [launcher](term:launcher) is not part of the Lite, Photos, Legacy, VR and FOSS [editions](term:edition) - see [The seven editions of FastMediaSorter](page:flavors.overview-and-comparison)."
+  - "Fast Media Sorter & Organizer in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition). The [launcher](term:launcher) is not part of the Lite, Photos, Legacy, VR and FOSS [editions](term:edition) - see [The seven editions of Fast Media Sorter & Organizer](page:flavors.overview-and-comparison)."
   - "A few minutes to look around. No root access and no extra app are needed."
   - "Optional: one or two [resources](term:resource) you already added, so the desktop can offer your own folders."
 steps:
@@ -24,7 +24,7 @@ steps:
     text: |
       Go to **Settings**, the **General** tab, and tap **Primary startup window**. Three choices appear:
 
-      - **Device home screen** - FastMediaSorter becomes the [home screen](term:home-screen) you see after unlocking. Android asks you to confirm: allow it, or on older Android versions pick FastMediaSorter and tap **Always** the next time you press Home.
+      - **Device home screen** - Fast Media Sorter & Organizer becomes the [home screen](term:home-screen) you see after unlocking. Android asks you to confirm: allow it, or on older Android versions pick Fast Media Sorter & Organizer and tap **Always** the next time you press Home.
       - **Desktop as primary window** - the [desktop](term:desktop) opens when you start the app from its icon, but your usual home screen stays as it is. A good way to try the desktop without committing.
       - **Resource list** - the app opens on its [resource list](term:resource-list) with your resources, as before.
 
@@ -56,7 +56,7 @@ steps:
       shot_id: launcher.desktop-grid-dock
       device_profile: phone
       screen_state: launcher-desktop-fresh
-      alt: A freshly seeded FastMediaSorter launcher desktop with the Main section showing a clock, search, weather and media shortcuts, and the taskbar at the bottom
+      alt: A freshly seeded Fast Media Sorter & Organizer launcher desktop with the Main section showing a clock, search, weather and media shortcuts, and the taskbar at the bottom
       caption: "A fresh desktop, grouped into sections."
       title: "Screenshot: Fresh desktop"
       desc: Launcher desktop right after the first start, portrait, branded wallpaper, Main section at the top and the taskbar visible.
@@ -126,7 +126,7 @@ steps:
     id: widgets-and-other-apps
     title: Bring in the app's widgets and other apps' shortcuts
     text: |
-      The [widgets](term:widget) FastMediaSorter offers for the Android home screen - calculator, camera, photos, reading, music, recorder, game, OCR, favorites, scheduled tasks and Now Playing - can sit on this desktop too, working the same way. Go to **Settings**, the **Management** tab, and tap **Add a gadget to the launcher desktop**; the chosen one goes into the first free place. The button is there only while the desktop is your home screen. Details are in [Placing, resizing and styling gadgets and widgets](page:launcher.android-widgets-placement).
+      The [widgets](term:widget) Fast Media Sorter & Organizer offers for the Android home screen - calculator, camera, photos, reading, music, recorder, game, OCR, favorites, scheduled tasks and Now Playing - can sit on this desktop too, working the same way. Go to **Settings**, the **Management** tab, and tap **Add a gadget to the launcher desktop**; the chosen one goes into the first free place. The button is there only while the desktop is your home screen. Details are in [Placing, resizing and styling gadgets and widgets](page:launcher.android-widgets-placement).
 
       Other apps can put their own shortcuts here, exactly as on any other home screen: when a browser or a messenger offers "Add to home screen", the shortcut lands on this desktop.
   - number: 8
@@ -142,7 +142,7 @@ tips:
   - "**Switched a program on later?** Its tile appears in **App functions** by itself, in both the upright and the sideways layout, without a restart. A tile you removed by hand is not brought back, and switching a program off leaves its tile where it is."
   - "**Want the starter layout back?** **Reset launcher settings** in the **System** group of the launcher settings returns the desktop, the pinned icons and the wallpaper to their first state, after a confirmation."
   - "**On a VR headset** the choices that would make the app the headset's home screen are hidden, because the headset keeps its own."
-  - "**The desktop disappeared after a restart of a car head unit?** Some head units force their factory home screen on every start. Choose FastMediaSorter again; if it does not stay, that device does not allow another home screen."
+  - "**The desktop disappeared after a restart of a car head unit?** Some head units force their factory home screen on every start. Choose Fast Media Sorter & Organizer again; if it does not stay, that device does not allow another home screen."
 next_recipes:
   - title: Arranging the desktop - sections, screens, swipes and the lock
     url: page:launcher.desktop-folders-and-pages
@@ -163,4 +163,4 @@ next_recipes:
 
 <sub class="doc-stamp">26.10.07 01:10</sub>
 
-The FastMediaSorter [desktop](term:desktop) is a grid of squares where you keep what you use every day: apps, your media folders, radio channels, a clock and the weather. This page shows how to switch it on, what it holds from the first minute, and how to add your own things.
+The Fast Media Sorter & Organizer [desktop](term:desktop) is a grid of squares where you keep what you use every day: apps, your media folders, radio channels, a clock and the weather. This page shows how to switch it on, what it holds from the first minute, and how to add your own things.

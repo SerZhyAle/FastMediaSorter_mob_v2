@@ -137,6 +137,14 @@
   },
   {
     "surface": "player-command",
+    "key": "FILE_NUMBER",
+    "feature": "player_file_jump",
+    "drawable": "ic_go_to_page",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
     "key": "FRAME_BACK",
     "feature": "player_frame_back_unavailable",
     "drawable": "ic_skip_previous",
@@ -457,6 +465,22 @@
   },
   {
     "surface": "player-command",
+    "key": "TEXT_ZOOM_IN",
+    "feature": "zoom_in",
+    "drawable": "ic_zoom_in",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
+    "key": "TEXT_ZOOM_OUT",
+    "feature": "zoom_out",
+    "drawable": "ic_zoom_out",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "player-command",
     "key": "TOGGLE_MARKDOWN",
     "feature": "toggle_markdown",
     "drawable": "ic_document",
@@ -745,6 +769,14 @@
   },
   {
     "surface": "program-nav",
+    "key": "feedback",
+    "feature": "feedback_title",
+    "drawable": "ic_send_plane",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
     "key": "front_flashlight",
     "feature": "front_flashlight_title",
     "drawable": "ic_front_flashlight",
@@ -796,6 +828,14 @@
     "key": "nfc",
     "feature": "app_launch_panel_os_nfc",
     "drawable": "ic_nfc",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "notes",
+    "feature": "notes_title",
+    "drawable": "ic_send_note",
     "assetFormat": "vector",
     "public": true
   },
@@ -1209,6 +1249,22 @@
   },
   {
     "surface": "settings-header",
+    "key": "headerCopyMove",
+    "feature": "settings_category_copy_move",
+    "drawable": "ic_copy",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
+    "key": "headerDebugSettings",
+    "feature": "debug_settings_title",
+    "drawable": "ic_developer_options",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
     "key": "headerDestinations",
     "feature": "destinations_list_header",
     "drawable": "ic_app_logo",
@@ -1233,9 +1289,33 @@
   },
   {
     "surface": "settings-header",
+    "key": "headerFileOperations",
+    "feature": "settings_category_file_operations",
+    "drawable": "ic_rename",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
     "key": "headerImages",
     "feature": "settings_category_images",
     "drawable": "ic_image",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
+    "key": "headerInterface",
+    "feature": "settings_category_interface",
+    "drawable": "ic_display",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
+    "key": "headerMainWindowInterface",
+    "feature": "settings_category_main_window_interface",
+    "drawable": "ic_view_list",
     "assetFormat": "vector",
     "public": true
   },
@@ -1252,6 +1332,14 @@
     "key": "headerOther",
     "feature": "settings_category_other",
     "drawable": "ic_translate",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
+    "key": "headerPlayerUI",
+    "feature": "settings_category_player_ui",
+    "drawable": "ic_play",
     "assetFormat": "vector",
     "public": true
   },
@@ -1321,6 +1409,14 @@
   },
   {
     "surface": "settings-header",
+    "key": "headerSortingSlideshow",
+    "feature": "settings_category_sorting_slideshow",
+    "drawable": "ic_sort",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
     "key": "headerStreams",
     "feature": "settings_streams_section",
     "drawable": "ic_stream",
@@ -1340,6 +1436,14 @@
     "key": "headerSystemApps",
     "feature": "setting_group_system_apps_title",
     "drawable": "ic_android",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
+    "key": "headerTouchZones",
+    "feature": "settings_category_touch_zones",
+    "drawable": "ic_gesture",
     "assetFormat": "vector",
     "public": true
   },
@@ -1377,6 +1481,14 @@
   },
   {
     "surface": "settings-row",
+    "key": "layoutExtensionsManager",
+    "feature": "ext_shortcut_packs_title",
+    "drawable": "ic_cloud_download",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
     "key": "rowAllowDelete",
     "feature": "allow_delete",
     "drawable": "ic_delete",
@@ -1393,9 +1505,73 @@
   },
   {
     "surface": "settings-row",
+    "key": "rowAllowSeparateWindow",
+    "feature": "setting_allow_separate_window",
+    "drawable": "ic_open_in_browse",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowAudioEmptyStateMode",
+    "feature": "audio_empty_state_label",
+    "drawable": "ic_graphic_eq",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowBigButtonsMode",
+    "feature": "big_buttons_mode_title",
+    "drawable": "ic_accessibility",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowCameraAskFilename",
+    "feature": "setting_camera_ask_filename_title",
+    "drawable": "ic_rename",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowCameraCopyToClipboard",
+    "feature": "setting_camera_copy_to_clipboard_title",
+    "drawable": "ic_copy",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowCameraGeotag",
+    "feature": "setting_camera_geotag_title",
+    "drawable": "ic_location",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowCameraOcrOnly",
+    "feature": "setting_camera_ocr_only_title",
+    "drawable": "ic_ocr",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
     "key": "rowCameraOcrTranslationEnabled",
     "feature": "setting_camera_ocr_translation_title",
     "drawable": "ic_camera_ocr_translate",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowCameraOpenForEditing",
+    "feature": "setting_camera_open_for_editing_title",
+    "drawable": "ic_edit",
     "assetFormat": "vector",
     "public": true
   },
@@ -1409,9 +1585,81 @@
   },
   {
     "surface": "settings-row",
+    "key": "rowCastPlayAtOnce",
+    "feature": "settings_streams_cast_play_at_once",
+    "drawable": "ic_cast",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowCompactElements",
+    "feature": "compact_elements",
+    "drawable": "ic_density_small",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowConfirmDelete",
+    "feature": "confirm_delete",
+    "drawable": "ic_check",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowControlsKeybindings",
+    "feature": "settings_controls_keybindings_title",
+    "drawable": "ic_hotkeys",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowCropImagesToFullscreen",
+    "feature": "pref_crop_images_fullscreen_title",
+    "drawable": "ic_crop",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowDeviceProfile",
+    "feature": "settings_profile_title",
+    "drawable": "ic_profile_personal_smartphone",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowDisableAnimations",
+    "feature": "pref_disable_animations_title",
+    "drawable": "ic_animation",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowDynamicBackground",
+    "feature": "pref_dynamic_background_title",
+    "drawable": "ic_color_palette",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
     "key": "rowEmbeddedGame",
     "feature": "game_settings_toggle_title",
     "drawable": "ic_game_kryvavitsa",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowEnableBackgroundSync",
+    "feature": "enable_background_sync",
+    "drawable": "ic_sync",
     "assetFormat": "vector",
     "public": true
   },
@@ -1433,6 +1681,14 @@
   },
   {
     "surface": "settings-row",
+    "key": "rowEnableFeedback",
+    "feature": "feedback_title",
+    "drawable": "ic_send_plane",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
     "key": "rowEnableFiller",
     "feature": "filler_title",
     "drawable": "ic_storage",
@@ -1449,6 +1705,14 @@
   },
   {
     "surface": "settings-row",
+    "key": "rowEnableNotes",
+    "feature": "notes_title",
+    "drawable": "ic_send_note",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
     "key": "rowEnableOcr",
     "feature": "enable_ocr",
     "drawable": "ic_ocr",
@@ -1460,6 +1724,14 @@
     "key": "rowEnablePersistentAudioPlayback",
     "feature": "background_audio_setting_title",
     "drawable": "ic_audio",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowEnablePhotosDuringAudio",
+    "feature": "enable_photos_during_audio_description",
+    "drawable": "ic_image",
     "assetFormat": "vector",
     "public": true
   },
@@ -1489,6 +1761,14 @@
   },
   {
     "surface": "settings-row",
+    "key": "rowEnableStatistics",
+    "feature": "settings_statistics_collection_title",
+    "drawable": "ic_series_chart",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
     "key": "rowEnableStopwatch",
     "feature": "stopwatch_title",
     "drawable": "ic_stopwatch",
@@ -1508,6 +1788,14 @@
     "key": "rowEnableSystemInfo",
     "feature": "settings_enable_system_info",
     "drawable": "ic_info",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowEnableThumbnailPreload",
+    "feature": "thumbnail_preload_title",
+    "drawable": "ic_image",
     "assetFormat": "vector",
     "public": true
   },
@@ -1545,6 +1833,14 @@
   },
   {
     "surface": "settings-row",
+    "key": "rowFollowSystemRotationPlayer",
+    "feature": "setting_follow_system_rotation_player_title",
+    "drawable": "ic_screen_rotation",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
     "key": "rowFrontFlashlight",
     "feature": "front_flashlight_settings_toggle_title",
     "drawable": "ic_front_flashlight",
@@ -1556,6 +1852,54 @@
     "key": "rowGestureOverlayEnabled",
     "feature": "setting_gesture_overlay_title",
     "drawable": "ic_gesture",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowHideSystemUiInFullscreen",
+    "feature": "hide_system_ui_in_fullscreen",
+    "drawable": "ic_fullscreen",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowLanguage",
+    "feature": "language",
+    "drawable": "ic_language",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowLetterboxHalo",
+    "feature": "pref_letterbox_halo_title",
+    "drawable": "ic_blur_on",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowLetterboxHaloGrowth",
+    "feature": "pref_letterbox_halo_growth_title",
+    "drawable": "ic_blur_on",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowLoadFullSizeImages",
+    "feature": "load_full_size_images",
+    "drawable": "ic_hd",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowMicRecordingAskFilename",
+    "feature": "settings_mic_recording_ask_filename_title",
+    "drawable": "ic_rename",
     "assetFormat": "vector",
     "public": true
   },
@@ -1577,6 +1921,22 @@
   },
   {
     "surface": "settings-row",
+    "key": "rowOcrFontFamily",
+    "feature": "ocr_font_family",
+    "drawable": "ic_text_settings",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowOcrFontSize",
+    "feature": "ocr_font_size",
+    "drawable": "ic_text_increase",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
     "key": "rowOpenStatistics",
     "feature": "settings_statistics_open",
     "drawable": "ic_history",
@@ -1585,9 +1945,81 @@
   },
   {
     "surface": "settings-row",
+    "key": "rowOpenStopwatchSettings",
+    "feature": "stopwatch_settings_title",
+    "drawable": "ic_settings",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowOpenVideoInFullscreen",
+    "feature": "setting_open_video_in_fullscreen_title",
+    "drawable": "ic_fullscreen",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowPanelStereoSingleEye",
+    "feature": "pref_panel_stereo_single_eye_title",
+    "drawable": "ic_stereo_3d",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowPendingPlayAtOnce",
+    "feature": "settings_streams_pending_play_at_once",
+    "drawable": "ic_play",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowPlayerShowFps",
+    "feature": "settings_player_show_fps",
+    "drawable": "ic_developer_options",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowRemoteControlEnabled",
+    "feature": "external_control_switch",
+    "drawable": "ic_exchange_mono",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowSaveAudioMetadataLocally",
+    "feature": "save_audio_metadata_locally",
+    "drawable": "ic_save",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
     "key": "rowScreenRecordingEnabled",
     "feature": "settings_screen_recording_enable_title",
     "drawable": "ic_display",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowSearchAudioCoversOnline",
+    "feature": "search_audio_covers_online",
+    "drawable": "ic_search",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowSearchCoversOnlyWifi",
+    "feature": "search_covers_only_on_wifi",
+    "drawable": "ic_wifi",
     "assetFormat": "vector",
     "public": true
   },
@@ -1620,6 +2052,54 @@
     "key": "rowShowBlackScreenButton",
     "feature": "settings_black_screen_button_title",
     "drawable": "ic_black_screen",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowShowCommandPanel",
+    "feature": "show_command_panel_by_default",
+    "drawable": "ic_menu",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowShowNowPlayingPanel",
+    "feature": "show_now_playing_panel_title",
+    "drawable": "ic_gesture_action_play_pause",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowShowVideoThumbnails",
+    "feature": "show_video_thumbnails",
+    "drawable": "ic_view_grid",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowSlideshowBackgroundMusic",
+    "feature": "enable_slideshow_background_music",
+    "drawable": "ic_audio",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowSmallControls",
+    "feature": "small_controls",
+    "drawable": "ic_density_small",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowSmartBuffering",
+    "feature": "settings_streams_smart_buffering",
+    "drawable": "ic_cloud_download",
     "assetFormat": "vector",
     "public": true
   },
@@ -1665,6 +2145,14 @@
   },
   {
     "surface": "settings-row",
+    "key": "rowSupportGifs",
+    "feature": "support_gif_description",
+    "drawable": "ic_gif",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
     "key": "rowSupportImages",
     "feature": "support_images_description",
     "drawable": "ic_image",
@@ -1689,9 +2177,49 @@
   },
   {
     "surface": "settings-row",
+    "key": "rowThumbnailPreloadWifiOnly",
+    "feature": "thumbnail_preload_wifi_only_title",
+    "drawable": "ic_wifi",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowTranslationLensStyle",
+    "feature": "translation_lens_style",
+    "drawable": "ic_text_layer",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
     "key": "rowVideoCaptureEnabled",
     "feature": "setting_video_capture_enable_title",
     "drawable": "ic_video",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowVideoCaptureOpenInPlayer",
+    "feature": "setting_video_capture_open_in_player_title",
+    "drawable": "ic_play",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowVideoFrameCopyToClipboard",
+    "feature": "setting_video_frame_copy_to_clipboard_title",
+    "drawable": "ic_copy",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowVisualizeAsMusic",
+    "feature": "settings_streams_visualize_as_music",
+    "drawable": "ic_graphic_eq",
     "assetFormat": "vector",
     "public": true
   },

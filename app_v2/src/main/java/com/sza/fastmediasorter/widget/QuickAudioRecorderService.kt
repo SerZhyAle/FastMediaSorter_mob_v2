@@ -16,6 +16,7 @@ import android.os.Environment
 import android.os.IBinder
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import com.sza.fastmediasorter.R
@@ -228,6 +229,7 @@ class QuickAudioRecorderService : Service() {
             // suspend save (which may upload over the network) completes, then report and stop.
             // S0858: isSaving gates handleStart()/stopAndSave() reentrancy for the whole window.
             isSaving = true
+            showSavingNotification()
             serviceScope.launch {
                 try {
                     val result = micRecordingSaver.save(
@@ -417,6 +419,28 @@ class QuickAudioRecorderService : Service() {
             startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE)
         } else {
             startForeground(NOTIFICATION_ID, notification)
+        }
+    }
+
+    /**
+     * The recorder is already released when the save starts, and a network upload can take long, so the
+     * "Recording.." text and the Stop action must not outlive the recording. Same id and channel: the
+     * notification is replaced in place and the service stays foreground until the save ends. A revoked
+     * POST_NOTIFICATIONS only costs the repaint.
+     */
+    private fun showSavingNotification() {
+        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(NotificationIcons.STATUS_BAR)
+            .setContentTitle(getString(R.string.app_name))
+            .setContentText(getString(R.string.quick_recorder_notification_saving))
+            .setProgress(0, 0, true)
+            .setOngoing(true)
+            .setSilent(true)
+            .build()
+        try {
+            NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, notification)
+        } catch (e: SecurityException) {
+            Timber.i(e, "QuickAudioRecorder: saving notification skipped - POST_NOTIFICATIONS revoked")
         }
     }
 

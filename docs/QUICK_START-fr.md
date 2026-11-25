@@ -1,13 +1,15 @@
 ---
 layout: doc
-title: "🚀 Guide de démarrage rapide - FastMediaSorter v2"
+title: "🚀 Guide de démarrage rapide - Fast Media Sorter & Organizer"
 permalink: /docs/QUICK_START-fr.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
 
 <div lang="fr" dir="ltr" markdown="1">
 
-# 🚀 Guide de démarrage rapide - FastMediaSorter v2
+<a id="-guide-de-démarrage-rapide---fastmediasorter-v2"></a>
+
+# 🚀 Guide de démarrage rapide - Fast Media Sorter & Organizer
 
 *Démarrez en 5 minutes ! Guide simple pour les débutants.*
 
@@ -15,7 +17,7 @@ permalink: /docs/QUICK_START-fr.html
 
 ## Choisissez votre édition 📱
 
-FastMediaSorter v2 est proposé en **cinq éditions pour les téléphones et tablettes du quotidien** - Standard, Lite, Photos, Legacy, FOSS - plus **deux versions pour casque et installation manuelle**, VR et noLegal. Sept au total ; la grille de capacités exacte est générée depuis le build dans [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md). Choisissez celle qui répond à vos besoins :
+Fast Media Sorter & Organizer est proposé en **cinq éditions pour les téléphones et tablettes du quotidien** - Standard, Lite, Photos, Legacy, FOSS - plus **deux versions pour casque et installation manuelle**, VR et noLegal. Sept au total ; la grille de capacités exacte est générée depuis le build dans [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md). Choisissez celle qui répond à vos besoins :
 
 | Édition | Idéale pour | Fonctionnalités clés |
 |--------|----------|--------------|
@@ -204,7 +206,7 @@ Touchez **« + »** → **Stockage cloud**
 
 ### Téléchargement automatique par lien
 
-- Dans n'importe quel navigateur ou messagerie, partagez un lien `http(s)` vers FastMediaSorter via le panneau de partage Android
+- Dans n'importe quel navigateur ou messagerie, partagez un lien `http(s)` vers Fast Media Sorter & Organizer via le panneau de partage Android
 - L'application télécharge le fichier multimédia et l'enregistre automatiquement dans votre ressource choisie
 
 ### Flux Internet (radio et IPTV)
@@ -212,13 +214,13 @@ Touchez **« + »** → **Stockage cloud**
 - Ouvrez **Flux** depuis le menu déroulant de la fenêtre principale (ou **Paramètres > Médias > Flux** lorsqu'il apparaît pour la première fois).
 - Touchez **⋮** à l'extrémité de la barre d'outils : **Ajouter un flux** pour une URL de radio (http/https mp3/aac, HLS .m3u8, RTSP), ou **Importer depuis une URL** pour une playlist `.m3u`.
 - Les boutons **Vidéo**, **Audio** et **Personnels** à côté du champ de recherche divisent la liste : Vidéo et Audio affichent les chaînes du catalogue et importées de ce type, Personnels affiche toutes les chaînes que vous avez ajoutées par URL. Touchez à nouveau le bouton actif pour afficher toutes les chaînes.
-- Téléchargez le catalogue de stations FastMediaSorter sélectionné depuis l'écran **Extensions** pour une bibliothèque consultable et filtrable avec des puces de thème et de langue.
+- Téléchargez le catalogue de stations Fast Media Sorter & Organizer sélectionné depuis l'écran **Extensions** pour une bibliothèque consultable et filtrable avec des puces de thème et de langue.
 - La radio joue en ligne via la barre collante en bas d'écran - la liste des stations reste visible. Les flux vidéo/RTSP s'ouvrent dans le lecteur plein écran ; Retour revient à la liste.
 - **Disponible dans Standard, Legacy, noLegal et VR. L'écran Flux est absent de Lite et Photos - aucun protocole n'y fonctionne, car il n'y a pas de point d'entrée.**
 
 ### Widgets d'écran d'accueil
 
-FastMediaSorter v2 propose une variété de widgets d'écran d'accueil. Appuyez longuement sur votre écran d'accueil → Widgets → FastMediaSorter pour les parcourir. Parmi les principaux :
+Fast Media Sorter & Organizer propose une variété de widgets d'écran d'accueil. Appuyez longuement sur votre écran d'accueil → Widgets → Fast Media Sorter & Organizer pour les parcourir. Parmi les principaux :
 
 - **Raccourci de ressource** - touchez pour ouvrir instantanément n'importe laquelle de vos ressources
 - **Continuer la lecture** - lance l'application directement en mode diaporama

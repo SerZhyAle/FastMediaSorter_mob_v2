@@ -14,7 +14,7 @@ why: |
 
   Each gadget is added with one long press and knows what to do when you tap it - the clock opens your alarms, the map opens your map app, the weather opens your weather app.
 ingredients:
-  - "FastMediaSorter in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition), with the [launcher](term:launcher) desktop switched on - see [Your launcher desktop](page:launcher.desktop-grid-and-icons). The Lite, Photos, Legacy, VR and FOSS [editions](term:edition) have no launcher - see [The seven editions of FastMediaSorter](page:flavors.overview-and-comparison)."
+  - "Fast Media Sorter & Organizer in the [Standard edition](term:standard-edition) or the [noLegal edition](term:nolegal-edition), with the [launcher](term:launcher) desktop switched on - see [Your launcher desktop](page:launcher.desktop-grid-and-icons). The Lite, Photos, Legacy, VR and FOSS [editions](term:edition) have no launcher - see [The seven editions of Fast Media Sorter & Organizer](page:flavors.overview-and-comparison)."
   - "An empty square on the desktop, or a moment to make one - see [Placing, resizing and styling gadgets](page:launcher.android-widgets-placement)."
   - "For the map, the compass and the speed gadgets: permission for the app to know the location. For weather, world clock and sunrise: nothing extra, you type the place yourself."
 steps:
@@ -90,7 +90,7 @@ steps:
       - **Speed** - how fast you are moving, in km/h.
       - **Speed chart** and **Altitude chart** - how speed and height changed over time. Each chart collects readings since you last tapped its **Reset** button, and keeps them after a restart. The altitude chart also shows the distance travelled.
       - **Altitude** and **Satellites** - the height alone, and how many satellites are used out of how many are visible.
-      - **Steps** - the steps counted by your device, from its own step counter. Only in the sideload version (the [noLegal edition](term:nolegal-edition)), because only that edition asks for the physical activity permission this square needs - see [The seven editions of FastMediaSorter](page:flavors.overview-and-comparison).
+      - **Steps** - the steps counted by your device, from its own step counter. Only in the sideload version (the [noLegal edition](term:nolegal-edition)), because only that edition asks for the physical activity permission this square needs - see [The seven editions of Fast Media Sorter & Organizer](page:flavors.overview-and-comparison).
 
       While the device looks for a position, the square says **Waiting for a position..**. If you refused the permission, the square stays on the desktop and says **Location is off. Allow it in app permissions.** Location and steps are read only while the square is on screen, never in the background, and nothing is sent anywhere.
     image_bookmark:
@@ -145,14 +145,14 @@ tips:
   - "**Numbers do not jump.** Changing values are drawn in digits of equal width and kept to the lower right corner, so a clock or a speed that changes every second stays still to the eye."
   - "**One gadget failed?** The rest of the desktop keeps working, and a short message names the square that could not start - see [Placing, resizing and styling gadgets](page:launcher.android-widgets-placement)."
   - "**Want the card behind the gadgets lighter or heavier?** **Widget backdrop opacity** in the launcher settings changes it for every gadget at once."
-  - "**Want the same kind of information on another home screen?** FastMediaSorter also offers widgets for the Android home screen - see [FastMediaSorter widgets for your home screen](page:launcher.home-screen-widgets)."
+  - "**Want the same kind of information on another home screen?** Fast Media Sorter & Organizer also offers widgets for the Android home screen - see [Fast Media Sorter & Organizer widgets for your home screen](page:launcher.home-screen-widgets)."
 next_recipes:
   - title: Placing, resizing and styling gadgets and widgets
     url: page:launcher.android-widgets-placement
     badge: Launcher
     badge_type: docs
     description: Put a gadget where you want it, make it bigger or smaller, and choose how solid its card is.
-  - title: FastMediaSorter widgets for your home screen
+  - title: Fast Media Sorter & Organizer widgets for your home screen
     url: page:launcher.home-screen-widgets
     badge: Launcher
     badge_type: docs

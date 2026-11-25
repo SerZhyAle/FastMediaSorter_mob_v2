@@ -1,11 +1,11 @@
 ---
 layout: doc
-title: "Exchange server: your devices from any network"
+title: "Media Exchange Server: your devices from any network"
 description: "One account for all your devices and access from any network without router setup - who runs an exchange server, how it works, what it sees and keeps, and how the versions of the programs get along."
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/exchange-server.html
 ---
-<sub class="doc-stamp">26.10.22 01:26</sub>
+<sub class="doc-stamp">26.11.23 11:22</sub>
 
 # Exchange server: your devices from any network
 
@@ -31,6 +31,8 @@ Accounts, invitations and passwords are on their own page: [Accounts, invitation
 2. **A PC or a phone publishes** its shared folders.
 3. **Any other device lists** all your folders and attaches the ones it needs.
 4. **Opening a folder asks the server for a private link between the two devices**, and the server joins the two outgoing connections without reading what passes. Along that link the folder still travels encrypted, end to end (over SFTP, the standard way devices share folders).
+
+[FastMediaSorter for Web](https://serzhyale.github.io/FastMediaSorter_WEB/) joins the same exchange account as another device in your browser and uses the same exchange protocol as the native programs.
 
 On one Wi-Fi network the devices still connect to each other directly. A folder for someone outside your account is given by an invitation of the kind "guest" or by a link with a password - see [people outside your account](exchange-accounts.html#outside).
 
@@ -106,6 +108,7 @@ An account is a login and a password on one server. You create it from an invita
 - [Deploy your own exchange server](exchange-server-quick-start.html)
 - [Installing and checking your exchange server](exchange-server-install.html)
 - [Accounts, invitations and passwords](exchange-accounts.html)
+- [Sign in to STREAMS Player on Windows](streamsplayer.html#sign-in) or [check its connection](streamsplayer.html#connection-troubleshooting).
 - [Clipboard on the server](exchange-clipboard.html)
 - [How to delete an account](account-deletion.html)
 - [Turning the phone into an SFTP server](../../documentation/network/phone-as-sftp-server.html)

@@ -13,7 +13,7 @@ canonical_url: documentation/player/subtitles-and-audio-tracks.html
 why: |
   A film downloaded from the internet often carries several soundtracks - the original language, a dubbed one, a commentary - and several sets of subtitles. The phone does not know which one you want. This recipe shows where to pick them, how streams pick your language by themselves, and a few extras that live in the same window: loudness, the balance between the ears, the playback speed, colors and 3D.
 ingredients:
-  - "FastMediaSorter in the Standard, noLegal, Lite, Legacy, VR or FOSS [edition](term:edition). The Photos edition does not play video."
+  - "Fast Media Sorter & Organizer in the Standard, noLegal, Lite, Legacy, VR or FOSS [edition](term:edition). The Photos edition does not play video."
   - "A video with more than one soundtrack or with subtitles - for example an MKV film."
   - "Color controls (HUE and Light) are in Standard, noLegal, Legacy and VR."
 steps:
@@ -74,7 +74,7 @@ steps:
     id: stereo-3d
     title: Watch 3D films on an ordinary screen
     text: |
-      A 3D film stores two pictures, one for each eye, side by side (SBS) or one above the other (OU). On a normal screen that looks like a double image. FastMediaSorter recognizes such films: when the file itself says it is 3D, the player trusts that label; otherwise it guesses from the shape of the picture, and ordinary widescreen films are not mistaken for 3D.
+      A 3D film stores two pictures, one for each eye, side by side (SBS) or one above the other (OU). On a normal screen that looks like a double image. Fast Media Sorter & Organizer recognizes such films: when the file itself says it is 3D, the player trusts that label; otherwise it guesses from the shape of the picture, and ordinary widescreen films are not mistaken for 3D.
 
       With **Show 3D content from one eye** turned on (**Settings**, the **Player** tab; on by default) a 3D film shows the picture of one eye, filling the screen.
 

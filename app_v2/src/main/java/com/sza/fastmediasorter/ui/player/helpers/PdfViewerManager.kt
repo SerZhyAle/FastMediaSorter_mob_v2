@@ -21,6 +21,7 @@ import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.domain.stats.ViewKind
 import com.sza.fastmediasorter.util.showBoundToHost
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -47,7 +48,9 @@ class PdfViewerManager(
     private val translationManager: TranslationManager,
     private val playbackPositionRepository: com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository,
     // S0473: usage-statistics sink. Fire-and-forget; no-ops when collection is disabled.
-    private val statsSink: StatsSink
+    private val statsSink: StatsSink,
+    // The one IO seam of this viewer: a host holding the @IoDispatcher binding or a test passes its own.
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : BaseDocumentViewerManager(root) {
     private val safeViews = PlayerBindingSafeViews(root)
 
@@ -153,7 +156,7 @@ class PdfViewerManager(
     private var firstPageRenderedLogged = false
 
     // Single-thread dispatcher for PdfRenderer (non-thread-safe API)
-    private val pdfDispatcher = Dispatchers.IO.limitedParallelism(1)
+    private val pdfDispatcher = ioDispatcher.limitedParallelism(1)
 
     // Text selection mode overlay manager
     private val pdfTextSelectionManager = PdfTextSelectionManager(
@@ -382,7 +385,7 @@ class PdfViewerManager(
 
         coroutineScope.launch(Dispatchers.Main) {
             kotlinx.coroutines.delay(50) // Let UI render the ProgressBar before heavy IO.
-            val settings = withContext(Dispatchers.IO) { settingsRepository.getSettings().first() }
+            val settings = withContext(ioDispatcher) { settingsRepository.getSettings().first() }
             // PDF cmd buttons: landscape + feature flag; portrait routes via overflow menu.
             val isLandscape = callback.isLandscapeMode()
             safeViews.btnTranslatePdfCmd.isVisible = isLandscape && settings.enableTranslation
@@ -394,7 +397,7 @@ class PdfViewerManager(
 
             try {
                 val startTime = System.currentTimeMillis()
-                val file = withContext(Dispatchers.IO) {
+                val file = withContext(ioDispatcher) {
                     try {
                         networkFileManager.prepareFileForRead(mediaFile)
                     } catch (e: Exception) {
@@ -408,14 +411,15 @@ class PdfViewerManager(
                     }
                 }
 
-                if (!file.exists()) {
+                Timber.d("S4869: PDF existence check runs off main")
+                if (!withContext(ioDispatcher) { file.exists() }) {
                     loadingToastJob.cancel()
                     safeViews.playerProgressBar.isVisible = false
                     callback.showError(root.context.getString(R.string.pdf_file_not_found))
                     return@launch
                 }
 
-                withContext(Dispatchers.IO) {
+                withContext(ioDispatcher) {
                     try {
                         pdfParcelFileDescriptor = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
                         pdfRenderer = PdfRenderer(pdfParcelFileDescriptor!!)
@@ -605,7 +609,7 @@ class PdfViewerManager(
         hasCarriedPageMatrix = false
 
         // Persist preference
-        coroutineScope.launch(Dispatchers.IO) {
+        coroutineScope.launch(ioDispatcher) {
             try {
                 settingsRepository.updateSettings { it.copy(pdfScrollMode = isScrollMode) }
             } catch (e: Exception) {
@@ -645,7 +649,7 @@ class PdfViewerManager(
         pdfPageAdapter?.setColorFilter(filter)
 
         // Persist preference
-        coroutineScope.launch(Dispatchers.IO) {
+        coroutineScope.launch(ioDispatcher) {
             try {
                 settingsRepository.updateSettings { it.copy(pdfColorMode = currentColorMode.name) }
             } catch (e: Exception) {
@@ -797,7 +801,7 @@ class PdfViewerManager(
         val path = currentPdfPath ?: return
         if (pdfPageCount <= 0) return
 
-        coroutineScope.launch(Dispatchers.IO) {
+        coroutineScope.launch(ioDispatcher) {
             try {
                 // Store page index as position, page count as duration
                 playbackPositionRepository.savePosition(
@@ -1116,7 +1120,7 @@ class PdfViewerManager(
     }
 
     fun updateButtonVisibility() {
-        coroutineScope.launch(Dispatchers.IO) {
+        coroutineScope.launch(ioDispatcher) {
             val settings = settingsRepository.getSettings().first()
             withContext(Dispatchers.Main) {
                 // Only HIDE buttons if feature is disabled in settings
@@ -1146,7 +1150,7 @@ class PdfViewerManager(
         if (rendererToClose == null) return
         // S3776: cancel does not stop a render already inside page.render(). Queue the close on
         // the same serial dispatcher behind any in-flight page-mode render; closeLocked() then
-        // holds back the scroll-mode renders that run on Dispatchers.IO under the wrapper mutex.
+        // holds back the scroll-mode renders that run on the IO dispatcher under the wrapper mutex.
         coroutineScope.launch(NonCancellable + pdfDispatcher) {
             try {
                 pageToClose?.close()

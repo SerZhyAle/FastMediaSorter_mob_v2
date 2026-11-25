@@ -96,12 +96,55 @@ class StreamPropertiesFormatterTest {
         }
     }
 
+    @Test
+    fun `an inconclusive outcome reads as not confirmed and never as never tried`() {
+        val cases = listOf(
+            "UNKNOWN" to R.string.stream_info_outcome_unconfirmed,
+            "unknown" to R.string.stream_info_outcome_unconfirmed,
+            "OK" to R.string.stream_info_outcome_ok,
+            "FAIL" to R.string.stream_info_outcome_fail,
+            null to R.string.stream_info_outcome_never,
+            "SOMETHING_NEW" to R.string.stream_info_outcome_never,
+        )
+
+        cases.forEach { (code, expectedRes) ->
+            val group = formatter.catalogGroup(entity(), lastPlayOutcome = code)
+            val outcomeProperty = group.properties.first { it.labelRes == R.string.stream_info_label_last_outcome }
+
+            assertEquals("Failed for outcome '$code'", text(expectedRes), outcomeProperty.value)
+        }
+    }
+
+    @Test
+    fun `a catalog topic and category read through their translated words`() {
+        val group = formatter.catalogGroup(entity(topic = "Webcam", category = "Radio"), lastPlayOutcome = null)
+
+        val topic = group.properties.first { it.labelRes == R.string.streams_filter_topic }
+        val category = group.properties.first { it.labelRes == R.string.streams_filter_category }
+
+        assertEquals(text(R.string.streams_rubric_webcam), topic.value)
+        assertEquals(text(R.string.streams_category_radio), category.value)
+    }
+
+    @Test
+    fun `a category the owner typed stays as typed`() {
+        val group = formatter.catalogGroup(entity(topic = "Garage", category = "News"), lastPlayOutcome = null)
+
+        val topic = group.properties.first { it.labelRes == R.string.streams_filter_topic }
+        val category = group.properties.first { it.labelRes == R.string.streams_filter_category }
+
+        assertEquals(StreamInfoValue.Text("Garage"), topic.value)
+        assertEquals(StreamInfoValue.Text("News"), category.value)
+    }
+
     private fun text(resId: Int) = StreamInfoValue.Text(resId.toString())
 
     private fun entity(
         mediaKind: String = "VIDEO",
         sourceOrigin: String = "MANUAL",
         access: String? = null,
+        topic: String? = null,
+        category: String? = null,
     ): StreamSourceEntity = StreamSourceEntity(
         id = "id",
         url = "http://example.invalid/live",
@@ -109,6 +152,8 @@ class StreamPropertiesFormatterTest {
         mediaKind = mediaKind,
         sourceOrigin = sourceOrigin,
         access = access,
+        topic = topic,
+        category = category,
         sortIndex = 0,
         addedAt = 0L,
     )

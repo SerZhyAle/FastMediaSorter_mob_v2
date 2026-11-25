@@ -159,11 +159,18 @@ object ResourceIconRegistry {
     /** Returns true if [iconId] is a known, well-formed id. */
     fun isValid(iconId: String): Boolean = registry.containsKey(iconId)
 
+    /**
+     * S4819/S4847: an open arc (ico-05-009) or empty ring with dot (ico-05-001) reads as a busy
+     * spinner that never stops when dealt as a default. The user may still pick them deliberately;
+     * only random defaults skip them.
+     */
+    internal val notRandomDefaults: Set<String> = setOf("ico-05-001", "ico-05-009")
+
     /** Picks a random id from [set], or its first id when the set yields nothing. */
     fun randomIdFor(
         set: ResourceIconSet,
         random: kotlin.random.Random = kotlin.random.Random.Default
-    ): String = idsFor(set).randomOrNull(random) ?: firstIdFor(set)
+    ): String = idsFor(set).filterNot { it in notRandomDefaults }.randomOrNull(random) ?: firstIdFor(set)
 
     /** Returns the first id of [set] (`ico-0X-001`), used for predefined resources. */
     fun firstIdFor(set: ResourceIconSet): String =

@@ -7,6 +7,7 @@ import android.widget.SeekBar
 import android.widget.TextView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.util.showBoundToHost
 
 /**
@@ -92,5 +93,6 @@ class DrawSettingsDialog(
                 onApply()
             }
             .showBoundToHost(activity)
+            ?.let { DialogHelpEntryManager.attach(it, "dialog_draw_settings") }
     }
 }

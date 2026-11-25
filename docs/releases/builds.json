@@ -1,0 +1,41 @@
+{
+  "schema": "1",
+  "builds": [
+    {
+      "package": "phone",
+      "flavor": "nolegal",
+      "kind": "debug",
+      "version": "2.61.1242.114",
+      "builtAt": "2026-11-24T21:17:30+01:00",
+      "artifact": "DOWNLOADS/FastMediaSorter_nolegal_debug.apk",
+      "sha256": "2d5006c2b80b6611c89832920f70896e1cb0a17e80cbec8a1978ed369f9b982e"
+    },
+    {
+      "package": "phone",
+      "flavor": "standard",
+      "kind": "debug",
+      "version": "2.60.9012.140",
+      "builtAt": "2026-11-23T14:56:51+01:00",
+      "artifact": "DOWNLOADS/FastMediaSorter_standard_debug.apk",
+      "sha256": "4027f7077fd96434a45abe2da900a155951bc75f37e4a37f9197aad493c3bd03"
+    },
+    {
+      "package": "watchface",
+      "flavor": "standard",
+      "kind": "debug",
+      "version": "2.61.1242.117-DEBUG",
+      "builtAt": "2026-11-24T21:17:44+01:00",
+      "artifact": "watchface/build/outputs/apk/debug/watchface-debug.apk",
+      "sha256": "651a13189eb7d882951ff023635c916c0828f51838d18e58999dc0aac51279da"
+    },
+    {
+      "package": "wear",
+      "flavor": "standard",
+      "kind": "debug",
+      "version": "2.61.1242.342",
+      "builtAt": "2026-11-24T23:43:48+01:00",
+      "artifact": "DOWNLOADS/FastMediaSorter_wear_debug.apk",
+      "sha256": "21eefaa0b1d9f9a2b31de088e4ce2538ad8e459761121079ff1be2705f70f854"
+    }
+  ]
+}

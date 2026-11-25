@@ -78,7 +78,7 @@
     <string name="vr_info_video">ویڈیو کوڈیک:</string>
     <string name="vr_install_cta_action">اسٹور میں کھولیں۔</string>
     <string name="vr_install_cta_dismiss">بہرحال کھیلیں</string>
-    <string name="vr_install_cta_message">بہترین تجربے کے لیے، اپنے Quest ہیڈسیٹ پر FastMediaSorter کا VR ایڈیشن آزمائیں۔</string>
+    <string name="vr_install_cta_message">بہترین تجربے کے لیے اپنے Quest ہیڈسیٹ پر Fast Media Sorter &amp; Organizer کا VR ایڈیشن آزمائیں۔</string>
     <string name="vr_install_cta_title">یہ ایک 3D ویڈیو ہے۔</string>
     <string name="vr_overlay_btn_bright_down">روشن -</string>
     <string name="vr_overlay_btn_bright_up">روشن +</string>

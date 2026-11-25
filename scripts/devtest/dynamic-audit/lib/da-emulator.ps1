@@ -105,6 +105,10 @@ function Start-DaEmulator {
     $argList = @('-avd', $Avd, '-no-window', '-no-audio', '-no-boot-anim', '-no-snapshot-save', '-gpu', 'swiftshader_indirect') + $ExtraArgs
     $logOut = Join-Path $paths.State "emulator-$Avd.out.log"
     $logErr = Join-Path $paths.State "emulator-$Avd.err.log"
+    $lease = Request-FmsDeviceLease -Keys "avd:$Avd" -Reason 'dynamic audit emulator'
+    if (-not $lease.Acquired) { throw "AVD '$Avd' is leased by another session." }
+    $proc = $null
+    try {
     $proc = Start-Process -FilePath $emulatorExe -ArgumentList $argList -PassThru -WindowStyle Hidden `
         -RedirectStandardOutput $logOut -RedirectStandardError $logErr
     $record = [ordered]@{
@@ -114,6 +118,7 @@ function Start-DaEmulator {
         processStart   = $proc.StartTime.ToUniversalTime().ToString('o')
         serial         = $null
         startedMonoMs  = Get-DaMonotonicMs
+        leaseKeys      = $lease.NewKeys
     }
     Write-DaJson -Path (Get-DaEmulatorRecordPath) -InputObject $record -Durable
 
@@ -147,6 +152,17 @@ function Start-DaEmulator {
         Start-Sleep -Seconds 2
     }
     throw "AVD '$Avd' ($serial) did not finish booting within $BootTimeoutSec s"
+    }
+    catch {
+        try {
+            if ($proc -and -not $proc.HasExited) {
+                $proc.Kill($true)
+                $proc.WaitForExit()
+            }
+        }
+        finally { Release-FmsDeviceLease -Keys $lease.NewKeys }
+        throw
+    }
 }
 
 function Stop-DaEmulator {
@@ -160,12 +176,14 @@ function Stop-DaEmulator {
     $recordPath = Get-DaEmulatorRecordPath
     $record = Read-DaJson -Path $recordPath
     if (-not $record) { return 'no emulator recorded by this stand; nothing stopped' }
+    $leaseKeys = if ($record.PSObject.Properties['leaseKeys']) { $record.leaseKeys }
     $proc = Get-Process -Id $record.pid -ErrorAction SilentlyContinue
     $sameStart = $false
     if ($proc) {
         $sameStart = ($proc.StartTime.ToUniversalTime().ToString('o') -eq [string]$record.processStart)
     }
     if (-not $proc -or -not $sameStart) {
+        Release-FmsDeviceLease -Keys $leaseKeys
         Remove-Item -LiteralPath $recordPath -Force
         return "recorded pid $($record.pid) is gone or was recycled; nothing stopped"
     }
@@ -177,6 +195,7 @@ function Stop-DaEmulator {
         $proc.WaitForExit()
     }
     Remove-Item -LiteralPath $recordPath -Force
+    Release-FmsDeviceLease -Keys $leaseKeys
     return "stopped emulator pid $($record.pid) ($($record.avd))"
 }
 

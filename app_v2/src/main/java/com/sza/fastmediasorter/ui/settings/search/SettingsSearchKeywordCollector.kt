@@ -9,5 +9,12 @@ import com.sza.fastmediasorter.ui.settings.SettingsSearchIndex
  * locale (defensive - the source should filter these out, but the collector enforces it).
  */
 interface SettingsSearchKeywordCollector {
-    fun enrich(raw: RawSettingsSearchEntry): SettingsSearchIndex?
+
+    /**
+     * Language tag the entry titles are shown in. The app language changes live, so a caller that
+     * caches enriched entries compares this against the value it built them with.
+     */
+    fun displayLanguage(): String
+
+    fun enrich(raw: RawSettingsSearchEntry, displayLanguage: String): SettingsSearchIndex?
 }

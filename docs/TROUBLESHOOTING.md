@@ -7,7 +7,7 @@ permalink: /docs/TROUBLESHOOTING.html
 
 # 🔧 Troubleshooting Guide
 
-Current troubleshooting guide for FastMediaSorter v2. Use the canonical flavor matrix in [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) when the issue depends on the selected build path (Standard, Lite, Photos, Legacy, or XR / noLegal).
+Current troubleshooting guide for Fast Media Sorter & Organizer. Use the canonical flavor matrix in [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md) when the issue depends on the selected build path (Standard, Lite, Photos, Legacy, or XR / noLegal).
 
 ---
 
@@ -51,7 +51,7 @@ Current troubleshooting guide for FastMediaSorter v2. Use the canonical flavor m
 ### ❌ "Google Drive sign-in failed"
 
 **Solution:**
-1. Clear app data: Settings → Apps → FastMediaSorter → Clear Data
+1. Clear app data: Settings → Apps → Fast Media Sorter & Organizer → Clear Data
 2. Reinstall the app
 3. Check Google account settings → Security → Third-party apps
 
@@ -61,7 +61,7 @@ Current troubleshooting guide for FastMediaSorter v2. Use the canonical flavor m
 
 **Solution:**
 1. Check Microsoft account status
-2. Clear app data: Settings → Apps → FastMediaSorter → Clear Data
+2. Clear app data: Settings → Apps → Fast Media Sorter & Organizer → Clear Data
 3. Check Microsoft account settings → Privacy → Apps and services
 
 ---
@@ -70,7 +70,7 @@ Current troubleshooting guide for FastMediaSorter v2. Use the canonical flavor m
 
 **Solution:**
 1. Check Dropbox account status
-2. Clear app data: Settings → Apps → FastMediaSorter → Clear Data
+2. Clear app data: Settings → Apps → Fast Media Sorter & Organizer → Clear Data
 3. Check Dropbox account settings → Security → Connected apps
 
 ---
@@ -180,7 +180,7 @@ This uses the *Secondary Player* feature to hand off unsupported codecs to other
 ### ❌ "App crashes on startup"
 
 **Solution:**
-1. Clear app cache: Settings → Apps → FastMediaSorter → Clear Cache
+1. Clear app cache: Settings → Apps → Fast Media Sorter & Organizer → Clear Cache
 2. If persists: Clear app data (⚠️ loses settings)
 3. Reinstall app as last resort
 

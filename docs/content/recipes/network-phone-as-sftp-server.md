@@ -2,7 +2,7 @@
 page_id: network.phone-as-sftp-server
 title: Turning the Phone into an SFTP Server
 nav_title: Sharing folders from this phone
-description: How to share folders from this phone itself, so another device on the network can browse, download, upload, rename and delete inside them over SFTP - picking folders with the system folder picker, signing in with a password or an SSH key, and pairing another FastMediaSorter with a QR code.
+description: How to share folders from this phone itself, so another device on the network can browse, download, upload, rename and delete inside them over SFTP - picking folders with the system folder picker, signing in with a password or an SSH key, and pairing another Fast Media Sorter & Organizer with a QR code.
 category: Network & Cloud
 category_slug: network
 ticket: S2950
@@ -16,7 +16,7 @@ ingredients:
   - "This app in any [edition](term:edition) except Lite, on Android 8.0 (Oreo) or newer."
   - "The folders you want to share, picked through the system's own folder picker."
   - "Either a password (the app can generate one) or the public half of an SSH key from whoever will connect."
-  - "For pairing another FastMediaSorter with a scan: a camera on the connecting device."
+  - "For pairing another Fast Media Sorter & Organizer with a scan: a camera on the connecting device."
 steps:
   - number: 1
     id: turn-on
@@ -60,11 +60,11 @@ steps:
       The **Port** field defaults to a free one and can be changed - a port already used by another app is refused, for example "Port 2222 is taken by another app - choose another port", and a value outside the allowed range with "Use a port from 1024 to 65535." Changing the port, the sign-in mode or the keys while the server is already running does not restart it on its own: "Turn the server off and on again to apply the change" - so a client already connected is not dropped by a setting you are still adjusting.
   - number: 5
     id: pair-by-qr
-    title: Pair another FastMediaSorter with a scan
+    title: Pair another Fast Media Sorter & Organizer with a scan
     text: |
-      While the server is running, tap **Show pairing code** to reveal a QR code - "Pairing code: scan it in FastMediaSorter on another device" - and **Hide pairing code** to put it away again. The code is rebuilt fresh every time you show it, so it always carries the server's current address and password.
+      While the server is running, tap **Show pairing code** to reveal a QR code - "Pairing code: scan it in Fast Media Sorter & Organizer on another device" - and **Hide pairing code** to put it away again. The code is rebuilt fresh every time you show it, so it always carries the server's current address and password.
 
-      On the other device, open **Add Resource**, the **SFTP / FTP** card, and tap **Import by barcode** - the same scanner that reads a [Windows companion](term:windows-companion) code also recognizes this one. A message confirms the form was filled in: "Connection details filled in from the pairing code - check them and save," with the host, port, username, password or key and the server's host key already in place, suggested as "Device server 192.168.1.42." Review it and save - the host key is pinned from that first scan, so a later attempt from a different machine using the same address is refused rather than silently accepted. A damaged or incomplete code is called out too: "This code is not a complete FastMediaSorter pairing code - show it again on the server phone and rescan."
+      On the other device, open **Add Resource**, the **SFTP / FTP** card, and tap **Import by barcode** - the same scanner that reads a [Windows companion](term:windows-companion) code also recognizes this one. A message confirms the form was filled in: "Connection details filled in from the pairing code - check them and save," with the host, port, username, password or key and the server's host key already in place, suggested as "Device server 192.168.1.42." Review it and save - the host key is pinned from that first scan, so a later attempt from a different machine using the same address is refused rather than silently accepted. A damaged or incomplete code is called out too: "This code is not a complete Fast Media Sorter & Organizer pairing code - show it again on the server phone and rescan."
     image_bookmark:
       shot_id: network.phone-as-sftp-server-pairing-qr
       device_profile: phone
@@ -83,7 +83,7 @@ steps:
 
       **Signed in to Google Drive on both devices?** Switch on **Share access through Google Drive** in the **Access from anywhere** group - it is off by default. While the server runs, the phone then keeps its current address and sign-in details in the app's private space of your Drive, so another device on the same Google account opens the paired share at its new address after a network change, without scanning the code again - as long as it can reach the phone at all.
 outcome: |
-  The phone shares exactly the folders you picked, with everyone else needing either a password or an accepted SSH key to get in, and pairing another FastMediaSorter takes one scan instead of typing an address by hand. A tap on Stop, in the app or the notification, ends it until you turn it on again.
+  The phone shares exactly the folders you picked, with everyone else needing either a password or an accepted SSH key to get in, and pairing another Fast Media Sorter & Organizer takes one scan instead of typing an address by hand. A tap on Stop, in the app or the notification, ends it until you turn it on again.
 tips:
   - "**Bringing in a PC's folders instead?** [Sharing PC folders with Fast Media Sorter & Sharing for Windows](page:network.windows-companion) covers the same pairing idea from the other side."
   - "**Setting up a server by typing its address yourself?** [Connecting SFTP and FTP servers](page:network.sftp-ftp-servers) covers that manual route, on either end of the connection."
@@ -109,4 +109,4 @@ next_recipes:
 
 <sub class="doc-stamp">26.10.21 23:38</sub>
 
-Share folders straight from this phone over SFTP - pick them with the folder picker, sign in with a password or an SSH key, and pair another FastMediaSorter in one scan instead of typing an address.
+Share folders straight from this phone over SFTP - pick them with the folder picker, sign in with a password or an SSH key, and pair another Fast Media Sorter & Organizer in one scan instead of typing an address.

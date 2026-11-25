@@ -431,6 +431,16 @@ exit 0
     Assert-That 'G8 assigned legacy summary is refused' ((Invoke-Gate $assignedSummary) -eq 1) 'expected 1'
     $assignedInvalid = New-Fixture 'assigned-invalid.tests.ps1' ('$summary = "sample: PASS (run=abc skipped=abc)"' + "`n" + 'Write-Host $summary')
     Assert-That 'G8 assigned malformed counters are refused' ((Invoke-Gate $assignedInvalid) -eq 1) 'expected 1'
+    $extendedSummary = New-Fixture 'extended.tests.ps1' ('$summary = "sample: {0} passed, {1} failed" -f $pass, $fail' + "`n" + 'if ($skip -gt 0) { $summary += ", {0} case(s) skipped" -f $skip }' + "`n" + 'Write-Host $summary')
+    Assert-That 'G15 a legacy summary extended with += is still refused' ((Invoke-Gate $extendedSummary) -eq 1) 'expected 1'
+    $dashCases = New-Fixture 'dashcases.tests.ps1' 'Write-Host "sample.tests: PASS - $pass case(s)."'
+    Assert-That 'G16 the PASS - N case(s) spelling is refused' ((Invoke-Gate $dashCases) -eq 1) 'expected 1'
+    $dashFailOf = New-Fixture 'dashfailof.tests.ps1' 'Write-Host ("sample.tests: FAIL - {0} of {1} case(s) failed." -f $fail, $pass)'
+    Assert-That 'G17 the FAIL - N of M case(s) spelling is refused' ((Invoke-Gate $dashFailOf) -eq 1) 'expected 1'
+    $dashAssertions = New-Fixture 'dashassertions.tests.ps1' 'Write-Host ("sample: PASS - {0} assertions." -f $pass)'
+    Assert-That 'G18 the PASS - N assertions spelling is refused' ((Invoke-Gate $dashAssertions) -eq 1) 'expected 1'
+    $assertionProse = New-Fixture 'assertionprose.tests.ps1' 'Write-Host "sample: 3 assertion(s) failed across 2 case(s)"'
+    Assert-That 'G19 assertion prose without a dash verdict is not a writer' ((Invoke-Gate $assertionProse) -eq 0) 'expected 0'
     $otherScope = New-Fixture 'scope.tests.ps1' ('$summary = "safe"; function Other { $summary = "other: 3 passed" }; Write-Host $summary')
     Assert-That 'G8 another function assignment does not change the writer' ((Invoke-Gate $otherScope) -eq 0) 'expected 0'
     $tableRow = New-Fixture 'wrapper.ps1' 'Write-Host ("pass {0} tests {1} failed {2} skipped {3}" -f 1, 2, 0, 0)'

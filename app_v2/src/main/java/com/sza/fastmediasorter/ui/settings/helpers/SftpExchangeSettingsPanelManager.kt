@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.settings.helpers
 import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
@@ -19,6 +20,7 @@ import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
 import com.sza.fastmediasorter.ui.exchange.MyDevicesActivity
 import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeMessageText
 import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeServerCardAdapter
+import com.sza.fastmediasorter.ui.settings.RemoteControlSettingsViewModel
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.Job
@@ -46,10 +48,18 @@ class SftpExchangeSettingsPanelManager(
 
     private val context get() = fragment.requireContext()
 
+    private val remoteControlViewModel: RemoteControlSettingsViewModel by fragment.viewModels()
+    private val remoteControl = RemoteControlSettingsPanelManager(
+        fragment,
+        binding,
+        remoteControlViewModel,
+    )
+
     // The address the status line names; the tunnel state alone does not carry it.
     private var outgoingAddress: String? = null
 
     fun bind() {
+        remoteControl.bind()
         binding.rowSftpDriveAccess.setOnCheckedChangeListener { checked ->
             launchInView { manageSftpServer.setDriveAccessShared(checked) }
         }

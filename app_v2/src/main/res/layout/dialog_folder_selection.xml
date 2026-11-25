@@ -39,29 +39,28 @@
         <LinearLayout android:id="@+id/containerQuickFolders" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
         <!-- Root Folder -->
-        <com.google.android.material.button.MaterialButton android:id="@+id/btnRoot" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="start" android:layout_marginBottom="@dimen/margin_small" android:text="@string/folder_root" android:textSize="@dimen/resource_text_13sp" app:icon="@drawable/ic_resource_local" app:iconSize="@dimen/icon_size_button" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnRoot" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:text="@string/folder_root" android:textSize="@dimen/resource_text_13sp" />
 
         <!-- Flow chip group: text-sized buttons wrap to new lines -->
-        <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny">
+        <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_medium">
 
-            <androidx.constraintlayout.helper.widget.Flow android:id="@+id/flowQuickFolders" android:layout_width="0dp" android:layout_height="wrap_content" app:flow_wrapMode="chain" app:flow_horizontalStyle="packed" app:flow_horizontalBias="0" app:flow_verticalBias="0" app:flow_horizontalGap="@dimen/margin_small" app:flow_verticalGap="@dimen/margin_tiny" app:constraint_referenced_ids="btnDCIM,btnPictures,btnDownload,btnDocuments,btnWhatsApp,btnTelegram" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" />
+            <androidx.constraintlayout.helper.widget.Flow android:id="@+id/flowQuickFolders" android:layout_width="0dp" android:layout_height="wrap_content" app:flow_wrapMode="chain" app:flow_horizontalStyle="packed" app:flow_horizontalBias="0" app:flow_verticalBias="0" app:flow_horizontalGap="@dimen/margin_small" app:flow_verticalGap="@dimen/margin_tiny" app:constraint_referenced_ids="btnDCIM,btnPictures,btnDownload,btnDocuments,btnWhatsApp,btnTelegram,btnInstagram" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" />
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnDCIM" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/folder_dcim" android:textSize="@dimen/text_size_small" app:icon="@drawable/ic_resource_local" app:iconSize="@dimen/icon_size_menu" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnDCIM" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/folder_dcim" android:textSize="@dimen/text_size_small" />
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnPictures" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/folder_pictures" android:textSize="@dimen/text_size_small" app:icon="@drawable/ic_resource_local" app:iconSize="@dimen/icon_size_menu" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnPictures" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/folder_pictures" android:textSize="@dimen/text_size_small" />
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnDownload" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/folder_download" android:textSize="@dimen/text_size_small" app:icon="@drawable/ic_resource_local" app:iconSize="@dimen/icon_size_menu" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnDownload" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/folder_download" android:textSize="@dimen/text_size_small" />
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnDocuments" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/folder_documents" android:textSize="@dimen/text_size_small" app:icon="@drawable/ic_resource_local" app:iconSize="@dimen/icon_size_menu" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnDocuments" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/folder_documents" android:textSize="@dimen/text_size_small" />
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnWhatsApp" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/folder_whatsapp" android:textSize="@dimen/text_size_small" app:icon="@drawable/ic_resource_local" app:iconSize="@dimen/icon_size_menu" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnWhatsApp" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/folder_whatsapp" android:textSize="@dimen/text_size_small" />
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnTelegram" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/folder_telegram" android:textSize="@dimen/text_size_small" app:icon="@drawable/ic_resource_local" app:iconSize="@dimen/icon_size_menu" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnTelegram" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/folder_telegram" android:textSize="@dimen/text_size_small" />
+
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnInstagram" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/folder_instagram" android:textSize="@dimen/text_size_small" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <!-- Instagram -->
-        <com.google.android.material.button.MaterialButton android:id="@+id/btnInstagram" style="@style/Widget.FastMediaSorter.Button.Outlined" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="start" android:layout_marginBottom="@dimen/margin_medium" android:text="@string/folder_instagram" android:textSize="@dimen/text_size_small" app:icon="@drawable/ic_resource_local" app:iconSize="@dimen/icon_size_menu" />
 
         </LinearLayout>
 

@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.sza.fastmediasorter.wear.data.network.FakeWearNetworkChannelMonitor
 import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.domain.repository.WearNowPlayingRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
@@ -89,6 +90,8 @@ class VideoPlayerViewModelClearTest {
                     fileOperations = fileOperations,
                     castManager = mockk(relaxed = true),
                     batteryWarningStore = mockk(relaxed = true),
+                    walkBroadcastEndpoints = mockk(relaxed = true),
+                    networkChannelMonitor = FakeWearNetworkChannelMonitor(),
                     savedStateHandle = SavedStateHandle(),
                     context = mockk(relaxed = true),
                     applicationScope = applicationScope

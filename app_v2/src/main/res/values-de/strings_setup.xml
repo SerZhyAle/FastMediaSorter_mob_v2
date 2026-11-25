@@ -6,11 +6,11 @@
     <string name="welcome_default_player_btn_docs">Dokumente</string>
     <string name="welcome_default_player_btn_images">Bilder</string>
     <string name="welcome_default_player_btn_video">Video</string>
-    <string name="welcome_default_player_description">FastMediaSorter als Standard-Medienplayer festlegen</string>
-    <string name="welcome_default_player_hint">Tippen Sie unten auf eine Schaltfläche - ein Dialog erscheint. Wählen Sie FastMediaSorter und tippen Sie auf <b>Immer</b>.</string>
+    <string name="welcome_default_player_description">Fast Media Sorter &amp; Organizer als Standard-Medienplayer festlegen</string>
+    <string name="welcome_default_player_hint">Tippe unten auf eine Schaltfläche - ein Dialog erscheint. Wähle Fast Media Sorter &amp; Organizer und tippe auf <b>Immer</b>.</string>
     <string name="welcome_default_player_title">Standard-Player</string>
     <string name="welcome_description_1">Ihr Medienmanager für alles.\nDurchsuchen, sortieren und verwalten Sie Dateien auf lokalem, Netzwerk- und Cloud-Speicher - alles mit intuitiven Touch-Gesten.</string>
-    <string name="welcome_description_1_details">FastMediaSorter bringt jede Art von Medien an einen Ort. Öffnen Sie Fotos, Videos, GIFs und Musik von Ihrem Gerät, von einer Netzwerkfreigabe oder aus dem Cloud-Speicher - und sortieren Sie sie mit kurzen Tipps statt mit Menüs beim langen Drücken.\n\nAlles, was Sie hier einrichten, lässt sich später in den Einstellungen ändern. Auf diesem Bildschirm gibt es also keine falsche Wahl - tippen Sie einfach auf Weiter.</string>
+    <string name="welcome_description_1_details">Fast Media Sorter &amp; Organizer bringt jede Art von Medien an einem Ort zusammen. Öffne Fotos, Videos, GIFs und Musik von deinem Gerät, aus einer Netzwerkfreigabe oder aus dem Cloud-Speicher - und sortiere sie mit schnellen Tipps statt mit Menüs beim langen Drücken.\n\nAlles, was du hier einrichtest, lässt sich später in den Einstellungen ändern. Auf diesem Bildschirm gibt es also keine falsche Wahl - tippe einfach auf Weiter, um fortzufahren.</string>
     <string name="welcome_description_3" formatted="false">Der Player verwendet 9 Touch-Zonen (3×3-Raster) für Schnellaktionen. Tippe auf die Zonen, um zu navigieren, Dateien zu kopieren, zu verschieben, zu löschen oder das Befehlspanel zu öffnen. Details siehe Schema oben.</string>
     <string name="welcome_language_picker_hint">App-Sprache wählen</string>
     <string name="welcome_profile_audio_player_desc">Ideal für reine Audiogeräte oder MP3-Player. Blendet Fotos und Videos aus, optimiert Hintergrundwiedergabe und Wiedergabeanzeige.</string>
@@ -36,8 +36,7 @@
     <string name="welcome_profile_video_player_title">Videoplayer</string>
     <string name="welcome_profile_vr_headset_desc">Ideal für Virtual-Reality-Geräte. Aktiviert vorab 3D/360°-Layouts und immersive Steuerung auf unterstützten Headsets.</string>
     <string name="welcome_profile_vr_headset_title">VR-Headset</string>
-    <string name="welcome_recommended_badge">(Empfohlen)</string>
-    <string name="welcome_title_1">Willkommen bei FastMediaSorter!</string>
+    <string name="welcome_title_1">Willkommen bei Fast Media Sorter &amp; Organizer!</string>
     <string name="sysinfo_field_abis">ABIs</string>
     <string name="sysinfo_field_android_version">Android</string>
     <string name="sysinfo_field_api_level">API-Level</string>
@@ -140,7 +139,7 @@
     <string name="welcome_func_downloading">Wird heruntergeladen.. %1$d%%</string>
     <string name="welcome_func_download_failed">Download fehlgeschlagen - zum Wiederholen tippen</string>
     <string name="welcome_func_download_done">Bereit</string>
-    <string name="welcome_permissions_title">\"Ein paar\" Berechtigungen</string>
+    <string name="welcome_permissions_title">Ein paar Berechtigungen</string>
     <string name="welcome_permissions_subtitle">Erteilen Sie Zugriff, damit die App Ihre Medien anzeigen kann.</string>
     <string name="welcome_func_streams">Streams</string>
     <string name="welcome_streams_catalog_done">Katalog heruntergeladen</string>
@@ -172,7 +171,7 @@
     <string name="welcome_role_sorting_detail">Eine Datei mit einem einzigen Tipp in ihren Ordner schicken</string>
     <string name="welcome_role_more_detail">Kamera, Widgets, Gadgets und mehr - eine App statt vieler</string>
     <string name="welcome_description_1_shell">Nicht nur eine Medien-App - eine vollständige Shell für Ihr Gerät.\nStartbildschirm, Player, Dateimanager, Streams und Netzwerkspeicher an einem Ort.</string>
-    <string name="welcome_description_1_details_shell">FastMediaSorter kann das ganze Gerät steuern: ein Startbildschirm mit Ihren Apps, Widgets und Verknüpfungen, ein Player für Fotos, Videos, Musik und Bücher, ein Dateimanager für lokalen, Netzwerk- und Cloud-Speicher, Internet-Streams und eine Wear OS Begleit-App - und schnelles Sortieren per Tippen über allem.\n\nAls Startbildschirm nutzen? Schalten Sie den Schalter oben ein, und das System fragt nach der Einrichtung nach Ihrer Bestätigung. Alles auf diesem Bildschirm lässt sich später in den Einstellungen ändern, es gibt hier also keine falsche Wahl - tippen Sie einfach auf Weiter.</string>
+    <string name="welcome_description_1_details_shell">Fast Media Sorter &amp; Organizer kann das ganze Gerät übernehmen: einen Startbildschirm mit deinen Apps, Widgets und Verknüpfungen, einen Player für Fotos, Videos, Musik und Bücher, einen Dateimanager für lokalen, Netzwerk- und Cloud-Speicher, Internet-Streams und eine Wear-OS-Begleit-App - und obendrauf schnelles Sortieren per Tipp.\n\nDu möchtest es als Startbildschirm? Schalte oben den Schalter ein, und das System bittet dich nach der Einrichtung um Bestätigung. Alles, was du auf diesem Bildschirm wählst, lässt sich später in den Einstellungen ändern. Hier gibt es also keine falsche Wahl - tippe einfach auf Weiter, um fortzufahren.</string>
     <string name="welcome_role_home_screen">Startbildschirm</string>
     <string name="welcome_role_home_screen_detail">Steuert das Gerät anstelle eines Launchers - Apps, Widgets und Medien griffbereit</string>
     <string name="welcome_role_streams">Streams</string>

@@ -5,8 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex">
 <title>Help - Add Resource</title>
 <link rel="stylesheet" href="help.css">
+<link rel="icon" type="image/png" href="img/product-mark.png">
 </head>
 <body class="help">
 <main class="container">
@@ -14,6 +16,7 @@
 <a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>Add Resource</span>
 </nav>
 <header class="hero">
+<img class="product-mark" src="img/product-mark.png" width="48" height="48" alt="Fast Media Sorter">
 <h1>Add Resource</h1>
 </header>
 <h2>What this is for</h2>
@@ -24,11 +27,11 @@
 </figure>
 <h2>In this order</h2>
 <ol class="order">
-<li>Choose what to add: Local Folder <a class="ref" href="#type-local">2</a> for this device, Network Folder <a class="ref" href="#type-network">3</a> for an SMB share, SFTP / FTP <a class="ref" href="#type-sftp">4</a>, Cloud Storage <a class="ref" href="#type-cloud">5</a>, Stream <a class="ref" href="#type-stream">6</a>, Paired watch <a class="ref" href="#type-watch">7</a> or From my devices <a class="ref" href="#type-my-devices">8</a>. Types that are switched off in Settings or missing from your edition are not listed, and if you press Add in the resource list while a type tab is open, that type's form opens at once.</li>
-<li>Device folder: press SCAN <a class="ref" href="#local-scan">12</a> to get suggestions or Add Manually <a class="ref" href="#local-add-manually">13</a> to pick a folder yourself, tick what you want in the list <a class="ref" href="#local-list">14</a>, then press Add to Resources <a class="ref" href="#add-to-resources">11</a>.</li>
-<li>Network share: enter the server address <a class="ref" href="#smb-server">17</a>, or find it with Scan Network <a class="ref" href="#smb-scan-network">16</a>. Add the username <a class="ref" href="#smb-username">18</a> and password <a class="ref" href="#smb-password">19</a>, check them with Test connection <a class="ref" href="#smb-test">20</a>, choose the share with Scan host <a class="ref" href="#smb-scan-shares">21</a> or type its name <a class="ref" href="#smb-share-name">22</a>, then press Add This Resource <a class="ref" href="#smb-add">27</a>.</li>
-<li>SFTP or FTP: choose the protocol <a class="ref" href="#sftp-protocol">29</a>, enter the host <a class="ref" href="#sftp-host">30</a> and the sign-in <a class="ref" href="#sftp-auth">31</a>, try Test Connection <a class="ref" href="#sftp-test">32</a>, set the remote path <a class="ref" href="#sftp-remote-path">34</a> and press Add Resource <a class="ref" href="#sftp-add">36</a>.</li>
-<li>Cloud storage: tap a provider <a class="ref" href="#cloud-providers">15</a>, sign in, then open folders with Enter <a class="ref" href="#picker-enter">45</a> and press Select <a class="ref" href="#picker-select">46</a> on the one you want to add.</li>
+<li>Choose what to add: Local Folder <a class="ref" href="#type-local">2</a> for this device, Network Folder <a class="ref" href="#type-network">3</a> for an SMB share, SFTP / FTP <span class="nb"><a class="ref" href="#type-sftp">4</a>,</span> Cloud Storage <span class="nb"><a class="ref" href="#type-cloud">5</a>,</span> Stream <span class="nb"><a class="ref" href="#type-stream">6</a>,</span> Paired watch <a class="ref" href="#type-watch">7</a> or From my devices <span class="nb"><a class="ref" href="#type-my-devices">8</a>.</span> Types that are switched off in Settings or missing from your edition are not listed, and if you press Add in the resource list while a type tab is open, that type's form opens at once.</li>
+<li>Device folder: press SCAN <a class="ref" href="#local-scan">12</a> to get suggestions or Add Manually <a class="ref" href="#local-add-manually">13</a> to pick a folder yourself, tick what you want in the list <span class="nb"><a class="ref" href="#local-list">14</a>,</span> then press Add to Resources <span class="nb"><a class="ref" href="#add-to-resources">11</a>.</span></li>
+<li>Network share: enter the server address <span class="nb"><a class="ref" href="#smb-server">17</a>,</span> or find it with Scan Network <span class="nb"><a class="ref" href="#smb-scan-network">16</a>.</span> Add the username <a class="ref" href="#smb-username">18</a> and password <span class="nb"><a class="ref" href="#smb-password">19</a>,</span> check them with Test connection <span class="nb"><a class="ref" href="#smb-test">20</a>,</span> choose the share with Scan host <a class="ref" href="#smb-scan-shares">21</a> or type its name <span class="nb"><a class="ref" href="#smb-share-name">22</a>,</span> then press Add This Resource <span class="nb"><a class="ref" href="#smb-add">27</a>.</span></li>
+<li>SFTP or FTP: choose the protocol <span class="nb"><a class="ref" href="#sftp-protocol">29</a>,</span> enter the host <a class="ref" href="#sftp-host">30</a> and the sign-in <span class="nb"><a class="ref" href="#sftp-auth">31</a>,</span> try Test Connection <span class="nb"><a class="ref" href="#sftp-test">32</a>,</span> set the remote path <a class="ref" href="#sftp-remote-path">34</a> and press Add Resource <span class="nb"><a class="ref" href="#sftp-add">36</a>.</span></li>
+<li>Cloud storage: tap a provider <span class="nb"><a class="ref" href="#cloud-providers">15</a>,</span> sign in, then open folders with Enter <a class="ref" href="#picker-enter">45</a> and press Select <a class="ref" href="#picker-select">46</a> on the one you want to add.</li>
 <li>Have a ready configuration from the Windows companion? Import from file <a class="ref" href="#import-file">9</a> or Import by barcode <a class="ref" href="#import-barcode">10</a> saves you typing all of this.</li>
 <li>Back <a class="ref" href="#back">1</a> leaves the screen without adding anything that is not saved yet.</li>
 </ol>
@@ -353,7 +356,7 @@
 <li><a href="index.html"><b>Help index</b></a></li>
 </ul>
 <footer class="help-foot">
-<span>Fast Media Sorter, 2026-10-26</span>
+<span>Fast Media Sorter, 2026-11-24</span>
 <a href="index.html">Help index</a>
 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Ask a question or report a problem</a>
 </footer>

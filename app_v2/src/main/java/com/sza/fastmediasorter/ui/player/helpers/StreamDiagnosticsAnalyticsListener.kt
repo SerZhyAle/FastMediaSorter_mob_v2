@@ -51,6 +51,7 @@ internal class StreamDiagnosticsAnalyticsListener(
     override fun onRenderedFirstFrame(eventTime: AnalyticsListener.EventTime, output: Any, renderTimeMs: Long) {
         diagnostics.onFirstFrameRendered()
         Timber.i("Stream diag: first frame ttff=%dms path=%s", diagnostics.timeToFirstFrameMs, path)
+        Timber.d("S4648: broadcast first picture ttff=${diagnostics.timeToFirstFrameMs}ms")
     }
 
     override fun onDroppedVideoFrames(eventTime: AnalyticsListener.EventTime, droppedFrames: Int, elapsedMs: Long) {

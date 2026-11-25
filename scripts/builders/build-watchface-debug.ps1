@@ -222,4 +222,7 @@ if ($Install) {
     Write-Host "Note: If re-installing after package-id changes, remove old dev face from watch before reinstall so slot bindings refresh." -ForegroundColor DarkGray
 }
 
+# S4679: record the build in the release ledger; the wrapper reports and never fails the build.
+& "$PSScriptRoot\..\utils\log-release-ledger-build.ps1" -Package watchface -Flavor standard -Kind debug -Version $versionName -Artifact $apkPath
+
 exit 0

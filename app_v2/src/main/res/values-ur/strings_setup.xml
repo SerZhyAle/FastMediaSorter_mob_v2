@@ -6,11 +6,11 @@
     <string name="welcome_default_player_btn_docs">دستاویزات</string>
     <string name="welcome_default_player_btn_images">تصاویر</string>
     <string name="welcome_default_player_btn_video">ویڈیو</string>
-    <string name="welcome_default_player_description">FastMediaSorter کو طے شدہ میڈیا پلیئر بنائیں</string>
-    <string name="welcome_default_player_hint">نیچے کسی بٹن پر ٹیپ کریں - ایک ڈائیلاگ ظاہر ہوگا۔ FastMediaSorter منتخب کریں اور <b>ہمیشہ</b> پر ٹیپ کریں۔</string>
+    <string name="welcome_default_player_description">Fast Media Sorter &amp; Organizer کو اپنا ڈیفالٹ میڈیا پلیئر بنائیں</string>
+    <string name="welcome_default_player_hint">نیچے دیے گئے بٹن پر ٹیپ کریں - ایک ڈائیلاگ ظاہر ہوگا۔ Fast Media Sorter &amp; Organizer منتخب کریں اور <b>ہمیشہ</b> پر ٹیپ کریں۔</string>
     <string name="welcome_default_player_title">طے شدہ پلیئر</string>
     <string name="welcome_description_1">آپ کا سب کچھ ایک جگہ رکھنے والا میڈیا منتظم۔\nمقامی، نیٹ ورک اور کلاؤڈ اسٹوریج کی فائلیں دیکھیں، ترتیب دیں اور سنبھالیں - سب کچھ آسان لمس اشاروں سے۔</string>
-    <string name="welcome_description_1_details">FastMediaSorter ہر قسم کا میڈیا ایک جگہ لے آتا ہے۔ اپنے آلے سے، نیٹ ورک شیئر سے یا کلاؤڈ اسٹوریج سے تصاویر، ویڈیو، GIF اور موسیقی کھولیں - اور دیر تک دبانے والے مینو کے بجائے تیز ٹیپ سے انہیں ترتیب دیں۔\n\nیہاں آپ جو کچھ طے کریں گے وہ بعد میں ترتیبات میں بدلا جا سکتا ہے، اس لیے اس اسکرین پر کوئی غلط انتخاب نہیں - آگے بڑھنے کے لیے صرف اگلا دبائیں۔</string>
+    <string name="welcome_description_1_details">Fast Media Sorter &amp; Organizer ہر طرح کا میڈیا ایک جگہ لے آتا ہے۔ اپنے آلے، نیٹ ورک شیئر یا کلاؤڈ اسٹوریج سے تصاویر، ویڈیوز، GIFs اور موسیقی کھولیں - اور انہیں لمبے پریس والے مینو کے بجائے تیز ٹیپس سے ترتیب دیں۔\n\nیہاں آپ جو کچھ بھی سیٹ کریں بعد میں ترتیبات میں بدلا جا سکتا ہے، اس لیے اس اسکرین پر کوئی غلط انتخاب نہیں - بس جاری رکھنے کے لیے اگلا پر ٹیپ کریں۔</string>
     <string name="welcome_description_3" formatted="false">پلیئر فوری اعمال کے لیے 9 ٹچ زونز (3×3 گرڈ) استعمال کرتا ہے۔ نیویگیٹ کرنے، فائلیں کاپی، منتقل، حذف کرنے، یا کمانڈ پینل تک رسائی کے لیے زونز پر ٹیپ کریں۔ تفصیلات کے لیے اوپر دیا گیا خاکہ دیکھیں۔</string>
     <string name="welcome_language_picker_hint">ایپ کی زبان منتخب کریں</string>
     <string name="welcome_profile_audio_player_desc">صرف آڈیو آلات یا MP3 پلیئرز کے لیے بہترین۔ تصاویر اور ویڈیو چھپاتا ہے؛ پس منظر کی آواز اور \"ابھی چل رہا ہے\" اسکرین بہتر بناتا ہے۔</string>
@@ -36,8 +36,7 @@
     <string name="welcome_profile_video_player_title">ویڈیو پلیئر</string>
     <string name="welcome_profile_vr_headset_desc">ورچوئل رئیلٹی ڈیوائسز کے لیے بہترین۔ معاون ہیڈسیٹس پر 3D/360° لے آؤٹس اور عمیق کنٹرولز پہلے سے فعال کرتا ہے۔</string>
     <string name="welcome_profile_vr_headset_title">VR ہیڈسیٹ</string>
-    <string name="welcome_recommended_badge">(تجویز کردہ)</string>
-    <string name="welcome_title_1">FastMediaSorter میں خوش آمدید!</string>
+    <string name="welcome_title_1">Fast Media Sorter &amp; Organizer میں خوش آمدید!</string>
     <string name="sysinfo_field_abis">ABI</string>
     <string name="sysinfo_field_android_version">اینڈرائیڈ</string>
     <string name="sysinfo_field_api_level">API لیول</string>
@@ -140,7 +139,7 @@
     <string name="welcome_func_downloading">ڈاؤن لوڈ ہو رہا ہے.. %1$d%%</string>
     <string name="welcome_func_download_failed">ڈاؤن لوڈ ناکام - دوبارہ کوشش کے لیے ٹیپ کریں</string>
     <string name="welcome_func_download_done">تیار</string>
-    <string name="welcome_permissions_title">\"چند\" اجازتیں</string>
+    <string name="welcome_permissions_title">چند اجازتیں</string>
     <string name="welcome_permissions_subtitle">رسائی دیں تاکہ ایپ آپ کا میڈیا دکھا سکے۔</string>
     <string name="welcome_func_streams">اسٹریمز</string>
     <string name="welcome_streams_catalog_done">فہرست ڈاؤن لوڈ ہو گئی</string>
@@ -172,7 +171,7 @@
     <string name="welcome_role_sorting_detail">ایک ہی ٹیپ سے فائل کو اس کے فولڈر میں بھیجیں</string>
     <string name="welcome_role_more_detail">کیمرا، ویجٹ، گیجٹ اور بہت کچھ - کئی ایپس کی جگہ ایک ہی ایپ</string>
     <string name="welcome_description_1_shell">صرف میڈیا ایپ نہیں - آپ کے آلے کے لیے مکمل شیل۔\nہوم اسکرین، پلیئر، فائل مینیجر، اسٹریمز اور دور دراز اسٹوریج ایک ہی جگہ۔</string>
-    <string name="welcome_description_1_details_shell">FastMediaSorter پورا آلہ چلا سکتا ہے: آپ کی ایپس، ویجٹ اور شارٹ کٹ کے ساتھ ہوم اسکرین، تصاویر، ویڈیو، موسیقی اور کتابوں کا پلیئر، مقامی، نیٹ ورک اور کلاؤڈ اسٹوریج کے لیے فائل مینیجر، انٹرنیٹ اسٹریمز اور ایک Wear OS ساتھی ایپ - اور ان سب کے اوپر، ایک ٹیپ سے تیز چھانٹی۔\n\nاسے اپنی ہوم اسکرین بنانا چاہتے ہیں؟ اوپر والا سوئچ آن کریں، سیٹ اپ کے بعد سسٹم آپ سے تصدیق مانگے گا۔ اس اسکرین پر منتخب کی گئی ہر چیز بعد میں ترتیبات میں بدلی جا سکتی ہے، اس لیے یہاں کوئی غلط انتخاب نہیں - آگے بڑھنے کے لیے بس اگلا دبائیں۔</string>
+    <string name="welcome_description_1_details_shell">Fast Media Sorter &amp; Organizer پورا آلہ چلا سکتا ہے: آپ کی ایپس، ویجٹس اور شارٹ کٹس والی ہوم اسکرین، تصاویر، ویڈیوز، موسیقی اور کتابوں کے لیے پلیئر، مقامی، نیٹ ورک اور کلاؤڈ اسٹوریج کے لیے فائل مینیجر، انٹرنیٹ سٹریمز اور Wear OS ساتھی ایپ - اور ان سب کے اوپر ٹیپ سے فوری ترتیب۔\n\nاسے اپنی ہوم اسکرین بنانا چاہتے ہیں؟ اوپر والا سوئچ آن کریں اور سیٹ اپ کے بعد سسٹم آپ سے تصدیق مانگے گا۔ اس اسکرین پر آپ جو بھی منتخب کریں بعد میں ترتیبات میں بدلا جا سکتا ہے، اس لیے یہاں کوئی غلط انتخاب نہیں - بس جاری رکھنے کے لیے اگلا پر ٹیپ کریں۔</string>
     <string name="welcome_role_home_screen">ہوم اسکرین</string>
     <string name="welcome_role_home_screen_detail">لانچر کی جگہ آلہ چلاتا ہے - ایپس، ویجٹ اور میڈیا ہاتھ میں</string>
     <string name="welcome_role_streams">اسٹریمز</string>

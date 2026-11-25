@@ -8,7 +8,7 @@ permalink: /docs/INSTALL_TRUST.html
 
 # Why Android warns about this APK - and what to tap
 
-FastMediaSorter is a free app from an independent developer, and the builds on the downloads page are
+Fast Media Sorter & Organizer is a free app from an independent developer, and the builds on the downloads page are
 installed directly from a file instead of from an app store. Android treats a package it has not seen
 before with extra caution, so you will meet one or two warnings on the way. Here is what each one says,
 why it appears, and exactly what to do.
@@ -19,7 +19,7 @@ Two different screens, in this order.
 
 **"For security, your phone currently isn't allowed to install unknown apps from this source."** This is
 the browser or file manager asking for a one-time permission to hand the file to the installer. It is
-about the app you downloaded *with*, not about FastMediaSorter.
+about the app you downloaded *with*, not about Fast Media Sorter & Organizer.
 
 **"Unsafe app blocked" / "Play Protect doesn't recognize this app's developer"** or, on some versions,
 **"Scan app?"**. This is Google Play Protect, the scanner built into Android. It reports that the

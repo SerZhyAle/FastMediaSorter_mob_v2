@@ -4,7 +4,6 @@ import android.view.MotionEvent
 import android.view.View
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
-import android.webkit.WebViewClient
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailabilityAccessor
@@ -13,6 +12,7 @@ import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.util.showBoundToHost
 import io.documentnode.epub4j.domain.Book
 import io.documentnode.epub4j.epub.EpubReader
@@ -138,13 +138,16 @@ class EpubViewerManager(
         onPageRendered = {
             if (!firstChapterRenderedLogged) {
                 firstChapterRenderedLogged = true
-                Timber.d("EpubViewerManager: firstChapterRendered chapter=$currentChapterIndex chapterCount=$chapterCount")
+                Timber.d(
+                    "EpubViewerManager: firstChapterRendered chapter=$currentChapterIndex chapterCount=$chapterCount"
+                )
             }
         },
         swipeGestureProvider = { swipeGestureDetector },
         bookProvider = { currentBook },
         loadingIndicatorCoordinator = loadingIndicatorCoordinator,
     )
+
     // Backwards-compat alias for existing references.
     private val webView: WebView? get() = webViewLifecycle.current()
 
@@ -205,11 +208,11 @@ class EpubViewerManager(
             if (settings.ocrDefaultFontSize != "AUTO") {
                 val multiplier = when (settings.ocrDefaultFontSize) {
                     "MINIMUM" -> 0.7f
-                    "SMALL"   -> 0.85f
-                    "MEDIUM"  -> 1.0f
-                    "LARGE"   -> 1.15f
-                    "HUGE"    -> 1.3f
-                    else      -> 1.0f
+                    "SMALL" -> 0.85f
+                    "MEDIUM" -> 1.0f
+                    "LARGE" -> 1.15f
+                    "HUGE" -> 1.3f
+                    else -> 1.0f
                 }
                 currentFontSize = (18 * multiplier).toInt().coerceIn(MIN_FONT_SIZE, MAX_FONT_SIZE)
                 translationHelper.restoreFontSize(
@@ -220,9 +223,9 @@ class EpubViewerManager(
             // Apply font family from settings if not DEFAULT
             currentFontFamily = if (settings.ocrDefaultFontFamily != "DEFAULT") {
                 when (settings.ocrDefaultFontFamily) {
-                    "SERIF"      -> "Georgia, serif"
-                    "MONOSPACE"  -> "Courier New, monospace"
-                    else         -> "Georgia, serif"
+                    "SERIF" -> "Georgia, serif"
+                    "MONOSPACE" -> "Courier New, monospace"
+                    else -> "Georgia, serif"
                 }
             } else {
                 "sans-serif"
@@ -269,8 +272,11 @@ class EpubViewerManager(
                     } else if (!isHorizontalSwipe && kotlin.math.abs(diffY) > 100 && kotlin.math.abs(velocityY) > 100) {
                         if (diffY < 0) {
                             if (!isFullscreenMode) safeViews.epubControlsLayout.isVisible = true
-                        } else if (isFullscreenMode) checkAndExitFullscreenAtBottom()
-                        else checkAndHideControlsAtBottom()
+                        } else if (isFullscreenMode) {
+                            checkAndExitFullscreenAtBottom()
+                        } else {
+                            checkAndHideControlsAtBottom()
+                        }
                         return true
                     }
                     return false
@@ -284,7 +290,6 @@ class EpubViewerManager(
                 showGoToChapterDialog()
             }
         }
-
     }
 
     // ── EPUB display ─────────────────────────────────────────────────────────
@@ -523,7 +528,6 @@ class EpubViewerManager(
                             )
                         }
                     }
-
                 }
             } catch (e: Exception) {
                 e.errorUnlessCancellation("Failed to show chapter $chapterIndex")
@@ -748,9 +752,9 @@ class EpubViewerManager(
         val sliderMargin = view.findViewById<com.google.android.material.slider.Slider>(R.id.sliderMargin)
 
         when (currentReaderTheme) {
-            EpubStyleManager.ReaderTheme.LIGHT      -> chipLight.isChecked = true
-            EpubStyleManager.ReaderTheme.DARK       -> chipDark.isChecked = true
-            EpubStyleManager.ReaderTheme.SEPIA      -> chipSepia.isChecked = true
+            EpubStyleManager.ReaderTheme.LIGHT -> chipLight.isChecked = true
+            EpubStyleManager.ReaderTheme.DARK -> chipDark.isChecked = true
+            EpubStyleManager.ReaderTheme.SEPIA -> chipSepia.isChecked = true
             EpubStyleManager.ReaderTheme.OLED_BLACK -> chipOled.isChecked = true
         }
 
@@ -770,10 +774,10 @@ class EpubViewerManager(
         chipGroupTheme.setOnCheckedStateChangeListener { _, checkedIds ->
             pendingTheme = when {
                 checkedIds.contains(R.id.chipLight) -> EpubStyleManager.ReaderTheme.LIGHT
-                checkedIds.contains(R.id.chipDark)  -> EpubStyleManager.ReaderTheme.DARK
+                checkedIds.contains(R.id.chipDark) -> EpubStyleManager.ReaderTheme.DARK
                 checkedIds.contains(R.id.chipSepia) -> EpubStyleManager.ReaderTheme.SEPIA
-                checkedIds.contains(R.id.chipOled)  -> EpubStyleManager.ReaderTheme.OLED_BLACK
-                else                                -> pendingTheme
+                checkedIds.contains(R.id.chipOled) -> EpubStyleManager.ReaderTheme.OLED_BLACK
+                else -> pendingTheme
             }
         }
 
@@ -781,9 +785,9 @@ class EpubViewerManager(
         val chipGroupFont = view.findViewById<com.google.android.material.chip.ChipGroup>(R.id.chipGroupFont)
         chipGroupFont.setOnCheckedStateChangeListener { _, checkedIds ->
             pendingFontFamily = when {
-                checkedIds.contains(R.id.chipSerif)     -> "Georgia, serif"
+                checkedIds.contains(R.id.chipSerif) -> "Georgia, serif"
                 checkedIds.contains(R.id.chipMonospace) -> "Courier New, monospace"
-                else                                    -> "sans-serif"
+                else -> "sans-serif"
             }
         }
 
@@ -801,7 +805,7 @@ class EpubViewerManager(
             }
         }
 
-        com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
+        val dialog = com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
             .setTitle(R.string.epub_reader_settings)
             .setView(view)
             .setPositiveButton(R.string.ok) { _, _ ->
@@ -815,10 +819,12 @@ class EpubViewerManager(
                 saveFontSize()
                 saveReaderSettings()
                 reloadCurrentChapter()
-
             }
             .setNegativeButton(R.string.cancel, null)
-            .showBoundToHost(context)
+            .create()
+        // Unconditional to stay under the complexity cap: on a dialog the host refused to show it is inert.
+        dialog.showBoundToHost(context)
+        DialogHelpEntryManager.attach(dialog, "dialog_epub_reader_settings")
     }
 
     /** Persist reader style settings to AppSettings via repository. */
@@ -885,9 +891,9 @@ class EpubViewerManager(
 
         webView.evaluateJavascript(
             "(function() { " +
-            "  var text = document.documentElement.innerText || document.body.innerText || ''; " +
-            "  return text.trim(); " +
-            "})();"
+                "  var text = document.documentElement.innerText || document.body.innerText || ''; " +
+                "  return text.trim(); " +
+                "})();"
         ) { result ->
             if (result == null || result == "null" || result.trim().isEmpty() || result.trim() == "\"\"") {
                 // Show toast directly: user-initiated action - ToastThrottler cooldown must not suppress it
@@ -947,7 +953,6 @@ class EpubViewerManager(
 
     /** Apply font settings from settings dialog without triggering translation */
     fun applyFontSettings(settings: com.sza.fastmediasorter.domain.models.TranslationSessionSettings) {
-
         // 1. Update font size based on multiplier
         if (settings.fontSize != com.sza.fastmediasorter.domain.models.TranslationFontSize.AUTO) {
             val multiplier = settings.fontSize.multiplier
@@ -968,9 +973,9 @@ class EpubViewerManager(
         // 2. Update font family
         currentFontFamily = if (settings.fontFamily != com.sza.fastmediasorter.domain.models.TranslationFontFamily.DEFAULT) {
             when (settings.fontFamily) {
-                com.sza.fastmediasorter.domain.models.TranslationFontFamily.SERIF     -> "Georgia, serif"
+                com.sza.fastmediasorter.domain.models.TranslationFontFamily.SERIF -> "Georgia, serif"
                 com.sza.fastmediasorter.domain.models.TranslationFontFamily.MONOSPACE -> "Courier New, monospace"
-                else                                                                   -> "sans-serif"
+                else -> "sans-serif"
             }
         } else {
             "sans-serif"
@@ -1011,12 +1016,12 @@ class EpubViewerManager(
         val webView = this.webView ?: return
         webView.evaluateJavascript(
             "(function() { " +
-            "  var scrollTop = window.pageYOffset || document.documentElement.scrollTop; " +
-            "  var scrollHeight = document.documentElement.scrollHeight; " +
-            "  var clientHeight = document.documentElement.clientHeight; " +
-            "  var isAtBottom = (scrollTop + clientHeight >= scrollHeight - 50); " +
-            "  return isAtBottom; " +
-            "})();"
+                "  var scrollTop = window.pageYOffset || document.documentElement.scrollTop; " +
+                "  var scrollHeight = document.documentElement.scrollHeight; " +
+                "  var clientHeight = document.documentElement.clientHeight; " +
+                "  var isAtBottom = (scrollTop + clientHeight >= scrollHeight - 50); " +
+                "  return isAtBottom; " +
+                "})();"
         ) { result ->
             val isAtBottom = result?.toBoolean() == true
             if (isAtBottom) {
@@ -1035,12 +1040,12 @@ class EpubViewerManager(
         val webView = this.webView ?: return
         webView.evaluateJavascript(
             "(function() { " +
-            "  var scrollTop = window.pageYOffset || document.documentElement.scrollTop; " +
-            "  var scrollHeight = document.documentElement.scrollHeight; " +
-            "  var clientHeight = document.documentElement.clientHeight; " +
-            "  var isAtBottom = (scrollTop + clientHeight >= scrollHeight - 50); " +
-            "  return isAtBottom; " +
-            "})();"
+                "  var scrollTop = window.pageYOffset || document.documentElement.scrollTop; " +
+                "  var scrollHeight = document.documentElement.scrollHeight; " +
+                "  var clientHeight = document.documentElement.clientHeight; " +
+                "  var isAtBottom = (scrollTop + clientHeight >= scrollHeight - 50); " +
+                "  return isAtBottom; " +
+                "})();"
         ) { result ->
             val isAtBottom = result?.toBoolean() == true
             if (isAtBottom) {
@@ -1059,10 +1064,10 @@ class EpubViewerManager(
     /** Returns a [DocumentSelectionActionModeCallback] wired to this manager's JS selection bridge and translation handler. WebView does not support [android.widget.TextView.setCustomSelectionActionModeCallback]. The hosting Activity should override [android.app.Activity.startActionMode] and wrap the incoming callback with this one to inject "Translate" / "Search in Google" items into the WebView floating text-selection ActionMode. */
     fun getSelectionActionModeCallback(): DocumentSelectionActionModeCallback =
         DocumentSelectionActionModeCallback(
-            showTranslate   = CapabilityAvailabilityAccessor.isTranslationAvailable(root.context),
+            showTranslate = CapabilityAvailabilityAccessor.isTranslationAvailable(root.context),
             getSelectedText = { selectionBridge.lastSelectedText },
-            onTranslate     = translationHelper::handleTranslateSelection,
-            onSearchGoogle  = { openGoogleSearch(root.context, it) },
+            onTranslate = translationHelper::handleTranslateSelection,
+            onSearchGoogle = { openGoogleSearch(root.context, it) },
             isCalculatorAvailable = { calculatorEnabledFlow.value },
             onOpenCalculator = { openCalculatorForSelection(root.context, it) },
         )

@@ -62,6 +62,9 @@ internal class ListenRecordingTeeDataSource(
         delegate.close()
     }
 
+    // Java default method: `by` delegation would answer an empty map instead of the wrapped source's headers.
+    override fun getResponseHeaders(): Map<String, List<String>> = delegate.responseHeaders
+
     private fun tee(buffer: ByteArray, offset: Int, read: Int) {
         val target = sink ?: return
         try {

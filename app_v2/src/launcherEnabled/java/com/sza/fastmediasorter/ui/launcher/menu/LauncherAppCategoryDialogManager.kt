@@ -25,12 +25,26 @@ class LauncherAppCategoryDialogManager(
     private val labels: AppCategoryLabelResolver,
     private val onSave: (packageName: String, categoryIds: Set<String>) -> Unit,
     private val onCreate: (name: String, onCreated: (String) -> Unit) -> Unit,
+    private val onRename: (categoryId: String, name: String) -> Unit,
 ) {
 
     private var dialog: AlertDialog? = null
 
     fun show(packageName: String, appLabel: String, catalog: AppCategoryCatalog) {
         showChooser(packageName, appLabel, catalog, catalog.categoryIdsOf(packageName))
+    }
+
+    /** S4563: a single name field, filled with the category's current label and selected for overtyping. */
+    fun showRename(categoryId: String, currentLabel: String) {
+        dismiss()
+        val (container, input) = nameField(currentLabel)
+        dialog = MaterialAlertDialogBuilder(context)
+            .setTitle(R.string.launcher_app_category_rename_title)
+            .setView(container)
+            .setPositiveButton(R.string.ok) { _, _ -> onRename(categoryId, input.text?.toString().orEmpty()) }
+            .setNegativeButton(R.string.cancel, null)
+            .showBoundToHost(context)
+        input.requestFocus()
     }
 
     fun dismiss() {
@@ -70,9 +84,29 @@ class LauncherAppCategoryDialogManager(
         checkedIds: Set<String>,
     ) {
         dismiss()
+        val (container, input) = nameField(initial = null)
+        dialog = MaterialAlertDialogBuilder(context)
+            .setTitle(R.string.launcher_app_category_new)
+            .setView(container)
+            .setPositiveButton(R.string.ok) { _, _ ->
+                val name = input.text?.toString().orEmpty()
+                onCreate(name) { createdId ->
+                    showChooser(packageName, appLabel, catalog.including(createdId, name), checkedIds + createdId)
+                }
+            }
+            .setNegativeButton(R.string.cancel) { _, _ -> showChooser(packageName, appLabel, catalog, checkedIds) }
+            .showBoundToHost(context)
+        input.requestFocus()
+    }
+
+    private fun nameField(initial: String?): Pair<FrameLayout, TextInputEditText> {
         val input = TextInputEditText(context).apply {
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
             isSingleLine = true
+            if (initial != null) {
+                setText(initial)
+                selectAll()
+            }
         }
         val field = TextInputLayout(context).apply {
             hint = context.getString(R.string.launcher_app_category_new_hint)
@@ -87,18 +121,7 @@ class LauncherAppCategoryDialogManager(
             )
             addView(field, params)
         }
-        dialog = MaterialAlertDialogBuilder(context)
-            .setTitle(R.string.launcher_app_category_new)
-            .setView(container)
-            .setPositiveButton(R.string.ok) { _, _ ->
-                val name = input.text?.toString().orEmpty()
-                onCreate(name) { createdId ->
-                    showChooser(packageName, appLabel, catalog.including(createdId, name), checkedIds + createdId)
-                }
-            }
-            .setNegativeButton(R.string.cancel) { _, _ -> showChooser(packageName, appLabel, catalog, checkedIds) }
-            .showBoundToHost(context)
-        input.requestFocus()
+        return container to input
     }
 
     /**

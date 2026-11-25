@@ -7,12 +7,14 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.wear.MainActivity
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.complication.WearFacePhotoEncoder
 import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.model.writeTo
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -70,13 +72,27 @@ class WearScheduledMessageNotifier @Inject constructor(
 
     private fun attachPicture(builder: NotificationCompat.Builder, imageFile: File, text: String?) {
         // An undecodable file still leaves a readable text notification rather than none at all.
-        val bitmap = BitmapFactory.decodeFile(imageFile.path) ?: return
+        val bitmap = decodeSampled(imageFile) ?: return
         builder.setStyle(
             NotificationCompat.BigPictureStyle()
                 .bigPicture(bitmap)
                 .setSummaryText(text)
         )
         builder.setContentIntent(pendingIntentFor(WearLaunchTarget.File(imageFile.path, PICTURE_MIME_TYPE)))
+    }
+
+    /**
+     * Sampled down to the face edge: the notification is drawn on a screen no larger than
+     * [WearFacePhotoEncoder.FACE_EDGE_PX], so a full-resolution decode is heap spent on pixels never shown.
+     */
+    private fun decodeSampled(imageFile: File): Bitmap? {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(imageFile.path, bounds)
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+        val options = BitmapFactory.Options().apply {
+            inSampleSize = WearFacePhotoEncoder.sampleSize(bounds.outWidth, bounds.outHeight)
+        }
+        return BitmapFactory.decodeFile(imageFile.path, options)
     }
 
     /** FLAG_UPDATE_CURRENT: a newer message reuses the slot, and stale extras must not survive it. */

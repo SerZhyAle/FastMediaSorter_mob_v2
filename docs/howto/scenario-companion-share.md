@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Open Your PC's Folders by Scanning One Code - FastMediaSorter v2"
+title: "Open Your PC's Folders by Scanning One Code - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-companion-share.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -54,7 +54,7 @@ The "companion" is a built-in feature of **[Fast Media Sorter & Sharing for Wind
 
 ## Step 2, Method A - Scan the Code (fastest)
 
-1. Open FastMediaSorter and tap the **Add <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** button in the resource list.
+1. Open Fast Media Sorter & Organizer and tap the **Add <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** button in the resource list.
 2. Tap **"Import by barcode"** - it sits next to the four resource-type cards (Local, SMB, SFTP/FTP, Cloud) and in the SFTP form header.
 3. The camera opens with the hint *"Point the camera at the companion QR code"*. Hold the phone up to the QR on your PC. In a dark room, tap **Torch**.
 4. A confirmation appears - *"Import access - Add the SFTP resource .. with N folder(s)?"*. Tap **Import**.
@@ -113,7 +113,7 @@ The shared folders behave like any other resource in the app. For example:
 | No "Import by barcode" entry | The device has no camera, or it is a VR build. Use [Method B - Import the File](#step-2-method-b---import-the-file) |
 | Camera says access is needed | Grant the camera permission when prompted - it is used only for the scan |
 | "This file is not a valid companion config" | The code or file is not from the Windows companion. Re-export it from the **Share** tab |
-| "Created by a newer companion version" | Update FastMediaSorter on the phone, or re-export from a matching companion version |
+| "Created by a newer companion version" | Update Fast Media Sorter & Organizer on the phone, or re-export from a matching companion version |
 | Resource added but folders are empty | Make sure the PC helper is still running. On the **same Wi-Fi** the app finds the PC on its own; if it still fails, the app shows what to check |
 | Works on Wi-Fi but not on mobile data | To reach the PC from another network, it must be reachable from the internet - set up port forwarding or IPv6 in the companion's **Share** settings. Without that, the share works on the same Wi-Fi only |
 

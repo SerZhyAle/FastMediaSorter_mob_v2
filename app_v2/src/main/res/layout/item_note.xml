@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S4865: the row background carries the activated (selected) highlight; the ripple moves to the foreground. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_list_selection_row"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:minHeight="@dimen/notes_row_min_height"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/margin_large"
+    android:paddingTop="@dimen/margin_medium"
+    android:paddingEnd="@dimen/margin_small"
+    android:paddingBottom="@dimen/margin_medium">
+
+    <androidx.appcompat.widget.AppCompatCheckBox
+        android:id="@+id/noteSelect"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/margin_medium"
+        android:background="@null"
+        android:button="@drawable/selector_checkbox_select"
+        android:clickable="false"
+        android:focusable="false"
+        android:importantForAccessibility="no"
+        android:visibility="gone"
+        app:buttonTint="@null" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/noteCaption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textColor="?attr/colorOnSurface" />
+
+        <TextView
+            android:id="@+id/noteExcerpt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSurfaceVariant" />
+
+        <TextView
+            android:id="@+id/noteDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceLabelSmall"
+            android:textColor="?attr/colorOnSurfaceVariant" />
+
+        <TextView
+            android:id="@+id/noteTooLarge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/notes_sync_too_large"
+            android:textAppearance="?attr/textAppearanceLabelSmall"
+            android:textColor="?attr/colorError"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/noteMore"
+        android:layout_width="@dimen/token_touch_target_min"
+        android:layout_height="@dimen/token_touch_target_min"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/notes_row_more"
+        android:focusable="true"
+        android:src="@drawable/ic_more_vert"
+        android:tint="?attr/colorOnSurfaceVariant" />
+
+</LinearLayout>

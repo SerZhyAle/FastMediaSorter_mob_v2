@@ -308,6 +308,7 @@ class SmbFileOperationHandler @Inject constructor(
             val movedPaths = mutableListOf<String>()
             var successCount = 0
             var skippedCount = 0
+            val skippedPaths = mutableListOf<String>()
 
             // Collect files that need permission for batch delete after all uploads
             val pendingDeletePaths = mutableListOf<String>()
@@ -349,7 +350,11 @@ class SmbFileOperationHandler @Inject constructor(
                         movedPaths.add(outcome.destFilePath)
                         successCount++
                     }
-                    is MoveOutcome.Skipped -> skippedCount++
+                    is MoveOutcome.Skipped -> {
+                        // MEDIA-VIEWER rule 4: the completion message names each collision-skipped file.
+                        skippedPaths.add(destFilePath)
+                        skippedCount++
+                    }
                 }
             }
             
@@ -365,7 +370,7 @@ class SmbFileOperationHandler @Inject constructor(
             }
             
             Timber.i("SMB executeMove done - success=$successCount, skipped=$skippedCount, errors=${errors.size}")
-            return@withContext buildMoveResult(successCount, operation, movedPaths, errors, skippedCount)
+            return@withContext buildMoveResult(successCount, operation, movedPaths, errors, skippedCount, skippedPaths)
         }
 
         // Check sources for SMB to use optimized move

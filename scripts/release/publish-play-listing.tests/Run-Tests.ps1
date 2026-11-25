@@ -72,6 +72,7 @@ import httplib2
 from google.auth.exceptions import TransportError
 from googleapiclient.errors import HttpError
 
+sys.path.insert(0, os.path.dirname(sys.argv[1]))
 spec = importlib.util.spec_from_file_location('play_listing_publisher', sys.argv[1])
 mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
@@ -145,7 +146,7 @@ $pyCode = (Get-Content -LiteralPath $pyScript |
     Where-Object { $_ -notmatch '^\s*#' }) -join "`n"
 $bareExecute = [regex]::Matches($pyCode, '\.execute\(\s*\)').Count
 $totalExecute = [regex]::Matches($pyCode, '\.execute\(').Count
-$retriedExecute = [regex]::Matches($pyCode, '\.execute\(num_retries=').Count
+$retriedExecute = [regex]::Matches($pyCode, '\.execute\(\s*num_retries=').Count
 
 Assert-That 'no .execute() call is left without num_retries' `
     ($bareExecute -eq 0 -and $totalExecute -eq $retriedExecute) `
@@ -166,11 +167,14 @@ Assert-That 'the wrapper never throws on the uploader exit code' `
 # main() runs in-process against a fake service that records every endpoint call, over a temporary
 # three-locale root shaped like the watch face's tree.
 $rootProbe = @'
-import importlib.util, os, sys, tempfile
+import importlib.util, json, os, sys, tempfile
+from pathlib import Path
 
+sys.path.insert(0, os.path.dirname(sys.argv[1]))
 spec = importlib.util.spec_from_file_location('play_listing_publisher', sys.argv[1])
 mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
+import play_publishing as play
 
 class Call:
     def __init__(self, recorder, group, name, kwargs, result):
@@ -183,7 +187,12 @@ class Endpoint:
     def __init__(self, recorder, group, results):
         self._recorder, self._group, self._results = recorder, group, results
     def __getattr__(self, name):
-        return lambda **kw: Call(self._recorder, self._group, name, kw, self._results.get(name, {}))
+        def request(**kw):
+            result = self._results.get(name, {})
+            if name == 'upload':
+                result = {'image': {'sha256': play.file_sha256(kw['media_body'])}}
+            return Call(self._recorder, self._group, name, kw, result)
+        return request
 
 class Edits(Endpoint):
     def listings(self):
@@ -195,22 +204,21 @@ class Service:
     def __init__(self, recorder):
         self._recorder = recorder
     def edits(self):
-        return Edits(self._recorder, 'edits', {'insert': {'id': 'e1'}})
+        return Edits(self._recorder, 'edits', {'insert': {'id': 'e1'}, 'commit': {'id': 'e1'}})
 
 def run(argv):
     recorder = []
-    mod.service_account.Credentials.from_service_account_file = staticmethod(lambda *a, **k: None)
-    mod.build = lambda *a, **k: Service(recorder)
+    mod.connect_publisher = lambda package: (Service(recorder), None)
     mod.MediaFileUpload = lambda path, mimetype: path
-    sys.argv = ['publish-play-listing.py'] + argv
-    code = 0
-    try:
-        mod.main()
-    except SystemExit as exc:
-        code = exc.code or 0
+    code = mod.main(argv)
     return code, recorder
 
-root = tempfile.mkdtemp()
+
+scratch = tempfile.TemporaryDirectory()
+work = Path(scratch.name)
+root = str(work / 'listing')
+play.state_root = lambda: work / 'state'
+play.confirm_console = lambda *args: None
 for folder in ('en-US', 'ru-RU', 'uk-UA'):
     base = os.path.join(root, folder)
     os.makedirs(os.path.join(base, 'images', 'wearScreenshots'))
@@ -227,15 +235,33 @@ print('defaultpackage=%s' % defaults['package_name'])
 print('defaultlocales=%d' % len(locales))
 print('declaredlocales=%d' % len(mod.LOCALES))
 
-code, calls = run(['validate', '--package', 'probe.other.app', '--listing-root', root])
+preflight = work / 'preflight.json'
+preflight.write_text(json.dumps({
+    'packageName': 'probe.other.app',
+    'authorization': 'offline probe',
+    'acceptedArtifact': 'accepted version 1',
+    'manifestComparison': 'listing only',
+    'newForegroundServices': {},
+    'operations': [mod.listing_operation(mod.prepare_listing(root))],
+}), encoding='utf-8')
+code, calls = run(['validate', '--package', 'probe.other.app', '--listing-root', root,
+                   '--preflight', str(preflight)])
 print('rootexit=%d' % code)
 print('rootpackages=%s' % ','.join(sorted({str(k.get('packageName')) for _, _, k in calls})))
 print('rootlanguages=%s' % ','.join(sorted({k['language'] for g, n, k in calls if g == 'listings' and n == 'update'})))
 print('rootdeletes=%d' % len([1 for g, n, _ in calls if g == 'listings' and n.startswith('delete')]))
 print('roottypes=%s' % ','.join(sorted({k['imageType'] for g, n, k in calls if g == 'images' and n == 'deleteall'})))
+print('validatesequence=%s' % ','.join(n for g, n, _ in calls if g == 'edits'))
+
+code, calls = run(['commit', '--package', 'probe.other.app', '--listing-root', root,
+                   '--preflight', str(preflight)])
+print('commitexit=%d' % code)
+print('commitguard=%s' % ','.join(k.get('changesInReviewBehavior', '')
+                                 for g, n, k in calls if g == 'edits' and n == 'commit'))
 
 os.makedirs(os.path.join(root, 'xx-QQ'))
-code, calls = run(['validate', '--package', 'probe.other.app', '--listing-root', root])
+code, calls = run(['validate', '--package', 'probe.other.app', '--listing-root', root,
+                   '--preflight', str(preflight)])
 print('unknownexit=%d' % code)
 print('unknowncalls=%d' % len(calls))
 '@
@@ -257,6 +283,14 @@ function Get-RootObservation([string]$key) {
     if ($lr.ContainsKey($key)) { return $lr[$key] }
     return "<absent; probe exit $rootExit>"
 }
+
+Assert-That 'validation discards the edit and sends no commit' `
+    ((Get-RootObservation 'validatesequence') -eq 'insert,validate,delete') `
+    "expected: insert,validate,delete | actual: $(Get-RootObservation 'validatesequence')"
+
+Assert-That 'standalone commit carries the review guard exactly once' `
+    ((Get-RootObservation 'commitexit') -eq '0' -and (Get-RootObservation 'commitguard') -ceq 'ERROR_IF_IN_REVIEW') `
+    "expected: exit 0 and one guard | actual: $(Get-RootObservation 'commitexit'), $(Get-RootObservation 'commitguard')"
 
 Assert-That 'the default package is the declared phone package' `
     ((Get-RootObservation 'defaultpackage') -eq 'com.sza.fastmediasorter') `

@@ -15,18 +15,18 @@ why: |
 
   This page walks through all of these small meeting points, so you know what each one means and how to change it when you want it quieter.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition)."
+  - "Fast Media Sorter & Organizer in any [edition](term:edition)."
 steps:
   - number: 1
     id: splash
     title: Meet the startup splash
     text: |
-      For the moment the app takes to start, the [startup splash](term:startup-splash) shows the FastMediaSorter logo and the name **Fast Media Sorter** fading in at the center, with a small author logo at the bottom center and a clock ticking below the logo - in the 24-hour or 12-hour style you chose for units. It disappears by itself as soon as the app is ready; tapping it does nothing, so a stray tap does not press anything behind it.
+      For the moment the app takes to start, the [startup splash](term:startup-splash) shows the Fast Media Sorter & Organizer logo and the name **Fast Media Sorter** fading in at the center, with a small author logo at the bottom center and a clock ticking below the logo - in the 24-hour or 12-hour style you chose for units. It disappears by itself as soon as the app is ready; tapping it does nothing, so a stray tap does not press anything behind it.
     image_bookmark:
       shot_id: general.startup-splash
       device_profile: phone
       screen_state: cold-start-splash
-      alt: The FastMediaSorter startup splash with the app logo and name at the center, a clock below and the small author logo at the bottom
+      alt: The Fast Media Sorter & Organizer startup splash with the app logo and name at the center, a clock below and the small author logo at the bottom
       caption: "The startup splash."
       title: "Screenshot: Startup splash"
       desc: Phone, cold start of the app, the startup splash with the logo, the name, the ticking clock and the author logo.
@@ -34,7 +34,7 @@ steps:
     id: notifications
     title: Read the notifications - and silence the ones you do not need
     text: |
-      Every FastMediaSorter notification carries the app logo in the status bar, so you always know where it came from - a file copy or a duplicate search no longer shows the music note of the [audio player](term:audio-player). Android groups the notifications into categories, and you can switch each category off separately. The categories are:
+      Every Fast Media Sorter & Organizer notification carries the app logo in the status bar, so you always know where it came from - a file copy or a duplicate search no longer shows the music note of the [audio player](term:audio-player). Android groups the notifications into categories, and you can switch each category off separately. The categories are:
 
       - **Audio Playback** - what is playing, with play, pause and skip buttons.
       - **Scheduled operations** - progress of a [scheduled operation](term:scheduled-operation).
@@ -50,15 +50,15 @@ steps:
       - **SOS signal** - the SOS [program](term:program) is running.
       - **SFTP server** - the app's own SFTP server is running.
 
-      To switch a category off, long-press any FastMediaSorter notification and tap the settings icon, or open the phone's **Settings**, **Apps**, **FastMediaSorter**, **Notifications**. Google's [notification help](https://support.google.com/android/answer/9079661) shows the same on your phone model.
+      To switch a category off, long-press any Fast Media Sorter & Organizer notification and tap the settings icon, or open the phone's **Settings**, **Apps**, **Fast Media Sorter & Organizer**, **Notifications**. Google's [notification help](https://support.google.com/android/answer/9079661) shows the same on your phone model.
     image_bookmark:
       shot_id: general.notification-categories
       device_profile: phone
       screen_state: android-app-notification-categories
-      alt: The Android notification settings of FastMediaSorter listing its notification categories, each with its own switch
+      alt: The Android notification settings of Fast Media Sorter & Organizer listing its notification categories, each with its own switch
       caption: "Each kind of notification has its own switch in Android."
       title: "Screenshot: Notification categories"
-      desc: Android Settings, Apps, FastMediaSorter, Notifications, the list of categories with switches.
+      desc: Android Settings, Apps, Fast Media Sorter & Organizer, Notifications, the list of categories with switches.
     callout:
       type: tip
       title: Keep the progress ones
@@ -114,4 +114,4 @@ next_recipes:
 
 <sub class="doc-stamp">26.10.07 01:10</sub>
 
-The startup splash, the notifications, the colors of content types and programs, private password screens and one language everywhere - the ways FastMediaSorter shows itself around the phone.
+The startup splash, the notifications, the colors of content types and programs, private password screens and one language everywhere - the ways Fast Media Sorter & Organizer shows itself around the phone.

@@ -511,18 +511,28 @@
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
+        <!-- S4860: first-run hints (first-step card, Quick Sort marker legend) sit above the list. -->
+        <include
+            android:id="@+id/mainFirstRunHints"
+            layout="@layout/view_main_first_run_hints"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvResources"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="0dp"
             android:layout_margin="@dimen/main_recycler_margin"
             android:nextFocusUp="@id/tabResourceTypes"
             android:scrollbars="vertical"
             android:scrollbarThumbVertical="@color/scrollbar_thumb"
             android:fadeScrollbars="false"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/mainFirstRunHints"
+            app:layout_constraintBottom_toTopOf="@id/tvMediaTypeLegend"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             tools:listitem="@layout/item_resource" />
@@ -604,6 +614,25 @@
                 android:text="@string/retry"
                 style="@style/Widget.FastMediaSorter.Button.Text" />
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvMediaTypeLegend"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/margin_small"
+            android:paddingHorizontal="@dimen/margin_small"
+            android:paddingVertical="@dimen/margin_tiny"
+            android:gravity="center"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textAppearance="@style/TextAppearance.FastMediaSorter.Item.Detail"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@id/tvFilterWarning"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="I Images · V Videos · A Audio · G GIFs · T Text · P PDF · E EPUB · O Office documents"
+            tools:visibility="visible" />
 
         <TextView
             android:id="@+id/tvFilterWarning"

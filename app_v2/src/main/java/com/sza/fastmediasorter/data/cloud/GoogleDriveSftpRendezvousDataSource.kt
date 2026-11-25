@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.data.cloud
 import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveAppDataApi
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpRendezvousCodec
 import com.sza.fastmediasorter.data.remote.sftp.anywhere.SftpRendezvousCodec.fileName
+import com.sza.fastmediasorter.domain.model.SftpRendezvousBroadcast
 import com.sza.fastmediasorter.domain.model.SftpRendezvousDevice
 import com.sza.fastmediasorter.domain.model.SftpRendezvousRecord
 import com.sza.fastmediasorter.domain.model.SftpRendezvousRequest
@@ -38,6 +39,7 @@ class GoogleDriveSftpRendezvousDataSource @Inject constructor(
         val devices: List<Entry<SftpRendezvousDevice>>,
         val resources: List<Entry<SftpRendezvousResource>>,
         val requests: List<Entry<SftpRendezvousRequest>>,
+        val broadcasts: List<Entry<SftpRendezvousBroadcast>> = emptyList(),
     )
 
     /** Writes [device] over this device's previous device record. */
@@ -47,6 +49,17 @@ class GoogleDriveSftpRendezvousDataSource @Inject constructor(
     /** Writes [resource] over the previous record of the same resource. */
     suspend fun writeResource(resource: SftpRendezvousResource): Result<Unit> =
         upload(fileName(SftpRendezvousCodec.TYPE_RESOURCE, resource.resourceId), resource).map { }
+
+    /** Writes [broadcast] over the previous record of the same broadcast (contract DEVICE-EXCHANGE 8.1). */
+    suspend fun writeBroadcast(broadcast: SftpRendezvousBroadcast): Result<Unit> =
+        upload(fileName(SftpRendezvousCodec.TYPE_BROADCAST, broadcast.broadcastId), broadcast).map { }
+
+    /** Deletes the record of broadcast [broadcastId]; an absent one is already gone. */
+    suspend fun deleteBroadcast(broadcastId: String): Result<Unit> =
+        when (val found = appData.findEntry(fileName(SftpRendezvousCodec.TYPE_BROADCAST, broadcastId), ROOT)) {
+            is CloudResult.Error -> failure(found)
+            is CloudResult.Success -> found.data?.let { delete(it.id) } ?: Result.success(Unit)
+        }
 
     /** Leaves [request] under a fresh request id and answers the new file's Drive id. */
     suspend fun writeRequest(request: SftpRendezvousRequest): Result<String> =
@@ -96,10 +109,11 @@ class GoogleDriveSftpRendezvousDataSource @Inject constructor(
         val entries = wanted.mapNotNull { file ->
             read(file)?.let(SftpRendezvousCodec::decode)?.let { Entry(file.id, file.name, file.modifiedDate, it) }
         }
-        return Snapshot(entries.typed(), entries.typed(), entries.typed())
+        return Snapshot(entries.typed(), entries.typed(), entries.typed(), entries.typed())
     }
 
-    private fun isDirectoryFile(name: String) = name.startsWith(devicePrefix) || name.startsWith(resourcePrefix)
+    private fun isDirectoryFile(name: String) =
+        name.startsWith(devicePrefix) || name.startsWith(resourcePrefix) || name.startsWith(broadcastPrefix)
 
     private inline fun <reified T : SftpRendezvousRecord> List<Entry<SftpRendezvousRecord>>.typed() =
         mapNotNull { entry -> (entry.record as? T)?.let { Entry(entry.fileId, entry.name, entry.modifiedMs, it) } }
@@ -122,6 +136,7 @@ class GoogleDriveSftpRendezvousDataSource @Inject constructor(
         private val devicePrefix = SftpRendezvousCodec.filePrefix(SftpRendezvousCodec.TYPE_DEVICE)
         private val resourcePrefix = SftpRendezvousCodec.filePrefix(SftpRendezvousCodec.TYPE_RESOURCE)
         private val requestPrefix = SftpRendezvousCodec.filePrefix(SftpRendezvousCodec.TYPE_REQUEST)
+        private val broadcastPrefix = SftpRendezvousCodec.filePrefix(SftpRendezvousCodec.TYPE_BROADCAST)
         private const val JSON_SUFFIX = ".json"
         private const val MIME_TYPE_JSON = "application/json"
     }

@@ -4,7 +4,7 @@
     Keep docs/ALL_FEATURES.jsonl well-formed and from silently shrinking (S0489).
 
 .DESCRIPTION
-    Four checks on the developer feature inventory:
+    Seven checks on the developer feature inventory:
       1. Schema validity - delegates to scripts/all_features/validate.ps1 (-Gate):
          JSON well-formed, required fields, flavor enum, id uniqueness, EN-only.
       2. Ratchet - the public inventory record count must not drop below the
@@ -64,10 +64,31 @@
          parameter for the field and patch.ps1 rebuilds the record without it, which
          is the same strip check 5 holds `gate` against.
 
+      7. Ungated single-flag reach (S2937) - an ungated record whose flavors set equals the row of
+         exactly one flag in docs/FLAVOR_MATRIX.md must name that flag in `gate`. The S1934
+         ratchet inside validate.ps1 counts such a record as explained, so a set that is right by
+         coincidence (SUPPORT_CLOUD's row is the third most common set in the ledger) and a set
+         that is right on purpose read the same. The rule was unsatisfiable while the closure path
+         could not write the field: hooks.postClose runs this script in the same call that wrote the
+         record, so the close failed before the author could add the gate. close-and-log.ps1
+         -FeatGate (canon plugin 2026.1113.8) opened the channel. Existing offenders are the set
+         in scripts/quality/allfeatures-ungated-single-flag-baseline.txt and leave it as their
+         gate is written. The logic is scripts/quality/lib/allfeatures-ungated-reach.ps1; its
+         suite is assert-allfeatures-sync.tests/.
+
+      8. Ungated shared-row reach (S4633) - an ungated record whose flavors set equals a row that
+         SEVERAL flags share ([noLegal,standard] is SUPPORT_LAUNCHER, SUPPORT_WEAR_COMPANION and
+         SUPPORT_NETWORK_MONITOR) must name a gate too: a narrowed reach is caused by something
+         whichever flag it is, and any of the sharing flags satisfies validate.ps1 because their
+         rows are identical. The author names the one the capability lives behind; when none
+         does, the set is wrong. Existing offenders are the set in
+         scripts/quality/allfeatures-ungated-shared-row-baseline.txt, kept apart from check 7's so
+         each debt shrinks and reports on its own.
+
     Default mode reports and exits 0 (audit). With -Gate it fails closed (exit 1)
     on a validation error, an unexplained record-count drop, an unknown area, a
-    subject record whose reach is neither its flag's row nor the full dimension, or
-    a baseline record that lost its gate.
+    subject record whose reach is neither its flag's row nor the full dimension,
+    a baseline record that lost its gate, or a new ungated record on a flag's row.
 
     Exit codes (S1070):
       0 - clean (or audit mode).
@@ -75,33 +96,38 @@
           carrying an area outside the schema's enum, a subject record declaring
           a reach the build system does not produce, a record that lost the gate
           the baseline recorded for it, or a wear record whose store-boundary
-          isolation is not declared in the ledger.
+          isolation is not declared in the ledger, or an ungated record that sits on
+          a flag's row and is not in the ungated-single-flag or shared-row baseline.
       2 - the gate itself cannot run (inventory, validate.ps1, the schema's area
           enum, the subject map, the wear boundary map, the wear store-boundary
-          policy or the flavor matrix missing or malformed).
+          policy, the ungated-single-flag or shared-row baseline or the flavor matrix
+          missing or malformed).
           Distinct from 1 on purpose: "the gate is broken" is not "the code is
           bad" - and an unreadable input must not read as a pass, which is the one
           way this check could silently switch itself off. Also: -UpdateBaseline would
-          lower the floor or drop a gate row without -Reason (nothing is written).
+          lower the floor, drop a gate row or add an ungated row to either debt baseline
+          without -Reason (nothing is written).
       4 - Code.Scripts is held by another session, so no baseline was written. The queue
           place is held - wait for the turn in the background and rerun (S2635).
 
 .PARAMETER Gate
     Fail-closed: exit 1 on validation failure, record-count regression, an unknown
-    area, a bad subject reach, a lost record gate, or an undeclared wear store
-    boundary.
+    area, a bad subject reach, a lost record gate, an undeclared wear store
+    boundary, or a new ungated record on a flag's row.
 
 .PARAMETER Quiet
     Print only the expected/actual summary line.
 
 .PARAMETER UpdateBaseline
-    Rewrite both baselines - the record count and the id/gate pairs - then exit 0. Raising
-    the floor and adding gate rows need nothing; lowering the floor or dropping a gate row
-    needs -Reason, and every added or dropped row is printed (S3460).
+    Rewrite the four baselines - the record count, the id/gate pairs, the ungated
+    single-flag ids and the ungated shared-row ids - then exit 0. Raising the floor, adding
+    gate rows and shrinking an ungated set need nothing; lowering the floor, dropping a gate
+    row or adding an ungated id needs -Reason, and every added or dropped row is printed
+    (S3460).
 
 .PARAMETER Reason
-    Why -UpdateBaseline may lower the floor or drop a gate row. Recorded as a header line of
-    the gate baseline.
+    Why -UpdateBaseline may lower the floor, drop a gate row or accept a new ungated id.
+    Recorded as a header line of the gate baseline and of both ungated ones.
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-allfeatures-sync.ps1
@@ -123,15 +149,20 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 . (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
 . (Join-Path $PSScriptRoot 'lib/flavor-matrix.ps1')
+. (Join-Path $PSScriptRoot 'lib/allfeatures-ungated-reach.ps1')
 
 $dataFile = Join-Path $repoRoot 'docs/ALL_FEATURES.jsonl'
 $validate = Join-Path $repoRoot 'scripts/all_features/validate.ps1'
 $schemaFile = Join-Path $repoRoot 'docs/ALL_FEATURES.schema.json'
 $baselineFile = Join-Path $PSScriptRoot 'allfeatures-sync-baseline.txt'
 $gateBaselineFile = Join-Path $PSScriptRoot 'allfeatures-gate-baseline.txt'
+$ungatedBaselineFile = Join-Path $PSScriptRoot 'allfeatures-ungated-single-flag-baseline.txt'
 $subjectMapFile = Join-Path $PSScriptRoot 'allfeatures-subject-reach.json'
 $wearBoundaryMapFile = Join-Path $PSScriptRoot 'allfeatures-wear-boundary-map.json'
 $wearPolicyFile = Join-Path $repoRoot 'wear/config/store-boundary-policy.json'
+$ungatedBaselineHeader = '# S2937: ids of ungated ledger records whose flavors set equals the row of exactly one flag. Debt set, shrink-only: an id leaves as its record gains a gate (-FeatGate / patch.ps1 -Gate). Writer: assert-allfeatures-sync.ps1 -UpdateBaseline.'
+$sharedBaselineFile = Join-Path $PSScriptRoot 'allfeatures-ungated-shared-row-baseline.txt'
+$sharedBaselineHeader = '# S4633: ids of ungated ledger records whose flavors set equals a row several flags share. Debt set, shrink-only: an id leaves as its record gains a gate (-FeatGate / patch.ps1 -Gate) or its set is corrected. Writer: assert-allfeatures-sync.ps1 -UpdateBaseline.'
 
 # S3209. One reader for both callers - -UpdateBaseline writes from it and check 5 judges against
 # it - so the baseline can never be written by a rule the check does not apply. A malformed line is
@@ -150,6 +181,18 @@ function Get-RecordGateMap {
         $map[$id] = $g
     }
     return $map
+}
+
+# S2937. One read of the ledger as objects for both the baseline writer and check 7, for the reason
+# Get-RecordGateMap exists: the two must judge the same records. A malformed line is check 1's.
+function Read-LedgerRecord {
+    param([Parameter(Mandatory)][string]$Path)
+    $records = [System.Collections.Generic.List[object]]::new()
+    foreach ($l in (Get-Content -LiteralPath $Path -Encoding UTF8)) {
+        if ($l.Trim().Length -eq 0) { continue }
+        try { $records.Add(($l | ConvertFrom-Json -ErrorAction Stop)) } catch { continue }
+    }
+    return $records.ToArray()
 }
 
 if (-not (Test-Path $dataFile)) { Write-Error "ALL_FEATURES.jsonl not found at $dataFile" -ErrorAction Continue; Write-Host 'assert-allfeatures-sync: COULD NOT VERIFY (ALL_FEATURES.jsonl not found)'; exit 2 }
@@ -181,18 +224,42 @@ if ($UpdateBaseline) {
         $previousRows = @(Get-Content -LiteralPath $gateBaselineFile -Encoding UTF8 | ForEach-Object { $_.Trim() } |
             Where-Object { $_ -and -not $_.StartsWith('#') } | ForEach-Object { ($_ -split '\s+', 2) -join ' ' })
     }
+    # S2937: the ungated set is a DEBT set, the opposite of the gate rows - adding an id is the harmful
+    # direction and needs -Reason, shrinking it as records gain their gate needs nothing.
+    $baselineMatrix = Get-FlavorMatrixTable
+    if ($baselineMatrix.Flags.Count -eq 0) {
+        Write-Error "docs/FLAVOR_MATRIX.md could not be read ($($baselineMatrix.Path)) - the ungated single-flag baseline cannot be derived. Regenerate it with scripts/docs/generate-flavor-matrix.ps1." -ErrorAction Continue
+        Write-Host 'assert-allfeatures-sync: COULD NOT VERIFY (docs/FLAVOR_MATRIX.md could not be read)'
+        exit 2
+    }
+    $ledgerRecords = @(Read-LedgerRecord -Path $dataFile)
+    $baselineFullSig = Get-FlavorSetSignature -Flavors $baselineMatrix.Flavors
+    $ungatedIds = @(Get-UngatedSingleFlagRecord -Records $ledgerRecords -FlagRows $baselineMatrix.Flags `
+            -FullSignature $baselineFullSig | ForEach-Object { $_.Id } | Sort-Object -Unique)
+    $sharedIds = @(Get-UngatedSharedRowRecord -Records $ledgerRecords -FlagRows $baselineMatrix.Flags `
+            -FullSignature $baselineFullSig | ForEach-Object { $_.Id } | Sort-Object -Unique)
+    $previousUngated = @()
+    if (Test-Path -LiteralPath $ungatedBaselineFile) { $previousUngated = @(Read-UngatedReachBaseline -Path $ungatedBaselineFile) }
+    $previousShared = @()
+    if (Test-Path -LiteralPath $sharedBaselineFile) { $previousShared = @(Read-UngatedReachBaseline -Path $sharedBaselineFile) }
     $floorAllowed = Test-BaselineFloorWrite -Gate 'assert-allfeatures-sync' -Previous $previousCount -Current $count -Reason $Reason
     $rowsAllowed = Test-BaselineWrite -Gate 'assert-allfeatures-sync' -Previous $previousRows -Current $gateRows `
         -Reason $Reason -Guard Removals
-    if (-not ($floorAllowed -and $rowsAllowed)) { Write-Host 'assert-allfeatures-sync: COULD NOT VERIFY (the baseline write was refused)'; exit 2 }
+    $ungatedAllowed = Test-BaselineWrite -Gate 'assert-allfeatures-sync' -Previous $previousUngated -Current $ungatedIds `
+        -Reason $Reason -Guard Additions
+    $sharedAllowed = Test-BaselineWrite -Gate 'assert-allfeatures-sync' -Previous $previousShared -Current $sharedIds `
+        -Reason $Reason -Guard Additions
+    if (-not ($floorAllowed -and $rowsAllowed -and $ungatedAllowed -and $sharedAllowed)) { Write-Host 'assert-allfeatures-sync: COULD NOT VERIFY (the baseline write was refused)'; exit 2 }
     $scope = $null
     try {
         $scope = Enter-CodeLockOrExit -Path $baselineFile -Reason 'assert-allfeatures-sync.ps1 -UpdateBaseline'
         Set-Content -LiteralPath $baselineFile -Value "$count" -Encoding utf8 -NoNewline
         Set-Content -LiteralPath $gateBaselineFile -Value (@(Get-BaselineReasonLine -Reason $Reason) + $gateRows) -Encoding utf8
+        Set-Content -LiteralPath $ungatedBaselineFile -Value (@($ungatedBaselineHeader) + @(Get-BaselineReasonLine -Reason $Reason) + $ungatedIds) -Encoding utf8
+        Set-Content -LiteralPath $sharedBaselineFile -Value (@($sharedBaselineHeader) + @(Get-BaselineReasonLine -Reason $Reason) + $sharedIds) -Encoding utf8
     }
     finally { Exit-CodeLockScope -Scope $scope }
-    Write-Host "assert-allfeatures-sync: baselines updated -> count $count, gated records $($gateRows.Count)"
+    Write-Host "assert-allfeatures-sync: baselines updated -> count $count, gated records $($gateRows.Count), ungated single-flag records $($ungatedIds.Count), ungated shared-row records $($sharedIds.Count)"
     Write-Host 'assert-allfeatures-sync: PASS (baselines updated)'
     exit 0
 }
@@ -375,6 +442,42 @@ foreach ($entry in @($wearMap.noLegalOnly)) {
 }
 $boundaryOk = ($badBoundary.Count -eq 0)
 
+# 7. Ungated single-flag reach (S2937). The baseline is the debt the rule found when it was armed; an
+# id outside it is a record written after the channel (-FeatGate) existed, so it has no excuse.
+if (-not (Test-Path -LiteralPath $ungatedBaselineFile)) {
+    Write-Error "allfeatures-ungated-single-flag-baseline.txt not found at $ungatedBaselineFile" -ErrorAction Continue; Write-Host 'assert-allfeatures-sync: COULD NOT VERIFY (allfeatures-ungated-single-flag-baseline.txt not found)'; exit 2
+}
+if ($matrix.Flags.Count -eq 0) {
+    Write-Error "docs/FLAVOR_MATRIX.md could not be read ($($matrix.Path)) - the ungated single-flag check cannot run. Regenerate it with scripts/docs/generate-flavor-matrix.ps1." -ErrorAction Continue
+    Write-Host 'assert-allfeatures-sync: COULD NOT VERIFY (docs/FLAVOR_MATRIX.md could not be read)'
+    exit 2
+}
+$ungatedExcused = [System.Collections.Generic.HashSet[string]]::new([string[]]@(Read-UngatedReachBaseline -Path $ungatedBaselineFile), [System.StringComparer]::Ordinal)
+$ungatedFound = @(Get-UngatedSingleFlagRecord -Records @(Read-LedgerRecord -Path $dataFile) -FlagRows $matrix.Flags -FullSignature $fullDimensionSig)
+$newUngated = [System.Collections.Generic.List[string]]::new()
+$ungatedStillOffending = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+foreach ($u in $ungatedFound) {
+    [void]$ungatedStillOffending.Add($u.Id)
+    if (-not $ungatedExcused.Contains($u.Id)) { $newUngated.Add("$($u.Id) [$($u.Signature)] - the row of $($u.Flag)") }
+}
+$staleUngated = @($ungatedExcused | Where-Object { -not $ungatedStillOffending.Contains($_) } | Sort-Object)
+$ungatedOk = ($newUngated.Count -eq 0)
+
+# 8. Ungated shared-row reach (S4633). Same shape as check 7, its own debt set.
+if (-not (Test-Path -LiteralPath $sharedBaselineFile)) {
+    Write-Error "allfeatures-ungated-shared-row-baseline.txt not found at $sharedBaselineFile" -ErrorAction Continue; Write-Host 'assert-allfeatures-sync: COULD NOT VERIFY (allfeatures-ungated-shared-row-baseline.txt not found)'; exit 2
+}
+$sharedExcused = [System.Collections.Generic.HashSet[string]]::new([string[]]@(Read-UngatedReachBaseline -Path $sharedBaselineFile), [System.StringComparer]::Ordinal)
+$sharedFound = @(Get-UngatedSharedRowRecord -Records @(Read-LedgerRecord -Path $dataFile) -FlagRows $matrix.Flags -FullSignature $fullDimensionSig)
+$newShared = [System.Collections.Generic.List[string]]::new()
+$sharedStillOffending = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+foreach ($u in $sharedFound) {
+    [void]$sharedStillOffending.Add($u.Id)
+    if (-not $sharedExcused.Contains($u.Id)) { $newShared.Add("$($u.Id) [$($u.Signature)] - the row of $($u.Flags -join ', ')") }
+}
+$staleShared = @($sharedExcused | Where-Object { -not $sharedStillOffending.Contains($_) } | Sort-Object)
+$sharedOk = ($newShared.Count -eq 0)
+
 if (-not $Quiet) {
     if (-not $schemaOk) { Write-Host "  ALL_FEATURES schema validation FAILED (see validate.ps1 output above)" -ForegroundColor Red }
     if ($regressed) { Write-Host "  ALL_FEATURES record count dropped: baseline $baseline -> current $count (run -UpdateBaseline if intentional)" -ForegroundColor Red }
@@ -404,14 +507,37 @@ if (-not $boundaryOk) {
     Write-Host "  A capability that came BACK to the store watch artifact leaves scripts\quality\allfeatures-wear-boundary-map.json instead." -ForegroundColor Yellow
 }
 
-Write-Host ("assert-allfeatures-sync: expected: schema ok, count >= {0}, every area in the {1}-value vocabulary, every subject record at its flag's reach, all {2} baseline gates retained, all {3} wear boundary records isolated | actual: schema {4}, count {5}, areas {6}, reach {7}, gates {8}, wear boundary {9}" -f `
+if (-not $ungatedOk) {
+    Write-Host "  ALL_FEATURES record sits on one flag's row without naming it ($($newUngated.Count) record(s)):" -ForegroundColor Red
+    foreach ($b in $newUngated) { Write-Host "    $b" -ForegroundColor Red }
+    Write-Host "  Name the flag the capability lives behind: close-and-log.ps1 -FeatGate <FLAG> (or scripts\all_features\patch.ps1 -Id <id> -Gate <FLAG> after the fact)." -ForegroundColor Yellow
+    Write-Host "  If no single flag dictates the reach, the set is wrong rather than the gate: scripts\all_features\patch.ps1 -Id <id> -SetFlavors, or a NAME+NAME conjunction that produces the same set." -ForegroundColor Yellow
+}
+if ($staleUngated.Count -gt 0 -and -not $Quiet) {
+    Write-Host "  ALL_FEATURES ungated single-flag baseline holds $($staleUngated.Count) id(s) that no longer offend (gated, retyped or removed) - shrink it with -UpdateBaseline." -ForegroundColor Yellow
+}
+if (-not $sharedOk) {
+    Write-Host "  ALL_FEATURES record sits on a row several flags share without naming a gate ($($newShared.Count) record(s)):" -ForegroundColor Red
+    foreach ($b in $newShared) { Write-Host "    $b" -ForegroundColor Red }
+    Write-Host "  Name the one the capability lives behind - any of them satisfies validate.ps1: close-and-log.ps1 -FeatGate <FLAG> (or scripts\all_features\patch.ps1 -Id <id> -Gate <FLAG> after the fact)." -ForegroundColor Yellow
+    Write-Host "  If none of them dictates the reach, the set is wrong rather than the gate: scripts\all_features\patch.ps1 -Id <id> -SetFlavors." -ForegroundColor Yellow
+}
+if ($staleShared.Count -gt 0 -and -not $Quiet) {
+    Write-Host "  ALL_FEATURES ungated shared-row baseline holds $($staleShared.Count) id(s) that no longer offend (gated, retyped or removed) - shrink it with -UpdateBaseline." -ForegroundColor Yellow
+}
+
+Write-Host ("assert-allfeatures-sync: expected: schema ok, count >= {0}, every area in the {1}-value vocabulary, every subject record at its flag's reach, all {2} baseline gates retained, all {3} wear boundary records isolated, no ungated record on one flag's row outside the {10}-id baseline, no ungated record on a shared row outside the {12}-id baseline | actual: schema {4}, count {5}, areas {6}, reach {7}, gates {8}, wear boundary {9}, ungated single-flag {11}, ungated shared-row {13}" -f `
     $baseline, $allowedAreas.Count, $gateBaselineRows, $boundaryIdCount, $(if ($schemaOk) { 'ok' } else { 'FAIL' }), $count, `
     $(if ($areasOk) { 'ok' } else { "FAIL ($($badAreas.Count))" }), `
     $(if ($reachOk) { 'ok' } else { "FAIL ($($badReach.Count))" }), `
     $(if ($gatesOk) { 'ok' } else { "FAIL ($($lostGates.Count))" }), `
-    $(if ($boundaryOk) { 'ok' } else { "FAIL ($($badBoundary.Count))" }))
+    $(if ($boundaryOk) { 'ok' } else { "FAIL ($($badBoundary.Count))" }), `
+    $ungatedExcused.Count, `
+    $(if ($ungatedOk) { 'ok' } else { "FAIL ($($newUngated.Count))" }), `
+    $sharedExcused.Count, `
+    $(if ($sharedOk) { 'ok' } else { "FAIL ($($newShared.Count))" }))
 
-if ($Gate -and (-not $schemaOk -or $regressed -or -not $areasOk -or -not $reachOk -or -not $gatesOk -or -not $boundaryOk)) {
+if ($Gate -and (-not $schemaOk -or $regressed -or -not $areasOk -or -not $reachOk -or -not $gatesOk -or -not $boundaryOk -or -not $ungatedOk -or -not $sharedOk)) {
     # Named rather than a bare `exit 1`: this script runs as a hooks.postClose step, where the
     # caller reports the step as FAILED and the detail above may be many lines up the transcript.
     $failed = @()
@@ -421,6 +547,8 @@ if ($Gate -and (-not $schemaOk -or $regressed -or -not $areasOk -or -not $reachO
     if (-not $reachOk) { $failed += "subject reach ($($badReach.Count) record(s))" }
     if (-not $gatesOk) { $failed += "gate retention ($($lostGates.Count) record(s))" }
     if (-not $boundaryOk) { $failed += "wear store boundary ($($badBoundary.Count) finding(s))" }
+    if (-not $ungatedOk) { $failed += "ungated single-flag reach ($($newUngated.Count) record(s))" }
+    if (-not $sharedOk) { $failed += "ungated shared-row reach ($($newShared.Count) record(s))" }
     Write-Error "assert-allfeatures-sync: FAIL - $($failed -join '; '). The per-check detail is printed above." -ErrorAction Continue
     Write-Host "assert-allfeatures-sync: FAIL ($($failed -join '; '))"
     exit 1

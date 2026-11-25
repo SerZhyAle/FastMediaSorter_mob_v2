@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogDataTransferBinding
 import com.sza.fastmediasorter.domain.model.transfer.TransferDataKind
 import com.sza.fastmediasorter.domain.model.transfer.TransferMedium
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.ui.settings.helpers.DataTransferMenuManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.utils.getEnumByName
@@ -92,6 +93,11 @@ class DataTransferDialogFragment : DialogFragment() {
         applyAvailability(bound)
         selectedKind?.let(::openActions)
         collectOnLifecycle(viewModel.state) { state -> render(bound, state) }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        dialog?.let { DialogHelpEntryManager.attach(it, DialogHelpEntryManager.surfaceIdOf(it, null)) }
     }
 
     override fun onDestroyView() {

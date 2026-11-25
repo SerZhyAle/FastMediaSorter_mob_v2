@@ -23,4 +23,5 @@
     <string name="s0157_dismissed_label">غير مصرح به (لقد رفضت)</string>
     <string name="s0157_last_used_never">لم يتم استخدامه بعد</string>
     <string name="s0157_last_used_fmt">آخر استخدام %1$s</string>
+    <string name="s4581_pick_account_add_new">+ إضافة حساب</string>
 </resources>

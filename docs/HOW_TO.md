@@ -3,7 +3,7 @@ layout: doc
 title: "📖 How-To Guides"
 permalink: /docs/HOW_TO.html
 ---
-<sub class="doc-stamp">26.11.12 01:50</sub>
+<sub class="doc-stamp">26.11.25 01:42</sub>
 
 # 📖 How-To Guides
 
@@ -100,12 +100,15 @@ If a feature is marked with "✗", choose the **Standard** or **XR / noLegal** b
 40. [Receive Files Shared from Another App](#how-to-receive-files-shared-from-another-app)
 41. [Use the Built-In Programs](#how-to-use-the-built-in-programs)
 42. [Encrypt a File with FileDO](#how-to-encrypt-a-file-with-filedo)
+43. [Use External Control from Your Other Devices](#how-to-use-external-control-from-your-other-devices)
+44. [Send Feedback and Attach Logs](#how-to-send-feedback-and-attach-logs)
+45. [Use the Tourist Gyroscope Tile](#how-to-use-the-tourist-gyroscope-tile)
 
 ---
 
 ## Scenario Groups
 
-These sections are intentionally more varied than the core reference blocks below. Each scenario mixes a fast path with context, trade-offs, and the situations where FastMediaSorter is especially strong.
+These sections are intentionally more varied than the core reference blocks below. Each scenario mixes a fast path with context, trade-offs, and the situations where Fast Media Sorter & Organizer is especially strong.
 
 > **⭐ Featured: bring your PC's folders to your phone with one scan.** Run the free [Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) companion on your PC, pick the folders with your videos, music, documents, or photos, and it shows a code on screen. On the phone, tap **Add**, choose **Import by barcode**, point the camera at the code - the PC folders are connected instantly, with no address, port, or password typing. Full walkthrough: [Open PC Folders by Scanning a Code](howto/scenario-companion-share.md) &bull; quick recipe: [Import a Windows Companion Share](#how-to-import-a-windows-companion-share).
 
@@ -201,7 +204,7 @@ These sections are intentionally more varied than the core reference blocks belo
 1. Open the main window dropdown and tap **Streams**, or go to **Settings > Media > Streams** and enable the toggle if it is off.
 2. Tap **⋮** at the end of the toolbar, choose **Add stream**, and paste any radio station URL (http:// or https://, .m3u8, rtsp://).
 3. Tap the station row - audio starts in the sticky bottom mini-control. The list stays scrollable.
-4. For a larger catalog, tap **Import** and enter a remote `.m3u` URL, or download the curated FastMediaSorter catalog from the **Extensions** screen.
+4. For a larger catalog, tap **Import** and enter a remote `.m3u` URL, or download the curated Fast Media Sorter & Organizer catalog from the **Extensions** screen.
 
 **Scenario Walkthrough**
 
@@ -236,7 +239,7 @@ These sections are intentionally more varied than the core reference blocks belo
 
 1. Create or choose one local folder for the trip.
 2. Copy the media, PDFs, EPUBs, or notes you need into it before leaving Wi-Fi.
-3. Open that folder once in FastMediaSorter so thumbnails and last positions are ready.
+3. Open that folder once in Fast Media Sorter & Organizer so thumbnails and last positions are ready.
 4. Use the folder offline during the trip.
 
 **Scenario Walkthrough**
@@ -320,7 +323,7 @@ These sections are intentionally more varied than the core reference blocks belo
 
 **Scenario Walkthrough**
 
-- Use this when FastMediaSorter is the best browser for remote storage, but another app is the best editor or viewer for one file type.
+- Use this when Fast Media Sorter & Organizer is the best browser for remote storage, but another app is the best editor or viewer for one file type.
 - Typical handoff cases are office documents, advanced PDFs, codec-heavy videos, and niche media formats.
 - The downloaded copy remains in `Downloads`, so you can reopen it later even if the remote source goes offline.
 
@@ -454,7 +457,7 @@ These sections are intentionally more varied than the core reference blocks belo
 2. Enter the remote .m3u address. Tap **Import**.
 3. All stations from the file appear in the list.
 
-**Download the curated FastMediaSorter catalog:**
+**Download the curated Fast Media Sorter & Organizer catalog:**
 
 1. Open **Settings > Extensions** (or the Welcome onboarding Streams row).
 2. Tap **Download** next to the Streams catalog entry.
@@ -1137,7 +1140,7 @@ Automatically translate text from images, PDF, and text files: **Tesseract** rea
 **Quick Path**
 
 1. Go to your Android Home Screen, long-press, and select **Widgets**.
-2. Drag a **FastMediaSorter** widget (like 1×1 Quick Voice Recorder or Camera OCR) to your screen.
+2. Drag a **Fast Media Sorter & Organizer** widget (like 1×1 Quick Voice Recorder or Camera OCR) to your screen.
 3. Configure the destination folder and capture settings, then tap **Save**.
 4. Use the widget to execute tasks in one tap directly from your Home Screen.
 
@@ -1160,12 +1163,12 @@ Automatically translate text from images, PDF, and text files: **Tesseract** rea
 
 ## How to Use the App as Your Home Screen
 
-FastMediaSorter can take over your device's home screen and show its own desktop instead - your folders, a clock, the weather, your apps, and a taskbar along one edge. If you have ever used a Windows desktop it will feel familiar: things stay where you put them, and a Start button opens the menu. This is called launcher mode, and it ships in the **Standard** and **noLegal** builds only.
+Fast Media Sorter & Organizer can take over your device's home screen and show its own desktop instead - your folders, a clock, the weather, your apps, and a taskbar along one edge. If you have ever used a Windows desktop it will feel familiar: things stay where you put them, and a Start button opens the menu. This is called launcher mode, and it ships in the **Standard** and **noLegal** builds only.
 
 **Turning it on:**
 
 1. Open **Settings → General** and turn on **Make this app the home screen**.
-2. Android asks you to confirm. On Android 10 and newer it is a single question - "Allow FastMediaSorter to be your Home app?" - so just allow it. On older versions the classic choice appears the next time you press Home: pick FastMediaSorter and tap **Always**, or **Just once** if you only want to try it for now.
+2. Android asks you to confirm. On Android 10 and newer it is a single question - "Allow Fast Media Sorter & Organizer to be your Home app?" - so just allow it. On older versions the classic choice appears the next time you press Home: pick Fast Media Sorter & Organizer and tap **Always**, or **Just once** if you only want to try it for now.
 3. Press Home. The desktop appears, already filled with about a dozen useful things - a clock, the weather, your folders, a search box - so day one is not an empty grid.
 
 On a brand-new install there is a shortcut: tick **Use as home screen** on the first welcome page. That does not interrupt the setup with a system dialog - Android's confirmation comes up the first time you open **Settings → General** afterwards.
@@ -1184,7 +1187,7 @@ On a brand-new install there is a shortcut: tick **Use as home screen** on the f
 
 - The taskbar sits along the bottom edge and holds the Start button, the apps you used recently, the ones you pinned, and a small tray with the clock, battery, network and SIM signal.
 - Prefer it along the top? **Settings → General → System launcher settings → Taskbar → Taskbar position** switches between **Bottom** and **Top**. The Start menu follows the bar and drops down from above when the bar is up there.
-- The Start button opens the menu: open FastMediaSorter, your resources, add a resource, Android settings, app settings, launcher settings, edit desktop contents, and at the end restart, power off and **Exit launcher mode**. Restart and power off only work if your device lets an ordinary app do that - on most phones they will simply do nothing.
+- The Start button opens the menu: open Fast Media Sorter & Organizer, your resources, add a resource, Android settings, app settings, launcher settings, edit desktop contents, and at the end restart, power off and **Exit launcher mode**. Restart and power off only work if your device lets an ordinary app do that - on most phones they will simply do nothing.
 
 **Your apps:** the app grid groups apps into sections, each with a small header. Tap a header to collapse a section you rarely open; collapsed headers tuck in next to each other, so the desktop gets shorter instead of leaving gaps. A fresh desktop splits the apps it seeds in two: a **Google** section for the Google apps you already have installed, and an **Apps** section for your own - messengers, games and whatever else you put on the device. No app lands in both. Long-press any app in the list for **Put on desktop** and **Pin to taskbar**.
 
@@ -1208,13 +1211,13 @@ On a brand-new install there is a shortcut: tick **Use as home screen** on the f
 
 Your desktop layout is kept either way, so switching the mode back on brings it back exactly as you left it.
 
-**One honest warning.** A few devices refuse to remember the choice. Some cheap aftermarket car radios and other built-in Android boxes force their factory home screen back every time they start up, whatever you picked. That is the device's own firmware overriding you, not a fault in the app, and no app can work around it. If yours behaves that way, pick FastMediaSorter as the home app again after a restart - and if it still will not stick, that device simply does not allow it.
+**One honest warning.** A few devices refuse to remember the choice. Some cheap aftermarket car radios and other built-in Android boxes force their factory home screen back every time they start up, whatever you picked. That is the device's own firmware overriding you, not a fault in the app, and no app can work around it. If yours behaves that way, pick Fast Media Sorter & Organizer as the home app again after a restart - and if it still will not stick, that device simply does not allow it.
 
 ---
 
 ## How to Use FMS on Android TV Box
 
-FastMediaSorter runs on any Android TV box or set-top box (Xiaomi Mi Box, Nvidia Shield, Amazon Fire TV, generic Android boxes). No touchscreen required - the app is fully operable via TV remote or Bluetooth keyboard.
+Fast Media Sorter & Organizer runs on any Android TV box or set-top box (Xiaomi Mi Box, Nvidia Shield, Amazon Fire TV, generic Android boxes). No touchscreen required - the app is fully operable via TV remote or Bluetooth keyboard.
 
 **What you need:**
 
@@ -1420,11 +1423,11 @@ New captures use the `prefix_yyMMdd_HHmmss` pattern. The stable prefixes are `ph
 
 ## How to Receive Files Shared from Another App
 
-Any app's share sheet can send files to FastMediaSorter, which then copies them where you want.
+Any app's share sheet can send files to Fast Media Sorter & Organizer, which then copies them where you want.
 
 **Steps:**
 
-1. In the other app, share the file or files and pick **FastMediaSorter**.
+1. In the other app, share the file or files and pick **Fast Media Sorter & Organizer**.
 2. Choose the destination folder in the receive screen.
 3. Start the copy.
 
@@ -1472,7 +1475,7 @@ In the order they appear:
 - **Front flashlight** - turns the screen itself into a lamp: it opens white at full window brightness, a vertical swipe changes the brightness, a small top-left button picks and remembers another colour, and a single tap closes it. Only the window brightness is touched, so your device setting is unchanged afterwards.
 - **Water flashlight** - the same light for wet hands. It lights the camera flash and the screen together, then locks the screen: the time and a short reminder are all you see, and touching the glass does nothing at all - a volume button closes it. The system bars go too, so a wet hand does not meet a navigation button; a deliberate swipe can still bring them back. Made for rain and for the shower - the two places where the glass reacts to water rather than to you. Leaving through a system gesture turns the light off as well, so it never stays burning in a pocket. On the watch there is no flash, so the display alone is the light. It does not replace the water-lock mode built into a watch or a phone; no app can switch that one on.
 - **Mirror** - turns the phone into a lit mirror: the front camera fills the screen inside a bright white field that lights your face, and the picture is flipped the way a real mirror shows it, with a corner button to turn the light off without leaving the screen. Zoom presets - x1, x2, x3, x5 - sit in the lower left and open on x3. A photo button and a video button save straight into the same folder Capture uses, video with sound. The zoom, the flip and the backlight state are all remembered between runs. Only the window brightness goes up, never your device's own setting, so the phone is back to normal the moment you leave. On by default on any device with a front camera, as long as camera capture itself is not switched off in Settings.
-- **Storage filler** - fills the free space of a chosen folder on built-in storage or a memory card with temporary files, keeps the part reserved for the system free, and deletes the files when it stops; **Delete remaining files** clears what a stop or a removed card left behind. Its row in the additional-programs card of the Operations settings switches the program on or off; while files of an interrupted run remain, it stays in the list.
+- **Storage filler** - fills the free space of a chosen folder on built-in storage or a memory card with temporary files, keeps the part reserved for the system free (1 GB by default; a slider above **Start filling** lowers it down to 10 MB for the next run only, and the start confirmation names it), and deletes the files when it stops; **Delete remaining files** clears what a stop or a removed card left behind. Its row in the additional-programs card of the Operations settings switches the program on or off; while files of an interrupted run remain, it stays in the list.
 
 The panel and the launcher additionally carry direct camera shortcuts - take a photo and send it on, take a photo and edit it, take a photo and translate it, start a video recording, and open the camera folder.
 
@@ -1485,6 +1488,75 @@ The panel and the launcher additionally carry direct camera shortcuts - take a p
 
 - Do not expect the water flashlight to survive a swipe home - a system navigation gesture still leaves it, and the light goes out with it.
 - Do not expect every program in every build - the list above is the full set, and a build without the underlying capability simply does not show that entry.
+
+---
+
+## How to Use External Control from Your Other Devices
+
+**Available in:** every edition except Lite. It also needs a connected exchange server, because that is the road the commands travel.
+
+External control lets another of your own devices - signed in to the same account - ask this phone to do something. It is **off until you turn it on**, and you decide which device may do what.
+
+**Steps:**
+
+1. Connect your exchange server and sign in to your account on this phone ([Adding your exchange server in My devices](media-exchange-portal/my-devices.html)). Without a server, the External control screen says that no connected exchange server carries commands and offers **Open exchange settings**.
+2. Open **Settings → General → Access from anywhere**. In the **External control** group, turn on **Listen to commands from my other devices**. The External control screen opens at the list of devices. You can also open it any time with **Open External control** - even while listening is off.
+3. Under **Who can control this device**, find your other device and switch on **Allow this device**. If it is not in the list yet, sign in on it with the same account.
+4. A new device gets the safe commands only. For every other kind of command listed - the ones that read your data, change it or send it off this phone - choose **No access**, **Ask each time** or **Always allow**. **Always allow** asks you to confirm first.
+5. When a device asks for something that needs your answer, the request appears as a notification and under **Waiting for your answer** on the screen. Tap **Allow** or **Decline** in either place and the other one goes away. No answer within 60 seconds counts as a no, and the command does not run.
+6. Look back at **Recent requests**; **Open the full log** shows every saved request, newest first.
+
+**Tips:**
+
+- **Commands this program accepts** lists what another device can ask for, so you can read it before you allow anything.
+- Switch listening off and the phone stops accepting commands at once.
+- No command from another device can turn listening on or off or change what is allowed. Only you can, on this phone.
+- The log stays on this phone.
+
+---
+
+## How to Send Feedback and Attach Logs
+
+**Available in:** all editions. The program is off after installation.
+
+Found a problem or have an idea? **Send feedback** puts your words, pictures, a voice note and the app's own logs into one form and sends it on.
+
+**Steps:**
+
+1. Open **Settings → Management**, find **Additional programs and scenarios** and turn on **Send feedback**. It joins the programs menu.
+2. Open **Send feedback** from the programs menu and write what happened or what you would change.
+3. Add what helps: a picture from the clipboard, the gallery or the camera, or a voice note.
+4. To include the app's logs, tap **Attach the app's diagnostic logs**. A zip archive joins the attachments like any other file, and you can remove it with its own remove button. If there are no logs yet, the app says "There are no logs to attach yet" and attaches nothing.
+5. Tap **Send**. The feedback goes out through **Send to..**. If you chose a **Folder on the computer**, it also starts uploading there right away, without waiting for a background pass.
+
+**Tips:**
+
+- The line under **Folder on the computer** tells you where the feedback is: queued, in the folder, turned into a task, or refused by the computer, with the reason.
+- Offline? The feedback waits in the queue and goes to the folder as soon as the network is back.
+- The folder can be reached through your exchange server or any writable network folder. With **None**, the feedback goes through **Send to..** only.
+- The log archive is the same one the log export in Settings makes: the app hides the private values it knows about and caps the size of every file. You still see it in the attachment list before you send, and you decide whether it stays.
+
+---
+
+## How to Use the Tourist Gyroscope Tile
+
+**Available in:** all editions, on phones that have a rotation sensor. The watch is not part of it.
+
+The **Tourist** dashboard has a **Gyroscope** tile. On the large card it draws a phone-shaped 3D box that turns as you turn the phone, with the turning speed beside it.
+
+**Steps:**
+
+1. Open **Settings → Management**, find **Additional programs and scenarios** and turn on **Tourist**.
+2. Open **Tourist** from the programs menu.
+3. Tap the **Gyroscope** tile in the grid. Before you tap, it reads "Tap to see the phone turn in 3D". The tile moves up to the large card.
+4. Turn the phone. The box turns with it in real time, and the line shows the turning speed in degrees per second.
+
+**Tips:**
+
+- No Gyroscope tile? The phone has no rotation sensor, and Tourist leaves out a tile it cannot fill instead of showing it empty.
+- The sensors run only while the Gyroscope tile is on the large card and Tourist is open. Pick another tile or leave the screen and they stop.
+- No extra permission is needed.
+- A phone with a rotation sensor but no gyroscope still turns the box, just without a speed.
 
 ---
 

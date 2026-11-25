@@ -130,8 +130,8 @@ class BrowseFileListManager(
         val directories = files.filter { it.isDirectory }
         val regularFiles = files.filter { !it.isDirectory }
 
-        // Directories are always sorted alphabetically (ascending)
-        val sortedDirectories = directories.sortedBy { it.name.lowercase() }
+        // MV-1.1: directories always sort by name ascending, collated like file names.
+        val sortedDirectories = directories.sortedWith(compareBy(nameCollator) { it.name })
 
         // Regular files are sorted according to sortMode
         val sortedFiles = when (sortMode) {

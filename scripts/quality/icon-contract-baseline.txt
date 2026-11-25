@@ -32,13 +32,11 @@ label-glyph|app_v2|app_v2/src/main/java/com/sza/fastmediasorter/core/panel/OsSho
 label-glyph|app_v2|app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseButtonSetupHelper.kt|ic_edit|rename
 label-glyph|app_v2|app_v2/src/main/res/layout-land/activity_browse.xml|ic_play|slideshow
 label-glyph|app_v2|app_v2/src/main/res/layout-land/activity_main.xml|ic_star_filled|tab_favorites
-label-glyph|app_v2|app_v2/src/main/res/layout-land/dialog_folder_selection.xml|ic_resource_local|folder_download
 label-glyph|app_v2|app_v2/src/main/res/layout-land/fragment_network_monitor_history.xml|ic_delete_sweep|network_monitor_history_clear
 label-glyph|app_v2|app_v2/src/main/res/layout-w600dp/activity_browse.xml|ic_play|slideshow
 label-glyph|app_v2|app_v2/src/main/res/layout-w600dp/activity_main.xml|ic_star_filled|tab_favorites
 label-glyph|app_v2|app_v2/src/main/res/layout/activity_main.xml|ic_star_filled|tab_favorites
 label-glyph|app_v2|app_v2/src/main/res/layout/activity_mirror.xml|ic_camera_capture|mirror_photo_button
-label-glyph|app_v2|app_v2/src/main/res/layout/dialog_folder_selection.xml|ic_resource_local|folder_download
 label-glyph|app_v2|app_v2/src/main/res/layout/fragment_network_monitor_history.xml|ic_delete_sweep|network_monitor_history_clear
 label-glyph|app_v2|app_v2/src/main/res/layout/item_folder.xml|ic_resource_local|folder
 label-glyph|app_v2|app_v2/src/main/res/layout/widget_capture_ocr_panel.xml|ic_image|widget_camera_photos_label

@@ -7,7 +7,7 @@ permalink: /docs/ICON_LEGEND.html
 
 # Icon legend
 
-These are the real interface icons from FastMediaSorter, each shown next to the exact label it displays on screen.
+These are the real interface icons from Fast Media Sorter & Organizer, each shown next to the exact label it displays on screen.
 
 ## Program navigation
 
@@ -42,6 +42,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_clipboard_get_server.svg" alt="ic_clipboard_get_server" width="24" height="24"> | Get the clipboard from the server |
 | <img src="icons/svg/ic_clipboard_send_server.svg" alt="ic_clipboard_send_server" width="24" height="24"> | Send the clipboard to the server |
 | <img src="icons/svg/ic_resource_favorites.svg" alt="ic_resource_favorites" width="24" height="24"> | Favorites |
+| <img src="icons/svg/ic_send_plane.svg" alt="ic_send_plane" width="24" height="24"> | Send feedback |
 | <img src="icons/svg/ic_front_flashlight.svg" alt="ic_front_flashlight" width="24" height="24"> | Front flashlight |
 | <img src="icons/svg/ic_game_kryvavitsa.svg" alt="ic_game_kryvavitsa" width="24" height="24"> | Mini-game |
 | <img src="icons/svg/ic_cloud_download.svg" alt="ic_cloud_download" width="24" height="24"> | Download by link |
@@ -49,6 +50,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_mirror.svg" alt="ic_mirror" width="24" height="24"> | Mirror |
 | <img src="icons/svg/ic_network_monitor.svg" alt="ic_network_monitor" width="24" height="24"> | Network Monitor |
 | <img src="icons/svg/ic_nfc.svg" alt="ic_nfc" width="24" height="24"> | NFC |
+| <img src="icons/svg/ic_send_note.svg" alt="ic_send_note" width="24" height="24"> | Notes |
 | <img src="icons/svg/ic_camera_ocr_translate.svg" alt="ic_camera_ocr_translate" width="24" height="24"> | Camera OCR translation |
 | <img src="icons/svg/ic_camera_flash_on.svg" alt="ic_camera_flash_on" width="24" height="24"> | Camera flashlight |
 | <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Quick capture |
@@ -91,12 +93,18 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_behavior.svg" alt="ic_behavior" width="24" height="24"> | App behavior and operating rules |
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Broadcast |
 | <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Photography |
+| <img src="icons/svg/ic_copy.svg" alt="ic_copy" width="24" height="24"> | Copy, move and overwrite behavior |
+| <img src="icons/svg/ic_developer_options.svg" alt="ic_developer_options" width="24" height="24"> | Debug logs and test tools |
 | <img src="icons/svg/ic_app_logo.svg" alt="ic_app_logo" width="24" height="24"> | Quick Sort destinations |
 | <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Text, PDF, EPUB and Office viewing |
 | <img src="icons/svg/ic_folder.svg" alt="ic_folder" width="24" height="24"> | File browser interface |
+| <img src="icons/svg/ic_rename.svg" alt="ic_rename" width="24" height="24"> | Deletion and renaming in player |
 | <img src="icons/svg/ic_image.svg" alt="ic_image" width="24" height="24"> | Images, GIFs and slideshow |
+| <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | General interface settings |
+| <img src="icons/svg/ic_view_list.svg" alt="ic_view_list" width="24" height="24"> | Resource list interface |
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Voice recorder |
 | <img src="icons/svg/ic_translate.svg" alt="ic_translate" width="24" height="24"> | Translation, digitization (OCR) |
+| <img src="icons/svg/ic_play.svg" alt="ic_play" width="24" height="24"> | Player interface and commands |
 | <img src="icons/svg/ic_wifi.svg" alt="ic_wifi" width="24" height="24"> | Remote resources (SMB/(S)FTP/Cloud) |
 | <img src="icons/svg/ic_delete.svg" alt="ic_delete" width="24" height="24"> | File deletion and trash |
 | <img src="icons/svg/ic_schedule.svg" alt="ic_schedule" width="24" height="24"> | Scheduled operations by schedule |
@@ -105,9 +113,11 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_share.svg" alt="ic_share" width="24" height="24"> | Send file to.. |
 | <img src="icons/svg/ic_exchange_mono.svg" alt="ic_exchange_mono" width="24" height="24"> | Access from anywhere |
 | <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | Share from phone |
+| <img src="icons/svg/ic_sort.svg" alt="ic_sort" width="24" height="24"> | Sorting, slideshow and playback order |
 | <img src="icons/svg/ic_stream.svg" alt="ic_stream" width="24" height="24"> | Streams |
 | <img src="icons/svg/ic_refresh.svg" alt="ic_refresh" width="24" height="24"> | Background sync, network and cache |
 | <img src="icons/svg/ic_android.svg" alt="ic_android" width="24" height="24"> | Operating system interaction |
+| <img src="icons/svg/ic_gesture.svg" alt="ic_gesture" width="24" height="24"> | Touch zones and on-screen hints |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Video and player settings |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Video recording |
 | <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Wear Companion |
@@ -116,46 +126,99 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 
 | Icon | Meaning |
 |---|---|
+| <img src="icons/svg/ic_cloud_download.svg" alt="ic_cloud_download" width="24" height="24"> | OCR & translation downloads |
 | <img src="icons/svg/ic_delete.svg" alt="ic_delete" width="24" height="24"> | Allow delete |
 | <img src="icons/svg/ic_rename.svg" alt="ic_rename" width="24" height="24"> | Allow rename |
+| <img src="icons/svg/ic_open_in_browse.svg" alt="ic_open_in_browse" width="24" height="24"> | Allow new windows |
+| <img src="icons/svg/ic_graphic_eq.svg" alt="ic_graphic_eq" width="24" height="24"> | Visualizer when no cover art |
+| <img src="icons/svg/ic_accessibility.svg" alt="ic_accessibility" width="24" height="24"> | Big Buttons Mode |
+| <img src="icons/svg/ic_rename.svg" alt="ic_rename" width="24" height="24"> | Ask for each photo name |
+| <img src="icons/svg/ic_copy.svg" alt="ic_copy" width="24" height="24"> | Save photos to clipboard |
+| <img src="icons/svg/ic_location.svg" alt="ic_location" width="24" height="24"> | Geotag photos |
+| <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Only OCR (no translation) |
 | <img src="icons/svg/ic_camera_ocr_translate.svg" alt="ic_camera_ocr_translate" width="24" height="24"> | Camera OCR translation |
+| <img src="icons/svg/ic_edit.svg" alt="ic_edit" width="24" height="24"> | Open captured photo for editing |
 | <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Enable photo capture |
+| <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Play casts at once |
+| <img src="icons/svg/ic_density_small.svg" alt="ic_density_small" width="24" height="24"> | Compact elements |
+| <img src="icons/svg/ic_check.svg" alt="ic_check" width="24" height="24"> | Confirm delete |
+| <img src="icons/svg/ic_hotkeys.svg" alt="ic_hotkeys" width="24" height="24"> | Controls & Keybindings |
+| <img src="icons/svg/ic_crop.svg" alt="ic_crop" width="24" height="24"> | Crop images to fill screen |
+| <img src="icons/svg/ic_profile_personal_smartphone.svg" alt="ic_profile_personal_smartphone" width="24" height="24"> | Device profile |
+| <img src="icons/svg/ic_animation.svg" alt="ic_animation" width="24" height="24"> | Disable animations |
+| <img src="icons/svg/ic_color_palette.svg" alt="ic_color_palette" width="24" height="24"> | Dynamic Background Extension |
 | <img src="icons/svg/ic_game_kryvavitsa.svg" alt="ic_game_kryvavitsa" width="24" height="24"> | Mini-game |
+| <img src="icons/svg/ic_sync.svg" alt="ic_sync" width="24" height="24"> | Enable background sync |
 | <img src="icons/svg/ic_calculator.svg" alt="ic_calculator" width="24" height="24"> | Calculator |
 | <img src="icons/svg/ic_resource_favorites.svg" alt="ic_resource_favorites" width="24" height="24"> | Enable Favorites |
+| <img src="icons/svg/ic_send_plane.svg" alt="ic_send_plane" width="24" height="24"> | Send feedback |
 | <img src="icons/svg/ic_storage.svg" alt="ic_storage" width="24" height="24"> | Storage filler |
 | <img src="icons/svg/ic_network_monitor.svg" alt="ic_network_monitor" width="24" height="24"> | Network Monitor |
+| <img src="icons/svg/ic_send_note.svg" alt="ic_send_note" width="24" height="24"> | Notes |
 | <img src="icons/svg/ic_ocr.svg" alt="ic_ocr" width="24" height="24"> | Enable text recognition |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Background Playback |
+| <img src="icons/svg/ic_image.svg" alt="ic_image" width="24" height="24"> | Show random photos during audio playback |
 | <img src="icons/svg/ic_picture_in_picture.svg" alt="ic_picture_in_picture" width="24" height="24"> | Enable Picture-in-Picture |
 | <img src="icons/svg/ic_schedule.svg" alt="ic_schedule" width="24" height="24"> | Use scheduled operations |
 | <img src="icons/svg/ic_sos.svg" alt="ic_sos" width="24" height="24"> | SOS emergency signal |
+| <img src="icons/svg/ic_series_chart.svg" alt="ic_series_chart" width="24" height="24"> | Statistics collection |
 | <img src="icons/svg/ic_stopwatch.svg" alt="ic_stopwatch" width="24" height="24"> | Stopwatch |
 | <img src="icons/svg/ic_stream.svg" alt="ic_stream" width="24" height="24"> | Enable Streams |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | System information |
+| <img src="icons/svg/ic_image.svg" alt="ic_image" width="24" height="24"> | Preload thumbnails |
 | <img src="icons/svg/ic_tourist.svg" alt="ic_tourist" width="24" height="24"> | Tourist |
 | <img src="icons/svg/ic_translate.svg" alt="ic_translate" width="24" height="24"> | Enable Translation |
 | <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Wear Companion |
 | <img src="icons/svg/ic_camera_flash_on.svg" alt="ic_camera_flash_on" width="24" height="24"> | Flashlight in the notification shade |
+| <img src="icons/svg/ic_screen_rotation.svg" alt="ic_screen_rotation" width="24" height="24"> | Rotate player screen with OS auto-rotate |
 | <img src="icons/svg/ic_front_flashlight.svg" alt="ic_front_flashlight" width="24" height="24"> | Front flashlight |
 | <img src="icons/svg/ic_gesture.svg" alt="ic_gesture" width="24" height="24"> | Gesture overlay |
+| <img src="icons/svg/ic_fullscreen.svg" alt="ic_fullscreen" width="24" height="24"> | Hide OS UI in fullscreen |
+| <img src="icons/svg/ic_language.svg" alt="ic_language" width="24" height="24"> | Language/Язык/Мова |
+| <img src="icons/svg/ic_blur_on.svg" alt="ic_blur_on" width="24" height="24"> | Halo around the bars |
+| <img src="icons/svg/ic_blur_on.svg" alt="ic_blur_on" width="24" height="24"> | Grow the halo on a new photo |
+| <img src="icons/svg/ic_hd.svg" alt="ic_hd" width="24" height="24"> | Load images at full resolution |
+| <img src="icons/svg/ic_rename.svg" alt="ic_rename" width="24" height="24"> | Ask for filename |
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Enable microphone recording |
 | <img src="icons/svg/ic_mirror.svg" alt="ic_mirror" width="24" height="24"> | Mirror |
+| <img src="icons/svg/ic_text_settings.svg" alt="ic_text_settings" width="24" height="24"> | OCR Font Family |
+| <img src="icons/svg/ic_text_increase.svg" alt="ic_text_increase" width="24" height="24"> | OCR Font Size |
 | <img src="icons/svg/ic_history.svg" alt="ic_history" width="24" height="24"> | Statistics |
+| <img src="icons/svg/ic_settings.svg" alt="ic_settings" width="24" height="24"> | Stopwatch settings |
+| <img src="icons/svg/ic_fullscreen.svg" alt="ic_fullscreen" width="24" height="24"> | Open video files in fullscreen mode |
+| <img src="icons/svg/ic_stereo_3d.svg" alt="ic_stereo_3d" width="24" height="24"> | Show 3D content from one eye |
+| <img src="icons/svg/ic_play.svg" alt="ic_play" width="24" height="24"> | Play awaited broadcasts at once |
+| <img src="icons/svg/ic_developer_options.svg" alt="ic_developer_options" width="24" height="24"> | Show FPS over player |
+| <img src="icons/svg/ic_exchange_mono.svg" alt="ic_exchange_mono" width="24" height="24"> | Listen to commands from my other devices |
+| <img src="icons/svg/ic_save.svg" alt="ic_save" width="24" height="24"> | Save downloaded media data locally |
 | <img src="icons/svg/ic_display.svg" alt="ic_display" width="24" height="24"> | Screen video recording |
+| <img src="icons/svg/ic_search.svg" alt="ic_search" width="24" height="24"> | Search audio covers online |
+| <img src="icons/svg/ic_wifi.svg" alt="ic_wifi" width="24" height="24"> | Search only on Wi-Fi |
 | <img src="icons/svg/ic_cloud.svg" alt="ic_cloud" width="24" height="24"> | Share access through Google Drive |
 | <img src="icons/svg/ic_exchange_mono.svg" alt="ic_exchange_mono" width="24" height="24"> | Exchange server |
 | <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | SFTP server |
 | <img src="icons/svg/ic_black_screen.svg" alt="ic_black_screen" width="24" height="24"> | Show "Black Screen" button |
+| <img src="icons/svg/ic_menu.svg" alt="ic_menu" width="24" height="24"> | Show command panel by default |
+| <img src="icons/svg/ic_gesture_action_play_pause.svg" alt="ic_gesture_action_play_pause" width="24" height="24"> | Show now-playing panel |
+| <img src="icons/svg/ic_view_grid.svg" alt="ic_view_grid" width="24" height="24"> | Show video thumbnails |
+| <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Play music during slideshow |
+| <img src="icons/svg/ic_density_small.svg" alt="ic_density_small" width="24" height="24"> | Compact player buttons |
+| <img src="icons/svg/ic_cloud_download.svg" alt="ic_cloud_download" width="24" height="24"> | Ultra-smart stream buffering |
 | <img src="icons/svg/ic_resource_cloud.svg" alt="ic_resource_cloud" width="24" height="24"> | In cloud resources |
 | <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | Computer on the internet (S)FTP |
 | <img src="icons/svg/ic_resource_smb.svg" alt="ic_resource_smb" width="24" height="24"> | Local network (Ethernet) SMB |
 | <img src="icons/svg/ic_picture_in_picture.svg" alt="ic_picture_in_picture" width="24" height="24"> | Enable Picture-in-Picture |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Support audio |
+| <img src="icons/svg/ic_gif.svg" alt="ic_gif" width="24" height="24"> | Support GIF animation |
 | <img src="icons/svg/ic_image.svg" alt="ic_image" width="24" height="24"> | Support static images |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Support video |
 | <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Suppress media control on watch |
+| <img src="icons/svg/ic_wifi.svg" alt="ic_wifi" width="24" height="24"> | Wi-Fi only preload |
+| <img src="icons/svg/ic_text_layer.svg" alt="ic_text_layer" width="24" height="24"> | Translation result in blocks |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Enable video recording |
+| <img src="icons/svg/ic_play.svg" alt="ic_play" width="24" height="24"> | Open recorded video in player |
+| <img src="icons/svg/ic_copy.svg" alt="ic_copy" width="24" height="24"> | Save video frames to clipboard |
+| <img src="icons/svg/ic_graphic_eq.svg" alt="ic_graphic_eq" width="24" height="24"> | Visualize audio streams as music |
 | <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Let my watch see my camera |
 | <img src="icons/svg/ic_water_flashlight.svg" alt="ic_water_flashlight" width="24" height="24"> | Water flashlight |
 
@@ -180,6 +243,7 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_star_outline.svg" alt="ic_star_outline" width="24" height="24"> | Favorite |
 | <img src="icons/svg/ic_view_grid.svg" alt="ic_view_grid" width="24" height="24"> | Thumbnail grid view |
 | <img src="icons/svg/ic_view_list.svg" alt="ic_view_list" width="24" height="24"> | File list view |
+| <img src="icons/svg/ic_go_to_page.svg" alt="ic_go_to_page" width="24" height="24"> | Go to file |
 | <img src="icons/svg/ic_skip_previous.svg" alt="ic_skip_previous" width="24" height="24"> | Previous frame unavailable: this decoder cannot step backwards. |
 | <img src="icons/svg/ic_skip_next.svg" alt="ic_skip_next" width="24" height="24"> | Next frame |
 | <img src="icons/svg/ic_fullscreen.svg" alt="ic_fullscreen" width="24" height="24"> | Fullscreen mode |
@@ -219,6 +283,8 @@ These are the real interface icons from FastMediaSorter, each shown next to the 
 | <img src="icons/svg/ic_slideshow.svg" alt="ic_slideshow" width="24" height="24"> | Slideshow |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Channel information |
 | <img src="icons/svg/ic_text_settings.svg" alt="ic_text_settings" width="24" height="24"> | Text Settings |
+| <img src="icons/svg/ic_zoom_in.svg" alt="ic_zoom_in" width="24" height="24"> | Zoom in |
+| <img src="icons/svg/ic_zoom_out.svg" alt="ic_zoom_out" width="24" height="24"> | Zoom out |
 | <img src="icons/svg/ic_document.svg" alt="ic_document" width="24" height="24"> | Toggle Markdown |
 | <img src="icons/svg/ic_translate.svg" alt="ic_translate" width="24" height="24"> | Translate |
 | <img src="icons/svg/ic_translate.svg" alt="ic_translate" width="24" height="24"> | Translate |

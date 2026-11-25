@@ -19,6 +19,7 @@ import com.sza.fastmediasorter.databinding.ActivityCameraOcrTranslateBinding
 import com.sza.fastmediasorter.ui.cameraocr.helpers.CameraOcrFlowManager
 import com.sza.fastmediasorter.ui.cameraocr.helpers.CameraOcrFlowManagerFactory
 import com.sza.fastmediasorter.ui.cameraocr.helpers.CameraOcrStorageManager
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.ui.common.help.HelpOverlayEntryManager
 import com.sza.fastmediasorter.ui.dialog.SearchableLanguagePickerDialog
 import com.sza.fastmediasorter.ui.player.helpers.DocumentSelectionActionModeCallback
@@ -373,6 +374,7 @@ class CameraOcrTranslateActivity :
                 }
                 .setNegativeButton(R.string.cancel, null)
                 .showBoundToHost(this@CameraOcrTranslateActivity)
+                ?.let { DialogHelpEntryManager.attach(it, "dialog_camera_ocr_settings") }
         }
     }
 
@@ -415,7 +417,7 @@ class CameraOcrTranslateActivity :
         if (item != null) {
             LanguageFlagFormatter.applyLabel(view, item)
             view.contentDescription =
-                "${getString(titleRes)}: ${LanguageFlagFormatter.plainLabel(item)}"
+                "${getString(titleRes)}: ${LanguageFlagFormatter.plainLabel(this, item)}"
         } else {
             val fallback = code.uppercase(Locale.ROOT)
             view.text = fallback

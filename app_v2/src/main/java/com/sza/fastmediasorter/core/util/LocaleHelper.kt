@@ -7,9 +7,13 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.content.res.Resources
 import android.os.Build
+import android.os.Handler
 import android.os.LocaleList
+import android.os.Looper
 import android.os.SystemClock
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.ConfigurationCompat
+import androidx.core.os.LocaleListCompat
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,10 +24,12 @@ import timber.log.Timber
 import java.util.Locale
 
 /**
- * Utility for managing app language/locale
- * According to V2 Specification: Language selection with app restart
+ * Utility for managing app language/locale.
  *
- * IMPORTANT: Android 13+ (API 33) uses per-app language preferences via LocaleManager
+ * A language change applies without restarting the app (SETTINGS-NAVIGATION section 3 rule 1): see [applyLanguageLive].
+ *
+ * IMPORTANT: Android 13+ (API 33) uses per-app language preferences via LocaleManager; below it AppCompat
+ * re-creates the open activities.
  */
 object LocaleHelper {
 
@@ -294,8 +300,12 @@ object LocaleHelper {
 
     /**
      * Save language code to preferences and LocaleManager (Android 13+)
+     *
+     * Disk reads are permitted as well as writes: the first `getSharedPreferences` touch checks the
+     * preferences directory and `edit()` waits for the file to load, both reads. The save stays on the
+     * calling thread because `applyLanguageLive` re-creates the open activities right after it.
      */
-    fun saveLanguage(context: Context, languageCode: String) = StrictModeHelper.allowDiskWrites {
+    fun saveLanguage(context: Context, languageCode: String) = StrictModeHelper.allowDiskIO {
         val followSystem = isFollowSystemLanguage(languageCode)
         val resolvedLanguageCode = if (followSystem) {
             detectSystemLanguage(context)
@@ -350,6 +360,9 @@ object LocaleHelper {
             .remove(PREF_SELECTED_LANGUAGE)
             .apply()
 
+        val systemLanguage = detectSystemLanguage(context)
+        Locale.setDefault(Locale.forLanguageTag(systemLanguage))
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             try {
                 context.getSystemService(LocaleManager::class.java)?.applicationLocales =
@@ -358,6 +371,9 @@ object LocaleHelper {
                 Timber.w(e, "LocaleHelper: Failed to clear LocaleManager override during reset")
             }
         }
+
+        // Below API 33 AppCompat keeps its own requested locale, which would otherwise outlive the reset.
+        syncAppCompatLocales(FOLLOW_SYSTEM_LANGUAGE)
 
         languageRevisionState.update { it + 1 }
     }
@@ -422,32 +438,68 @@ object LocaleHelper {
     }
 
     /**
-     * Change language and restart the app
-     * According to specification: "save language, restart and show new language everywhere"
-     *
-     * NOTE: On Android 13+, LocaleManager automatically restarts the app when language changes.
-     * On older versions, we manually restart the app.
+     * S4603: changes the interface language without a restart. On API 33+ the per-app locale [saveLanguage]
+     * sets makes the system re-create every open activity in the new language; below it AppCompat does the
+     * same for its activities. Every writer of the interface language that is reachable by the user goes
+     * through here, because below API 33 AppCompat applies its requested locale on top of the one
+     * `BaseActivity` already applied, so a writer that skips this leaves a stale override behind.
      */
-    fun changeLanguage(activity: Activity, languageCode: String) {
-        saveLanguage(activity, languageCode)
-
-        // Android 13+ (API 33): LocaleManager handles restart automatically
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            Timber.d("LocaleHelper: Android 13+ detected, LocaleManager will restart app automatically")
-            // No manual restart needed, just finish current activity
-            activity.finish()
+    fun applyLanguageLive(context: Context, languageCode: String) {
+        Timber.d("S4603: applyLanguageLive code=$languageCode")
+        saveLanguage(context, languageCode)
+        val resolvedLanguageCode = if (isFollowSystemLanguage(languageCode)) {
+            detectSystemLanguage(context)
         } else {
-            // Android < 13: Manually restart app
-            Timber.d("LocaleHelper: Android < 13, manually restarting app")
-            restartApp(activity)
+            resolveSupportedLanguageCode(languageCode)
+        }
+        Locale.setDefault(Locale.forLanguageTag(resolvedLanguageCode))
+        syncAppCompatLocales(languageCode)
+    }
+
+    /**
+     * S4603: below API 33 AppCompat forgets a language set through it when the process ends (the manifest
+     * declares no `AppLocalesMetadataHolderService`), so the application hands the stored choice back before
+     * the first activity; screens that rely on AppCompat's locale then open in it too. API 33+ keeps the
+     * per-app locale in the system and needs nothing here.
+     */
+    fun restoreForAppCompat(context: Context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) return
+        if (isFollowingSystemLanguage(context)) return
+        val languageCode = getLanguage(context)
+        Timber.d("S4603: restoreForAppCompat code=$languageCode")
+        AppCompatDelegate.setApplicationLocales(appCompatLocales(languageCode))
+    }
+
+    /**
+     * Below API 33 only. [AppCompatDelegate.setApplicationLocales] re-creates activities, which must happen
+     * on the main thread, while the import and backup use cases save the language from a worker thread.
+     */
+    private fun syncAppCompatLocales(languageCode: String) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) return
+        val locales = appCompatLocales(languageCode)
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            AppCompatDelegate.setApplicationLocales(locales)
+        } else {
+            Handler(Looper.getMainLooper()).post { AppCompatDelegate.setApplicationLocales(locales) }
         }
     }
+
+    private fun appCompatLocales(languageCode: String): LocaleListCompat =
+        if (isFollowSystemLanguage(languageCode)) {
+            LocaleListCompat.getEmptyLocaleList()
+        } else {
+            LocaleListCompat.forLanguageTags(resolveSupportedLanguageCode(languageCode))
+        }
 
     /**
      * Mark that the app should return to SettingsActivity after the next restart.
      * Call this immediately before any restart triggered from within SettingsActivity.
+     *
+     * Reads are allowed as well as writes: the first [Context.getSharedPreferences] call checks that the
+     * preferences directory exists, which StrictMode reports as a disk read. The flag has to be on disk before
+     * the restart that follows, so it stays synchronous - the same accepted exception as [consumeReturnToSettings].
      */
-    fun markReturnToSettings(context: Context) = StrictModeHelper.allowDiskWrites {
+    fun markReturnToSettings(context: Context) = StrictModeHelper.allowDiskIO {
         context.getSharedPreferences(RESTART_STATE_PREFS, Context.MODE_PRIVATE)
             .edit().putBoolean(PREF_RETURN_TO_SETTINGS, true).apply()
     }

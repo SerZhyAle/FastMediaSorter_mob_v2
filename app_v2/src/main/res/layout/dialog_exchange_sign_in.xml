@@ -30,18 +30,31 @@
                 android:nextFocusDown="@+id/btnExchangeSignInPaste" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <LinearLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/margin_small"
-            android:orientation="horizontal">
+            android:layout_marginTop="@dimen/margin_small">
+            <androidx.constraintlayout.helper.widget.Flow
+                android:id="@+id/flowSignInIntakeActions"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:constraint_referenced_ids="btnExchangeSignInPaste,btnExchangeSignInScan,btnExchangeSignInFile"
+                app:flow_wrapMode="chain"
+                app:flow_horizontalStyle="packed"
+                app:flow_horizontalBias="0"
+                app:flow_verticalAlign="top"
+                app:flow_horizontalGap="@dimen/token_spacing_8"
+                app:flow_verticalGap="@dimen/token_spacing_8"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnExchangeSignInPaste"
                 style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:clickable="true"
                 android:focusable="true"
                 android:nextFocusUp="@id/etExchangeSignInIntake"
@@ -52,10 +65,8 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnExchangeSignInScan"
                 style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/margin_small"
-                android:layout_weight="1"
                 android:clickable="true"
                 android:focusable="true"
                 android:nextFocusUp="@id/etExchangeSignInIntake"
@@ -67,17 +78,15 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnExchangeSignInFile"
                 style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/margin_small"
-                android:layout_weight="1"
                 android:clickable="true"
                 android:focusable="true"
                 android:nextFocusUp="@id/etExchangeSignInIntake"
                 android:nextFocusLeft="@id/btnExchangeSignInScan"
                 android:nextFocusDown="@+id/etExchangeSignInAddress"
                 android:text="@string/exchange_signin_choose_file" />
-        </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <TextView
             android:id="@+id/textExchangeSignInServer"

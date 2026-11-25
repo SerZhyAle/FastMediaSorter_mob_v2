@@ -78,11 +78,18 @@ class ObserveTouristDashboardUseCase @Inject constructor(
         baseStepCount = null
     }
 
-    fun hasLocationPermission(): Boolean =
+    fun hasFineLocationPermission(): Boolean =
         ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.ACCESS_FINE_LOCATION,
         ) == PackageManager.PERMISSION_GRANTED
+
+    fun hasLocationPermission(): Boolean =
+        hasFineLocationPermission() ||
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+            ) == PackageManager.PERMISSION_GRANTED
 
     fun hasActivityRecognitionPermission(): Boolean =
         Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
@@ -208,6 +215,8 @@ class ObserveTouristDashboardUseCase @Inject constructor(
         return prev.copy(
             speedKmh = motion.speedKmh,
             altitudeMeters = motion.altitudeMeters ?: prev.altitudeMeters,
+            latitude = motion.latitude ?: prev.latitude,
+            longitude = motion.longitude ?: prev.longitude,
             navigation = prev.navigation.copy(
                 gpsAccuracyMeters = motion.horizontalAccuracyMeters,
                 gpsGrade = TripMotionPolicy.gpsAccuracyGrade(motion.horizontalAccuracyMeters),

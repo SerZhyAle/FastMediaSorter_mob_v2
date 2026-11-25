@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "इन-कार म्यूज़िक प्लेयर (Android हेड यूनिट) - FastMediaSorter v2"
+title: "इन-कार म्यूज़िक प्लेयर (Android हेड यूनिट) - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-car-music-hi.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -11,7 +11,7 @@ permalink: /docs/howto/scenario-car-music-hi.html
 
 > **लेवल:** शुरुआती &bull; **समय:** ~10 मिनट &bull; **एडिशन:** Standard, Legacy, VR, noLegal (Lite लोकल ऑडियो चलाता है पर इसमें बैकग्राउंड प्लेबैक और Streams नहीं है; Photos में ऑडियो नहीं है)
 
-FastMediaSorter Android हेड यूनिट पर कार म्यूज़िक प्लेयर के रूप में बेहतरीन काम करता है - SD कार्ड या USB ड्राइव पर आपकी पूरी म्यूज़िक कलेक्शन तक तुरंत पहुंच, साथ में बना-बनाया स्टीयरिंग व्हील बटन सपोर्ट.
+Fast Media Sorter & Organizer Android हेड यूनिट पर कार म्यूज़िक प्लेयर के रूप में बेहतरीन काम करता है - SD कार्ड या USB ड्राइव पर आपकी पूरी म्यूज़िक कलेक्शन तक तुरंत पहुंच, साथ में बना-बनाया स्टीयरिंग व्हील बटन सपोर्ट.
 
 > **Android हेड यूनिट क्या है?** यह एक कार स्टीरियो है जिसमें Android चलाने वाली टचस्क्रीन है - आपके फोन जैसी, बस डैशबोर्ड में लगी हुई. यह गाइड कार में लगे एक साधारण फोन या टैबलेट पर भी उतना ही काम करती है.
 
@@ -91,7 +91,7 @@ FastMediaSorter Android हेड यूनिट पर कार म्यू�
 
 अपने स्टीयरिंग व्हील पर **Next** या **Previous** दबाएं.
 
-**ये अपने आप काम करते हैं - कोई सेटअप ज़रूरी नहीं.** FastMediaSorter सभी मानक Android मीडिया बटन का जवाब देता है.
+**ये अपने आप काम करते हैं - कोई सेटअप ज़रूरी नहीं.** Fast Media Sorter & Organizer सभी मानक Android मीडिया बटन का जवाब देता है.
 
 > **बटन काम नहीं कर रहे?** कुछ पुरानी हेड यूनिट गैर-मानक सिग्नल भेजती हैं. Android **Settings → Accessibility** में जाकर "media button receiver" जैसा विकल्प ढूंढें. अगर इससे मदद नहीं मिलती, तो इसके बजाय ऑन-स्क्रीन टच ज़ोन (स्क्रीन के बाएं/दाएं किनारे) इस्तेमाल करें - वे बिल्कुल सही काम करते हैं.
 
@@ -107,7 +107,7 @@ FastMediaSorter Android हेड यूनिट पर कार म्यू�
 
 अब सभी जगहों से आपके सभी ट्रैक एक ही लिस्ट में साथ दिखते हैं.
 
-![FastMediaSorter main screen - All Music virtual resource card visible](screenshots/screenshot-car-step6.png)
+![Fast Media Sorter & Organizer main screen - All Music virtual resource card visible](screenshots/screenshot-car-step6.png)
 
 ---
 
@@ -116,7 +116,7 @@ FastMediaSorter Android हेड यूनिट पर कार म्यू�
 जब आप बस कार में बैठकर एक बटन दबाकर म्यूज़िक शुरू करना चाहें, तब यह बिल्कुल सही है:
 
 1. होम स्क्रीन पर किसी खाली जगह को लॉन्ग-प्रेस करें → **Widgets** टैप करें
-2. लिस्ट में **FastMediaSorter** ढूंढें → **"Resource Shortcut"** विजेट को अपनी होम स्क्रीन पर खींचें
+2. लिस्ट में **Fast Media Sorter & Organizer** ढूंढें → **"Resource Shortcut"** विजेट को अपनी होम स्क्रीन पर खींचें
 3. पूछे जाने पर, अपना म्यूज़िक रिसोर्स चुनें
 4. हो गया - कभी भी विजेट टैप करें और म्यूज़िक तुरंत शुरू हो जाता है
 

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
+import androidx.media3.common.Player
 import com.sza.fastmediasorter.core.input.KeyBindingManager
 import com.sza.fastmediasorter.domain.input.CommandId
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -122,5 +123,60 @@ class PlayerKeyboardHandlerViewerKeysTest {
         verify { callback.onRotateContent(clockwise = false) }
         verify { callback.onRandomFile() }
         verify { callback.onStartSlideshow(random = true) }
+    }
+
+    private fun audioPlayer(playing: Boolean): Player {
+        val player = mockk<Player>(relaxed = true)
+        every { player.isPlaying } returns playing
+        every { callback.getActivePlayer() } returns player
+        on(MediaType.AUDIO)
+        return player
+    }
+
+    @Test
+    fun `pause never resumes a paused player`() {
+        val player = audioPlayer(playing = false)
+        assertTrue(handler.handleCommand(CommandId.PAUSE))
+        verify { player.pause() }
+        verify(exactly = 0) { player.play() }
+    }
+
+    @Test
+    fun `play never pauses a playing player`() {
+        val player = audioPlayer(playing = true)
+        assertTrue(handler.handleCommand(CommandId.PLAY))
+        verify { player.play() }
+        verify(exactly = 0) { player.pause() }
+    }
+
+    @Test
+    fun `pause play toggles in both directions`() {
+        val playing = audioPlayer(playing = true)
+        handler.handleCommand(CommandId.PAUSE_PLAY)
+        verify { playing.pause() }
+        verify(exactly = 0) { playing.play() }
+
+        val paused = audioPlayer(playing = false)
+        handler.handleCommand(CommandId.PAUSE_PLAY)
+        verify { paused.play() }
+        verify(exactly = 0) { paused.pause() }
+    }
+
+    @Test
+    fun `stop pauses and rewinds also when already paused`() {
+        val player = audioPlayer(playing = false)
+        assertTrue(handler.handleCommand(CommandId.STOP))
+        verify { player.pause() }
+        verify { player.seekTo(0L) }
+        verify(exactly = 0) { player.play() }
+    }
+
+    @Test
+    fun `stop leaves the player untouched on a still image`() {
+        val player = audioPlayer(playing = true)
+        on(MediaType.IMAGE)
+        assertTrue(handler.handleCommand(CommandId.STOP))
+        verify(exactly = 0) { player.pause() }
+        verify(exactly = 0) { player.seekTo(any<Long>()) }
     }
 }

@@ -7,6 +7,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Справка - Турист</title>
 <link rel="stylesheet" href="../help.css">
+<link rel="icon" type="image/png" href="../img/product-mark.png">
 </head>
 <body class="help">
 <main class="container">
@@ -14,18 +15,19 @@
 <a href="index.html">Оглавление справки</a><span class="sep" aria-hidden="true">/</span><span>Турист</span>
 </nav>
 <header class="hero">
+<img class="product-mark" src="../img/product-mark.png" width="48" height="48" alt="Fast Media Sorter">
 <h1>Турист</h1>
 </header>
 <h2>Для чего этот экран</h2>
 <p class="lead">Панель для прогулки, поездки или похода: скорость, высота, направление, координаты, шаги, погода и многое другое, каждое на своей плитке. Одна плитка показана крупно вверху, остальные ждут ниже, а кнопки позволяют открыть карту, поделиться местоположением или позвать на помощь.</p>
 <h2>Порядок действий</h2>
 <ol class="order">
-<li>Если вверху карточка просит разрешение <a class="ref" href="#permission-card">1</a>, нажмите её кнопку <a class="ref" href="#permission-action">2</a>. Для скорости, высоты, координат и времени солнца нужна геолокация, для шагов - физическая активность.</li>
-<li>Крупная плитка <a class="ref" href="#main-tile">3</a> показывает одно значение, сначала - скорость. Нажмите любую плитку в сетке <a class="ref" href="#tiles">14</a>, чтобы поднять её наверх; приложение запомнит ваш выбор.</li>
-<li>Читайте значение <a class="ref" href="#reading">5</a>. Некоторые плитки добавляют картинку: координаты <a class="ref" href="#coordinates-view">6</a>, розу компаса <a class="ref" href="#compass-rose">7</a>, стрелку <a class="ref" href="#direction-arrow">8</a> или пузырёк уровня <a class="ref" href="#level-bubble">9</a>. Строка ниже <a class="ref" href="#detail-line">13</a> поясняет значение.</li>
+<li>Если вверху карточка просит разрешение <span class="nb"><a class="ref" href="#permission-card">1</a>,</span> нажмите её кнопку <span class="nb"><a class="ref" href="#permission-action">2</a>.</span> Для скорости, высоты, координат и времени солнца нужна геолокация, для шагов - физическая активность.</li>
+<li>Крупная плитка <a class="ref" href="#main-tile">3</a> показывает одно значение, сначала - скорость. Нажмите любую плитку в сетке <span class="nb"><a class="ref" href="#tiles">14</a>,</span> чтобы поднять её наверх; приложение запомнит ваш выбор.</li>
+<li>Читайте значение <span class="nb"><a class="ref" href="#reading">5</a>.</span> Некоторые плитки добавляют картинку: координаты <span class="nb"><a class="ref" href="#coordinates-view">6</a>,</span> розу компаса <span class="nb"><a class="ref" href="#compass-rose">7</a>,</span> стрелку <a class="ref" href="#direction-arrow">8</a> или пузырёк уровня <span class="nb"><a class="ref" href="#level-bubble">9</a>.</span> Строка ниже <a class="ref" href="#detail-line">13</a> поясняет значение.</li>
 <li>Плитки поездки накапливают данные, пока вы двигаетесь. «Сбросить» <a class="ref" href="#main-reset">4</a> на крупной плитке или «Сбросить дистанцию» <a class="ref" href="#reset-trip">17</a> начинает их с нуля.</li>
 <li>«Карта» <a class="ref" href="#open-map">15</a> показывает, где вы, в приложении карт, а «Отправить» <a class="ref" href="#share-location">16</a> передаёт вашу позицию кому-нибудь.</li>
-<li>«Сигнал SOS» <a class="ref" href="#sos">18</a> открывает сигнал бедствия. У плитки «Секундомер» свои кнопки: «Пуск / Стоп» <a class="ref" href="#stopwatch-toggle">10</a>, «Сброс» <a class="ref" href="#stopwatch-reset">11</a> и «Открыть секундомер» <a class="ref" href="#stopwatch-open">12</a>. Плитка «Счётчик» при нажатии открывает счётчик.</li>
+<li>«Сигнал SOS» <a class="ref" href="#sos">18</a> открывает сигнал бедствия. У плитки «Секундомер» свои кнопки: «Пуск / Стоп» <span class="nb"><a class="ref" href="#stopwatch-toggle">10</a>,</span> «Сброс» <a class="ref" href="#stopwatch-reset">11</a> и «Открыть секундомер» <span class="nb"><a class="ref" href="#stopwatch-open">12</a>.</span> Плитка «Счётчик» при нажатии открывает счётчик.</li>
 </ol>
 <h2>Элементы</h2>
 <div class="elements">
@@ -89,7 +91,7 @@
 </div>
 </details>
 <details class="el" id="stopwatch-toggle">
-<summary><span class="mk">10</span><span><span class="name">Пуск / Стоп</span><span class="one">Запускает или останавливает маленький секундомер на этой плитке.</span></span></summary>
+<summary><span class="mk">10</span><span><span class="name"><svg class="glyph" viewBox="0 0 24.0 24.0" aria-hidden="true" focusable="false"><path d="M8,5v14l11,-7z" fill="currentColor"/></svg>Пуск / Стоп</span><span class="one">Запускает или останавливает маленький секундомер на этой плитке.</span></span></summary>
 <div class="full">
 <p>Плитка «Секундомер» - это простой секундомер: один участник, без кругов. На кнопке написано «Пуск», пока он стоит, и «Стоп», пока идёт. Показание считает минуты и секунды. Секундомер продолжает идти, когда вы поворачиваете телефон.</p>
 </div>
@@ -104,7 +106,7 @@
 </div>
 </details>
 <details class="el" id="stopwatch-open">
-<summary><span class="mk">12</span><span><span class="name">Открыть секундомер</span><span class="one">Открывает полную программу «Секундомер».</span></span></summary>
+<summary><span class="mk">12</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15,1H9v2h6V1zM11,14h2V8h-2V14zM19.03,7.39l1.42,-1.42c-0.43,-0.51 -0.9,-0.99 -1.41,-1.41l-1.42,1.42C16.07,4.74 14.12,4 12,4c-4.97,0 -9,4.03 -9,9s4.02,9 9,9 9,-4.03 9,-9c0,-2.12 -0.74,-4.07 -1.97,-5.61zM12,20c-3.87,0 -7,-3.13 -7,-7s3.13,-7 7,-7 7,3.13 7,7 -3.13,7 -7,7z" fill="currentColor"/></svg>Открыть секундомер</span><span class="one">Открывает полную программу «Секундомер».</span></span></summary>
 <div class="full">
 <p>Она засекает до четырёх человек, ставит круги, играет музыку и даёт результат, который можно отправить. Маленький секундомер на плитке отдельный и не переносится.</p>
 </div>
@@ -131,7 +133,7 @@
 </div>
 </details>
 <details class="el" id="share-location">
-<summary><span class="mk">16</span><span><span class="name">Отправить</span><span class="one">Отправляет вашу позицию сообщением со ссылкой на карту.</span></span></summary>
+<summary><span class="mk">16</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M18,16.08c-0.76,0 -1.44,0.3 -1.96,0.77L8.91,12.7c0.05,-0.23 0.09,-0.46 0.09,-0.7s-0.04,-0.47 -0.09,-0.7l7.05,-4.11c0.54,0.5 1.25,0.81 2.04,0.81 1.66,0 3,-1.34 3,-3s-1.34,-3 -3,-3 -3,1.34 -3,3c0,0.24 0.04,0.47 0.09,0.7L8.04,9.81C7.5,9.31 6.79,9 6,9c-1.66,0 -3,1.34 -3,3s1.34,3 3,3c0.79,0 1.5,-0.31 2.04,-0.81l7.12,4.16c-0.05,0.21 -0.08,0.43 -0.08,0.65 0,1.61 1.31,2.92 2.92,2.92 1.61,0 2.92,-1.31 2.92,-2.92s-1.31,-2.92 -2.92,-2.92z" fill="currentColor"/></svg>Отправить</span><span class="one">Отправляет вашу позицию сообщением со ссылкой на карту.</span></span></summary>
 <div class="full">
 <p>Открывается системное меню отправки с вашими координатами и ссылкой на них на карте. Сначала дождитесь определения позиции; до этого сообщение скажет, что позиция ещё определяется. Тот, кто получит сообщение, узнает, где вы, поэтому выбирайте адресата внимательно.</p>
 </div>
@@ -146,7 +148,7 @@
 </div>
 </details>
 <details class="el" id="sos">
-<summary><span class="mk">18</span><span><span class="name">Сигнал SOS</span><span class="one">Открывает сигнал бедствия SOS.</span></span></summary>
+<summary><span class="mk">18</span><span><span class="name"><svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4,5h16c1.1,0 2,0.9 2,2v10c0,1.1 -0.9,2 -2,2H4c-1.1,0 -2,-0.9 -2,-2V7c0,-1.1 0.9,-2 2,-2z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8,9.6c-0.3,-0.6 -0.9,-1 -1.7,-1 -1,0 -1.7,0.6 -1.7,1.4 0,1.9 3.5,1.2 3.5,3.2 0,0.9 -0.8,1.5 -1.8,1.5 -0.8,0 -1.5,-0.4 -1.8,-1.1M12,8.6c1.1,0 1.8,1.2 1.8,2.9s-0.7,2.9 -1.8,2.9 -1.8,-1.2 -1.8,-2.9 0.7,-2.9 1.8,-2.9zM19.4,9.6c-0.3,-0.6 -0.9,-1 -1.7,-1 -1,0 -1.7,0.6 -1.7,1.4 0,1.9 3.5,1.2 3.5,3.2 0,0.9 -0.8,1.5 -1.8,1.5 -0.8,0 -1.5,-0.4 -1.8,-1.1" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Сигнал SOS</span><span class="one">Открывает сигнал бедствия SOS.</span></span></summary>
 <div class="full">
 <p>Ведёт на экран SOS, где вы выбираете сирену, мигающий свет или оба и запускаете сигнал. Кнопка здесь потому, что именно на этом экране вы оказываетесь, когда на природе что-то идёт не так.</p>
 </div>
@@ -163,7 +165,7 @@
 <li><a href="index.html"><b>Оглавление справки</b></a></li>
 </ul>
 <footer class="help-foot">
-<span>Fast Media Sorter, 2026-10-26</span>
+<span>Fast Media Sorter, 2026-11-24</span>
 <a href="index.html">Оглавление справки</a>
 <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues">Задать вопрос или сообщить о проблеме</a>
 </footer>

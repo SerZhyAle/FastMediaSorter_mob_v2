@@ -54,10 +54,12 @@ data class CompanionImportResult(
  * - host key -> [MediaResource.hostKeyFingerprint] (S0046 TOFU pinning - no new pinning impl);
  * - one read-only SFTP resource per shared root, path built by [SftpPathUtils].
  *
- * Access path selection: the list is contract-ordered LAN first, then port-forward;
- * MVP persists the FIRST entry because [MediaResource] stores a single path.
- * Multi-path resources with automatic fallback are the documented follow-up
- * (strategic S0421 §5.3 - requires a resource-model extension).
+ * Access path selection: the list is contract-ordered LAN first, then IPv6, then port-forward;
+ * the primary path is the FIRST path of one of those direct kinds because [MediaResource] stores a
+ * single path, and the other usable paths travel as [MediaResource.altAccessPaths] (S1006). A config
+ * without a direct path is refused whole as [CompanionConfigException.Reason.NO_USABLE_ACCESS_PATH] (FMSCFG 2.6
+ * C3); one without a fingerprint, or with a fingerprint that is not `SHA256:<base64>`, as
+ * [CompanionConfigException.Reason.INVALID_CONTENT] (C2).
  */
 class ImportCompanionConfigUseCase @Inject constructor(
     @param:ApplicationContext private val context: Context,
@@ -127,45 +129,34 @@ class ImportCompanionConfigUseCase @Inject constructor(
         config: CompanionConfigDto,
         matchExistingByPath: Boolean = false
     ): Result<CompanionImportResult> = withContext(ioDispatcher) {
-        // Contract order is LAN first - the first entry is the preferred path.
+        // FMSCFG 2.6 C3: the primary is the first path of a direct kind, never merely the first path -
+        // a tunnel-only or unknown-kind-only file would otherwise create a resource that dials the
+        // exchange server as SSH. No direct path refuses the whole document, nothing is written.
         val allAccessPaths = config.accessPaths.orEmpty()
-        val accessPath = allAccessPaths.first()
-        val host = requireNotNull(accessPath.host) { "validated by parser" }
-        val port = requireNotNull(accessPath.port) { "validated by parser" }
-        // S1006: every access path after the primary becomes a reachable-endpoint fallback candidate,
+        val accessPath = allAccessPaths.firstOrNull { it.isDirectEndpoint() }
+            ?: return@withContext refuse(
+                CompanionConfigException.Reason.NO_USABLE_ACCESS_PATH,
+                "No usable access path: no lan, ipv6 or portforward path in the config"
+            )
+        val host = requireNotNull(accessPath.host) { "checked by isDirectEndpoint" }
+        val port = requireNotNull(accessPath.port) { "checked by isDirectEndpoint" }
+        // S1006: every other access path becomes a reachable-endpoint fallback candidate,
         // so one imported resource works on the home LAN and remotely (SftpEndpointResolver picks the live one).
-        val altEndpoints = allAccessPaths.drop(1)
-            .mapNotNull { ap ->
-                val altHost = ap.host
-                val altPort = ap.port
-                when {
-                    altHost.isNullOrBlank() || altPort == null -> null
-                    // ANYWHERE-ACCESS 4.2: the tunnel path names the exchange server, never an SSH endpoint,
-                    // so it travels as a tunnel address or, without a usable share id, not at all.
-                    ap.kind == CompanionAccessPathDto.KIND_RENDEZVOUS_TUNNEL ->
-                        ap.shareId
-                            ?.takeIf(SftpShareId::isValid)
-                            ?.let { HostPort(SftpTunnelAddress.host(it, altHost), altPort) }
-                    else -> HostPort(altHost, altPort)
-                }
-            }
+        val altEndpoints = allAccessPaths.filterNot { it === accessPath }
+            .mapNotNull(::toAlternateEndpoint)
             .filterNot { it.host == host && it.port == port }
             .distinct()
 
-        // S0984: a blank fingerprint is an intentional no-pin share (recipient trusts on first
-        // connect, like manual entry) -> null. Only a non-blank, non-canonical value is malformed.
-        val rawFingerprint = config.hostKeyFingerprintSha256.orEmpty()
-        val canonicalFingerprint: String? = if (rawFingerprint.isBlank()) {
-            null
-        } else {
-            SshFingerprintNormalizer.canonical(rawFingerprint)
-                ?: return@withContext Result.failure(
-                    CompanionConfigException(
-                        CompanionConfigException.Reason.INVALID_CONTENT,
-                        "Host-key fingerprint not in canonical SHA256 form"
-                    )
-                )
-        }
+        // FMSCFG 2.6 C2: an absent or blank fingerprint means not pinned, and an import that connects to an
+        // unpinned server without the person accepting the presented key is refused; so is any value that is
+        // not exactly `SHA256:<base64-no-padding>` (the normalizer also accepts bare base64, hex and padded
+        // forms for manual entry, which the file format does not allow). Whole file refused, no partial import.
+        val canonicalFingerprint: String = config.hostKeyFingerprintSha256
+            ?.takeIf { SshFingerprintNormalizer.canonical(it) == it }
+            ?: return@withContext refuse(
+                CompanionConfigException.Reason.INVALID_CONTENT,
+                "Host-key fingerprint is absent or not in SHA256:<base64> form"
+            )
 
         // An empty password is the exporter's "exclude password" choice. Without a secret already stored
         // for this server the import would create resources that cannot log in, so the caller must ask.
@@ -218,6 +209,33 @@ class ImportCompanionConfigUseCase @Inject constructor(
         )
     }
 
+    /** FMSCFG 2.6 C3: a path of a kind that is an SSH endpoint of the share itself, with a dialable host and port. */
+    private fun CompanionAccessPathDto.isDirectEndpoint(): Boolean =
+        kind in DIRECT_KINDS && !host.isNullOrBlank() && port != null
+
+    private fun toAlternateEndpoint(ap: CompanionAccessPathDto): HostPort? {
+        val altHost = ap.host
+        val altPort = ap.port
+        return when {
+            altHost.isNullOrBlank() || altPort == null -> null
+            // ANYWHERE-ACCESS 4.2: the tunnel path names the exchange server, never an SSH endpoint,
+            // so it travels as a tunnel address or, without a usable share id, not at all.
+            ap.kind == CompanionAccessPathDto.KIND_RENDEZVOUS_TUNNEL ->
+                ap.shareId
+                    ?.takeIf(SftpShareId::isValid)
+                    ?.let { HostPort(SftpTunnelAddress.host(it, altHost), altPort) }
+            ap.isDirectEndpoint() -> HostPort(altHost, altPort)
+            // FMSCFG: a parser ignores a path of a kind it does not know and never dials it as SSH.
+            else -> null
+        }
+    }
+
+    // The detail names the rule only, never a host, fingerprint or credential (the payload is a secret).
+    private fun refuse(reason: CompanionConfigException.Reason, detail: String): Result<CompanionImportResult> {
+        Timber.w("Companion import refused: %s", detail)
+        return Result.failure(CompanionConfigException(reason, detail))
+    }
+
     /**
      * S1002: maps one shared root onto a [MediaResource], applying the v2 resource params when present
      * and falling back to the frozen v1 defaults (ALL media types, scan subdirectories, read-only,
@@ -232,7 +250,7 @@ class ImportCompanionConfigUseCase @Inject constructor(
         root: CompanionRootDto,
         primary: HostPort,
         credentialsId: String,
-        canonicalFingerprint: String?,
+        canonicalFingerprint: String,
         configName: String?,
         altEndpoints: List<HostPort>,
         configAccessNote: String?
@@ -329,6 +347,14 @@ class ImportCompanionConfigUseCase @Inject constructor(
     companion object {
         private const val CREDENTIAL_TYPE_SFTP = "SFTP"
         private const val MAX_CONFIG_BYTES = 64 * 1024
+
+        // CompanionAccessPathDto names only lan and portforward; ipv6 is the third direct kind of FMSCFG 2.x.
+        private const val KIND_IPV6 = "ipv6"
+        private val DIRECT_KINDS = setOf(
+            CompanionAccessPathDto.KIND_LAN,
+            KIND_IPV6,
+            CompanionAccessPathDto.KIND_PORT_FORWARD
+        )
         private val DEFAULT_MEDIA_TYPES = setOf(MediaType.IMAGE, MediaType.VIDEO, MediaType.AUDIO, MediaType.GIF)
     }
 }

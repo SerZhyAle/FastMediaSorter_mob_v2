@@ -112,6 +112,16 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
     lateinit var exchangeCastCoordinator:
         dagger.Lazy<com.sza.fastmediasorter.domain.exchange.ExchangeCastCoordinator>
 
+    /** Answers commands from the account's other devices that arrive on the same control streams. */
+    @Inject
+    lateinit var remoteCommandCoordinator:
+        dagger.Lazy<com.sza.fastmediasorter.domain.exchange.RemoteCommandCoordinator>
+
+    /** S4572: syncs the notes when the notes entry connects and when the server pushes `notes_changed`. */
+    @Inject
+    lateinit var notesSyncTriggerManager:
+        dagger.Lazy<com.sza.fastmediasorter.domain.exchange.NotesSyncTriggerManager>
+
     /** S4225: resumes the phone's sharing each time the app comes to the foreground, launcher mode included. */
     @Inject
     lateinit var sftpServerResumeCoordinator:
@@ -355,6 +365,10 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
         }
         applicationScope.launch(Dispatchers.IO) {
             exchangeCastCoordinator.get().start()
+            remoteCommandCoordinator.get().start()
+        }
+        applicationScope.launch(Dispatchers.IO) {
+            notesSyncTriggerManager.get().start()
         }
         applicationScope.launch(Dispatchers.IO) {
             sftpServerResumeCoordinator.get().start()
@@ -378,7 +392,13 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
         }
 
         setupDebugStrictMode()
-        GmsAvailabilityChecker.check(this)
+        // S4884: the probe is binder IPC into PackageManager and Play Services. A process cold-started
+        // for a WorkManager job runs this onCreate inside the service-start ANR window, so the check
+        // never runs on the main thread. The cached status stays OK until it lands, which only delays
+        // the advisory snackbar in BaseActivity.
+        applicationScope.launch(Dispatchers.IO) {
+            GmsAvailabilityChecker.check(this@FastMediaSorterApp)
+        }
 
         // Initialize static context for Glide ModelLoader
         appContext = applicationContext
@@ -417,6 +437,9 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
 
         // Apply saved locale - SharedPreferences read already wrapped in StrictModeHelper
         LocaleHelper.applyLocale(this)
+        // Below API 33 AppCompat forgets its locale when the process ends; hand the stored choice back
+        // before the first activity is created.
+        LocaleHelper.restoreForAppCompat(this)
         // Note: logging initialized early in attachBaseContext to capture startup crashes
         
         // Cast SDK is initialised lazily by CastController.init() (S0403 seam; GMS-backed
@@ -512,6 +535,12 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
         // the list in the previous language until long after the user had read it.
         applicationScope.launch(Dispatchers.IO) {
             startupInitializer.get().renameVirtualResources()
+        }
+
+        // S4702: the pass above runs once per process, and a live language switch keeps the process.
+        // The collector re-runs it for every later switch; it never completes, so it owns its own launch.
+        applicationScope.launch(Dispatchers.IO) {
+            startupInitializer.get().observeLanguageChanges()
         }
 
         applicationScope.launch(Dispatchers.IO) {
@@ -732,11 +761,12 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
 
     override fun attachBaseContext(base: Context) {
         StartupWindowTimer.markAttachStart()
-        // StrictMode is not yet configured here, but wrap in helper for consistency
-        val contextWithLocale = com.sza.fastmediasorter.core.debug.StrictModeHelper.allowDiskReads {
-            LocaleHelper.applyLocale(base)
-        }
-        super.attachBaseContext(contextWithLocale)
+        // S4603: do not wrap Application base context in a localized configuration context;
+        // Application.resources must retain the system configuration so that below API 33
+        // AppCompatDelegate calculateApplicationLocales correctly sees the OS locale when
+        // resetting to follow-system. Activities are localized via BaseActivity.attachBaseContext.
+        super.attachBaseContext(base)
+        com.sza.fastmediasorter.core.util.UiLanguageCatalog.ensureInitialized(base)
         
         // Initialize logging as early as possible so file logging exists even if app
         // crashes during or before onCreate(). Fail-safe: don't throw if logging fails.

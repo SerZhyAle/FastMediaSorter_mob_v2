@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Digital Photo Frame on Tablet - FastMediaSorter v2"
+title: "Digital Photo Frame on Tablet - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-photo-frame.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -45,7 +45,7 @@ Choose where your photos live:
 2. Tap **Sign in** → complete authentication in browser
 3. Select the folder with your photos → **Done**
 
-![FastMediaSorter resource list - photo resource cards visible after adding a photo folder](screenshots/screenshot-pf-step1.png)
+![Fast Media Sorter & Organizer resource list - photo resource cards visible after adding a photo folder](screenshots/screenshot-pf-step1.png)
 
 ---
 
@@ -121,12 +121,12 @@ Android Settings → Display → Screen timeout → set to **"Never"** (or maxim
 This step is for convenience: want to launch the photo frame instantly when you pick up the tablet - without opening the app and navigating?
 
 1. Long-press your home screen → tap **Widgets**
-2. Find **FastMediaSorter** in the widget list
+2. Find **Fast Media Sorter & Organizer** in the widget list
 3. Drag **"Resource Shortcut"** widget to your home screen
 4. When prompted, select your photo resource
 5. Tap the widget anytime → slideshow launches instantly
 
-![Android home screen with FastMediaSorter resource shortcut widgets placed](screenshots/screenshot-pf-step6.png)
+![Android home screen with Fast Media Sorter & Organizer resource shortcut widgets placed](screenshots/screenshot-pf-step6.png)
 
 ---
 

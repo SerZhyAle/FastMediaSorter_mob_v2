@@ -64,14 +64,14 @@ layout: null
           "@type": "HowToStep",
           "position": 1,
           "name": "Turn Streams on and bring in the catalog",
-          "text": "Turn Streams on in Settings, the Media tab, the Streams toggle. A device profile can do this for you too: switching Streams on during the first-launch wizard starts the catalog download by itself, showing Downloading.. under the row while it works. Turning the row back off mid-download cancels it, and opening a device that already has a catalog stored does not download anything extra. Once Streams is on, Update catalog sits directly in the toolbar - no overflow menu to hunt through. Tap it and FastMediaSorter reports what changed, something like \u0022Catalog: +48 new, 12 updated, 3 removed\u0022. If a catalog source turns out to be dead or painfully slow, the import now fails fast with a clear message instead of leaving the spinner turning. When a newer channel list is published, a banner offers Update the channel list? with an Update button. It clears itself once you act on it, and if you close it, it stays away until a newer list is published. Decide how eager that banner should be in Settings, the Streams section, Updating the channel list: Only when I ask, Suggest when I open, or Automatically on Wi-Fi.",
+          "text": "Turn Streams on in Settings, the Media tab, the Streams toggle. A device profile can do this for you too: switching Streams on during the first-launch wizard starts the catalog download by itself, showing Downloading.. under the row while it works. Turning the row back off mid-download cancels it, and opening a device that already has a catalog stored does not download anything extra. Once Streams is on, Update catalog sits directly in the toolbar - no overflow menu to hunt through. Tap it and Fast Media Sorter \u0026 Organizer reports what changed, something like \u0022Catalog: +48 new, 12 updated, 3 removed\u0022. If a catalog source turns out to be dead or painfully slow, the import now fails fast with a clear message instead of leaving the spinner turning. When a newer channel list is published, a banner offers Update the channel list? with an Update button. It clears itself once you act on it, and if you close it, it stays away until a newer list is published. Decide how eager that banner should be in Settings, the Streams section, Updating the channel list: Only when I ask, Suggest when I open, or Automatically on Wi-Fi.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-catalog-browsing.html#turn-on-and-download-catalog"
         },
         {
           "@type": "HowToStep",
           "position": 2,
           "name": "What is actually in the catalog",
-          "text": "The catalog is more than one curated list. Alongside FastMediaSorter\u0027s own picks, it folds in private community radio and public webcams from open, keyless directories - laut.fm, the Xiph Icecast directory, WebRadioDB, Radio Paradise, iptv-org\u0027s weather and nature cams, AKC live cams, and Transport for London traffic cameras, the last marked as short clips rather than live streams. Every name has been cleaned up at the source. Entries that used to show as \u0022(null)\u0022, a bare dash, raw HTML codes instead of accented letters, or hundreds of stations all called \u0022Online Radio\u0022 now arrive readable, with a nameless station listed by its own address instead. Nothing was dropped to get there - the only rows that left were exact duplicates, the same station filed once under http and once under https. A title of the form \u0022Name (Name)\u0022 also collapses to plain \u0022Name\u0022; a parenthetical that actually says something different, such as a region or a quality, stays as it is. Every channel carries one of 31 rubrics instead of a loose, free-text topic, shown in whichever language the interface is running in - things like News, Jazz \u0026 Blues or Webcam. Sorting by rubric follows the alphabet of that language.",
+          "text": "The catalog is more than one curated list. Alongside Fast Media Sorter \u0026 Organizer\u0027s own picks, it folds in private community radio and public webcams from open, keyless directories - laut.fm, the Xiph Icecast directory, WebRadioDB, Radio Paradise, iptv-org\u0027s weather and nature cams, AKC live cams, and Transport for London traffic cameras, the last marked as short clips rather than live streams. Every name has been cleaned up at the source. Entries that used to show as \u0022(null)\u0022, a bare dash, raw HTML codes instead of accented letters, or hundreds of stations all called \u0022Online Radio\u0022 now arrive readable, with a nameless station listed by its own address instead. Nothing was dropped to get there - the only rows that left were exact duplicates, the same station filed once under http and once under https. A title of the form \u0022Name (Name)\u0022 also collapses to plain \u0022Name\u0022; a parenthetical that actually says something different, such as a region or a quality, stays as it is. Every channel carries one of 31 rubrics instead of a loose, free-text topic, shown in whichever language the interface is running in - things like News, Jazz \u0026 Blues or Webcam. Sorting by rubric follows the alphabet of that language.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-catalog-browsing.html#whats-in-the-catalog"
         },
         {
@@ -85,7 +85,7 @@ layout: null
           "@type": "HowToStep",
           "position": 4,
           "name": "Narrow it down with filters",
-          "text": "Tap Filter to open rows for Category, Language, Country and Topic - Topic only shows up when the catalog actually carries topics. Language and Country open a type-to-filter searchable picker with flags: the language picker pins English, Russian and Ukrainian to the top, and a country\u0027s flag-and-code chip sits before its language chip in the list. The Language list holds only real languages, one entry each however the catalog spells them - regional variants and typos fold into one. The Country list holds only real countries, by full name with a flag, in alphabetical order, with the countries of your interface language first. A filter you saved earlier whose value no longer exists goes back to All. Two small icons beside the search box split the list by media kind in one tap - Audio, Video, or Own for channels you added yourself - and agree with whatever the Filter dialog already has selected. The filter button carries a Filter active mark when something is on; Clear filters in the dialog drops it all at once.",
+          "text": "Tap Filter to open rows for Category, Language, Country and Topic - Topic only shows up when the catalog actually carries topics. Language and Country open a type-to-filter searchable picker with flags: the language picker pins English, Russian and Ukrainian to the top, and a country\u0027s flag-and-code chip sits before its language chip in the list. The Language list holds only real languages, one entry each however the catalog spells them - regional variants and typos fold into one. The Country list holds only real countries, by full name with a flag, in alphabetical order, with the countries of your interface language first. A saved Language or Country that the catalog no longer carries goes back to All on its own. A saved Category or Topic whose value no longer exists keeps that value, and the list stays empty until you choose All for it. Two small icons beside the search box split the list by media kind in one tap - Audio, Video, or Own for channels you added yourself - and agree with whatever the Filter dialog already has selected. The filter button carries a Filter active mark when something is on; Clear filters in the dialog drops it all at once.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-catalog-browsing.html#narrow-with-filters"
         },
         {
@@ -106,14 +106,14 @@ layout: null
           "@type": "HowToStep",
           "position": 7,
           "name": "See which channels are alive before you tap one",
-          "text": "Refreshing the list does more than fetch new rows: FastMediaSorter checks every visible channel for reachability while it works, showing Checking streams.. and marking each one green or red as the answer comes in - a channel that fails shows No signal. Touching the screen stops the probe where it is, and video tiles get a fresh thumbnail out of the same pass. The marks are informational, not permanent - clear them any time with Settings, the Streams section, Clear play marks; the channels themselves stay exactly where they were.",
+          "text": "Refreshing the list does more than fetch new rows: Fast Media Sorter \u0026 Organizer checks every visible channel for reachability while it works, showing Checking streams.. and marking each channel that answers green as the answer comes in. A channel that does not answer gets an amber unknown mark instead, never red - red comes only from a playback you started that failed. Touching the screen stops the probe where it is, and video tiles get a fresh thumbnail out of the same pass. The marks are informational, not permanent - clear them any time with Settings, the Streams section, Clear play marks; the channels themselves stay exactly where they were.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-catalog-browsing.html#check-channel-health"
         },
         {
           "@type": "HowToStep",
           "position": 8,
           "name": "The three-dot menu on every card",
-          "text": "Every card, in grid or list, carries a three-dot More actions button of its own: Edit for a channel you added by hand, Send link, and Remove. Where FastMediaSorter\u0027s launcher is set up, Add to home screen is there too - no long-press or hidden gesture needed for any of it.",
+          "text": "Every card, in grid or list, carries a three-dot More actions button of its own: Edit for a channel you added by hand, Send link, and Remove. Where Fast Media Sorter \u0026 Organizer\u0027s launcher is set up, Add to home screen is there too - no long-press or hidden gesture needed for any of it.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-catalog-browsing.html#card-overflow-menu"
         },
         {
@@ -127,7 +127,7 @@ layout: null
           "@type": "HowToStep",
           "position": 10,
           "name": "Starting fresh - clear every downloaded channel",
-          "text": "Tap Clear all downloaded to remove, in one confirmed action, everything that came from the catalog or an imported playlist. Channels you typed in by hand are never touched. FastMediaSorter counts what it removed when it is done, so you know the clean-up actually happened.",
+          "text": "Tap Clear all downloaded to remove, in one confirmed action, everything that came from the catalog or an imported playlist. Channels you typed in by hand are never touched. Fast Media Sorter \u0026 Organizer counts what it removed when it is done, so you know the clean-up actually happened.",
           "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/documentation/streams/channel-catalog-browsing.html#clear-all-downloaded"
         },
         {
@@ -151,6 +151,7 @@ layout: null
     </script>
 
     <link rel="icon" type="image/x-icon" href="../../favicon.ico">
+    <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
     <link rel="icon" type="image/png" sizes="32x32" href="../../favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="../../favicon-16x16.png">
 
@@ -183,7 +184,7 @@ layout: null
 </head>
 
 <body class="doc-body">
-<div class="doc-stamp">26.10.26 18:01</div>
+<div class="doc-stamp">26.11.14 02:38</div>
     <a class="doc-skip-link" href="#main-content">Skip to content</a>
 
     <!-- Header Chrome -->
@@ -219,7 +220,7 @@ layout: null
                     </div>
                 </div>
 
-                <a href="../../index.html" title="FastMediaSorter v2 Home" class="doc-header-home"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <a href="../../index.html" title="Fast Media Sorter &amp; Organizer Home" class="doc-header-home"><img src="../../apple-touch-icon.png" alt="Fast Media Sorter &amp; Organizer icon" class="doc-app-icon"></a>
                 <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/></svg><span>Theme</span></button>
             </nav>
         </div>
@@ -474,7 +475,7 @@ layout: null
                 </p>
 
                 <h2 id="why">Why You'll Love This</h2>
-                        <p>A hand-typed list of radio stations is fine when you have three of them. FastMediaSorter's built-in <span class="doc-link-term" data-term="catalog">catalog</span> can hand you thousands of <span class="doc-link-term" data-term="channel">channels</span> at once - curated stations, community radio, public webcams - and a list that size is only useful if you can bring in what you want, tell it apart from what you do not, and find your way back to the same view every time you open <span class="doc-link-term" data-term="streams-screen">Streams</span>.</p>
+                        <p>A hand-typed list of radio stations is fine when you have three of them. Fast Media Sorter & Organizer's built-in <span class="doc-link-term" data-term="catalog">catalog</span> can hand you thousands of <span class="doc-link-term" data-term="channel">channels</span> at once - curated stations, community radio, public webcams - and a list that size is only useful if you can bring in what you want, tell it apart from what you do not, and find your way back to the same view every time you open <span class="doc-link-term" data-term="streams-screen">Streams</span>.</p>
                         <p>This page covers the catalog end to end: getting it onto the device, keeping it fresh, and browsing what is in it with filters, collections and sorting. It stops short of what each channel actually looks like on screen and how you pin your favorites - those are their own pages, linked below.</p>
 
                 <!-- Prerequisite Card -->
@@ -484,7 +485,7 @@ layout: null
                         <span>Before You Begin: Ingredients &amp; Prerequisites</span>
                     </div>
                     <ul class="doc-prereq-list">
-                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> FastMediaSorter in the Standard, noLegal, Legacy or VR <span class="doc-link-term" data-term="edition">edition</span>, with <span class="doc-link-term" data-term="streams-screen">Streams</span> turned on. Streams and its catalog do not exist in the Lite, Photos or FOSS editions.</li>
+                        <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> Fast Media Sorter & Organizer in the Standard, noLegal, Legacy or VR <span class="doc-link-term" data-term="edition">edition</span>, with <span class="doc-link-term" data-term="streams-screen">Streams</span> turned on. Streams and its catalog do not exist in the Lite, Photos or FOSS editions.</li>
                         <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> An internet connection to bring the catalog in the first place. Once channels are on the device, browsing, filtering and sorting all work from what is already there.</li>
                         <li><span class="doc-prereq-bullet"><svg class="doc-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></span> A few channels in the list already - your own, or from the catalog - so there is something to filter, sort and manage. See step 1 if the list is still empty.</li>
                     </ul>
@@ -498,7 +499,7 @@ layout: null
                     </div>
                     <div class="doc-step-body">
                         <p>Turn Streams on in <strong>Settings</strong>, the <strong>Media</strong> tab, the <strong>Streams</strong> toggle. A <span class="doc-link-term" data-term="device-profile">device profile</span> can do this for you too: switching Streams on during the first-launch wizard starts the catalog download by itself, showing <strong>Downloading..</strong> under the row while it works. Turning the row back off mid-download cancels it, and opening a device that already has a catalog stored does not download anything extra.</p>
-                        <p>Once Streams is on, <strong>Update catalog</strong> sits directly in the toolbar - no overflow menu to hunt through. Tap it and FastMediaSorter reports what changed, something like "Catalog: +48 new, 12 updated, 3 removed". If a catalog source turns out to be dead or painfully slow, the import now fails fast with a clear message instead of leaving the spinner turning.</p>
+                        <p>Once Streams is on, <strong>Update catalog</strong> sits directly in the toolbar - no overflow menu to hunt through. Tap it and Fast Media Sorter & Organizer reports what changed, something like "Catalog: +48 new, 12 updated, 3 removed". If a catalog source turns out to be dead or painfully slow, the import now fails fast with a clear message instead of leaving the spinner turning.</p>
                         <p>When a newer channel list is published, a banner offers <strong>Update the channel list?</strong> with an <strong>Update</strong> button. It clears itself once you act on it, and if you close it, it stays away until a newer list is published. Decide how eager that banner should be in <strong>Settings</strong>, the <strong>Streams</strong> section, <strong>Updating the channel list</strong>: <strong>Only when I ask</strong>, <strong>Suggest when I open</strong>, or <strong>Automatically on Wi-Fi</strong>.</p>
                         <figure class="doc-figure" data-shot-id="streams.catalog-update-toolbar">
                             <img src="../assets/images/streams/catalog-update-toolbar.png" alt="The Streams toolbar with the Update catalog button and a catalog update summary message showing new, updated and removed channel counts" class="doc-screenshot" loading="lazy" />
@@ -514,7 +515,7 @@ layout: null
                         <h2 class="doc-step-title">What is actually in the catalog</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>The catalog is more than one curated list. Alongside FastMediaSorter's own picks, it folds in private community radio and public webcams from open, keyless directories - laut.fm, the Xiph Icecast directory, WebRadioDB, Radio Paradise, iptv-org's weather and nature cams, AKC live cams, and Transport for London traffic cameras, the last marked as short clips rather than live streams.</p>
+                        <p>The catalog is more than one curated list. Alongside Fast Media Sorter & Organizer's own picks, it folds in private community radio and public webcams from open, keyless directories - laut.fm, the Xiph Icecast directory, WebRadioDB, Radio Paradise, iptv-org's weather and nature cams, AKC live cams, and Transport for London traffic cameras, the last marked as short clips rather than live streams.</p>
                         <p>Every name has been cleaned up at the source. Entries that used to show as "(null)", a bare dash, raw HTML codes instead of accented letters, or hundreds of stations all called "Online Radio" now arrive readable, with a nameless station listed by its own address instead. Nothing was dropped to get there - the only rows that left were exact duplicates, the same station filed once under http and once under https. A title of the form "Name (Name)" also collapses to plain "Name"; a parenthetical that actually says something different, such as a region or a quality, stays as it is.</p>
                         <p>Every channel carries one of 31 rubrics instead of a loose, free-text topic, shown in whichever language the interface is running in - things like News, Jazz & Blues or Webcam. Sorting by rubric follows the alphabet of that language.</p>
                     </div>
@@ -543,7 +544,7 @@ layout: null
                         <h2 class="doc-step-title">Narrow it down with filters</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>Tap <strong>Filter</strong> to open rows for <strong>Category</strong>, <strong>Language</strong>, <strong>Country</strong> and <strong>Topic</strong> - Topic only shows up when the catalog actually carries topics. Language and Country open a type-to-filter searchable picker with flags: the language picker pins English, Russian and Ukrainian to the top, and a country's flag-and-code chip sits before its language chip in the list. The Language list holds only real languages, one entry each however the catalog spells them - regional variants and typos fold into one. The Country list holds only real countries, by full name with a flag, in alphabetical order, with the countries of your interface language first. A filter you saved earlier whose value no longer exists goes back to <strong>All</strong>.</p>
+                        <p>Tap <strong>Filter</strong> to open rows for <strong>Category</strong>, <strong>Language</strong>, <strong>Country</strong> and <strong>Topic</strong> - Topic only shows up when the catalog actually carries topics. Language and Country open a type-to-filter searchable picker with flags: the language picker pins English, Russian and Ukrainian to the top, and a country's flag-and-code chip sits before its language chip in the list. The Language list holds only real languages, one entry each however the catalog spells them - regional variants and typos fold into one. The Country list holds only real countries, by full name with a flag, in alphabetical order, with the countries of your interface language first. A saved <strong>Language</strong> or <strong>Country</strong> that the catalog no longer carries goes back to <strong>All</strong> on its own. A saved <strong>Category</strong> or <strong>Topic</strong> whose value no longer exists keeps that value, and the list stays empty until you choose <strong>All</strong> for it.</p>
                         <p>Two small icons beside the search box split the list by media kind in one tap - <strong>Audio</strong>, <strong>Video</strong>, or <strong>Own</strong> for channels you added yourself - and agree with whatever the Filter dialog already has selected. The filter button carries a <strong>Filter active</strong> mark when something is on; <strong>Clear filters</strong> in the dialog drops it all at once.</p>
                         <figure class="doc-figure" data-shot-id="streams.catalog-filter-sheet">
                             <img src="../assets/images/streams/catalog-filter-sheet.png" alt="The Streams filter dialog open with Category, Language, Country and Topic rows and Audio/Video/Own media type choices" class="doc-screenshot" loading="lazy" />
@@ -586,11 +587,11 @@ layout: null
                         <h2 class="doc-step-title">See which channels are alive before you tap one</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>Refreshing the list does more than fetch new rows: FastMediaSorter checks every visible channel for reachability while it works, showing <strong>Checking streams..</strong> and marking each one green or red as the answer comes in - a channel that fails shows <strong>No signal</strong>. Touching the screen stops the probe where it is, and video tiles get a fresh thumbnail out of the same pass.</p>
+                        <p>Refreshing the list does more than fetch new rows: Fast Media Sorter & Organizer checks every visible channel for reachability while it works, showing <strong>Checking streams..</strong> and marking each channel that answers green as the answer comes in. A channel that does not answer gets an amber unknown mark instead, never red - red comes only from a playback you started that failed. Touching the screen stops the probe where it is, and video tiles get a fresh thumbnail out of the same pass.</p>
                         <p>The marks are informational, not permanent - clear them any time with <strong>Settings</strong>, the <strong>Streams</strong> section, <strong>Clear play marks</strong>; the channels themselves stay exactly where they were.</p>
                         <figure class="doc-figure" data-shot-id="streams.refresh-health-marks">
-                            <img src="../assets/images/streams/refresh-health-marks.png" alt="The Streams list mid-refresh with the Checking streams message showing and channel rows marked green or red for reachability" class="doc-screenshot" loading="lazy" />
-                            <figcaption>Checking streams.. - green for reachable, red for No signal.</figcaption>
+                            <img src="../assets/images/streams/refresh-health-marks.png" alt="The Streams list mid-refresh with the Checking streams message showing and channel rows marked green for reachable or amber for unknown" class="doc-screenshot" loading="lazy" />
+                            <figcaption>Checking streams.. - green for a channel that answers, amber for one that does not.</figcaption>
                         </figure>
                     </div>
                 </div>
@@ -602,7 +603,7 @@ layout: null
                         <h2 class="doc-step-title">The three-dot menu on every card</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>Every card, in grid or list, carries a three-dot <strong>More actions</strong> button of its own: <strong>Edit</strong> for a channel you added by hand, <strong>Send link</strong>, and <strong>Remove</strong>. Where FastMediaSorter's launcher is set up, <strong>Add to home screen</strong> is there too - no long-press or hidden gesture needed for any of it.</p>
+                        <p>Every card, in grid or list, carries a three-dot <strong>More actions</strong> button of its own: <strong>Edit</strong> for a channel you added by hand, <strong>Send link</strong>, and <strong>Remove</strong>. Where Fast Media Sorter & Organizer's launcher is set up, <strong>Add to home screen</strong> is there too - no long-press or hidden gesture needed for any of it.</p>
                         <figure class="doc-figure" data-shot-id="streams.card-overflow-menu">
                             <img src="../assets/images/streams/card-overflow-menu.png" alt="A Streams channel card's three-dot menu open showing Edit, Send link, Remove and Add to home screen" class="doc-screenshot" loading="lazy" />
                             <figcaption>The three-dot menu on a channel card.</figcaption>
@@ -632,7 +633,7 @@ layout: null
                         <h2 class="doc-step-title">Starting fresh - clear every downloaded channel</h2>
                     </div>
                     <div class="doc-step-body">
-                        <p>Tap <strong>Clear all downloaded</strong> to remove, in one confirmed action, everything that came from the catalog or an imported playlist. Channels you typed in by hand are never touched. FastMediaSorter counts what it removed when it is done, so you know the clean-up actually happened.</p>
+                        <p>Tap <strong>Clear all downloaded</strong> to remove, in one confirmed action, everything that came from the catalog or an imported playlist. Channels you typed in by hand are never touched. Fast Media Sorter & Organizer counts what it removed when it is done, so you know the clean-up actually happened.</p>
                         <figure class="doc-figure" data-shot-id="streams.clear-downloaded-confirm">
                             <img src="../assets/images/streams/clear-downloaded-confirm.png" alt="The Clear downloaded channels confirmation dialog warning that catalog and imported channels will be removed while hand-added ones stay" class="doc-screenshot" loading="lazy" />
                             <figcaption>Clearing every downloaded channel, hand-added ones kept.</figcaption>

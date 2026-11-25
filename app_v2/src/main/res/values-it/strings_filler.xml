@@ -30,4 +30,8 @@
     <string name="filler_result_busy">Il riempimento è già in corso.</string>
     <string name="filler_settings_toggle_subtitle">Riempie lo spazio libero di un dispositivo di archiviazione con file temporanei, poi li elimina</string>
     <string name="filler_settings_toggle_subtitle_pending">I file temporanei di un\'esecuzione precedente sono ancora presenti nell\'archivio. Il programma resta nell\'elenco finché non li elimini da lì.</string>
+    <string name="filler_estimate">%1$d%% completato, tempo rimasto: %2$s</string>
+    <string name="filler_estimate_calculating">%1$d%% completato, tempo rimasto: calcolo in corso..</string>
+    <string name="filler_reserve_slider_description">Spazio lasciato libero per il sistema</string>
+    <string name="filler_confirm_reserve_lowered">È meno del solito (%1$s), quindi il sistema e le altre app hanno meno spazio finché dura l\'operazione.</string>
 </resources>

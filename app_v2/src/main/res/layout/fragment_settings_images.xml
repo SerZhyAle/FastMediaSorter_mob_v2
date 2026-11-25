@@ -32,6 +32,7 @@
         <!-- Support GIF animation -->
         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
             android:id="@+id/rowSupportGifs"
+            app:str_icon="@drawable/ic_gif"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_small"
@@ -43,6 +44,7 @@
     <!-- Load full size images - help payload folded into the row -->
     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
         android:id="@+id/rowLoadFullSizeImages"
+        app:str_icon="@drawable/ic_hd"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart"
@@ -56,6 +58,7 @@
     <!-- Crop images to fill screen - help payload folded into the row -->
     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
         android:id="@+id/rowCropImagesToFullscreen"
+        app:str_icon="@drawable/ic_crop"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart"
@@ -70,6 +73,7 @@
     <!-- Dynamic Background Extension - help payload folded into the row -->
     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
         android:id="@+id/rowDynamicBackground"
+        app:str_icon="@drawable/ic_color_palette"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart"
@@ -83,6 +87,7 @@
     <!-- S3702: LETTERBOX-HALO, nested under the bars switch; each row is disabled while its parent is off. -->
     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
         android:id="@+id/rowLetterboxHalo"
+        app:str_icon="@drawable/ic_blur_on"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/settings_nested_margin_start"
@@ -92,6 +97,7 @@
 
     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
         android:id="@+id/rowLetterboxHaloGrowth"
+        app:str_icon="@drawable/ic_blur_on"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/settings_margin_indent_level_2"
@@ -101,6 +107,7 @@
 
     <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
         android:id="@+id/rowLetterboxHaloSpeed"
+        app:sdr_icon="@drawable/ic_schedule"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/settings_margin_indent_level_2"
@@ -131,6 +138,7 @@
     <!-- Slideshow Background Music - help payload folded into the row -->
     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
         android:id="@+id/rowSlideshowBackgroundMusic"
+        app:str_icon="@drawable/ic_audio"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/margin_small"

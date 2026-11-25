@@ -29,10 +29,12 @@ import com.sza.fastmediasorter.wear.domain.playback.WEAR_PLAYBACK_STALL_TIMEOUT_
 import com.sza.fastmediasorter.wear.domain.playback.WearPlaybackStallPolicy
 import com.sza.fastmediasorter.wear.domain.playback.WearPlaybackStallWatchdog
 import com.sza.fastmediasorter.wear.domain.playback.WearStationInfo
+import com.sza.fastmediasorter.wear.domain.playback.WearStreamFailure
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearNetworkChannelMonitor
 import com.sza.fastmediasorter.wear.domain.repository.WearNowPlayingRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ClassifyWearStreamMediaKindUseCase
@@ -40,6 +42,7 @@ import com.sza.fastmediasorter.wear.domain.usecase.DownloadNetworkFileUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.EndPhoneCameraSessionOnStreamErrorUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PublishPlaybackStateUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ToggleFavoriteUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.WalkWearBroadcastEndpointsUseCase
 import com.sza.fastmediasorter.wear.ui.player.common.PlaybackProgressTicker
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerCastManager
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerVolumeController
@@ -49,8 +52,10 @@ import com.sza.fastmediasorter.wear.ui.player.common.forwardSeekTarget
 import com.sza.fastmediasorter.wear.ui.player.common.jumpToLive
 import com.sza.fastmediasorter.wear.ui.player.common.pauseForHostStop
 import com.sza.fastmediasorter.wear.ui.player.common.resolveFavoriteIdentity
+import com.sza.fastmediasorter.wear.ui.player.common.streamFailure
 import com.sza.fastmediasorter.wear.ui.player.common.togglePlayPause
 import com.sza.fastmediasorter.wear.ui.player.common.wearPlaybackStatePayload
+import com.sza.fastmediasorter.wear.ui.player.helpers.BroadcastEndpointWalkManager
 import com.sza.fastmediasorter.wear.ui.player.helpers.StreamPlaybackSessionFactory
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -97,6 +102,8 @@ class VideoPlayerViewModel @Inject constructor(
     val fileOperations: com.sza.fastmediasorter.wear.ui.player.common.PlayerFileOperationsManager,
     val castManager: PlayerCastManager,
     private val batteryWarningStore: WearVideoBatteryWarningStore,
+    private val walkBroadcastEndpoints: WalkWearBroadcastEndpointsUseCase,
+    private val networkChannelMonitor: WearNetworkChannelMonitor,
     savedStateHandle: SavedStateHandle,
     @ApplicationContext private val context: Context,
     @ApplicationScope private val applicationScope: CoroutineScope
@@ -284,6 +291,14 @@ class VideoPlayerViewModel @Inject constructor(
                 }
                 return
             }
+            // S4629: a broadcast first walks on to its next endpoint; only an exhausted walk reaches the screen.
+            // A host that is not visible keeps the error, as the audio player does (S4610).
+            val route = networkSelection?.broadcastRoute
+            if (route != null && isHostVisible) {
+                loadJob?.cancel()
+                broadcastWalk.walk(route, fromTop = false, failure = error.streamFailure())
+                return
+            }
             _uiState.update {
                 it.copy(
                     isLoading = false,
@@ -291,6 +306,43 @@ class VideoPlayerViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    /** S4629: whether the screen is in front; a walk swaps the player's endpoint only under a visible screen. */
+    private var isHostVisible = true
+
+    private val broadcastWalk = BroadcastEndpointWalkManager(
+        scope = viewModelScope,
+        walkEndpoints = walkBroadcastEndpoints,
+        networkChannel = networkChannelMonitor.channel,
+        // Only a broadcast that is meant to play, under a visible screen, and not already on its error.
+        reconnectRoute = {
+            val playing = exoPlayer.playWhenReady && _uiState.value.error == null
+            networkSelection?.broadcastRoute?.takeIf { playing && isHostVisible }
+        },
+        onMoved = { next ->
+            networkSelection?.copy(streamUri = next.url, broadcastRoute = next.route)?.let { moved ->
+                networkSelection = moved
+                exoPlayer.stop()
+                exoPlayer.clearMediaItems()
+                loadNetworkVideo(moved)
+            }
+        },
+        onExhausted = ::showWalkExhausted,
+    )
+
+    /**
+     * S4629: the video screen has one error surface, so an exhausted walk writes the shared module text into it
+     * rather than growing a failure screen of its own.
+     */
+    private fun showWalkExhausted(failure: WearStreamFailure) {
+        exoPlayer.pause()
+        streamPlaybackSession.stop()
+        val messageRes = when (failure) {
+            WearStreamFailure.ENDED -> R.string.wear_stream_ended
+            WearStreamFailure.FAILED -> R.string.wear_state_error
+        }
+        _uiState.update { it.copy(isLoading = false, isPlaying = false, error = context.getString(messageRes)) }
     }
 
     private val streamPlaybackSession = streamPlaybackSessionFactory.create(
@@ -651,7 +703,15 @@ class VideoPlayerViewModel @Inject constructor(
      * A minimized watch app has no surface to show video on, so "video in the background" would be
      * the sound of a video and not this content at all - a different capability, not this one.
      */
-    fun onHostStopped() = streamPlaybackSession.pauseForHostStop(exoPlayer)
+    fun onHostStopped() {
+        isHostVisible = false
+        streamPlaybackSession.pauseForHostStop(exoPlayer)
+    }
+
+    /** S4629: a visible screen is the only one a failed broadcast endpoint is walked for. */
+    fun onHostStarted() {
+        isHostVisible = true
+    }
 
     fun onScreenTap() {
         if (_uiState.value.showControls) {

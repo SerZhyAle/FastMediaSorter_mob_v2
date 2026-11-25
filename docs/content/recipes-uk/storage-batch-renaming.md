@@ -11,9 +11,9 @@ canonical_url: documentation/storage/batch-renaming-uk.html
 why: |
   Імена з камери на кшталт `IMG_20260712_183412.jpg` через рік не скажуть вам нічого. «Перша поїздка Анни на велосипеді.jpg» скаже все. Гарне ім'я робить фото легким для пошуку і легко впізнаваним у будь-якому застосунку.
 
-  FastMediaSorter перейменовує прямо там, де ви дивитеся на свої файли: одне фото в плеєрі, або цілу групу в [браузері файлів](term:file-browser), кожному даючи власне нове ім'я. Це працює на телефоні, на картці пам'яті, у [мережевих папках](term:network-folder) та в [хмарному сховищі](term:cloud-storage).
+  Fast Media Sorter & Organizer перейменовує прямо там, де ви дивитеся на свої файли: одне фото в плеєрі, або цілу групу в [браузері файлів](term:file-browser), кожному даючи власне нове ім'я. Це працює на телефоні, на картці пам'яті, у [мережевих папках](term:network-folder) та в [хмарному сховищі](term:cloud-storage).
 ingredients:
-  - "FastMediaSorter будь-якої [редакції](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR або FOSS."
+  - "Fast Media Sorter & Organizer будь-якої [редакції](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR або FOSS."
   - "[Ресурс](term:resource), у який застосунок може писати. На ресурсі лише для читання кнопка Перейменувати не з'являється."
 steps:
   - number: 1

@@ -5,13 +5,15 @@ description: "How an account on an exchange server is created from an invitation
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/exchange-accounts.html
 ---
-<sub class="doc-stamp">26.10.22 01:29</sub>
+<sub class="doc-stamp">26.11.23 11:22</sub>
 
 # Accounts, invitations and passwords
 
 <img src="exchange-mark/full-256.png" alt="Media Exchange Server" width="128">
 
 An account on an exchange server is a login and a password. It holds the list of your devices and what they publish, and it exists on one server only: the one you run or the one a person you know runs for you. The developer of the app keeps no accounts and has no server.
+
+Already have an exchange account? [Sign in to STREAMS Player for Windows](streamsplayer.html#sign-in).
 
 ## Getting an account {#invitation}
 
@@ -55,7 +57,7 @@ In short, by case:
 
 A folder or a broadcast of yours can go to someone who has no account of yours. There are two ways, and both are withdrawn on their own:
 
-- **A guest.** The person registers a guest account on your server with an invitation of the kind **Guest**, and sees only what you gave to that account - one folder or one broadcast. In FastMediaSorter: open **Access from outside** for the folder and choose **Invite a guest**.
+- **A guest.** The person registers a guest account on your server with an invitation of the kind **Guest**, and sees only what you gave to that account - one folder or one broadcast. In Fast Media Sorter & Organizer: open **Access from outside** for the folder and choose **Invite a guest**.
 - **A link with a password.** For a person with no account at all: open **Access from outside** for the folder and choose **Link with a password**. Send the link, and tell the password another way - by voice or in another messenger. The password is checked only by the device that shares the folder, and the server never holds it. A link never expires; **Withdraw** ends it and the sessions it opened.
 
 The same two ways exist for a broadcast.
@@ -63,7 +65,7 @@ The same two ways exist for a broadcast.
 ## Changing a password {#change-password}
 
 - **You know the password.** Open **My devices**, the menu of the server's card, **Change password**, then type the current password and the new one. This device stays signed in; every other device of the account signs out and asks for the new password, and its place in the list stays.
-- **The owner resets it.** The owner of the server can set a new password for any account. The effect is the same, with no device spared: all of them ask for the new password.
+- **The owner resets it.** The owner of the server can set a new password for any account in [FastMediaSorter for Web](https://serzhyale.github.io/FastMediaSorter_WEB/) in a browser. The effect is the same, with no device spared: all of them ask for the new password.
 - **You forgot it.** It cannot be recovered: there is no e-mail in the account to send a link to. Ask the owner of the server to reset it, or create a new account with a new invitation.
 
 ## A lost or sold device {#lost-device}

@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Подключение к NAS / Windows (SMB) - FastMediaSorter v2"
+title: "Подключение к NAS / Windows (SMB) - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-smb-setup-ru.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -65,12 +65,14 @@ IP-адрес - это «домашний адрес» вашего ПК в Wi-F
 
 ---
 
-## Шаг 3 - Откройте FastMediaSorter и нажмите "+"
+<a id="шаг-3---откройте-fastmediasorter-и-нажмите-"></a>
+
+## Шаг 3 - Откройте Fast Media Sorter & Organizer и нажмите "+"
 
 1. Откройте приложение
 2. На **списке ресурсов** нажмите кнопку **Добавить <img src="../icons/doc/ic_add.png" alt="" width="18" height="18" style="vertical-align:text-bottom">** на панели инструментов
 
-![FastMediaSorter resource list - Add button highlighted in top toolbar, SMB tab visible](screenshots/screenshot-smb-step3.png)
+![Fast Media Sorter & Organizer resource list - Add button highlighted in top toolbar, SMB tab visible](screenshots/screenshot-smb-step3.png)
 
 ---
 
@@ -145,7 +147,7 @@ IP-адрес - это «домашний адрес» вашего ПК в Wi-F
 
 Нажмите на неё - отобразятся фото, видео и другие файлы в виде миниатюр, как обычная локальная папка.
 
-![FastMediaSorter resource list - new "Common" SMB resource card (smb://192.168.1.100/Common) with Network folder SMB badge highlighted](screenshots/screenshot-smb-step8.png)
+![Fast Media Sorter & Organizer resource list - new "Common" SMB resource card (smb://192.168.1.100/Common) with Network folder SMB badge highlighted](screenshots/screenshot-smb-step8.png)
 
 ---
 

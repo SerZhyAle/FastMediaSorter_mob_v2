@@ -66,8 +66,16 @@ $cleanPage = "# Sorting`n`nOpen the file browser and mark a favorite.`n"
 # A recipe keeps its prose in YAML: a key, a machine-key value and a page:/term: target are not prose.
 $recipeClean = "---`npage_id: settings.colour-theme`ncolour: blue`nshot_id: settings.favourite-grid`nnext_recipes:`n  - url: page:settings.colour-theme`ntext: |`n  Pick a [color](term:colour) here.`n---`n`nBody.`n"
 
+# The ru block is a translation and is never judged, so its British spelling must not fail a case.
+$helpClean = '{ "help": "h", "locales": { "en": { "title": "Colors", "purpose": "Pick a color." }, "ru": { "title": "colour" } } }'
+$helpDirty = '{ "help": "h", "locales": { "en": { "title": "Colors", "elements": { "x": { "details": "Mark it as a favourite." } } } } }'
+$helpLabel = '{ "help": "h", "related": [ { "url": "https://example.com", "label": { "en": "Open the explorer", "ru": "x" } } ] }'
+$defsComplete = '{ "file-browser": { "def": "a" }, "favorite": { "def": "b" }, "color": { "def": "c" } }'
+$defsStale = '{ "file-browser": { "def": "a" }, "favorite": { "def": "b" }, "color": { "def": "c" }, "ghost": { "def": "d" } }'
+
 # Each case: Mutate edits the records (optional), Pages maps documentation-relative names to text,
-# Recipes maps docs/content/recipes-relative names to text,
+# Recipes maps docs/content/recipes-relative names to text, Help maps docs/content/help file names to
+# JSON text, Defs maps a locale to the text of scripts/docs/lib/termbase-definitions-<locale>.json,
 # Raw replaces the whole termbase text, NoTermbase/NoCorpus remove a part of the tree, Changed is
 # the -ChangedFiles value, Exit is the code the gate must return.
 $cases = @(
@@ -127,6 +135,16 @@ $cases = @(
         Changed = 'docs/content/recipes/r.md'; Exit = 1 }
     @{ Name = 'page: target outside the front matter passes'; Pages = @{ 'a.md' = "Read page:settings.colour-theme first.`n" }; Exit = 0 }
     @{ Name = 'missing corpus root passes with zero pages'; NoCorpus = $true; Exit = 0 }
+    @{ Name = 'clean help source passes'; Help = @{ 'h.json' = $helpClean }; Exit = 0 }
+    @{ Name = 'forbidden word in an English help string fails'; Help = @{ 'h.json' = $helpDirty }; Exit = 1; Expect = 'locales.en.elements.x.details' }
+    @{ Name = 'forbidden word in a help related label fails'; Help = @{ 'h.json' = $helpLabel }; Exit = 1; Expect = 'related[0].label.en' }
+    @{ Name = 'changed set judges only its own help source'; Help = @{ 'a.json' = $helpClean; 'b.json' = $helpDirty }
+        Changed = 'docs/content/help/a.json'; Exit = 0 }
+    @{ Name = 'complete definition file passes'; Defs = @{ 'ru' = $defsComplete }; Exit = 0 }
+    @{ Name = 'definition file missing a record fails'; Defs = @{ 'ru' = '{ "file-browser": { "def": "x" } }' }; Exit = 1; Expect = "record 'favorite' has no 'def'" }
+    @{ Name = 'stale definition key fails'; Defs = @{ 'uk' = $defsStale }; Exit = 1; Expect = "key 'ghost'" }
+    @{ Name = 'definition key naming a former id passes'; Mutate = { param($r) $r[2]['former_ids'] = @('ghost') }; Defs = @{ 'uk' = $defsStale }; Exit = 0 }
+    @{ Name = 'unreadable definition file cannot verify'; Defs = @{ 'ru' = '{ not json' }; Exit = 2 }
 )
 
 $scratchRoot = Join-Path $repoRoot 'temp/scratch'
@@ -170,6 +188,18 @@ foreach ($case in $cases) {
                 $recipePath = Join-Path $tree "docs/content/recipes/$name"
                 New-Item -ItemType Directory -Path (Split-Path $recipePath -Parent) -Force | Out-Null
                 [IO.File]::WriteAllText($recipePath, $case.Recipes[$name], $utf8)
+            }
+        }
+
+        if ($case.ContainsKey('Help')) {
+            New-Item -ItemType Directory -Path (Join-Path $tree 'docs/content/help') -Force | Out-Null
+            foreach ($name in $case.Help.Keys) { [IO.File]::WriteAllText((Join-Path $tree "docs/content/help/$name"), $case.Help[$name], $utf8) }
+        }
+
+        if ($case.ContainsKey('Defs')) {
+            New-Item -ItemType Directory -Path (Join-Path $tree 'scripts/docs/lib') -Force | Out-Null
+            foreach ($locale in $case.Defs.Keys) {
+                [IO.File]::WriteAllText((Join-Path $tree "scripts/docs/lib/termbase-definitions-$locale.json"), $case.Defs[$locale], $utf8)
             }
         }
 

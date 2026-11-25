@@ -12,8 +12,10 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,6 +24,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -36,6 +40,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -46,6 +51,8 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.AnimationIntent
 import com.sza.fastmediasorter.ui.common.compose.FastMediaSorterComposeTheme
 import com.sza.fastmediasorter.ui.common.compose.rememberAnimationAllowed
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
+import com.sza.fastmediasorter.ui.common.help.HelpOpenManager
 import com.sza.fastmediasorter.ui.settings.WearSyncUiState
 import com.sza.fastmediasorter.ui.settings.WearSyncViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -61,21 +68,33 @@ class BeamAnimationDialog : DialogFragment() {
     )
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        val beamDialog = Dialog(requireContext())
+        // A Compose card has no XML slot for the help button, so the card draws it and takes this opener.
+        val openHelp = DialogHelpEntryManager.debouncedOpener(beamDialog, HELP_SURFACE_ID)
+            .takeIf { HelpOpenManager.hasHelp(requireContext(), HELP_SURFACE_ID) }
+        Timber.d("S4666: beam help button shown=${openHelp != null}")
         val composeView = ComposeView(requireContext()).apply {
             setContent {
                 FastMediaSorterComposeTheme {
                     BeamDialogContent(
                         viewModel = viewModel,
+                        onHelp = openHelp,
                         onDismiss = { dismissAllowingStateLoss() }
                     )
                 }
             }
         }
-        return Dialog(requireContext()).apply {
+        return beamDialog.apply {
             setContentView(composeView)
             window?.setBackgroundDrawableResource(android.R.color.transparent)
             setCanceledOnTouchOutside(false)
         }
+    }
+
+    // The plain Dialog has no keyboard delegate; attach wires F1 here and finds no XML slot for a button.
+    override fun onStart() {
+        super.onStart()
+        dialog?.let { DialogHelpEntryManager.attach(it, HELP_SURFACE_ID) }
     }
 
     override fun onResume() {
@@ -91,10 +110,12 @@ private val DIALOG_WINDOW_MARGIN = 24.dp
 private val DIALOG_CORNER_RADIUS = 24.dp
 private val DIALOG_CONTENT_PADDING = 24.dp
 private val DIALOG_SHADOW_ELEVATION = 6.dp
+private const val HELP_SURFACE_ID = "BeamAnimationDialog"
 
 @Composable
 private fun BeamDialogContent(
     viewModel: WearSyncViewModel,
+    onHelp: (() -> Unit)?,
     onDismiss: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -136,7 +157,21 @@ private fun BeamDialogContent(
                 .padding(DIALOG_CONTENT_PADDING),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            if (onHelp != null) BeamHelpRow(onHelp)
             BeamDialogBody(state = state, viewModel = viewModel, onDismiss = onDismiss)
+        }
+    }
+}
+
+// The card has no title, so its first line holds only the help "?" at the end (CONTEXT-HELP 0.2 item E).
+@Composable
+private fun BeamHelpRow(onHelp: () -> Unit) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+        IconButton(onClick = onHelp, modifier = Modifier.testTag("beam_help_button")) {
+            Icon(
+                painter = painterResource(R.drawable.ic_help_outline),
+                contentDescription = stringResource(R.string.help_with_key)
+            )
         }
     }
 }

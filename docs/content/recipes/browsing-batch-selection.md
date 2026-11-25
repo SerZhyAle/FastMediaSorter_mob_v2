@@ -10,11 +10,11 @@ availability: all
 recipe_number: "03"
 canonical_url: documentation/browsing/batch-selection.html
 why: |
-  Some jobs need more than one file at a time - clearing out a folder of screenshots, moving a week of photos to a backup drive, sharing five files with a friend in one go. FastMediaSorter lets you tick as many files as you need and run one action on all of them at once, while a swipe or the row's own menu still covers the times you only want to act on a single file.
+  Some jobs need more than one file at a time - clearing out a folder of screenshots, moving a week of photos to a backup drive, sharing five files with a friend in one go. Fast Media Sorter & Organizer lets you tick as many files as you need and run one action on all of them at once, while a swipe or the row's own menu still covers the times you only want to act on a single file.
 
   A copy or move of many files can take a while, especially over a network. It keeps running in the background once you send it there, so you are never stuck staring at a progress bar.
 ingredients:
-  - "FastMediaSorter installed, with a [resource](term:resource) open in the [file browser](page:browsing.grid-and-list-views)."
+  - "Fast Media Sorter & Organizer installed, with a [resource](term:resource) open in the [file browser](page:browsing.grid-and-list-views)."
   - "Multi-selection, the grouped file menu, row swipe actions and the background transfer strip are part of every [edition](term:edition): Standard, noLegal, Lite, Photos, Legacy, VR and FOSS."
   - "Write access to the resource for Move, Rename, Delete and Archive - a read-only resource still allows Copy and Share."
 steps:
@@ -37,7 +37,7 @@ steps:
     id: batch-actions
     title: Run one action on the whole selection
     text: |
-      Once you have files selected, a bar of actions appears at the bottom: **Copy**, **Move**, **Delete**, **Share** and, on this device's own storage, **Archive**. Tap one and it runs on every selected file at once. If you deleted or moved something by mistake, **Undo** appears in the same bar right after, for as long as FastMediaSorter still remembers the operation.
+      Once you have files selected, a bar of actions appears at the bottom: **Copy**, **Move**, **Delete**, **Share** and, on this device's own storage, **Archive**. Tap one and it runs on every selected file at once. If you deleted or moved something by mistake, **Undo** appears in the same bar right after, for as long as Fast Media Sorter & Organizer still remembers the operation.
 
       **Rename** shows up on the bar too, but it only opens a dialog when exactly one file is selected - renaming a batch of files at once is a separate tool. Copying and moving need a [destination](term:destination) resource to send files to; see [Moving, copying and deleting files](page:storage.file-copy-move-delete).
     image_bookmark:

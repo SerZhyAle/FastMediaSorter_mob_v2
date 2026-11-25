@@ -69,7 +69,6 @@ class PdfPageDecoder(
     override fun decode(source: File, width: Int, height: Int, options: Options): Resource<Bitmap>? {
         val cacheKey = PdfNonDecodableCache.keyFor(source.path, source.length(), source.lastModified())
         if (nonDecodable.isKnownNonDecodable(cacheKey)) {
-            Timber.d("S4552: skipped decode of remembered non-decodable PDF ${source.name}")
             return null
         }
 

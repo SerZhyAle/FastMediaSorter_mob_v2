@@ -28,4 +28,8 @@
     <string name="filler_result_busy">Заповнення вже триває.</string>
     <string name="filler_settings_toggle_subtitle">Заповнює вільне місце накопичувача тимчасовими файлами й потім видаляє їх</string>
     <string name="filler_settings_toggle_subtitle_pending">Тимчасові файли минулого запуску ще лежать на накопичувачі. Програма залишається в списку, доки ви не видалите їх у ній.</string>
+    <string name="filler_estimate">%1$d%% виконано, залишилось: %2$s</string>
+    <string name="filler_estimate_calculating">%1$d%% виконано, залишилось: рахується..</string>
+    <string name="filler_reserve_slider_description">Місце, що залишається вільним для системи</string>
+    <string name="filler_confirm_reserve_lowered">Це менше за звичні %1$s, тому в системи й інших застосунків залишається менше місця, поки триває заповнення.</string>
 </resources>

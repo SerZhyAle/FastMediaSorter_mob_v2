@@ -34,6 +34,19 @@
     <!-- termbase-ignore: X --> on the same line or the line above, where X is the synonym or the
     id of the term whose synonyms are excused.
 
+    DEFINITION FILES. The translated definitions live beside the termbase, one file per locale
+    (termbase-definitions-<locale>.json under -DefinitionRoot, an object keyed by record id whose value
+    carries a 'def' string), because the glossary and the help index render them. Every file must
+    define every record, and a key that is neither a live id nor a former_ids entry is stale. One
+    translation per locale is DOC-EXTERNAL-QUALITY rule 4; a record defined in English alone would
+    show the reader an English sentence on a Russian or Ukrainian page.
+
+    HELP HALF. The in-app help sources (<HelpRoot>/*.json, one per help page) are part of the external
+    corpus too. Every English string under 'locales.en' and every 'related[].label.en' is judged for
+    forbidden synonyms with the same matchers; the ru and uk blocks are translations and are not
+    judged, and element names come from string resources, which the schema half already holds to
+    the screen. A JSON string has no markup, so nothing is blanked and no annotation is read.
+
     SCOPE. -ChangedFiles narrows the scan to the changed corpus pages, so one closure is not charged
     for another session's in-flight page. A changed termbase widens it back to the whole corpus:
     a newly forbidden word must be fixed everywhere in the change that forbids it. A missing corpus
@@ -49,9 +62,18 @@
     are the sources, and documentation/ is scanned for any hand-written page beside the generated
     HTML. With documentation/ alone the gate judged zero pages and passed every closure (S3530).
 
+.PARAMETER HelpRoot
+    Folder holding the in-app help sources (*.json, not recursive), relative to -RepoRoot unless
+    rooted. Default docs/content/help. A missing folder judges no help source.
+
+.PARAMETER DefinitionRoot
+    Folder holding termbase-definitions-<locale>.json, relative to -RepoRoot unless rooted. Default
+    scripts/docs/lib. No file there means no definition is judged.
+
 .PARAMETER ChangedFiles
     The closure's changed set. Accepts an array or post-change.ps1's comma-joined single string.
-    Only .md members under a -CorpusRoot are scanned, unless the set carries the termbase itself.
+    Only .md members under a -CorpusRoot and .json members of -HelpRoot are scanned, unless the set
+    carries the termbase itself.
     Omit to scan the whole corpus.
 
 .PARAMETER Quiet
@@ -69,12 +91,14 @@
       1 - at least one schema finding or forbidden synonym, each printed as FAIL <path>:<line>: ..
       2 - cannot verify: the termbase or docs/flavors/flavor-matrix.json is missing or unreadable,
           a termbase line is not a JSON object, no string resources exist while a record names
-          ui_strings, or a judged page cannot be read
+          ui_strings, or a judged page, help source or definition file cannot be read or parsed
 #>
 [CmdletBinding()]
 param(
     [string] $Termbase = 'docs/termbase.jsonl',
     [string[]] $CorpusRoot = @('docs/content/recipes', 'documentation'),
+    [string] $HelpRoot = 'docs/content/help',
+    [string] $DefinitionRoot = 'scripts/docs/lib',
     [string[]] $ChangedFiles = @(),
     [switch] $Quiet,
     [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
@@ -407,6 +431,40 @@ if ($needsStrings) {
     }
 }
 
+# ---------------------------------------------------------------- definition files
+
+$liveIds = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+$formerIds = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+foreach ($rec in $records) {
+    if (Test-IsText $rec.Data['id']) { $null = $liveIds.Add($rec.Data['id']) }
+    if (Test-IsStringList $rec.Data['former_ids']) { foreach ($old in $rec.Data['former_ids']) { $null = $formerIds.Add($old) } }
+}
+$definitionFolder = Resolve-RepoPath $DefinitionRoot
+$definitionFiles = @()
+if (Test-Path -LiteralPath $definitionFolder -PathType Container) {
+    $definitionFiles = @(Get-ChildItem -LiteralPath $definitionFolder -File -Filter 'termbase-definitions-*.json' | Sort-Object Name)
+}
+foreach ($file in $definitionFiles) {
+    $defRel = Get-Relative $file.FullName
+    try {
+        $defs = [IO.File]::ReadAllText($file.FullName, [Text.Encoding]::UTF8) | ConvertFrom-Json -AsHashtable
+    }
+    catch {
+        Exit-CannotVerify ("definition file unreadable: {0} ({1})" -f $defRel, $_.Exception.Message)
+    }
+    if ($defs -isnot [System.Collections.IDictionary]) { Exit-CannotVerify "definition file is not a JSON object: $defRel" }
+    foreach ($id in $liveIds) {
+        $entry = $defs[$id]
+        $def = if ($entry -is [System.Collections.IDictionary]) { $entry['def'] } else { $null }
+        if (-not (Test-IsText $def)) { $schemaFindings.Add("${defRel}: record '$id' has no 'def' (one translation per locale)") }
+    }
+    foreach ($key in $defs.Keys) {
+        if (-not $liveIds.Contains($key) -and -not $formerIds.Contains($key)) {
+            $schemaFindings.Add("${defRel}: key '$key' is neither a termbase id nor a former_ids entry (stale definition)")
+        }
+    }
+}
+
 # ---------------------------------------------------------------- corpus pages
 
 $corpusRoots = @($CorpusRoot |
@@ -425,8 +483,19 @@ $normChanged = @($ChangedFiles |
         Where-Object { $_ })
 $termbaseChanged = @($normChanged | Where-Object { $_ -ieq $termbaseRel }).Count -gt 0
 
+$helpFolder = Resolve-RepoPath $HelpRoot
+$helpRel = (Get-Relative $helpFolder).TrimEnd('/')
+$helpSources = New-Object System.Collections.Generic.List[string]
 $pages = New-Object System.Collections.Generic.List[string]
 if ($normChanged.Count -gt 0 -and -not $termbaseChanged) {
+    foreach ($rel in $normChanged) {
+        if ($rel -notmatch '(?i)\.json$') { continue }
+        $full = Resolve-RepoPath $rel
+        $fullRel = Get-Relative $full
+        if (-not $fullRel.StartsWith("$helpRel/", [StringComparison]::OrdinalIgnoreCase)) { continue }
+        if ($fullRel.Substring($helpRel.Length + 1).Contains('/')) { continue }
+        if (Test-Path -LiteralPath $full -PathType Leaf) { $helpSources.Add($full) }
+    }
     $scope = 'changed set'
     foreach ($rel in $normChanged) {
         if ($rel -notmatch '(?i)\.md$') { continue }
@@ -443,6 +512,9 @@ if ($normChanged.Count -gt 0 -and -not $termbaseChanged) {
 }
 else {
     $scope = if ($termbaseChanged) { 'whole corpus - termbase changed' } else { 'whole corpus' }
+    if (Test-Path -LiteralPath $helpFolder -PathType Container) {
+        foreach ($f in (Get-ChildItem -LiteralPath $helpFolder -File -Filter '*.json' | Sort-Object Name)) { $helpSources.Add($f.FullName) }
+    }
     foreach ($root in $corpusRoots) {
         if (Test-Path -LiteralPath $root.Full -PathType Container) {
             foreach ($f in (Get-ChildItem -LiteralPath $root.Full -Recurse -File -Filter '*.md')) {
@@ -566,6 +638,52 @@ foreach ($page in $pages) {
     }
 }
 
+# ---------------------------------------------------------------- help sources
+
+function Get-EnglishHelpString($Node, [string] $Path, $Into) {
+    if ($Node -is [string]) { $Into.Add([pscustomobject]@{ Path = $Path; Text = $Node }); return }
+    if ($Node -is [System.Collections.IDictionary]) {
+        foreach ($key in $Node.Keys) { Get-EnglishHelpString $Node[$key] "$Path.$key" $Into }
+        return
+    }
+    if (Test-IsList $Node) {
+        for ($i = 0; $i -lt $Node.Count; $i++) { Get-EnglishHelpString $Node[$i] "$Path[$i]" $Into }
+    }
+}
+
+foreach ($source in $helpSources) {
+    $sourceRel = Get-Relative $source
+    try {
+        $json = [IO.File]::ReadAllText($source, [Text.Encoding]::UTF8) | ConvertFrom-Json -AsHashtable
+    }
+    catch {
+        Exit-CannotVerify ("help source unreadable: {0} ({1})" -f $sourceRel, $_.Exception.Message)
+    }
+    if ($json -isnot [System.Collections.IDictionary] -or $matchers.Count -eq 0) { continue }
+    $strings = New-Object System.Collections.Generic.List[object]
+    $locales = $json['locales']
+    if ($locales -is [System.Collections.IDictionary] -and $null -ne $locales['en']) { Get-EnglishHelpString $locales['en'] 'locales.en' $strings }
+    $related = $json['related']
+    if (Test-IsList $related) {
+        for ($i = 0; $i -lt $related.Count; $i++) {
+            $label = if ($related[$i] -is [System.Collections.IDictionary]) { $related[$i]['label'] } else { $null }
+            if ($label -is [System.Collections.IDictionary] -and $label['en'] -is [string]) {
+                $strings.Add([pscustomobject]@{ Path = "related[$i].label.en"; Text = $label['en'] })
+            }
+        }
+    }
+    foreach ($s in $strings) {
+        if ($anySynonym -and -not $anySynonym.IsMatch($s.Text)) { continue }
+        foreach ($m in $matchers) {
+            foreach ($hit in $m.Regex.Matches($s.Text)) {
+                $context = $s.Text.Trim()
+                if ($context.Length -gt 120) { $context = $context.Substring(0, 117) + '..' }
+                $corpusFindings.Add(("{0} {1}: '{2}' -> use '{3}' ({4}): {5}" -f $sourceRel, $s.Path, $hit.Value, $m.Replacement, $m.Id, $context))
+            }
+        }
+    }
+}
+
 # ---------------------------------------------------------------- verdict
 
 $started.Stop()
@@ -577,17 +695,17 @@ if (-not $Quiet) {
 
 if ($schemaFindings.Count -gt 0 -or $corpusFindings.Count -gt 0) {
     Write-Host '  Fix: use the canonical name on the page, or add/repair the record in the termbase (docs/COMMUNICATION_POLICY.md section 7).'
-    Write-Host ("assert-docs-termbase: FAIL - {0} schema finding(s) in {1}, {2} forbidden synonym(s) in {3} page(s) judged [{4}], {5}." -f `
-            $schemaFindings.Count, $termbaseRel, $corpusFindings.Count, $pages.Count, $scope, $elapsed) -ForegroundColor Red
+    Write-Host ("assert-docs-termbase: FAIL - {0} schema finding(s) in {1} and its definition files, {2} forbidden synonym(s) in {3} page(s) and {4} help source(s) judged [{5}], {6}." -f `
+            $schemaFindings.Count, $termbaseRel, $corpusFindings.Count, $pages.Count, $helpSources.Count, $scope, $elapsed) -ForegroundColor Red
     exit 1
 }
 
-if ($scope -eq 'changed set' -and $pages.Count -eq 0) {
+if ($scope -eq 'changed set' -and $pages.Count -eq 0 -and $helpSources.Count -eq 0) {
     . (Join-Path $PSScriptRoot 'lib/changed-files.ps1')
     Write-EmptySetPass -GateName 'assert-docs-termbase' -Note ("  termbase: {0} record(s), {1} forbidden synonym(s); no corpus page in the changed set." -f $records.Count, $matchers.Count)
     exit 0
 }
 
-Write-Host ("assert-docs-termbase: PASS - {0} record(s), {1} forbidden synonym(s), {2} page(s) judged [{3}], {4}." -f `
-        $records.Count, $matchers.Count, $pages.Count, $scope, $elapsed) -ForegroundColor Green
+Write-Host ("assert-docs-termbase: PASS - {0} record(s), {1} forbidden synonym(s), {2} definition file(s), {3} page(s) and {4} help source(s) judged [{5}], {6}." -f `
+        $records.Count, $matchers.Count, $definitionFiles.Count, $pages.Count, $helpSources.Count, $scope, $elapsed) -ForegroundColor Green
 exit 0

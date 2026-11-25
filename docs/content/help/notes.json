@@ -1,0 +1,208 @@
+{
+  "help": "notes",
+  "surface": "NotesActivity",
+  "elements": [
+    { "id": "back", "viewId": "notesToolbar" },
+    { "id": "search", "viewId": "notesSearchView", "labelKey": "notes_search_hint" },
+    { "id": "list", "viewId": "notesRecyclerView" },
+    { "id": "row-more", "viewId": "noteMore", "labelKey": "notes_row_more" },
+    { "id": "empty", "viewId": "notesEmptyText", "labelKey": "notes_empty" },
+    { "id": "new-note", "viewId": "notesNewButton", "labelKey": "notes_new" },
+    { "id": "sync-now", "viewId": "action_notes_sync_now", "labelKey": "notes_sync_now" },
+    { "id": "too-large", "viewId": "noteTooLarge", "labelKey": "notes_sync_too_large" },
+    { "id": "selection", "viewId": "action_notes_delete_selected", "labelKey": "notes_delete_selected" }
+  ],
+  "related": [
+    { "help": "main" },
+    { "help": "settings-operations" },
+    { "help": "player" }
+  ],
+  "locales": {
+    "en": {
+      "title": "Notes",
+      "purpose": "All your text notes in one list, newest first, with search. A new note is one tap away and opens straight in the text editor; every note is a plain text file in the Notes folder of Documents, so the file browser and other apps see it too.",
+      "steps": [
+        "Tap New note (6) to start writing. The editor opens on an empty note; type, then save, and the note appears at the top of the list.",
+        "Tap a note in the list (3) to open it in the editor. Each row shows the first line as the title, the next line below it and the time of the last change.",
+        "To find a note, type in the search field (2). Only the notes whose text contains what you typed stay in the list.",
+        "The button at the end of a row (4) sends the note's text through Send to.., starts a selection of several notes (9) or deletes the note. Deleting asks first.",
+        "The back arrow (1) closes the screen. When there are no notes yet, a hint (5) says how to write the first one.",
+        "To keep the notes on your other devices too, open My devices, open the menu of your exchange server and turn on Sync notes through the exchange server. The notes are encrypted for your own devices only; whoever runs the server sees only how many notes there are, their sizes and times. Once it is on, the title shows the sync state and Sync now (7) runs a sync at once.",
+        "A note changed on two devices at the same time is kept twice, so no text is lost. A note that is too large to sync carries a mark (8) and stays on this device."
+      ],
+      "groups": [
+        { "title": "Title bar", "elements": ["back"] },
+        { "title": "Search and the list", "elements": ["search", "list", "row-more", "empty"] },
+        { "title": "Writing", "elements": ["new-note"] },
+        { "title": "Sync with your other devices", "elements": ["sync-now", "too-large"] },
+        { "title": "Several notes at once", "elements": ["selection"] }
+      ],
+      "elements": {
+        "back": {
+          "name": "Back arrow",
+          "summary": "Leaves the screen and returns to where you came from.",
+          "details": "Nothing is lost: every note is already a file, and the list is read again the next time you open the screen."
+        },
+        "search": {
+          "summary": "Narrows the list to the notes whose text contains what you type.",
+          "details": "The search looks at the whole text of each note, not only its first line, and ignores upper and lower case. Clear the field to see every note again."
+        },
+        "list": {
+          "name": "List of notes",
+          "summary": "Every note of the Notes folder, newest first.",
+          "details": "The first line of a note is its title and the next line is shown under it, so most notes need no name. Tap a row to open the note in the text editor; a long press starts a selection of several notes."
+        },
+        "row-more": {
+          "summary": "Sends the note's text through Send to.. or deletes the note.",
+          "details": "Send to.. offers the recipients you set up for the whole app, including any app that accepts text, such as a messenger or email. Delete asks for confirmation and then removes the file from the device."
+        },
+        "empty": {
+          "name": "Empty list hint",
+          "summary": "Shown while there are no notes, or none matches the search.",
+          "details": "Tap New note to write the first one."
+        },
+        "new-note": {
+          "summary": "Creates a new note and opens it in the text editor.",
+          "details": "The note is named after the current date and time and saved in the Notes folder of Documents. Until you save it in the editor no file is written."
+        },
+        "sync-now": {
+          "summary": "Syncs the notes with your other devices at once.",
+          "details": "It appears in the screen menu once Sync notes through the exchange server is on for one of your servers. The notes are encrypted for your own devices only, and whoever runs the server sees only how many notes there are, their sizes and times. Notes are also synced when you open the screen, return from the editor, connect to the server and whenever another device changes a note. A note changed on two devices at the same time is kept twice. If the server cannot be reached, the notes stay on this device and the title says so."
+        },
+        "too-large": {
+          "summary": "Marks a note that is too large to sync.",
+          "details": "Such a note stays on this device and is not sent. Shorten it, or split it into two notes, and it syncs with the next sync."
+        },
+        "selection": {
+          "name": "Selection mode",
+          "summary": "Lets you work on several notes at once: select all, or delete the selected ones.",
+          "details": "A long press on a note, or Select in the menu at the end of its row, starts the mode and selects that note. Tap other notes to add or remove them; every note shows a check box and the title shows how many are selected. Select all in the title bar selects every note the list shows, so with a search typed it selects only the matching notes. Delete selected asks once for the whole set and then removes those files from the device. The cross in the title bar, or back, leaves the mode and deletes nothing; deselecting the last note leaves it too."
+        }
+      }
+    },
+    "ru": {
+      "title": "Заметки",
+      "purpose": "Все текстовые заметки одним списком, новые сверху, с поиском. Новая заметка создаётся одним нажатием и сразу открывается в текстовом редакторе; каждая заметка - обычный текстовый файл в папке Notes внутри Documents, поэтому её видят и проводник, и другие приложения.",
+      "steps": [
+        "Нажмите «Новая заметка» (6), чтобы начать писать. Редактор откроется на пустой заметке; наберите текст и сохраните - заметка появится в начале списка.",
+        "Нажмите на заметку в списке (3), чтобы открыть её в редакторе. В строке видны первая строка как заголовок, следующая строка под ней и время последнего изменения.",
+        "Чтобы найти заметку, наберите текст в поле поиска (2). В списке останутся только заметки, в которых он встречается.",
+        "Кнопка в конце строки (4) отправляет текст заметки, начинает выбор нескольких заметок (9) или удаляет её. Перед удалением приложение спрашивает подтверждение.",
+        "Стрелка назад (1) закрывает экран. Пока заметок нет, подсказка (5) говорит, как написать первую.",
+        "Чтобы заметки были и на других ваших устройствах, откройте «Мои устройства», откройте меню своего сервера обмена и включите «Синхронизировать заметки через сервер обмена». Заметки зашифрованы только для ваших собственных устройств; тот, кто управляет сервером, видит лишь их количество, размеры и время. Когда синхронизация включена, в заголовке виден её статус, а «Синхронизировать сейчас» (7) запускает её сразу.",
+        "Заметка, изменённая на двух устройствах одновременно, сохраняется в двух версиях, поэтому текст не теряется. Заметка, слишком большая для синхронизации, получает отметку (8) и остаётся на этом устройстве."
+      ],
+      "groups": [
+        { "title": "Заголовок", "elements": ["back"] },
+        { "title": "Поиск и список", "elements": ["search", "list", "row-more", "empty"] },
+        { "title": "Запись", "elements": ["new-note"] },
+        { "title": "Синхронизация с другими устройствами", "elements": ["sync-now", "too-large"] },
+        { "title": "Несколько заметок сразу", "elements": ["selection"] }
+      ],
+      "elements": {
+        "back": {
+          "name": "Стрелка назад",
+          "summary": "Закрывает экран и возвращает туда, откуда вы пришли.",
+          "details": "Ничего не теряется: каждая заметка уже лежит в файле, а список читается заново при следующем открытии экрана."
+        },
+        "search": {
+          "summary": "Оставляет в списке только заметки, в тексте которых есть набранное.",
+          "details": "Поиск смотрит весь текст заметки, а не только первую строку, и не различает заглавные и строчные буквы. Очистите поле, чтобы снова увидеть все заметки."
+        },
+        "list": {
+          "name": "Список заметок",
+          "summary": "Все заметки из папки Notes, новые сверху.",
+          "details": "Первая строка заметки служит заголовком, следующая показана под ней, поэтому большинству заметок имя не нужно. Нажатие на строку открывает заметку в редакторе; долгое нажатие начинает выбор нескольких заметок."
+        },
+        "row-more": {
+          "summary": "Отправляет текст заметки или удаляет заметку.",
+          "details": "«Отправить в..» предлагает получателей, настроенных для всего приложения, в том числе любое приложение, которое принимает текст, например мессенджер или почту. «Удалить» спрашивает подтверждение и затем удаляет файл с устройства."
+        },
+        "empty": {
+          "name": "Подсказка пустого списка",
+          "summary": "Видна, пока заметок нет или ни одна не подходит под поиск.",
+          "details": "Нажмите «Новая заметка», чтобы написать первую."
+        },
+        "new-note": {
+          "summary": "Создаёт новую заметку и открывает её в текстовом редакторе.",
+          "details": "Заметка получает имя по текущей дате и времени и сохраняется в папке Notes внутри Documents. Пока вы не сохраните её в редакторе, файл не записывается."
+        },
+        "sync-now": {
+          "summary": "Сразу синхронизирует заметки с другими вашими устройствами.",
+          "details": "Пункт появляется в меню экрана, когда для одного из ваших серверов включено «Синхронизировать заметки через сервер обмена». Заметки зашифрованы только для ваших собственных устройств, а тот, кто управляет сервером, видит лишь их количество, размеры и время. Синхронизация также идёт при открытии экрана, при возврате из редактора, при подключении к серверу и каждый раз, когда другое устройство изменяет заметку. Заметка, изменённая на двух устройствах одновременно, сохраняется в двух версиях. Если сервер недоступен, заметки остаются на этом устройстве, и заголовок сообщает об этом."
+        },
+        "too-large": {
+          "summary": "Отмечает заметку, слишком большую для синхронизации.",
+          "details": "Такая заметка остаётся на этом устройстве и не отправляется. Сократите её или разделите на две заметки, и при следующей синхронизации она отправится."
+        },
+        "selection": {
+          "name": "Режим выбора",
+          "summary": "Позволяет работать сразу с несколькими заметками: выбрать все или удалить выбранные.",
+          "details": "Долгое нажатие на заметку или пункт «Выбрать» в меню в конце её строки включает режим и выбирает эту заметку. Нажимайте на другие заметки, чтобы добавить их или убрать; у каждой заметки появляется отметка, а в заголовке видно, сколько выбрано. «Выбрать все» в заголовке выбирает все заметки, которые показывает список, поэтому при набранном поиске выбираются только подходящие. «Удалить выбранные» один раз спрашивает подтверждение для всего набора и затем удаляет эти файлы с устройства. Крестик в заголовке или «назад» выходит из режима и ничего не удаляет; снятие выбора с последней заметки тоже выходит из него."
+        }
+      }
+    },
+    "uk": {
+      "title": "Нотатки",
+      "purpose": "Усі текстові нотатки одним списком, нові зверху, з пошуком. Нова нотатка створюється одним натисканням і одразу відкривається в текстовому редакторі; кожна нотатка - звичайний текстовий файл у папці Notes всередині Documents, тому її бачать і провідник, і інші застосунки.",
+      "steps": [
+        "Натисніть «Нова нотатка» (6), щоб почати писати. Редактор відкриється на порожній нотатці; наберіть текст і збережіть - нотатка з'явиться на початку списку.",
+        "Натисніть на нотатку в списку (3), щоб відкрити її в редакторі. У рядку видно перший рядок як заголовок, наступний рядок під ним і час останньої зміни.",
+        "Щоб знайти нотатку, наберіть текст у полі пошуку (2). У списку залишаться лише нотатки, у яких він трапляється.",
+        "Кнопка в кінці рядка (4) надсилає текст нотатки, починає вибір кількох нотаток (9) або видаляє її. Перед видаленням застосунок питає підтвердження.",
+        "Стрілка назад (1) закриває екран. Поки нотаток немає, підказка (5) пояснює, як написати першу.",
+        "Щоб нотатки були й на інших ваших пристроях, відкрийте «Мої пристрої», відкрийте меню свого сервера обміну та ввімкніть «Синхронізувати нотатки через сервер обміну». Нотатки зашифровані лише для ваших власних пристроїв; той, хто керує сервером, бачить лише їхню кількість, розміри й час. Коли синхронізацію ввімкнено, у заголовку видно її стан, а «Синхронізувати зараз» (7) запускає її одразу.",
+        "Нотатка, змінена на двох пристроях одночасно, зберігається у двох версіях, тому текст не губиться. Нотатка, завелика для синхронізації, отримує позначку (8) і залишається на цьому пристрої."
+      ],
+      "groups": [
+        { "title": "Заголовок", "elements": ["back"] },
+        { "title": "Пошук і список", "elements": ["search", "list", "row-more", "empty"] },
+        { "title": "Запис", "elements": ["new-note"] },
+        { "title": "Синхронізація з іншими пристроями", "elements": ["sync-now", "too-large"] },
+        { "title": "Кілька нотаток одразу", "elements": ["selection"] }
+      ],
+      "elements": {
+        "back": {
+          "name": "Стрілка назад",
+          "summary": "Закриває екран і повертає туди, звідки ви прийшли.",
+          "details": "Нічого не втрачається: кожна нотатка вже лежить у файлі, а список читається знову під час наступного відкриття екрана."
+        },
+        "search": {
+          "summary": "Залишає в списку лише нотатки, у тексті яких є набране.",
+          "details": "Пошук переглядає весь текст нотатки, а не лише перший рядок, і не розрізняє великі та малі літери. Очистьте поле, щоб знову побачити всі нотатки."
+        },
+        "list": {
+          "name": "Список нотаток",
+          "summary": "Усі нотатки з папки Notes, нові зверху.",
+          "details": "Перший рядок нотатки слугує заголовком, наступний показано під ним, тому більшості нотаток ім'я не потрібне. Натискання на рядок відкриває нотатку в редакторі; довге натискання починає вибір кількох нотаток."
+        },
+        "row-more": {
+          "summary": "Надсилає текст нотатки або видаляє нотатку.",
+          "details": "«Надіслати до..» пропонує отримувачів, налаштованих для всього застосунку, зокрема будь-який застосунок, що приймає текст, наприклад месенджер чи пошту. «Видалити» питає підтвердження, а потім видаляє файл із пристрою."
+        },
+        "empty": {
+          "name": "Підказка порожнього списку",
+          "summary": "Видно, поки нотаток немає або жодна не підходить під пошук.",
+          "details": "Натисніть «Нова нотатка», щоб написати першу."
+        },
+        "new-note": {
+          "summary": "Створює нову нотатку й відкриває її в текстовому редакторі.",
+          "details": "Нотатка отримує ім'я за поточною датою й часом і зберігається в папці Notes всередині Documents. Поки ви не збережете її в редакторі, файл не записується."
+        },
+        "sync-now": {
+          "summary": "Одразу синхронізує нотатки з іншими вашими пристроями.",
+          "details": "Пункт з'являється в меню екрана, коли для одного з ваших серверів увімкнено «Синхронізувати нотатки через сервер обміну». Нотатки зашифровані лише для ваших власних пристроїв, а той, хто керує сервером, бачить лише їхню кількість, розміри й час. Синхронізація також іде під час відкриття екрана, під час повернення з редактора, під час підключення до сервера й щоразу, коли інший пристрій змінює нотатку. Нотатка, змінена на двох пристроях одночасно, зберігається у двох версіях. Якщо сервер недоступний, нотатки залишаються на цьому пристрої, і заголовок повідомляє про це."
+        },
+        "too-large": {
+          "summary": "Позначає нотатку, завелику для синхронізації.",
+          "details": "Така нотатка залишається на цьому пристрої й не надсилається. Скоротіть її або поділіть на дві нотатки, і під час наступної синхронізації вона надішлеться."
+        },
+        "selection": {
+          "name": "Режим вибору",
+          "summary": "Дає змогу працювати одразу з кількома нотатками: вибрати всі або видалити вибрані.",
+          "details": "Довге натискання на нотатку або пункт «Вибрати» в меню в кінці її рядка вмикає режим і вибирає цю нотатку. Натискайте на інші нотатки, щоб додати їх або прибрати; біля кожної нотатки з'являється позначка, а в заголовку видно, скільки вибрано. «Вибрати всі» в заголовку вибирає всі нотатки, які показує список, тому за набраного пошуку вибираються лише відповідні. «Видалити вибрані» один раз питає підтвердження для всього набору, а потім видаляє ці файли з пристрою. Хрестик у заголовку або «назад» виходить із режиму й нічого не видаляє; зняття вибору з останньої нотатки теж виходить із нього."
+        }
+      }
+    }
+  }
+}

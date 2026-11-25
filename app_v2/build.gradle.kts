@@ -2,6 +2,8 @@ import com.android.build.api.variant.BuildConfigField
 import java.io.FileInputStream
 import java.io.File
 import java.time.Duration
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.Properties
 import org.gradle.kotlin.dsl.support.serviceOf
 import java.util.zip.ZipEntry
@@ -97,6 +99,39 @@ abstract class GenerateReleasedTicketsTask : DefaultTask() {
         logger.lifecycle(
             "released tickets: ${ordered.size} row(s) for package $currentRelease"
         )
+    }
+}
+
+// S3513 follow-up: a stable debug build keeps the checked-in version on purpose, so BuildConfig says
+// nothing about WHICH build the tester holds - the overlay showed the sentinel from months ago. This
+// asset carries the minute the APK was packaged instead, in the same shape as a stamped versionName.
+// It moves no BuildConfig field, no manifest field and no configuration-cache input: the clock is read
+// here, at execution time, never while configuring - the reason S3513 skipped the in-build stamp.
+//
+// Deliberately NOT cacheable and forced to run on every packaging build by outputs.upToDateWhen at the
+// registration site, because its output is a function of the wall clock and of nothing Gradle tracks.
+abstract class GenerateBuildStampTask : DefaultTask() {
+    // Only the variant suffix (-DEBUG, -NoLegal-DEBUG ..) is taken from it; the digits come from the clock.
+    @get:Input
+    @get:Optional
+    abstract val versionName: Property<String>
+
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    @TaskAction
+    fun generate() {
+        val target = outputDir.get().asFile
+        target.mkdirs()
+        // Byte-compatible with stampedVersionName in gradle/build-version-stamp.gradle.kts and with
+        // Get-BuildVersionStamp in scripts/utils/build-version-stamp.ps1: Y.YM.MDDH.Hmm.
+        val raw = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyMMddHHmm"))
+        val digits = "${raw[0]}.${raw[1]}${raw[2]}.${raw[3]}${raw.substring(4, 6)}${raw[6]}" +
+            ".${raw[7]}${raw.substring(8, 10)}"
+        val variantSuffix = versionName.orNull.orEmpty().substringAfter('-', "").let { suffix ->
+            if (suffix.isEmpty()) "" else "-$suffix"
+        }
+        File(target, "build_stamp.txt").writeText(digits + variantSuffix)
     }
 }
 
@@ -450,6 +485,9 @@ val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?
     raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
 }
 val overrideAppVersionName = providers.gradleProperty("fms.versionName").orNull
+// S3513 follow-up: true when this invocation packages an APK that carries the checked-in sentinel on
+// purpose; the debug variant then also ships build_stamp.txt for the version overlay (onVariants below).
+val sentinelPackagingBuild = (extra.properties["fmsSentinelPackagingBuild"] as Boolean?) == true
 val baseAppVersionCode = overrideAppVersionCode ?: stampedAppVersionCode ?: defaultAppVersionCode
 // S0556: the Android XR artifact shares com.sza.fastmediasorter with the phone and the watch, and Play
 // refuses a versionCode that any artifact of the package already used. The phone and the watch split
@@ -1943,6 +1981,23 @@ androidComponents {
             )
         }
 
+        // S3513 follow-up: only a packaging build that kept the sentinel needs it. A stamped build
+        // (dav, release, a raw gradlew) already carries its own minute in BuildConfig, and a
+        // compile-only run packages nothing - registering there would make the debug unit-test task
+        // rerun on every invocation, because the merged assets are one of its inputs.
+        if (buildType == "debug" && sentinelPackagingBuild) {
+            val generateBuildStamp = tasks.register<GenerateBuildStampTask>(
+                "generateBuildStamp${variant.name.replaceFirstChar { it.uppercase() }}"
+            ) {
+                versionName.set(variant.outputs.first().versionName.map { it.orEmpty() })
+                outputs.upToDateWhen { false }
+            }
+            variant.sources.assets?.addGeneratedSourceDirectory(
+                generateBuildStamp,
+                GenerateBuildStampTask::outputDir
+            )
+        }
+
         variant.outputs.forEach { output ->
             // S1972: the ABI token is not cosmetic. This name is per-output, and every slice of a
             // split build reaches this block with the same flavor, build type and version - so
@@ -2278,7 +2333,11 @@ if (isNoLegalBuild) {
                     // a pip resolve alone proves nothing.
                     // 2026-10-27 (pre-release refresh, release 47): bumped 2026.8.19 → 2026.10.26, the
                     // latest PyPI stable; stable stays the channel while it is not older than nightly.
-                    install("yt-dlp==2026.10.26")
+                    // 2026-11-24 (pre-release refresh, release 49): bumped 2026.10.26 → 2026.11.23, the
+                    // latest PyPI stable; the newest nightly (2026.11.23.232705) is the same day, so stable
+                    // is not older and stays the channel. Needs an on-device link-download to verify
+                    // extraction - a pip resolve alone proves nothing.
+                    install("yt-dlp==2026.11.23")
                 }
             }
         }

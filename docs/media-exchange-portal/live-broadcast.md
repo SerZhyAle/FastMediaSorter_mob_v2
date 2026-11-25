@@ -5,7 +5,7 @@ description: "Who can go on air and who can play a live broadcast, how it travel
 category: "Media exchange"
 permalink: /docs/media-exchange-portal/live-broadcast.html
 ---
-<sub class="doc-stamp">26.10.22 01:29</sub>
+<sub class="doc-stamp">26.11.23 11:22</sub>
 
 # Live broadcast: any device on air, your other devices listening
 
@@ -17,14 +17,14 @@ A live broadcast sends what a device sees or hears right now - its camera, its m
 
 - **An Android phone** - camera and microphone: video with sound, video only or audio only; the lens can be switched while on air. Also the screen of the phone and a ready file, and the camera keeps going in the background in Standard and noLegal. Available in the Standard, noLegal and Legacy editions, see [Editions](editions.html). How: [Going on air](broadcast-start.html).
 - **A Wear OS watch** - its microphone, to up to four listeners at once, from a tile or the programs grid of the watch.
-- **A Windows PC** - screen, camera and system sound.
+- **A Windows PC** - [broadcast the screen, camera, microphone or system sound in STREAMS Player](streamsplayer.html#broadcast-from-this-pc).
 
 ## Who plays it
 
-- **Another Android phone or tablet** - in the Streams section of FastMediaSorter: the list **Broadcasts of my devices**, the broadcast's QR code, a shared broadcast link or a `.fmsbcast` file. See [Receiving a broadcast](broadcast-receive.html).
+- **Another Android phone or tablet** - in the Streams section of Fast Media Sorter & Organizer: the list **Broadcasts of my devices**, the broadcast's QR code, a shared broadcast link or a `.fmsbcast` file. See [Receiving a broadcast](broadcast-receive.html).
 - **A Wear OS watch** - the list of the account's broadcasts, a cast, or the running broadcast that the phone's broadcast screen sends to the paired watch.
-- **An Android TV or a VR headset** - in the Streams section of FastMediaSorter, the same way as on a phone.
-- **A Windows PC** - in [STREAMS Player](https://serzhyale.github.io/StreamsPlayer/).
+- **An Android TV or a VR headset** - in the Streams section of Fast Media Sorter & Organizer, the same way as on a phone.
+- **A Windows PC** - [open the broadcast list in STREAMS Player](streamsplayer.html#open-the-broadcast-list).
 
 ## How it travels
 
@@ -33,7 +33,7 @@ A live broadcast sends what a device sees or hears right now - its camera, its m
 
 ## Cast
 
-**Google Cast works.** FastMediaSorter casts an open video, audio file, photo or a live stream to a Chromecast device on your network.
+**Google Cast works.** Fast Media Sorter & Organizer casts an open video, audio file, photo or a live stream to a Chromecast device on your network.
 
 **A cast to your own device** lets one of your devices ask another to start playing a broadcast - for example, an office PC asks the living-room TV. The receiving device always asks before it plays. It is not Google Cast: the two never share a button label. See [Receiving a broadcast](broadcast-receive.html).
 

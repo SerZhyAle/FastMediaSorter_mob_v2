@@ -10,6 +10,9 @@ package com.sza.fastmediasorter.domain.model
 enum class ExchangeMessage(val code: String, val kind: Kind, val step: ExchangeCheckStep?) {
     BAD_CREDENTIALS("bad-credentials", Kind.WIRE, ExchangeCheckStep.CREDENTIALS),
     BAD_CREDENTIALS_ONE_TIME_CODE("bad-credentials", Kind.WIRE, ExchangeCheckStep.CREDENTIALS),
+
+    /** The answer to `admin-auth` itself (1.12 item EU): it carries a password and no login. */
+    BAD_CREDENTIALS_ADMIN("bad-credentials", Kind.WIRE, null),
     DEVICE_REVOKED("device-revoked", Kind.WIRE, ExchangeCheckStep.DEVICE_REMOVED),
     SIGNED_OUT("signed-out", Kind.WIRE, ExchangeCheckStep.CREDENTIALS),
     VERSION_UNSUPPORTED("version-unsupported", Kind.WIRE, ExchangeCheckStep.OPERATOR),
@@ -47,6 +50,9 @@ enum class ExchangeMessage(val code: String, val kind: Kind, val step: ExchangeC
     SERVER_NO_E2E("server-no-e2e", Kind.STATE, ExchangeCheckStep.OPERATOR),
     SEALED_FAILED("sealed-failed", Kind.LOCAL, null),
 
+    /** 1.12 item FB: this device holds a key, the producer of the content has none. */
+    E2E_MISSING_PEER("e2e-missing-peer", Kind.STATE, null),
+
     /**
      * A connection string or broadcast descriptor of a higher major than this program reads (amendment 2026-10-17,
      * shared with LIVE-BROADCAST). The text is fixed by the contract and never asks the user to update.
@@ -56,8 +62,20 @@ enum class ExchangeMessage(val code: String, val kind: Kind, val step: ExchangeC
     /** An unknown `refused.reason` (7.10): the generic refusal, sent to whoever runs the server. */
     REFUSED("refused", Kind.WIRE, ExchangeCheckStep.OPERATOR),
 
-    /** The sign-in of an administration stream reached a server whose remote administration is turned off. */
-    ADMIN_DISABLED("admin-disabled", Kind.BINDING, null),
+    /** 1.12 item EU: the sign-in of an administration stream reached a server whose remote administration is off. */
+    ADMIN_DISABLED("admin-disabled", Kind.WIRE, null),
+
+    /** 1.12 item EV: an administration session lapsed - either ending, and never the wrong-password row. */
+    ADMIN_SESSION_ENDED("admin-session-ended", Kind.STATE, null),
+
+    /**
+     * The four refusals of the settings standard (1.12 item EP), reached through [ofSettings] only: notes sync and
+     * the administration replies send the same reason strings with other meanings.
+     */
+    SETTINGS_NOT_FOUND("not-found", Kind.WIRE, null),
+    SETTINGS_INVALID_PAYLOAD("invalid-payload", Kind.WIRE, null),
+    SETTINGS_APP_ID_MISMATCH("app-id-mismatch", Kind.WIRE, ExchangeCheckStep.OPERATOR),
+    SETTINGS_VERSION_INCOMPATIBLE("version-incompatible", Kind.WIRE, ExchangeCheckStep.OPERATOR),
 
     /** This device's secret store refused the token it was given; not a table row. */
     TOKEN_NOT_STORED("token-not-stored", Kind.PRODUCT, null);
@@ -79,20 +97,42 @@ enum class ExchangeMessage(val code: String, val kind: Kind, val step: ExchangeC
 
         private val WALKED_CODES = setOf("unreachable", "unanswered", "tls-failed")
         private val REFUSAL_KINDS = setOf(Kind.WIRE, Kind.BINDING)
+        private val SETTINGS_ROWS = setOf(
+            SETTINGS_NOT_FOUND,
+            SETTINGS_INVALID_PAYLOAD,
+            SETTINGS_APP_ID_MISMATCH,
+            SETTINGS_VERSION_INCOMPATIBLE,
+        )
 
         /**
          * The row for a `refused.reason`. [oneTimeCode] picks the "login or one-time code" text of
-         * `bad-credentials`, [clipboardSend] the clipboard text of `limit-reached`. An unknown reason is
-         * [REFUSED]; `not-enrolled` (the entry holds no token) reads as a removed device.
+         * `bad-credentials`, [adminSignIn] its administration text, [clipboardSend] the clipboard text of
+         * `limit-reached`. An unknown reason is [REFUSED]; `not-enrolled` (the entry holds no token) reads as a
+         * removed device.
          */
-        fun ofWire(reason: String, oneTimeCode: Boolean = false, clipboardSend: Boolean = false): ExchangeMessage =
-            when (reason) {
-                REASON_NOT_ENROLLED -> DEVICE_REVOKED
-                REASON_TOKEN_NOT_STORED -> TOKEN_NOT_STORED
-                REASON_BAD_CREDENTIALS -> if (oneTimeCode) BAD_CREDENTIALS_ONE_TIME_CODE else BAD_CREDENTIALS
-                REASON_LIMIT_REACHED -> if (clipboardSend) LIMIT_REACHED_CLIPBOARD else LIMIT_REACHED
-                else -> entries.firstOrNull { it.kind in REFUSAL_KINDS && it.code == reason } ?: REFUSED
-            }
+        fun ofWire(
+            reason: String,
+            oneTimeCode: Boolean = false,
+            clipboardSend: Boolean = false,
+            adminSignIn: Boolean = false,
+        ): ExchangeMessage = when (reason) {
+            REASON_NOT_ENROLLED -> DEVICE_REVOKED
+            REASON_TOKEN_NOT_STORED -> TOKEN_NOT_STORED
+            REASON_BAD_CREDENTIALS -> badCredentials(oneTimeCode, adminSignIn)
+            REASON_LIMIT_REACHED -> if (clipboardSend) LIMIT_REACHED_CLIPBOARD else LIMIT_REACHED
+            else -> entries.firstOrNull { it.kind in REFUSAL_KINDS && it.code == reason && it !in SETTINGS_ROWS }
+                ?: REFUSED
+        }
+
+        /** The row for a refusal of a settings frame (1.12 item EP); any other reason reads as [ofWire] reads it. */
+        fun ofSettings(reason: String): ExchangeMessage =
+            SETTINGS_ROWS.firstOrNull { it.code == reason } ?: ofWire(reason)
+
+        private fun badCredentials(oneTimeCode: Boolean, adminSignIn: Boolean): ExchangeMessage = when {
+            adminSignIn -> BAD_CREDENTIALS_ADMIN
+            oneTimeCode -> BAD_CREDENTIALS_ONE_TIME_CODE
+            else -> BAD_CREDENTIALS
+        }
 
         /** The row for a reason of a `cast-result` (14.5 item R); anything else is the generic refusal. */
         fun ofCast(reason: String?): ExchangeMessage = when (reason) {

@@ -8,7 +8,12 @@ import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorSerializer
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointCodec
 import com.sza.fastmediasorter.data.broadcast.BroadcastEndpointDto
 import com.sza.fastmediasorter.data.broadcast.BroadcastPendingDto
+import com.sza.fastmediasorter.data.broadcast.BroadcastSealDto
+import com.sza.fastmediasorter.data.broadcast.KeystoreBroadcastSecretBox
+import com.sza.fastmediasorter.data.broadcast.exchange.BroadcastExchangeEndpoint
+import com.sza.fastmediasorter.data.broadcast.exchange.BroadcastExchangeEndpoints
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
+import com.sza.fastmediasorter.data.repository.BroadcastEndpointSecretsRepository
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
 import com.sza.fastmediasorter.domain.model.ExchangeMessage
 import com.sza.fastmediasorter.domain.repository.BroadcastPasswordStore
@@ -16,15 +21,19 @@ import com.sza.fastmediasorter.domain.repository.BroadcastPendingStore
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.testing.InMemoryRoomRule
+import com.sza.fastmediasorter.testing.fakes.FakeBroadcastSecretBox
 import com.sza.fastmediasorter.ui.exchange.helpers.ExchangeMessageText
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -57,7 +66,26 @@ class ImportStreamBroadcastUseCaseTest {
     private val addStreamUseCase get() = AddStreamSourceUseCase(repo, StreamMediaKindClassifier(), stats)
     private val passwords = FakeBroadcastPasswordStore()
     private val pending = FakeBroadcastPendingStore()
-    private val importUseCase get() = ImportStreamBroadcastUseCase(parser, addStreamUseCase, repo, passwords, pending)
+    private val importUseCase get() = ImportStreamBroadcastUseCase(
+        parser,
+        addStreamUseCase,
+        repo,
+        passwords,
+        pending,
+        secrets
+    )
+    private val sealBox = FakeBroadcastSecretBox()
+    private val secrets get() = BroadcastEndpointSecretsRepository(dbRule.db, dao)
+
+    @Before
+    fun installSealBox() {
+        BroadcastEndpointCodec.secretBox = sealBox
+    }
+
+    @After
+    fun restoreSealBox() {
+        BroadcastEndpointCodec.secretBox = KeystoreBroadcastSecretBox
+    }
 
     private class FakeBroadcastPasswordStore : BroadcastPasswordStore {
         val pairs = mutableMapOf<String, BroadcastPasswordStore.StoredPair>()
@@ -452,12 +480,25 @@ class ImportStreamBroadcastUseCaseTest {
     fun importOverwritesATypeTheUserChoseInTheEditDialog() = runTest {
         importUseCase(serializer.serialize(watchDto(LIVE_URL, mode = "AUDIO_ONLY")))
         val typed = requireNotNull(dao.getByUrl(LIVE_URL))
-        repo.updateUserFields(typed.id, typed.url, typed.title, "VIDEO")
+        repo.updateUserFields(typed.id, typed.url, typed.title, "VIDEO", typed.category)
 
         val result = importUseCase(serializer.serialize(watchDto(LIVE_URL, mode = "AUDIO_ONLY")))
 
         assertEquals(ImportStreamBroadcastUseCase.ImportResult.Updated, result)
         assertEquals("AUDIO", dao.getByUrl(LIVE_URL)?.mediaKind)
+    }
+
+    @Test
+    fun importThatRefreshesTheKind_keepsTheCategoryTheUserTyped() = runTest {
+        importUseCase(serializer.serialize(watchDto(LIVE_URL, mode = "AUDIO_ONLY")))
+        val typed = requireNotNull(dao.getByUrl(LIVE_URL))
+        repo.updateUserFields(typed.id, typed.url, typed.title, "VIDEO", "Cameras")
+
+        importUseCase(serializer.serialize(watchDto(LIVE_URL, mode = "AUDIO_ONLY")))
+
+        val after = requireNotNull(dao.getByUrl(LIVE_URL))
+        assertEquals("AUDIO", after.mediaKind)
+        assertEquals("Cameras", after.category)
     }
 
     @Test
@@ -486,6 +527,164 @@ class ImportStreamBroadcastUseCaseTest {
         assertEquals(ImportStreamBroadcastUseCase.ImportResult.Duplicate, result)
         assertEquals("VIDEO", dao.getByUrl(LIVE_URL)?.mediaKind)
     }
+
+    @Test
+    fun listingImport_bindsTheRowToItsEntry() = runTest {
+        val dto = watchDto(FIRST_URL, endpoints = exchangeEndpoints(FIRST_BROADCAST))
+
+        val result = importUseCase(serializer.serialize(dto), listing = binding(FIRST_BROADCAST))
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Success, result)
+        val row = requireNotNull(dao.getByUrl(FIRST_URL))
+        assertEquals(ENTRY_A, row.exchangeEntryId)
+        assertEquals(FIRST_BROADCAST, row.exchangeBroadcastId)
+    }
+
+    @Test
+    fun restartedSource_rebindsItsOneRowToTheNewBroadcast() = runTest {
+        importUseCase(
+            serializer.serialize(watchDto(FIRST_URL, endpoints = exchangeEndpoints(FIRST_BROADCAST))),
+            listing = binding(FIRST_BROADCAST),
+        )
+        val before = requireNotNull(dao.getByUrl(FIRST_URL))
+
+        val result = importUseCase(
+            serializer.serialize(watchDto(SECOND_URL, endpoints = exchangeEndpoints(SECOND_BROADCAST))),
+            listing = binding(SECOND_BROADCAST),
+        )
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Updated, result)
+        val after = requireNotNull(dao.getBySourceDeviceId(WATCH_ID))
+        assertEquals(before.id, after.id)
+        assertEquals(SECOND_BROADCAST, after.exchangeBroadcastId)
+        assertEquals(ENTRY_A, after.exchangeEntryId)
+    }
+
+    @Test
+    fun handImport_keepsTheBindingAlreadyStored() = runTest {
+        val dto = watchDto(FIRST_URL, endpoints = exchangeEndpoints(FIRST_BROADCAST))
+        importUseCase(serializer.serialize(dto), listing = binding(FIRST_BROADCAST))
+
+        importUseCase(serializer.serialize(dto))
+
+        val row = requireNotNull(dao.getByUrl(FIRST_URL))
+        assertEquals(ENTRY_A, row.exchangeEntryId)
+        assertEquals(FIRST_BROADCAST, row.exchangeBroadcastId)
+    }
+
+    @Test
+    fun handImport_bindsNothing() = runTest {
+        importUseCase(serializer.serialize(watchDto(FIRST_URL, endpoints = exchangeEndpoints(FIRST_BROADCAST))))
+
+        val row = requireNotNull(dao.getByUrl(FIRST_URL))
+        assertNull(row.exchangeEntryId)
+        assertNull(row.exchangeBroadcastId)
+    }
+
+    @Test
+    fun addressHeldByAnotherSource_isNeverMerged() = runTest {
+        importUseCase(serializer.serialize(watchDto(FIRST_URL, endpoints = exchangeEndpoints(FIRST_BROADCAST))))
+        val held = requireNotNull(dao.getByUrl(FIRST_URL))
+        val other = watchDto(
+            FIRST_URL,
+            sourceId = OTHER_SOURCE_ID,
+            title = "Other phone",
+            endpoints = exchangeEndpoints(SECOND_BROADCAST),
+        )
+
+        val result = importUseCase(serializer.serialize(other), listing = binding(SECOND_BROADCAST))
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Duplicate, result)
+        val after = requireNotNull(dao.getByUrl(FIRST_URL))
+        assertEquals(held, after)
+        assertNull(dao.getBySourceDeviceId(OTHER_SOURCE_ID))
+    }
+
+    // S4675: an opened relay key or tunnel pin is saved behind the device's box and nowhere else.
+
+    @Test
+    fun importWithSealedEndpoints_savesNoClearSecretAndTheRowPlaysAfterARestart() = runTest {
+        val payload = serializer.serializeCompressed(watchDto(FIRST_URL, endpoints = sealedEndpoints(GROUP_KEY)))
+
+        val result = importUseCase(payload)
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Success, result)
+        val stored = requireNotNull(dao.getByUrl(FIRST_URL)?.broadcastEndpoints)
+        assertFalse(stored.contains(GROUP_KEY))
+        assertFalse(stored.contains(FINGERPRINT.removePrefix("SHA256:").take(PIN_FRAGMENT)))
+        val relay = BroadcastExchangeEndpoints.playOrder(stored, FIRST_URL)
+            .filterIsInstance<BroadcastExchangeEndpoint.Relay>().single()
+        assertEquals(GROUP_KEY, relay.groupKey)
+    }
+
+    @Test
+    fun importThatCannotSealTheKeys_savesNothingAndLeavesTheKnownRowAsItWas() = runTest {
+        importUseCase(serializer.serialize(watchDto(FIRST_URL, endpoints = exchangeEndpoints("a"))))
+        val before = requireNotNull(dao.getByUrl(FIRST_URL))
+        sealBox.sealOk = false
+
+        val result = importUseCase(serializer.serialize(watchDto(SECOND_URL, endpoints = sealedEndpoints(GROUP_KEY))))
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.SecretStorageUnavailable, result)
+        assertEquals(before, dao.getByUrl(FIRST_URL))
+        assertNull(dao.getByUrl(SECOND_URL))
+        assertEquals(1, dao.observeAll().first().size)
+    }
+
+    @Test
+    fun importThatCannotSealTheKeys_doesNotMoveOrRenameTheRowItWouldHaveRefreshed() = runTest {
+        importUseCase(serializer.serialize(watchDto(FIRST_URL, title = "Kitchen", endpoints = exchangeEndpoints("a"))))
+        val before = requireNotNull(dao.getByUrl(FIRST_URL))
+        sealBox.sealOk = false
+
+        val result = importUseCase(
+            serializer.serialize(watchDto(SECOND_URL, title = "Moved", endpoints = sealedEndpoints(GROUP_KEY)))
+        )
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.SecretStorageUnavailable, result)
+        assertEquals(before, dao.getBySourceDeviceId(WATCH_ID))
+    }
+
+    @Test
+    fun importOfTheSameSealedBroadcastAgain_isADuplicateNotAnUpdate() = runTest {
+        importUseCase(serializer.serialize(watchDto(FIRST_URL, endpoints = sealedEndpoints(GROUP_KEY))))
+        val stored = dao.getByUrl(FIRST_URL)?.broadcastEndpoints
+
+        val again = importUseCase(serializer.serialize(watchDto(FIRST_URL, endpoints = sealedEndpoints(GROUP_KEY))))
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Duplicate, again)
+        assertEquals(stored, dao.getByUrl(FIRST_URL)?.broadcastEndpoints)
+    }
+
+    @Test
+    fun importOfABroadcastWhoseSavedKeyWasLost_restoresItFromTheDescriptor() = runTest {
+        importUseCase(serializer.serialize(watchDto(FIRST_URL, endpoints = sealedEndpoints(GROUP_KEY))))
+        sealBox.loseKey()
+
+        val result = importUseCase(serializer.serialize(watchDto(FIRST_URL, endpoints = sealedEndpoints(GROUP_KEY))))
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Updated, result)
+        val relay = BroadcastExchangeEndpoints.playOrder(dao.getByUrl(FIRST_URL)?.broadcastEndpoints, FIRST_URL)
+            .filterIsInstance<BroadcastExchangeEndpoint.Relay>().single()
+        assertEquals(GROUP_KEY, relay.groupKey)
+    }
+
+    private fun sealedEndpoints(key: String) = listOf(
+        BroadcastEndpointDto(url = FIRST_URL, transport = "HTTP"),
+        BroadcastEndpointDto(
+            url = "https://exchange.example.org:8443/v2/b/$FIRST_BROADCAST/stream",
+            transport = "RELAY",
+            seal = BroadcastSealDto(key = key),
+        ),
+        BroadcastEndpointDto(
+            url = "fmsx://exchange.example.org:8443/b/$FIRST_BROADCAST/http",
+            transport = "TUNNEL",
+            inner = FIRST_URL,
+            seal = BroadcastSealDto(pin = FINGERPRINT),
+        ),
+    )
+
+    private fun binding(broadcastId: String) = ImportStreamBroadcastUseCase.ListingBinding(ENTRY_A, broadcastId)
 
     private fun exchangeEndpoints(broadcastId: String) = listOf(
         BroadcastEndpointDto(url = FIRST_URL, transport = "HTTP"),
@@ -529,5 +728,11 @@ class ImportStreamBroadcastUseCaseTest {
         const val LIVE_URL = "http://192.168.1.77:41000/live"
         const val RTSP_URL = "rtsp://192.168.1.77:8554/live"
         const val FINGERPRINT = "SHA256:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU"
+        const val GROUP_KEY = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        const val PIN_FRAGMENT = 16
+        const val ENTRY_A = "exchange.example.org:8443|alice"
+        const val FIRST_BROADCAST = "AbCdEfGh12"
+        const val SECOND_BROADCAST = "ZyXwVuTs98"
+        const val OTHER_SOURCE_ID = "0b2c4d6e-8f10-4a2b-9d1c-3c4d5e6f7a80"
     }
 }

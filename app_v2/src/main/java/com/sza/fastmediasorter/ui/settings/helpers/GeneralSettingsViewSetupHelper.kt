@@ -6,6 +6,7 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.ArrayAdapter
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
@@ -157,9 +158,16 @@ class GeneralSettingsViewSetupHelper(
                     .setMessage(R.string.restart_app_compact_elements_message)
                     .setCancelable(false)
                     .setPositiveButton(R.string.restart) { _, _ ->
-                        viewModel.updateSettings { it.copy(useCompactElements = isChecked) }
-                        LocaleHelper.markReturnToSettings(fragment.requireContext())
-                        LocaleHelper.restartApp(fragment.requireActivity())
+                        // S4785: restartApp finishes this activity, which cancels viewModelScope; a write
+                        // launched there and not yet handed to DataStore is lost and the switch snaps back.
+                        val activity = fragment.requireActivity()
+                        Timber.d("S4785: compact restart confirmed value=$isChecked, awaiting write")
+                        fragment.viewLifecycleOwner.lifecycleScope.launch {
+                            viewModel.updateSettingsAwaitingWrite { it.copy(useCompactElements = isChecked) }
+                            Timber.d("S4785: compact write returned, restarting")
+                            LocaleHelper.markReturnToSettings(activity)
+                            LocaleHelper.restartApp(activity)
+                        }
                     }
                     .setNegativeButton(R.string.cancel) { dialog, _ ->
                         isUpdatingSpinner.set(true)
@@ -344,9 +352,17 @@ class GeneralSettingsViewSetupHelper(
                 }
             }
         }
+        // The button lives under the row, not in the row's trailing slot: that slot is wrap_content and
+        // its width comes out of the weighted text group, so a long label squeezed the subtitle to a
+        // sliver. Hidden until the first resources emission, like the slot it replaces.
+        button.visibility = View.GONE
+        binding.layoutAllFiles.addView(
+            button,
+            LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+        )
         fragment.viewLifecycleOwner.collectOnLifecycle(viewModel.resources) { resources ->
-            val hasPredefinedResource = resources.any(ensureAllFilesPredefinedResourceUseCase::isPredefinedResource)
-            binding.rowAllFiles.setTrailingControl(if (hasPredefinedResource) null else button)
+            button.isVisible = resources.none(ensureAllFilesPredefinedResourceUseCase::isPredefinedResource)
+            Timber.d("S4889: all-files create button visible=${button.isVisible}")
         }
     }
 

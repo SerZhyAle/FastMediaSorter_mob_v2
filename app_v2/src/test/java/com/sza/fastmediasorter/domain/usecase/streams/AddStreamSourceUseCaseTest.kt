@@ -55,11 +55,36 @@ class AddStreamSourceUseCaseTest {
         addedAt = 0L,
     )
 
+    /**
+     * The repository derives `identityKey` on write, so the row handed back by the use case differs from the stored
+     * one in that column alone; every other column is what the screen's filter reads.
+     */
+    private fun AddStreamSourceUseCase.AddResult.withStoredIdentity(stored: StreamSourceEntity) =
+        (this as? AddStreamSourceUseCase.AddResult.Success)
+            ?.let { it.copy(source = it.source.copy(identityKey = stored.identityKey)) }
+            ?: this
+
+    @Test
+    fun manualTypeAndCategory_areStoredInsteadOfUrlGuess() = runTest {
+        val result = useCase("https://host/live", "Video", mediaKind = "VIDEO", category = " News ")
+        val stored = dao.getByUrl("https://host/live")!!
+        assertEquals(AddStreamSourceUseCase.AddResult.Success(stored), result.withStoredIdentity(stored))
+        assertEquals("VIDEO", stored.mediaKind)
+        assertEquals("News", stored.category)
+    }
+
+    @Test
+    fun blankCategory_isStoredAsNull() = runTest {
+        useCase("https://host/live", "Video", category = "   ")
+        assertNull(dao.getByUrl("https://host/live")!!.category)
+    }
+
     @Test
     fun newUrl_isAdded_andReportsSuccess() = runTest {
         val result = useCase("http://host/a.mp3", null)
-        assertEquals(AddStreamSourceUseCase.AddResult.Success, result)
-        assertNotNull(dao.getByUrl("http://host/a.mp3"))
+        val stored = dao.getByUrl("http://host/a.mp3")
+        assertNotNull(stored)
+        assertEquals(AddStreamSourceUseCase.AddResult.Success(stored!!), result.withStoredIdentity(stored))
         assertEquals(1, stats.count(StatsEvent.StreamAdded))
     }
 

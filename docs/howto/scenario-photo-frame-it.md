@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Cornice fotografica digitale su tablet - FastMediaSorter v2"
+title: "Cornice fotografica digitale su tablet - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-photo-frame-it.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -47,7 +47,7 @@ Scegli dove si trovano le tue foto:
 2. Tocca **Accedi** → completa l'autenticazione nel browser
 3. Seleziona la cartella con le tue foto → **Fatto**
 
-![Schermata principale di FastMediaSorter - card della risorsa fotografica visibili dopo l'aggiunta di una cartella foto](screenshots/screenshot-pf-step1.png)
+![Schermata principale di Fast Media Sorter & Organizer - card della risorsa fotografica visibili dopo l'aggiunta di una cartella foto](screenshots/screenshot-pf-step1.png)
 
 ---
 
@@ -123,12 +123,12 @@ Impostazioni Android → Schermo → Timeout schermo → imposta su **"Mai"** (o
 Questo passaggio è per comodità: vuoi avviare istantaneamente la cornice fotografica quando prendi in mano il tablet - senza aprire l'app e navigare?
 
 1. Tieni premuta la schermata Home → tocca **Widget**
-2. Trova **FastMediaSorter** nell'elenco dei widget
+2. Trova **Fast Media Sorter & Organizer** nell'elenco dei widget
 3. Trascina il widget **"Scorciatoia risorsa"** sulla schermata Home
 4. Quando richiesto, seleziona la tua risorsa fotografica
 5. Tocca il widget in qualsiasi momento → la presentazione si avvia istantaneamente
 
-![Schermata Home Android con widget di scorciatoia risorsa di FastMediaSorter posizionati](screenshots/screenshot-pf-step6.png)
+![Schermata Home Android con widget di scorciatoia risorsa di Fast Media Sorter & Organizer posizionati](screenshots/screenshot-pf-step6.png)
 
 ---
 

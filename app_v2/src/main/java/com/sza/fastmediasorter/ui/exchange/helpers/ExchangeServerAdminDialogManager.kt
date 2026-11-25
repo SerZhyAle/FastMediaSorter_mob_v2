@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.domain.model.ExchangeAdminPolicy
 import com.sza.fastmediasorter.domain.model.ExchangeAdminReplyCode
 import com.sza.fastmediasorter.domain.model.ExchangeAdminSharedInvitation
 import com.sza.fastmediasorter.domain.model.ExchangeConnectionStringCodec
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.ui.exchange.ExchangeAdminAccountDevices
 import com.sza.fastmediasorter.ui.exchange.ExchangeAdminPasswordChanged
 import com.sza.fastmediasorter.ui.exchange.ExchangeServerAdminViewModel
@@ -155,6 +156,7 @@ class ExchangeServerAdminDialogManager(
                 devicesAdapter = null
             }
             .showBoundTo(activity) ?: return
+        devicesDialog?.let { DialogHelpEntryManager.attach(it, "dialog_exchange_server_devices") }
         viewModel.loadDevices(login)
     }
 
@@ -281,6 +283,7 @@ class ExchangeServerAdminDialogManager(
                 if (accountDialog === closed) accountDialog = null
             }
             .showBoundTo(activity) ?: return null
+        DialogHelpEntryManager.attach(dialog, "dialog_exchange_admin_account")
         accountDialog = dialog
         return AccountForm(dialog, binding)
     }
@@ -297,6 +300,7 @@ class ExchangeServerAdminDialogManager(
             .setNegativeButton(R.string.cancel, null)
             .setOnDismissListener { closed -> if (limitsDialog === closed) limitsDialog = null }
             .showBoundTo(activity) ?: return null
+        DialogHelpEntryManager.attach(dialog, "dialog_exchange_admin_limits")
         limitsDialog = dialog
         return LimitsHolder(dialog, binding)
     }

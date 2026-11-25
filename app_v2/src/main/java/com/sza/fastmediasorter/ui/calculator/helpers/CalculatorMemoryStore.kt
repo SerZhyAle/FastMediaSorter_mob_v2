@@ -10,7 +10,11 @@ import android.content.Context
  */
 class CalculatorMemoryStore(context: Context) {
 
-    private val prefs = context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    // Lazy so the preferences directory check does not run on the main thread that builds this store;
+    // the caller reaches it only from its serial storage worker.
+    private val prefs by lazy {
+        context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    }
 
     fun loadMemory(): String? = prefs.getString(KEY_MEMORY, null)
 

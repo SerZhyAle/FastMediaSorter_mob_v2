@@ -6,7 +6,6 @@ import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.ui.launcher.LauncherHomeActivity
 import com.sza.fastmediasorter.ui.launcher.LauncherStartWindowActivity
 import com.sza.fastmediasorter.util.resolveActivityCompat
-import timber.log.Timber
 
 /**
  * The All apps request can arrive through a gesture extra or a shortcut action.
@@ -39,7 +38,6 @@ object LauncherOpenAllAppsRequest {
         val requestedByExtra = intent.getBooleanExtra(EXTRA_OPEN_ALL_APPS, false)
         val requested = requestedByAction || requestedByExtra
         if (requested) {
-            Timber.d("S4533: all apps request consumed")
             if (requestedByAction) intent.action = null
             intent.removeExtra(EXTRA_OPEN_ALL_APPS)
         }

@@ -16,6 +16,7 @@ import org.json.JSONObject
 import timber.log.Timber
 import java.io.IOException
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -31,6 +32,7 @@ import javax.inject.Singleton
  *
  * Cached for the process once a fetch succeeds. The manifest changes only when the maintainer
  * republishes artwork, so re-fetching it per status emission would spend a request per list repaint.
+ * An explicit catalog refresh ends that cache through [invalidate].
  */
 @Singleton
 class ArtworkManifestClient @Inject constructor(
@@ -38,11 +40,23 @@ class ArtworkManifestClient @Inject constructor(
 ) : ArtworkManifestSource {
 
     private val mutex = Mutex()
-    private var cached: ArtworkManifest? = null
+
+    // Guarded by [mutex]. Tagged with the generation read BEFORE the fetch began: an invalidation that
+    // lands while the request is in flight leaves the entry one generation behind, so a response that
+    // may predate the republish can never become the answer for later reads.
+    private var cached: CachedManifest? = null
+
+    // Bumped without the mutex so invalidating never waits behind a fetch that can run for the whole call
+    // timeout.
+    private val generation = AtomicInteger()
 
     override suspend fun stampOf(set: DeliverableSet): String? = entryOf(set)?.stamp
 
     override suspend fun sizeOf(set: DeliverableSet): Long? = entryOf(set)?.totalBytes
+
+    override fun invalidate() {
+        generation.incrementAndGet()
+    }
 
     private suspend fun entryOf(set: DeliverableSet): ArtworkManifestSet? {
         if (set !in ARTWORK_SETS) return null
@@ -50,11 +64,14 @@ class ArtworkManifestClient @Inject constructor(
     }
 
     private suspend fun manifest(): ArtworkManifest? = mutex.withLock {
-        cached?.let { return it }
+        val current = generation.get()
+        cached?.takeIf { it.generation == current }?.let { return it.manifest }
         val fetched = fetch() ?: return null
-        cached = fetched
+        cached = CachedManifest(current, fetched)
         fetched
     }
+
+    private class CachedManifest(val generation: Int, val manifest: ArtworkManifest)
 
     private suspend fun fetch(): ArtworkManifest? = withContext(Dispatchers.IO) {
         try {

@@ -116,6 +116,8 @@ class SyncInstalledAppShortcutUseCaseTest {
             return 1L
         }
 
+        override suspend fun removeCellAndCloseGap(id: Long, columns: Int) = removeCell(id)
+
         override suspend fun removeCell(id: Long) {
             removed += id
         }

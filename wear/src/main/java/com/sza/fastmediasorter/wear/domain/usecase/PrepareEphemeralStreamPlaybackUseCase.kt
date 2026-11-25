@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.domain.usecase
 
 import com.sza.fastmediasorter.wear.domain.model.SOURCE_ID_STREAM
+import com.sza.fastmediasorter.wear.domain.model.WearBroadcastRoute
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearStreamPlaybackTarget
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
@@ -38,6 +39,7 @@ class PrepareEphemeralStreamPlaybackUseCase @Inject constructor(
         url: String,
         title: String,
         isVideo: Boolean = true,
+        broadcastRoute: WearBroadcastRoute? = null,
     ): WearStreamPlaybackTarget {
         val mediaFile = ephemeralChannel(url, title, isVideo).toWearMediaFile(isVideo)
 
@@ -47,6 +49,7 @@ class PrepareEphemeralStreamPlaybackUseCase @Inject constructor(
             streamUri = url,
             sourceId = SOURCE_ID_STREAM,
             isDirectStream = true,
+            broadcastRoute = broadcastRoute,
         )
         playbackSetManager.publish(listOf(mediaFile), START_INDEX)
 

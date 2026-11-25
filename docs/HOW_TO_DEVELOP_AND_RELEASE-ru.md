@@ -1,4 +1,4 @@
-<sub class="doc-stamp">26.09.10 08:57</sub>
+<sub class="doc-stamp">26.11.21 13:29</sub>
 
 # Разработка и релиз FastMediaSorter v2 - практическое руководство
 
@@ -170,7 +170,7 @@ git cherry-pick --continue
 7. Мёрджит DEBUG -> main в release worktree (`--no-ff`), ставит тег `release/v<version>`, пушит `main` и тег.
 8. Переходит на следующий DEBUG-бранч: берёт существующий `DEBUG-v0NN+1` (был «future»-бранчем) или создаёт его от свежего `main` и пушит с трекингом.
 9. Сборка: `.\a r -VersionName <v> -VersionCode <c>` - standard AAB (Google Play) + APK + зеркало в Google Drive (запароленный ZIP) + fastlane-changelog'и. Доп. редакции из `$FLAVORS` собираются `build-release-spectrum.ps1 -ReuseVersion` на той же версии (без расхождений с Play-AAB).
-10. Публикация по каналам (см. ниже): GitHub Release (`publish-github-release.ps1`, сперва `-DryRun`), Google Play (`publish-play-release.ps1`, трек `production`, статус `completed`). Затем коммит сгенерированных fastlane-changelog'ов в `main` и сброс version-stamp в `build.gradle.kts` (иначе следующий релиз упрётся в грязный tree при мёрдже).
+10. Публикация по каналам. Для GitHub Release сначала выполните `publish-github-release.ps1 -DryRun`. Для Play подтвердите допуск издателя и сборки до загрузки. [Регламент публикации в Play](../scripts/release/README.md#google-play-publishing-procedure).
 11. Showcase: из диффа `ALL_FEATURES` яркие возможности добавляются в `docs/FEATURES.md` (+ RU/UK в lockstep), коммит на новом DEBUG-бранче (на сайт попадёт при следующем мёрдже в `main`).
 
 ### Что делать при конфликте мёрджа
@@ -206,7 +206,7 @@ git push origin release/v$NEW_VERSION
 
 Полный релиз доходит до пяти каналов:
 
-1. **Google Play** (standard AAB) - автоматически (`publish-play-release.ps1`). Разовый гейт, блокирующий commit: декларация **Foreground service permissions** в Play Console -> App content. При появлении нового типа `FOREGROUND_SERVICE_*` (например, при добавлении записи через микрофон или захвата экрана) AAB заливается, но commit возвращает HTTP 403, пока декларация не сохранена владельцем. Это **не** жёсткий блокер пайплайна - фиксируется в отчёте как `[PLAY FGS]`, дальше владелец дозаявляет в Console и добавляет бандл из библиотеки.
+1. **Google Play** (standard AAB). До загрузки подтвердите принятую сборку для этого application id, нужные декларации FGS и готовность клиента к commit с `ERROR_IF_IN_REVIEW`. Если новой декларации нет в App content или клиент пропускает защиту, остановите публикацию. Текущий издатель FMS допускает локальный просмотр плана с `-WhatIf`. Доработку издателя ведёт S4811. [Регламент публикации в Play](../scripts/release/README.md#google-play-publishing-procedure).
 2. **GitHub Release / Store** (`$FLAVORS`) - автоматически (`build-release-spectrum.ps1` + `publish-github-release.ps1`). Кнопки загрузки на сайте и `docs/DOWNLOADS_*` тянут assets через GitHub API. Редакция, не собранная в этом релизе, остаётся на прошлом asset'е - расширяй `$FLAVORS`, когда нужно обновить не-standard.
 3. **Google Drive** - автоматически внутри `.\a r`: standard AAB+APK + запароленный ZIP (пароль `1`) в синхронизируемую папку.
 4. **4pda** (форум, RU) - **вручную**. Накапливай «Что нового»/«Что исправлено» с момента ПОСЛЕДНЕГО поста на 4pda (не с прошлого релиза - на 4pda постят реже), три спойлера: что нового, что исправлено, noLegal. Вложения: `FastMediaSorter_standard_release.apk` + свежий `FastMediaSorter_nolegal_debug.apk` (`.\a nd`). noLegal-пункты - из `docs/FEATURES_noLegal*` / `docs/ALL_FEATURES_noLegal.jsonl`, никогда из публичных файлов.

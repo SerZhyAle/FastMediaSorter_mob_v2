@@ -192,5 +192,5 @@ if ($script:fail -gt 0) {
     Write-Host "settings-doc-inputs: $(if ($script:fail -gt 0) { 'FAIL' } else { 'PASS' }) (run=$($script:pass + $script:fail) skipped=0)"
     exit 1
 }
-Write-Host ("settings-doc-inputs: PASS - {0} assertions." -f $script:pass) -ForegroundColor Green
+Write-Host ("settings-doc-inputs: PASS (run={0} skipped=0)" -f $script:pass) -ForegroundColor Green
 exit 0

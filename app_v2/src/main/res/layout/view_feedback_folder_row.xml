@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S4573: the feedback form's "folder on the computer" setting, its own layout so the settings reference
+     documents this one selector and not the form's action buttons. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="@dimen/margin_medium">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:labelFor="@id/feedbackFolderSpinner"
+        android:text="@string/feedback_folder_label"
+        android:textAppearance="?attr/textAppearanceLabelLarge" />
+
+    <Spinner
+        android:id="@+id/feedbackFolderSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/feedback_folder_label"
+        android:focusable="true"
+        android:minHeight="@dimen/token_touch_target_min"
+        android:nextFocusDown="@id/feedbackSendButton" />
+
+    <TextView
+        android:id="@+id/feedbackFolderState"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceBodySmall"
+        android:visibility="gone" />
+</LinearLayout>

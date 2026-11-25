@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogExchangeOutwardAccessBinding
 import com.sza.fastmediasorter.domain.model.ExchangeGrant
 import com.sza.fastmediasorter.domain.usecase.sftpserver.ManageExchangeGrantsUseCase
+import com.sza.fastmediasorter.ui.common.help.DialogHelpEntryManager
 import com.sza.fastmediasorter.ui.common.support.MediaExchangePortalLinks
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -49,6 +50,7 @@ class ExchangeOutwardAccessDialogManager(
                 view.textOutwardLinkResult.text = null
             }
             .showBoundTo(fragment) ?: return
+        DialogHelpEntryManager.attach(dialog, "dialog_exchange_outward_access")
         // S4348: a per-dialog guard - the container rebuilds only when the pair really changed.
         var rendered: Pair<List<ExchangeGrant>, Set<String>>? = null
         watch = fragment.viewLifecycleOwner.collectOnLifecycle(

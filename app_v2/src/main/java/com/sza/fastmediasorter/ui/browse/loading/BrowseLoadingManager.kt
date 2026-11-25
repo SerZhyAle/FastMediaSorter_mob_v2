@@ -211,9 +211,13 @@ class BrowseLoadingManager(
         callbacks: LoadingCallbacks
     ) {
         val totalElapsed = System.currentTimeMillis() - flowStartTime
+        Timber.d("S4699: single scan finalized files=${files.size}")
         Timber.d("BrowseLoadingManager: Flow COMPLETE after ${totalElapsed}ms - final batch: ${files.size} files")
 
         if (files.isEmpty()) {
+            // An empty entry lets a later filter change re-filter nothing instead of rescanning;
+            // the next resource open still treats an empty cache as absent and scans.
+            MediaFilesCacheManager.setCachedList(resourceId, emptyList())
             callbacks.updateState(
                 emptyList(),
                 loadingProgress = 0,
@@ -286,6 +290,9 @@ class BrowseLoadingManager(
                 "BrowseLoadingManager: Single-phase render " +
                     "(latency=${favoritesLookupDuration}ms, files=${finalFiles.size})"
             )
+            // The cache lands before loading clears: a filter applied in between finds no list and
+            // nothing loading, and would start a second scan (S4699).
+            MediaFilesCacheManager.setCachedList(resourceId, finalFiles)
             callbacks.updateState(
                 finalFiles,
                 loadingProgress = 0,
@@ -293,12 +300,13 @@ class BrowseLoadingManager(
                 isScanCancellable = false
             )
             callbacks.setLoading(false)
-            MediaFilesCacheManager.setCachedList(resourceId, finalFiles)
         } else {
             Timber.d(
                 "BrowseLoadingManager: Batch favorites latency ${favoritesLookupDuration}ms " +
                     "exceeds target, two-phase fallback"
             )
+            // Same ordering as the single-phase branch; the favorites pass replaces this entry.
+            MediaFilesCacheManager.setCachedList(resourceId, sortedFiles)
             callbacks.updateState(
                 sortedFiles,
                 loadingProgress = 0,

@@ -15,7 +15,7 @@ why: |
 
   It also starts one step earlier than the overview: a folder has to be shared on the Windows side before the app can find it at all.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition) except Lite - see [The seven editions](page:flavors.overview-and-comparison)."
+  - "Fast Media Sorter & Organizer in any [edition](term:edition) except Lite - see [The seven editions](page:flavors.overview-and-comparison)."
   - "A Windows PC or NAS with a folder already shared on it, or a few minutes to share one - step 1 below."
   - "The phone and the computer on the same Wi-Fi or network."
   - "The user name and password of the shared folder (on a home PC this is usually your own Windows account)."

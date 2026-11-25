@@ -78,7 +78,88 @@ class LensEquivalentCalculatorTest {
         assertEquals(1f, LensEquivalentCalculator.multiplier(main, reference), EXACT_DELTA)
     }
 
+    @Test
+    fun `fused main with a sub-1x floor wins over a flash-bearing ultra-wide listed before it`() {
+        // S4688, Galaxy S25+: standalone ultra-wide (floor 1.0, flash) ahead of the fused main (0.6).
+        val backLogicals = listOf(
+            Triple(1f, true, S25_PLUS_ULTRA_WIDE_EQ_MM),
+            Triple(S25_PLUS_MAIN_FLOOR, true, S25_PLUS_MAIN_EQ_MM),
+        )
+        assertEquals(1, LensEquivalentCalculator.referenceIndex(backLogicals))
+    }
+
+    @Test
+    fun `without a sub-1x floor the lens nearest the normal focal wins over flash and order`() {
+        // An OEM that lists a flash-bearing ultra-wide first and exposes no zoom-out floor.
+        val backLogicals = listOf(
+            Triple(1f, true, S25_PLUS_ULTRA_WIDE_EQ_MM),
+            Triple(1f, false, S25_PLUS_MAIN_EQ_MM),
+            Triple(1f, true, TELE_EQ_MM),
+        )
+        assertEquals(1, LensEquivalentCalculator.referenceIndex(backLogicals))
+    }
+
+    @Test
+    fun `a main whose sensor width is misreported still beats the ultra-wide`() {
+        // S1261 S25 FE numbers: 5.40 mm on a reported 5.76 mm width reads as a 34 mm equivalent.
+        val misreportedMain = LensEquivalentCalculator.equivalentFocalMm(MAIN_FOCAL_MM, MAIN_SENSOR_MM)
+        val backLogicals = listOf(Triple(1f, true, S25_PLUS_ULTRA_WIDE_EQ_MM), Triple(1f, true, misreportedMain))
+        assertEquals(1, LensEquivalentCalculator.referenceIndex(backLogicals))
+    }
+
+    @Test
+    fun `without equivalents the first camera with a flash wins in platform order`() {
+        val unknown = LensEquivalentCalculator.UNKNOWN_MM
+        val backLogicals = listOf(Triple(1f, false, unknown), Triple(1f, true, unknown), Triple(1f, true, unknown))
+        assertEquals(1, LensEquivalentCalculator.referenceIndex(backLogicals))
+    }
+
+    @Test
+    fun `no floor, equivalent or flash falls back to the platform's first back camera`() {
+        val unknown = LensEquivalentCalculator.UNKNOWN_MM
+        val backLogicals = listOf(Triple(0f, false, unknown), Triple(1f, false, unknown))
+        assertEquals(0, LensEquivalentCalculator.referenceIndex(backLogicals))
+    }
+
+    @Test
+    fun `reporter's S25+ lens report elects camera 0 and labels ultra-wide 0_6x and tele 3x`() {
+        // System info of the S4688 reporter: logical 0 = 5.40 mm on 8.2 mm, floor 0.60; standalone 2 =
+        // 2.20 mm on 5.6 mm, floor 1.00; physical tele 6 = 7.00 mm on 3.6 mm. Before the fix: 2 started at 1.00.
+        val main = Triple(S25_PLUS_FLOOR_REPORTED, true, LensEquivalentCalculator.equivalentFocalMm(5.40f, 8.2f))
+        val ultraWide = Triple(1f, true, LensEquivalentCalculator.equivalentFocalMm(2.20f, 5.6f))
+        assertEquals(0, LensEquivalentCalculator.referenceIndex(listOf(main, ultraWide)))
+        val reference = LensEquivalentCalculator.Reference(focalMm = 5.40f, sensorWidthMm = 8.2f)
+        val ultraWideLens = LensEquivalentCalculator.Lens(isBack = true, focalMm = 2.20f, sensorWidthMm = 5.6f)
+        val teleLens = LensEquivalentCalculator.Lens(isBack = true, focalMm = 7.00f, sensorWidthMm = 3.6f)
+        assertEquals(0.60f, LensEquivalentCalculator.multiplier(ultraWideLens, reference), FOV_DELTA)
+        assertEquals(TELE_EXPECTED, LensEquivalentCalculator.multiplier(teleLens, reference), REPORT_DELTA)
+    }
+
+    @Test
+    fun `no back camera elects nothing`() {
+        assertEquals(-1, LensEquivalentCalculator.referenceIndex(emptyList()))
+    }
+
+    @Test
+    fun `equivalent focal scales by the full-frame width and stays unknown without sensor data`() {
+        assertEquals(FULL_FRAME_EQ_MM, LensEquivalentCalculator.equivalentFocalMm(MAIN_FOCAL_MM, MAIN_FOCAL_MM), 0f)
+        assertEquals(0f, LensEquivalentCalculator.equivalentFocalMm(MAIN_FOCAL_MM, 0f), 0f)
+    }
+
     private companion object {
+        const val S25_PLUS_MAIN_FLOOR = 0.6f
+        const val S25_PLUS_FLOOR_REPORTED = 0.60f
+
+        /** The report's widths carry one decimal, so its tele lands at 2.95 rather than 3.0. */
+        const val REPORT_DELTA = 0.06f
+
+        /** EXIF of the S4688 report: main 23 mm, ultra-wide 13 mm; a 3x tele sits near 70 mm. */
+        const val S25_PLUS_MAIN_EQ_MM = 23f
+        const val S25_PLUS_ULTRA_WIDE_EQ_MM = 13f
+        const val TELE_EQ_MM = 70f
+
+        /** A lens as wide as its sensor gives exactly the full-frame width. */
+        const val FULL_FRAME_EQ_MM = 36f
         const val MAIN_FOCAL_MM = 5.40f
         const val MAIN_SENSOR_MM = 5.76f
         const val ULTRA_WIDE_FOCAL_MM = 1.74f

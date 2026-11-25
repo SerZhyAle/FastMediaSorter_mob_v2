@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "将智能手表连接到 NAS 和电脑共享 - FastMediaSorter v2"
+title: "将智能手表连接到 NAS 和电脑共享 - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-watch-network-zh-hans.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -13,7 +13,7 @@ permalink: /docs/howto/scenario-watch-network-zh-hans.html
 
 > **仅限完整版** - 本指南不适用于通过 Google Play 分发的版本，而是适用于从[下载页面](../DOWNLOADS.md)直接下载 APK 的完整版本。
 
-Wear OS 上的 FastMediaSorter 可以通过 Wi-Fi 直接连接到您的家庭网络存储（NAS、电脑共享文件夹、FTP 或 SFTP 服务器）。您可以浏览远程文件、向蓝牙耳机串流音乐，并同步您喜欢的文件夹，而无需借助手机。
+Wear OS 上的 Fast Media Sorter & Organizer 可以通过 Wi-Fi 直接连接到您的家庭网络存储（NAS、电脑共享文件夹、FTP 或 SFTP 服务器）。您可以浏览远程文件、向蓝牙耳机串流音乐，并同步您喜欢的文件夹，而无需借助手机。
 
 > **第一次接触网络共享？** 如果您还没有在电脑或 NAS 上设置共享文件夹，请先参考我们的[连接到 NAS / Windows 共享（SMB）](scenario-smb-setup-zh-hans.md)指南。
 
@@ -36,7 +36,7 @@ Wear OS 上的 FastMediaSorter 可以通过 Wi-Fi 直接连接到您的家庭网
 
 ![Wear OS 上的资源界面](screenshots/screenshot-wear-network-step1.png)
 
-> **从手机同步快捷方式：** 如果您已经在 Android 手机上的 FastMediaSorter 中添加了 SMB 或 SFTP 共享，点击**从手机同步**即可一键将所有连接设置导入到手表。
+> **从手机同步快捷方式：** 如果您已经在 Android 手机上的 Fast Media Sorter & Organizer 中添加了 SMB 或 SFTP 共享，点击**从手机同步**即可一键将所有连接设置导入到手表。
 
 ---
 

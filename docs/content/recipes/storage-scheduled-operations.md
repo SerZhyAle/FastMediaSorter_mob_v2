@@ -14,7 +14,7 @@ why: |
 
   Typical jobs: copy new camera photos to a [network folder](term:network-folder) every night, move downloaded videos to the memory card every few hours, or empty a folder of temporary screenshots once a day.
 ingredients:
-  - "FastMediaSorter in any [edition](term:edition)."
+  - "Fast Media Sorter & Organizer in any [edition](term:edition)."
   - "The source: a [resource](term:resource) or any folder on this device."
   - "For copy and move: a [destination](term:destination), or any folder on this device."
   - "The phone switched on at the scheduled time. Android decides the exact moment, so a job may start a few minutes late."

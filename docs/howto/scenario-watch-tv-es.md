@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Mira Canales de TV en tu Smartwatch - FastMediaSorter v2"
+title: "Mira Canales de TV en tu Smartwatch - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-watch-tv-es.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -23,7 +23,7 @@ FastMedia Wear reproduce canales de TV y radio en vivo directamente en tu muñec
 
 - Un smartwatch con **Wear OS 2.0** o más nuevo con FastMedia Wear instalado
 - Una red Wi-Fi a la que el reloj pueda unirse, o un teléfono emparejado para retransmitir la conexión
-- Opcional: FastMediaSorter en tu teléfono Android, si quieres enviar tus propios canales al reloj
+- Opcional: Fast Media Sorter & Organizer en tu teléfono Android, si quieres enviar tus propios canales al reloj
 
 ---
 
@@ -47,7 +47,7 @@ Una instalación nueva no tiene canales todavía, y la pantalla lo indica.
 Hay dos formas de llenarla, y funcionan juntas:
 
 - **Descarga el catálogo compartido.** Toca **Actualizar catálogo**. El reloj obtiene el banco de canales publicado en un solo archivo - muchos miles de canales de TV y radio con sus temas, idiomas y países.
-- **Envía canales desde tu teléfono.** Un canal que agregaste tú mismo en FastMediaSorter en el teléfono se puede enviar con **Enviar al reloj** desde la lista de streams del teléfono. Los canales que fijas en el teléfono también se elevan hacia la parte superior de la lista del reloj, justo detrás de los que fijaste en el propio reloj, así que los dos o tres que realmente ves están al alcance sin desplazarte. Al desfijar en el teléfono, el canal se retira de ese grupo de nuevo, y un canal que el propio catálogo del reloj no tiene simplemente se omite.
+- **Envía canales desde tu teléfono.** Un canal que agregaste tú mismo en Fast Media Sorter & Organizer en el teléfono se puede enviar con **Enviar al reloj** desde la lista de streams del teléfono. Los canales que fijas en el teléfono también se elevan hacia la parte superior de la lista del reloj, justo detrás de los que fijaste en el propio reloj, así que los dos o tres que realmente ves están al alcance sin desplazarte. Al desfijar en el teléfono, el canal se retira de ese grupo de nuevo, y un canal que el propio catálogo del reloj no tiene simplemente se omite.
 
 Los canales enviados desde el teléfono sobreviven a una actualización del catálogo - la actualización reemplaza el banco compartido y deja intactas tus propias filas.
 

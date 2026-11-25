@@ -28,4 +28,8 @@
     <string name="filler_result_busy">Filling is already running.</string>
     <string name="filler_settings_toggle_subtitle">Fills the free space of a storage device with temporary files, then deletes them</string>
     <string name="filler_settings_toggle_subtitle_pending">Temporary files from an earlier run are still on the storage. The program stays in the list until you delete them in it.</string>
+    <string name="filler_estimate">%1$d%% done, time left: %2$s</string>
+    <string name="filler_estimate_calculating">%1$d%% done, time left: calculating..</string>
+    <string name="filler_reserve_slider_description">Space kept free for the system</string>
+    <string name="filler_confirm_reserve_lowered">This is less than the usual %1$s, so the system and other apps have less room while the run lasts.</string>
 </resources>

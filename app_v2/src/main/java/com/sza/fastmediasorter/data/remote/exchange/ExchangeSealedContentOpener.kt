@@ -121,10 +121,17 @@ class ExchangeSealedContentOpener @Inject constructor(
             // Item BF: the pair rides on the opened descriptor, in memory only, so the broadcast asks nothing - the
             // own pair for an own broadcast, the grant's pair for a guest (BD).
             opened?.payload?.get(E2eBroadcastSeals.KEY_CREDENTIALS)?.takeIf { it.isJsonObject }
-                ?.let { descriptor.add(E2eBroadcastSeals.KEY_CREDENTIALS, it) }
+                ?.let { descriptor.add(E2eBroadcastSeals.KEY_CREDENTIALS, withUser(it.asJsonObject)) }
             record.copy(descriptorJson = descriptor.toString(), sealed = null, sealIssue = issue)
         }
         return BroadcastOpening(record, unsealed, outcomeOf(record.sealed != null, self, result))
+    }
+
+    // 1.11 item EI: a writer spells the pair `user`, and `vectors/e2e-v1.json` carries `username`, so a reader takes
+    // `username` only when `user` is absent.
+    private fun withUser(pair: JsonObject): JsonObject {
+        val legacy = pair.get(KEY_USERNAME)?.takeIf { it.isJsonPrimitive && !pair.has(KEY_USER) }
+        return legacy?.let { pair.deepCopy().apply { add(KEY_USER, it) } } ?: pair
     }
 
     // A granted record always names its reason (item DJ). An own-account record names one only when it came sealed
@@ -190,6 +197,9 @@ class ExchangeSealedContentOpener @Inject constructor(
             box != null && self != null && grantId != null -> openedGrant(self, resource, box, grantId, grants)
             box != null && self != null -> opened(sealing, resource, box)
             box != null -> resource.unusable(ExchangeSealIssue.E2E_MISSING)
+            // Item FB: a reader that holds a key and is listed with it knows the missing key is the producer's.
+            resource.descriptor != null && self != null && sealing.selfListed ->
+                resource.unusable(ExchangeSealIssue.E2E_MISSING_PEER)
             resource.descriptor != null -> resource.unusable(ExchangeSealIssue.E2E_MISSING)
             else -> resource
         }
@@ -267,6 +277,8 @@ class ExchangeSealedContentOpener @Inject constructor(
         copy(descriptor = null, root = null, sealedAccess = null, sealIssue = issue)
 
     private companion object {
+        const val KEY_USER = "user"
+        const val KEY_USERNAME = "username"
         const val KEY_ACCESS = "access"
         const val KEY_DESCRIPTOR = "descriptor"
         const val KEY_ROOT = "root"

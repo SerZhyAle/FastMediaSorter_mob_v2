@@ -225,25 +225,49 @@ class ImagePreloadHelper(
         val cacheKey = "${file.path}_${file.size}"
         val preloadMaxDimension = if (memoryTier == MemoryTier.LOW) 1280 else 1920
         try {
-            withContext(Dispatchers.IO) {
-                val loadSource: Any = if (!File(file.path).canRead() && !file.contentUri.isNullOrEmpty()) {
-                    Uri.parse(file.contentUri)
-                } else File(file.path)
-                val request = Glide.with(binding.root.context.applicationContext)
-                    .downloadOnly().load(loadSource)
-                    .signature(ObjectKey(cacheKey))
-                    .diskCacheStrategy(DiskCacheStrategy.DATA)
-                    .override(preloadMaxDimension, preloadMaxDimension)
-                request.set(
-                    com.bumptech.glide.load.Option.memory("decodeFormat"),
-                    decodeFormatResolver.decodeFormat(),
-                )
-                request.submit().get()
+            val preloaded = withContext(Dispatchers.IO) {
+                val loadSource = resolveLocalPreloadSource(file)
+                if (loadSource == null) {
+                    false
+                } else {
+                    val request = Glide.with(binding.root.context.applicationContext)
+                        .downloadOnly().load(loadSource)
+                        .signature(ObjectKey(cacheKey))
+                        .diskCacheStrategy(DiskCacheStrategy.DATA)
+                        .override(preloadMaxDimension, preloadMaxDimension)
+                    request.set(
+                        com.bumptech.glide.load.Option.memory("decodeFormat"),
+                        decodeFormatResolver.decodeFormat(),
+                    )
+                    request.submit().get()
+                    true
+                }
             }
-            Timber.d("ImagePreloadHelper: Preload completed for ${file.name}")
+            if (preloaded) {
+                Timber.d("ImagePreloadHelper: Preload completed for ${file.name}")
+            } else {
+                Timber.d("ImagePreloadHelper: Preload skipped for ${file.name} - no readable source")
+            }
         } catch (e: Exception) {
             e.rethrowIfCancellation()
             Timber.d("ImagePreloadHelper: Preload failed for ${file.name}: ${e.message}")
+        }
+    }
+
+    /**
+     * Mirrors the model choice of `ImageLoadingManager.loadLocalImage`: a SAF [MediaFile.path] is a
+     * `content://` string, and wrapping it in a [File] gave Glide a non-existent file that its
+     * `File -> File` passthrough loader still "loaded", after which the DATA disk-cache write failed
+     * with NoSourceEncoderAvailableException on every viewer open. Returns null when neither the
+     * path nor [MediaFile.contentUri] can be read, so no such File ever reaches Glide.
+     */
+    private fun resolveLocalPreloadSource(file: MediaFile): Any? {
+        val localFile = File(file.path)
+        return when {
+            file.path.startsWith("content://") -> Uri.parse(file.path)
+            localFile.canRead() -> localFile
+            !file.contentUri.isNullOrEmpty() -> Uri.parse(file.contentUri)
+            else -> null
         }
     }
 }

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -37,19 +38,31 @@
         android:layout_marginTop="@dimen/margin_small"
         android:contentDescription="@string/exchange_admin_qr_description" />
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/margin_small"
-        android:orientation="horizontal">
+        android:layout_marginTop="@dimen/margin_small">
+        <androidx.constraintlayout.helper.widget.Flow
+            android:id="@+id/flowAdminInvitationActions"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:constraint_referenced_ids="btn_exchange_admin_invitation_copy,btn_exchange_admin_invitation_send,btn_exchange_admin_invitation_send_file"
+            app:flow_wrapMode="chain"
+            app:flow_horizontalStyle="packed"
+            app:flow_horizontalBias="0"
+            app:flow_verticalAlign="top"
+            app:flow_horizontalGap="@dimen/token_spacing_8"
+            app:flow_verticalGap="@dimen/token_spacing_8"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_exchange_admin_invitation_copy"
             style="@style/Widget.FastMediaSorter.Button.DialogConfirm"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginEnd="@dimen/margin_small"
             android:focusable="true"
             android:clickable="true"
             android:text="@string/copy" />
@@ -57,10 +70,8 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_exchange_admin_invitation_send"
             style="@style/Widget.FastMediaSorter.Button.DialogConfirm"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginEnd="@dimen/margin_small"
             android:focusable="true"
             android:clickable="true"
             android:text="@string/exchange_admin_send_text" />
@@ -68,11 +79,10 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_exchange_admin_invitation_send_file"
             style="@style/Widget.FastMediaSorter.Button.DialogConfirm"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:focusable="true"
             android:clickable="true"
             android:text="@string/exchange_admin_send_file" />
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </LinearLayout>

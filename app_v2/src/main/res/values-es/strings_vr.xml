@@ -78,7 +78,7 @@
     <string name="vr_info_video">Códec de vídeo:</string>
     <string name="vr_install_cta_action">Abierto en tienda</string>
     <string name="vr_install_cta_dismiss">Juega de todos modos</string>
-    <string name="vr_install_cta_message">Para disfrutar de la mejor experiencia, prueba la edición de realidad virtual de FastMediaSorter en tus gafas Quest.</string>
+    <string name="vr_install_cta_message">Para disfrutar de la mejor experiencia, prueba la edición VR de Fast Media Sorter &amp; Organizer en tu visor Quest.</string>
     <string name="vr_install_cta_title">Este es un video 3D</string>
     <string name="vr_overlay_btn_bright_down">Brillante -</string>
     <string name="vr_overlay_btn_bright_up">Brillante +</string>

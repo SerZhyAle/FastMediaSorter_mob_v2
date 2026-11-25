@@ -83,6 +83,8 @@ class CollapsibleSectionsManager(
                     TransitionManager.beginDelayedTransition(parent, buildBodyTransition())
                 }
             }
+            // COLLAPSIBLE-GROUP section 4 rule 5: focus inside a body that is about to hide goes to its header first.
+            if (!isExpanded && container.hasFocus()) header.requestFocus()
             container.isVisible = isExpanded
             if (persistState) {
                 store.setExpanded(key, isExpanded)
@@ -100,6 +102,16 @@ class CollapsibleSectionsManager(
         for (header in registeredHeaders) {
             header.setExpanded(false)
         }
+    }
+
+    /**
+     * The saved state of a section whose header is not a [CollapsibleSectionHeader] - a group row inside a list
+     * draws its own header, so it cannot be [register]ed and reads and writes its state directly.
+     */
+    fun isExpanded(key: String, defaultExpanded: Boolean): Boolean = store.isExpanded(key, defaultExpanded)
+
+    fun setExpanded(key: String, expanded: Boolean) {
+        store.setExpanded(key, expanded)
     }
 
     /** S4394: whether at least one registered section is expanded right now. */

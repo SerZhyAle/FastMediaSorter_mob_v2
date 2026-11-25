@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "Usa l'app come schermata Home - FastMediaSorter v2"
+title: "Usa l'app come schermata Home - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-launcher-mode-it.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -11,7 +11,7 @@ permalink: /docs/howto/scenario-launcher-mode-it.html
 
 > **Livello:** Principiante &bull; **Edizione:** Standard / noLegal
 
-FastMediaSorter può sostituire la schermata Home del tuo dispositivo con un proprio desktop - le tue cartelle, un orologio, il meteo, le tue app e una taskbar lungo un bordo. Se hai mai usato un desktop Windows ti risulterà familiare: le cose restano dove le metti, e un pulsante Start apre il menu. Questa si chiama **modalità launcher**.
+Fast Media Sorter & Organizer può sostituire la schermata Home del tuo dispositivo con un proprio desktop - le tue cartelle, un orologio, il meteo, le tue app e una taskbar lungo un bordo. Se hai mai usato un desktop Windows ti risulterà familiare: le cose restano dove le metti, e un pulsante Start apre il menu. Questa si chiama **modalità launcher**.
 
 **Esempio reale:** un vecchio tablet appeso alla parete della cucina. Invece di una griglia di icone di app ottieni l'orologio, il meteo di oggi, la cartella foto dal tuo NAS e un pulsante che avvia la radio - tutto sulla schermata che mostra quando si riattiva.
 
@@ -29,7 +29,7 @@ FastMediaSorter può sostituire la schermata Home del tuo dispositivo con un pro
 
 1. Apri **Impostazioni → Generale**
 2. Attiva **Rendi questa app la schermata Home**
-3. Android ti chiede conferma. Su Android 10 e versioni successive è una sola domanda - "Consentire a FastMediaSorter di essere la tua app Home?" - quindi consentilo. Sulle versioni più vecchie compare il classico selettore la prossima volta che premi Home: scegli FastMediaSorter e tocca **Sempre**, oppure **Solo una volta** per provarlo prima
+3. Android ti chiede conferma. Su Android 10 e versioni successive è una sola domanda - "Consentire a Fast Media Sorter & Organizer di essere la tua app Home?" - quindi consentilo. Sulle versioni più vecchie compare il classico selettore la prossima volta che premi Home: scegli Fast Media Sorter & Organizer e tocca **Sempre**, oppure **Solo una volta** per provarlo prima
 4. Premi **Home**
 
 > **Hai appena installato l'app?** C'è una scorciatoia: spunta **Usa come schermata Home** nella prima pagina di benvenuto. La configurazione non viene interrotta da una finestra di sistema - la conferma di Android compare la prima volta che apri **Impostazioni → Generale** in seguito.
@@ -55,7 +55,7 @@ Il desktop non è una griglia vuota il primo giorno. Arriva già con una dozzina
 La taskbar si trova lungo il bordo inferiore. Contiene il pulsante Start, le app usate di recente, quelle che hai fissato, e un piccolo vassoio con l'orologio, la batteria, la rete e il segnale SIM.
 
 - **La preferisci in alto?** **Impostazioni → Generale → Impostazioni del launcher di sistema → Taskbar → Posizione taskbar** passa tra **Basso** e **Alto**. Il menu Start segue la barra e si apre verso il basso quando la barra è in alto.
-- **Il pulsante Start** apre il menu: apri FastMediaSorter, le tue risorse, aggiungi una risorsa, le impostazioni Android, le impostazioni dell'app, le impostazioni del launcher, modifica i contenuti del desktop, e infine riavvia, spegni ed **Esci dalla modalità launcher**.
+- **Il pulsante Start** apre il menu: apri Fast Media Sorter & Organizer, le tue risorse, aggiungi una risorsa, le impostazioni Android, le impostazioni dell'app, le impostazioni del launcher, modifica i contenuti del desktop, e infine riavvia, spegni ed **Esci dalla modalità launcher**.
 - **Le tue app** sono raggruppate in sezioni con piccole intestazioni. Tocca un'intestazione per comprimere una sezione che apri raramente. Un desktop appena creato mette le tue app Google in una sezione **Google** e le tue app installate - messaggistica, giochi e il resto - in una sezione **App**, così la stessa icona non compare mai due volte. Tieni premuta qualsiasi app per **Metti sul desktop** e **Fissa alla taskbar**.
 
 ---
@@ -123,7 +123,7 @@ La disposizione del tuo desktop viene comunque conservata, quindi riattivare la 
 | Problema | Cosa provare |
 |---------|------------|
 | **Rendi questa app la schermata Home** manca da Impostazioni → Generale | La tua build non include la modalità launcher. È presente solo in **Standard** e **noLegal** - controlla **Impostazioni → Generale → Informazioni sul sistema** per l'edizione che hai |
-| Il dispositivo torna alla propria schermata Home dopo un riavvio | Alcune autoradio di terze parti e box Android integrati forzano il ripristino della loro schermata Home di fabbrica a ogni avvio. È il firmware del dispositivo che ti scavalca, e nessuna app può aggirarlo - scegli di nuovo FastMediaSorter dopo il riavvio, e se ancora non resta, quel dispositivo non lo consente |
+| Il dispositivo torna alla propria schermata Home dopo un riavvio | Alcune autoradio di terze parti e box Android integrati forzano il ripristino della loro schermata Home di fabbrica a ogni avvio. È il firmware del dispositivo che ti scavalca, e nessuna app può aggirarlo - scegli di nuovo Fast Media Sorter & Organizer dopo il riavvio, e se ancora non resta, quel dispositivo non lo consente |
 | Android non ha mai chiesto quale app Home usare | Premi **Home** una volta - sulle versioni Android più vecchie il selettore compare in quel momento, non quando attivi l'interruttore |
 | Il desktop sembra vuoto dopo averlo attivato | Premi **Home** invece di restare dentro l'app - il desktop precompilato è ciò che Android mostra come schermata Home |
 | Le celle si spostano senza che tu voglia | Attiva **Blocca desktop** in **Impostazioni → Generale → Impostazioni del launcher di sistema** |

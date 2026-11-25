@@ -105,7 +105,7 @@ Se una funzione è contrassegnata con "✗", scegli la build **Standard** o **XR
 
 ## Gruppi di scenari {#scenario-groups}
 
-Queste sezioni sono volutamente più varie dei blocchi di riferimento principali più avanti. Ogni scenario combina un percorso rapido con il contesto, i compromessi e le situazioni in cui FastMediaSorter è particolarmente efficace.
+Queste sezioni sono volutamente più varie dei blocchi di riferimento principali più avanti. Ogni scenario combina un percorso rapido con il contesto, i compromessi e le situazioni in cui Fast Media Sorter & Organizer è particolarmente efficace.
 
 > **⭐ In evidenza: porta le cartelle del tuo PC sul telefono con una sola scansione.** Avvia il companion gratuito [Fast Media Sorter & Sharing for Windows](https://serzhyale.github.io/FastMediaSorter_Lite/) sul PC, scegli le cartelle con i tuoi video, musica, documenti o foto, e l'app mostra un codice sullo schermo. Sul telefono, tocca **Aggiungi**, scegli **Importa tramite codice a barre**, punta la fotocamera sul codice - le cartelle del PC vengono collegate all'istante, senza digitare indirizzo, porta o password. Guida completa: [Aprire le cartelle del PC scansionando un codice](howto/scenario-companion-share-it.md) &bull; ricetta rapida: [Importare una condivisione Companion di Windows](#how-to-import-a-windows-companion-share).
 
@@ -201,7 +201,7 @@ Queste sezioni sono volutamente più varie dei blocchi di riferimento principali
 1. Apri il menu a discesa della finestra principale e tocca **Stream**, oppure vai su **Impostazioni > Contenuti multimediali > Stream** e attiva l'interruttore se è spento.
 2. Tocca **⋮** in fondo alla barra degli strumenti, scegli **Aggiungi stream**, e incolla l'URL di una stazione radio qualsiasi (http:// o https://, .m3u8, rtsp://).
 3. Tocca la riga della stazione - l'audio parte nel mini-controllo fisso in basso. La lista resta scorrevole.
-4. Per un catalogo più ampio, tocca **Importa** e inserisci un URL remoto `.m3u`, oppure scarica il catalogo curato di FastMediaSorter dalla schermata **Estensioni**.
+4. Per un catalogo più ampio, tocca **Importa** e inserisci un URL remoto `.m3u`, oppure scarica il catalogo curato di Fast Media Sorter & Organizer dalla schermata **Estensioni**.
 
 **Approfondimento dello scenario**
 
@@ -236,7 +236,7 @@ Queste sezioni sono volutamente più varie dei blocchi di riferimento principali
 
 1. Crea o scegli un'unica cartella locale per il viaggio.
 2. Copiaci dentro i contenuti multimediali, i PDF, gli EPUB o le note di cui hai bisogno prima di lasciare il Wi-Fi.
-3. Apri quella cartella una volta in FastMediaSorter così le miniature e le ultime posizioni sono pronte.
+3. Apri quella cartella una volta in Fast Media Sorter & Organizer così le miniature e le ultime posizioni sono pronte.
 4. Usa la cartella offline durante il viaggio.
 
 **Approfondimento dello scenario**
@@ -320,7 +320,7 @@ Queste sezioni sono volutamente più varie dei blocchi di riferimento principali
 
 **Approfondimento dello scenario**
 
-- Usa questa funzione quando FastMediaSorter è il miglior browser per l'archiviazione remota, ma un'altra app è il miglior editor o visualizzatore per quel tipo di file.
+- Usa questa funzione quando Fast Media Sorter & Organizer è il miglior browser per l'archiviazione remota, ma un'altra app è il miglior editor o visualizzatore per quel tipo di file.
 - I casi tipici di passaggio sono documenti da ufficio, PDF avanzati, video con codec pesanti e formati multimediali di nicchia.
 - La copia scaricata resta in `Downloads`, così puoi riaprirla più tardi anche se la fonte remota va offline.
 
@@ -454,7 +454,7 @@ Queste sezioni sono volutamente più varie dei blocchi di riferimento principali
 2. Inserisci l'indirizzo .m3u remoto. Tocca **Importa**.
 3. Tutte le stazioni del file compaiono nella lista.
 
-**Scaricare il catalogo curato di FastMediaSorter:**
+**Scaricare il catalogo curato di Fast Media Sorter & Organizer:**
 
 1. Apri **Impostazioni > Estensioni** (oppure la riga Stream dell'onboarding di benvenuto).
 2. Tocca **Scarica** accanto alla voce del catalogo Stream.
@@ -1137,7 +1137,7 @@ Traduce automaticamente il testo da immagini, PDF e file di testo: **Tesseract**
 **Percorso rapido**
 
 1. Vai alla schermata Home di Android, tieni premuto e seleziona **Widget**.
-2. Trascina un widget **FastMediaSorter** (come il registratore vocale rapido 1×1 o Camera OCR) sullo schermo.
+2. Trascina un widget **Fast Media Sorter & Organizer** (come il registratore vocale rapido 1×1 o Camera OCR) sullo schermo.
 3. Configura la cartella di destinazione e le impostazioni di cattura, poi tocca **Salva**.
 4. Usa il widget per eseguire attività con un tocco direttamente dalla tua schermata Home.
 
@@ -1160,12 +1160,12 @@ Traduce automaticamente il testo da immagini, PDF e file di testo: **Tesseract**
 
 ## Come usare l'app come schermata Home {#how-to-use-the-app-as-your-home-screen}
 
-FastMediaSorter può sostituire la schermata Home del tuo dispositivo e mostrare il proprio desktop al suo posto - le tue cartelle, un orologio, il meteo, le tue app e una barra delle applicazioni lungo un bordo. Se hai mai usato un desktop Windows ti sembrerà familiare: le cose restano dove le metti, e un pulsante Start apre il menu. Questa si chiama modalità launcher, ed è disponibile solo nelle build **Standard** e **noLegal**.
+Fast Media Sorter & Organizer può sostituire la schermata Home del tuo dispositivo e mostrare il proprio desktop al suo posto - le tue cartelle, un orologio, il meteo, le tue app e una barra delle applicazioni lungo un bordo. Se hai mai usato un desktop Windows ti sembrerà familiare: le cose restano dove le metti, e un pulsante Start apre il menu. Questa si chiama modalità launcher, ed è disponibile solo nelle build **Standard** e **noLegal**.
 
 **Attivarla:**
 
 1. Apri **Impostazioni → Generali** e attiva **Rendi questa app la schermata Home**.
-2. Android chiede conferma. Su Android 10 e versioni successive è una sola domanda - "Consentire a FastMediaSorter di essere la tua app Home?" - quindi basta consentirlo. Sulle versioni più vecchie compare la classica scelta la prossima volta che premi Home: scegli FastMediaSorter e tocca **Sempre**, oppure **Solo una volta** se vuoi solo provarla per ora.
+2. Android chiede conferma. Su Android 10 e versioni successive è una sola domanda - "Consentire a Fast Media Sorter & Organizer di essere la tua app Home?" - quindi basta consentirlo. Sulle versioni più vecchie compare la classica scelta la prossima volta che premi Home: scegli Fast Media Sorter & Organizer e tocca **Sempre**, oppure **Solo una volta** se vuoi solo provarla per ora.
 3. Premi Home. Il desktop compare, già riempito con una dozzina di elementi utili - un orologio, il meteo, le tue cartelle, una casella di ricerca - così il primo giorno non è una griglia vuota.
 
 Su un'installazione nuova c'è una scorciatoia: spunta **Usa come schermata Home** nella prima pagina di benvenuto. Questo non interrompe la configurazione con una finestra di dialogo di sistema - la conferma di Android arriva la prima volta che apri **Impostazioni → Generali** in seguito.
@@ -1184,7 +1184,7 @@ Su un'installazione nuova c'è una scorciatoia: spunta **Usa come schermata Home
 
 - La barra delle applicazioni si trova lungo il bordo inferiore e contiene il pulsante Start, le app usate di recente, quelle che hai fissato, e un piccolo vassoio con orologio, batteria, rete e segnale SIM.
 - Preferisci averla in alto? **Impostazioni → Generali → Impostazioni launcher di sistema → Barra applicazioni → Posizione barra applicazioni** passa tra **Basso** e **Alto**. Il menu Start segue la barra e scende dall'alto quando la barra si trova lì.
-- Il pulsante Start apre il menu: apri FastMediaSorter, le tue risorse, aggiungi una risorsa, impostazioni Android, impostazioni dell'app, impostazioni del launcher, modifica i contenuti del desktop, e infine riavvia, spegni ed **Esci dalla modalità launcher**. Riavvio e spegnimento funzionano solo se il tuo dispositivo consente a un'app comune di farlo - sulla maggior parte dei telefoni non faranno semplicemente nulla.
+- Il pulsante Start apre il menu: apri Fast Media Sorter & Organizer, le tue risorse, aggiungi una risorsa, impostazioni Android, impostazioni dell'app, impostazioni del launcher, modifica i contenuti del desktop, e infine riavvia, spegni ed **Esci dalla modalità launcher**. Riavvio e spegnimento funzionano solo se il tuo dispositivo consente a un'app comune di farlo - sulla maggior parte dei telefoni non faranno semplicemente nulla.
 
 **Le tue app:** la griglia delle app raggruppa le app in sezioni, ciascuna con una piccola intestazione. Tocca un'intestazione per comprimere una sezione che apri raramente; le intestazioni compresse si affiancano tra loro, così il desktop diventa più corto invece di lasciare spazi vuoti. Un desktop nuovo divide in due le app che semina: una sezione **Google** per le app Google che hai già installato, e una sezione **App** per le tue - messaggistica, giochi e qualsiasi altra cosa tu metta sul dispositivo. Nessuna app finisce in entrambe. Tieni premuta qualsiasi app nella lista per **Metti sul desktop** e **Fissa alla barra applicazioni**.
 
@@ -1208,13 +1208,13 @@ Su un'installazione nuova c'è una scorciatoia: spunta **Usa come schermata Home
 
 Il layout del tuo desktop viene conservato in ogni caso, quindi riattivare la modalità lo riporta esattamente come lo avevi lasciato.
 
-**Un avvertimento onesto.** Alcuni dispositivi si rifiutano di ricordare la scelta. Alcune autoradio Android economiche di terze parti e altri box Android integrati riportano indietro la loro schermata Home di fabbrica a ogni avvio, qualunque cosa tu abbia scelto. Questo è il firmware del dispositivo stesso che ti scavalca, non un difetto dell'app, e nessuna app può aggirarlo. Se il tuo si comporta così, scegli di nuovo FastMediaSorter come app Home dopo un riavvio - e se ancora non si fissa, quel dispositivo semplicemente non lo consente.
+**Un avvertimento onesto.** Alcuni dispositivi si rifiutano di ricordare la scelta. Alcune autoradio Android economiche di terze parti e altri box Android integrati riportano indietro la loro schermata Home di fabbrica a ogni avvio, qualunque cosa tu abbia scelto. Questo è il firmware del dispositivo stesso che ti scavalca, non un difetto dell'app, e nessuna app può aggirarlo. Se il tuo si comporta così, scegli di nuovo Fast Media Sorter & Organizer come app Home dopo un riavvio - e se ancora non si fissa, quel dispositivo semplicemente non lo consente.
 
 ---
 
 ## Come usare FMS su un box Android TV {#how-to-use-fms-on-android-tv-box}
 
-FastMediaSorter funziona su qualsiasi box Android TV o set-top box (Xiaomi Mi Box, Nvidia Shield, Amazon Fire TV, box Android generici). Non serve un touchscreen - l'app è completamente utilizzabile tramite telecomando TV o tastiera Bluetooth.
+Fast Media Sorter & Organizer funziona su qualsiasi box Android TV o set-top box (Xiaomi Mi Box, Nvidia Shield, Amazon Fire TV, box Android generici). Non serve un touchscreen - l'app è completamente utilizzabile tramite telecomando TV o tastiera Bluetooth.
 
 **Cosa serve:**
 
@@ -1420,11 +1420,11 @@ Le nuove catture usano lo schema `prefisso_yyMMdd_HHmmss`. I prefissi stabili so
 
 ## Come ricevere file condivisi da un'altra app {#how-to-receive-files-shared-from-another-app}
 
-Il menu di condivisione di qualsiasi app può inviare file a FastMediaSorter, che poi li copia dove vuoi.
+Il menu di condivisione di qualsiasi app può inviare file a Fast Media Sorter & Organizer, che poi li copia dove vuoi.
 
 **Passaggi:**
 
-1. Nell'altra app, condividi il file o i file e scegli **FastMediaSorter**.
+1. Nell'altra app, condividi il file o i file e scegli **Fast Media Sorter & Organizer**.
 2. Scegli la cartella di destinazione nella schermata di ricezione.
 3. Avvia la copia.
 

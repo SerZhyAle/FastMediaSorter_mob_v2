@@ -49,6 +49,7 @@ class ScreenRotationManager {
     ) {
         currentFollowSystem = followSystem
         currentSensorEnabled = sensorEnabled
+        Timber.d("S4684: followSystem=$followSystem sensor=$sensorEnabled accelerometer=$hasAccelerometer")
 
         if (!hasAccelerometer) {
             // No sensor → leave manifest default untouched; no UI shown

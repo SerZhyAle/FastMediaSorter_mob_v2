@@ -1,12 +1,15 @@
 package com.sza.fastmediasorter.data.sensors
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
 import android.os.Looper
+import androidx.core.content.ContextCompat
 import androidx.core.location.LocationCompat
 import com.sza.fastmediasorter.domain.model.sensors.MotionReading
 import com.sza.fastmediasorter.domain.model.tourist.TripMotionPolicy
@@ -71,6 +74,8 @@ class MotionReadingSource @Inject constructor(
                             verticalAccuracyMeters = LocationCompat.getVerticalAccuracyMeters(location)
                                 .takeIf { LocationCompat.hasVerticalAccuracy(location) },
                             bearingDegrees = location.bearing.takeIf { location.hasBearing() },
+                            latitude = location.latitude,
+                            longitude = location.longitude,
                         ),
                     )
                 }
@@ -84,6 +89,12 @@ class MotionReadingSource @Inject constructor(
             }
 
             CANDIDATE_PROVIDERS.forEach { provider ->
+                if (provider == LocationManager.GPS_PROVIDER &&
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) !=
+                    PackageManager.PERMISSION_GRANTED
+                ) {
+                    return@forEach
+                }
                 if (!runCatching { manager.isProviderEnabled(provider) }.getOrDefault(false)) {
                     return@forEach
                 }

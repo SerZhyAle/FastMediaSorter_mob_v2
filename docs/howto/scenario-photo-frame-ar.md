@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: "إطار الصور الرقمي على الجهاز اللوحي - FastMediaSorter v2"
+title: "إطار الصور الرقمي على الجهاز اللوحي - Fast Media Sorter & Organizer"
 permalink: /docs/howto/scenario-photo-frame-ar.html
 ---
 <sub class="doc-stamp">26.10.15 19:27</sub>
@@ -47,7 +47,7 @@ permalink: /docs/howto/scenario-photo-frame-ar.html
 2. اضغط **تسجيل الدخول** ← أكمل المصادقة في المتصفح
 3. اختر المجلد الذي يحتوي على صورك ← **تم**
 
-![الشاشة الرئيسية لـ FastMediaSorter - بطاقات مورد الصور مرئية بعد إضافة مجلد صور](screenshots/screenshot-pf-step1.png)
+![الشاشة الرئيسية لـ Fast Media Sorter & Organizer - بطاقات مورد الصور مرئية بعد إضافة مجلد صور](screenshots/screenshot-pf-step1.png)
 
 ---
 
@@ -123,12 +123,12 @@ permalink: /docs/howto/scenario-photo-frame-ar.html
 هذه الخطوة للراحة: تريد تشغيل إطار الصور فورًا عند التقاط الجهاز اللوحي - دون فتح التطبيق والتنقل؟
 
 1. اضغط مطولًا على شاشتك الرئيسية ← اضغط **ودجات**
-2. ابحث عن **FastMediaSorter** في قائمة الودجات
+2. ابحث عن **Fast Media Sorter & Organizer** في قائمة الودجات
 3. اسحب ودجة **"اختصار المورد"** إلى شاشتك الرئيسية
 4. عند الطلب، اختر مورد الصور الخاص بك
 5. اضغط على الودجة في أي وقت ← يبدأ عرض الشرائح فورًا
 
-![الشاشة الرئيسية لـ Android مع وضع ودجات اختصار مورد FastMediaSorter](screenshots/screenshot-pf-step6.png)
+![الشاشة الرئيسية لـ Android مع وضع ودجات اختصار مورد Fast Media Sorter & Organizer](screenshots/screenshot-pf-step6.png)
 
 ---
 

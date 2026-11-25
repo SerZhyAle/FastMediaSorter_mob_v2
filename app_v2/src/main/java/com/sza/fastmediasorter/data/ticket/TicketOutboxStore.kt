@@ -3,6 +3,8 @@ package com.sza.fastmediasorter.data.ticket
 import android.content.Context
 import android.net.Uri
 import com.sza.fastmediasorter.domain.model.ticket.TicketAttachmentRole
+import com.sza.fastmediasorter.domain.model.ticket.TicketDestination
+import com.sza.fastmediasorter.domain.model.ticket.TicketOrigin
 import com.sza.fastmediasorter.domain.model.ticket.TicketOutboxEntry
 import com.sza.fastmediasorter.domain.model.ticket.TicketOutboxState
 import com.sza.fastmediasorter.domain.model.ticket.TicketPacketCodec
@@ -75,7 +77,9 @@ class TicketOutboxStore @Inject constructor(
                 createdAtEpochMs = manifest.createdAtEpochMs,
                 title = titleOf(text, files),
                 project = draft.project,
-                state = TicketOutboxState.QUEUED
+                state = TicketOutboxState.QUEUED,
+                destination = draft.destination,
+                origin = draft.origin
             )
             writeState(folder, entry, files)
             File(folder, TicketPacketManifest.MANIFEST_FILE_NAME)
@@ -142,11 +146,29 @@ class TicketOutboxStore @Inject constructor(
             createdAtEpochMs = state.optLong(KEY_CREATED),
             title = state.optString(KEY_TITLE),
             project = state.optString(KEY_PROJECT).ifEmpty { null },
-            state = runCatching { TicketOutboxState.valueOf(state.optString(KEY_STATE)) }
-                .getOrDefault(TicketOutboxState.QUEUED),
+            state = stateOf(state.optString(KEY_STATE)),
             tickets = (0 until tickets.length()).map(tickets::getString),
-            failure = state.optString(KEY_FAILURE).ifEmpty { null }
+            failure = state.optString(KEY_FAILURE).ifEmpty { null },
+            destination = destinationOf(state),
+            origin = runCatching { TicketOrigin.valueOf(state.optString(KEY_ORIGIN)) }
+                .getOrDefault(TicketOrigin.FEEDBACK)
         )
+    }
+
+    // S4808: the waiting state was stored as WAITING_ON_DRIVE before the rename; read as unknown it would
+    // fall back to QUEUED and lose the failure line of a packet staged by an earlier version.
+    private fun stateOf(stored: String): TicketOutboxState =
+        if (stored == LEGACY_STATE_WAITING) {
+            TicketOutboxState.WAITING
+        } else {
+            runCatching { TicketOutboxState.valueOf(stored) }.getOrDefault(TicketOutboxState.QUEUED)
+        }
+
+    // The destination key is newer than the resource key, so it is read first and every older file falls through.
+    private fun destinationOf(state: JSONObject): TicketDestination = when {
+        state.optString(KEY_DESTINATION) == DESTINATION_EXCHANGE_DIRECT -> TicketDestination.ExchangeDirect
+        state.has(KEY_INBOX_RESOURCE) -> TicketDestination.Folder(state.getLong(KEY_INBOX_RESOURCE))
+        else -> TicketDestination.Drive
     }
 
     private fun writeState(folder: File, entry: TicketOutboxEntry, files: List<TicketPacketFile>? = null) {
@@ -158,6 +180,14 @@ class TicketOutboxStore @Inject constructor(
             .put(KEY_STATE, entry.state.name)
             .put(KEY_TICKETS, JSONArray(entry.tickets))
             .put(KEY_FAILURE, entry.failure ?: "")
+        // A Drive packet carries no destination key at all, as an S4554 packet never did, and reads back as Drive.
+        when (val destination = entry.destination) {
+            is TicketDestination.Folder -> json.put(KEY_INBOX_RESOURCE, destination.resourceId)
+            TicketDestination.ExchangeDirect -> json.put(KEY_DESTINATION, DESTINATION_EXCHANGE_DIRECT)
+            TicketDestination.Drive -> Unit
+        }
+        // Only the composer's packets carry the key, so a feedback packet's state stays byte-identical.
+        if (entry.origin != TicketOrigin.FEEDBACK) json.put(KEY_ORIGIN, entry.origin.name)
         val fileArray = files?.let { list -> JSONArray(list.map(::fileJson)) }
             ?: previous?.optJSONArray(KEY_FILES)
             ?: JSONArray()
@@ -226,9 +256,14 @@ class TicketOutboxStore @Inject constructor(
         private const val KEY_TITLE = "title"
         private const val KEY_PROJECT = "project"
         private const val KEY_STATE = "state"
+        private const val LEGACY_STATE_WAITING = "WAITING_ON_DRIVE"
         private const val KEY_TICKETS = "tickets"
         private const val KEY_FAILURE = "failure"
         private const val KEY_FILES = "files"
+        private const val KEY_INBOX_RESOURCE = "inboxResourceId"
+        private const val KEY_DESTINATION = "destination"
+        private const val DESTINATION_EXCHANGE_DIRECT = "exchange-direct"
+        private const val KEY_ORIGIN = "origin"
         private const val DEFAULT_MIME = "application/octet-stream"
         private const val TEXT_MIME = "text/markdown"
         private const val COPY_BUFFER_BYTES = 65_536

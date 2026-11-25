@@ -42,6 +42,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -276,47 +277,66 @@ class SettingsViewModel @Inject constructor(
      * must be a pure function of its argument.
      */
     fun updateSettings(transform: (AppSettings) -> AppSettings) {
+        val optimistic = showOptimisticEdit(transform) ?: return
+        viewModelScope.launch { persistOptimisticEdit(transform, optimistic) }
+    }
+
+    /**
+     * S4785: [updateSettings] for a caller that leaves the screen right after the edit. The write is
+     * finished before this returns, so a `finish()` that clears [viewModelScope] cannot drop it.
+     * [NonCancellable] because the caller's own scope can go with the screen, and an edit the user
+     * already confirmed must still land.
+     */
+    suspend fun updateSettingsAwaitingWrite(transform: (AppSettings) -> AppSettings) {
+        val optimistic = showOptimisticEdit(transform) ?: return
+        withContext(NonCancellable) { persistOptimisticEdit(transform, optimistic) }
+    }
+
+    /** Null while storage has not answered yet - the edit is dropped - else the value now shown. */
+    private fun showOptimisticEdit(transform: (AppSettings) -> AppSettings): AppSettings? {
         // Settings fragments bind their controls before the first DataStore emission, and a listener
         // fired then is not a user edit; writing it would replace a stored preference with the seed's.
-        if (!persistedSettingsLoaded.isCompleted) return
+        if (!persistedSettingsLoaded.isCompleted) return null
 
         val optimistic = transform(_settingsOverride.value ?: lastPersisted ?: settings.value)
         _settingsOverride.value = optimistic
-        viewModelScope.launch {
-            var updated: AppSettings? = null
-            try {
-                var previous: AppSettings? = null
-                settingsRepository.updateSettings { current ->
-                    previous = current
-                    transform(current).also {
-                        updated = it
-                        // A later edit already replaced the override with its own optimistic value;
-                        // publishing this intermediate result would flash that edit away until its write.
-                        // Null means an earlier write's release cleared ours, and nothing newer is shown.
-                        val shown = _settingsOverride.value
-                        if (shown == optimistic || shown == null) {
-                            _settingsOverride.value = it
-                            _pendingClearSnapshot.value = it // S2800
-                        }
+        return optimistic
+    }
+
+    private suspend fun persistOptimisticEdit(transform: (AppSettings) -> AppSettings, optimistic: AppSettings) {
+        var updated: AppSettings? = null
+        try {
+            var previous: AppSettings? = null
+            settingsRepository.updateSettings { current ->
+                previous = current
+                transform(current).also {
+                    updated = it
+                    // A later edit already replaced the override with its own optimistic value;
+                    // publishing this intermediate result would flash that edit away until its write.
+                    // Null means an earlier write's release cleared ours, and nothing newer is shown.
+                    val shown = _settingsOverride.value
+                    if (shown == optimistic || shown == null) {
+                        _settingsOverride.value = it
+                        _pendingClearSnapshot.value = it // S2800
                     }
                 }
-                val oldSettings = previous ?: return@launch
-                val newSettings = updated ?: return@launch
-                awaitOverrideRelease(newSettings)
-                if (_settingsOverride.value == newSettings) {
-                    _settingsOverride.value = null
-                    _pendingClearSnapshot.value = null
-                }
-                applySettingsSideEffects(oldSettings, newSettings)
-            } catch (e: Exception) {
-                e.rethrowIfCancellation()
-                val override = _settingsOverride.value
-                if (override == optimistic || override == updated) {
-                    _settingsOverride.value = null
-                    _pendingClearSnapshot.value = null
-                }
-                Timber.e(e, "Error updating settings")
             }
+            val oldSettings = previous ?: return
+            val newSettings = updated ?: return
+            awaitOverrideRelease(newSettings)
+            if (_settingsOverride.value == newSettings) {
+                _settingsOverride.value = null
+                _pendingClearSnapshot.value = null
+            }
+            applySettingsSideEffects(oldSettings, newSettings)
+        } catch (e: Exception) {
+            e.rethrowIfCancellation()
+            val override = _settingsOverride.value
+            if (override == optimistic || override == updated) {
+                _settingsOverride.value = null
+                _pendingClearSnapshot.value = null
+            }
+            Timber.e(e, "Error updating settings")
         }
     }
 
@@ -680,6 +700,8 @@ class SettingsViewModel @Inject constructor(
                 copy(
                     enableCalculator = defaults.enableCalculator,
                     enableTourist = defaults.enableTourist,
+                    enableNotes = defaults.enableNotes,
+                    enableFeedback = defaults.enableFeedback,
                     embeddedGameEnabled = defaults.embeddedGameEnabled,
                 )
             }

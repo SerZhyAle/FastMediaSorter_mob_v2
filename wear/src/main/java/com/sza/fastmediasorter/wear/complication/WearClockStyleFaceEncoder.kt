@@ -16,18 +16,17 @@ import kotlin.random.Random
  * The watch face (`watchface/`) decodes the same layout declaratively. This is the one place it is
  * written down; a change here without the same change in the face shows the wrong font or palette.
  *
- * Value (min [CODE_MIN], max [CODE_MAX]):
- * - `code = seconds + 2 * typeface + 10 * palette`
- * - `seconds`: 0 hidden, 1 shown - `code % 2`
- * - `typeface`: 0 default, 1 condensed, 2 serif, 3 monospace, 4 casual - `(code % 10) / 2`
- * - `palette`: 0 DYNAMIC, 1 GREEN, 2 PINK, 3 BLUE - `(code % 40) / 10`
- * - `backdrop` (S3707): 0 animation, 1 still, 2 none, 3 photo (S3708) ([WearFaceBackdrop]) - `code / 40`;
- *   the full code is `code(style) + 40 * backdrop`, so a face that predates the digit still reads its lower digits
- * - `phoneBattery`: 0..100 discharging, 101..201 charging, [BAND_STALE] stale or absent - the full code is
- *   `code(style, backdrop) + PHONE_BAND_WEIGHT * band`, so a face that predates the band still reads
- *   its lower digits; the face decodes the band as `floor(clamp(code, 0, 102159) / 400)` and the
- *   style digits as `code - floor(code / 400) * 400`. Fresh percent is `band % 101`; charging
- *   is `band in 101..201`. Old face battery decoders need updating alongside this encoder.
+ * Value (min [CODE_MIN], max [CODE_MAX]) - S4562 layout, every weight divides the next one, so each lower
+ * field reads as `code mod W` with no need to strip the fields above it:
+ * - `code = seconds + 2 * typeface + 64 * palette + 256 * backdrop + 1024 * phoneBand`
+ * - `seconds`: 0 hidden, 1 shown - `code mod 2`
+ * - `typeface`: [WearClockTypeface] ordinal, [TYPEFACE_SLOTS] slots - `(code mod 64) / 2`; the face draws
+ *   one time branch per `code mod 64` value
+ * - `palette`: 0 DYNAMIC, 1 GREEN, 2 PINK, 3 BLUE - `(code mod 256) / 64`
+ * - `backdrop` (S3707): 0 animation, 1 still, 2 none, 3 photo (S3708) ([WearFaceBackdrop]) - `(code mod 1024) / 256`
+ * - `phoneBattery` (S3764): 0..100 discharging, 101..201 charging, [BAND_STALE] stale or absent - the face
+ *   decodes the band as `floor(clamp(code, 0, 262143) / 1024)`. Fresh percent is `band % 101`; charging is
+ *   `band in 101..201`. The face (`watchface/src/main/res/raw/watchface.xml`) ships in the same release.
  *
  * Colour ramp, not interpolated, [COLOR_COUNT] entries in this order:
  * - 0: the dial colour, white when the phone uses its theme colour
@@ -42,13 +41,16 @@ object WearClockStyleFaceEncoder {
 
     const val CODE_MIN = 0
 
-    /** The multiplex weight the paired phone's battery band rides above the style digits (S3764). */
-    const val PHONE_BAND_WEIGHT = 400
+    /** The multiplex weight the paired phone's battery band rides above the style digits (S3764, S4562). */
+    const val PHONE_BAND_WEIGHT = 1024
 
     private const val BAND_MAX = 255
 
-    /** The style digits keep their 160 headroom unit on top; the phone band adds its full range (S3764). */
-    const val CODE_MAX = 160 + PHONE_BAND_WEIGHT * BAND_MAX
+    /** Every band value with every style below it; the face clamps to one less. */
+    const val CODE_MAX = PHONE_BAND_WEIGHT * (BAND_MAX + 1)
+
+    /** Typeface slots the layout reserves; the set may grow up to it without another relayout (S4562). */
+    const val TYPEFACE_SLOTS = 32
 
     /** The phone band value that composes an empty track on the face - stale or never received. */
     const val BAND_STALE = 255
@@ -60,8 +62,8 @@ object WearClockStyleFaceEncoder {
     const val COLOR_COUNT = LANE_COUNT + 2
 
     private const val TYPEFACE_WEIGHT = 2
-    private const val PALETTE_WEIGHT = 10
-    private const val BACKDROP_WEIGHT = 40
+    private const val PALETTE_WEIGHT = TYPEFACE_WEIGHT * TYPEFACE_SLOTS
+    private const val BACKDROP_WEIGHT = 256
     private const val FULL_CIRCLE_DEG = 360f
     private const val DEFAULT_DIAL_ARGB = 0xFFFFFFFF.toInt()
 

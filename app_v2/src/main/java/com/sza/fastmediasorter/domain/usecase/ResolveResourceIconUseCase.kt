@@ -37,21 +37,19 @@ class ResolveResourceIconUseCase @Inject constructor() {
         // 1. Fixed icons for known virtual paths
         fixedIconForVirtualPath(path)?.let { return it }
 
-        // 2. Profile-based set selection
+        // 2. Profile-based set selection (null for unprofiled local folders -> ic_folder)
         val setId = when (profile) {
             ResourceProfile.AUDIO_LIBRARY -> SET_MUSIC
             ResourceProfile.VIDEO_LIBRARY -> SET_VIDEO
             ResourceProfile.PHOTO_STORAGE -> SET_IMAGE
             ResourceProfile.DOCUMENTS -> SET_DOCS
-            // NONE / ALL_FILES → fall through to type-based heuristic
             else -> typeHeuristicSetId(type)
         }
-        // For "Other" set, pick a random icon so each new resource looks distinct
         // S3070: Locale.ROOT - an icon id is a machine key, and a native-digit locale breaks it
-        return if (setId == SET_OTHER) {
-            ResourceIconRegistry.randomIdFor(ResourceIconSet.OTHER)
-        } else {
-            String.format(Locale.ROOT, "ico-%02d-001", setId)
+        return when (setId) {
+            null -> null
+            SET_OTHER -> ResourceIconRegistry.randomIdFor(ResourceIconSet.OTHER)
+            else -> String.format(Locale.ROOT, "ico-%02d-001", setId)
         }
     }
 
@@ -69,9 +67,9 @@ class ResolveResourceIconUseCase @Inject constructor() {
         else -> null
     }
 
-    private fun typeHeuristicSetId(type: ResourceType): Int = when (type) {
-        // Network and cloud resources default to the "Other" abstract set
-        ResourceType.LOCAL -> SET_OTHER
+    private fun typeHeuristicSetId(type: ResourceType): Int? = when (type) {
+        // S4847: unprofiled local folders keep null so ResourceIconComposer renders the folder glyph
+        ResourceType.LOCAL -> null
         ResourceType.SMB -> SET_OTHER
         ResourceType.SFTP -> SET_OTHER
         ResourceType.FTP -> SET_OTHER

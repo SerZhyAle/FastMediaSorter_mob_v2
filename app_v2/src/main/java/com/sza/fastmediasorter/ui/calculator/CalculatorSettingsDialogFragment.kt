@@ -4,6 +4,7 @@ import android.app.Dialog
 import android.os.Bundle
 import androidx.fragment.app.DialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.slider.Slider
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogCalculatorSettingsBinding
 import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorKeypadMode
@@ -61,6 +62,10 @@ class CalculatorSettingsDialogFragment : DialogFragment() {
         }
     }
 
+    private val textSizeListener = Slider.OnChangeListener { _, value, _ ->
+        draft = draft.copy(displayTextSizeSp = value.toInt())
+    }
+
     private fun bindControls() {
         binding.switchCalculatorGroupThousands.isChecked = draft.groupThousands
         binding.switchCalculatorGroupThousands.setOnCheckedChangeListener { _, checked ->
@@ -68,9 +73,7 @@ class CalculatorSettingsDialogFragment : DialogFragment() {
         }
 
         binding.sliderCalculatorTextSize.value = draft.displayTextSizeSp.toFloat()
-        binding.sliderCalculatorTextSize.addOnChangeListener { _, value, _ ->
-            draft = draft.copy(displayTextSizeSp = value.toInt())
-        }
+        binding.sliderCalculatorTextSize.addOnChangeListener(textSizeListener)
 
         binding.radioCalculatorKeypadMode.check(checkedIdFor(draft.keypadMode))
         binding.radioCalculatorKeypadMode.setOnCheckedChangeListener { _, checkedId ->
@@ -91,6 +94,7 @@ class CalculatorSettingsDialogFragment : DialogFragment() {
     }
 
     override fun onDestroyView() {
+        _binding?.sliderCalculatorTextSize?.removeOnChangeListener(textSizeListener)
         super.onDestroyView()
         _binding = null
     }

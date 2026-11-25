@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "product": "Fast Media Sorter for Wear OS",
-  "scope": "One row per navigation route of the watch app (composable destinations under wear/src/main/java). Dialogs and menus inside a screen are not surfaces, and tiles and complications belong to the system, so none of them has a row. Every row is form none (S4291): a round screen has no top-right corner and no F1, and CONTEXT-HELP rule 4 is met by a reasoned none. The file stays outside src/main because nothing on the watch reads it.",
+  "scope": "One row per navigation route of the watch app (composable destinations under wear/src/main/java). Dialogs and menus inside a screen are not surfaces, and tiles and complications belong to the system, so none of them has a row. Every row is form none (S4291): a round screen has no top-right corner and no F1, and CONTEXT-HELP rule 4 is met by a reasoned none. Re-read under CONTEXT-HELP 0.4 section 9 item L on 2026-11-14 (S4600): phone and watch share com.sza.fastmediasorter, but inherit needs the companion phone page to name each watch screen and the wear-companion page names the companion panel only, so every row stays none; each reason describes a trivial surface under rule 4. The file stays outside src/main because nothing on the watch reads it.",
   "surfaces": [
     { "id": "WearRoutes.HOME", "name": "Home", "form": "none",
       "reason": "A short list of section entries, each named by its own label; a round screen has no corner for a help action and no keyboard for F1." },
@@ -13,6 +13,8 @@
       "reason": "A plain list of the files the user marked; the list is its own explanation." },
     { "id": "WearRoutes.STREAMS", "name": "Streams", "form": "none",
       "reason": "A scrolling list of streams with labelled search, filter and sort entries; a tap on a row plays it." },
+    { "id": "WearRoutes.BROADCAST_WAITING_PATTERN", "name": "Broadcast waiting", "form": "none",
+      "reason": "One sentence says whether the broadcast has started or the link expired, and a Play chip appears once it is on air." },
     { "id": "WearRoutes.APPS", "name": "Programs", "form": "none",
       "reason": "A launcher list of the watch's mini-programs; every row is the program's name." },
     { "id": "WearRoutes.NETWORK_SOURCES", "name": "Resources", "form": "none",

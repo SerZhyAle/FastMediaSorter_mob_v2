@@ -5,6 +5,7 @@ import android.content.Context
 import android.util.TypedValue
 import android.view.ScaleGestureDetector
 import android.widget.TextView
+import com.sza.fastmediasorter.core.debug.StrictModeHelper
 
 /**
  * S1719: the calculator's history is scaled by a pinch, and the size it lands on is remembered.
@@ -21,9 +22,16 @@ class CalculatorHistoryScaleManager(
     private val history: TextView,
 ) {
 
-    private val prefs = context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    // `attachTo` applies the size before the first frame, so the file cannot be read later: a deferred read
+    // would draw the history at the default size first and then jump. One permit covers the open and the read.
+    private val prefs = StrictModeHelper.allowDiskReads {
+        context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    }
 
-    private var stepIndex: Int = prefs.getInt(KEY_STEP, DEFAULT_STEP_INDEX).coerceIn(0, STEPS_SP.lastIndex)
+    private var stepIndex: Int = StrictModeHelper.allowDiskReads {
+        timber.log.Timber.d("S4678: calculator history step read under a disk-read permit")
+        prefs.getInt(KEY_STEP, DEFAULT_STEP_INDEX).coerceIn(0, STEPS_SP.lastIndex)
+    }
 
     private val detector = ScaleGestureDetector(
         context,

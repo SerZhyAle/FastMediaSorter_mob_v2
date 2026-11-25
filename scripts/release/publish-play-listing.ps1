@@ -5,7 +5,7 @@
 
 .DESCRIPTION
     Wraps publish-play-listing.py. Separate from publish-play-release.ps1 (AAB + changelogs).
-    Reuses the same service-account key (.secrets/play-console-key.json).
+    Uses SZA_PLAY_SERVICE_ACCOUNT_JSON for an existing key file outside the repositories.
 
 .PARAMETER Mode
     validate (default) - push listing+images into an edit and validate, without committing.
@@ -19,10 +19,16 @@
     root (the watch face's play/watchface/listing, S4009) publishes exactly the locale folders it
     holds and leaves every other Play language untouched.
 
+.PARAMETER Preflight
+    Approved application-scoped operation list and first-use evidence. Required for every edit.
+
+.PARAMETER WhatIf
+    Check the local listing and print its operation list without opening a Play edit.
+
 .EXAMPLE
-    pwsh -File scripts/release/publish-play-listing.ps1
-    pwsh -File scripts/release/publish-play-listing.ps1 -Mode commit
-    pwsh -File scripts/release/publish-play-listing.ps1 -Mode validate -Package <face package> -ListingRoot play/watchface/listing
+    pwsh -File scripts/release/publish-play-listing.ps1 -WhatIf
+    pwsh -File scripts/release/publish-play-listing.ps1 -Mode commit -Preflight <approved JSON>
+    pwsh -File scripts/release/publish-play-listing.ps1 -Mode validate -Package <face package> -ListingRoot play/watchface/listing -Preflight <approved JSON>
 
 .NOTES
     Exit codes (mirrors publish-play-listing.py, S2345):
@@ -38,12 +44,13 @@
     the Python side just made and the whole fix becomes invisible to any caller.
 #>
 
-[CmdletBinding()]
+[CmdletBinding(SupportsShouldProcess)]
 param(
     [ValidateSet('validate', 'commit')]
     [string] $Mode = 'validate',
     [string] $Package,
-    [string] $ListingRoot
+    [string] $ListingRoot,
+    [string] $Preflight
 )
 
 $ErrorActionPreference = "Stop"
@@ -62,6 +69,8 @@ Write-Host "Invoking Google Play listing uploader (Mode: $Mode)..." -ForegroundC
 $extraArgs = @()
 if (-not [string]::IsNullOrWhiteSpace($Package)) { $extraArgs += @('--package', $Package) }
 if (-not [string]::IsNullOrWhiteSpace($ListingRoot)) { $extraArgs += @('--listing-root', $ListingRoot) }
+if ($Preflight) { $extraArgs += @('--preflight', $Preflight) }
+if ($WhatIfPreference) { $extraArgs += '--dry-run' }
 & $venvPython $pyScript $Mode @extraArgs
 $pyExit = $LASTEXITCODE
 
@@ -69,7 +78,7 @@ $pyExit = $LASTEXITCODE
 # to carry the distinction outward intact. Anything unexpected is reported as a fault rather than
 # silently promoted to "could not verify" - an unknown code is not evidence of innocence.
 if ($pyExit -eq 2) {
-    Write-Warning "Google Play listing step could NOT be verified (Mode: $Mode). The listing is not implicated - re-run later."
+    Write-Warning "Google Play listing step stopped (Mode: $Mode). Follow the uploader's instructions before another attempt."
     exit 2
 }
 

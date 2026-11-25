@@ -1,16 +1,16 @@
 ---
 layout: doc
-title: "FastMediaSorter VR-редакция"
+title: "Fast Media Sorter & Organizer VR-редакция"
 permalink: /docs/VR_EDITION-ru.html
 ---
 
 <sub class="doc-stamp">26.10.21 15:59</sub>
 
-# FastMediaSorter VR-редакция
+# Fast Media Sorter & Organizer VR-редакция
 
 ## Что такое VR-редакция?
 
-FastMediaSorter VR - выделенная сборка FastMediaSorter для VR-шлемов: Meta Quest 3, Quest Pro, Quest 2 и устройств Android XR. Использует тот же код и те же функции, что и Standard, плюс слой OpenXR для стереоскопического рендеринга в шлеме.
+Fast Media Sorter & Organizer VR - выделенная сборка Fast Media Sorter & Organizer для VR-шлемов: Meta Quest 3, Quest Pro, Quest 2 и устройств Android XR. Использует тот же код и те же функции, что и Standard, плюс слой OpenXR для стереоскопического рендеринга в шлеме.
 
 VR-редакция - не отдельное приложение, а тот же код, собранный как `vr` product flavor с дополнительным слоем OpenXR-рендеринга.
 
